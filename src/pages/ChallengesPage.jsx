@@ -8,6 +8,8 @@ const MAC_SECIMI = `*,
   p1:profiles!matches_oyuncu1_fkey(id, username, avatar_url, puan),
   p2:profiles!matches_oyuncu2_fkey(id, username, avatar_url, puan)`;
 
+const BOT_ID = "b0b00000-0000-4000-8000-000000000001";
+
 export default function ChallengesPage() {
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -15,6 +17,16 @@ export default function ChallengesPage() {
   const [arama, setArama] = useState("");
   const [sonuclar, setSonuclar] = useState([]);
   const [hata, setHata] = useState(null);
+  const [bot, setBot] = useState(null);
+
+  useEffect(() => {
+    supabase
+      .from("profiles")
+      .select("id, username, avatar_url, puan")
+      .eq("id", BOT_ID)
+      .maybeSingle()
+      .then(({ data }) => setBot(data));
+  }, []);
 
   const yukle = useCallback(async () => {
     const { data } = await supabase
@@ -83,6 +95,24 @@ export default function ChallengesPage() {
     <div>
       <div className="baslik">⚔️ Meydan Okuma</div>
       {hata && <div className="hata-kutu">{hata}</div>}
+
+      {bot &&
+        !maclar.some(
+          (m) =>
+            (m.oyuncu1 === BOT_ID || m.oyuncu2 === BOT_ID) &&
+            ["bekliyor", "aktif"].includes(m.durum)
+        ) && (
+          <div className="liste-satir">
+            <Avatar profile={bot} />
+            <div className="bilgi">
+              <div className="isim">{bot.username} 🤖</div>
+              <div className="detay">Her zaman hazır — rakip beklemeden kapış!</div>
+            </div>
+            <button className="btn kucuk" onClick={() => meydanOku(bot.id)}>
+              ⚔️ Meydan Oku
+            </button>
+          </div>
+        )}
 
       <div className="kart">
         <div style={{ fontWeight: 700, marginBottom: 10 }}>Rakip bul</div>
