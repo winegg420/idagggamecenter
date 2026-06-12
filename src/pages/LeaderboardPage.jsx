@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "../lib/supabase.js";
 import { useAuth } from "../context/AuthContext.jsx";
 import Avatar from "../components/Avatar.jsx";
@@ -6,9 +7,21 @@ import RankBadge from "../components/RankBadge.jsx";
 
 export default function LeaderboardPage() {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [sekme, setSekme] = useState("genel");
   const [liste, setListe] = useState([]);
   const [yukleniyor, setYukleniyor] = useState(true);
+  const [hata, setHata] = useState(null);
+
+  const meydanOku = async (hedefId) => {
+    setHata(null);
+    const { data, error } = await supabase.rpc("create_challenge", {
+      p_rakip: hedefId,
+      p_kategori: null,
+    });
+    if (error) setHata(error.message);
+    else if (data) navigate(`/mac/${data}`);
+  };
 
   useEffect(() => {
     const yukle = async () => {
@@ -53,6 +66,7 @@ export default function LeaderboardPage() {
   return (
     <div>
       <div className="baslik">📊 Sıralama</div>
+      {hata && <div className="hata-kutu">{hata}</div>}
       <div className="sekmeler">
         <button
           className={`sekme ${sekme === "genel" ? "aktif" : ""}`}
@@ -103,6 +117,16 @@ export default function LeaderboardPage() {
             <span style={{ fontWeight: 800 }}>
               ⭐ {sekme === "hafta" ? (p.puan_hafta ?? 0) : p.puan}
             </span>
+            {p.id !== user.id && (
+              <button
+                className="btn kucuk"
+                style={{ padding: "7px 10px" }}
+                title="Meydan oku"
+                onClick={() => meydanOku(p.id)}
+              >
+                ⚔️
+              </button>
+            )}
           </div>
         ))
       )}

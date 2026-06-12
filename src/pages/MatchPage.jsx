@@ -8,6 +8,16 @@ const MAC_SECIMI = `*,
   p1:profiles!matches_oyuncu1_fkey(id, username, avatar_url),
   p2:profiles!matches_oyuncu2_fkey(id, username, avatar_url)`;
 
+const EMOJILER = ["👍", "😂", "😮", "😡", "🔥", "😎"];
+const KALIPLAR = [
+  "İyi şanslar!",
+  "Bunu biliyordum!",
+  "Şanslıydın! 😏",
+  "İyi oyun!",
+  "Hadi bakalım!",
+  "Vay be! 🤯",
+];
+
 export default function MatchPage() {
   const { id } = useParams();
   const { user, refreshProfile } = useAuth();
@@ -17,8 +27,29 @@ export default function MatchPage() {
   const [cevapladim, setCevapladim] = useState(false);
   const [jokerKullanildi, setJokerKullanildi] = useState({ elli: false, sure: false });
   const [jokerHata, setJokerHata] = useState(null);
+  const [balonlar, setBalonlar] = useState({}); // { [user_id]: mesaj }
+  const [kaliplarAcik, setKaliplarAcik] = useState(false);
   const advanceKilidi = useRef(false);
   const pollRef = useRef(null);
+  const balonTimer = useRef({});
+
+  const balonGoster = useCallback((kimden, mesaj) => {
+    setBalonlar((b) => ({ ...b, [kimden]: mesaj }));
+    clearTimeout(balonTimer.current[kimden]);
+    balonTimer.current[kimden] = setTimeout(() => {
+      setBalonlar((b) => {
+        const yeni = { ...b };
+        delete yeni[kimden];
+        return yeni;
+      });
+    }, 4000);
+  }, []);
+
+  const mesajGonder = async (mesaj) => {
+    setKaliplarAcik(false);
+    balonGoster(user.id, mesaj);
+    await supabase.rpc("send_match_message", { p_match_id: id, p_mesaj: mesaj });
+  };
 
   useEffect(() => {
     supabase
@@ -67,12 +98,17 @@ export default function MatchPage() {
         { event: "UPDATE", schema: "public", table: "matches", filter: `id=eq.${id}` },
         (payload) => setMac((eski) => ({ ...eski, ...payload.new }))
       )
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "match_messages", filter: `match_id=eq.${id}` },
+        (payload) => balonGoster(payload.new.user_id, payload.new.mesaj)
+      )
       .subscribe();
     return () => {
       supabase.removeChannel(kanal);
       if (pollRef.current) clearInterval(pollRef.current);
     };
-  }, [id, macYukle]);
+  }, [id, macYukle, balonGoster]);
 
   // Soru değişince çek
   useEffect(() => {
@@ -229,6 +265,42 @@ export default function MatchPage() {
           <div className="skor">{rakipSkor}</div>
         </div>
       </div>
+
+      {(balonlar[user.id] || balonlar[rakipProfil?.id]) && (
+        <div className="balon-satir">
+          <div className="balon-yuva">
+            {balonlar[user.id] && <div className="balon">{balonlar[user.id]}</div>}
+          </div>
+          <div className="balon-yuva sag">
+            {balonlar[rakipProfil?.id] && (
+              <div className="balon rakip">{balonlar[rakipProfil?.id]}</div>
+            )}
+          </div>
+        </div>
+      )}
+
+      <div className="sohbet-bar">
+        {EMOJILER.map((e) => (
+          <button key={e} onClick={() => mesajGonder(e)}>
+            {e}
+          </button>
+        ))}
+        <button
+          className={kaliplarAcik ? "acik" : ""}
+          onClick={() => setKaliplarAcik((a) => !a)}
+        >
+          💬
+        </button>
+      </div>
+      {kaliplarAcik && (
+        <div className="kalip-liste">
+          {KALIPLAR.map((k) => (
+            <button key={k} onClick={() => mesajGonder(k)}>
+              {k}
+            </button>
+          ))}
+        </div>
+      )}
 
       {jokerHata && <div className="hata-kutu">{jokerHata}</div>}
 

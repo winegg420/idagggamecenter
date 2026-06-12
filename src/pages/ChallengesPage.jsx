@@ -33,6 +33,7 @@ export default function ChallengesPage() {
   const [sonuclar, setSonuclar] = useState([]);
   const [hata, setHata] = useState(null);
   const [botlar, setBotlar] = useState([]);
+  const [oyuncular, setOyuncular] = useState([]);
   const [kategoriler, setKategoriler] = useState([]);
   const [kategori, setKategori] = useState(null); // null = karışık
 
@@ -44,9 +45,17 @@ export default function ChallengesPage() {
       .order("bot_isabet", { ascending: true })
       .then(({ data }) => setBotlar(data ?? []));
     supabase
+      .from("profiles")
+      .select("id, username, avatar_url, puan")
+      .eq("is_bot", false)
+      .neq("id", user.id)
+      .order("puan", { ascending: false })
+      .limit(20)
+      .then(({ data }) => setOyuncular(data ?? []));
+    supabase
       .rpc("get_categories")
       .then(({ data }) => setKategoriler(data ?? []));
-  }, []);
+  }, [user.id]);
 
   const yukle = useCallback(async () => {
     const { data } = await supabase
@@ -182,6 +191,33 @@ export default function ChallengesPage() {
           </div>
         ))}
       </div>
+
+      {oyuncular.length > 0 && (
+        <>
+          <div className="baslik">🧑‍🤝‍🧑 Oyuncular</div>
+          {oyuncular.map((p) => {
+            const mevcutMac = maclar.some(
+              (m) =>
+                (m.oyuncu1 === p.id || m.oyuncu2 === p.id) &&
+                ["bekliyor", "aktif"].includes(m.durum)
+            );
+            return (
+              <div key={p.id} className="liste-satir">
+                <Avatar profile={p} boyut={38} />
+                <div className="bilgi">
+                  <div className="isim">{p.username}</div>
+                  <div className="detay">⭐ {p.puan}</div>
+                </div>
+                {!mevcutMac && (
+                  <button className="btn kucuk" onClick={() => meydanOku(p.id)}>
+                    ⚔️ Meydan Oku
+                  </button>
+                )}
+              </div>
+            );
+          })}
+        </>
+      )}
 
       {gelen.length > 0 && (
         <>

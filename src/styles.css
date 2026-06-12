@@ -342,6 +342,44 @@ input:focus { border-color: var(--primary); }
 .rozet-ad { font-size: 12px; font-weight: 800; }
 .rozet-aciklama { font-size: 10px; color: var(--text-dim); margin-top: 2px; line-height: 1.3; }
 
+/* ---------- Maç içi sohbet ---------- */
+.sohbet-bar {
+  display: flex; gap: 6px; margin-bottom: 12px; justify-content: center;
+}
+.sohbet-bar button {
+  width: 42px; height: 38px; font-size: 18px; cursor: pointer;
+  background: var(--card); border: 1px solid var(--border); border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+}
+.sohbet-bar button:active { transform: scale(0.92); }
+.sohbet-bar button.acik { border-color: var(--primary); background: rgba(139, 92, 246, 0.15); }
+.kalip-liste {
+  display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; justify-content: center;
+}
+.kalip-liste button {
+  padding: 7px 12px; border-radius: 999px; cursor: pointer; font-size: 13px; font-weight: 600;
+  background: var(--card); border: 1px solid var(--border); color: var(--text);
+}
+@keyframes balon-gir {
+  from { opacity: 0; transform: translateY(6px) scale(0.9); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+.balon-satir {
+  display: flex; justify-content: space-between; gap: 10px; margin: -6px 0 10px;
+}
+.balon-yuva { flex: 1; display: flex; }
+.balon-yuva.sag { justify-content: flex-end; }
+.balon {
+  max-width: 100%; padding: 8px 13px; font-size: 14px; font-weight: 600;
+  background: linear-gradient(135deg, var(--primary), var(--primary-2));
+  color: #fff; border-radius: 14px 14px 14px 4px;
+  animation: balon-gir 0.18s ease-out;
+}
+.balon.rakip {
+  background: var(--bg-3); border: 1px solid var(--border);
+  border-radius: 14px 14px 4px 14px;
+}
+
 /* ---------- Küçük ekranlar ---------- */
 @media (max-width: 380px) {
   .sayfa { padding: 12px; }
