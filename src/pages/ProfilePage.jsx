@@ -12,6 +12,7 @@ export default function ProfilePage() {
   const [hata, setHata] = useState(null);
   const [rozetler, setRozetler] = useState([]);
   const [kazanilan, setKazanilan] = useState(new Set());
+  const [kopyalandi, setKopyalandi] = useState(false);
 
   useEffect(() => {
     supabase.from("badges").select("*").then(({ data }) => setRozetler(data ?? []));
@@ -129,6 +130,34 @@ export default function ProfilePage() {
           </div>
         </div>
       )}
+
+      <div className="kart" style={{ textAlign: "center" }}>
+        <div className="baslik">🎁 Arkadaşını Davet Et</div>
+        <div className="alt-yazi" style={{ marginBottom: 12 }}>
+          Davet linkinle gelen her arkadaş için <b>ikiniz de +50 puan</b> kazanırsınız!
+          {profile.davet_sayisi > 0 && (
+            <> Şu ana kadar {profile.davet_sayisi} kişi davet ettin. 🎉</>
+          )}
+        </div>
+        <button
+          className="btn"
+          onClick={async () => {
+            const link = `${window.location.origin}/?davet=${user.id}`;
+            const mesaj = `Bildim!'de benimle yarışmaya var mısın? 🧠 Bu linkle gel, ikimiz de +50 puan kazanalım: ${link}`;
+            if (navigator.share) {
+              try {
+                await navigator.share({ title: "Bildim!", text: mesaj });
+              } catch { /* vazgeçti */ }
+            } else {
+              await navigator.clipboard.writeText(mesaj);
+              setKopyalandi(true);
+              setTimeout(() => setKopyalandi(false), 2500);
+            }
+          }}
+        >
+          {kopyalandi ? "✅ Kopyalandı!" : "📤 Davet Linkini Paylaş"}
+        </button>
+      </div>
 
       <div className="kart">
         <div className="baslik">

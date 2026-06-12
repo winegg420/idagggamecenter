@@ -185,6 +185,26 @@ export default function MatchPage() {
           >
             🔁 Rövanş
           </button>
+          <button
+            className="btn ikincil"
+            onClick={async () => {
+              const sonucYazi = berabere
+                ? `${rakipProfil?.username} ile ${benimSkor}-${rakipSkor} berabere kaldım`
+                : kazandim
+                  ? `${rakipProfil?.username} karşısında ${benimSkor}-${rakipSkor} kazandım! 🏆`
+                  : `${rakipProfil?.username} karşısında kıl payı kaybettim`;
+              const mesaj = `Bildim!'de ${sonucYazi} 🧠 Sen de gel: ${window.location.origin}/?davet=${user.id}`;
+              if (navigator.share) {
+                try {
+                  await navigator.share({ title: "Bildim!", text: mesaj });
+                } catch { /* vazgeçti */ }
+              } else {
+                await navigator.clipboard.writeText(mesaj);
+              }
+            }}
+          >
+            📤 Sonucu Paylaş
+          </button>
           <button className="btn ikincil" onClick={() => navigate("/meydan")}>
             ← Meydan okumalara dön
           </button>

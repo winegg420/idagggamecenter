@@ -20,6 +20,13 @@ export default function LeaderboardPage() {
           .order("puan", { ascending: false })
           .limit(50);
         setListe(data ?? []);
+      } else if (sekme === "hafta") {
+        const { data } = await supabase
+          .from("profiles")
+          .select("id, username, avatar_url, puan, puan_hafta, sampiyonluk")
+          .order("puan_hafta", { ascending: false })
+          .limit(50);
+        setListe(data ?? []);
       } else {
         const { data: dostluklar } = await supabase
           .from("friendships")
@@ -52,6 +59,12 @@ export default function LeaderboardPage() {
           onClick={() => setSekme("genel")}
         >
           🌍 Genel
+        </button>
+        <button
+          className={`sekme ${sekme === "hafta" ? "aktif" : ""}`}
+          onClick={() => setSekme("hafta")}
+        >
+          📅 Bu Hafta
         </button>
         <button
           className={`sekme ${sekme === "arkadas" ? "aktif" : ""}`}
@@ -87,7 +100,9 @@ export default function LeaderboardPage() {
                 {p.sampiyonluk > 0 && <span> · 🏆 {p.sampiyonluk}</span>}
               </div>
             </div>
-            <span style={{ fontWeight: 800 }}>⭐ {p.puan}</span>
+            <span style={{ fontWeight: 800 }}>
+              ⭐ {sekme === "hafta" ? (p.puan_hafta ?? 0) : p.puan}
+            </span>
           </div>
         ))
       )}
