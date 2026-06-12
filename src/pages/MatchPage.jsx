@@ -16,6 +16,8 @@ const KALIPLAR = [
   "İyi oyun!",
   "Hadi bakalım!",
   "Vay be! 🤯",
+  "AĞLAMA 😂",
+  "HAHAHAHAHA",
 ];
 
 export default function MatchPage() {
