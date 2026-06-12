@@ -56,6 +56,13 @@ export default function Home() {
     }
   };
 
+  const hemenOyna = async () => {
+    setMesaj(null);
+    const { data, error } = await supabase.rpc("quick_match");
+    if (error) setMesaj(error.message);
+    else if (data) navigate(`/mac/${data}`);
+  };
+
   return (
     <div>
       <div className="geri-sayim-kart">
@@ -92,10 +99,21 @@ export default function Home() {
         )}
       </div>
 
+      <button className="btn" style={{ marginBottom: 14, padding: "16px 20px", fontSize: 17 }} onClick={hemenOyna}>
+        ⚡ Hemen Oyna
+      </button>
+
       <div className="kart" style={{ display: "flex", alignItems: "center", gap: 12 }}>
         <Avatar profile={profile} boyut={52} />
         <div style={{ flex: 1 }}>
-          <div style={{ fontWeight: 800, fontSize: 16 }}>{profile?.username}</div>
+          <div style={{ fontWeight: 800, fontSize: 16 }}>
+            {profile?.username}
+            {(profile?.seri ?? 0) > 0 && (
+              <span className="rutbe-chip" style={{ marginLeft: 8, color: "var(--accent)" }}>
+                🔥 {profile.seri} gün
+              </span>
+            )}
+          </div>
           <RankBadge puan={profile?.puan} />
         </div>
         <Link to="/meydan">

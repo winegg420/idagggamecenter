@@ -8,7 +8,12 @@ const MAC_SECIMI = `*,
   p1:profiles!matches_oyuncu1_fkey(id, username, avatar_url, puan),
   p2:profiles!matches_oyuncu2_fkey(id, username, avatar_url, puan)`;
 
-const BOT_ID = "b0b00000-0000-4000-8000-000000000001";
+const botZorluk = (isabet) =>
+  isabet <= 0.45
+    ? { etiket: "Kolay", renk: "var(--success)" }
+    : isabet <= 0.75
+      ? { etiket: "Orta", renk: "var(--accent)" }
+      : { etiket: "Zor", renk: "var(--danger)" };
 
 export default function ChallengesPage() {
   const { user } = useAuth();
@@ -17,15 +22,15 @@ export default function ChallengesPage() {
   const [arama, setArama] = useState("");
   const [sonuclar, setSonuclar] = useState([]);
   const [hata, setHata] = useState(null);
-  const [bot, setBot] = useState(null);
+  const [botlar, setBotlar] = useState([]);
 
   useEffect(() => {
     supabase
       .from("profiles")
-      .select("id, username, avatar_url, puan")
-      .eq("id", BOT_ID)
-      .maybeSingle()
-      .then(({ data }) => setBot(data));
+      .select("id, username, avatar_url, puan, bot_isabet")
+      .eq("is_bot", true)
+      .order("bot_isabet", { ascending: true })
+      .then(({ data }) => setBotlar(data ?? []));
   }, []);
 
   const yukle = useCallback(async () => {
@@ -96,23 +101,32 @@ export default function ChallengesPage() {
       <div className="baslik">⚔️ Meydan Okuma</div>
       {hata && <div className="hata-kutu">{hata}</div>}
 
-      {bot &&
-        !maclar.some(
-          (m) =>
-            (m.oyuncu1 === BOT_ID || m.oyuncu2 === BOT_ID) &&
-            ["bekliyor", "aktif"].includes(m.durum)
-        ) && (
-          <div className="liste-satir">
-            <Avatar profile={bot} />
-            <div className="bilgi">
-              <div className="isim">{bot.username} 🤖</div>
-              <div className="detay">Her zaman hazır — rakip beklemeden kapış!</div>
+      {botlar
+        .filter(
+          (b) =>
+            !maclar.some(
+              (m) =>
+                (m.oyuncu1 === b.id || m.oyuncu2 === b.id) &&
+                ["bekliyor", "aktif"].includes(m.durum)
+            )
+        )
+        .map((b) => {
+          const z = botZorluk(b.bot_isabet);
+          return (
+            <div key={b.id} className="liste-satir">
+              <Avatar profile={b} />
+              <div className="bilgi">
+                <div className="isim">{b.username} 🤖</div>
+                <div className="detay">
+                  Zorluk: <span style={{ color: z.renk, fontWeight: 700 }}>{z.etiket}</span> · her zaman hazır
+                </div>
+              </div>
+              <button className="btn kucuk" onClick={() => meydanOku(b.id)}>
+                ⚔️ Meydan Oku
+              </button>
             </div>
-            <button className="btn kucuk" onClick={() => meydanOku(bot.id)}>
-              ⚔️ Meydan Oku
-            </button>
-          </div>
-        )}
+          );
+        })}
 
       <div className="kart">
         <div style={{ fontWeight: 700, marginBottom: 10 }}>Rakip bul</div>

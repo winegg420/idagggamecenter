@@ -1,0 +1,18 @@
+{
+  "permissions": {
+    "defaultMode": "bypassPermissions",
+    "allow": [
+      "PowerShell(Get-Process *)",
+      "PowerShell(Get-Content *)",
+      "PowerShell(Get-ChildItem *)",
+      "PowerShell(Get-Item *)",
+      "PowerShell(Get-Command *)",
+      "PowerShell(Select-String *)",
+      "PowerShell(Start-Sleep *)",
+      "PowerShell(Set-Location *)",
+      "PowerShell(Test-Path *)",
+      "PowerShell(Write-Output *)",
+      "Bash(tasklist *)"
+    ]
+  }
+}

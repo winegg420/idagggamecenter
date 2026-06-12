@@ -141,9 +141,23 @@ export default function MatchPage() {
             <div className="skor">{rakipSkor}</div>
           </div>
         </div>
-        <button className="btn" onClick={() => navigate("/meydan")}>
-          ← Meydan okumalara dön
-        </button>
+        <div style={{ display: "flex", flexDirection: "column", gap: 10, maxWidth: 340, margin: "20px auto 0" }}>
+          <button
+            className="btn"
+            onClick={async () => {
+              const { data, error } = await supabase.rpc("create_challenge", {
+                p_rakip: rakipProfil.id,
+              });
+              if (!error && data) navigate(`/mac/${data}`);
+              else navigate("/meydan");
+            }}
+          >
+            🔁 Rövanş
+          </button>
+          <button className="btn ikincil" onClick={() => navigate("/meydan")}>
+            ← Meydan okumalara dön
+          </button>
+        </div>
       </div>
     );
   }

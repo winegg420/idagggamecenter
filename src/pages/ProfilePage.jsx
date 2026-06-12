@@ -90,6 +90,10 @@ export default function ProfilePage() {
             <div style={{ fontSize: 26, fontWeight: 900 }}>🏆 {profile.sampiyonluk}</div>
             <div className="alt-yazi">Şampiyonluk</div>
           </div>
+          <div>
+            <div style={{ fontSize: 26, fontWeight: 900 }}>🔥 {profile.seri ?? 0}</div>
+            <div className="alt-yazi">Günlük Seri</div>
+          </div>
         </div>
       </div>
 
