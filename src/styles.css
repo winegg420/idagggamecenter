@@ -20,14 +20,25 @@
 
 html, body, #root { height: 100%; }
 
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+
 body {
   font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
   background: radial-gradient(1200px 600px at 50% -200px, #2a1d5e 0%, var(--bg) 55%);
   color: var(--text);
   -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
+  overscroll-behavior-y: contain; /* maç sırasında yanlışlıkla sayfa yenilenmesin */
 }
 
 button { font-family: inherit; }
+
+/* Dokunmatikte çift dokunma yakınlaştırmasını ve seçim vurgusunu kapat */
+button, a, .secenek {
+  touch-action: manipulation;
+  -webkit-user-select: none;
+  user-select: none;
+}
 
 .app {
   max-width: 540px;
@@ -35,7 +46,7 @@ button { font-family: inherit; }
   min-height: 100dvh;
   display: flex;
   flex-direction: column;
-  padding-bottom: 78px; /* alt menü payı */
+  padding-bottom: calc(78px + env(safe-area-inset-bottom)); /* alt menü payı */
 }
 
 .sayfa { padding: 16px; flex: 1; }
@@ -43,7 +54,7 @@ button { font-family: inherit; }
 /* ---------- Üst bar ---------- */
 .topbar {
   display: flex; align-items: center; justify-content: space-between;
-  padding: 14px 16px 6px;
+  padding: max(14px, env(safe-area-inset-top)) 16px 6px; /* çentikli telefonlar */
 }
 .logo {
   font-size: 26px; font-weight: 900; letter-spacing: -0.5px;
@@ -70,7 +81,8 @@ button { font-family: inherit; }
 .tabbar a {
   display: flex; flex-direction: column; align-items: center; gap: 2px;
   color: var(--text-dim); text-decoration: none; font-size: 11px; font-weight: 600;
-  padding: 4px 10px; border-radius: 10px; position: relative;
+  padding: 4px 6px; border-radius: 10px; position: relative;
+  white-space: nowrap; flex: 1; min-width: 0;
 }
 .tabbar a.aktif { color: var(--primary); }
 .tabbar a .ikon { font-size: 22px; }
@@ -113,7 +125,7 @@ input[type="text"], input[type="email"] {
   width: 100%; padding: 12px 14px;
   background: var(--bg-2); color: var(--text);
   border: 1px solid var(--border); border-radius: 12px;
-  font-size: 15px; outline: none;
+  font-size: 16px; outline: none; /* 16px: iOS odaklanınca yakınlaştırmasın */
 }
 input:focus { border-color: var(--primary); }
 
@@ -137,7 +149,10 @@ input:focus { border-color: var(--primary); }
   font-size: 15px; font-weight: 600; cursor: pointer;
   transition: background 0.15s;
 }
-.sosyal-btn:hover { background: var(--bg-3); }
+@media (hover: hover) {
+  .sosyal-btn:hover { background: var(--bg-3); }
+}
+.sosyal-btn:active { background: var(--bg-3); transform: scale(0.98); }
 .ayrac { display: flex; align-items: center; gap: 12px; width: 100%; max-width: 340px; color: var(--text-dim); font-size: 12px; margin: 10px 0; }
 .ayrac::before, .ayrac::after { content: ""; flex: 1; height: 1px; background: var(--border); }
 
@@ -192,7 +207,10 @@ input:focus { border-color: var(--primary); }
   display: flex; align-items: center; justify-content: center;
   background: var(--bg-3); border-radius: 9px; font-weight: 800; font-size: 13px;
 }
-.secenek:not(:disabled):hover { border-color: var(--primary); }
+@media (hover: hover) {
+  .secenek:not(:disabled):hover { border-color: var(--primary); }
+}
+.secenek:not(:disabled):active { border-color: var(--primary); transform: scale(0.99); }
 .secenek.secili { border-color: var(--primary); background: rgba(139, 92, 246, 0.12); }
 .secenek.dogru { border-color: var(--success); background: rgba(34, 197, 94, 0.14); }
 .secenek.yanlis { border-color: var(--danger); background: rgba(239, 68, 68, 0.14); }
@@ -279,4 +297,26 @@ input:focus { border-color: var(--primary); }
 .canli-nokta {
   display: inline-block; width: 8px; height: 8px; border-radius: 50%;
   background: var(--success); margin-right: 6px; animation: nabiz 1.2s infinite;
+}
+
+/* ---------- Küçük ekranlar ---------- */
+@media (max-width: 380px) {
+  .sayfa { padding: 12px; }
+  .gs-kutu { width: 64px; }
+  .gs-kutu .deger { font-size: 24px; }
+  .soru-metin { font-size: 17px; min-height: 72px; }
+  .secenek { padding: 12px 13px; font-size: 14px; }
+  .skor-tabela .taraf .skor { font-size: 24px; }
+  .giris .buyuk-logo { font-size: 44px; }
+  .tabbar a { font-size: 10px; padding: 4px 2px; }
+  .tabbar a .ikon { font-size: 20px; }
+  .buyuk-mesaj .emoji { font-size: 52px; }
+  .buyuk-mesaj h2 { font-size: 20px; }
+}
+
+/* Klavye açıkken giriş formu sıkışmasın */
+@media (max-height: 600px) {
+  .giris { justify-content: flex-start; padding-top: 40px; }
+  .giris .buyuk-logo { font-size: 40px; }
+  .giris .slogan { margin-bottom: 14px; }
 }
