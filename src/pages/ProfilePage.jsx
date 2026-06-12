@@ -89,14 +89,14 @@ export default function ProfilePage() {
           <>
             <div style={{ fontSize: 22, fontWeight: 900 }}>{profile.username}</div>
             <button
-              className="alt-yazi"
-              style={{ background: "none", border: "none", cursor: "pointer", marginTop: 2 }}
+              className="btn kucuk ikincil"
+              style={{ marginTop: 10 }}
               onClick={() => {
                 setYeniAd(profile.username);
                 setDuzenle(true);
               }}
             >
-              ✏️ adı düzenle
+              ✏️ Kullanıcı Adını Değiştir
             </button>
           </>
         )}
