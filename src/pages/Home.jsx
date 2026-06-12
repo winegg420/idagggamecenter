@@ -8,8 +8,11 @@ import RankBadge from "../components/RankBadge.jsx";
 import { pushDestekleniyor, bildirimleriAc } from "../lib/push.js";
 
 export default function Home() {
-  const { user, profile } = useAuth();
+  const { user, profile, refreshProfile } = useAuth();
   const navigate = useNavigate();
+  const [adDuzenle, setAdDuzenle] = useState(false);
+  const [yeniAd, setYeniAd] = useState("");
+  const [adHata, setAdHata] = useState(null);
   const [lobide, setLobide] = useState(false);
   const [lobiSayisi, setLobiSayisi] = useState(0);
   const [canliTurnuva, setCanliTurnuva] = useState(false);
@@ -73,6 +76,25 @@ export default function Home() {
     const { data, error } = await supabase.rpc("quick_match");
     if (error) setMesaj(error.message);
     else if (data) navigate(`/mac/${data}`);
+  };
+
+  const adKaydet = async () => {
+    setAdHata(null);
+    const ad = yeniAd.trim();
+    if (ad.length < 3) {
+      setAdHata("Kullanıcı adı en az 3 karakter olmalı.");
+      return;
+    }
+    const { error } = await supabase
+      .from("profiles")
+      .update({ username: ad })
+      .eq("id", user.id);
+    if (error) {
+      setAdHata(error.code === "23505" ? "Bu kullanıcı adı alınmış." : error.message);
+    } else {
+      setAdDuzenle(false);
+      refreshProfile(user.id);
+    }
   };
 
   return (
@@ -146,20 +168,59 @@ export default function Home() {
 
       <div className="kart" style={{ display: "flex", alignItems: "center", gap: 12 }}>
         <Avatar profile={profile} boyut={52} />
-        <div style={{ flex: 1 }}>
-          <div style={{ fontWeight: 800, fontSize: 16 }}>
-            {profile?.username}
-            {(profile?.seri ?? 0) > 0 && (
-              <span className="rutbe-chip" style={{ marginLeft: 8, color: "var(--accent)" }}>
-                🔥 {profile.seri} gün
-              </span>
-            )}
-          </div>
-          <RankBadge puan={profile?.puan} />
+        <div style={{ flex: 1, minWidth: 0 }}>
+          {adDuzenle ? (
+            <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+              <div style={{ display: "flex", gap: 6 }}>
+                <input
+                  type="text"
+                  value={yeniAd}
+                  maxLength={24}
+                  autoFocus
+                  onChange={(e) => setYeniAd(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && adKaydet()}
+                  style={{ padding: "8px 10px", fontSize: 15 }}
+                />
+                <button className="btn kucuk" onClick={adKaydet}>✓</button>
+                <button
+                  className="btn kucuk ikincil"
+                  onClick={() => {
+                    setAdDuzenle(false);
+                    setAdHata(null);
+                  }}
+                >
+                  ✕
+                </button>
+              </div>
+              {adHata && <div className="alt-yazi" style={{ color: "var(--danger)" }}>{adHata}</div>}
+            </div>
+          ) : (
+            <div style={{ fontWeight: 800, fontSize: 16, display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
+              <span style={{ overflow: "hidden", textOverflow: "ellipsis" }}>{profile?.username}</span>
+              <button
+                title="Adını değiştir"
+                style={{ background: "none", border: "none", cursor: "pointer", fontSize: 15, padding: 2 }}
+                onClick={() => {
+                  setYeniAd(profile?.username ?? "");
+                  setAdDuzenle(true);
+                }}
+              >
+                ✏️
+              </button>
+              {(profile?.seri ?? 0) > 0 && (
+                <span className="rutbe-chip" style={{ color: "var(--accent)" }}>
+                  🔥 {profile.seri} gün
+                </span>
+              )}
+            </div>
+          )}
+          {!adDuzenle && <RankBadge puan={profile?.puan} />}
         </div>
-        <Link to="/meydan">
-          <button className="btn kucuk">⚔️ Meydan Oku</button>
-        </Link>
+        {!adDuzenle && (
+          <Link to="/meydan">
+            <button className="btn kucuk">⚔️ Meydan Oku</button>
+          </Link>
+        )}
       </div>
 
       <div className="kart">
