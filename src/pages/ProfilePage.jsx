@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabase.js";
 import { useAuth } from "../context/AuthContext.jsx";
 import Avatar from "../components/Avatar.jsx";
@@ -10,6 +10,17 @@ export default function ProfilePage() {
   const [duzenle, setDuzenle] = useState(false);
   const [yeniAd, setYeniAd] = useState("");
   const [hata, setHata] = useState(null);
+  const [rozetler, setRozetler] = useState([]);
+  const [kazanilan, setKazanilan] = useState(new Set());
+
+  useEffect(() => {
+    supabase.from("badges").select("*").then(({ data }) => setRozetler(data ?? []));
+    supabase
+      .from("user_badges")
+      .select("badge_id")
+      .eq("user_id", user.id)
+      .then(({ data }) => setKazanilan(new Set((data ?? []).map((b) => b.badge_id))));
+  }, [user.id]);
 
   if (!profile) return <div className="yukleniyor">Yükleniyor…</div>;
 
@@ -118,6 +129,24 @@ export default function ProfilePage() {
           </div>
         </div>
       )}
+
+      <div className="kart">
+        <div className="baslik">
+          🏅 Rozetler ({kazanilan.size}/{rozetler.length})
+        </div>
+        <div className="rozet-grid">
+          {rozetler.map((r) => {
+            const var_mi = kazanilan.has(r.id);
+            return (
+              <div key={r.id} className={`rozet ${var_mi ? "" : "kilitli"}`}>
+                <div className="rozet-ikon">{var_mi ? r.ikon : "🔒"}</div>
+                <div className="rozet-ad">{r.ad}</div>
+                <div className="rozet-aciklama">{r.aciklama}</div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
 
       <button className="btn tehlike" onClick={signOut}>
         Çıkış Yap

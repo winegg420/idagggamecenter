@@ -15,8 +15,38 @@ export default function MatchPage() {
   const [mac, setMac] = useState(null);
   const [soru, setSoru] = useState(null);
   const [cevapladim, setCevapladim] = useState(false);
+  const [jokerKullanildi, setJokerKullanildi] = useState({ elli: false, sure: false });
+  const [jokerHata, setJokerHata] = useState(null);
   const advanceKilidi = useRef(false);
   const pollRef = useRef(null);
+
+  useEffect(() => {
+    supabase
+      .from("match_jokers")
+      .select("tip")
+      .eq("match_id", id)
+      .eq("user_id", user.id)
+      .then(({ data }) => {
+        const k = { elli: false, sure: false };
+        (data ?? []).forEach((j) => (k[j.tip] = true));
+        setJokerKullanildi(k);
+      });
+  }, [id, user.id]);
+
+  const jokerKullan = async (tip) => {
+    setJokerHata(null);
+    const { data, error } = await supabase.rpc("use_joker", {
+      p_match_id: id,
+      p_tip: tip,
+    });
+    if (error) {
+      setJokerHata(error.message);
+      return null;
+    }
+    setJokerKullanildi((k) => ({ ...k, [tip]: true }));
+    refreshProfile(user.id);
+    return data;
+  };
 
   const macYukle = useCallback(async () => {
     const { data } = await supabase
@@ -58,7 +88,7 @@ export default function MatchPage() {
       .then(({ data, error }) => {
         if (!error && data?.[0]) setSoru(data[0]);
       });
-  }, [mac?.id, mac?.durum, mac?.aktif_soru]);
+  }, [mac?.id, mac?.durum, mac?.aktif_soru, mac?.soru_baslangic]);
 
   // Maç bitince puan tazele
   useEffect(() => {
@@ -147,6 +177,7 @@ export default function MatchPage() {
             onClick={async () => {
               const { data, error } = await supabase.rpc("create_challenge", {
                 p_rakip: rakipProfil.id,
+                p_kategori: mac.kategori,
               });
               if (!error && data) navigate(`/mac/${data}`);
               else navigate("/meydan");
@@ -179,12 +210,15 @@ export default function MatchPage() {
         </div>
       </div>
 
+      {jokerHata && <div className="hata-kutu">{jokerHata}</div>}
+
       {soru && (
         <QuestionCard
           key={`${mac.id}-${mac.aktif_soru}`}
           soru={soru}
           onCevapla={cevapla}
           onSureDoldu={sureDoldu}
+          jokerler={{ kullanildi: jokerKullanildi, onKullan: jokerKullan }}
         />
       )}
 

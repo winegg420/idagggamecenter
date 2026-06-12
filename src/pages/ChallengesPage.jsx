@@ -15,6 +15,16 @@ const botZorluk = (isabet) =>
       ? { etiket: "Orta", renk: "var(--accent)" }
       : { etiket: "Zor", renk: "var(--danger)" };
 
+const KATEGORI_ETIKET = {
+  genel: "🎲 Genel",
+  bilim: "🔬 Bilim",
+  cografya: "🌍 Coğrafya",
+  tarih: "🏛️ Tarih",
+  edebiyat: "📚 Edebiyat",
+  spor: "⚽ Spor",
+  sanat: "🎨 Sanat",
+};
+
 export default function ChallengesPage() {
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -23,6 +33,8 @@ export default function ChallengesPage() {
   const [sonuclar, setSonuclar] = useState([]);
   const [hata, setHata] = useState(null);
   const [botlar, setBotlar] = useState([]);
+  const [kategoriler, setKategoriler] = useState([]);
+  const [kategori, setKategori] = useState(null); // null = karışık
 
   useEffect(() => {
     supabase
@@ -31,6 +43,9 @@ export default function ChallengesPage() {
       .eq("is_bot", true)
       .order("bot_isabet", { ascending: true })
       .then(({ data }) => setBotlar(data ?? []));
+    supabase
+      .rpc("get_categories")
+      .then(({ data }) => setKategoriler(data ?? []));
   }, []);
 
   const yukle = useCallback(async () => {
@@ -69,7 +84,10 @@ export default function ChallengesPage() {
 
   const meydanOku = async (hedefId) => {
     setHata(null);
-    const { error } = await supabase.rpc("create_challenge", { p_rakip: hedefId });
+    const { error } = await supabase.rpc("create_challenge", {
+      p_rakip: hedefId,
+      p_kategori: kategori,
+    });
     if (error) setHata(error.message);
     else {
       setArama("");
@@ -100,6 +118,24 @@ export default function ChallengesPage() {
     <div>
       <div className="baslik">⚔️ Meydan Okuma</div>
       {hata && <div className="hata-kutu">{hata}</div>}
+
+      <div className="kategori-cips">
+        <button
+          className={`cip ${kategori === null ? "aktif" : ""}`}
+          onClick={() => setKategori(null)}
+        >
+          🎯 Karışık
+        </button>
+        {kategoriler.map((k) => (
+          <button
+            key={k.kategori}
+            className={`cip ${kategori === k.kategori ? "aktif" : ""}`}
+            onClick={() => setKategori(k.kategori)}
+          >
+            {KATEGORI_ETIKET[k.kategori] ?? k.kategori}
+          </button>
+        ))}
+      </div>
 
       {botlar
         .filter(

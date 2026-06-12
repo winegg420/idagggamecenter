@@ -11,11 +11,12 @@ const SURE = 15;
  * onCevapla(cevapIndex) -> { dogru, dogru_cevap } döndüren async fonksiyon
  * onSureDoldu() -> süre bitince çağrılır (advance tetikler)
  */
-export default function QuestionCard({ soru, onCevapla, onSureDoldu }) {
+export default function QuestionCard({ soru, onCevapla, onSureDoldu, jokerler }) {
   const [kalan, setKalan] = useState(SURE);
   const [secim, setSecim] = useState(null);
   const [sonuc, setSonuc] = useState(null); // { dogru, dogru_cevap }
   const [oy, setOy] = useState(null);
+  const [kapali, setKapali] = useState([]); // 50:50 ile elenen şıklar
   const sureDolduMu = useRef(false);
 
   // Yeni soru geldiğinde durumu sıfırla
@@ -23,6 +24,7 @@ export default function QuestionCard({ soru, onCevapla, onSureDoldu }) {
     setSecim(null);
     setSonuc(null);
     setOy(null);
+    setKapali([]);
     sureDolduMu.current = false;
   }, [soru?.question_id, soru?.soru_index]);
 
@@ -76,6 +78,7 @@ export default function QuestionCard({ soru, onCevapla, onSureDoldu }) {
       <div className="soru-metin">{soru.soru}</div>
       <div className="secenekler">
         {secenekler.map((s, i) => {
+          const elendi = kapali.includes(i);
           let sinif = "secenek";
           if (sonuc) {
             if (i === sonuc.dogru_cevap) sinif += " dogru";
@@ -83,11 +86,12 @@ export default function QuestionCard({ soru, onCevapla, onSureDoldu }) {
           } else if (i === secim) {
             sinif += " secili";
           }
+          if (elendi) sinif += " elendi";
           return (
             <button
               key={i}
               className={sinif}
-              disabled={secim !== null || kalan <= 0}
+              disabled={secim !== null || kalan <= 0 || elendi}
               onClick={() => cevapla(i)}
             >
               <span className="harf">{HARFLER[i]}</span>
@@ -96,6 +100,26 @@ export default function QuestionCard({ soru, onCevapla, onSureDoldu }) {
           );
         })}
       </div>
+
+      {jokerler && !sonuc && secim === null && kalan > 0 && (
+        <div className="joker-bar">
+          <button
+            disabled={jokerler.kullanildi.elli || kapali.length > 0}
+            onClick={async () => {
+              const r = await jokerler.onKullan("elli");
+              if (r?.kapali) setKapali(r.kapali);
+            }}
+          >
+            ⚖️ 50:50 <span className="bedel">30⭐</span>
+          </button>
+          <button
+            disabled={jokerler.kullanildi.sure}
+            onClick={() => jokerler.onKullan("sure")}
+          >
+            ⏱️ +10 sn <span className="bedel">20⭐</span>
+          </button>
+        </div>
+      )}
 
       {sonuc && (
         <div className="adil-oylama">
