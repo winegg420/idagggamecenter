@@ -1,0 +1,27 @@
+# Bildim! Supabase yapılandırması
+project_id = "bildim"
+
+[functions.generate-questions]
+verify_jwt = false
+
+# --- Sosyal giriş sağlayıcıları ---
+# Etkinleştirmek için Supabase Dashboard > Authentication > Providers bölümünden
+# Google, Facebook ve Twitter/X için Client ID + Secret girin.
+# (Instagram desteklenmiyor ve bilinçli olarak eklenmedi.)
+#
+# Yerel geliştirme için aşağıyı açıp .env dosyasına anahtarları koyabilirsiniz:
+#
+# [auth.external.google]
+# enabled = true
+# client_id = "env(GOOGLE_CLIENT_ID)"
+# secret = "env(GOOGLE_SECRET)"
+#
+# [auth.external.facebook]
+# enabled = true
+# client_id = "env(FACEBOOK_CLIENT_ID)"
+# secret = "env(FACEBOOK_SECRET)"
+#
+# [auth.external.twitter]
+# enabled = true
+# client_id = "env(TWITTER_CLIENT_ID)"
+# secret = "env(TWITTER_SECRET)"
