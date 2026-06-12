@@ -5,6 +5,7 @@ import { useAuth } from "../context/AuthContext.jsx";
 import Countdown from "../components/Countdown.jsx";
 import Avatar from "../components/Avatar.jsx";
 import RankBadge from "../components/RankBadge.jsx";
+import { pushDestekleniyor, bildirimleriAc } from "../lib/push.js";
 
 export default function Home() {
   const { user, profile } = useAuth();
@@ -14,6 +15,17 @@ export default function Home() {
   const [canliTurnuva, setCanliTurnuva] = useState(false);
   const [top5, setTop5] = useState([]);
   const [mesaj, setMesaj] = useState(null);
+  const [bildirimSor, setBildirimSor] = useState(false);
+
+  useEffect(() => {
+    if (
+      pushDestekleniyor() &&
+      Notification.permission === "default" &&
+      !localStorage.getItem("bildim_bildirim_sorma")
+    ) {
+      setBildirimSor(true);
+    }
+  }, []);
 
   useEffect(() => {
     const yukle = async () => {
@@ -65,6 +77,35 @@ export default function Home() {
 
   return (
     <div>
+      {bildirimSor && (
+        <div className="kart" style={{ display: "flex", alignItems: "center", gap: 12 }}>
+          <div style={{ fontSize: 24 }}>🔔</div>
+          <div style={{ flex: 1, fontSize: 13 }}>
+            Turnuva başlarken haber verelim mi?
+          </div>
+          <button
+            className="btn kucuk"
+            onClick={async () => {
+              try {
+                await bildirimleriAc();
+              } catch { /* reddetti */ }
+              setBildirimSor(false);
+            }}
+          >
+            Aç
+          </button>
+          <button
+            className="btn kucuk ikincil"
+            onClick={() => {
+              localStorage.setItem("bildim_bildirim_sorma", "1");
+              setBildirimSor(false);
+            }}
+          >
+            Sonra
+          </button>
+        </div>
+      )}
+
       <div className="geri-sayim-kart">
         <div style={{ fontSize: 14, fontWeight: 700, color: "var(--accent)" }}>
           🌙 GECE TURNUVASI

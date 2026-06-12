@@ -4,6 +4,12 @@ import { useAuth } from "../context/AuthContext.jsx";
 import Avatar from "../components/Avatar.jsx";
 import RankBadge from "../components/RankBadge.jsx";
 import { rutbeBul, sonrakiRutbe } from "../lib/ranks.js";
+import {
+  pushDestekleniyor,
+  pushDurumu,
+  bildirimleriAc,
+  bildirimleriKapat,
+} from "../lib/push.js";
 
 export default function ProfilePage() {
   const { user, profile, refreshProfile, signOut } = useAuth();
@@ -13,6 +19,12 @@ export default function ProfilePage() {
   const [rozetler, setRozetler] = useState([]);
   const [kazanilan, setKazanilan] = useState(new Set());
   const [kopyalandi, setKopyalandi] = useState(false);
+  const [bildirim, setBildirim] = useState("kapali");
+  const [bildirimHata, setBildirimHata] = useState(null);
+
+  useEffect(() => {
+    pushDurumu().then(setBildirim);
+  }, []);
 
   useEffect(() => {
     supabase.from("badges").select("*").then(({ data }) => setRozetler(data ?? []));
@@ -128,6 +140,45 @@ export default function ProfilePage() {
               }}
             />
           </div>
+        </div>
+      )}
+
+      {pushDestekleniyor() && bildirim !== "desteklenmiyor" && (
+        <div className="kart" style={{ display: "flex", alignItems: "center", gap: 12 }}>
+          <div style={{ fontSize: 26 }}>🔔</div>
+          <div style={{ flex: 1 }}>
+            <div style={{ fontWeight: 700, fontSize: 14 }}>Bildirimler</div>
+            <div className="alt-yazi">
+              {bildirim === "acik"
+                ? "Açık — turnuva ve meydan okumalardan haberin olur."
+                : bildirim === "engelli"
+                  ? "Tarayıcı ayarlarından engellenmiş."
+                  : "Turnuva başlarken ve sana meydan okununca haber verelim."}
+            </div>
+            {bildirimHata && <div className="hata-kutu" style={{ marginTop: 6 }}>{bildirimHata}</div>}
+          </div>
+          {bildirim !== "engelli" && (
+            <button
+              className={`btn kucuk ${bildirim === "acik" ? "ikincil" : ""}`}
+              onClick={async () => {
+                setBildirimHata(null);
+                try {
+                  if (bildirim === "acik") {
+                    await bildirimleriKapat();
+                    setBildirim("kapali");
+                  } else {
+                    await bildirimleriAc();
+                    setBildirim("acik");
+                  }
+                } catch (e) {
+                  setBildirimHata(e.message);
+                  setBildirim(await pushDurumu());
+                }
+              }}
+            >
+              {bildirim === "acik" ? "Kapat" : "Aç"}
+            </button>
+          )}
         </div>
       )}
 
