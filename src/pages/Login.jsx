@@ -30,7 +30,7 @@ export default function Login() {
     <div className="giris">
       <div className="buyuk-logo">Bildim!</div>
       <div className="slogan">
-        Her gece 22:00'de büyük turnuva.
+        Her gün 10:00 ve 22:00'de büyük turnuva.
         <br />
         7/24 meydan okumalar. Sen de yerini al! 🔥
       </div>

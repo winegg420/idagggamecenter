@@ -2,6 +2,7 @@ import { Outlet, NavLink, Link } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { useAuth } from "../context/AuthContext.jsx";
 import { supabase } from "../lib/supabase.js";
+import RankUpOverlay from "./RankUpOverlay.jsx";
 
 export default function Layout() {
   const { profile, user } = useAuth();
@@ -50,6 +51,7 @@ export default function Layout() {
 
   return (
     <div className="app">
+      <RankUpOverlay />
       <header className="topbar">
         <Link to="/" style={{ textDecoration: "none" }}>
           <span className="logo">Bildim!</span>

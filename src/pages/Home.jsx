@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "../lib/supabase.js";
 import { useAuth } from "../context/AuthContext.jsx";
@@ -6,6 +6,7 @@ import Countdown from "../components/Countdown.jsx";
 import Avatar from "../components/Avatar.jsx";
 import RankBadge from "../components/RankBadge.jsx";
 import { pushDestekleniyor, bildirimleriAc } from "../lib/push.js";
+import { sonrakiTurnuvaSeans } from "../lib/zaman.js";
 
 export default function Home() {
   const { user, profile, refreshProfile } = useAuth();
@@ -19,6 +20,23 @@ export default function Home() {
   const [top5, setTop5] = useState([]);
   const [mesaj, setMesaj] = useState(null);
   const [bildirimSor, setBildirimSor] = useState(false);
+  const [gorevler, setGorevler] = useState([]);
+
+  const gorevleriYukle = useCallback(() => {
+    supabase.rpc("get_daily_quests").then(({ data }) => setGorevler(data ?? []));
+  }, []);
+
+  useEffect(() => {
+    gorevleriYukle();
+  }, [gorevleriYukle]);
+
+  const odulAl = async (questId) => {
+    const { error } = await supabase.rpc("claim_quest", { p_quest_id: questId });
+    if (!error) {
+      gorevleriYukle();
+      refreshProfile(user.id);
+    }
+  };
 
   useEffect(() => {
     if (
@@ -130,7 +148,7 @@ export default function Home() {
 
       <div className="geri-sayim-kart">
         <div style={{ fontSize: 14, fontWeight: 700, color: "var(--accent)" }}>
-          🌙 GECE TURNUVASI
+          {sonrakiTurnuvaSeans() === "sabah" ? "☀️ SABAH TURNUVASI" : "🌙 GECE TURNUVASI"}
         </div>
         {canliTurnuva ? (
           <>
@@ -146,7 +164,7 @@ export default function Home() {
           <>
             <Countdown />
             <div className="alt-yazi" style={{ marginBottom: 14 }}>
-              Her gece 22:00'de başlar · Son kalan kazanır · 🏆 +250 puan
+              Her gün 10:00 ve 22:00'de · Son kalan kazanır · 🏆 +250 puan
             </div>
             {mesaj && <div className="hata-kutu">{mesaj}</div>}
             {lobide ? (
@@ -222,6 +240,45 @@ export default function Home() {
           </Link>
         )}
       </div>
+
+      {gorevler.length > 0 && (
+        <div className="kart">
+          <div className="baslik">📋 Günlük Görevler</div>
+          {gorevler.map((g) => {
+            const tamam = g.ilerleme >= g.hedef;
+            return (
+              <div key={g.quest_id} className="gorev-satir">
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, fontWeight: 700, marginBottom: 4 }}>
+                    <span>{g.alindi ? "✅ " : ""}{g.ad}</span>
+                    <span className="alt-yazi">{g.ilerleme}/{g.hedef}</span>
+                  </div>
+                  <div className="soru-sayac" style={{ height: 6, marginBottom: 0 }}>
+                    <div
+                      className="dolgu"
+                      style={{
+                        width: `${(g.ilerleme / g.hedef) * 100}%`,
+                        background: g.alindi
+                          ? "var(--success)"
+                          : "linear-gradient(90deg, var(--primary), var(--accent))",
+                      }}
+                    />
+                  </div>
+                </div>
+                {g.alindi ? (
+                  <span className="rutbe-chip" style={{ color: "var(--success)" }}>+{g.odul}⭐</span>
+                ) : tamam ? (
+                  <button className="btn kucuk" onClick={() => odulAl(g.quest_id)}>
+                    🎁 +{g.odul}⭐ Al
+                  </button>
+                ) : (
+                  <span className="rutbe-chip">+{g.odul}⭐</span>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
 
       <div className="kart">
         <div className="baslik">🔥 En İyiler</div>

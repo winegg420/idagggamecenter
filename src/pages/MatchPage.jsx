@@ -223,26 +223,49 @@ export default function MatchPage() {
           >
             🔁 Rövanş
           </button>
-          <button
-            className="btn ikincil"
-            onClick={async () => {
-              const sonucYazi = berabere
-                ? `${rakipProfil?.username} ile ${benimSkor}-${rakipSkor} berabere kaldım`
-                : kazandim
-                  ? `${rakipProfil?.username} karşısında ${benimSkor}-${rakipSkor} kazandım! 🏆`
-                  : `${rakipProfil?.username} karşısında kıl payı kaybettim`;
-              const mesaj = `Bildim!'de ${sonucYazi} 🧠 Sen de gel: ${window.location.origin}/?davet=${user.id}`;
-              if (navigator.share) {
-                try {
-                  await navigator.share({ title: "Bildim!", text: mesaj });
-                } catch { /* vazgeçti */ }
-              } else {
-                await navigator.clipboard.writeText(mesaj);
-              }
-            }}
-          >
-            📤 Sonucu Paylaş
-          </button>
+          {(() => {
+            const sonucYazi = berabere
+              ? `${rakipProfil?.username} ile ${benimSkor}-${rakipSkor} berabere kaldım`
+              : kazandim
+                ? `${rakipProfil?.username}'i ${benimSkor}-${rakipSkor} yendim! 🏆`
+                : `${rakipProfil?.username} karşısında kıl payı kaybettim`;
+            const mesaj = `🧠 Bildim!'de ${sonucYazi} Sen de gel, kapışalım: ${window.location.origin}/?davet=${user.id}`;
+            const enc = encodeURIComponent(mesaj);
+            return (
+              <div className="paylas-bar">
+                <a
+                  className="paylas wa"
+                  href={`https://wa.me/?text=${enc}`}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  💬 WhatsApp
+                </a>
+                <a
+                  className="paylas x"
+                  href={`https://twitter.com/intent/tweet?text=${enc}`}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  𝕏 Paylaş
+                </a>
+                <button
+                  className="paylas diger"
+                  onClick={async () => {
+                    if (navigator.share) {
+                      try {
+                        await navigator.share({ title: "Bildim!", text: mesaj });
+                      } catch { /* vazgeçti */ }
+                    } else {
+                      await navigator.clipboard.writeText(mesaj);
+                    }
+                  }}
+                >
+                  📤 Diğer
+                </button>
+              </div>
+            );
+          })()}
           <button className="btn ikincil" onClick={() => navigate("/meydan")}>
             ← Meydan okumalara dön
           </button>

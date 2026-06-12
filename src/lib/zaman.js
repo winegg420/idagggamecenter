@@ -1,12 +1,20 @@
-// Bir sonraki 22:00 (Europe/Istanbul) zamanını UTC Date olarak döndürür.
-// Türkiye yıl boyu UTC+3 kullanır.
+// Günde iki turnuva: 10:00 (sabah) ve 22:00 (akşam), Europe/Istanbul.
+// Türkiye yıl boyu UTC+3 kullanır: 10:00 TSİ = 07:00 UTC, 22:00 TSİ = 19:00 UTC.
 export function sonrakiTurnuvaZamani() {
   const simdi = new Date();
-  // İstanbul saatine göre bugünün 22:00'si = 19:00 UTC
-  const hedef = new Date(simdi);
-  hedef.setUTCHours(19, 0, 0, 0);
-  if (hedef <= simdi) hedef.setUTCDate(hedef.getUTCDate() + 1);
-  return hedef;
+  const sabah = new Date(simdi);
+  sabah.setUTCHours(7, 0, 0, 0);
+  const aksam = new Date(simdi);
+  aksam.setUTCHours(19, 0, 0, 0);
+  if (simdi < sabah) return sabah;
+  if (simdi < aksam) return aksam;
+  sabah.setUTCDate(sabah.getUTCDate() + 1);
+  return sabah;
+}
+
+// Sıradaki turnuva sabah mı akşam mı?
+export function sonrakiTurnuvaSeans() {
+  return sonrakiTurnuvaZamani().getUTCHours() === 7 ? "sabah" : "aksam";
 }
 
 export function geriSayim(hedef) {
