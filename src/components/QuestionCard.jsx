@@ -127,7 +127,7 @@ export default function QuestionCard({ soru, onCevapla, onSureDoldu, jokerler })
               if (r?.kapali) setKapali(r.kapali);
             }}
           >
-            ⚖️ 50:50 <span className="bedel">30⭐</span>
+            ⚖️ 50:50 <span className="bedel">Ücretsiz</span>
           </button>
           <button
             disabled={jokerler.kullanildi.sure}
