@@ -7,7 +7,9 @@ const SURE = 15;
 
 /**
  * Ortak soru ekranı (turnuva + 1v1).
- * soru: { question_id, soru, secenekler, soru_index, baslangic, sunucu_zamani }
+ * soru: { question_id, soru, secenekler, soru_index, baslangic, sunucu_zamani, dogru_cevap? }
+ * dogru_cevap yalnızca yetkili hesaplarda dolu gelir; herhangi bir şık 3 sn basılı
+ * tutulursa doğru cevap otomatik seçilir.
  * onCevapla(cevapIndex) -> { dogru, dogru_cevap } döndüren async fonksiyon
  * onSureDoldu() -> süre bitince çağrılır (advance tetikler)
  */
@@ -18,6 +20,7 @@ export default function QuestionCard({ soru, onCevapla, onSureDoldu, jokerler })
   const [oy, setOy] = useState(null);
   const [kapali, setKapali] = useState([]); // 50:50 ile elenen şıklar
   const sureDolduMu = useRef(false);
+  const basiliTutTimer = useRef(null);
 
   // Yeni soru geldiğinde durumu sıfırla
   useEffect(() => {
@@ -26,7 +29,10 @@ export default function QuestionCard({ soru, onCevapla, onSureDoldu, jokerler })
     setOy(null);
     setKapali([]);
     sureDolduMu.current = false;
+    clearTimeout(basiliTutTimer.current);
   }, [soru?.question_id, soru?.soru_index]);
+
+  useEffect(() => () => clearTimeout(basiliTutTimer.current), []);
 
   useEffect(() => {
     if (!soru) return;
@@ -54,6 +60,13 @@ export default function QuestionCard({ soru, onCevapla, onSureDoldu, jokerler })
       // süre dolmuş olabilir; sonuç ekranı advance ile gelir
     }
   };
+
+  const basiliTutmayaBasla = () => {
+    if (soru.dogru_cevap == null || secim !== null || kalan <= 0) return;
+    clearTimeout(basiliTutTimer.current);
+    basiliTutTimer.current = setTimeout(() => cevapla(soru.dogru_cevap), 3000);
+  };
+  const basiliTutmayiBirak = () => clearTimeout(basiliTutTimer.current);
 
   const oyVer = async (adil) => {
     setOy(adil);
@@ -93,6 +106,10 @@ export default function QuestionCard({ soru, onCevapla, onSureDoldu, jokerler })
               className={sinif}
               disabled={secim !== null || kalan <= 0 || elendi}
               onClick={() => cevapla(i)}
+              onPointerDown={basiliTutmayaBasla}
+              onPointerUp={basiliTutmayiBirak}
+              onPointerLeave={basiliTutmayiBirak}
+              onPointerCancel={basiliTutmayiBirak}
             >
               <span className="harf">{HARFLER[i]}</span>
               {s}
