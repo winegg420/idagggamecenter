@@ -7,6 +7,7 @@ import Home from "./pages/Home.jsx";
 import TournamentPage from "./pages/TournamentPage.jsx";
 import ChallengesPage from "./pages/ChallengesPage.jsx";
 import MatchPage from "./pages/MatchPage.jsx";
+import GroupMatchPage from "./pages/GroupMatchPage.jsx";
 import LeaderboardPage from "./pages/LeaderboardPage.jsx";
 import FriendsPage from "./pages/FriendsPage.jsx";
 import ProfilePage from "./pages/ProfilePage.jsx";
@@ -37,6 +38,7 @@ export default function App() {
         <Route path="/turnuva" element={<TournamentPage />} />
         <Route path="/meydan" element={<ChallengesPage />} />
         <Route path="/mac/:id" element={<MatchPage />} />
+        <Route path="/grup-mac/:id" element={<GroupMatchPage />} />
         <Route path="/siralama" element={<LeaderboardPage />} />
         <Route path="/arkadaslar" element={<FriendsPage />} />
         <Route path="/profil" element={<ProfilePage />} />
