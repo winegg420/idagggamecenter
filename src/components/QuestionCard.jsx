@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { supabase } from "../lib/supabase.js";
-import { kalanSure } from "../lib/zaman.js";
+import { kalanSure, sunucuOffsetMs } from "../lib/zaman.js";
 
 const HARFLER = ["A", "B", "C", "D"];
 const SURE = 15;
@@ -36,15 +36,21 @@ export default function QuestionCard({ soru, onCevapla, onSureDoldu, jokerler })
 
   useEffect(() => {
     if (!soru) return;
-    const id = setInterval(() => {
-      const k = kalanSure(soru.baslangic, soru.sunucu_zamani, SURE);
+    // Saat farkını soru geldiği anda bir kez sabitle; tik başına yeniden
+    // hesaplanırsa sayaç donar.
+    const offset = sunucuOffsetMs(soru.sunucu_zamani);
+    let id;
+    const tik = () => {
+      const k = kalanSure(soru.baslangic, offset, SURE);
       setKalan(k);
       if (k <= 0 && !sureDolduMu.current) {
         sureDolduMu.current = true;
         clearInterval(id);
         onSureDoldu?.();
       }
-    }, 100);
+    };
+    tik();
+    if (!sureDolduMu.current) id = setInterval(tik, 100);
     return () => clearInterval(id);
   }, [soru, onSureDoldu]);
 
@@ -83,7 +89,7 @@ export default function QuestionCard({ soru, onCevapla, onSureDoldu, jokerler })
   return (
     <div>
       <div className="soru-sayac">
-        <div className="dolgu" style={{ width: `${(kalan / SURE) * 100}%` }} />
+        <div className="dolgu" style={{ width: `${Math.min(100, (kalan / SURE) * 100)}%` }} />
       </div>
       <div className="alt-yazi" style={{ marginBottom: 8 }}>
         Soru {soru.soru_index + 1} · {Math.ceil(kalan)} sn

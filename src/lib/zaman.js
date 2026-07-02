@@ -28,13 +28,18 @@ export function geriSayim(hedef) {
   };
 }
 
-// Sunucu zamanına göre kalan soru süresi (saniye)
-export function kalanSure(baslangicIso, sunucuZamaniIso, sureSn = 15) {
-  // Sunucu-istemci saat farkını telafi et
-  const sunucuOffset = sunucuZamaniIso
+// Sunucu-istemci saat farkı (ms). Soru verisi geldiği anda BİR KEZ hesaplanmalı;
+// her tikte sabit sunucu_zamani ile yeniden hesaplanırsa Date.now() sadeleşir
+// ve kalan süre donar.
+export function sunucuOffsetMs(sunucuZamaniIso) {
+  return sunucuZamaniIso
     ? new Date(sunucuZamaniIso).getTime() - Date.now()
     : 0;
+}
+
+// Sunucu zamanına göre kalan soru süresi (saniye)
+export function kalanSure(baslangicIso, offsetMs = 0, sureSn = 15) {
   const baslangic = new Date(baslangicIso).getTime();
-  const sunucuSimdi = Date.now() + sunucuOffset;
+  const sunucuSimdi = Date.now() + offsetMs;
   return Math.max(0, sureSn - (sunucuSimdi - baslangic) / 1000);
 }

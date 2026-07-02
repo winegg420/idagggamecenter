@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../lib/supabase.js";
 import { useAuth } from "../context/AuthContext.jsx";
@@ -103,8 +103,10 @@ export default function ChallengesPage() {
     return () => supabase.removeChannel(kanal);
   }, [grupYukle]);
 
+  const aramaNo = useRef(0);
   const ara = async (q) => {
     setArama(q);
+    const istek = ++aramaNo.current;
     if (q.trim().length < 2) {
       setSonuclar([]);
       return;
@@ -115,7 +117,8 @@ export default function ChallengesPage() {
       .ilike("username", `%${q.trim()}%`)
       .neq("id", user.id)
       .limit(8);
-    setSonuclar(data ?? []);
+    // Geciken eski istek, daha yeni sonuçların üzerine yazmasın
+    if (istek === aramaNo.current) setSonuclar(data ?? []);
   };
 
   const meydanOku = async (hedefId) => {
