@@ -9,6 +9,18 @@ const GRUP_SECIMI = `*,
   katilimcilar:group_match_players(group_match_id, user_id, davet_durumu, skor, joined_at,
     profil:profiles(id, username, avatar_url))`;
 
+const EMOJILER = ["👍", "😂", "😮", "😡", "🔥", "😎"];
+const KALIPLAR = [
+  "İyi şanslar!",
+  "Bunu biliyordum!",
+  "Şanslıydın! 😏",
+  "İyi oyun!",
+  "Hadi bakalım!",
+  "Vay be! 🤯",
+  "AĞLAMA 😂",
+  "HAHAHAHAHA",
+];
+
 export default function GroupMatchPage() {
   const { id } = useParams();
   const { user, refreshProfile } = useAuth();
@@ -16,8 +28,59 @@ export default function GroupMatchPage() {
   const [mac, setMac] = useState(null);
   const [soru, setSoru] = useState(null);
   const [cevapladim, setCevapladim] = useState(false);
+  const [jokerKullanildi, setJokerKullanildi] = useState({ elli: false, sure: false });
+  const [jokerHata, setJokerHata] = useState(null);
+  const [balonlar, setBalonlar] = useState({}); // { [user_id]: mesaj }
+  const [kaliplarAcik, setKaliplarAcik] = useState(false);
   const advanceKilidi = useRef(false);
   const pollRef = useRef(null);
+  const balonTimer = useRef({});
+
+  const balonGoster = useCallback((kimden, mesaj) => {
+    setBalonlar((b) => ({ ...b, [kimden]: mesaj }));
+    clearTimeout(balonTimer.current[kimden]);
+    balonTimer.current[kimden] = setTimeout(() => {
+      setBalonlar((b) => {
+        const yeni = { ...b };
+        delete yeni[kimden];
+        return yeni;
+      });
+    }, 4000);
+  }, []);
+
+  const mesajGonder = async (mesaj) => {
+    setKaliplarAcik(false);
+    balonGoster(user.id, mesaj);
+    await supabase.rpc("send_group_match_message", { p_group_match_id: id, p_mesaj: mesaj });
+  };
+
+  useEffect(() => {
+    supabase
+      .from("group_match_jokers")
+      .select("tip")
+      .eq("group_match_id", id)
+      .eq("user_id", user.id)
+      .then(({ data }) => {
+        const k = { elli: false, sure: false };
+        (data ?? []).forEach((j) => (k[j.tip] = true));
+        setJokerKullanildi(k);
+      });
+  }, [id, user.id]);
+
+  const jokerKullan = async (tip) => {
+    setJokerHata(null);
+    const { data, error } = await supabase.rpc("use_group_joker", {
+      p_group_match_id: id,
+      p_tip: tip,
+    });
+    if (error) {
+      setJokerHata(error.message);
+      return null;
+    }
+    setJokerKullanildi((k) => ({ ...k, [tip]: true }));
+    refreshProfile(user.id);
+    return data;
+  };
 
   const macYukle = useCallback(async () => {
     const { data } = await supabase
@@ -43,12 +106,17 @@ export default function GroupMatchPage() {
         { event: "*", schema: "public", table: "group_match_players", filter: `group_match_id=eq.${id}` },
         () => macYukle()
       )
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "group_match_messages", filter: `group_match_id=eq.${id}` },
+        (payload) => balonGoster(payload.new.user_id, payload.new.mesaj)
+      )
       .subscribe();
     return () => {
       supabase.removeChannel(kanal);
       if (pollRef.current) clearInterval(pollRef.current);
     };
-  }, [id, macYukle]);
+  }, [id, macYukle, balonGoster]);
 
   // Soru değişince çek
   useEffect(() => {
@@ -218,10 +286,40 @@ export default function GroupMatchPage() {
           >
             <Avatar profile={k.profil} boyut={30} />
             <span className="isim">{k.profil?.username}{k.user_id === user.id && " (sen)"}</span>
+            {balonlar[k.user_id] && (
+              <span className={`balon grup ${k.user_id === user.id ? "" : "rakip"}`}>
+                {balonlar[k.user_id]}
+              </span>
+            )}
             <span className="skor">{k.skor}</span>
           </div>
         ))}
       </div>
+
+      <div className="sohbet-bar">
+        {EMOJILER.map((e) => (
+          <button key={e} onClick={() => mesajGonder(e)}>
+            {e}
+          </button>
+        ))}
+        <button
+          className={kaliplarAcik ? "acik" : ""}
+          onClick={() => setKaliplarAcik((a) => !a)}
+        >
+          💬
+        </button>
+      </div>
+      {kaliplarAcik && (
+        <div className="kalip-liste">
+          {KALIPLAR.map((k) => (
+            <button key={k} onClick={() => mesajGonder(k)}>
+              {k}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {jokerHata && <div className="hata-kutu">{jokerHata}</div>}
 
       {soru && (
         <QuestionCard
@@ -229,6 +327,7 @@ export default function GroupMatchPage() {
           soru={soru}
           onCevapla={cevapla}
           onSureDoldu={sureDoldu}
+          jokerler={{ kullanildi: jokerKullanildi, onKullan: jokerKullan }}
         />
       )}
 

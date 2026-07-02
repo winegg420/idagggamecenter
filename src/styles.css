@@ -403,6 +403,10 @@ input:focus { border-color: var(--primary); }
   background: var(--bg-3); border: 1px solid var(--border);
   border-radius: 14px 14px 4px 14px;
 }
+.grup-skor-satir .balon.grup {
+  padding: 4px 10px; font-size: 12px; border-radius: 10px;
+  max-width: 45%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
 
 /* ---------- Günlük görevler ---------- */
 .gorev-satir {
