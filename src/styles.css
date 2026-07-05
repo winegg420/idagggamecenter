@@ -467,6 +467,133 @@ input:focus { border-color: var(--primary); }
 .paylas.x { background: #1d1f23; border: 1px solid var(--border); }
 .paylas.diger { background: var(--bg-3); border: 1px solid var(--border); color: var(--text); }
 
+/* ============================================================
+   Ana Sayfa (A-sınıfı oyun paneli)
+   ============================================================ */
+.anasayfa { display: flex; flex-direction: column; }
+
+.bildirim-serit {
+  display: flex; align-items: center; gap: 10px;
+  background: linear-gradient(135deg, rgba(139,92,246,0.18), rgba(245,158,11,0.12));
+  border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 12px 14px; margin-bottom: 14px;
+}
+.bildirim-serit .ikon { font-size: 22px; }
+.bildirim-serit .metin { flex: 1; font-size: 13px; font-weight: 600; }
+
+/* ---------- Oyuncu paneli ---------- */
+.hero-panel {
+  position: relative; overflow: hidden;
+  background:
+    radial-gradient(120% 140% at 0% 0%, rgba(139,92,246,0.28), transparent 55%),
+    radial-gradient(120% 160% at 100% 0%, rgba(245,158,11,0.16), transparent 50%),
+    linear-gradient(160deg, #221a4d, #14102e);
+  border: 1px solid #3a2f76;
+  border-radius: 20px; padding: 18px; margin-bottom: 14px;
+  box-shadow: 0 10px 30px -12px rgba(139,92,246,0.5);
+}
+.hero-glow {
+  position: absolute; top: -60px; right: -40px; width: 180px; height: 180px;
+  background: radial-gradient(circle, rgba(245,158,11,0.25), transparent 70%);
+  filter: blur(6px); pointer-events: none;
+}
+.hero-ust { display: flex; align-items: center; gap: 14px; position: relative; z-index: 1; }
+.hero-avatar { position: relative; flex-shrink: 0; }
+.rutbe-halka {
+  padding: 3px; border-radius: 50%;
+  background: conic-gradient(from 210deg, var(--halka), transparent 60%, var(--halka));
+}
+.rutbe-halka .avatar { border-color: rgba(0,0,0,0.35); width: 64px; height: 64px; }
+.hero-rutbe-ikon {
+  position: absolute; bottom: -2px; right: -2px;
+  background: var(--bg-2); border: 2px solid var(--card);
+  border-radius: 50%; width: 26px; height: 26px;
+  display: flex; align-items: center; justify-content: center; font-size: 14px;
+}
+.hero-bilgi { flex: 1; min-width: 0; }
+.hero-isim { display: flex; align-items: center; gap: 6px; }
+.hero-isim .ad {
+  font-weight: 900; font-size: 19px; letter-spacing: -0.3px;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.ad-duzenle { background: none; border: none; cursor: pointer; font-size: 14px; padding: 2px; opacity: 0.8; }
+.hero-rozetler { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+.rutbe-chip.seri { color: var(--accent); background: rgba(245,158,11,0.14); }
+.hero-puan { text-align: center; flex-shrink: 0; }
+.hero-puan .deger { font-size: 20px; font-weight: 900; font-variant-numeric: tabular-nums; }
+.hero-puan .etiket { font-size: 11px; color: var(--text-dim); }
+.xp-alan { position: relative; z-index: 1; margin-top: 16px; }
+.xp-bar {
+  height: 9px; background: rgba(0,0,0,0.35); border-radius: 999px; overflow: hidden;
+  border: 1px solid rgba(255,255,255,0.06);
+}
+.xp-bar .dolgu {
+  height: 100%; border-radius: 999px;
+  background: linear-gradient(90deg, var(--primary), var(--accent));
+  box-shadow: 0 0 12px rgba(245,158,11,0.5);
+  transition: width 0.5s ease;
+}
+.xp-yazi { font-size: 11.5px; color: var(--text-dim); margin-top: 7px; text-align: center; }
+
+.turnuva-seans { font-size: 14px; font-weight: 800; color: var(--accent); letter-spacing: 0.3px; }
+
+/* ---------- Bölüm başlıkları ---------- */
+.bolum-baslik {
+  display: flex; align-items: center; gap: 10px;
+  margin: 4px 0 12px; font-size: 15px; font-weight: 800;
+}
+.bolum-baslik span { flex-shrink: 0; }
+.bolum-baslik::after {
+  content: ""; flex: 1; height: 1px;
+  background: linear-gradient(90deg, var(--border), transparent);
+}
+
+/* ---------- Oyun modu kartları ---------- */
+.mod-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px; }
+.mod-kart {
+  position: relative; overflow: hidden; cursor: pointer; text-align: left;
+  border: 1px solid var(--border); border-radius: 16px;
+  padding: 14px; color: var(--text);
+  background: var(--card);
+  display: flex; flex-direction: column; gap: 3px;
+  transition: transform 0.1s, box-shadow 0.2s, border-color 0.2s;
+}
+.mod-kart::before {
+  content: ""; position: absolute; inset: 0; opacity: 0.9; pointer-events: none;
+  background: var(--mod-bg, transparent);
+}
+.mod-kart > * { position: relative; z-index: 1; }
+.mod-kart:active { transform: scale(0.97); }
+@media (hover: hover) {
+  .mod-kart:hover { border-color: transparent; box-shadow: 0 10px 26px -14px var(--mod-shadow, rgba(139,92,246,0.6)); }
+}
+.mod-ikon { font-size: 30px; line-height: 1; margin-bottom: 4px; }
+.mod-ad { font-weight: 800; font-size: 15px; }
+.mod-alt { font-size: 11.5px; color: var(--text-dim); line-height: 1.3; }
+
+.mod-kart.genis {
+  flex-direction: row; align-items: center; gap: 14px; margin-bottom: 12px; padding: 16px 18px;
+}
+.mod-kart.genis .mod-ikon { font-size: 34px; margin: 0; }
+.mod-kart.genis .mod-metin { flex: 1; display: flex; flex-direction: column; gap: 2px; }
+.mod-kart.genis .mod-ok { font-size: 22px; font-weight: 900; opacity: 0.8; }
+
+/* Mod renk temaları */
+.mod-kart.hemen {
+  --mod-bg: linear-gradient(135deg, rgba(139,92,246,0.9), rgba(109,40,217,0.9));
+  --mod-shadow: rgba(139,92,246,0.7); border-color: transparent; color: #fff;
+}
+.mod-kart.hemen .mod-alt { color: rgba(255,255,255,0.85); }
+.mod-kart.meydan { --mod-bg: linear-gradient(150deg, rgba(239,68,68,0.14), transparent 70%); --mod-shadow: rgba(239,68,68,0.5); }
+.mod-kart.hizli  { --mod-bg: linear-gradient(150deg, rgba(245,158,11,0.16), transparent 70%); --mod-shadow: rgba(245,158,11,0.5); }
+.mod-kart.grup   { --mod-bg: linear-gradient(150deg, rgba(34,197,94,0.14), transparent 70%); --mod-shadow: rgba(34,197,94,0.5); }
+.mod-kart.turnuva{ --mod-bg: linear-gradient(150deg, rgba(56,189,248,0.16), transparent 70%); --mod-shadow: rgba(56,189,248,0.5); }
+
+/* ---------- Lider satırı ---------- */
+.lider-satir { display: flex; align-items: center; gap: 10px; padding: 8px 0; }
+.lider-satir + .lider-satir { border-top: 1px solid var(--border); }
+.lider-satir .sira-no { font-size: 16px; }
+
 /* ---------- Küçük ekranlar ---------- */
 @media (max-width: 380px) {
   .sayfa { padding: 12px; }

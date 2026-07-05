@@ -12,6 +12,10 @@ const GRUP_SECIMI = `*,
   katilimcilar:group_match_players(group_match_id, user_id, davet_durumu, skor,
     profil:profiles(id, username, avatar_url, puan))`;
 
+const HIZLI_SECIMI = `*,
+  katilimcilar:hizli_oyuncular(hizli_mac_id, user_id, davet_durumu, skor,
+    profil:profiles(id, username, avatar_url, puan))`;
+
 const botZorluk = (isabet) =>
   isabet <= 0.45
     ? { etiket: "Kolay", renk: "var(--success)" }
@@ -44,6 +48,9 @@ export default function ChallengesPage() {
   const [grupOyuncuSayisi, setGrupOyuncuSayisi] = useState(3);
   const [grupSecili, setGrupSecili] = useState([]);
   const [grupHata, setGrupHata] = useState(null);
+  const [hizliMaclar, setHizliMaclar] = useState([]);
+  const [hizliSecili, setHizliSecili] = useState([]);
+  const [hizliHata, setHizliHata] = useState(null);
 
   useEffect(() => {
     supabase
@@ -102,6 +109,25 @@ export default function ChallengesPage() {
       .subscribe();
     return () => supabase.removeChannel(kanal);
   }, [grupYukle]);
+
+  const hizliYukle = useCallback(async () => {
+    const { data } = await supabase
+      .from("hizli_maclar")
+      .select(HIZLI_SECIMI)
+      .order("created_at", { ascending: false })
+      .limit(20);
+    setHizliMaclar(data ?? []);
+  }, []);
+
+  useEffect(() => {
+    hizliYukle();
+    const kanal = supabase
+      .channel("hizli_maclar")
+      .on("postgres_changes", { event: "*", schema: "public", table: "hizli_maclar" }, hizliYukle)
+      .on("postgres_changes", { event: "*", schema: "public", table: "hizli_oyuncular" }, hizliYukle)
+      .subscribe();
+    return () => supabase.removeChannel(kanal);
+  }, [hizliYukle]);
 
   const aramaNo = useRef(0);
   const ara = async (q) => {
@@ -183,6 +209,52 @@ export default function ChallengesPage() {
     else if (kabul) navigate(`/grup-mac/${grupMacId}`);
     else grupYukle();
   };
+
+  const hizliGerekli = 4;
+
+  const hizliSecimToggle = (id) => {
+    setHizliSecili((secili) => {
+      if (secili.includes(id)) return secili.filter((s) => s !== id);
+      if (secili.length >= hizliGerekli) return secili;
+      return [...secili, id];
+    });
+  };
+
+  const hizliKur = async () => {
+    setHizliHata(null);
+    const { data, error } = await supabase.rpc("create_hizli_mac", {
+      p_rakipler: hizliSecili,
+      p_kategori: kategori,
+    });
+    if (error) setHizliHata(error.message);
+    else {
+      setHizliSecili([]);
+      navigate(`/hizli-mac/${data}`);
+    }
+  };
+
+  const hizliCevapVer = async (hizliMacId, kabul) => {
+    setHizliHata(null);
+    const { error } = await supabase.rpc("respond_hizli_davet", {
+      p_hizli_mac_id: hizliMacId,
+      p_kabul: kabul,
+    });
+    if (error) setHizliHata(error.message);
+    else if (kabul) navigate(`/hizli-mac/${hizliMacId}`);
+    else hizliYukle();
+  };
+
+  const hizliBenimKaydim = (hm) => hm.katilimcilar?.find((k) => k.user_id === user.id);
+  const hizliGelen = hizliMaclar.filter(
+    (hm) => hm.durum === "bekliyor" && hizliBenimKaydim(hm)?.davet_durumu === "bekliyor"
+  );
+  const hizliAktif = hizliMaclar.filter((hm) => hm.durum === "aktif" && hizliBenimKaydim(hm));
+  const hizliBeklenen = hizliMaclar.filter(
+    (hm) => hm.durum === "bekliyor" && hizliBenimKaydim(hm)?.davet_durumu === "kabul" && hm.kurucu === user.id
+  );
+  const hizliBiten = hizliMaclar
+    .filter((hm) => hm.durum === "bitti" && hizliBenimKaydim(hm))
+    .slice(0, 10);
 
   const grupBenimKaydim = (gm) => gm.katilimcilar?.find((k) => k.user_id === user.id);
   const grupGelen = grupMaclar.filter(
@@ -273,9 +345,9 @@ export default function ChallengesPage() {
       </div>
 
       <div className="kart">
-        <div style={{ fontWeight: 700, marginBottom: 10 }}>👨‍👩‍👧‍👦 Grup Meydan Okuma (3-4 kişi)</div>
+        <div style={{ fontWeight: 700, marginBottom: 10 }}>👨‍👩‍👧‍👦 Grup Meydan Okuma (3-5 kişi)</div>
         <div style={{ display: "flex", gap: 8, marginBottom: 10 }}>
-          {[3, 4].map((n) => (
+          {[3, 4, 5].map((n) => (
             <button
               key={n}
               className={`oyuncu-secim-cip ${grupOyuncuSayisi === n ? "secili" : ""}`}
@@ -316,6 +388,42 @@ export default function ChallengesPage() {
           onClick={grubuKur}
         >
           🚀 Grubu Kur ve Davet Et
+        </button>
+      </div>
+
+      <div className="kart">
+        <div style={{ fontWeight: 700, marginBottom: 4 }}>⚡ Hızlı Olan Kazanır (5 kişi)</div>
+        <div className="alt-yazi" style={{ marginBottom: 10 }}>
+          Herkese aynı soru aynı anda. Sadece <b>ilk doğru cevabı</b> veren puan alır. Joker yok!
+        </div>
+        <div className="alt-yazi" style={{ marginBottom: 8 }}>
+          {hizliSecili.length}/{hizliGerekli} rakip seçildi (botlar dahil)
+        </div>
+        <div>
+          {grupAday.map((p) => {
+            const secili = hizliSecili.includes(p.id);
+            const dolu = !secili && hizliSecili.length >= hizliGerekli;
+            return (
+              <button
+                key={p.id}
+                className={`oyuncu-secim-cip ${secili ? "secili" : ""}`}
+                disabled={dolu}
+                onClick={() => hizliSecimToggle(p.id)}
+              >
+                {p.username}
+                {p.bot_isabet != null && " 🤖"}
+              </button>
+            );
+          })}
+        </div>
+        {hizliHata && <div className="hata-kutu" style={{ marginTop: 10 }}>{hizliHata}</div>}
+        <button
+          className="btn"
+          style={{ marginTop: 12 }}
+          disabled={hizliSecili.length !== hizliGerekli}
+          onClick={hizliKur}
+        >
+          ⚡ Yarışı Kur ve Davet Et
         </button>
       </div>
 
@@ -364,6 +472,106 @@ export default function ChallengesPage() {
               </button>
             </div>
           ))}
+        </>
+      )}
+
+      {hizliGelen.length > 0 && (
+        <>
+          <div className="baslik">⚡ Hızlı Yarış Davetlerin ({hizliGelen.length})</div>
+          {hizliGelen.map((hm) => (
+            <div key={hm.id} className="liste-satir">
+              <div className="bilgi">
+                <div className="isim">
+                  {hm.katilimcilar
+                    ?.filter((k) => k.user_id !== user.id)
+                    .map((k) => k.profil?.username)
+                    .join(", ")}
+                </div>
+                <div className="detay">Hızlı Olan Kazanır — 5 kişilik yarış</div>
+              </div>
+              <button className="btn kucuk" onClick={() => hizliCevapVer(hm.id, true)}>
+                Kabul
+              </button>
+              <button className="btn kucuk tehlike" onClick={() => hizliCevapVer(hm.id, false)}>
+                Reddet
+              </button>
+            </div>
+          ))}
+        </>
+      )}
+
+      {hizliBeklenen.length > 0 && (
+        <>
+          <div className="baslik">📤 Kurduğun Yarışlar (yanıt bekleniyor)</div>
+          {hizliBeklenen.map((hm) => (
+            <div key={hm.id} className="liste-satir">
+              <div className="bilgi">
+                <div className="isim">
+                  {hm.katilimcilar
+                    ?.filter((k) => k.user_id !== user.id)
+                    .map((k) => `${k.profil?.username} (${k.davet_durumu === "kabul" ? "hazır" : "bekliyor"})`)
+                    .join(", ")}
+                </div>
+              </div>
+            </div>
+          ))}
+        </>
+      )}
+
+      {hizliAktif.length > 0 && (
+        <>
+          <div className="baslik">⚡ Devam Eden Hızlı Yarışlar</div>
+          {hizliAktif.map((hm) => (
+            <div key={hm.id} className="liste-satir">
+              <div className="bilgi">
+                <div className="isim">
+                  {hm.katilimcilar
+                    ?.filter((k) => k.user_id !== user.id)
+                    .map((k) => k.profil?.username)
+                    .join(", ")}
+                </div>
+                <div className="detay">Hızlı Olan Kazanır</div>
+              </div>
+              <button className="btn kucuk" onClick={() => navigate(`/hizli-mac/${hm.id}`)}>
+                Oyna →
+              </button>
+            </div>
+          ))}
+        </>
+      )}
+
+      {hizliBiten.length > 0 && (
+        <>
+          <div className="baslik">🏁 Biten Hızlı Yarışlar</div>
+          {hizliBiten.map((hm) => {
+            const kazandim = hm.kazanan === user.id;
+            const berabere = hm.kazanan === null;
+            return (
+              <div key={hm.id} className="liste-satir">
+                <div className="bilgi">
+                  <div className="isim">
+                    {hm.katilimcilar
+                      ?.filter((k) => k.user_id !== user.id)
+                      .map((k) => `${k.profil?.username} (${k.skor})`)
+                      .join(", ")}
+                  </div>
+                  <div className="detay">senin skorun: {hizliBenimKaydim(hm)?.skor ?? 0}</div>
+                </div>
+                <span
+                  className="rutbe-chip"
+                  style={{
+                    color: berabere
+                      ? "var(--text-dim)"
+                      : kazandim
+                        ? "var(--success)"
+                        : "var(--danger)",
+                  }}
+                >
+                  {berabere ? "Berabere" : kazandim ? "Kazandın +50" : "Kaybettin"}
+                </span>
+              </div>
+            );
+          })}
         </>
       )}
 

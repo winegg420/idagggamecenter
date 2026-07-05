@@ -4,9 +4,9 @@ import { supabase } from "../lib/supabase.js";
 import { useAuth } from "../context/AuthContext.jsx";
 import Countdown from "../components/Countdown.jsx";
 import Avatar from "../components/Avatar.jsx";
-import RankBadge from "../components/RankBadge.jsx";
 import { pushDestekleniyor, bildirimleriAc } from "../lib/push.js";
 import { sonrakiTurnuvaSeans } from "../lib/zaman.js";
+import { rutbeBul, sonrakiRutbe } from "../lib/ranks.js";
 
 export default function Home() {
   const { user, profile, refreshProfile } = useAuth();
@@ -115,14 +115,19 @@ export default function Home() {
     }
   };
 
+  const puan = profile?.puan ?? 0;
+  const rutbe = rutbeBul(puan);
+  const sonraki = sonrakiRutbe(puan);
+  const ilerleme = sonraki
+    ? Math.min(100, Math.round(((puan - rutbe.min) / (sonraki.min - rutbe.min)) * 100))
+    : 100;
+
   return (
-    <div>
+    <div className="anasayfa">
       {bildirimSor && (
-        <div className="kart" style={{ display: "flex", alignItems: "center", gap: 12 }}>
-          <div style={{ fontSize: 24 }}>🔔</div>
-          <div style={{ flex: 1, fontSize: 13 }}>
-            Turnuva başlarken haber verelim mi?
-          </div>
+        <div className="bildirim-serit">
+          <div className="ikon">🔔</div>
+          <div className="metin">Turnuva başlarken haber verelim mi?</div>
           <button
             className="btn kucuk"
             onClick={async () => {
@@ -146,8 +151,88 @@ export default function Home() {
         </div>
       )}
 
+      {/* ---------- Oyuncu Paneli (Hero) ---------- */}
+      <div className="hero-panel">
+        <div className="hero-glow" />
+        <div className="hero-ust">
+          <div className={`hero-avatar rutbe-halka`} style={{ "--halka": rutbe.renk }}>
+            <Avatar profile={profile} boyut={64} />
+            <span className="hero-rutbe-ikon">{rutbe.ikon}</span>
+          </div>
+          <div className="hero-bilgi">
+            {adDuzenle ? (
+              <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                <div style={{ display: "flex", gap: 6 }}>
+                  <input
+                    type="text"
+                    value={yeniAd}
+                    maxLength={24}
+                    autoFocus
+                    onChange={(e) => setYeniAd(e.target.value)}
+                    onKeyDown={(e) => e.key === "Enter" && adKaydet()}
+                    style={{ padding: "8px 10px", fontSize: 15 }}
+                  />
+                  <button className="btn kucuk" onClick={adKaydet}>✓</button>
+                  <button
+                    className="btn kucuk ikincil"
+                    onClick={() => {
+                      setAdDuzenle(false);
+                      setAdHata(null);
+                    }}
+                  >
+                    ✕
+                  </button>
+                </div>
+                {adHata && <div className="alt-yazi" style={{ color: "var(--danger)" }}>{adHata}</div>}
+              </div>
+            ) : (
+              <>
+                <div className="hero-isim">
+                  <span className="ad">{profile?.username}</span>
+                  <button
+                    title="Adını değiştir"
+                    className="ad-duzenle"
+                    onClick={() => {
+                      setYeniAd(profile?.username ?? "");
+                      setAdDuzenle(true);
+                    }}
+                  >
+                    ✏️
+                  </button>
+                </div>
+                <div className="hero-rozetler">
+                  <span className="rutbe-chip" style={{ color: rutbe.renk }}>
+                    {rutbe.ikon} {rutbe.ad}
+                  </span>
+                  {(profile?.seri ?? 0) > 0 && (
+                    <span className="rutbe-chip seri">🔥 {profile.seri} gün</span>
+                  )}
+                </div>
+              </>
+            )}
+          </div>
+          <div className="hero-puan">
+            <div className="deger">⭐ {puan}</div>
+            <div className="etiket">puan</div>
+          </div>
+        </div>
+        {!adDuzenle && (
+          <div className="xp-alan">
+            <div className="xp-bar">
+              <div className="dolgu" style={{ width: `${ilerleme}%` }} />
+            </div>
+            <div className="xp-yazi">
+              {sonraki
+                ? <>Sonraki rütbe <b style={{ color: sonraki.renk }}>{sonraki.ikon} {sonraki.ad}</b> · {sonraki.min - puan} puan kaldı</>
+                : <>En yüksek rütbedesin! {rutbe.ikon} Efsane</>}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* ---------- Turnuva Vitrini ---------- */}
       <div className="geri-sayim-kart">
-        <div style={{ fontSize: 14, fontWeight: 700, color: "var(--accent)" }}>
+        <div className="turnuva-seans">
           {sonrakiTurnuvaSeans() === "sabah" ? "☀️ SABAH TURNUVASI" : "🌙 GECE TURNUVASI"}
         </div>
         {canliTurnuva ? (
@@ -180,113 +265,90 @@ export default function Home() {
         )}
       </div>
 
-      <button className="btn" style={{ marginBottom: 14, padding: "16px 20px", fontSize: 17 }} onClick={hemenOyna}>
-        ⚡ Hemen Oyna
+      {/* ---------- Oyun Modları ---------- */}
+      <div className="bolum-baslik"><span>🎮 Oyun Modları</span></div>
+      <button className="mod-kart genis hemen" onClick={hemenOyna}>
+        <span className="mod-ikon">⚡</span>
+        <span className="mod-metin">
+          <span className="mod-ad">Hemen Oyna</span>
+          <span className="mod-alt">Rakip bul, 1v1 düelloya başla</span>
+        </span>
+        <span className="mod-ok">→</span>
       </button>
 
-      <div className="kart" style={{ display: "flex", alignItems: "center", gap: 12 }}>
-        <Avatar profile={profile} boyut={52} />
-        <div style={{ flex: 1, minWidth: 0 }}>
-          {adDuzenle ? (
-            <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-              <div style={{ display: "flex", gap: 6 }}>
-                <input
-                  type="text"
-                  value={yeniAd}
-                  maxLength={24}
-                  autoFocus
-                  onChange={(e) => setYeniAd(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && adKaydet()}
-                  style={{ padding: "8px 10px", fontSize: 15 }}
-                />
-                <button className="btn kucuk" onClick={adKaydet}>✓</button>
-                <button
-                  className="btn kucuk ikincil"
-                  onClick={() => {
-                    setAdDuzenle(false);
-                    setAdHata(null);
-                  }}
-                >
-                  ✕
-                </button>
-              </div>
-              {adHata && <div className="alt-yazi" style={{ color: "var(--danger)" }}>{adHata}</div>}
-            </div>
-          ) : (
-            <div style={{ fontWeight: 800, fontSize: 16, display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
-              <span style={{ overflow: "hidden", textOverflow: "ellipsis" }}>{profile?.username}</span>
-              <button
-                title="Adını değiştir"
-                style={{ background: "none", border: "none", cursor: "pointer", fontSize: 15, padding: 2 }}
-                onClick={() => {
-                  setYeniAd(profile?.username ?? "");
-                  setAdDuzenle(true);
-                }}
-              >
-                ✏️
-              </button>
-              {(profile?.seri ?? 0) > 0 && (
-                <span className="rutbe-chip" style={{ color: "var(--accent)" }}>
-                  🔥 {profile.seri} gün
-                </span>
-              )}
-            </div>
-          )}
-          {!adDuzenle && <RankBadge puan={profile?.puan} />}
-        </div>
-        {!adDuzenle && (
-          <Link to="/meydan">
-            <button className="btn kucuk">⚔️ Meydan Oku</button>
-          </Link>
-        )}
+      <div className="mod-grid">
+        <button className="mod-kart meydan" onClick={() => navigate("/meydan")}>
+          <span className="mod-ikon">⚔️</span>
+          <span className="mod-ad">Meydan Oku</span>
+          <span className="mod-alt">Arkadaşına veya bota</span>
+        </button>
+        <button className="mod-kart hizli" onClick={() => navigate("/meydan")}>
+          <span className="mod-ikon">🏁</span>
+          <span className="mod-ad">Hızlı Olan Kazanır</span>
+          <span className="mod-alt">İlk bilen puanı kapar</span>
+        </button>
+        <button className="mod-kart grup" onClick={() => navigate("/meydan")}>
+          <span className="mod-ikon">👨‍👩‍👧‍👦</span>
+          <span className="mod-ad">Grup Maçı</span>
+          <span className="mod-alt">3-5 kişilik yarış</span>
+        </button>
+        <button className="mod-kart turnuva" onClick={() => navigate("/turnuva")}>
+          <span className="mod-ikon">🏆</span>
+          <span className="mod-ad">Turnuva</span>
+          <span className="mod-alt">Son kalan kazanır</span>
+        </button>
       </div>
 
+      {/* ---------- Günlük Görevler ---------- */}
       {gorevler.length > 0 && (
-        <div className="kart">
-          <div className="baslik">📋 Günlük Görevler</div>
-          {gorevler.map((g) => {
-            const tamam = g.ilerleme >= g.hedef;
-            return (
-              <div key={g.quest_id} className="gorev-satir">
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, fontWeight: 700, marginBottom: 4 }}>
-                    <span>{g.alindi ? "✅ " : ""}{g.ad}</span>
-                    <span className="alt-yazi">{g.ilerleme}/{g.hedef}</span>
+        <>
+          <div className="bolum-baslik"><span>📋 Günlük Görevler</span></div>
+          <div className="kart">
+            {gorevler.map((g) => {
+              const tamam = g.ilerleme >= g.hedef;
+              return (
+                <div key={g.quest_id} className="gorev-satir">
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, fontWeight: 700, marginBottom: 4 }}>
+                      <span>{g.alindi ? "✅ " : ""}{g.ad}</span>
+                      <span className="alt-yazi">{g.ilerleme}/{g.hedef}</span>
+                    </div>
+                    <div className="soru-sayac" style={{ height: 6, marginBottom: 0 }}>
+                      <div
+                        className="dolgu"
+                        style={{
+                          width: `${Math.min(100, (g.ilerleme / g.hedef) * 100)}%`,
+                          background: g.alindi
+                            ? "var(--success)"
+                            : "linear-gradient(90deg, var(--primary), var(--accent))",
+                        }}
+                      />
+                    </div>
                   </div>
-                  <div className="soru-sayac" style={{ height: 6, marginBottom: 0 }}>
-                    <div
-                      className="dolgu"
-                      style={{
-                        width: `${(g.ilerleme / g.hedef) * 100}%`,
-                        background: g.alindi
-                          ? "var(--success)"
-                          : "linear-gradient(90deg, var(--primary), var(--accent))",
-                      }}
-                    />
-                  </div>
+                  {g.alindi ? (
+                    <span className="rutbe-chip" style={{ color: "var(--success)" }}>+{g.odul}⭐</span>
+                  ) : tamam ? (
+                    <button className="btn kucuk" onClick={() => odulAl(g.quest_id)}>
+                      🎁 +{g.odul}⭐ Al
+                    </button>
+                  ) : (
+                    <span className="rutbe-chip">+{g.odul}⭐</span>
+                  )}
                 </div>
-                {g.alindi ? (
-                  <span className="rutbe-chip" style={{ color: "var(--success)" }}>+{g.odul}⭐</span>
-                ) : tamam ? (
-                  <button className="btn kucuk" onClick={() => odulAl(g.quest_id)}>
-                    🎁 +{g.odul}⭐ Al
-                  </button>
-                ) : (
-                  <span className="rutbe-chip">+{g.odul}⭐</span>
-                )}
-              </div>
-            );
-          })}
-        </div>
+              );
+            })}
+          </div>
+        </>
       )}
 
+      {/* ---------- En İyiler ---------- */}
+      <div className="bolum-baslik"><span>🔥 En İyiler</span></div>
       <div className="kart">
-        <div className="baslik">🔥 En İyiler</div>
         {top5.map((p, i) => (
-          <div key={p.id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "7px 0" }}>
-            <span className={`sira-no ${i < 3 ? "ilk3" : ""}`}>{i + 1}</span>
+          <div key={p.id} className="lider-satir">
+            <span className={`sira-no ${i < 3 ? "ilk3" : ""}`}>{i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : i + 1}</span>
             <Avatar profile={p} boyut={32} />
-            <span style={{ flex: 1, fontWeight: 600, fontSize: 14 }}>{p.username}</span>
+            <span style={{ flex: 1, fontWeight: 600, fontSize: 14, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{p.username}</span>
             <span style={{ fontWeight: 800, fontSize: 14 }}>⭐ {p.puan}</span>
           </div>
         ))}
