@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Gladius Silah/Kalkan Önizleme Testi</title>
+  <style>
+    body { margin: 0; background: #14100b; color: #e8dcc0; font: 13px system-ui, sans-serif; }
+    #c { display: block; margin: 0 auto; }
+  </style>
+</head>
+<body>
+  <!-- itemCizim + karakterCizim görsel doğrulama: her silah ve kalkan tipini büyük çizer. -->
+  <canvas id="c" width="900" height="520"></canvas>
+  <script type="module">
+    import { cizGladyator } from "/gladius/engine/karakterCizim.js";
+
+    const palet = { ten: "#e8b98f", sac: "#2b1d12", zirh: "#b23b2e" };
+    const silahlar = ["kilic", "sica", "bicak", "cift_bicak", "mizrak", "trident", "balta", "cekic", "zincirli_topuz"];
+    const kalkanlar = ["yuvarlak", "kucuk", "kare", "sovalye", "savasci"];
+
+    const ctx = document.getElementById("c").getContext("2d");
+    ctx.fillStyle = "#1c150e";
+    ctx.fillRect(0, 0, 900, 520);
+    ctx.textAlign = "center";
+    ctx.fillStyle = "#f6c453";
+    ctx.font = "14px system-ui";
+
+    const R = 34;
+    silahlar.forEach((s, i) => {
+      const cx = 100 + (i % 5) * 160;
+      const cy = 90 + Math.floor(i / 5) * 170;
+      const e = { aci: 0, palet, silahCizim: s, kalkanCizim: "yuvarlak", kalkanRenk: palet.zirh, silahAktif: true, kalkanAktif: true };
+      cizGladyator(ctx, cx, cy, R, e, false);
+      ctx.fillStyle = "#f6c453";
+      ctx.fillText(s, cx, cy + 70);
+    });
+
+    // Kalkan çeşitleri (alt sıra)
+    kalkanlar.forEach((k, i) => {
+      const cx = 130 + i * 160;
+      const cy = 440;
+      const e = { aci: Math.PI, palet, silahCizim: "kilic", kalkanCizim: k, kalkanRenk: "#3a6ea5", silahAktif: true, kalkanAktif: true };
+      cizGladyator(ctx, cx, cy, R, e, false);
+      ctx.fillStyle = "#7fb0e0";
+      ctx.fillText("kalkan: " + k, cx, cy + 70);
+    });
+  </script>
+</body>
+</html>

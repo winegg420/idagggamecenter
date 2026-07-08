@@ -1,7 +1,12 @@
+import { lazy, Suspense } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import { useAuth } from "./context/AuthContext.jsx";
 import { supabaseHazir } from "./lib/supabase.js";
 import Layout from "./components/Layout.jsx";
+
+// Gladius: bağımsız oyun modülü, /gladius altında lazy yüklenir.
+// Bildim quiz koduna tek dokunuş burasıdır (kod tamamen gladius/ klasöründe).
+const GladiusApp = lazy(() => import("../gladius/app/GladiusApp.jsx"));
 import Login from "./pages/Login.jsx";
 import Home from "./pages/Home.jsx";
 import TournamentPage from "./pages/TournamentPage.jsx";
@@ -34,6 +39,14 @@ export default function App() {
 
   return (
     <Routes>
+      <Route
+        path="/gladius/*"
+        element={
+          <Suspense fallback={<div className="yukleniyor">Gladius yükleniyor…</div>}>
+            <GladiusApp />
+          </Suspense>
+        }
+      />
       <Route element={<Layout />}>
         <Route path="/" element={<Home />} />
         <Route path="/turnuva" element={<TournamentPage />} />

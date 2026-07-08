@@ -1,0 +1,1 @@
+PNG/WebP sprite dosyaları buraya. İsimler SANAT_VARLIKLARI.md'deki manifestle bire bir aynı olmalı.

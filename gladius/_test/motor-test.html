@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Gladius Motor Testi</title>
+  <style>
+    html, body { margin: 0; height: 100%; background: #0b0806; overflow: hidden; }
+    #c { display: block; width: 100vw; height: 100vh; touch-action: none; }
+    #hud {
+      position: fixed; left: 10px; top: 8px; color: #f6c453;
+      font: 13px system-ui, sans-serif; text-shadow: 0 1px 2px #000; pointer-events: none;
+    }
+    #ipucu {
+      position: fixed; left: 0; right: 0; bottom: 8px; text-align: center;
+      color: #d8c6a2; font: 13px system-ui, sans-serif; pointer-events: none;
+    }
+  </style>
+</head>
+<body>
+  <!-- Bağımsız motor test sayfası: tüm karakterler bot (sürekli dövüş), round bitince
+       otomatik yeniden başlar. Auth/React yok; sadece engine çalışır. -->
+  <canvas id="c"></canvas>
+  <div id="hud">…</div>
+  <div id="ipucu">Gladius motor testi · otomatik dönüyor (sekme önplandayken)</div>
+  <script type="module">
+    import { Motor } from "/gladius/engine/motor.js";
+    import { createDurum } from "/gladius/engine/durum.js";
+
+    const OPTS = { mod: "battle_royale", oyuncuAd: "Sen" };
+    const canvas = document.getElementById("c");
+    const hud = document.getElementById("hud");
+
+    function botlastir(durum) {
+      // Sürekli aksiyon için tüm karakterleri botlaştır (test amaçlı).
+      durum.oyuncular.forEach((o) => { o.bot = true; });
+      return durum;
+    }
+
+    const motor = new Motor(canvas, {
+      ...OPTS,
+      onBitti: (k) => {
+        // Round bitince 2.5 sn sonra yeni round başlat (ekran hiç donmasın).
+        setTimeout(() => {
+          motor.durum = botlastir(createDurum(OPTS));
+          motor._bitisBildirildi = false;
+        }, 2500);
+      },
+    });
+    botlastir(motor.durum);
+    motor.basla();
+    window.__motor = motor;
+
+    // Canlı durum yazısı
+    setInterval(() => {
+      const d = motor.durum;
+      const hayatta = d.oyuncular.filter((o) => o.can > 0).length;
+      hud.textContent = `faz: ${d.faz} · hayatta: ${hayatta} · süre: ${d.zaman.toFixed(0)}s`
+        + (d.bitti ? ` · KAZANAN: ${d.kazanan ? d.kazanan.ad : "yok"} (yeniden başlıyor…)` : "");
+    }, 200);
+  </script>
+</body>
+</html>
