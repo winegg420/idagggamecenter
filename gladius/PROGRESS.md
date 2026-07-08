@@ -11,10 +11,13 @@
 > dokunan her işlem UYGULANMAZ, buraya eklenir, en sonda topluca sorulur.
 
 1. **`npx supabase db push`** — `20260612000034_gl_temel.sql` migration'ını canlı
-   Supabase'e uygular (gl_ tabloları, RLS, RPC'ler). GEÇMEDİ.
+   Supabase'e uygular (gl_ tabloları, RLS, RPC'ler). GEÇMEDİ (hâlâ bekliyor).
    _(Not: Supabase login/token gerekebilir — İda `!npx supabase db push` ile de çalıştırabilir.)_
+   _(Migration dosyası repoya commit edildi ama DB'ye UYGULANMADI; deploy bunu uygulamaz.)_
 
-_(Deploy/migration eklendikçe buraya numaralanarak yazılacak.)_
+2. ~~`git push` (Vercel production deploy)~~ — **YAPILDI (2026-07-08, İda talebiyle)**.
+   Commit `062b750` main'e push edildi → Vercel otomatik deploy. Gladius izole/lazy ve
+   eksik DB RPC'lerini çağırmadığından Bildim production'ı etkilenmez.
 
 ---
 
