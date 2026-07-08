@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>RUN Prototip Testi</title>
+  <style>
+    html, body { margin: 0; height: 100%; background: #06080c; overflow: hidden; font-family: system-ui, sans-serif; }
+    #c { display: block; width: 100vw; height: 100vh; touch-action: none; }
+    #hud { position: fixed; left: 12px; top: 10px; color: #cdd6e5; font-size: 14px; text-shadow: 0 1px 2px #000; pointer-events: none; }
+    #ipucu { position: fixed; left: 0; right: 0; bottom: 8px; text-align: center; color: #9aa7bd; font-size: 13px; pointer-events: none; }
+    #panel { position: fixed; right: 10px; top: 10px; display: flex; flex-direction: column; gap: 6px; align-items: flex-end; }
+    #panel button { padding: 7px 12px; font-size: 13px; cursor: pointer; border: 1px solid #2e6ea5; border-radius: 7px; background: #12233a; color: #dbe6f2; }
+    #panel button:hover { background: #1c3a5e; }
+    #panel .baslik { color: #7fb0e0; font-size: 12px; margin-top: 6px; }
+    #ses { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; }
+    #ses button { padding: 6px 8px; font-size: 12px; }
+    #sonuc { position: fixed; inset: 0; display: none; place-items: center; background: rgba(4,6,10,0.82); }
+    #sonuc.acik { display: grid; }
+    #sonuc .k { text-align: center; color: #e6ecf5; }
+    #sonuc h1 { margin: 0 0 6px; font-size: 40px; }
+    #sonuc button { margin-top: 16px; padding: 12px 26px; font-size: 15px; cursor: pointer; border: 0; border-radius: 8px; background: #2e6ea5; color: #fff; }
+  </style>
+</head>
+<body>
+  <canvas id="c"></canvas>
+  <div id="hud">…</div>
+  <div id="ipucu">Hareket: WASD/oklar · Sopa: J · Kalkan: K · Harita: M · Amaç: karanlıkta drone'dan kaçıp yeşil çıkışa ulaş</div>
+
+  <div id="panel">
+    <button id="haritaBtn">🗺 Harita (M)</button>
+    <div class="baslik">🔊 Ses testi</div>
+    <div id="ses">
+      <button data-s="sopa">Sopa</button>
+      <button data-s="kalkan">Kalkan</button>
+      <button data-s="yakala">Yakalama</button>
+      <button data-s="yakalandi">Yakalandın</button>
+      <button data-s="kacti">Kaçış</button>
+      <button data-s="alarm">Alarm</button>
+      <button data-s="kapi">Kapı</button>
+      <button data-s="ui">UI tık</button>
+    </div>
+    <div class="baslik">Ortam + drone vızıltısı oyunda sürekli çalar</div>
+  </div>
+
+  <div id="sonuc"><div class="k"><h1 id="sbaslik"></h1><div id="salt"></div><button id="tekrar">Tekrar</button></div></div>
+
+  <script type="module">
+    import { Motor } from "/run/engine/motor.js";
+    import { odaAdi } from "/run/engine/harita.js";
+    import * as ses from "/run/engine/ses.js";
+
+    const canvas = document.getElementById("c");
+    const hud = document.getElementById("hud");
+    const sonuc = document.getElementById("sonuc");
+    let motor;
+
+    function basla() {
+      sonuc.classList.remove("acik");
+      motor = new Motor(canvas, {
+        onBitti: (s) => {
+          document.getElementById("sbaslik").textContent = s === "kacti" ? "KAÇTIN! 🏃" : "YAKALANDIN 🤖";
+          document.getElementById("salt").textContent = s === "kacti" ? "Sığınaktan kurtuldun." : "Drone seni yakaladı.";
+          sonuc.classList.add("acik");
+        },
+      });
+      motor.basla();
+      window.__motor = motor;
+    }
+    document.getElementById("tekrar").onclick = () => { motor?.dur(); basla(); };
+    document.getElementById("haritaBtn").onclick = () => { ses.devamEt(); ses.cal("ui"); motor?.girdi.dokunGenelBakis(); };
+    for (const b of document.querySelectorAll("#ses button")) b.onclick = () => { ses.devamEt(); ses.cal(b.dataset.s); };
+
+    // İlk etkileşimde sesi aç
+    window.addEventListener("pointerdown", () => ses.devamEt(), { once: true });
+    window.addEventListener("keydown", () => ses.devamEt(), { once: true });
+
+    basla();
+    setInterval(() => {
+      const d = motor?.durum; if (!d) return;
+      const ben = d.oyuncular[0];
+      const oda = odaAdi(d.harita, ben.x, ben.y) || "Koridor";
+      const kov = d.droneler.filter(x => x.mod === "kovala").length;
+      hud.textContent = `${d.genelBakis ? "GENEL BAKIŞ · " : ""}Konum: ${oda} · Drone: ${kov ? kov + " kovalıyor!" : "devriye"}`;
+    }, 150);
+  </script>
+</body>
+</html>
