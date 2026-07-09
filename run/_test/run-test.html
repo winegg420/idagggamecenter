@@ -30,7 +30,7 @@
 <body>
   <canvas id="c"></canvas>
   <div id="hud">…</div>
-  <div id="ipucu">Hareket: WASD/oklar · 🦇 Sopa: J (rakibi bayılt+sat) · 🛡 Kalkan: K (3sn dokunulmazlık) · Harita: M · Amaç: drone'dan kaç, çıkışa ulaş</div>
+  <div id="ipucu">WASD/oklar · 🦇 Sopa: J · 🛡 Kalkan: K · ⚡ Ele geçir: E (basılı tut) · 🚪 Kapıyı kapat: Q · 🗺 Harita: M · Amaç: drone'dan kaç, çıkışa ulaş</div>
 
   <div id="panel">
     <button id="haritaBtn">🗺 Harita (M)</button>
@@ -42,6 +42,9 @@
       <button data-s="yakalandi">Yakalandın</button>
       <button data-s="kacti">Kaçış</button>
       <button data-s="alarm">Alarm</button>
+      <button data-s="hack">Ele geçirme</button>
+      <button data-s="sersem">EMP / sersem</button>
+      <button data-s="ates">Drone ateş</button>
       <button data-s="kapi">Kapı</button>
       <button data-s="ui">UI tık</button>
     </div>
@@ -70,7 +73,7 @@
           const sir = motor?.durum?.siralama || [];
           const durAd = { kacti: "🏃 Kaçtı", yakalandi: "🤖 Yakalandı", kaldi: "· Kaldı" };
           tablo.innerHTML = sir.map((r, i) =>
-            `<tr class="${r.ben ? "ben" : ""}"><td class="yer">${i + 1}.</td><td>${r.ad}</td><td>${durAd[r.durum] || ""}</td><td class="rz">💰${r.sat}</td></tr>`
+            `<tr class="${r.ben ? "ben" : ""}"><td class="yer">${i + 1}.</td><td>${r.ad}</td><td>${durAd[r.durum] || ""}</td><td class="rz">💰${r.sat}</td><td class="rz">💾${r.hack}</td></tr>`
           ).join("");
           sonuc.classList.add("acik");
         },
@@ -92,7 +95,10 @@
       const ben = d.oyuncular[0];
       const oda = odaAdi(d.harita, ben.x, ben.y) || "Koridor";
       const kov = d.droneler.filter(x => x.mod === "kovala").length;
-      hud.textContent = `${d.genelBakis ? "GENEL BAKIŞ · " : ""}Konum: ${oda} · Drone: ${kov ? kov + " kovalıyor!" : "devriye"}`;
+      const sersem = d.droneler.filter(x => x.sersem > 0).length;
+      const kapali = d.harita.kapilar.filter(k => k.kapali).length;
+      hud.textContent = `${d.genelBakis ? "GENEL BAKIŞ · " : ""}Konum: ${oda} · Drone: ${kov ? kov + " kovalıyor!" : "devriye"}`
+        + `${sersem ? " · " + sersem + " sersem" : ""} · Kapalı kapı: ${kapali} · 💰${ben.sat} 💾${ben.hack}`;
     }, 150);
   </script>
 </body>

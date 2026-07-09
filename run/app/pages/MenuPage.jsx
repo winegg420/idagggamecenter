@@ -17,14 +17,17 @@ export default function MenuPage() {
         <p className="run-aciklama">
           Kapalı bir tesiste devriye drone'larından saklan, karanlıkta fenerinle yol bul
           ve yeşil çıkışlardan birine ulaş. Rakiplerini <b>sopayla bayıltıp sat</b>,
-          gerektiğinde <b>kalkanla</b> 3 saniye dokunulmaz ol. Yakalanırsan izleyiciye düşer,
-          round sonunda sıralamayı görürsün.
+          gerektiğinde <b>kalkanla</b> 3 saniye dokunulmaz ol. Alarm veren makineleri
+          <b> ele geçirip</b> droneleri sersemlet, peşindekini <b>kapıyı kapatarak</b> durdur.
+          Yakalanırsan izleyiciye düşer, round sonunda sıralamayı görürsün.
         </p>
 
         <div className="run-ozellikler">
           <span>🔦 Sınırlı görüş / fener</span>
           <span>🤖 Çoklu drone AI</span>
           <span>🦇 Sopa + 🛡 Kalkan</span>
+          <span>💾 Makine ele geçirme</span>
+          <span>🚪 Kapatılabilir kapılar</span>
           <span>⚡ Artan zorluk</span>
           <span>👁 İzleyici modu</span>
           <span>🏁 Round sıralaması</span>

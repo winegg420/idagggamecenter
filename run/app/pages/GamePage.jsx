@@ -50,13 +50,20 @@ export default function GamePage() {
       <canvas ref={canvasRef} className="run-canvas" />
 
       <div className="run-hud-ipucu">
-        WASD/oklar · 🦇 Sopa J · 🛡 Kalkan K · 🗺 Harita M
+        WASD/oklar · 🦇 Sopa J · 🛡 Kalkan K · ⚡ Ele geçir E (basılı tut) · 🚪 Kapı Q · 🗺 Harita M
       </div>
 
       <div className="run-dokun">
         <button onPointerDown={() => { ses.devamEt(); ses.cal("ui"); g()?.dokunGenelBakis(); }}>🗺</button>
         <button onPointerDown={() => { ses.devamEt(); g()?.dokunSopa(); }}>🦇</button>
         <button onPointerDown={() => { ses.devamEt(); g()?.dokunKalkan(); }}>🛡</button>
+        <button onPointerDown={() => { ses.devamEt(); g()?.dokunKapi(); }}>🚪</button>
+        <button
+          onPointerDown={() => { ses.devamEt(); g()?.dokunHackBasla(); }}
+          onPointerUp={() => g()?.dokunHackBitir()}
+          onPointerLeave={() => g()?.dokunHackBitir()}
+          onPointerCancel={() => g()?.dokunHackBitir()}
+        >⚡</button>
       </div>
 
       <button className="run-cikis-btn" onClick={() => nav("/run")}>✕</button>
@@ -76,6 +83,7 @@ export default function GamePage() {
                     <td>{r.ad}</td>
                     <td>{DURUM_AD[r.durum] || ""}</td>
                     <td className="rz">💰{r.sat}</td>
+                    <td className="hz">💾{r.hack}</td>
                   </tr>
                 ))}
               </tbody>

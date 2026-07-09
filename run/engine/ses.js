@@ -37,7 +37,7 @@ export function ortamBasla() {
     // hafif filtreli gürültü (havalandırma hışırtısı)
     const n = c.createBufferSource(); const buf = c.createBuffer(1, c.sampleRate * 2, c.sampleRate);
     const d = buf.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * 0.5;
-    buf.__loop = true; n.buffer = buf; n.loop = true;
+    n.buffer = buf; n.loop = true;
     const lp = c.createBiquadFilter(); lp.type = "lowpass"; lp.frequency.value = 340;
     const ng = c.createGain(); ng.gain.value = 0.05; n.connect(lp).connect(ng).connect(ortamGain); n.start();
     // drone vızıltı yatağı (mesafeye göre açılır)
@@ -99,7 +99,13 @@ export function cal(ad) {
         ton("triangle", 400, 800, 0.18, 0.5); setTimeout(() => baglam() && ton("triangle", 620, 1200, 0.28, 0.5), 150); break;
       case "alarm":                // makine alarmı (drone çeker)
         ton("square", 720, 720, 0.18, 0.35); setTimeout(() => baglam() && ton("square", 560, 560, 0.18, 0.35), 220); break;
-      case "kapi":                 // kapı kapanma
+      case "hack":                 // makine ele geçirildi (yükselen dijital onay)
+        ton("square", 600, 900, 0.09, 0.3);
+        setTimeout(() => baglam() && ton("square", 900, 1400, 0.12, 0.32), 80);
+        setTimeout(() => baglam() && ton("sine", 1400, 1900, 0.2, 0.3), 170); break;
+      case "sersem":               // EMP darbesi (droneler sersemler)
+        ton("sine", 220, 30, 0.5, 0.5); gurultuAt(0.3, "lowpass", 700, 0.4); break;
+      case "kapi":                 // kapı kapanma / kırılma
         gurultuAt(0.22, "lowpass", 220, 0.6); break;
       case "ui":                   // arayüz tık
         ton("sine", 880, 1200, 0.08, 0.3); break;

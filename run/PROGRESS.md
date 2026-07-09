@@ -132,7 +132,58 @@ Tek-oyunculu prototipin "eğlence" katmanı ve React entegrasyonu bitti. Multipl
 - Not: Chrome eklentisi bağlı olmadığından görsel tarayıcı testi İda'ya bırakıldı
   (`http://localhost:5173/run` ya da test harness).
 
+## 2026-07-09 — Kapılar + etkileşimli makineler + parçacıklar (açık maddeler kapatıldı)
+Multiplayer dışında "Sıradaki" listesinin tamamı bitti.
+
+### Oda duvarları + kapı geçitleri (`harita.js`)
+- Odalar artık **duvarlı** (kalınlık 14, `engeller`'e `tip:"duvar"` olarak girer) → gerçek labirent akışı.
+  Her odaya **2-3 kapı geçidi** (96px) açılır; kenar başına en fazla 1.
+- Geçit yeri **reddetme örneklemesiyle** seçilir: mobilyaya çarpan geçit denenmez; hiçbir temiz yer
+  yoksa geçidi tıkayan mobilya odadan çıkarılır → **kapı her zaman kullanılabilir**.
+- Harita **sabit tohumlu RNG** (`tohumluRastgele(20260709)`) ile üretilir → her yüklemede aynı;
+  tasarım ve test tekrarlanabilir.
+- Makineler (`nesneler`) artık oda içinde `bosNokta()` ile mobilya/duvar dışına yerleşir (eskiden
+  sabit ofsetti, masanın içinde kalabiliyordu).
+
+### Navigasyon (`navigasyon.js` — YENİ)
+- Çıkışlardan geriye **BFS akış alanı** (26px ızgara, 4-komşu; çapraz adımda köşe kesme engelli).
+- Botlar kaçış modunda düz çizgi yerine bu alanı takip eder → duvarlı odalardan kapıları bulup çıkarlar.
+- `ulasilabilirOran()` harita sağlaması: tüm yürünebilir hücreler çıkışa ulaşmalı (test: %100).
+
+### Kapı mekaniği (`durum.js`, `render.js`)
+- **Q** ile menzildeki (82) açık kapı kapanır (cooldown 3sn). Kapalı kapı **enerji perdesi**:
+  insanlar geçer, **drone geçemez** — kırması 2.2sn sürer (kırılma çubuğu görünür). Kapı 12sn sonra
+  kendiliğinden açılır. HUD'a 3. beceri kutusu (🚪 Kapı) eklendi.
+
+### Etkileşimli makine / ele geçirme (`durum.js`)
+- Alarm veren (aktif) makinenin yanında **E basılı tut** → 1.6sn'de ele geçir: `ben.hack++`,
+  makine susar, **HACK_SERSEM_MENZIL (320) içindeki droneler 2.6sn sersemler** (durur, tarama söner,
+  EMP arkı çizilir). Bedeli: hack sırasında durursun → drone ısı algılamasına açıksın.
+- Ekranda: hedefte yüzdelik **ilerleme halkası**, HUD'da ilerleme çubuğu + `💾 Ele geçirdiğin: N`.
+- Yakalanınca yarım kalan hack iptal edilir.
+
+### Parçacıklar + görsel (`durum.js`, `render.js`)
+- `durum.parcaciklar` (üst sınır 220, sürtünmeli): sopa vuruşu, yakalama, hack, EMP, kapı kapanma/
+  kırılma, aktif makine kıvılcımları. Karanlığın üstünde `lighter` ile ışıyarak çizilir.
+- Yakındaki aktif makine/açık kapı için **etkileşim ipucu** balonu ("E — ele geçir" / "Q — kapıyı kapat").
+- Sersem drone: gri gövde, sönük göz, sarsıntı + sarı EMP arkları.
+- `render.js` içindeki ~70 satırlık **erişilemez ölü kod** (eski mobilya çizimi) temizlendi;
+  duvar dekorları (dolap/kitaplık/tahta/dosya dolabı) yeni duvarın altında kalmasın diye içeri kaydırıldı.
+- `durum.js` kullanılmayan importlar (`DUNYA`, `odaAdi`) ve `ses.js` ölü satırı (`buf.__loop`) kaldırıldı.
+
+### Sesler (`ses.js`)
+- `hack` (yükselen dijital onay) + `sersem` (EMP darbesi) eklendi; test panelinde dinlenebilir.
+
+### Doğrulama
+- Başsız Node testi (17 sağlama, 5 kez üst üste geçti): harita 38 kapı / 102 duvar / 13 makine,
+  akış alanı **%100 ulaşılabilir**, kapı kırılma 2.22sn ≈ 2.2sn, hack 1.60sn ≈ 1.6sn, EMP sersemletiyor,
+  sersem drone hareket etmiyor, 120sn oynanışta istisna yok, round çözülüyor, 8 botun tamamı
+  odalardan kapıları bulup çıkabiliyor.
+- `npm run build` başarılı (RunApp ayrı chunk: 44.1 kB).
+- Tarayıcı testi (Chrome): kapı perdesi, "Q — kapıyı kapat" ipucu, %71 hack halkası, EMP parçacıkları
+  ve 3 drone sersemlemesi ekranda doğrulandı.
+
 ## Sıradaki
 - **Multiplayer** (PatiRun/Bildim presence+broadcast) — spec Faz 10, backend gerektirir; **en son**.
-- Kapı mekaniği (drone'u yavaşlatan kapatılabilir kapılar) + etkileşimli makineler (tasarım 6 devamı).
-- Organik/düzensiz koridor düzeni (şu an ızgara), ele geçirme animasyonu, ortam parçacıkları.
+- Fener konisi duvarlardan sızıyor (görüş engeli/raycast yok) — istenirse gölge/oklüzyon turu.
+- Organik/düzensiz koridor düzeni (koridorlar hâlâ ızgara; odalar artık duvarlı).

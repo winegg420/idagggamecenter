@@ -15,6 +15,8 @@ export class Girdi {
     this.jsId = null;
     this.sopaBekliyor = false;   // beyzbol sopası (J/Boşluk)
     this.kalkanTus = false;      // kalkan (K/Shift)
+    this.hackTus = false;        // makine ele geçirme (E) — basılı tutulur
+    this.kapiBekliyor = false;   // kapıyı kapat (Q)
     this.genelBakisIstek = false; // GENEL BAKIŞ toggle (M)
     this._kd = this._kd.bind(this);
     this._ku = this._ku.bind(this);
@@ -45,6 +47,8 @@ export class Girdi {
     }
     this.tuslar.clear();
     this.jsAktif = false;
+    this.kalkanTus = false;
+    this.hackTus = false;
   }
 
   _kd(e) {
@@ -52,12 +56,15 @@ export class Girdi {
     if (BASLI.has(k)) { this.tuslar.add(k); e.preventDefault(); }
     if (k === "j" || k === " ") { this.sopaBekliyor = true; e.preventDefault(); }
     if (k === "k" || k === "shift") this.kalkanTus = true;
+    if (k === "e") { this.hackTus = true; e.preventDefault(); }
+    if (k === "q") { this.kapiBekliyor = true; e.preventDefault(); }
     if (k === "m") { this.genelBakisIstek = true; e.preventDefault(); }
   }
   _ku(e) {
     const k = e.key.toLowerCase();
     this.tuslar.delete(k);
     if (k === "k" || k === "shift") this.kalkanTus = false;
+    if (k === "e") this.hackTus = false;
   }
   _pd(e) { if (this.jsId !== null) return; this.jsId = e.pointerId; this.jsAktif = true; this.jsMerkez = { x: e.clientX, y: e.clientY }; this.jsNokta = { ...this.jsMerkez }; }
   _pm(e) { if (e.pointerId === this.jsId) this.jsNokta = { x: e.clientX, y: e.clientY }; }
@@ -81,9 +88,15 @@ export class Girdi {
 
   sopaAl() { const v = this.sopaBekliyor; this.sopaBekliyor = false; return v; }
   kalkanBasiliMi() { return this.kalkanTus; }
+  hackBasiliMi() { return this.hackTus; }
+  kapiAl() { const v = this.kapiBekliyor; this.kapiBekliyor = false; return v; }
   genelBakisAl() { const v = this.genelBakisIstek; this.genelBakisIstek = false; return v; }
   dokunGenelBakis() { this.genelBakisIstek = true; }
   // Dokunmatik beceri butonları (mobil): tek dokunuşta tetikle.
   dokunSopa() { this.sopaBekliyor = true; }
   dokunKalkan() { this.kalkanTus = true; setTimeout(() => { this.kalkanTus = false; }, 140); }
+  dokunKapi() { this.kapiBekliyor = true; }
+  // Hack basılı tutmalı: butonda pointerdown/pointerup ile eşlenir.
+  dokunHackBasla() { this.hackTus = true; }
+  dokunHackBitir() { this.hackTus = false; }
 }

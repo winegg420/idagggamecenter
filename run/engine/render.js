@@ -2,10 +2,14 @@
 // RUN — render (Canvas 2D, takip kamera, sınırlı görüş/fener).
 // Cyberpunk atmosfer: panelli zemin, neon kenarlar, kapüşonlu figürler,
 // detaylı drone, fener içi toz zerreleri, monitörler, neon çıkış.
+// Duvar/kapı katmanı, ele geçirme animasyonu ve parçacıklar dahil.
 // Kod-çizim (prototip). Görsel detay kademeli yükseltiliyor.
 // ============================================================
 
-import { GORUS_YARICAP, FENER_UZUNLUK, FENER_ACI, OYUNCU_YARICAP } from "./sabitler.js";
+import {
+  GORUS_YARICAP, FENER_UZUNLUK, FENER_ACI, OYUNCU_YARICAP,
+  KAPI_KALINLIK, KAPI_KIRILMA, KAPI_MENZIL, HACK_SURE, HACK_MENZIL,
+} from "./sabitler.js";
 
 export function ciz(ctx, durum, view) {
   const { w, h } = view;
@@ -52,10 +56,15 @@ export function ciz(ctx, durum, view) {
     ctx.strokeStyle = a.aydinlik ? "rgba(90,210,230,0.5)" : "rgba(60,120,140,0.25)"; ctx.lineWidth = 2;
     ctx.strokeRect(rx + 1, ry + 1, a.w - 2, a.h - 2);
   }
-  // Engeller (çarpışan mobilya) — tipe göre çizilir
+  // Engeller (çarpışan mobilya + oda duvarları) — tipe göre çizilir
   for (const eng of durum.harita.engeller || []) {
     if (eng.x > gR || eng.y > gB || eng.x + eng.w < gL || eng.y + eng.h < gT) continue;
     cizEngel(ctx, eng, t);
+  }
+  // Kapı geçitleri (eşik + söve) — kapalıysa perde ekranda ayrıca çizilir
+  for (const k of durum.harita.kapilar || []) {
+    if (k.x > gR || k.y > gB || k.x + k.w < gL || k.y + k.h < gT) continue;
+    cizKapiEsigi(ctx, k);
   }
   for (const c of durum.harita.cikislar) { ctx.fillStyle = "#183a24"; ctx.fillRect(c.x, c.y, c.w, c.h); }
 
@@ -89,7 +98,7 @@ export function ciz(ctx, durum, view) {
     const renk = s.yakalandi ? "#5a6472" : s.cikti ? "#4dd08a" : s.id === "ben" ? "#f0c651" : "#49c6e0";
     cizKisi(ctx, s.x, s.y, renk, s.aci, s.yakalandi, t, s.id === "ben" && !s.yakalandi);
   }
-  for (const dr of durum.droneler || []) cizDrone(ctx, dr.x, dr.y, dr.aci, dr.mod === "kovala", t);
+  for (const dr of durum.droneler || []) cizDrone(ctx, dr.x, dr.y, dr.aci, dr.mod === "kovala", t, dr.sersem > 0);
   // Drone kilit/ateş ışını (kovaladığı hedefe)
   for (const dr of durum.droneler || []) {
     if (dr._kilit <= 0 && dr._ates <= 0) continue;
@@ -165,6 +174,64 @@ export function ciz(ctx, durum, view) {
     cizKisi(ctx, bx, by, izlAksan, aci, izlenen.yakalandi, t, true); // izlenen net, en üstte
   }
 
+  // Kapalı kapı perdeleri (her modda görünür — taktik bilgi) + drone kırılma çubuğu
+  for (const k of durum.harita.kapilar || []) {
+    if (!k.kapali) continue;
+    const [kx, ky] = w2s(k.x, k.y);
+    const bw = Math.max(3, k.w * zoom), bh = Math.max(3, k.h * zoom);
+    if (kx + bw < 0 || ky + bh < 0 || kx > w || ky > h) continue;
+    const nabiz = 0.5 + 0.5 * Math.sin(t * 12);
+    const kiriliyor = k.kirilma > 0;
+    const renk = kiriliyor ? "255,120,60" : "90,200,255";
+    ctx.save();
+    ctx.globalCompositeOperation = "lighter";
+    ctx.fillStyle = `rgba(${renk},${0.16 + 0.2 * nabiz})`;
+    ctx.fillRect(kx, ky, bw, bh);
+    ctx.strokeStyle = `rgba(${renk},${0.55 + 0.3 * nabiz})`;
+    ctx.lineWidth = 2; ctx.shadowColor = `rgba(${renk},0.9)`; ctx.shadowBlur = 12;
+    ctx.strokeRect(kx, ky, bw, bh);
+    ctx.restore();
+    if (kiriliyor) {
+      const cx0 = kx + bw / 2, cy0 = ky + bh / 2;
+      ctx.fillStyle = "rgba(10,14,20,0.85)"; ctx.fillRect(cx0 - 23, cy0 - 21, 46, 6);
+      ctx.fillStyle = "rgba(255,120,60,0.95)";
+      ctx.fillRect(cx0 - 22, cy0 - 20, 44 * Math.min(1, k.kirilma / KAPI_KIRILMA), 4);
+    }
+  }
+
+  // Ele geçirme (hack) halkası + ilerleme yayı
+  if (izlenen.hackHedef) {
+    const [hx, hy] = w2s(izlenen.hackHedef.x, izlenen.hackHedef.y);
+    const oran = Math.min(1, (izlenen._hackIlerleme || 0) / HACK_SURE);
+    ctx.save();
+    ctx.strokeStyle = "rgba(15,35,45,0.9)"; ctx.lineWidth = 5;
+    ctx.beginPath(); ctx.arc(hx, hy, 26, 0, Math.PI * 2); ctx.stroke();
+    ctx.strokeStyle = "rgba(110,240,255,0.95)"; ctx.lineWidth = 4;
+    ctx.shadowColor = "rgba(110,240,255,0.9)"; ctx.shadowBlur = 14;
+    ctx.beginPath(); ctx.arc(hx, hy, 26, -Math.PI / 2, -Math.PI / 2 + oran * Math.PI * 2); ctx.stroke();
+    ctx.shadowBlur = 0;
+    ctx.fillStyle = "#bff4ff"; ctx.font = "bold 11px system-ui"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+    ctx.fillText(Math.round(oran * 100) + "%", hx, hy + 40);
+    ctx.restore();
+  } else if (!genel && !durum.izleyici) {
+    cizEtkilesimIpucu(ctx, durum, izlenen, w2s);
+  }
+
+  // Parçacıklar (kıvılcım/kıvılcım-duman) — karanlığın üstünde, ışıyarak
+  if (durum.parcaciklar && durum.parcaciklar.length) {
+    ctx.save();
+    ctx.globalCompositeOperation = "lighter";
+    for (const p of durum.parcaciklar) {
+      const [px, py] = w2s(p.x, p.y);
+      if (px < -8 || py < -8 || px > w + 8 || py > h + 8) continue;
+      const al = Math.max(0, p.omur / p.maks);
+      ctx.fillStyle = `rgba(${p.renk},${al * 0.9})`;
+      const b = Math.max(1, p.boy * zoom * (0.5 + al * 0.5));
+      ctx.fillRect(px - b / 2, py - b / 2, b, b);
+    }
+    ctx.restore();
+  }
+
   // Çıkış neon markerları (her zaman görünür)
   for (const c of durum.harita.cikislar) {
     const [rx, ry] = w2s(c.x + c.w / 2, c.y + c.h / 2);
@@ -206,6 +273,31 @@ export function ciz(ctx, durum, view) {
   cizHud(ctx, durum, view, ben);
 }
 
+// Yakındaki etkileşim ipucu: aktif makine (E) ya da açık kapı (Q).
+function cizEtkilesimIpucu(ctx, durum, ben, w2s) {
+  let hedef = null, metin = "";
+  for (const n of durum.harita.nesneler || []) {
+    if (n.aktif && Math.hypot(n.x - ben.x, n.y - ben.y) < HACK_MENZIL) { hedef = n; metin = "E — ele geçir"; break; }
+  }
+  if (!hedef && ben._kapiCd <= 0) {
+    let enD = KAPI_MENZIL;
+    for (const k of durum.harita.kapilar || []) {
+      if (k.kapali) continue;
+      const kx = k.x + k.w / 2, ky = k.y + k.h / 2, d = Math.hypot(kx - ben.x, ky - ben.y);
+      if (d < enD) { enD = d; hedef = { x: kx, y: ky }; metin = "Q — kapıyı kapat"; }
+    }
+  }
+  if (!hedef) return;
+  const [hx, hy] = w2s(hedef.x, hedef.y);
+  ctx.save();
+  ctx.font = "bold 12px system-ui"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+  const gen = ctx.measureText(metin).width + 14;
+  ctx.fillStyle = "rgba(8,14,22,0.8)"; yuvarlakDikdortgen(ctx, hx - gen / 2, hy - 40, gen, 20, 6); ctx.fill();
+  ctx.strokeStyle = "rgba(120,220,240,0.55)"; ctx.lineWidth = 1; yuvarlakDikdortgen(ctx, hx - gen / 2, hy - 40, gen, 20, 6); ctx.stroke();
+  ctx.fillStyle = "#cdeef7"; ctx.fillText(metin, hx, hy - 30);
+  ctx.restore();
+}
+
 // Ekran-üstü HUD: beceri paneli (sol-alt), kill feed (sağ-alt), izleyici afişi + zorluk.
 function cizHud(ctx, durum, view, ben) {
   const { w, h } = view;
@@ -215,8 +307,10 @@ function cizHud(ctx, durum, view, ben) {
 
   // --- Beceri paneli (sol-alt) ---
   const px = 14, py = h - 92;
+  const bw = Math.max(78, Math.min(118, Math.floor((w - 28) / 3) - 10)); // dar ekranda daralır
+  const adim = bw + 10;
   const beceri = (yerX, ikon, ad, cd, maks, aktif, aktifRenk) => {
-    const bw = 118, bh = 34;
+    const bh = 34;
     ctx.fillStyle = "rgba(10,16,24,0.66)"; yuvarlakDikdortgen(ctx, yerX, py, bw, bh, 7); ctx.fill();
     // cooldown dolgu
     if (cd > 0) { const oran = cd / maks; ctx.fillStyle = "rgba(255,90,70,0.20)"; yuvarlakDikdortgen(ctx, yerX, py, bw * oran, bh, 7); ctx.fill(); }
@@ -230,10 +324,22 @@ function cizHud(ctx, durum, view, ben) {
     ctx.fillText(cd > 0 ? cd.toFixed(1) + "s" : aktif > 0 ? "AKTİF " + aktif.toFixed(1) : "HAZIR", yerX + 32, py + 28);
   };
   beceri(px, "🦇", "Sopa (J)", ben._sopaCd || 0, 2.4, 0, "#ffe08c");
-  beceri(px + 128, "🛡", "Kalkan (K)", ben._kalkanCd || 0, 8, ben.kalkan || 0, "#5ac8ff");
-  // Sat sayacı
+  beceri(px + adim, "🛡", "Kalkan (K)", ben._kalkanCd || 0, 8, ben.kalkan || 0, "#5ac8ff");
+  beceri(px + adim * 2, "🚪", "Kapı (Q)", ben._kapiCd || 0, 3, 0, "#8ad6ff");
+
+  // Sayaçlar: sattığın + ele geçirdiğin
   ctx.font = "bold 13px system-ui"; ctx.textAlign = "left"; ctx.fillStyle = "rgba(255,220,120,0.95)";
   ctx.fillText(`💰 Sattığın: ${ben.sat || 0}`, px, py - 8);
+  ctx.fillStyle = "rgba(120,240,255,0.95)";
+  ctx.fillText(`💾 Ele geçirdiğin: ${ben.hack || 0}`, px + 140, py - 8);
+
+  // Hack ilerleme çubuğu (basılı tutarken)
+  if (ben._hackIlerleme > 0) {
+    const cw = Math.min(220, w - 28);
+    ctx.fillStyle = "rgba(10,16,24,0.75)"; yuvarlakDikdortgen(ctx, px, py - 30, cw, 8, 4); ctx.fill();
+    ctx.fillStyle = "rgba(110,240,255,0.95)";
+    yuvarlakDikdortgen(ctx, px, py - 30, cw * Math.min(1, ben._hackIlerleme / HACK_SURE), 8, 4); ctx.fill();
+  }
 
   // --- Kill feed / olay akışı (sağ-alt) ---
   ctx.textAlign = "right"; ctx.font = "12px system-ui";
@@ -273,14 +379,9 @@ function yuvarlakDikdortgen(ctx, x, y, w, h, r) {
 }
 
 // Oda içi mobilya/detaylar (top-down, temaya göre). Işıkta zengin görünür.
+// Zemin mobilyası engeller'den (cizEngel) çizilir — burada yalnızca duvar detayı.
 function mobilyaCiz(ctx, a, s2, t) {
   const ad = a.ad || "";
-  const R = (wx, wy, ww, hh, fill, stroke) => {
-    const [x, y] = s2(wx, wy);
-    ctx.fillStyle = fill; ctx.fillRect(x, y, ww, hh);
-    if (stroke) { ctx.strokeStyle = stroke; ctx.lineWidth = 1; ctx.strokeRect(x + 0.5, y + 0.5, ww - 1, hh - 1); }
-  };
-  const daire = (wx, wy, rr, fill) => { const [x, y] = s2(wx, wy); ctx.fillStyle = fill; ctx.beginPath(); ctx.arc(x, y, rr, 0, Math.PI * 2); ctx.fill(); };
 
   // Koridorlar: sadece yön okları; duvar detayı yok.
   if (a.koridor) {
@@ -296,82 +397,6 @@ function mobilyaCiz(ctx, a, s2, t) {
 
   // Her odaya ortak duvar detayları (dolap, kitaplık, beyaz tahta, saat, bitki, halı, çöp)
   duvarDetay(ctx, a, s2, t);
-  return; // Zemin mobilyası artık engeller'den (cizEngel) çizilir — çarpışmayla uyumlu.
-
-  /* eslint-disable no-unreachable */
-  const ofis = /Ofis|Muhasebe|Yönetim|Satış|Pazarlama|Açık|Teknik|Güvenlik|İK/.test(ad);
-  if (ofis) {
-    for (let dy = a.y + 46; dy < a.y + a.h - 34; dy += 74) {
-      for (let dx = a.x + 26; dx < a.x + a.w - 60; dx += 92) {
-        R(dx, dy, 50, 26, "#3d4e62", "#0f1620");        // masa
-        R(dx + 7, dy + 4, 22, 13, "rgba(100,220,245,0.85)", "#0a2630"); // monitör (glow)
-        daire(dx + 25, dy + 42, 8, "#2a3644");           // sandalye
-      }
-    }
-    return;
-  }
-  if (/Sunucu/.test(ad)) {
-    for (let sx = a.x + 30; sx < a.x + a.w - 34; sx += 48) {
-      R(sx, a.y + 34, 32, a.h - 74, "#1e2a37", "#0a0f14"); // rack
-      for (let ly = a.y + 46; ly < a.y + a.h - 46; ly += 15) {
-        const on = Math.sin(t * 6 + sx * 0.3 + ly) > 0;
-        daire(sx + 9, ly, 2.4, on ? "#5fe0a0" : "#1e5a3a");
-        daire(sx + 20, ly, 2.4, Math.sin(t * 4 + ly) > 0 ? "#ffb14a" : "#5a3a12");
-      }
-    }
-    return;
-  }
-  if (/Toplantı/.test(ad)) {
-    R(a.x + a.w * 0.22, a.y + a.h * 0.34, a.w * 0.56, a.h * 0.34, "#445468", "#141c26"); // masa
-    for (let cx = a.x + a.w * 0.28; cx < a.x + a.w * 0.72; cx += 46) {
-      daire(cx, a.y + a.h * 0.26, 9, "#2a3644");
-      daire(cx, a.y + a.h * 0.74, 9, "#2a3644");
-    }
-    return;
-  }
-  if (/Dinlenme/.test(ad)) {
-    R(a.x + 28, a.y + a.h - 66, a.w - 56, 30, "#4d4070", "#1c1830");   // kanepe
-    R(a.x + a.w / 2 - 32, a.y + a.h - 128, 64, 34, "#3d4e62", "#141c26"); // sehpa
-    daire(a.x + 46, a.y + 46, 13, "#2f6b3a");                          // saksı bitki
-    daire(a.x + a.w - 46, a.y + 46, 13, "#2f6b3a");
-    return;
-  }
-  if (/Mutfak/.test(ad)) {
-    R(a.x + 30, a.y + 34, a.w - 60, 34, "#3d4e62", "#141c26");         // tezgah
-    daire(a.x + 60, a.y + 51, 7, "#2a3644"); daire(a.x + 92, a.y + 51, 7, "#2a3644"); // ocak
-    R(a.x + a.w - 96, a.y + 34, 62, 96, "#5a6472", "#141c26");         // buzdolabı
-    R(a.x + a.w * 0.38, a.y + a.h * 0.55, a.w * 0.28, 62, "#445468", "#141c26"); // yemek masası
-    for (const dx of [a.x + a.w * 0.36, a.x + a.w * 0.66]) daire(dx, a.y + a.h * 0.55 + 31, 9, "#2a3644"); // sandalye
-    return;
-  }
-  if (/Arşiv|Depo/.test(ad)) {
-    const kutuRenk = ["#7a5a3a", "#5a6a8a", "#7a4a4a", "#4a7a5a"];
-    for (let sy = a.y + 54; sy < a.y + a.h - 60; sy += 88) {
-      R(a.x + 30, sy, a.w - 60, 22, "#4a4128", "#1c1810");             // raf
-      let k = 0;
-      for (let bx = a.x + 40; bx < a.x + a.w - 54; bx += 46) { R(bx, sy - 18, 36, 18, kutuRenk[k % 4], "#1a1410"); k++; } // kutular
-    }
-    return;
-  }
-  if (/Giriş/.test(ad)) {
-    R(a.x + a.w * 0.24, a.y + a.h * 0.52, a.w * 0.52, 26, "#465872", "#1c2531"); // resepsiyon
-    R(a.x + 24, a.y + a.h - 46, 60, 18, "#3d4e62", "#141c26");                   // bank
-    R(a.x + a.w - 84, a.y + a.h - 46, 60, 18, "#3d4e62", "#141c26");
-    return;
-  }
-  if (/Koridor/.test(ad)) {
-    // yön okları (soluk) + ara sıra kasa
-    ctx.strokeStyle = "rgba(90,160,180,0.12)"; ctx.lineWidth = 3;
-    for (let cx = a.x + 90; cx < a.x + a.w - 60; cx += 170) {
-      const [x, y] = s2(cx, a.y + a.h / 2);
-      ctx.beginPath();
-      ctx.moveTo(x - 8, y - 8); ctx.lineTo(x + 6, y); ctx.lineTo(x - 8, y + 8);
-      ctx.stroke();
-    }
-    R(a.x + a.w * 0.5, a.y + 10, 30, 30, "#3a3320", "#1c1810");   // kasa
-    R(a.x + a.w * 0.5 + 4, a.y + 14, 22, 22, "rgba(0,0,0,0.2)"); // kapak çizgisi
-    return;
-  }
 }
 
 // Çarpışan mobilya (engel) çizimi — dünya koordinatında, tipe göre.
@@ -415,9 +440,28 @@ function cizEngel(ctx, e, t) {
       R(x, y, w, h, "#5a6472", "#141c26");
       R(x + w - 6, y + 8, 3, 18, "#c9d4e0");
       break;
+    case "duvar": // oda duvarı — koyu gövde + iç kenarda ince neon şerit
+      R(x, y, w, h, "#1a232e", "#080d13");
+      ctx.fillStyle = "rgba(90,190,215,0.10)";
+      if (w >= h) ctx.fillRect(x, y + h - 2, w, 2); else ctx.fillRect(x + w - 2, y, 2, h);
+      break;
     default:
       R(x, y, w, h, "#3a3320", "#1c1810");
   }
+}
+
+// Kapı geçidi: eşik + iki söve. Kapalıyken perde ekran uzayında çizilir.
+function cizKapiEsigi(ctx, k) {
+  ctx.fillStyle = k.kapali ? "rgba(60,120,150,0.30)" : "rgba(60,110,140,0.16)";
+  ctx.fillRect(k.x, k.y, k.w, k.h);
+  ctx.fillStyle = "#28374a";
+  const s = 7;
+  if (k.yatay) { ctx.fillRect(k.x - s, k.y, s, k.h); ctx.fillRect(k.x + k.w, k.y, s, k.h); }
+  else { ctx.fillRect(k.x, k.y - s, k.w, s); ctx.fillRect(k.x, k.y + k.h, k.w, s); }
+  // eşik ışığı (kapı yerini karanlıkta da hafif belli eder)
+  ctx.fillStyle = k.kapali ? "rgba(255,140,90,0.35)" : "rgba(120,220,240,0.22)";
+  if (k.yatay) ctx.fillRect(k.x, k.y + k.h / 2 - 1, k.w, 2);
+  else ctx.fillRect(k.x + k.w / 2 - 1, k.y, 2, k.h);
 }
 
 // Her odaya ortak duvar detayları: dolap, kitaplık, beyaz tahta, saat, bitki, halı, çöp kovası.
@@ -430,17 +474,20 @@ function duvarDetay(ctx, a, s2, t) {
   ctx.fillStyle = "rgba(70,100,130,0.08)";
   ctx.fillRect(cx - a.w * 0.3, cy - a.h * 0.22, a.w * 0.6, a.h * 0.44);
 
+  // Duvar payı: dekorlar oda duvarının iç yüzüne yaslanır (duvarın altında kalmasın).
+  const D = KAPI_KALINLIK + 1;
+
   // Üst duvar: dolap (kapaklı)
-  R(a.x + 20, a.y + 8, a.w * 0.3, 22, "#33404f", "#141c26");
-  for (let i = 0; i < 3; i++) R(a.x + 26 + i * (a.w * 0.3 / 3), a.y + 11, a.w * 0.3 / 3 - 5, 16, "#3d4e62");
+  R(a.x + 20, a.y + D, a.w * 0.3, 22, "#33404f", "#141c26");
+  for (let i = 0; i < 3; i++) R(a.x + 26 + i * (a.w * 0.3 / 3), a.y + D + 3, a.w * 0.3 / 3 - 5, 16, "#3d4e62");
   // Üst duvar sağ: kitaplık (renkli kitap sırtları)
-  kitaplik(ctx, s2, a.x + a.w * 0.58, a.y + 8, a.w * 0.34, 22);
+  kitaplik(ctx, s2, a.x + a.w * 0.58, a.y + D, a.w * 0.34, 22);
 
   // Sol duvar: beyaz tahta
-  R(a.x + 8, a.y + a.h * 0.4, 15, a.h * 0.26, "#dfe7ef", "#3a4658");
+  R(a.x + D, a.y + a.h * 0.4, 15, a.h * 0.26, "#dfe7ef", "#3a4658");
   // Sağ duvar: dosya dolabı (çekmeceli)
-  R(a.x + a.w - 23, a.y + a.h * 0.38, 15, a.h * 0.3, "#4a5666", "#141c26");
-  for (let dy = a.y + a.h * 0.4; dy < a.y + a.h * 0.66; dy += 22) { const [x, y] = s2(a.x + a.w - 21, dy); ctx.strokeStyle = "#141c26"; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x + 11, y); ctx.stroke(); }
+  R(a.x + a.w - 15 - D, a.y + a.h * 0.38, 15, a.h * 0.3, "#4a5666", "#141c26");
+  for (let dy = a.y + a.h * 0.4; dy < a.y + a.h * 0.66; dy += 22) { const [x, y] = s2(a.x + a.w - 13 - D, dy); ctx.strokeStyle = "#141c26"; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x + 11, y); ctx.stroke(); }
 
   // Duvar saati (sağ üst) — akrep döner
   const [clx, cly] = s2(a.x + a.w - 30, a.y + 26);
@@ -497,15 +544,23 @@ function cizKisi(ctx, x, y, aksan, aci, yakalandi, t, sen) {
   if (yakalandi) { ctx.fillStyle = "rgba(255,90,90,0.95)"; ctx.font = "13px system-ui"; ctx.textAlign = "center"; ctx.fillText("✖", x, y - r - 5); }
 }
 
-// Detaylı drone: gövde + 4 rotor + tarama ışını.
-function cizDrone(ctx, x, y, aci, kovala, t) {
+// Detaylı drone: gövde + 4 rotor + tarama ışını. Sersemken ölü/kıvılcımlı.
+function cizDrone(ctx, x, y, aci, kovala, t, sersem) {
   ctx.save();
   ctx.translate(x, y);
   // gölge
   ctx.fillStyle = "rgba(0,0,0,0.4)";
   ctx.beginPath(); ctx.ellipse(0, 12, 16, 7, 0, 0, Math.PI * 2); ctx.fill();
+  if (sersem) {
+    // EMP arkı (rastgele sarı yaylar) + sarsıntı
+    ctx.translate(Math.sin(t * 40) * 1.6, Math.cos(t * 33) * 1.6);
+    ctx.strokeStyle = `rgba(255,225,120,${0.5 + 0.4 * Math.sin(t * 22)})`;
+    ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.arc(0, 0, 16, t * 9, t * 9 + 1.6); ctx.stroke();
+    ctx.beginPath(); ctx.arc(0, 0, 20, t * -7, t * -7 + 1.1); ctx.stroke();
+  }
   ctx.rotate(aci);
-  const ana = kovala ? "#c83a3a" : "#5a6f88";
+  const ana = sersem ? "#4a4a52" : kovala ? "#c83a3a" : "#5a6f88";
   // rotorlar (çapraz kollar ucunda daireler)
   ctx.strokeStyle = "#39434f"; ctx.lineWidth = 3;
   for (const [rx, ry] of [[10, 10], [10, -10], [-10, 10], [-10, -10]]) {
@@ -520,14 +575,16 @@ function cizDrone(ctx, x, y, aci, kovala, t) {
   ctx.fillStyle = ana;
   ctx.strokeStyle = "rgba(0,0,0,0.5)"; ctx.lineWidth = 2;
   ctx.beginPath(); ctx.arc(0, 0, 9, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
-  // tarama gözü (ileri)
-  ctx.fillStyle = kovala ? "#ff5a5a" : "#7fd0ff";
+  // tarama gözü (ileri) — sersemken söner
+  ctx.fillStyle = sersem ? "#2a2a30" : kovala ? "#ff5a5a" : "#7fd0ff";
   ctx.beginPath(); ctx.arc(5, 0, 3.5, 0, Math.PI * 2); ctx.fill();
-  // tarama ışını konisi (ileri)
-  const beam = ctx.createRadialGradient(0, 0, 4, 0, 0, 60);
-  beam.addColorStop(0, kovala ? "rgba(255,60,60,0.25)" : "rgba(120,200,255,0.18)");
-  beam.addColorStop(1, "rgba(0,0,0,0)");
-  ctx.fillStyle = beam;
-  ctx.beginPath(); ctx.moveTo(0, 0); ctx.arc(0, 0, 60, -0.5, 0.5); ctx.closePath(); ctx.fill();
+  // tarama ışını konisi (ileri) — sersemken yok
+  if (!sersem) {
+    const beam = ctx.createRadialGradient(0, 0, 4, 0, 0, 60);
+    beam.addColorStop(0, kovala ? "rgba(255,60,60,0.25)" : "rgba(120,200,255,0.18)");
+    beam.addColorStop(1, "rgba(0,0,0,0)");
+    ctx.fillStyle = beam;
+    ctx.beginPath(); ctx.moveTo(0, 0); ctx.arc(0, 0, 60, -0.5, 0.5); ctx.closePath(); ctx.fill();
+  }
   ctx.restore();
 }

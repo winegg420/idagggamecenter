@@ -2,20 +2,25 @@
 // RUN — oyun durumu ve güncelleme (prototip, tek-oyunculu + bot + droneler).
 // Çekirdek döngü: karanlık labirentte fenerle gez, drone'dan kaç, çıkışa ulaş.
 // Beceriler: sopa (rakibi bayıltıp "sat") + kalkan (3sn dokunulmazlık).
-// AI ele geçirme: nesneler aktifleşir → drone çeker. Zorluk zamanla artar.
+// Kapılar: kapatınca enerji perdesi olur — drone geçemez, kırması gerekir.
+// AI ele geçirme: nesneler aktifleşir → drone çeker; oyuncu hack'leyip
+// droneleri sersemletebilir. Zorluk zamanla artar.
 // Yakalanma = izleyici modu; round bitince 2 katmanlı sıralama.
 // ============================================================
 
 import {
-  DUNYA, OYUNCU_HIZ, OYUNCU_YARICAP, BOT_SAYISI, BOT_HIZ,
+  OYUNCU_HIZ, OYUNCU_YARICAP, BOT_SAYISI, BOT_HIZ,
   ISIK_DEGISIM_ARALIK, DRONE_DEVRIYE_HIZ, DRONE_KOVALA_HIZ, DRONE_GORUS,
   HEAT_YARICAP, HEAT_SURE, YAKALA_YARICAP, KAYIP_SURE, BOT_GRUP_MENZIL, DRONE_SAYISI,
   ATES_MENZIL, ATES_SURE, ZORLUK_ARALIK, ZORLUK_MAKS,
   SOPA_MENZIL, SOPA_ACI, SOPA_BEKLEME, KALKAN_SURE, KALKAN_BEKLEME,
   NESNE_AKTIF_ARALIK, NESNE_AKTIF_SURE, NESNE_CEK_MENZIL,
   BOT_KACIS_ZAMANI, IZLEYICI_MAKS,
+  KAPI_MENZIL, KAPI_BEKLEME, KAPI_ACILMA, KAPI_KIRILMA,
+  HACK_MENZIL, HACK_SURE, HACK_SERSEM_MENZIL, SERSEM_SURE, PARCACIK_MAKS,
 } from "./sabitler.js";
-import { OFIS, yurunebilir, cikistaMi, odaAdi } from "./harita.js";
+import { OFIS, yurunebilir, cikistaMi } from "./harita.js";
+import { cikisYonu } from "./navigasyon.js";
 
 const BOT_ADLARI = ["Neo", "Trinity", "Ghost", "Vega", "Kilo", "Rook", "Delta"];
 
@@ -68,6 +73,108 @@ function enYakinCikis(harita, x, y) {
   return en;
 }
 
+// --- Parçacıklar (vuruş/hack/ateş/kapı kıvılcımları) ---
+export function parcacikEkle(durum, x, y, adet, renk, hiz = 120, boy = 2.2) {
+  const p = durum.parcaciklar;
+  for (let i = 0; i < adet && p.length < PARCACIK_MAKS; i++) {
+    const a = Math.random() * Math.PI * 2, v = hiz * (0.35 + Math.random() * 0.65);
+    const omur = 0.3 + Math.random() * 0.5;
+    p.push({ x, y, vx: Math.cos(a) * v, vy: Math.sin(a) * v, omur, maks: omur, renk, boy: boy * (0.6 + Math.random() * 0.8) });
+  }
+}
+
+function parcaciklariGuncelle(durum, dt) {
+  const p = durum.parcaciklar;
+  for (let i = p.length - 1; i >= 0; i--) {
+    const k = p[i];
+    k.omur -= dt;
+    if (k.omur <= 0) { p.splice(i, 1); continue; }
+    k.x += k.vx * dt; k.y += k.vy * dt;
+    const sonum = Math.max(0, 1 - 3.2 * dt);           // sürtünme
+    k.vx *= sonum; k.vy *= sonum;
+  }
+}
+
+// --- Kapılar ---
+// Nokta bir kapının (şişirilmiş) gövdesinde mi? Sadece drone engellemesi için.
+function kapidaMi(k, x, y, pay = 12) {
+  return x >= k.x - pay && x <= k.x + k.w + pay && y >= k.y - pay && y <= k.y + k.h + pay;
+}
+
+function enYakinKapi(harita, x, y, menzil) {
+  let en = null, enD = menzil;
+  for (const k of harita.kapilar) {
+    if (k.kapali) continue;
+    const kx = k.x + k.w / 2, ky = k.y + k.h / 2, d = Math.hypot(kx - x, ky - y);
+    if (d < enD) { enD = d; en = k; }
+  }
+  return en;
+}
+
+function kapiKapat(durum, ben) {
+  const k = enYakinKapi(durum.harita, ben.x, ben.y, KAPI_MENZIL);
+  if (!k) return;
+  k.kapali = true; k._acilma = KAPI_ACILMA; k.kirilma = 0;
+  ben._kapiCd = KAPI_BEKLEME;
+  durum.sesler.push("kapi");
+  akisEkle(durum, `🚪 ${k.oda || "Kapı"} kapatıldı`);
+  parcacikEkle(durum, k.x + k.w / 2, k.y + k.h / 2, 8, "90,200,255", 70, 1.8);
+}
+
+function kapiAc(durum, k, kirildi) {
+  k.kapali = false; k._acilma = 0; k.kirilma = 0;
+  if (kirildi) {
+    durum.sesler.push("kapi");
+    akisEkle(durum, `💥 ${k.oda || "Kapı"} kırıldı`);
+    parcacikEkle(durum, k.x + k.w / 2, k.y + k.h / 2, 14, "255,140,60", 150, 2.4);
+  }
+}
+
+// --- Ele geçirme (hack) ---
+function enYakinAktifNesne(harita, x, y, menzil) {
+  let en = null, enD = menzil;
+  for (const n of harita.nesneler || []) {
+    if (!n.aktif) continue;
+    const d = Math.hypot(n.x - x, n.y - y);
+    if (d < enD) { enD = d; en = n; }
+  }
+  return en;
+}
+
+// Aktif makineyi basılı tutarak ele geçir: ödül + yakın droneler sersemler.
+// Bedeli: hack sırasında yavaşsın/duruyorsun → ısı algılamasına açıksın.
+function hackGuncelle(durum, ben, dt, basili) {
+  const hedef = enYakinAktifNesne(durum.harita, ben.x, ben.y, HACK_MENZIL);
+  ben.hackHedef = basili && hedef ? hedef : null;
+  if (!ben.hackHedef) {
+    ben._hackIlerleme = Math.max(0, ben._hackIlerleme - dt * 2);
+    return;
+  }
+  ben._hackIlerleme += dt;
+  parcacikEkle(durum, hedef.x + rastgele(-8, 8), hedef.y + rastgele(-6, 6), 1, "90,230,240", 40, 1.6);
+  if (ben._hackIlerleme < HACK_SURE) return;
+
+  // Tamamlandı
+  ben._hackIlerleme = 0; ben.hackHedef = null;
+  hedef.aktif = false; hedef._sure = 0;
+  ben.hack++;
+  durum.sesler.push("hack");
+  akisEkle(durum, `💾 ${hedef.ad} ele geçirildi (+1)`);
+  parcacikEkle(durum, hedef.x, hedef.y, 22, "120,240,255", 190, 2.6);
+
+  let sersemleyen = 0;
+  for (const d of durum.droneler) {
+    if (Math.hypot(d.x - hedef.x, d.y - hedef.y) > HACK_SERSEM_MENZIL) continue;
+    d.sersem = SERSEM_SURE; d._kilit = 0; d.mod = "devriye"; d.hedefId = null;
+    parcacikEkle(durum, d.x, d.y, 8, "255,220,120", 110, 2);
+    sersemleyen++;
+  }
+  if (sersemleyen) {
+    durum.sesler.push("sersem");
+    akisEkle(durum, `⚡ ${sersemleyen} drone sersemledi`);
+  }
+}
+
 // Kill feed / olay akışı (en yeni üstte, sınırlı).
 function akisEkle(durum, metin) {
   durum.akis.unshift({ metin, zaman: durum.zaman });
@@ -86,6 +193,8 @@ function yakalanIsle(durum, s, sebep) {
   s.yakalandi = true; s._bitisZaman = durum.zaman;
   akisEkle(durum, sebep === "sopa" ? `🦇 ${s.ad} satıldı (Sen)` : `🤖 ${s.ad} yakalandı`);
   durum.sesler.push("yakala");
+  parcacikEkle(durum, s.x, s.y, 16, sebep === "sopa" ? "255,220,120" : "255,80,70", 170, 2.4);
+  s.hackHedef = null; s._hackIlerleme = 0;   // yarım kalan ele geçirme iptal
   if (s.id === "ben") { durum.sesler.push("yakalandi"); durum.izleyici = true; durum._izleyiciSayaci = IZLEYICI_MAKS; }
 }
 
@@ -97,7 +206,8 @@ export function createDurum() {
     id: "ben", ad: "Sen", bot: false,
     x: harita.baslangic.x, y: harita.baslangic.y, aci: -Math.PI / 2,
     yakalandi: false, cikti: false, durgun: 0, _bitisZaman: 0,
-    sat: 0, kalkan: 0, _sopaCd: 0, _kalkanCd: 0, _sopaFlash: 0,
+    sat: 0, hack: 0, kalkan: 0, _sopaCd: 0, _kalkanCd: 0, _sopaFlash: 0,
+    _kapiCd: 0, _hackIlerleme: 0, hackHedef: null,
   });
 
   const adlar = [...BOT_ADLARI].sort(() => Math.random() - 0.5);
@@ -114,14 +224,17 @@ export function createDurum() {
   const droneler = [];
   for (let i = 0; i < DRONE_SAYISI; i++) {
     const dk = rastgeleNokta(harita);
-    droneler.push({ x: dk.x, y: dk.y, aci: 0, mod: "devriye", hedefId: null, hedefX: dk.x, hedefY: dk.y, kayip: 0, _kilit: 0, _ates: 0 });
+    droneler.push({ x: dk.x, y: dk.y, aci: 0, mod: "devriye", hedefId: null, hedefX: dk.x, hedefY: dk.y, kayip: 0, sersem: 0, _kilit: 0, _ates: 0 });
   }
 
   // Nesneler ele-geçirilebilir hale gelir (aktif olunca drone çeker).
   for (const n of harita.nesneler || []) { n.aktif = false; n._sure = 0; }
+  // Kapılar açık başlar.
+  for (const k of harita.kapilar || []) { k.kapali = false; k._acilma = 0; k.kirilma = 0; }
 
   return {
     harita, oyuncular, droneler,
+    parcaciklar: [],
     zaman: 0, isikSayaci: ISIK_DEGISIM_ARALIK,
     bitti: false, sonuc: null,   // 'kacti' | 'yakalandi'
     izleyici: false, _izleyiciSayaci: 0,
@@ -162,7 +275,7 @@ function siralamaYap(durum) {
   return [...kacan, ...tutulan, ...kalan].map((s) => ({
     ad: s.ad, ben: s.id === "ben",
     durum: s.cikti ? "kacti" : s.yakalandi ? "yakalandi" : "kaldi",
-    sat: s.sat || 0,
+    sat: s.sat || 0, hack: s.hack || 0,
   }));
 }
 
@@ -193,6 +306,14 @@ function sopaVur(durum, ben) {
 export function guncelle(durum, dt, girdi) {
   if (durum.bitti) return;
   durum.zaman += dt;
+  parcaciklariGuncelle(durum, dt);
+
+  // Kapılar: kapalı kapı süresi dolunca kendiliğinden açılır.
+  for (const k of durum.harita.kapilar) {
+    if (!k.kapali) continue;
+    k._acilma -= dt;
+    if (k._acilma <= 0) kapiAc(durum, k, false);
+  }
 
   // Zorluk eğrisi: zamanla droneler hızlanır/görüşü artar (algilanabilir + hız çarpanı)
   durum._zorlukSayaci -= dt;
@@ -222,7 +343,12 @@ export function guncelle(durum, dt, girdi) {
       akisEkle(durum, `⚠ ${n.ad} ele geçiriliyor`); durum.sesler.push("alarm");
     }
   }
-  for (const n of nesneler) { if (n.aktif) { n._sure -= dt; if (n._sure <= 0) n.aktif = false; } }
+  for (const n of nesneler) {
+    if (!n.aktif) continue;
+    n._sure -= dt;
+    if (n._sure <= 0) n.aktif = false;
+    else if (Math.random() < dt * 7) parcacikEkle(durum, n.x, n.y - 6, 1, "255,150,60", 45, 1.7); // kıvılcım
+  }
   const aktifNesneler = nesneler.filter((n) => n.aktif);
 
   // Hayatta kalanlar (oyuncu + botlar)
@@ -234,8 +360,13 @@ export function guncelle(durum, dt, girdi) {
       // Round ilerledikçe (ya da oyuncu elendiğinde) botlar çıkışa yönelir → round çözülür.
       if (!s._kacis && (durum.zaman > BOT_KACIS_ZAMANI || durum.izleyici)) s._kacis = true;
       if (s._kacis) {
-        const c = enYakinCikis(durum.harita, s.x, s.y);
-        if (c) s._yon = Math.atan2(c.y - s.y, c.x - s.x) + (Math.random() - 0.5) * 0.5;
+        // Odalar duvarlı: düz çizgi yerine BFS akış alanını takip et (kapı geçitlerini bulur).
+        const yon = cikisYonu(s.x, s.y);
+        if (yon) s._yon = Math.atan2(yon.y, yon.x) + (Math.random() - 0.5) * 0.12;
+        else {
+          const c = enYakinCikis(durum.harita, s.x, s.y);
+          if (c) s._yon = Math.atan2(c.y - s.y, c.x - s.x) + (Math.random() - 0.5) * 0.5;
+        }
       } else {
         // Oyuncudan çok uzaklaşınca ona doğru yönel (grup halinde görünür kalsınlar)
         const ben0 = durum.oyuncular[0];
@@ -261,9 +392,14 @@ export function guncelle(durum, dt, girdi) {
       // Beceriler
       s._sopaCd = Math.max(0, s._sopaCd - dt);
       s._kalkanCd = Math.max(0, s._kalkanCd - dt);
+      s._kapiCd = Math.max(0, s._kapiCd - dt);
       s.kalkan = Math.max(0, s.kalkan - dt);
       s._sopaFlash = Math.max(0, s._sopaFlash - dt);
       if (girdi.sopaAl() && s._sopaCd <= 0) sopaVur(durum, s);
+      // Kapı: menzildeki açık kapıyı kapat (drone'u durdurur/yavaşlatır)
+      if (girdi.kapiAl() && s._kapiCd <= 0) kapiKapat(durum, s);
+      // Makine ele geçirme (E basılı tut)
+      hackGuncelle(durum, s, dt, girdi.hackBasiliMi());
       // Kalkan: basış kenarında aktifleşir (cooldown bitmişse)
       if (girdi.kalkanBasiliMi()) {
         if (!s._kalkanBasili) { s._kalkanBasili = true; if (s._kalkanCd <= 0 && s.kalkan <= 0) { s.kalkan = KALKAN_SURE; s._kalkanCd = KALKAN_BEKLEME; durum.sesler.push("kalkan"); } }
@@ -275,6 +411,14 @@ export function guncelle(durum, dt, girdi) {
 
   // Drone AI (her drone bağımsız devriye/kovala/ateş)
   for (const d of durum.droneler) {
+    // Sersem (hack darbesi): ne algılar ne hareket eder — kaçmak için pencere.
+    if (d.sersem > 0) {
+      d.sersem -= dt;
+      d._kilit = 0;
+      d._ates = Math.max(0, d._ates - dt);
+      if (Math.random() < dt * 8) parcacikEkle(durum, d.x, d.y, 1, "255,220,120", 60, 1.6);
+      continue;
+    }
     const adaylar = durum.oyuncular.filter((s) => algilanabilir(durum, s, d));
     if (adaylar.length) {
       const ben = adaylar.find((s) => s.id === "ben");
@@ -298,8 +442,16 @@ export function guncelle(durum, dt, girdi) {
       const p = rastgeleNokta(durum.harita); d.hedefX = p.x; d.hedefY = p.y;
     }
     const ddx = d.hedefX - d.x, ddy = d.hedefY - d.y, duz = Math.hypot(ddx, ddy) || 1;
-    d.x += (ddx / duz) * hiz * dt;
-    d.y += (ddy / duz) * hiz * dt;
+    const nx = d.x + (ddx / duz) * hiz * dt, ny = d.y + (ddy / duz) * hiz * dt;
+    // Kapalı kapı enerji perdesi: drone geçemez, kırmak zorunda (oyuncuya zaman kazandırır).
+    const perde = durum.harita.kapilar.find((k) => k.kapali && kapidaMi(k, nx, ny));
+    if (perde) {
+      perde.kirilma += dt;
+      if (Math.random() < dt * 12) parcacikEkle(durum, nx, ny, 1, "255,90,70", 90, 1.8);
+      if (perde.kirilma >= KAPI_KIRILMA) kapiAc(durum, perde, true);
+    } else {
+      d.x = nx; d.y = ny;
+    }
     d.aci = Math.atan2(ddy, ddx);
     d._ates = Math.max(0, d._ates - dt);
 

@@ -1,5 +1,5 @@
 import { lazy, Suspense } from "react";
-import { Routes, Route, Navigate } from "react-router-dom";
+import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "./context/AuthContext.jsx";
 import { supabaseHazir } from "./lib/supabase.js";
 import Layout from "./components/Layout.jsx";
@@ -22,8 +22,14 @@ import ProfilePage from "./pages/ProfilePage.jsx";
 
 export default function App() {
   const { session, loading } = useAuth();
+  const { pathname } = useLocation();
 
-  if (!supabaseHazir) {
+  // Gladius ve RUN bağımsız modüllerdir: Supabase/oturum kullanmazlar,
+  // bu yüzden giriş duvarının önünde açılabilirler.
+  const bagimsizModul =
+    pathname.startsWith("/gladius") || pathname.startsWith("/run");
+
+  if (!supabaseHazir && !bagimsizModul) {
     return (
       <div className="giris">
         <div className="buyuk-logo">Bildim!</div>
@@ -35,9 +41,10 @@ export default function App() {
     );
   }
 
-  if (loading) return <div className="yukleniyor">Yükleniyor…</div>;
+  if (loading && !bagimsizModul)
+    return <div className="yukleniyor">Yükleniyor…</div>;
 
-  if (!session) return <Login />;
+  if (!session && !bagimsizModul) return <Login />;
 
   return (
     <Routes>

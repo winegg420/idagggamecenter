@@ -182,5 +182,6 @@
 .run-siralama tr.ben td { color: #ffd873; font-weight: 700; }
 .run-siralama .yer { color: #7fb0e0; width: 30px; }
 .run-siralama .rz { text-align: right; color: #ffd873; }
+.run-siralama .hz { text-align: right; color: #7ce8ff; }
 .run-sonuc-btnler { display: flex; gap: 10px; justify-content: center; }
 .run-sonuc-btnler button { width: auto; min-width: 120px; margin: 0; }

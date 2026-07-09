@@ -61,3 +61,23 @@ export const NESNE_CEK_MENZIL = 760;      // aktif nesne bu menzildeki boş dron
 export const BOT_KACIS_ZAMANI = 18;       // sn
 // İzleyici modunda round'u sonlandıran güvenlik süresi
 export const IZLEYICI_MAKS = 26;          // sn
+
+// Kapılar — oda duvarlarındaki geçitler. Kapalı kapı enerji perdesi olur:
+// insanlar geçer, drone geçemez (kırması gerekir) → kaçış aracı.
+export const KAPI_GENISLIK = 96;          // geçit boşluğu
+export const KAPI_KALINLIK = 14;          // duvar/kapı kalınlığı
+export const KAPI_MENZIL = 82;            // oyuncu bu mesafedeki kapıyı kapatabilir
+export const KAPI_BEKLEME = 3.0;          // kapı kapatma cooldown (sn)
+export const KAPI_ACILMA = 12;            // kapalı kapı bu süre sonra kendiliğinden açılır
+export const KAPI_KIRILMA = 2.2;          // drone kapalı kapıyı bu sürede kırar
+
+// Etkileşimli makine (ele geçirme / hack) — tasarım 6 devamı.
+// Aktif nesneyi basılı tutarak ele geçirirsin: ödül + yakındaki droneler sersemler.
+// Bedeli: hack sırasında duruyorsun → drone ısı algılamasına açıksın.
+export const HACK_MENZIL = 64;            // nesneye bu mesafede hack başlar
+export const HACK_SURE = 1.6;             // tamamlanma süresi (sn)
+export const HACK_SERSEM_MENZIL = 320;    // tamamlanınca bu menzildeki droneler sersemler
+export const SERSEM_SURE = 2.6;           // drone sersemleme süresi (sn)
+
+// Parçacıklar (vuruş/hack/ateş/kapı efektleri)
+export const PARCACIK_MAKS = 220;         // aynı anda en fazla parçacık
