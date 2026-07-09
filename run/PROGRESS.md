@@ -215,7 +215,44 @@ Tek-oyunculu sürüm yayına hazır hale getirildi. Kapatılan hatalar:
 - Başsız test 3 tur GEÇTİ; `npm run build` OK (RunApp 45.8 kB).
 - Chrome: oklüzyon piksel taramasıyla, buton gizleme + koridor ışığı ekran görüntüsüyle doğrulandı.
 
+## 2026-07-09 — Görünürlük kuralı + profesyonel harita + mobil cila (İda talebi)
+İda: "ışığımın içinde değilse diğer oyuncuları görmemeliyim; map çok aynı; mobil kusursuz olsun."
+
+### Görünürlük kuralı (`render.js` isikta())
+- **Diğer oyuncular yalnızca ışığında görünür/etiketlenir:** yakın çevre ışığı VEYA fener konisi
+  içinde VE arada duvar yoksa (görüş hattı örneklenir; mobilya alçak, kesmez). Eski koşulsuz
+  "müttefik blip + isim" göstergeleri kaldırıldı — karanlıktaki oyuncu tamamen görünmez.
+- **Genel Bakış artık BİNA PLANI:** droneler ve diğer oyuncular planda ÇİZİLMEZ (hile olmaktan
+  çıktı); sadece harita + kendi konumun + kapılar/çıkışlar. Etiket: "canlı konumlar görünmez".
+- Aydınlık odalar uzaktan seçilir (tasarım 5, GPS bilgisi) — bilinçli istisna.
+
+### Profesyonel harita (`harita.js` yeniden üretim)
+- **Değişken hücre boyutları:** kolon 440-640, satır 370-520 (tohumlu) → tekdüze ızgara kırıldı.
+- **Birleşik büyük odalar:** yatay çift hücre **Kafeterya** (servis bankosu + 6 yuvarlak masa),
+  dikey çift hücre **Atrium** (2 bitki adası + banklar) — aradaki koridoru da kapsarlar.
+- **14 farklı oda tipi**, her tipin kendine özgü mobilya düzeni (rnd varyasyonlu): sunucu (3-4 raf),
+  toplantı (yatay/dikey masa), depo (4 palet istifi), güvenlik (yanıp sönen monitör duvarı),
+  lab (2 tezgah + numune LED), giriş (resepsiyon+bank), fuaye (boş), ofisler (2-3 kolon masa)...
+- **Tip bazlı zemin tonları** (render `TABAN`): atrium yeşilimsi, kafeterya sıcak, depo koyu,
+  lab/güvenlik soğuk... koridorlar odalardan koyu → mekân okunurluğu.
+- Başlangıç orta koridor kavşağına, çıkışlar da ona hizalı (değişken boyutlarda W/2 oda içine düşebilirdi).
+
+### Mobil cila
+- **Sanal joystick görseli** (taban halkası + topuz) sürüklerken çizilir (`durum.jsGorsel`).
+- **Dokunsal titreşim** (navigator.vibrate): yakalanma/vuruş/ateş/kaçış/sersem desenleri.
+- Kill feed **sağ-üste** taşındı (sağ-alt dokunmatik butonların).
+- `env(safe-area-inset-*)` (çentikli telefonlar), `-webkit-touch-callout:none`,
+  `overscroll-behavior:none`; dokunmatikte klavye ipucu satırı gizli.
+- **Çıkış yön okları:** ekran dışındaki çıkış işaretleri kenara sabitlenmiş ok olur — yön hep belli.
+
+### Doğrulama
+- Başsız test (22 sağlama × 5 tur geçti): 14 oda / 12 tip / 14 farklı boyut, kafeterya+atrium var,
+  akış alanı %100 ulaşılabilir, tüm mekanikler çalışıyor.
+- Chrome: plan modu (drone/bot yok), görünürlük üçlü testi (koni içi Delta görünür; arkadaki Vega
+  ve duvar arkasındaki Trinity görünmez), çıkış okları — ekran görüntüleriyle doğrulandı. Konsol temiz.
+- `npm run build` OK (RunApp 51.1 kB).
+
 ## Sıradaki
 - **Multiplayer** (PatiRun/Bildim presence+broadcast) — spec Faz 10, backend gerektirir; **en son**.
 - İsteğe bağlı: round sonucu/istatistik kalıcılığı (şu an hiçbir şey kaydedilmiyor — bilinçli).
-- Organik/düzensiz koridor düzeni (koridorlar hâlâ ızgara; odalar artık duvarlı).
+- İsteğe bağlı: mobil gerçek cihaz testi (İda) — dokunmatik butonlar + joystick + titreşim.

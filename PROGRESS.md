@@ -67,3 +67,12 @@
 - Cila: botlar yakın drone'dan kaçınıyor; round bitince vızıltı sönüyor.
 - Doğrulama: başsız test 3 tur geçti, build OK, Chrome görsel + piksel doğrulaması.
 - Multiplayer hâlâ bilinçli olarak sonraki faz (backend gerektirir).
+
+## 2026-07-09 — RUN: stealth görünürlük kuralı + profesyonel harita + mobil cila
+- **Görünürlük:** diğer oyuncular yalnızca ışığının içindeyse (fener/çevre) VE arada duvar
+  yoksa görünür/etiketlenir; koşulsuz isim blip'leri kaldırıldı. Genel bakış "bina planı" oldu:
+  drone/oyuncu göstermez (hile olmaktan çıktı).
+- **Harita:** değişken oda boyutları, birleşik büyük odalar (Kafeterya + Atrium), 14 oda tipi
+  (tip bazlı mobilya + zemin tonu), depo palet istifleri, güvenlik monitör duvarı, lab tezgahları.
+- **Mobil:** sanal joystick görseli, dokunsal titreşim, kill feed sağ-üst, safe-area, çıkış yön okları.
+- Doğrulama: başsız test 5 tur geçti (%100 ulaşılabilirlik), Chrome görsel testleri, build OK.

@@ -47,6 +47,38 @@ function isikKatmani(w, h) {
   return isikCtx;
 }
 
+// Hedef, izlenenin IŞIĞININ içinde mi? (yakın çevre ışığı VEYA fener konisi)
+// VE arada duvar yok mu? Diğer oyuncular yalnızca bu durumda görünür/etiketlenir.
+function isikta(harita, kaynak, hx, hy) {
+  const dx = hx - kaynak.x, dy = hy - kaynak.y;
+  const uz = Math.hypot(dx, dy);
+  let aydinlatiyor = uz < GORUS_YARICAP + 18;
+  if (!aydinlatiyor && uz < FENER_UZUNLUK) {
+    let fark = Math.abs(Math.atan2(dy, dx) - kaynak.aci);
+    if (fark > Math.PI) fark = Math.PI * 2 - fark;
+    aydinlatiyor = fark <= FENER_ACI + 0.06;
+  }
+  if (!aydinlatiyor) return false;
+  // Görüş hattı: duvarlar keser (mobilya alçak, kesmez)
+  const adim = Math.max(2, Math.ceil(uz / 18));
+  for (let i = 1; i < adim; i++) {
+    const px = kaynak.x + (dx * i) / adim, py = kaynak.y + (dy * i) / adim;
+    for (const e of harita.engeller) {
+      if (e.tip !== "duvar") continue;
+      if (px >= e.x && px <= e.x + e.w && py >= e.y && py <= e.y + e.h) return false;
+    }
+  }
+  return true;
+}
+
+// Oda tipine göre zemin tonu — her oda tipi farklı okunsun (profesyonel harita hissi)
+const TABAN = {
+  ofis: "#243240", acik_ofis: "#26333f", sunucu: "#1c2b34", toplanti: "#283140",
+  dinlenme: "#2c3044", mutfak: "#2e343b", kafeterya: "#30333c", arsiv: "#2b2f31",
+  depo: "#282c2d", guvenlik: "#22303e", lab: "#213139", giris: "#2d3543",
+  atrium: "#243528", plaza: "#2a3646",
+};
+
 export function ciz(ctx, durum, view) {
   const { w, h } = view;
   const t = durum.zaman;
@@ -77,7 +109,7 @@ export function ciz(ctx, durum, view) {
   for (const a of durum.harita.alanlar) {
     if (a.x > gR || a.y > gB || a.x + a.w < gL || a.y + a.h < gT) continue;
     const rx = a.x, ry = a.y;
-    ctx.fillStyle = a.aydinlik ? "#334556" : "#243240";
+    ctx.fillStyle = a.aydinlik ? "#334556" : a.koridor ? "#1f2933" : TABAN[a.tip] || "#243240";
     ctx.fillRect(rx, ry, a.w, a.h);
     ctx.save();
     ctx.beginPath(); ctx.rect(rx, ry, a.w, a.h); ctx.clip();
@@ -129,26 +161,30 @@ export function ciz(ctx, durum, view) {
     }
     ctx.strokeStyle = n.aktif ? "rgba(255,180,120,0.9)" : "rgba(120,230,240,0.7)"; ctx.lineWidth = 1; ctx.strokeRect(n.x - 9, n.y - 7, 18, 14);
   }
-  for (const s of durum.oyuncular) {
-    if (s.id === izlenen.id) continue;
-    const renk = s.yakalandi ? "#5a6472" : s.cikti ? "#4dd08a" : s.id === "ben" ? "#f0c651" : "#49c6e0";
-    cizKisi(ctx, s.x, s.y, renk, s.aci, s.yakalandi, t, s.id === "ben" && !s.yakalandi);
+  // BİNA PLANI (genel bakış) taktik harita: diğer oyuncular ve droneler ÇİZİLMEZ —
+  // canlı konum bilgisi yalnızca kendi ışığınla elde edilir (stealth mantığı).
+  if (!genel) {
+    for (const s of durum.oyuncular) {
+      if (s.id === izlenen.id) continue;
+      const renk = s.yakalandi ? "#5a6472" : s.cikti ? "#4dd08a" : s.id === "ben" ? "#f0c651" : "#49c6e0";
+      cizKisi(ctx, s.x, s.y, renk, s.aci, s.yakalandi, t, s.id === "ben" && !s.yakalandi);
+    }
+    for (const dr of durum.droneler || []) cizDrone(ctx, dr.x, dr.y, dr.aci, dr.mod === "kovala", t, dr.sersem > 0);
+    // Drone kilit/ateş ışını (kovaladığı hedefe)
+    for (const dr of durum.droneler || []) {
+      if (dr._kilit <= 0 && dr._ates <= 0) continue;
+      const hedef = durum.oyuncular.find((s) => s.id === dr.hedefId && !s.yakalandi && !s.cikti);
+      if (!hedef) continue;
+      const atesli = dr._ates > 0;
+      ctx.save();
+      ctx.strokeStyle = atesli ? "rgba(255,60,60,0.95)" : `rgba(255,90,70,${0.25 + 0.4 * (dr._kilit / 1.05)})`;
+      ctx.lineWidth = atesli ? 4 : 1.5;
+      if (atesli) { ctx.shadowColor = "rgba(255,60,60,0.9)"; ctx.shadowBlur = 14; }
+      ctx.beginPath(); ctx.moveTo(dr.x, dr.y); ctx.lineTo(hedef.x, hedef.y); ctx.stroke();
+      ctx.restore();
+    }
   }
-  for (const dr of durum.droneler || []) cizDrone(ctx, dr.x, dr.y, dr.aci, dr.mod === "kovala", t, dr.sersem > 0);
-  // Drone kilit/ateş ışını (kovaladığı hedefe)
-  for (const dr of durum.droneler || []) {
-    if (dr._kilit <= 0 && dr._ates <= 0) continue;
-    const hedef = durum.oyuncular.find((s) => s.id === dr.hedefId && !s.yakalandi && !s.cikti);
-    if (!hedef) continue;
-    const atesli = dr._ates > 0;
-    ctx.save();
-    ctx.strokeStyle = atesli ? "rgba(255,60,60,0.95)" : `rgba(255,90,70,${0.25 + 0.4 * (dr._kilit / 1.05)})`;
-    ctx.lineWidth = atesli ? 4 : 1.5;
-    if (atesli) { ctx.shadowColor = "rgba(255,60,60,0.9)"; ctx.shadowBlur = 14; }
-    ctx.beginPath(); ctx.moveTo(dr.x, dr.y); ctx.lineTo(hedef.x, hedef.y); ctx.stroke();
-    ctx.restore();
-  }
-  if (genel) cizKisi(ctx, izlenen.x, izlenen.y, izlAksan, izlenen.aci, izlenen.yakalandi, t, true); // overview'da dünyada
+  if (genel) cizKisi(ctx, izlenen.x, izlenen.y, izlAksan, izlenen.aci, izlenen.yakalandi, t, true); // planda kendi konumun
 
   ctx.restore();
 
@@ -290,26 +326,43 @@ export function ciz(ctx, durum, view) {
     ctx.restore();
   }
 
-  // Çıkış neon markerları (her zaman görünür)
+  // Çıkış neon markerları (her zaman görünür); ekran dışındaysa kenara
+  // sabitlenmiş yön oku olur — oyuncu çıkışın yönünü hep bilir.
   for (const c of durum.harita.cikislar) {
-    const [rx, ry] = w2s(c.x + c.w / 2, c.y + c.h / 2);
+    let [rx, ry] = w2s(c.x + c.w / 2, c.y + c.h / 2);
+    const K = 26;
+    const disarida = rx < K || rx > w - K || ry < K || ry > h - K;
     ctx.save();
-    const pul = 10 + Math.sin(t * 4) * 2;
-    ctx.strokeStyle = "rgba(70,240,130,0.9)"; ctx.lineWidth = 3; ctx.shadowColor = "rgba(70,240,130,0.9)"; ctx.shadowBlur = 18;
-    ctx.beginPath(); ctx.arc(rx, ry, pul, 0, Math.PI * 2); ctx.stroke();
-    ctx.fillStyle = "#7dffb0"; ctx.font = "bold 15px system-ui"; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.shadowBlur = 8;
-    ctx.fillText("⎋", rx, ry); ctx.restore();
+    if (disarida && !genel) {
+      const yon = Math.atan2(ry - h / 2, rx - w / 2);
+      rx = Math.max(K, Math.min(w - K, rx));
+      ry = Math.max(K, Math.min(h - K, ry));
+      ctx.translate(rx, ry); ctx.rotate(yon);
+      ctx.fillStyle = "rgba(70,240,130,0.75)"; ctx.shadowColor = "rgba(70,240,130,0.8)"; ctx.shadowBlur = 10;
+      ctx.beginPath(); ctx.moveTo(12, 0); ctx.lineTo(-4, -7); ctx.lineTo(-4, 7); ctx.closePath(); ctx.fill();
+      ctx.rotate(-yon);
+      ctx.fillStyle = "#7dffb0"; ctx.font = "bold 12px system-ui"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+      ctx.fillText("⎋", -12 * Math.cos(yon) * 1.6, -12 * Math.sin(yon) * 1.6);
+    } else {
+      const pul = 10 + Math.sin(t * 4) * 2;
+      ctx.strokeStyle = "rgba(70,240,130,0.9)"; ctx.lineWidth = 3; ctx.shadowColor = "rgba(70,240,130,0.9)"; ctx.shadowBlur = 18;
+      ctx.beginPath(); ctx.arc(rx, ry, pul, 0, Math.PI * 2); ctx.stroke();
+      ctx.fillStyle = "#7dffb0"; ctx.font = "bold 15px system-ui"; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.shadowBlur = 8;
+      ctx.fillText("⎋", rx, ry);
+    }
+    ctx.restore();
   }
 
-  // Müttefik blip + isim
-  for (const s of durum.oyuncular) {
-    if (s.id === izlenen.id || s.yakalandi || s.cikti) continue;
-    const dd = Math.hypot(s.x - izlenen.x, s.y - izlenen.y);
-    if (!genel && dd > 520) continue;
-    const [sx, sy] = w2s(s.x, s.y);
-    const al = genel ? 0.85 : 0.3 + 0.5 * (1 - dd / 520);
-    ctx.fillStyle = `rgba(90,220,255,${al})`; ctx.beginPath(); ctx.arc(sx, sy - 14, 3, 0, Math.PI * 2); ctx.fill();
-    ctx.fillStyle = `rgba(170,235,255,${al})`; ctx.font = "10px system-ui"; ctx.textAlign = "center"; ctx.fillText(s.ad, sx, sy - 18);
+  // Oyuncu isimleri: YALNIZCA ışığının içindekiler (fener/çevre ışığı + duvar arkası değil).
+  // Karanlıktaki oyuncular ne çizilir ne etiketlenir — stealth kuralı.
+  if (!genel) {
+    for (const s of durum.oyuncular) {
+      if (s.id === izlenen.id || s.yakalandi || s.cikti) continue;
+      if (!isikta(durum.harita, izlenen, s.x, s.y)) continue;
+      const [sx, sy] = w2s(s.x, s.y);
+      ctx.fillStyle = "rgba(170,235,255,0.85)"; ctx.font = "10px system-ui"; ctx.textAlign = "center";
+      ctx.fillText(s.ad, sx, sy - 20);
+    }
   }
 
   // En yakın drone alarmı
@@ -322,10 +375,10 @@ export function ciz(ctx, durum, view) {
     ctx.fillStyle = vg; ctx.fillRect(0, 0, w, h);
   }
 
-  // Genel bakış etiketi
+  // Bina planı etiketi
   if (genel) {
     ctx.fillStyle = "rgba(210,225,240,0.9)"; ctx.font = "bold 15px system-ui"; ctx.textAlign = "center";
-    ctx.fillText("GENEL BAKIŞ — çıkmak için M (veya buton)", w / 2, h - 16);
+    ctx.fillText("🗺 BİNA PLANI — canlı konumlar görünmez · kapat: M", w / 2, h - 16);
   }
 
   cizHud(ctx, durum, view, ben);
@@ -399,16 +452,29 @@ function cizHud(ctx, durum, view, ben) {
     yuvarlakDikdortgen(ctx, px, py - 30, cw * Math.min(1, ben._hackIlerleme / HACK_SURE), 8, 4); ctx.fill();
   }
 
-  // --- Kill feed / olay akışı (sağ-alt) ---
+  // --- Kill feed / olay akışı (sağ-üst; sağ-alt mobilde dokunmatik butonlara ait) ---
   ctx.textAlign = "right"; ctx.font = "12px system-ui";
-  let ky = h - 20;
+  let ky = 68;
   for (const o of durum.akis) {
     const yas = t - o.zaman;
     const al = Math.max(0, 1 - yas / 6);
     if (al <= 0) continue;
     ctx.fillStyle = `rgba(220,230,245,${al})`;
     ctx.fillText(o.metin, w - 14, ky);
-    ky -= 18;
+    ky += 18;
+  }
+
+  // --- Sanal joystick görseli (dokunmatik sürüklerken) ---
+  if (durum.jsGorsel) {
+    const { mx, my, nx, ny } = durum.jsGorsel;
+    const dx = nx - mx, dy = ny - my, uz = Math.hypot(dx, dy) || 1;
+    const g = Math.min(uz, 60);
+    ctx.save();
+    ctx.strokeStyle = "rgba(140,200,230,0.35)"; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.arc(mx, my, 44, 0, Math.PI * 2); ctx.stroke();
+    ctx.fillStyle = "rgba(140,200,230,0.45)";
+    ctx.beginPath(); ctx.arc(mx + (dx / uz) * g, my + (dy / uz) * g, 18, 0, Math.PI * 2); ctx.fill();
+    ctx.restore();
   }
 
   // --- Zorluk kademesi (üst-orta) ---
@@ -503,6 +569,54 @@ function cizEngel(ctx, e, t) {
       ctx.fillStyle = "rgba(90,190,215,0.10)";
       if (w >= h) ctx.fillRect(x, y + h - 2, w, 2); else ctx.fillRect(x + w - 2, y, 2, h);
       break;
+    case "masa_yuvarlak": { // kafeterya yuvarlak masası + sandalyeler
+      const mx = x + w / 2, my = y + h / 2, r0 = Math.min(w, h) / 2;
+      ctx.fillStyle = "#4a4436"; ctx.beginPath(); ctx.arc(mx, my, r0, 0, Math.PI * 2); ctx.fill();
+      ctx.strokeStyle = "#171310"; ctx.lineWidth = 1.5; ctx.stroke();
+      ctx.fillStyle = "#5a5443"; ctx.beginPath(); ctx.arc(mx, my, r0 * 0.55, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = "#2a3644";
+      for (let k = 0; k < 4; k++) { const a0 = k * Math.PI / 2 + 0.4; ctx.beginPath(); ctx.arc(mx + Math.cos(a0) * (r0 + 9), my + Math.sin(a0) * (r0 + 9), 6, 0, Math.PI * 2); ctx.fill(); }
+      break;
+    }
+    case "kutu_blok": { // depo palet yığını (renkli kutu istifi)
+      R(x, y, w, h, "#3f382a", "#15110c");
+      const renk = ["#7a5a3a", "#5a6a8a", "#7a4a4a", "#4a7a5a"];
+      let k = 0;
+      for (let by = y + 4; by < y + h - 16; by += 20)
+        for (let bx = x + 4; bx < x + w - 26; bx += 30) { R(bx, by, 26, 16, renk[k % 4], "#1a1410"); k++; }
+      break;
+    }
+    case "monitor_duvari": // güvenlik ekran duvarı (yanıp sönen ekran ızgarası)
+      R(x, y, w, h, "#131b24", "#05090e");
+      for (let mx0 = x + 4; mx0 < x + w - 22; mx0 += 26) {
+        const canli = Math.sin(t * 3 + mx0) > -0.3;
+        R(mx0, y + 5, 22, h - 10, canli ? "rgba(90,200,240,0.75)" : "rgba(30,55,70,0.8)", "#0a1620");
+      }
+      break;
+    case "lab_tezgah": // laboratuvar tezgahı + numune LED'leri
+      R(x, y, w, h, "#2c3a42", "#0d1418");
+      R(x + 4, y + 4, w - 8, 6, "rgba(180,220,235,0.16)");
+      for (let lx = x + 14; lx < x + w - 10; lx += 34) {
+        ctx.fillStyle = Math.sin(t * 5 + lx) > 0 ? "#5fe0c0" : "#2a6a58";
+        ctx.fillRect(lx, y + h - 10, 4, 4);
+      }
+      break;
+    case "bank":
+      R(x, y, w, h, "#3d4e62", "#141c26");
+      R(x + 3, y + 3, w - 6, 4, "rgba(255,255,255,0.06)");
+      break;
+    case "bolme": // açık ofis bölme paneli
+      R(x, y, w, h, "#33404f", "#141c26");
+      break;
+    case "bitki_adasi": { // atrium yeşil ada (büyük bitki kümesi)
+      const mx = x + w / 2, my = y + h / 2, r0 = Math.min(w, h) / 2;
+      ctx.fillStyle = "#233527"; ctx.beginPath(); ctx.arc(mx, my, r0, 0, Math.PI * 2); ctx.fill();
+      ctx.strokeStyle = "#101a12"; ctx.lineWidth = 2; ctx.stroke();
+      ctx.fillStyle = "#2f7b42";
+      for (let k = 0; k < 6; k++) { const a0 = k * Math.PI / 3 + 0.5; ctx.beginPath(); ctx.arc(mx + Math.cos(a0) * r0 * 0.45, my + Math.sin(a0) * r0 * 0.45, r0 * 0.3, 0, Math.PI * 2); ctx.fill(); }
+      ctx.fillStyle = "#3f9b54"; ctx.beginPath(); ctx.arc(mx, my, r0 * 0.32, 0, Math.PI * 2); ctx.fill();
+      break;
+    }
     default:
       R(x, y, w, h, "#3a3320", "#1c1810");
   }

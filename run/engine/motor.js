@@ -9,6 +9,9 @@ import { createDurum, guncelle } from "./durum.js";
 import { ciz } from "./render.js";
 import * as ses from "./ses.js";
 
+// Mobil dokunsal geri bildirim (ms desenleri) — destek yoksa sessizce atlanır
+const TITRESIM = { yakalandi: [90, 50, 90], yakala: 45, sopa: 25, ates: 35, kacti: [30, 30, 60], sersem: 60 };
+
 export class Motor {
   constructor(canvas, opts = {}) {
     this.canvas = canvas;
@@ -65,9 +68,19 @@ export class Motor {
       if (this.girdi.genelBakisAl()) this.durum.genelBakis = !this.durum.genelBakis;
       guncelle(this.durum, dt, this.girdi);
       ciz(this.ctx, this.durum, this.view);
-      // Ses kuyruğunu boşalt (olay sesleri)
+      // Sanal joystick görseli (dokunmatik) — render okur
+      this.durum.jsGorsel = this.girdi.jsAktif
+        ? { mx: this.girdi.jsMerkez.x, my: this.girdi.jsMerkez.y, nx: this.girdi.jsNokta.x, ny: this.girdi.jsNokta.y }
+        : null;
+      // Ses kuyruğunu boşalt (olay sesleri) + mobil titreşim
       const kuyruk = this.durum.sesler;
-      if (kuyruk && kuyruk.length) { for (const s of kuyruk) ses.cal(s); kuyruk.length = 0; }
+      if (kuyruk && kuyruk.length) {
+        for (const s of kuyruk) {
+          ses.cal(s);
+          try { if (navigator.vibrate && TITRESIM[s]) navigator.vibrate(TITRESIM[s]); } catch {}
+        }
+        kuyruk.length = 0;
+      }
       // Drone yakınlık vızıltısı (izlenen oyuncuya en yakın drone); round bitince söner
       const izlenen = this.durum.oyuncular.find((s) => s.id === this.durum.izlenenId) || this.durum.oyuncular[0];
       let enYakin = Infinity;

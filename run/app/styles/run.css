@@ -102,17 +102,25 @@
 .run-not { margin-top: 14px; font-size: 11px; color: #6b7c92; }
 
 /* ---------- Oyun ---------- */
-.run-oyun { position: absolute; inset: 0; }
+.run-oyun {
+  position: absolute; inset: 0;
+  -webkit-touch-callout: none;   /* uzun basışta iOS menüsü açılmasın */
+  overscroll-behavior: none;
+}
 .run-canvas { display: block; width: 100vw; height: 100vh; touch-action: none; }
 
 .run-hud-ipucu {
   position: fixed;
-  left: 0; right: 0; bottom: 6px;
+  left: 0; right: 0; bottom: calc(6px + env(safe-area-inset-bottom));
   text-align: center;
   color: #9aa7bd;
   font-size: 12px;
   pointer-events: none;
   text-shadow: 0 1px 2px #000;
+}
+/* Dokunmatikte klavye ipucu anlamsız — gizle */
+@media (hover: none) {
+  .run-hud-ipucu { display: none; }
 }
 
 .run-cikis-btn {
@@ -129,7 +137,8 @@
 
 .run-dokun {
   position: fixed;
-  right: 12px; bottom: 60px;
+  right: calc(12px + env(safe-area-inset-right));
+  bottom: calc(24px + env(safe-area-inset-bottom));
   display: flex;
   flex-direction: column;
   gap: 10px;
@@ -143,6 +152,8 @@
   font-size: 24px;
   cursor: pointer;
   touch-action: manipulation;
+  -webkit-user-select: none;
+  user-select: none;
 }
 .run-dokun button:active { background: rgba(46, 110, 165, 0.4); }
 /* Masaüstünde dokun butonları gizli (klavye var); sadece harita butonu kalır */
