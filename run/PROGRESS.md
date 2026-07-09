@@ -252,6 +252,24 @@ Tek-oyunculu sürüm yayına hazır hale getirildi. Kapatılan hatalar:
   ve duvar arkasındaki Trinity görünmez), çıkış okları — ekran görüntüleriyle doğrulandı. Konsol temiz.
 - `npm run build` OK (RunApp 51.1 kB).
 
+## 2026-07-09 — Okunurluk + yönlendirme cilası (İda: "aşırı karanlık; kapılar ve çıkış belirgin olsun")
+- **Karanlık yumuşatıldı:** örtü 0.92 → **0.85** (`KARANLIK_ALFA`), çevre ışığı 120 → **150**,
+  fener 340 → 360. Stealth hissi korunur, zemin/mobilya okunur.
+- **Kapılar belirgin:** eşik dolgusu/söveler parlaklaştırıldı + **acil durum aydınlatması** —
+  560 birim içindeki her kapının söve uçlarında nabız atan minik ışık (açık: camgöbeği,
+  kapalı: turuncu), karanlıkta bile kapı yerleri seçilir (ekran uzayı, lighter).
+- **Çıkış yönlendirme:** oyuncunun üstünde en yakın çıkışı gösteren **pusula oku + mesafe (m)**;
+  çıkış geçitleri **animasyonlu kayan yeşil şeritler + parlak çerçeve** ile "acil çıkış" görünümü;
+  ekran dışındaki çıkışlar için kenar okları zaten vardı.
+- **Son sürüm HUD'u:** üst-sol **📍 konum** (oda adı), üst-orta **⚡ Kademe + ⏱ süre**,
+  round başında 6sn sönümlenen **"YEŞİL ÇIKIŞA ULAŞ"** hedef yazısı + kısa ipucu.
+- **Görünürlük kuralı sıkılaştırıldı:** 0.85 örtüde karanlıktaki bot silüetleri seçilebiliyordu —
+  artık `isikta()` kapısı isimlere ek olarak **gövdelere de** uygulanıyor; ayrıca hedef ışığı
+  açık bir odadaysa (görüş hattı şartıyla) görünür. Drone'lar kendi ışıklarını taşıdığından
+  her zaman çizilir (tehdit okunurluğu).
+- Doğrulama: başsız test geçti, build OK (RunApp 53.5 kB), Chrome ekran görüntüleri
+  (hedef yazısı, pusula 118m, kapı ışıkları, silüetsiz karanlık).
+
 ## Sıradaki
 - **Multiplayer** (PatiRun/Bildim presence+broadcast) — spec Faz 10, backend gerektirir; **en son**.
 - İsteğe bağlı: round sonucu/istatistik kalıcılığı (şu an hiçbir şey kaydedilmiyor — bilinçli).

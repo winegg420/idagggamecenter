@@ -7,9 +7,10 @@
 // ============================================================
 
 import {
-  GORUS_YARICAP, FENER_UZUNLUK, FENER_ACI, OYUNCU_YARICAP,
+  GORUS_YARICAP, FENER_UZUNLUK, FENER_ACI, OYUNCU_YARICAP, KARANLIK_ALFA,
   KAPI_KALINLIK, KAPI_KIRILMA, KAPI_MENZIL, HACK_SURE, HACK_MENZIL,
 } from "./sabitler.js";
+import { odaAdi } from "./harita.js";
 
 // --- Işık oklüzyonu (fener duvardan sızmasın) ---
 // Duvar dikdörtgenlerinin ışığa sırtı dönük kenarlarından gölge dörtgenleri
@@ -47,8 +48,9 @@ function isikKatmani(w, h) {
   return isikCtx;
 }
 
-// Hedef, izlenenin IŞIĞININ içinde mi? (yakın çevre ışığı VEYA fener konisi)
-// VE arada duvar yok mu? Diğer oyuncular yalnızca bu durumda görünür/etiketlenir.
+// Hedef, izlenenin IŞIĞININ içinde mi? (yakın çevre ışığı VEYA fener konisi VEYA
+// hedefin bulunduğu odanın ışıkları açık) VE arada duvar yok mu?
+// Diğer oyuncular yalnızca bu durumda görünür/etiketlenir.
 function isikta(harita, kaynak, hx, hy) {
   const dx = hx - kaynak.x, dy = hy - kaynak.y;
   const uz = Math.hypot(dx, dy);
@@ -57,6 +59,12 @@ function isikta(harita, kaynak, hx, hy) {
     let fark = Math.abs(Math.atan2(dy, dx) - kaynak.aci);
     if (fark > Math.PI) fark = Math.PI * 2 - fark;
     aydinlatiyor = fark <= FENER_ACI + 0.06;
+  }
+  if (!aydinlatiyor) {
+    // Hedef ışığı açık bir odadaysa uzaktan da görülebilir (görüş hattı şartıyla)
+    for (const a of harita.alanlar) {
+      if (a.aydinlik && hx >= a.x && hx <= a.x + a.w && hy >= a.y && hy <= a.y + a.h) { aydinlatiyor = true; break; }
+    }
   }
   if (!aydinlatiyor) return false;
   // Görüş hattı: duvarlar keser (mobilya alçak, kesmez)
@@ -134,7 +142,20 @@ export function ciz(ctx, durum, view) {
     if (k.x > gR || k.y > gB || k.x + k.w < gL || k.y + k.h < gT) continue;
     cizKapiEsigi(ctx, k);
   }
-  for (const c of durum.harita.cikislar) { ctx.fillStyle = "#183a24"; ctx.fillRect(c.x, c.y, c.w, c.h); }
+  // Çıkış kapıları: yeşil kayan şeritli, parlak çerçeveli "acil çıkış" geçidi
+  for (const c of durum.harita.cikislar) {
+    ctx.fillStyle = "#12351f"; ctx.fillRect(c.x, c.y, c.w, c.h);
+    ctx.save();
+    ctx.beginPath(); ctx.rect(c.x, c.y, c.w, c.h); ctx.clip();
+    const yatayGecit = c.w > c.h;              // kuzey çıkışı yatay, yan çıkışlar dikey
+    const kayma = (t * 36) % 22;
+    ctx.fillStyle = `rgba(70,240,130,${0.30 + 0.12 * Math.sin(t * 5)})`;
+    if (yatayGecit) for (let sy = c.y - 22 + kayma; sy < c.y + c.h; sy += 22) ctx.fillRect(c.x + 4, sy, c.w - 8, 7);
+    else for (let sx = c.x - 22 + kayma; sx < c.x + c.w; sx += 22) ctx.fillRect(sx, c.y + 4, 7, c.h - 8);
+    ctx.restore();
+    ctx.strokeStyle = "rgba(90,255,150,0.85)"; ctx.lineWidth = 3;
+    ctx.strokeRect(c.x + 1.5, c.y + 1.5, c.w - 3, c.h - 3);
+  }
 
   ctx.font = "12px system-ui, sans-serif"; ctx.textAlign = "center";
   for (const a of durum.harita.alanlar) {
@@ -166,6 +187,9 @@ export function ciz(ctx, durum, view) {
   if (!genel) {
     for (const s of durum.oyuncular) {
       if (s.id === izlenen.id) continue;
+      // Görünürlük kuralı gövdeye de uygulanır: ışığında (veya aydınlık odada,
+      // görüş hattı açıkken) değilse SİLÜETİ BİLE çizilmez.
+      if (!isikta(durum.harita, izlenen, s.x, s.y)) continue;
       const renk = s.yakalandi ? "#5a6472" : s.cikti ? "#4dd08a" : s.id === "ben" ? "#f0c651" : "#49c6e0";
       cizKisi(ctx, s.x, s.y, renk, s.aci, s.yakalandi, t, s.id === "ben" && !s.yakalandi);
     }
@@ -214,7 +238,7 @@ export function ciz(ctx, durum, view) {
 
     // 2) Karanlık örtü: maske kadar sil (gölgede kalan yerler karanlık kalır)
     ctx.save();
-    ctx.fillStyle = "rgba(5,8,13,0.92)";      // karanlık (stealth)
+    ctx.fillStyle = `rgba(5,8,13,${KARANLIK_ALFA})`;   // karanlık (stealth)
     ctx.fillRect(0, 0, w, h);
     ctx.globalCompositeOperation = "destination-out";
     ctx.drawImage(isikTuval, 0, 0, w, h);
@@ -266,6 +290,52 @@ export function ciz(ctx, durum, view) {
     }
 
     cizKisi(ctx, bx, by, izlAksan, aci, izlenen.yakalandi, t, true); // izlenen net, en üstte
+
+    // Kapı "acil durum aydınlatması": söve uçlarında minik ışıklar — karanlıkta
+    // bile yakın kapılar seçilir (gerçek binalardaki kapı üstü acil lambası gibi).
+    ctx.save();
+    ctx.globalCompositeOperation = "lighter";
+    for (const k of durum.harita.kapilar) {
+      const kx = k.x + k.w / 2, ky = k.y + k.h / 2;
+      const uz = Math.hypot(kx - izlenen.x, ky - izlenen.y);
+      if (uz > 560) continue;
+      const al = (1 - uz / 560) * (0.55 + 0.3 * Math.sin(t * 3 + kx * 0.05));
+      const renk = k.kapali ? "255,150,80" : "120,225,245";
+      const uclar = k.yatay ? [[k.x, ky], [k.x + k.w, ky]] : [[kx, k.y], [kx, k.y + k.h]];
+      for (const [ux, uy] of uclar) {
+        const [sx, sy] = w2s(ux, uy);
+        ctx.fillStyle = `rgba(${renk},${al * 0.25})`;
+        ctx.beginPath(); ctx.arc(sx, sy, 9, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = `rgba(${renk},${al})`;
+        ctx.beginPath(); ctx.arc(sx, sy, 2.6, 0, Math.PI * 2); ctx.fill();
+      }
+    }
+    ctx.restore();
+
+    // Çıkış pusulası: oyuncunun çevresinde en yakın çıkışı gösteren ok + mesafe
+    if (!durum.bitti && !izlenen.yakalandi && !izlenen.cikti) {
+      let enC = null, enU = Infinity;
+      for (const c of durum.harita.cikislar) {
+        const cx0 = c.x + c.w / 2, cy0 = c.y + c.h / 2;
+        const u = Math.hypot(cx0 - izlenen.x, cy0 - izlenen.y);
+        if (u < enU) { enU = u; enC = { x: cx0, y: cy0 }; }
+      }
+      if (enC) {
+        const yon = Math.atan2(enC.y - izlenen.y, enC.x - izlenen.x);
+        const px = bx + Math.cos(yon) * 56, py = by + Math.sin(yon) * 56;
+        ctx.save();
+        ctx.globalAlpha = 0.9;
+        ctx.translate(px, py); ctx.rotate(yon);
+        ctx.fillStyle = "rgba(70,240,130,0.9)";
+        ctx.shadowColor = "rgba(70,240,130,0.8)"; ctx.shadowBlur = 8;
+        ctx.beginPath(); ctx.moveTo(10, 0); ctx.lineTo(-5, -6); ctx.lineTo(-5, 6); ctx.closePath(); ctx.fill();
+        ctx.rotate(-yon); ctx.shadowBlur = 0;
+        ctx.fillStyle = "rgba(160,255,190,0.85)"; ctx.font = "bold 10px system-ui";
+        ctx.textAlign = "center"; ctx.textBaseline = "middle";
+        ctx.fillText(Math.round(enU / 10) + "m", 0, 16);
+        ctx.restore();
+      }
+    }
   }
 
   // Kapalı kapı perdeleri (her modda görünür — taktik bilgi) + drone kırılma çubuğu
@@ -477,10 +547,33 @@ function cizHud(ctx, durum, view, ben) {
     ctx.restore();
   }
 
-  // --- Zorluk kademesi (üst-orta) ---
+  // --- Konum (üst-sol) ---
+  const izl = durum.oyuncular.find((s) => s.id === durum.izlenenId) || ben;
+  const oda = odaAdi(durum.harita, izl.x, izl.y) || "Koridor";
+  ctx.textAlign = "left"; ctx.font = "bold 12px system-ui";
+  ctx.fillStyle = "rgba(170,210,235,0.85)";
+  ctx.fillText("📍 " + oda, 14, 20);
+
+  // --- Zorluk kademesi + süre (üst-orta) ---
+  const sn = Math.floor(durum.zaman);
+  const sure = Math.floor(sn / 60) + ":" + String(sn % 60).padStart(2, "0");
   ctx.textAlign = "center"; ctx.font = "bold 12px system-ui";
   ctx.fillStyle = "rgba(255,180,90,0.85)";
-  ctx.fillText("⚡ Kademe " + durum.zorluk, w / 2, 20);
+  ctx.fillText("⚡ Kademe " + durum.zorluk + "  ·  ⏱ " + sure, w / 2, 20);
+
+  // --- Round başı hedef yazısı (ilk saniyeler, sönümlenir) ---
+  if (durum.zaman < 6 && !durum.bitti) {
+    const al = durum.zaman < 4.4 ? 1 : (6 - durum.zaman) / 1.6;
+    ctx.textAlign = "center";
+    ctx.fillStyle = `rgba(140,255,180,${al})`;
+    ctx.font = "bold 26px system-ui";
+    ctx.shadowColor = "rgba(70,240,130,0.6)"; ctx.shadowBlur = 14;
+    ctx.fillText("YEŞİL ÇIKIŞA ULAŞ", w / 2, h * 0.3);
+    ctx.shadowBlur = 0;
+    ctx.font = "13px system-ui";
+    ctx.fillStyle = `rgba(200,220,240,${al * 0.9})`;
+    ctx.fillText("Üzerindeki yeşil ok en yakın çıkışı gösterir · dronelardan uzak dur", w / 2, h * 0.3 + 26);
+  }
 
   // --- İzleyici afişi ---
   if (durum.izleyici && !durum.bitti) {
@@ -622,18 +715,18 @@ function cizEngel(ctx, e, t) {
   }
 }
 
-// Kapı geçidi: eşik + iki söve. Kapalıyken perde ekran uzayında çizilir.
+// Kapı geçidi: belirgin eşik + parlak söveler. Kapalıyken perde ekran uzayında çizilir.
 function cizKapiEsigi(ctx, k) {
-  ctx.fillStyle = k.kapali ? "rgba(60,120,150,0.30)" : "rgba(60,110,140,0.16)";
+  ctx.fillStyle = k.kapali ? "rgba(70,140,170,0.35)" : "rgba(70,130,160,0.28)";
   ctx.fillRect(k.x, k.y, k.w, k.h);
-  ctx.fillStyle = "#28374a";
-  const s = 7;
-  if (k.yatay) { ctx.fillRect(k.x - s, k.y, s, k.h); ctx.fillRect(k.x + k.w, k.y, s, k.h); }
-  else { ctx.fillRect(k.x, k.y - s, k.w, s); ctx.fillRect(k.x, k.y + k.h, k.w, s); }
-  // eşik ışığı (kapı yerini karanlıkta da hafif belli eder)
-  ctx.fillStyle = k.kapali ? "rgba(255,140,90,0.35)" : "rgba(120,220,240,0.22)";
-  if (k.yatay) ctx.fillRect(k.x, k.y + k.h / 2 - 1, k.w, 2);
-  else ctx.fillRect(k.x + k.w / 2 - 1, k.y, 2, k.h);
+  const s = 8;
+  ctx.fillStyle = "#3b5068";                       // söveler (açık ton — duvardan ayrışır)
+  if (k.yatay) { ctx.fillRect(k.x - s, k.y - 2, s, k.h + 4); ctx.fillRect(k.x + k.w, k.y - 2, s, k.h + 4); }
+  else { ctx.fillRect(k.x - 2, k.y - s, k.w + 4, s); ctx.fillRect(k.x - 2, k.y + k.h, k.w + 4, s); }
+  // eşik ışık şeridi (kapı yerini net belli eder)
+  ctx.fillStyle = k.kapali ? "rgba(255,150,90,0.6)" : "rgba(130,225,245,0.5)";
+  if (k.yatay) ctx.fillRect(k.x, k.y + k.h / 2 - 1.5, k.w, 3);
+  else ctx.fillRect(k.x + k.w / 2 - 1.5, k.y, 3, k.h);
 }
 
 // Her odaya ortak duvar detayları: dolap, kitaplık, beyaz tahta, saat, bitki, halı, çöp kovası.

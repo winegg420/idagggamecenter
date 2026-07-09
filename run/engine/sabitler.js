@@ -8,9 +8,10 @@ export const OYUNCU_HIZ = 168;        // birim/sn (bir tık yavaşlatıldı)
 export const OYUNCU_YARICAP = 15;
 
 // Sınırlı görüş (fener) — tasarım 5
-export const GORUS_YARICAP = 120;     // oyuncu çevresi yumuşak ışık
-export const FENER_UZUNLUK = 340;     // ileri fener konisi menzili
+export const GORUS_YARICAP = 150;     // oyuncu çevresi yumuşak ışık
+export const FENER_UZUNLUK = 360;     // ileri fener konisi menzili
 export const FENER_ACI = Math.PI * 0.22; // koni yarı açısı (~40°)
+export const KARANLIK_ALFA = 0.85;    // stealth örtüsü (0.92 fazla boğucuydu — İda geri bildirimi)
 
 // Işık/karanlık değişimi (tasarım 5) — aydınlık odalar periyodik değişir
 export const ISIK_DEGISIM_ARALIK = 12; // sn
