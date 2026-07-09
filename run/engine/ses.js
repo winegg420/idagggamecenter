@@ -7,6 +7,7 @@
 
 let ctx = null, anaGain = null, acik = true;
 let ortamGain = null, droneOsc = null, droneGain = null, droneFilt = null;
+let ortamKaynaklar = [];   // çalan sürekli kaynaklar (ortamDur ile durdurulur)
 
 function baglam() {
   if (ctx) return ctx;
@@ -45,7 +46,17 @@ export function ortamBasla() {
     droneFilt = c.createBiquadFilter(); droneFilt.type = "bandpass"; droneFilt.frequency.value = 600; droneFilt.Q.value = 3;
     droneGain = c.createGain(); droneGain.gain.value = 0;
     droneOsc.connect(droneFilt).connect(droneGain).connect(anaGain); droneOsc.start();
+    ortamKaynaklar = [o1, n, droneOsc];
   } catch {}
+}
+
+// Sürekli sesleri durdur (oyun sayfasından çıkarken). devamEt() yeniden başlatır.
+export function ortamDur() {
+  for (const k of ortamKaynaklar) { try { k.stop(); } catch {} }
+  ortamKaynaklar = [];
+  try { ortamGain?.disconnect(); } catch {}
+  try { droneGain?.disconnect(); } catch {}
+  ortamGain = null; droneOsc = null; droneGain = null; droneFilt = null;
 }
 
 // Drone yakınlık vızıltısı — en yakın drone mesafesine göre (görmeden duy, tasarım 10).

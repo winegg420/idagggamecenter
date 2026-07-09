@@ -49,6 +49,9 @@ export class Girdi {
     this.jsAktif = false;
     this.kalkanTus = false;
     this.hackTus = false;
+    this.sopaBekliyor = false;
+    this.kapiBekliyor = false;
+    this.genelBakisIstek = false;
   }
 
   _kd(e) {

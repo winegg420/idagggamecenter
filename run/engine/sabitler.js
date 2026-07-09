@@ -1,9 +1,7 @@
 // ============================================================
-// RUN — sabitler (PatiRun constants deseni). Prototip: tek-oyunculu + bot,
-// tek harita (Ofis), tek drone. Ağ katmanı sonra.
+// RUN — sabitler (PatiRun constants deseni). Tek-oyunculu + botlar,
+// tek harita (Ofis), çoklu drone. Ağ katmanı (multiplayer) sonraki faz.
 // ============================================================
-
-export const DUNYA = { genislik: 1800, yukseklik: 1200 };
 
 // Oyuncu
 export const OYUNCU_HIZ = 168;        // birim/sn (bir tık yavaşlatıldı)

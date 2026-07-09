@@ -68,10 +68,12 @@ export class Motor {
       // Ses kuyruğunu boşalt (olay sesleri)
       const kuyruk = this.durum.sesler;
       if (kuyruk && kuyruk.length) { for (const s of kuyruk) ses.cal(s); kuyruk.length = 0; }
-      // Drone yakınlık vızıltısı (izlenen oyuncuya en yakın drone)
+      // Drone yakınlık vızıltısı (izlenen oyuncuya en yakın drone); round bitince söner
       const izlenen = this.durum.oyuncular.find((s) => s.id === this.durum.izlenenId) || this.durum.oyuncular[0];
       let enYakin = Infinity;
-      for (const dr of this.durum.droneler || []) enYakin = Math.min(enYakin, Math.hypot(izlenen.x - dr.x, izlenen.y - dr.y));
+      if (!this.durum.bitti) {
+        for (const dr of this.durum.droneler || []) enYakin = Math.min(enYakin, Math.hypot(izlenen.x - dr.x, izlenen.y - dr.y));
+      }
       ses.droneYakinlik(enYakin);
       if (this.durum.bitti && !this._bitisBildirildi) {
         this._bitisBildirildi = true;

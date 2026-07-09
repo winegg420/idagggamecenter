@@ -145,8 +145,9 @@
   touch-action: manipulation;
 }
 .run-dokun button:active { background: rgba(46, 110, 165, 0.4); }
-/* Masaüstünde dokun butonları gizli (klavye var) */
+/* Masaüstünde dokun butonları gizli (klavye var); sadece harita butonu kalır */
 @media (hover: hover) and (pointer: fine) {
+  .run-dokun button { display: none; }
   .run-dokun button:first-child { display: flex; align-items: center; justify-content: center; }
 }
 

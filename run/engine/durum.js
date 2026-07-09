@@ -223,7 +223,12 @@ export function createDurum() {
 
   const droneler = [];
   for (let i = 0; i < DRONE_SAYISI; i++) {
-    const dk = rastgeleNokta(harita);
+    // Spawn başlangıçtan uzak olsun — round ilk saniyede yakalanmayla açılmasın.
+    let dk = rastgeleNokta(harita);
+    for (let d = 0; d < 40; d++) {
+      if (Math.hypot(dk.x - harita.baslangic.x, dk.y - harita.baslangic.y) >= 700) break;
+      dk = rastgeleNokta(harita);
+    }
     droneler.push({ x: dk.x, y: dk.y, aci: 0, mod: "devriye", hedefId: null, hedefX: dk.x, hedefY: dk.y, kayip: 0, sersem: 0, _kilit: 0, _ates: 0 });
   }
 
@@ -373,6 +378,14 @@ export function guncelle(durum, dt, girdi) {
         const gdx = ben0.x - s.x, gdy = ben0.y - s.y, gd = Math.hypot(gdx, gdy);
         if (gd > BOT_GRUP_MENZIL) s._yon = Math.atan2(gdy, gdx) + (Math.random() - 0.5) * 0.7;
       }
+      // Hayatta kalma içgüdüsü: yakın (sersem olmayan) drone'dan uzaklaş — her moddan öncelikli.
+      let kx = 0, ky = 0;
+      for (const dr of durum.droneler) {
+        if (dr.sersem > 0) continue;
+        const du = Math.hypot(s.x - dr.x, s.y - dr.y);
+        if (du < 220) { kx += (s.x - dr.x) / (du || 1); ky += (s.y - dr.y) / (du || 1); }
+      }
+      if (kx || ky) s._yon = Math.atan2(ky, kx) + (Math.random() - 0.5) * 0.4;
       const vx = Math.cos(s._yon) * BOT_HIZ * dt, vy = Math.sin(s._yon) * BOT_HIZ * dt;
       const ox = s.x, oy = s.y;
       const kimildadi = hareketEt(durum.harita, s, vx, vy);

@@ -38,6 +38,7 @@ export default function GamePage() {
     window.addEventListener("keydown", ac, { once: true });
     return () => {
       try { motorRef.current?.dur(); } catch {}
+      try { ses.ortamDur(); } catch {}   // uğultu/vızıltı menüye taşınmasın
       window.removeEventListener("pointerdown", ac);
       window.removeEventListener("keydown", ac);
     };

@@ -183,7 +183,39 @@ Multiplayer dışında "Sıradaki" listesinin tamamı bitti.
 - Tarayıcı testi (Chrome): kapı perdesi, "Q — kapıyı kapat" ipucu, %71 hack halkası, EMP parçacıkları
   ve 3 drone sersemlemesi ekranda doğrulandı.
 
+## 2026-07-09 — Yayına hazırlık: ışık oklüzyonu + hata avı (İda: "bütün hataları düzelt")
+Tek-oyunculu sürüm yayına hazır hale getirildi. Kapatılan hatalar:
+
+### Işık oklüzyonu (`render.js`) — en büyük açık
+- **Fener artık duvardan sızmıyor.** `golgeYolu()`: duvar dikdörtgenlerinin ışığa sırtı dönük
+  kenarlarından gölge dörtgenleri (Path2D, ekran uzayı). Işık maskesi ve sıcak additive ışık
+  **ara katman tuvale** (`isikKatmani`) çizilip gölgeler `destination-out` ile kesiliyor,
+  sonra ana tuvale uygulanıyor. Kapı geçitleri duvar olmadığından **ışık kapıdan doğal sızıyor**
+  (dar ışın); mobilya alçak sayılır, ışığı kesmez; aydınlık odalar (GPS bilgisi) bilinçli muaf.
+- **Tuzak:** `destination-out` doldurmadan önce `fillStyle` önceki gradyan/yarı saydam fırçada
+  kalırsa gölge kısmen silinir (bunu piksel taramasıyla yakaladık) → kesimden önce `#fff` şart.
+- Piksel doğrulaması: duvar arkası 35 (taban), kapı ışını 46-60, koni içi 456.
+
+### Düzeltilen diğer hatalar
+- **CSS:** masaüstünde dokunmatik beceri butonları gizlenmiyordu (`display:none` kuralı yoktu);
+  artık masaüstünde yalnız 🗺 harita butonu görünür.
+- **Ses sızıntısı:** oyun sayfasından menüye dönünce ortam uğultusu + drone vızıltısı çalmaya
+  devam ediyordu → `ses.ortamDur()` (sürekli kaynakları durdurur, `devamEt()` yeniden başlatır);
+  GamePage unmount'ta çağrılıyor. Ayrıca round bitince vızıltı sönüyor (motor `bitti` kontrolü).
+- **Drone spawn:** başlangıcın dibinde doğabiliyordu (ilk saniyede yakalanma) → spawn başlangıçtan
+  **≥700 birim** uzakta (30 round örneklemede min 718).
+- **`girdi.cozul()`** bekleyen tek-atım bayraklarını (sopa/kapı/genel bakış) temizlemiyordu.
+- Ölü sabit `DUNYA` kaldırıldı; `sabitler.js` başlık yorumu güncellendi (çoklu drone).
+
+### Cila
+- **Botlara hayatta kalma içgüdüsü:** 220 birim içindeki (sersem olmayan) drone'dan uzaklaşırlar —
+  her moddan (gezinme/grup/kaçış) öncelikli.
+
+### Doğrulama
+- Başsız test 3 tur GEÇTİ; `npm run build` OK (RunApp 45.8 kB).
+- Chrome: oklüzyon piksel taramasıyla, buton gizleme + koridor ışığı ekran görüntüsüyle doğrulandı.
+
 ## Sıradaki
 - **Multiplayer** (PatiRun/Bildim presence+broadcast) — spec Faz 10, backend gerektirir; **en son**.
-- Fener konisi duvarlardan sızıyor (görüş engeli/raycast yok) — istenirse gölge/oklüzyon turu.
+- İsteğe bağlı: round sonucu/istatistik kalıcılığı (şu an hiçbir şey kaydedilmiyor — bilinçli).
 - Organik/düzensiz koridor düzeni (koridorlar hâlâ ızgara; odalar artık duvarlı).

@@ -11,6 +11,42 @@ import {
   KAPI_KALINLIK, KAPI_KIRILMA, KAPI_MENZIL, HACK_SURE, HACK_MENZIL,
 } from "./sabitler.js";
 
+// --- Işık oklüzyonu (fener duvardan sızmasın) ---
+// Duvar dikdörtgenlerinin ışığa sırtı dönük kenarlarından gölge dörtgenleri
+// üretir (ekran uzayında Path2D). Kapı geçitleri duvar olmadığı için ışık
+// doğal olarak kapılardan sızar; kapalı kapının enerji perdesi ışığı kesmez.
+function golgeYolu(harita, lx, ly, w2s) {
+  const yol = new Path2D();
+  const M = FENER_UZUNLUK + GORUS_YARICAP + 80;   // ışığın erişebileceği azami menzil
+  const B = 1600;                                  // gölge projeksiyon uzunluğu
+  for (const e of harita.engeller) {
+    if (e.tip !== "duvar") continue;               // mobilya alçak: ışığı kesmez
+    if (e.x + e.w < lx - M || e.x > lx + M || e.y + e.h < ly - M || e.y > ly + M) continue;
+    // Işığa sırtı dönük kenarlar (gölge duvarın arkasından başlar; ön yüz aydınlık kalır)
+    const kenarlar = [];
+    if (ly > e.y) kenarlar.push([e.x, e.y, e.x + e.w, e.y]);                       // üst
+    if (ly < e.y + e.h) kenarlar.push([e.x, e.y + e.h, e.x + e.w, e.y + e.h]);     // alt
+    if (lx > e.x) kenarlar.push([e.x, e.y, e.x, e.y + e.h]);                       // sol
+    if (lx < e.x + e.w) kenarlar.push([e.x + e.w, e.y, e.x + e.w, e.y + e.h]);     // sağ
+    for (const [x1, y1, x2, y2] of kenarlar) {
+      const d1 = Math.hypot(x1 - lx, y1 - ly) || 1, d2 = Math.hypot(x2 - lx, y2 - ly) || 1;
+      const [p1x, p1y] = w2s(x1, y1), [p2x, p2y] = w2s(x2, y2);
+      const [q1x, q1y] = w2s(x1 + ((x1 - lx) / d1) * B, y1 + ((y1 - ly) / d1) * B);
+      const [q2x, q2y] = w2s(x2 + ((x2 - lx) / d2) * B, y2 + ((y2 - ly) / d2) * B);
+      yol.moveTo(p1x, p1y); yol.lineTo(p2x, p2y); yol.lineTo(q2x, q2y); yol.lineTo(q1x, q1y); yol.closePath();
+    }
+  }
+  return yol;
+}
+
+// Additive ışık için ara katman tuvali (gölgeler destination-out ile kesilir).
+let isikTuval = null, isikCtx = null;
+function isikKatmani(w, h) {
+  if (!isikTuval) { isikTuval = document.createElement("canvas"); isikCtx = isikTuval.getContext("2d"); }
+  if (isikTuval.width !== w || isikTuval.height !== h) { isikTuval.width = w; isikTuval.height = h; }
+  return isikCtx;
+}
+
 export function ciz(ctx, durum, view) {
   const { w, h } = view;
   const t = durum.zaman;
@@ -116,47 +152,69 @@ export function ciz(ctx, durum, view) {
 
   ctx.restore();
 
-  // --- Normal mod: STEALTH karanlık + fener (ekran uzayı) ---
+  // --- Normal mod: STEALTH karanlık + fener (ekran uzayı, duvar gölgeli) ---
   if (!genel) {
     const [bx, by] = w2s(izlenen.x, izlenen.y);
     const aci = izlenen.aci;
+    const golge = golgeYolu(durum.harita, izlenen.x, izlenen.y, w2s);
+    const L = isikKatmani(w, h);
+
+    // 1) Işık maskesi (ara katman): çevre ışığı + fener konisi; duvar gölgeleri kesilir
+    L.setTransform(1, 0, 0, 1, 0, 0);
+    L.globalCompositeOperation = "source-over";
+    L.clearRect(0, 0, w, h);
+    const rg = L.createRadialGradient(bx, by, 8, bx, by, GORUS_YARICAP);
+    rg.addColorStop(0, "rgba(255,255,255,1)"); rg.addColorStop(1, "rgba(255,255,255,0)");
+    L.fillStyle = rg; L.beginPath(); L.arc(bx, by, GORUS_YARICAP, 0, Math.PI * 2); L.fill();
+    L.save();
+    L.beginPath(); L.moveTo(bx, by); L.arc(bx, by, FENER_UZUNLUK, aci - FENER_ACI, aci + FENER_ACI); L.closePath(); L.clip();
+    const cg = L.createRadialGradient(bx, by, 8, bx, by, FENER_UZUNLUK);
+    cg.addColorStop(0, "rgba(255,255,255,1)"); cg.addColorStop(0.65, "rgba(255,255,255,0.72)"); cg.addColorStop(1, "rgba(255,255,255,0)");
+    L.fillStyle = cg; L.fillRect(0, 0, w, h);
+    L.restore();
+    L.globalCompositeOperation = "destination-out";
+    L.fillStyle = "#fff";   // opak fırça: gölge TAM silinsin (gradyan fırça kalıntısı olmasın)
+    L.fill(golge);
+
+    // 2) Karanlık örtü: maske kadar sil (gölgede kalan yerler karanlık kalır)
     ctx.save();
     ctx.fillStyle = "rgba(5,8,13,0.92)";      // karanlık (stealth)
     ctx.fillRect(0, 0, w, h);
     ctx.globalCompositeOperation = "destination-out";
-    const rg = ctx.createRadialGradient(bx, by, 8, bx, by, GORUS_YARICAP);
-    rg.addColorStop(0, "rgba(0,0,0,1)"); rg.addColorStop(1, "rgba(0,0,0,0)");
-    ctx.fillStyle = rg; ctx.beginPath(); ctx.arc(bx, by, GORUS_YARICAP, 0, Math.PI * 2); ctx.fill();
-    ctx.save();
-    ctx.beginPath(); ctx.moveTo(bx, by); ctx.arc(bx, by, FENER_UZUNLUK, aci - FENER_ACI, aci + FENER_ACI); ctx.closePath(); ctx.clip();
-    const cg = ctx.createRadialGradient(bx, by, 8, bx, by, FENER_UZUNLUK);
-    cg.addColorStop(0, "rgba(0,0,0,1)"); cg.addColorStop(0.65, "rgba(0,0,0,0.72)"); cg.addColorStop(1, "rgba(0,0,0,0)");
-    ctx.fillStyle = cg; ctx.fillRect(0, 0, w, h);
-    ctx.restore();
+    ctx.drawImage(isikTuval, 0, 0, w, h);
+    // Aydınlık odalar uzaktan da seçilir (GPS bilgisi — bilinçli olarak gölgeden muaf)
     for (const a of durum.harita.alanlar) { if (!a.aydinlik) continue; const [rx, ry] = w2s(a.x, a.y); ctx.fillStyle = "rgba(0,0,0,0.5)"; ctx.fillRect(rx, ry, a.w, a.h); }
     ctx.restore();
     ctx.globalCompositeOperation = "source-over";
 
-    ctx.save();
-    ctx.globalCompositeOperation = "lighter";
-    const wl = ctx.createRadialGradient(bx, by, 8, bx, by, GORUS_YARICAP);
+    // 3) Sıcak ışık (additive) — aynı gölge maskesiyle, duvardan taşmaz
+    L.globalCompositeOperation = "source-over";
+    L.clearRect(0, 0, w, h);
+    const wl = L.createRadialGradient(bx, by, 8, bx, by, GORUS_YARICAP);
     wl.addColorStop(0, "rgba(180,220,255,0.16)"); wl.addColorStop(1, "rgba(180,220,255,0)");
-    ctx.fillStyle = wl; ctx.beginPath(); ctx.arc(bx, by, GORUS_YARICAP, 0, Math.PI * 2); ctx.fill();
-    ctx.save();
-    ctx.beginPath(); ctx.moveTo(bx, by); ctx.arc(bx, by, FENER_UZUNLUK, aci - FENER_ACI, aci + FENER_ACI); ctx.closePath(); ctx.clip();
-    const wc = ctx.createRadialGradient(bx, by, 8, bx, by, FENER_UZUNLUK);
+    L.fillStyle = wl; L.beginPath(); L.arc(bx, by, GORUS_YARICAP, 0, Math.PI * 2); L.fill();
+    L.save();
+    L.beginPath(); L.moveTo(bx, by); L.arc(bx, by, FENER_UZUNLUK, aci - FENER_ACI, aci + FENER_ACI); L.closePath(); L.clip();
+    const wc = L.createRadialGradient(bx, by, 8, bx, by, FENER_UZUNLUK);
     wc.addColorStop(0, "rgba(210,235,255,0.26)"); wc.addColorStop(0.6, "rgba(190,225,255,0.10)"); wc.addColorStop(1, "rgba(190,225,255,0)");
-    ctx.fillStyle = wc; ctx.fillRect(0, 0, w, h);
-    ctx.fillStyle = "rgba(255,255,255,0.5)";
+    L.fillStyle = wc; L.fillRect(0, 0, w, h);
+    L.fillStyle = "rgba(255,255,255,0.5)";
     for (let i = 0; i < 14; i++) {
       const dm = ((i * 97 + t * 40) % FENER_UZUNLUK);
       const yan = Math.sin(i * 2.3 + t * 0.8) * dm * Math.tan(FENER_ACI) * 0.8;
       const px = bx + Math.cos(aci) * dm - Math.sin(aci) * yan;
       const py = by + Math.sin(aci) * dm + Math.cos(aci) * yan;
-      ctx.globalAlpha = 0.25 * (1 - dm / FENER_UZUNLUK); ctx.fillRect(px, py, 1.6, 1.6);
+      L.globalAlpha = 0.25 * (1 - dm / FENER_UZUNLUK); L.fillRect(px, py, 1.6, 1.6);
     }
-    ctx.globalAlpha = 1;
-    ctx.restore(); ctx.restore();
+    L.globalAlpha = 1;
+    L.restore();
+    L.globalCompositeOperation = "destination-out";
+    L.fillStyle = "#fff";
+    L.fill(golge);
+    ctx.save();
+    ctx.globalCompositeOperation = "lighter";
+    ctx.drawImage(isikTuval, 0, 0, w, h);
+    ctx.restore();
 
     // Sopa vuruş yayı (kısa flaş)
     if (izlenen._sopaFlash > 0) {

@@ -57,3 +57,13 @@
 - Doğrulama: başsız Node testi (17 sağlama × 5 tur, hepsi geçti), `npm run build` OK,
   Chrome'da kapı perdesi + hack halkası + EMP görsel olarak doğrulandı.
 - Ayrıntı: `run/PROGRESS.md`. **Kalan tek büyük iş: multiplayer** (backend gerektirir).
+
+## 2026-07-09 — RUN yayına hazır: ışık oklüzyonu + hata düzeltmeleri
+- **Fener artık duvardan sızmıyor** (gölge dörtgenleri + ara katman ışık maskesi; ışık kapı
+  geçitlerinden doğal sızar). Piksel taramasıyla doğrulandı.
+- Düzeltilen hatalar: masaüstünde dokunmatik butonlar gizlenmiyordu (CSS), oyundan çıkınca
+  ortam sesi çalmaya devam ediyordu (ortamDur), drone başlangıcın dibinde doğabiliyordu
+  (spawn ≥700), girdi bayrak temizliği, ölü sabit.
+- Cila: botlar yakın drone'dan kaçınıyor; round bitince vızıltı sönüyor.
+- Doğrulama: başsız test 3 tur geçti, build OK, Chrome görsel + piksel doğrulaması.
+- Multiplayer hâlâ bilinçli olarak sonraki faz (backend gerektirir).
