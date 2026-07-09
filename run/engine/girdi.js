@@ -83,4 +83,7 @@ export class Girdi {
   kalkanBasiliMi() { return this.kalkanTus; }
   genelBakisAl() { const v = this.genelBakisIstek; this.genelBakisIstek = false; return v; }
   dokunGenelBakis() { this.genelBakisIstek = true; }
+  // Dokunmatik beceri butonları (mobil): tek dokunuşta tetikle.
+  dokunSopa() { this.sopaBekliyor = true; }
+  dokunKalkan() { this.kalkanTus = true; setTimeout(() => { this.kalkanTus = false; }, 140); }
 }

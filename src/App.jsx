@@ -7,6 +7,8 @@ import Layout from "./components/Layout.jsx";
 // Gladius: bağımsız oyun modülü, /gladius altında lazy yüklenir.
 // Bildim quiz koduna tek dokunuş burasıdır (kod tamamen gladius/ klasöründe).
 const GladiusApp = lazy(() => import("../gladius/app/GladiusApp.jsx"));
+// RUN: bağımsız karanlık labirent kaçış modülü, /run altında lazy yüklenir.
+const RunApp = lazy(() => import("../run/app/RunApp.jsx"));
 import Login from "./pages/Login.jsx";
 import Home from "./pages/Home.jsx";
 import TournamentPage from "./pages/TournamentPage.jsx";
@@ -44,6 +46,14 @@ export default function App() {
         element={
           <Suspense fallback={<div className="yukleniyor">Gladius yükleniyor…</div>}>
             <GladiusApp />
+          </Suspense>
+        }
+      />
+      <Route
+        path="/run/*"
+        element={
+          <Suspense fallback={<div className="yukleniyor">RUN yükleniyor…</div>}>
+            <RunApp />
           </Suspense>
         }
       />

@@ -89,6 +89,10 @@ export function cal(ad) {
         ton("sine", 500, 1100, 0.35, 0.4); ton("sine", 760, 1500, 0.3, 0.25); break;
       case "yakala":               // drone yakalama ışını (zap)
         ton("square", 900, 200, 0.22, 0.35); gurultuAt(0.15, "highpass", 2000, 0.3); break;
+      case "ates":                 // drone menzilden ateş (keskin lazer)
+        ton("sawtooth", 1400, 300, 0.16, 0.4); gurultuAt(0.1, "bandpass", 3000, 0.3); break;
+      case "sat":                  // rakibi sattın (ka-ching, yükselen ödül)
+        ton("triangle", 700, 1050, 0.1, 0.4); setTimeout(() => baglam() && ton("triangle", 1050, 1500, 0.16, 0.4), 90); break;
       case "yakalandi":            // oyuncu yakalandı (kayıp)
         ton("sawtooth", 300, 60, 0.6, 0.5); break;
       case "kacti":                // kaçış başarısı (yükselen)

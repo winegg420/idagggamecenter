@@ -15,17 +15,22 @@
     #panel .baslik { color: #7fb0e0; font-size: 12px; margin-top: 6px; }
     #ses { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; }
     #ses button { padding: 6px 8px; font-size: 12px; }
-    #sonuc { position: fixed; inset: 0; display: none; place-items: center; background: rgba(4,6,10,0.82); }
+    #sonuc { position: fixed; inset: 0; display: none; place-items: center; background: rgba(4,6,10,0.86); }
     #sonuc.acik { display: grid; }
     #sonuc .k { text-align: center; color: #e6ecf5; }
     #sonuc h1 { margin: 0 0 6px; font-size: 40px; }
     #sonuc button { margin-top: 16px; padding: 12px 26px; font-size: 15px; cursor: pointer; border: 0; border-radius: 8px; background: #2e6ea5; color: #fff; }
+    #siralama { margin: 14px auto 0; min-width: 300px; max-width: 90vw; text-align: left; border-collapse: collapse; }
+    #siralama td { padding: 5px 10px; border-bottom: 1px solid rgba(255,255,255,0.08); font-size: 14px; }
+    #siralama tr.ben td { color: #ffd873; font-weight: bold; }
+    #siralama .yer { color: #7fb0e0; width: 30px; }
+    #siralama .rz { text-align: right; }
   </style>
 </head>
 <body>
   <canvas id="c"></canvas>
   <div id="hud">…</div>
-  <div id="ipucu">Hareket: WASD/oklar · Sopa: J · Kalkan: K · Harita: M · Amaç: karanlıkta drone'dan kaçıp yeşil çıkışa ulaş</div>
+  <div id="ipucu">Hareket: WASD/oklar · 🦇 Sopa: J (rakibi bayılt+sat) · 🛡 Kalkan: K (3sn dokunulmazlık) · Harita: M · Amaç: drone'dan kaç, çıkışa ulaş</div>
 
   <div id="panel">
     <button id="haritaBtn">🗺 Harita (M)</button>
@@ -43,7 +48,7 @@
     <div class="baslik">Ortam + drone vızıltısı oyunda sürekli çalar</div>
   </div>
 
-  <div id="sonuc"><div class="k"><h1 id="sbaslik"></h1><div id="salt"></div><button id="tekrar">Tekrar</button></div></div>
+  <div id="sonuc"><div class="k"><h1 id="sbaslik"></h1><div id="salt"></div><table id="siralama"></table><button id="tekrar">Tekrar</button></div></div>
 
   <script type="module">
     import { Motor } from "/run/engine/motor.js";
@@ -61,6 +66,12 @@
         onBitti: (s) => {
           document.getElementById("sbaslik").textContent = s === "kacti" ? "KAÇTIN! 🏃" : "YAKALANDIN 🤖";
           document.getElementById("salt").textContent = s === "kacti" ? "Sığınaktan kurtuldun." : "Drone seni yakaladı.";
+          const tablo = document.getElementById("siralama");
+          const sir = motor?.durum?.siralama || [];
+          const durAd = { kacti: "🏃 Kaçtı", yakalandi: "🤖 Yakalandı", kaldi: "· Kaldı" };
+          tablo.innerHTML = sir.map((r, i) =>
+            `<tr class="${r.ben ? "ben" : ""}"><td class="yer">${i + 1}.</td><td>${r.ad}</td><td>${durAd[r.durum] || ""}</td><td class="rz">💰${r.sat}</td></tr>`
+          ).join("");
           sonuc.classList.add("acik");
         },
       });

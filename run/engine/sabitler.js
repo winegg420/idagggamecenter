@@ -34,5 +34,30 @@ export const DRONE_KOVALA_HIZ = 196;      // aydınlıkta/kovalarken hızlanır
 export const DRONE_GORUS = 300;           // aydınlıktaki oyuncuyu bu menzilde görür (GPS)
 export const HEAT_YARICAP = 160;          // karanlıkta hareketsiz "ısı" algılama menzili
 export const HEAT_SURE = 1.4;             // bu kadar hareketsiz kalınca ısı yakalanır
-export const YAKALA_YARICAP = 30;         // bu mesafede yakalar
+export const YAKALA_YARICAP = 30;         // bu mesafede temasla yakalar
 export const KAYIP_SURE = 3.5;            // hedefi kaybedince devriyeye dönme süresi
+
+// Drone ateş menzili (temastan önce menzilden vurma) — tasarım: zorluk eğrisi
+export const ATES_MENZIL = 92;            // kilitlenip ateş edebildiği menzil
+export const ATES_SURE = 1.05;            // kilit → ateş süresi (bu kadar menzilde tutarsa vurur)
+
+// Zorluk eğrisi — zaman geçtikçe droneler hızlanır/görüşü artar
+export const ZORLUK_ARALIK = 22;          // sn, her kademede zorluk artışı
+export const ZORLUK_MAKS = 4;             // maks kademe (1..4)
+
+// Beceriler — tasarım: sopa (bayılt+sat) + kalkan (dokunulmazlık)
+export const SOPA_MENZIL = 52;            // sopa vuruş menzili
+export const SOPA_ACI = Math.PI * 0.55;   // önde koni yarı açısı (~100°)
+export const SOPA_BEKLEME = 2.4;          // cooldown (sn)
+export const KALKAN_SURE = 3.0;           // dokunulmazlık süresi (sn)
+export const KALKAN_BEKLEME = 8.0;        // cooldown (sn)
+
+// AI ele geçirme — nesneler aktifleşir, drone o bölgeye çekilir (tasarım 6)
+export const NESNE_AKTIF_ARALIK = 8;      // sn, yeni bir nesne aktifleşir
+export const NESNE_AKTIF_SURE = 7;        // aktif kalma süresi
+export const NESNE_CEK_MENZIL = 760;      // aktif nesne bu menzildeki boş drone'u çeker
+
+// Botların çıkışa yönelmesi (round çözülsün) — bu süreden sonra kaçışa geçerler
+export const BOT_KACIS_ZAMANI = 18;       // sn
+// İzleyici modunda round'u sonlandıran güvenlik süresi
+export const IZLEYICI_MAKS = 26;          // sn
