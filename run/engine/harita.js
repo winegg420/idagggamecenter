@@ -289,8 +289,27 @@ function engeldeMi(harita, x, y) {
 
 export function yurunebilir(harita, x, y) {
   if (engeldeMi(harita, x, y)) return false;      // mobilya = engel
+  // Kapalı kapı fiziksel engeldir: oyuncular ve botlar da geçemez
+  for (const k of harita.kapilar || []) {
+    if (k.kapali && x >= k.x - 4 && x <= k.x + k.w + 4 && y >= k.y - 4 && y <= k.y + k.h + 4) return false;
+  }
   for (const a of harita.alanlar) if (noktaRectte(x, y, a)) return true;
   for (const c of harita.cikislar) if (noktaRectte(x, y, c)) return true;
+  return false;
+}
+
+// İki nokta arasında duvar var mı? (görüş hattı — tarama konisi ve görünürlük için)
+export function duvarKesiyorMu(harita, x1, y1, x2, y2) {
+  const dx = x2 - x1, dy = y2 - y1;
+  const uz = Math.hypot(dx, dy);
+  const adim = Math.max(2, Math.ceil(uz / 18));
+  for (let i = 1; i < adim; i++) {
+    const px = x1 + (dx * i) / adim, py = y1 + (dy * i) / adim;
+    for (const e of harita.engeller) {
+      if (e.tip !== "duvar") continue;
+      if (px >= e.x && px <= e.x + e.w && py >= e.y && py <= e.y + e.h) return true;
+    }
+  }
   return false;
 }
 export function cikistaMi(harita, x, y) { return harita.cikislar.some((c) => noktaRectte(x, y, c)); }

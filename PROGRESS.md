@@ -83,3 +83,14 @@
 - HUD: konum (oda adı), süre sayacı, round başı hedef yazısı.
 - Görünürlük kuralı gövdelere de uygulandı (karanlıkta silüet bile yok; aydınlık odadakiler
   görüş hattı açıksa görünür). Test + build + Chrome doğrulaması yapıldı.
+
+## 2026-07-09 — RUN büyük oynanış turu (İda'nın 10 maddelik geri bildirimi)
+- Kapılar fiziksel: Q aç/kapa, kapalı kapı herkesi engeller, drone 0.5sn'de açar.
+- İnsan görünümlü karakterler (saç/ten/ceket çeşidi, yürüme animasyonu) + elde görünür
+  sopa ve savurma animasyonu.
+- Kırmızı tarama konisi: devriye drone önünde salınan arama ışığı — koniye giren anında
+  fark edilir; duvar koniyi keser (görsel + mekanik). Drone 3→6 (3'ü çıkış bekçisi),
+  gövde 1.5x, vızıltı yaklaşınca belirgin yükselir.
+- Çıkış zorlaştı: çıkışta 1.6sn bekleme (kaçış kanalı + ilerleme halkası).
+- Harita: doygun zeminler, tip renginde kenar neonu + halılar, parlak mobilya.
+- Doğrulama: 35 sağlamalı başsız test 8 tur geçti, build OK, Chrome görsel testler.

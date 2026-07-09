@@ -63,10 +63,11 @@ export function ortamDur() {
 export function droneYakinlik(mesafe) {
   if (!droneGain || !ctx) return;
   try {
-    const yakin = Math.max(0, 1 - mesafe / 500); // 0..1
-    droneGain.gain.setTargetAtTime(acik ? yakin * 0.22 : 0, ctx.currentTime, 0.1);
-    droneOsc.frequency.setTargetAtTime(90 + yakin * 120, ctx.currentTime, 0.1);
-    droneFilt.frequency.setTargetAtTime(400 + yakin * 900, ctx.currentTime, 0.1);
+    const yakin = Math.max(0, 1 - mesafe / 650); // 0..1 (menzil genişletildi)
+    const g = Math.pow(yakin, 1.4) * 0.45;       // yaklaştıkça belirgin yükselir
+    droneGain.gain.setTargetAtTime(acik ? g : 0, ctx.currentTime, 0.08);
+    droneOsc.frequency.setTargetAtTime(90 + yakin * 150, ctx.currentTime, 0.08);
+    droneFilt.frequency.setTargetAtTime(400 + yakin * 1100, ctx.currentTime, 0.08);
   } catch {}
 }
 

@@ -51,7 +51,7 @@ export default function GamePage() {
       <canvas ref={canvasRef} className="run-canvas" />
 
       <div className="run-hud-ipucu">
-        WASD/oklar · 🦇 Sopa J · 🛡 Kalkan K · ⚡ Ele geçir E (basılı tut) · 🚪 Kapı Q · 🗺 Harita M
+        WASD/oklar · 🦇 Sopa J · 🛡 Kalkan K · ⚡ Ele geçir E (basılı tut) · 🚪 Kapı aç/kapa Q · 🗺 Plan M
       </div>
 
       <div className="run-dokun">

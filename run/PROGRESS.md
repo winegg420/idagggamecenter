@@ -270,6 +270,36 @@ Tek-oyunculu sürüm yayına hazır hale getirildi. Kapatılan hatalar:
 - Doğrulama: başsız test geçti, build OK (RunApp 53.5 kB), Chrome ekran görüntüleri
   (hedef yazısı, pusula 118m, kapı ışıkları, silüetsiz karanlık).
 
+## 2026-07-09 — Büyük oynanış turu (İda'nın 10 maddelik geri bildirimi)
+### Kapılar artık FİZİKSEL (İda: "karakter kapalı kapıdan geçiyor")
+- Kapalı kapı **herkesi** engeller (`yurunebilir` kapı kontrolü). **Q = aç/kapa toggle**
+  (cooldown 1.2sn). Eşikte biri varken kapanmaz (üstüne kapanma/cheese engeli).
+- **Drone kapalı kapıyı 0.5sn'de açar** (İda talebi; eskiden 2.2sn "kırma"), bot iterek
+  0.7sn'de açar (kapana kısılma yok). Kapı 14sn sonra kendiliğinden açılır.
+### İnsan görünümlü karakterler (İda: "robot gibi")
+- `cizKisi` yeniden: isimden türeyen **saç/ten/ceket** çeşitliliği, **ayak+kol yürüme
+  animasyonu** (`_yuru` mesafe fazı), öne bakan yüz, kimlik rengi omuz şeridi.
+- **Beyzbol sopası elde görünür**; vururken **geniş savurma yayı** animasyonu (`_sopaFlash`).
+### Kırmızı tarama konisi (İda: "drone kırmızı ışıkla tarasın, gören kaçsın")
+- Devriye drone'un önünde **salınan kırmızı arama konisi** (menzil 270, ±19.5°); koninin
+  içine giren (arada duvar yoksa) **anında fark edilir** → yeni çekirdek stealth mekaniği.
+- Koni karanlığın ÜSTÜNDE çizilir (drone'un kendi ışığı) ve **duvarlar koniyi keser**
+  (gölge maskesi) — duvar arkası hem görsel hem mekanik olarak güvenli.
+### Çıkış zorlaştırıldı (İda: "dümdüz yürüyüp çıkıyorum")
+- **Kaçış kanalı:** çıkışta **1.6sn beklemek** gerekir (yeşil ilerleme halkası "KAÇIŞ %").
+- **Drone 3 → 6**; ilk 3'ü **çıkış bekçisi** (devriyesinin %65'i kendi çıkışının çevresinde).
+- Drone gövdesi **1.5x** + yanıp sönen kırmızı göz; vızıltı menzili 650, ses eğrisi keskin
+  (yaklaştıkça belirgin yükselir, `ses.droneYakinlik`).
+### Harita renk/detay (İda: "renk ekle, detaylar belli değil")
+- Zemin tonları doygunlaştırıldı + **oda kenarı neonu tip renginde** (atrium yeşil, kafeterya
+  turuncu, güvenlik kırmızı...) + **tip renginde halılar**; mobilya paleti parlaklaştırıldı.
+- Round başı ipucu güncellendi: "Kırmızı tarama ışığından saklan · çıkışta bekleyerek kaç".
+### Doğrulama
+- Başsız test **35 sağlama** (kapı aç/kapa/yürünmezlik/eşik-dolu reddi/drone 0.51sn açma,
+  kaçış kanalı 1.62sn, tarama konisi dahil oynanış) — **8 tur üst üste geçti**.
+- `npm run build` OK (RunApp 57.8 kB). Chrome: kırmızı koni + insan sprite + koni algılaması
+  ("Drone: 1 kovalıyor!") ekran görüntüsüyle doğrulandı.
+
 ## Sıradaki
 - **Multiplayer** (PatiRun/Bildim presence+broadcast) — spec Faz 10, backend gerektirir; **en son**.
 - İsteğe bağlı: round sonucu/istatistik kalıcılığı (şu an hiçbir şey kaydedilmiyor — bilinçli).
