@@ -354,6 +354,7 @@ function droneYenidenDogur(durum, d) {
 // Savururken kısa ileri hamle yapılır; isabet vuruş donması + sarsıntı verir.
 function kilicVur(durum, ben) {
   ben._sopaCd = SOPA_BEKLEME; ben._sopaFlash = SOPA_SAVURMA;
+  ben._savurmaYon = -(ben._savurmaYon || 1);   // her savuruş ters yönden (kombo görünümü)
   durum.sesler.push("kilic");
   // İleri hamle (duvara saygılı)
   hareketEt(durum.harita, ben, Math.cos(ben.aci) * KILIC_HAMLE, Math.sin(ben.aci) * KILIC_HAMLE);

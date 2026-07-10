@@ -56,8 +56,8 @@ export const ZORLUK_MAKS = 4;             // maks kademe (1..4)
 // Beceriler — enerji kılıcı (bayılt+sat, droneları savurur) + kalkan + atılım
 export const SOPA_MENZIL = 118;           // kılıç erişimi (drone ateş menzilinden uzun — önce sen vurursun)
 export const SOPA_ACI = Math.PI * 0.55;   // önde koni yarı açısı (~100°)
-export const SOPA_BEKLEME = 1.5;          // cooldown (sn)
 export const SOPA_SAVURMA = 0.22;         // savurma animasyon süresi (sn)
+export const SOPA_BEKLEME = SOPA_SAVURMA; // cooldown yok — savuruşlar zincirlenir (KOMBO)
 export const KILIC_HAMLE = 30;            // savururken ileri hamle mesafesi
 export const KALKAN_SURE = 3.0;           // dokunulmazlık süresi (sn)
 export const KALKAN_BEKLEME = 8.0;        // cooldown (sn)

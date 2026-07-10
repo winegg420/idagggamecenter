@@ -324,6 +324,12 @@ Tek-oyunculu sürüm yayına hazır hale getirildi. Kapatılan hatalar:
 - Yeni sesler: `kilic` (whoosh), `darbe` (metalik şok), `patlama`, `dash`, `cip`; titreşim desenleri eklendi.
 - HUD 4 beceri kutusu (⚔/💨/🛡/🚪), sayaçlar kompakt (💰/💾/💿). GamePage ipucu + dokunmatik ⚔/💨 butonları;
   MenuPage tanıtımı kılıç/dash/çip anlatır.
+### Kombo (İda: "cooldown olmasın, kombo yapabileyim")
+- `SOPA_BEKLEME = SOPA_SAVURMA` (0.22sn) — kılıçta gerçek cooldown yok; savuruşlar animasyon
+  hızında zincirlenir. Her savuruş **ters yönden** gelir (`ben._savurmaYon` ±1; iz yayı, dış yay
+  ve eldeki bıçak animasyonu yön alır) → soldan-sağa / sağdan-sola kombo görünümü.
+- Chrome'da doğrulandı: art arda J ile kill feed'de zincir vuruşlar, kutu hep HAZIR.
+
 ### Doğrulama
 - Başsız Node testi **16/16** (hp düşüşü, savrulma 230, 3 vuruşta hurda + uzakta yeniden doğma,
   110 birimden bot satma, dash yolu 125 birim, çip toplama, 90sn rastgele oynanışta istisna yok).

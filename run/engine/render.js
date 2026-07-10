@@ -306,8 +306,10 @@ export function ciz(ctx, durum, view) {
     if (izlenen._sopaFlash > 0) {
       const p = 1 - izlenen._sopaFlash / SOPA_SAVURMA;          // 0→1 savurma ilerlemesi
       const R = SOPA_MENZIL + OYUNCU_YARICAP;
-      const bas = aci - SOPA_ACI;
-      const uc = bas + SOPA_ACI * 2 * Math.min(1, p * 1.25);    // bıçağın anlık açısı
+      const yon = izlenen._savurmaYon || 1;                     // kombo: her savuruş ters yönden
+      const bas = aci - SOPA_ACI * yon;
+      const uc = bas + yon * SOPA_ACI * 2 * Math.min(1, p * 1.25); // bıçağın anlık açısı
+      const ccw = yon < 0;
       ctx.save();
       ctx.globalCompositeOperation = "lighter";
       // 1) Enerji izi: başlangıçtan bıçağa kadar dolu süpürme yayı (dışa doğru parlar)
@@ -316,7 +318,7 @@ export function ciz(ctx, durum, view) {
       iz.addColorStop(0.55, `rgba(140,230,255,${0.22 * (1 - p * 0.6)})`);
       iz.addColorStop(1, `rgba(200,250,255,${0.4 * (1 - p * 0.6)})`);
       ctx.fillStyle = iz;
-      ctx.beginPath(); ctx.moveTo(bx, by); ctx.arc(bx, by, R, bas, uc); ctx.closePath(); ctx.fill();
+      ctx.beginPath(); ctx.moveTo(bx, by); ctx.arc(bx, by, R, bas, uc, ccw); ctx.closePath(); ctx.fill();
       // 2) Bıçağın kendisi: parlak kesme kenarı (uçta ışık patlaması)
       ctx.strokeStyle = `rgba(235,255,255,${0.95 * (1 - p * 0.35)})`;
       ctx.lineWidth = 4.5; ctx.lineCap = "round";
@@ -327,7 +329,7 @@ export function ciz(ctx, durum, view) {
       ctx.shadowBlur = 8;
       ctx.strokeStyle = `rgba(160,240,255,${0.5 * (1 - p)})`;
       ctx.lineWidth = 2.5;
-      ctx.beginPath(); ctx.arc(bx, by, R, bas, uc); ctx.stroke();
+      ctx.beginPath(); ctx.arc(bx, by, R, bas, uc, ccw); ctx.stroke();
       ctx.restore();
     }
     // Kalkan halkası (dokunulmazlık)
@@ -913,7 +915,7 @@ function cizKisi(ctx, x, y, s, aksan, t, sen) {
 
   // enerji kılıcı: sağ elde — koyu kabza + ışıyan camgöbeği bıçak.
   // Savururken kabzadan geniş yay çizer (kesme izi ayrıca ekranda çizilir).
-  const savurma = s._sopaFlash > 0 ? (1 - s._sopaFlash / SOPA_SAVURMA) * 2.6 - 1.3 : 0.55;
+  const savurma = s._sopaFlash > 0 ? ((1 - s._sopaFlash / SOPA_SAVURMA) * 2.6 - 1.3) * (s._savurmaYon || 1) : 0.55;
   ctx.save();
   ctx.translate(r * 0.85, -adim * r * 0.4);
   ctx.rotate(savurma - Math.PI / 2);
