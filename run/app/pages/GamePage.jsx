@@ -1,6 +1,6 @@
 // ============================================================
 // RUN — oyun sayfası. Canvas'a Motor bağlar, round sonunda sonuç + sıralama
-// overlay'ini gösterir. Dokunmatik için Harita/Sopa/Kalkan butonları.
+// overlay'ini gösterir. Dokunmatik için Harita/Kılıç/Atılım/Kalkan butonları.
 // ============================================================
 
 import { useEffect, useRef, useState, useCallback } from "react";
@@ -51,12 +51,13 @@ export default function GamePage() {
       <canvas ref={canvasRef} className="run-canvas" />
 
       <div className="run-hud-ipucu">
-        WASD/oklar · 🦇 Sopa J · 🛡 Kalkan K · ⚡ Ele geçir E (basılı tut) · 🚪 Kapı aç/kapa Q · 🗺 Plan M
+        WASD/oklar · ⚔ Kılıç J · 💨 Atılım Shift · 🛡 Kalkan K · ⚡ Ele geçir E (basılı tut) · 🚪 Kapı Q · 🗺 Plan M
       </div>
 
       <div className="run-dokun">
         <button onPointerDown={() => { ses.devamEt(); ses.cal("ui"); g()?.dokunGenelBakis(); }}>🗺</button>
-        <button onPointerDown={() => { ses.devamEt(); g()?.dokunSopa(); }}>🦇</button>
+        <button onPointerDown={() => { ses.devamEt(); g()?.dokunSopa(); }}>⚔</button>
+        <button onPointerDown={() => { ses.devamEt(); g()?.dokunDash(); }}>💨</button>
         <button onPointerDown={() => { ses.devamEt(); g()?.dokunKalkan(); }}>🛡</button>
         <button onPointerDown={() => { ses.devamEt(); g()?.dokunKapi(); }}>🚪</button>
         <button
@@ -85,6 +86,7 @@ export default function GamePage() {
                     <td>{DURUM_AD[r.durum] || ""}</td>
                     <td className="rz">💰{r.sat}</td>
                     <td className="hz">💾{r.hack}</td>
+                    <td className="hz">💿{r.cip || 0}</td>
                   </tr>
                 ))}
               </tbody>

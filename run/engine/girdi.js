@@ -13,8 +13,9 @@ export class Girdi {
     this.jsMerkez = { x: 0, y: 0 };
     this.jsNokta = { x: 0, y: 0 };
     this.jsId = null;
-    this.sopaBekliyor = false;   // beyzbol sopası (J/Boşluk)
-    this.kalkanTus = false;      // kalkan (K/Shift)
+    this.sopaBekliyor = false;   // enerji kılıcı (J/Boşluk)
+    this.kalkanTus = false;      // kalkan (K)
+    this.dashBekliyor = false;   // atılım/dash (Shift/L)
     this.hackTus = false;        // makine ele geçirme (E) — basılı tutulur
     this.kapiBekliyor = false;   // kapıyı kapat (Q)
     this.genelBakisIstek = false; // GENEL BAKIŞ toggle (M)
@@ -50,6 +51,7 @@ export class Girdi {
     this.kalkanTus = false;
     this.hackTus = false;
     this.sopaBekliyor = false;
+    this.dashBekliyor = false;
     this.kapiBekliyor = false;
     this.genelBakisIstek = false;
   }
@@ -58,7 +60,8 @@ export class Girdi {
     const k = e.key.toLowerCase();
     if (BASLI.has(k)) { this.tuslar.add(k); e.preventDefault(); }
     if (k === "j" || k === " ") { this.sopaBekliyor = true; e.preventDefault(); }
-    if (k === "k" || k === "shift") this.kalkanTus = true;
+    if (k === "k") this.kalkanTus = true;
+    if (k === "shift" || k === "l") { this.dashBekliyor = true; e.preventDefault(); }
     if (k === "e") { this.hackTus = true; e.preventDefault(); }
     if (k === "q") { this.kapiBekliyor = true; e.preventDefault(); }
     if (k === "m") { this.genelBakisIstek = true; e.preventDefault(); }
@@ -66,7 +69,7 @@ export class Girdi {
   _ku(e) {
     const k = e.key.toLowerCase();
     this.tuslar.delete(k);
-    if (k === "k" || k === "shift") this.kalkanTus = false;
+    if (k === "k") this.kalkanTus = false;
     if (k === "e") this.hackTus = false;
   }
   _pd(e) { if (this.jsId !== null) return; this.jsId = e.pointerId; this.jsAktif = true; this.jsMerkez = { x: e.clientX, y: e.clientY }; this.jsNokta = { ...this.jsMerkez }; }
@@ -90,6 +93,7 @@ export class Girdi {
   }
 
   sopaAl() { const v = this.sopaBekliyor; this.sopaBekliyor = false; return v; }
+  dashAl() { const v = this.dashBekliyor; this.dashBekliyor = false; return v; }
   kalkanBasiliMi() { return this.kalkanTus; }
   hackBasiliMi() { return this.hackTus; }
   kapiAl() { const v = this.kapiBekliyor; this.kapiBekliyor = false; return v; }
@@ -97,6 +101,7 @@ export class Girdi {
   dokunGenelBakis() { this.genelBakisIstek = true; }
   // Dokunmatik beceri butonları (mobil): tek dokunuşta tetikle.
   dokunSopa() { this.sopaBekliyor = true; }
+  dokunDash() { this.dashBekliyor = true; }
   dokunKalkan() { this.kalkanTus = true; setTimeout(() => { this.kalkanTus = false; }, 140); }
   dokunKapi() { this.kapiBekliyor = true; }
   // Hack basılı tutmalı: butonda pointerdown/pointerup ile eşlenir.

@@ -300,6 +300,36 @@ Tek-oyunculu sürüm yayına hazır hale getirildi. Kapatılan hatalar:
 - `npm run build` OK (RunApp 57.8 kB). Chrome: kırmızı koni + insan sprite + koni algılaması
   ("Drone: 1 kovalıyor!") ekran görüntüsüyle doğrulandı.
 
+## 2026-07-10 — AKSİYON TURU (İda: "vuramıyorum, daha uzaktan vurmalıyım, gerçek kılıç savurma + heyecan")
+### Enerji kılıcı (sopa → kılıç dönüşümü)
+- **Menzil 52 → 118** (`SOPA_MENZIL`) — drone ateş menzilinden (92) uzun: drone kilitlenemeden sen vurursun.
+  Cooldown 2.4 → **1.5sn**; savururken **30 birim ileri hamle** (`KILIC_HAMLE`, duvara saygılı).
+- **Kılıç dronelara işler** (`kilicVur`): konideki HER drone **170 birim geri savrulur** + 1.3sn sersemler,
+  kilidi kırılır; **3 vuruşta hurda** (patlama + kill feed). Hurda drone **12sn sonra oyuncudan ≥700 uzakta
+  yeniden doğar** ("🚁 Yeni drone sevkiyatı") → baskı sürer. Botlar: konideki TÜMÜ satılır (eskiden tek).
+- **Gerçek savurma efekti** (`render.js`): bıçak koninin bir ucundan öbürüne süpürür — dolgu enerji izi
+  (radyal gradyan yay) + parlak kesme kenarı + menzil yayı; karakterin elinde **ışıyan enerji kılıcı**
+  (koyu kabza + camgöbeği bıçak + öz çizgisi, savururken parlar).
+### Aksiyon hissi (juice)
+- **Vuruş donması** (`durum.hitstop` 0.06sn): isabet anında dünya bir an durur.
+- **Ekran sarsıntısı** (`durum.sarsinti`): kılıç isabeti 8, drone patlaması 14, yakalanma 16; hızla söner.
+### Atılım / dash (Shift veya L, mobil 💨)
+- 0.22sn boyunca hız ×3.2, cooldown 2.6sn; yön = hareket vektörü (dururken bakış yönü); iz parçacıkları.
+- Girdi değişikliği: **Shift artık kalkan değil dash** (kalkan yalnız K).
+### Veri çipleri (keşif/risk ödülü)
+- Round başına **10 çip** (birbirinden ≥240, başlangıçtan ≥300 uzak); üstünden geçince toplanır.
+- Dönen yeşil elmas + 620 menzilde karanlıkta parlayan işaret ışığı (keşfe çağırır); HUD `💿 N/10` sayacı,
+  kill feed "(N/10)" + hepsi toplanınca "🌟 TÜM ÇİPLERİ TOPLADIN!"; round sıralamasında 💿 kolonu.
+### Sesler + HUD + metinler
+- Yeni sesler: `kilic` (whoosh), `darbe` (metalik şok), `patlama`, `dash`, `cip`; titreşim desenleri eklendi.
+- HUD 4 beceri kutusu (⚔/💨/🛡/🚪), sayaçlar kompakt (💰/💾/💿). GamePage ipucu + dokunmatik ⚔/💨 butonları;
+  MenuPage tanıtımı kılıç/dash/çip anlatır.
+### Doğrulama
+- Başsız Node testi **16/16** (hp düşüşü, savrulma 230, 3 vuruşta hurda + uzakta yeniden doğma,
+  110 birimden bot satma, dash yolu 125 birim, çip toplama, 90sn rastgele oynanışta istisna yok).
+- `npm run build` OK (RunApp 63.0 kB). Chrome: savurma yayı + kılıç + 4'lü HUD + çip sayacı ekran
+  görüntüsüyle doğrulandı; konsol hatasız.
+
 ## Sıradaki
 - **Multiplayer** (PatiRun/Bildim presence+broadcast) — spec Faz 10, backend gerektirir; **en son**.
 - İsteğe bağlı: round sonucu/istatistik kalıcılığı (şu an hiçbir şey kaydedilmiyor — bilinçli).

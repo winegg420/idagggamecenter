@@ -95,8 +95,19 @@ export function cal(ad) {
   const c = baglam(); if (!c || c.state !== "running") return;
   try {
     switch (ad) {
-      case "sopa":                 // beyzbol sopası darbesi (thwack)
+      case "sopa":                 // (eski) sopa darbesi
         gurultuAt(0.14, "bandpass", 900, 0.7); ton("triangle", 160, 70, 0.14, 0.4); break;
+      case "kilic":                // enerji kılıcı savurma (whoosh + enerji)
+        gurultuAt(0.18, "bandpass", 2200, 0.5); ton("sine", 1200, 320, 0.18, 0.3); break;
+      case "darbe":                // kılıç droneye çarptı (metalik şok)
+        gurultuAt(0.12, "highpass", 1600, 0.6); ton("square", 420, 130, 0.14, 0.45); break;
+      case "patlama":              // drone hurdaya çıktı (patlama)
+        gurultuAt(0.5, "lowpass", 500, 0.85); ton("sawtooth", 220, 40, 0.5, 0.55);
+        setTimeout(() => baglam() && gurultuAt(0.3, "bandpass", 1200, 0.4), 60); break;
+      case "dash":                 // atılım (hızlı süpürme)
+        gurultuAt(0.14, "highpass", 900, 0.35); ton("sine", 300, 800, 0.14, 0.25); break;
+      case "cip":                  // veri çipi toplandı (parlak çınlama)
+        ton("sine", 900, 1350, 0.09, 0.35); setTimeout(() => baglam() && ton("sine", 1350, 1800, 0.14, 0.3), 70); break;
       case "kalkan":               // kalkan aktivasyonu (parıltı)
         ton("sine", 500, 1100, 0.35, 0.4); ton("sine", 760, 1500, 0.3, 0.25); break;
       case "yakala":               // drone yakalama ışını (zap)

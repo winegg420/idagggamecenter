@@ -10,6 +10,7 @@ import {
   GORUS_YARICAP, FENER_UZUNLUK, FENER_ACI, OYUNCU_YARICAP, KARANLIK_ALFA,
   KAPI_KALINLIK, KAPI_KIRILMA, KAPI_MENZIL, HACK_SURE, HACK_MENZIL,
   TARAMA_MENZIL, TARAMA_ACI, CIKIS_SURE,
+  SOPA_MENZIL, SOPA_ACI, SOPA_SAVURMA, SOPA_BEKLEME, DASH_BEKLEME,
 } from "./sabitler.js";
 import { odaAdi } from "./harita.js";
 
@@ -104,8 +105,10 @@ export function ciz(ctx, durum, view) {
   // Kamera/fener kaynağı: normalde oyuncu; izleyici modunda izlenen canlı oyuncu.
   const izlenen = durum.oyuncular.find((s) => s.id === durum.izlenenId) || ben;
   const izlAksan = izlenen.id === "ben" ? "#f0c651" : "#49c6e0";
-  const camX = genel ? worldW / 2 : durum.kamera.x;
-  const camY = genel ? worldH / 2 : durum.kamera.y;
+  // Ekran sarsıntısı: vuruş/patlama/yakalanma anında kamera titrer
+  const sars = !genel && durum.sarsinti > 0 ? durum.sarsinti : 0;
+  const camX = (genel ? worldW / 2 : durum.kamera.x) + (sars ? (Math.random() - 0.5) * sars : 0);
+  const camY = (genel ? worldH / 2 : durum.kamera.y) + (sars ? (Math.random() - 0.5) * sars : 0);
   const w2s = (x, y) => [(x - camX) * zoom + w / 2, (y - camY) * zoom + h / 2];
 
   // Arka plan
@@ -191,6 +194,19 @@ export function ciz(ctx, durum, view) {
     }
     ctx.strokeStyle = n.aktif ? "rgba(255,180,120,0.9)" : "rgba(120,230,240,0.7)"; ctx.lineWidth = 1; ctx.strokeRect(n.x - 9, n.y - 7, 18, 14);
   }
+  // Veri çipleri (toplanabilir) — dönen elmas, yerde parlar
+  for (const c of durum.cipler || []) {
+    if (c.alindi || c.x > gR || c.y > gB || c.x < gL || c.y < gT) continue;
+    const don = t * 2.2 + c.x * 0.01;
+    ctx.save();
+    ctx.translate(c.x, c.y); ctx.rotate(don);
+    ctx.fillStyle = "rgba(90,255,190,0.9)";
+    ctx.shadowColor = "rgba(90,255,190,0.8)"; ctx.shadowBlur = 10;
+    ctx.fillRect(-5, -5, 10, 10);
+    ctx.shadowBlur = 0;
+    ctx.fillStyle = "rgba(10,30,20,0.9)"; ctx.fillRect(-2, -2, 4, 4);
+    ctx.restore();
+  }
   // BİNA PLANI (genel bakış) taktik harita: diğer oyuncular ve droneler ÇİZİLMEZ —
   // canlı konum bilgisi yalnızca kendi ışığınla elde edilir (stealth mantığı).
   if (!genel) {
@@ -202,7 +218,7 @@ export function ciz(ctx, durum, view) {
       const renk = s.yakalandi ? "#5a6472" : s.cikti ? "#4dd08a" : s.id === "ben" ? "#f0c651" : "#49c6e0";
       cizKisi(ctx, s.x, s.y, s, renk, t, s.id === "ben" && !s.yakalandi);
     }
-    for (const dr of durum.droneler || []) cizDrone(ctx, dr.x, dr.y, dr.aci, dr.mod === "kovala", t, dr.sersem > 0);
+    for (const dr of durum.droneler || []) { if (dr.yok > 0) continue; cizDrone(ctx, dr.x, dr.y, dr.aci, dr.mod === "kovala", t, dr.sersem > 0); }
     // Drone kilit/ateş ışını (kovaladığı hedefe)
     for (const dr of durum.droneler || []) {
       if (dr._kilit <= 0 && dr._ates <= 0) continue;
@@ -285,11 +301,34 @@ export function ciz(ctx, durum, view) {
     ctx.drawImage(isikTuval, 0, 0, w, h);
     ctx.restore();
 
-    // Sopa vuruş yayı (kısa flaş)
+    // KILIÇ SAVURMA — gerçek kesme efekti: bıçak koninin bir ucundan öbürüne
+    // süpürür; arkasında sönümlenen enerji izi (dolgu yayı) bırakır.
     if (izlenen._sopaFlash > 0) {
-      const a2 = 0.55 * (izlenen._sopaFlash / 0.22);
-      ctx.save(); ctx.strokeStyle = `rgba(255,230,140,${a2})`; ctx.lineWidth = 5; ctx.shadowColor = "rgba(255,220,120,0.8)"; ctx.shadowBlur = 12;
-      ctx.beginPath(); ctx.arc(bx, by, 40, aci - 0.9, aci + 0.9); ctx.stroke(); ctx.restore();
+      const p = 1 - izlenen._sopaFlash / SOPA_SAVURMA;          // 0→1 savurma ilerlemesi
+      const R = SOPA_MENZIL + OYUNCU_YARICAP;
+      const bas = aci - SOPA_ACI;
+      const uc = bas + SOPA_ACI * 2 * Math.min(1, p * 1.25);    // bıçağın anlık açısı
+      ctx.save();
+      ctx.globalCompositeOperation = "lighter";
+      // 1) Enerji izi: başlangıçtan bıçağa kadar dolu süpürme yayı (dışa doğru parlar)
+      const iz = ctx.createRadialGradient(bx, by, R * 0.15, bx, by, R);
+      iz.addColorStop(0, "rgba(120,220,255,0)");
+      iz.addColorStop(0.55, `rgba(140,230,255,${0.22 * (1 - p * 0.6)})`);
+      iz.addColorStop(1, `rgba(200,250,255,${0.4 * (1 - p * 0.6)})`);
+      ctx.fillStyle = iz;
+      ctx.beginPath(); ctx.moveTo(bx, by); ctx.arc(bx, by, R, bas, uc); ctx.closePath(); ctx.fill();
+      // 2) Bıçağın kendisi: parlak kesme kenarı (uçta ışık patlaması)
+      ctx.strokeStyle = `rgba(235,255,255,${0.95 * (1 - p * 0.35)})`;
+      ctx.lineWidth = 4.5; ctx.lineCap = "round";
+      ctx.shadowColor = "rgba(140,235,255,1)"; ctx.shadowBlur = 18;
+      ctx.beginPath(); ctx.moveTo(bx + Math.cos(uc) * OYUNCU_YARICAP * 0.6, by + Math.sin(uc) * OYUNCU_YARICAP * 0.6);
+      ctx.lineTo(bx + Math.cos(uc) * R, by + Math.sin(uc) * R); ctx.stroke();
+      // 3) Dış yay çizgisi (menzil okuması — nereye kadar vurduğun belli olur)
+      ctx.shadowBlur = 8;
+      ctx.strokeStyle = `rgba(160,240,255,${0.5 * (1 - p)})`;
+      ctx.lineWidth = 2.5;
+      ctx.beginPath(); ctx.arc(bx, by, R, bas, uc); ctx.stroke();
+      ctx.restore();
     }
     // Kalkan halkası (dokunulmazlık)
     if (izlenen.kalkan > 0) {
@@ -319,6 +358,18 @@ export function ciz(ctx, durum, view) {
         ctx.beginPath(); ctx.arc(sx, sy, 2.6, 0, Math.PI * 2); ctx.fill();
       }
     }
+    // Veri çipi işaret ışığı: karanlıkta bile yakındaki çipler yeşil parlar (keşfe çağırır)
+    for (const c of durum.cipler || []) {
+      if (c.alindi) continue;
+      const uz = Math.hypot(c.x - izlenen.x, c.y - izlenen.y);
+      if (uz > 620) continue;
+      const [sx, sy] = w2s(c.x, c.y);
+      const al = (1 - uz / 620) * (0.5 + 0.35 * Math.sin(t * 5 + c.x * 0.03));
+      ctx.fillStyle = `rgba(90,255,190,${al * 0.22})`;
+      ctx.beginPath(); ctx.arc(sx, sy, 12, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = `rgba(150,255,210,${al})`;
+      ctx.beginPath(); ctx.arc(sx, sy, 3, 0, Math.PI * 2); ctx.fill();
+    }
     ctx.restore();
 
     // KIRMIZI TARAMA KONİLERİ — drone'un kendi arama ışığı, karanlığın üstünde
@@ -326,7 +377,7 @@ export function ciz(ctx, durum, view) {
     // (arada duvar yoksa) anında fark edilirsin. Duvarlar koniyi keser.
     let koniSayisi = 0;
     for (const dr of durum.droneler || []) {
-      if (dr.sersem > 0 || koniSayisi >= 4) continue;
+      if (dr.sersem > 0 || dr.yok > 0 || koniSayisi >= 4) continue;
       const [dx0, dy0] = w2s(dr.x, dr.y);
       if (dx0 < -TARAMA_MENZIL || dx0 > w + TARAMA_MENZIL || dy0 < -TARAMA_MENZIL || dy0 > h + TARAMA_MENZIL) continue;
       koniSayisi++;
@@ -488,7 +539,7 @@ export function ciz(ctx, durum, view) {
 
   // En yakın drone alarmı
   let prox = Infinity;
-  for (const dr of durum.droneler || []) prox = Math.min(prox, Math.hypot(izlenen.x - dr.x, izlenen.y - dr.y));
+  for (const dr of durum.droneler || []) { if (dr.yok > 0) continue; prox = Math.min(prox, Math.hypot(izlenen.x - dr.x, izlenen.y - dr.y)); }
   if (!genel && prox < 360) {
     const alarm = (1 - prox / 360) * 0.4;
     const vg = ctx.createRadialGradient(w / 2, h / 2, Math.min(w, h) * 0.3, w / 2, h / 2, Math.max(w, h) * 0.6);
@@ -538,7 +589,7 @@ function cizHud(ctx, durum, view, ben) {
 
   // --- Beceri paneli (sol-alt) ---
   const px = 14, py = h - 92;
-  const bw = Math.max(78, Math.min(118, Math.floor((w - 28) / 3) - 10)); // dar ekranda daralır
+  const bw = Math.max(70, Math.min(118, Math.floor((w - 28) / 4) - 10)); // dar ekranda daralır
   const adim = bw + 10;
   const beceri = (yerX, ikon, ad, cd, maks, aktif, aktifRenk) => {
     const bh = 34;
@@ -554,15 +605,18 @@ function cizHud(ctx, durum, view, ben) {
     ctx.fillStyle = cd > 0 ? "rgba(255,150,120,0.95)" : aktif > 0 ? aktifRenk : "rgba(120,230,160,0.95)";
     ctx.fillText(cd > 0 ? cd.toFixed(1) + "s" : aktif > 0 ? "AKTİF " + aktif.toFixed(1) : "HAZIR", yerX + 32, py + 28);
   };
-  beceri(px, "🦇", "Sopa (J)", ben._sopaCd || 0, 2.4, 0, "#ffe08c");
-  beceri(px + adim, "🛡", "Kalkan (K)", ben._kalkanCd || 0, 8, ben.kalkan || 0, "#5ac8ff");
-  beceri(px + adim * 2, "🚪", "Kapı (Q)", ben._kapiCd || 0, 3, 0, "#8ad6ff");
+  beceri(px, "⚔", "Kılıç (J)", ben._sopaCd || 0, SOPA_BEKLEME, 0, "#9ae8ff");
+  beceri(px + adim, "💨", "Atılım (⇧)", ben._dashCd || 0, DASH_BEKLEME, ben._dash > 0 ? ben._dash : 0, "#bfe0ff");
+  beceri(px + adim * 2, "🛡", "Kalkan (K)", ben._kalkanCd || 0, 8, ben.kalkan || 0, "#5ac8ff");
+  beceri(px + adim * 3, "🚪", "Kapı (Q)", ben._kapiCd || 0, 3, 0, "#8ad6ff");
 
-  // Sayaçlar: sattığın + ele geçirdiğin
+  // Sayaçlar: sattığın + ele geçirdiğin + veri çipleri
   ctx.font = "bold 13px system-ui"; ctx.textAlign = "left"; ctx.fillStyle = "rgba(255,220,120,0.95)";
-  ctx.fillText(`💰 Sattığın: ${ben.sat || 0}`, px, py - 8);
+  ctx.fillText(`💰 ${ben.sat || 0}`, px, py - 8);
   ctx.fillStyle = "rgba(120,240,255,0.95)";
-  ctx.fillText(`💾 Ele geçirdiğin: ${ben.hack || 0}`, px + 140, py - 8);
+  ctx.fillText(`💾 ${ben.hack || 0}`, px + 58, py - 8);
+  ctx.fillStyle = "rgba(120,255,190,0.95)";
+  ctx.fillText(`💿 ${ben.cip || 0}/${(durum.cipler || []).length}`, px + 116, py - 8);
 
   // Hack ilerleme çubuğu (basılı tutarken)
   if (ben._hackIlerleme > 0) {
@@ -622,7 +676,7 @@ function cizHud(ctx, durum, view, ben) {
     ctx.shadowBlur = 0;
     ctx.font = "13px system-ui";
     ctx.fillStyle = `rgba(200,220,240,${al * 0.9})`;
-    ctx.fillText("Kırmızı tarama ışığından saklan · çıkışta bekleyerek kaç · yeşil ok yolu gösterir", w / 2, h * 0.3 + 26);
+    ctx.fillText("⚔ Kılıçla droneleri savur (J) · 💨 atıl (Shift) · 💿 çipleri topla · çıkışta bekleyerek kaç", w / 2, h * 0.3 + 26);
   }
 
   // --- İzleyici afişi ---
@@ -857,15 +911,20 @@ function cizKisi(ctx, x, y, s, aksan, t, sen) {
   ctx.beginPath(); ctx.ellipse(-r * 0.32, -adim * r * 0.5, r * 0.2, r * 0.34, 0, 0, Math.PI * 2); ctx.fill();
   ctx.beginPath(); ctx.ellipse(r * 0.32, adim * r * 0.5, r * 0.2, r * 0.34, 0, 0, Math.PI * 2); ctx.fill();
 
-  // sopa: sağ elde (savururken geniş yay çizer)
-  const savurma = s._sopaFlash > 0 ? (1 - s._sopaFlash / 0.22) * 2.2 - 1.1 : 0.55;
+  // enerji kılıcı: sağ elde — koyu kabza + ışıyan camgöbeği bıçak.
+  // Savururken kabzadan geniş yay çizer (kesme izi ayrıca ekranda çizilir).
+  const savurma = s._sopaFlash > 0 ? (1 - s._sopaFlash / SOPA_SAVURMA) * 2.6 - 1.3 : 0.55;
   ctx.save();
   ctx.translate(r * 0.85, -adim * r * 0.4);
   ctx.rotate(savurma - Math.PI / 2);
-  ctx.strokeStyle = "#8a5c2e"; ctx.lineWidth = 4.5; ctx.lineCap = "round";
-  ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(0, -r * 1.35); ctx.stroke();
-  ctx.strokeStyle = "#6b431e"; ctx.lineWidth = 5.5;
-  ctx.beginPath(); ctx.moveTo(0, -r * 0.95); ctx.lineTo(0, -r * 1.35); ctx.stroke();
+  ctx.strokeStyle = "#2a3340"; ctx.lineWidth = 5; ctx.lineCap = "round";       // kabza
+  ctx.beginPath(); ctx.moveTo(0, r * 0.1); ctx.lineTo(0, -r * 0.35); ctx.stroke();
+  ctx.strokeStyle = s._sopaFlash > 0 ? "#eaffff" : "#8ae4ff";                  // bıçak
+  ctx.lineWidth = 3.5;
+  ctx.shadowColor = "rgba(120,225,255,0.95)"; ctx.shadowBlur = s._sopaFlash > 0 ? 14 : 8;
+  ctx.beginPath(); ctx.moveTo(0, -r * 0.35); ctx.lineTo(0, -r * 1.9); ctx.stroke();
+  ctx.strokeStyle = "rgba(255,255,255,0.9)"; ctx.lineWidth = 1.2; ctx.shadowBlur = 0;
+  ctx.beginPath(); ctx.moveTo(0, -r * 0.45); ctx.lineTo(0, -r * 1.8); ctx.stroke(); // öz çizgisi
   ctx.restore();
 
   // kollar (adımın tersi salınım) + ten rengi eller

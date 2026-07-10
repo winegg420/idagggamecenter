@@ -13,7 +13,9 @@ import {
   ISIK_DEGISIM_ARALIK, DRONE_DEVRIYE_HIZ, DRONE_KOVALA_HIZ, DRONE_GORUS,
   HEAT_YARICAP, HEAT_SURE, YAKALA_YARICAP, KAYIP_SURE, BOT_GRUP_MENZIL, DRONE_SAYISI,
   ATES_MENZIL, ATES_SURE, ZORLUK_ARALIK, ZORLUK_MAKS,
-  SOPA_MENZIL, SOPA_ACI, SOPA_BEKLEME, KALKAN_SURE, KALKAN_BEKLEME,
+  SOPA_MENZIL, SOPA_ACI, SOPA_BEKLEME, SOPA_SAVURMA, KILIC_HAMLE, KALKAN_SURE, KALKAN_BEKLEME,
+  DRONE_HP, KILIC_SAVURMA_GUC, KILIC_SERSEM, DRONE_YENIDEN,
+  DASH_SURE, DASH_CARPAN, DASH_BEKLEME, CIP_SAYISI, CIP_YARICAP,
   NESNE_AKTIF_ARALIK, NESNE_AKTIF_SURE, NESNE_CEK_MENZIL,
   BOT_KACIS_ZAMANI, IZLEYICI_MAKS,
   KAPI_MENZIL, KAPI_BEKLEME, KAPI_ACILMA, KAPI_KIRILMA, KAPI_BOT_ACMA,
@@ -201,7 +203,7 @@ function yakalanIsle(durum, s, sebep) {
   durum.sesler.push("yakala");
   parcacikEkle(durum, s.x, s.y, 16, sebep === "sopa" ? "255,220,120" : "255,80,70", 170, 2.4);
   s.hackHedef = null; s._hackIlerleme = 0;   // yarım kalan ele geçirme iptal
-  if (s.id === "ben") { durum.sesler.push("yakalandi"); durum.izleyici = true; durum._izleyiciSayaci = IZLEYICI_MAKS; }
+  if (s.id === "ben") { durum.sesler.push("yakalandi"); durum.sarsinti = Math.max(durum.sarsinti, 16); durum.izleyici = true; durum._izleyiciSayaci = IZLEYICI_MAKS; }
 }
 
 export function createDurum() {
@@ -212,8 +214,9 @@ export function createDurum() {
     id: "ben", ad: "Sen", bot: false,
     x: harita.baslangic.x, y: harita.baslangic.y, aci: -Math.PI / 2,
     yakalandi: false, cikti: false, durgun: 0, _bitisZaman: 0,
-    sat: 0, hack: 0, kalkan: 0, _sopaCd: 0, _kalkanCd: 0, _sopaFlash: 0,
+    sat: 0, hack: 0, cip: 0, kalkan: 0, _sopaCd: 0, _kalkanCd: 0, _sopaFlash: 0,
     _kapiCd: 0, _hackIlerleme: 0, hackHedef: null, _cikis: 0, _yuru: 0,
+    _dash: 0, _dashCd: 0, _dashYon: { x: 0, y: -1 },
   });
 
   const adlar = [...BOT_ADLARI].sort(() => Math.random() - 0.5);
@@ -237,10 +240,23 @@ export function createDurum() {
     }
     droneler.push({
       x: dk.x, y: dk.y, aci: 0, mod: "devriye", hedefId: null, hedefX: dk.x, hedefY: dk.y,
-      kayip: 0, sersem: 0, _kilit: 0, _ates: 0,
+      kayip: 0, sersem: 0, _kilit: 0, _ates: 0, hp: DRONE_HP, yok: 0,
       _faz: Math.random() * Math.PI * 2,               // tarama konisi salınım fazı
       _bekci: i < harita.cikislar.length ? i : -1,     // ilk 3 drone çıkış bekçisi
     });
+  }
+
+  // Veri çipleri: haritaya saçılır (birbirinden ve başlangıçtan uzak) — keşif ödülü.
+  const cipler = [];
+  for (let i = 0; i < CIP_SAYISI; i++) {
+    let n = rastgeleNokta(harita);
+    for (let d = 0; d < 40; d++) {
+      const uzakBas = Math.hypot(n.x - harita.baslangic.x, n.y - harita.baslangic.y) >= 300;
+      const uzakDiger = cipler.every((c) => Math.hypot(c.x - n.x, c.y - n.y) >= 240);
+      if (uzakBas && uzakDiger) break;
+      n = rastgeleNokta(harita);
+    }
+    cipler.push({ x: n.x, y: n.y, alindi: false });
   }
 
   // Nesneler ele-geçirilebilir hale gelir (aktif olunca drone çeker).
@@ -249,8 +265,9 @@ export function createDurum() {
   for (const k of harita.kapilar || []) { k.kapali = false; k._acilma = 0; k.kirilma = 0; }
 
   return {
-    harita, oyuncular, droneler,
+    harita, oyuncular, droneler, cipler,
     parcaciklar: [],
+    sarsinti: 0, hitstop: 0,     // ekran sarsıntısı + vuruş donması (aksiyon hissi)
     zaman: 0, isikSayaci: ISIK_DEGISIM_ARALIK,
     bitti: false, sonuc: null,   // 'kacti' | 'yakalandi'
     izleyici: false, _izleyiciSayaci: 0,
@@ -298,7 +315,7 @@ function siralamaYap(durum) {
   return [...kacan, ...tutulan, ...kalan].map((s) => ({
     ad: s.ad, ben: s.id === "ben",
     durum: s.cikti ? "kacti" : s.yakalandi ? "yakalandi" : "kaldi",
-    sat: s.sat || 0, hack: s.hack || 0,
+    sat: s.sat || 0, hack: s.hack || 0, cip: s.cip || 0,
   }));
 }
 
@@ -310,24 +327,81 @@ function roundBitir(durum) {
   durum.siralama = siralamaYap(durum);
 }
 
-// Sopa: önde koni içinde en yakın diri botu bayılt+sat.
-function sopaVur(durum, ben) {
-  ben._sopaCd = SOPA_BEKLEME; ben._sopaFlash = 0.22;
-  durum.sesler.push("sopa");
-  let hedef = null, enD = SOPA_MENZIL + OYUNCU_YARICAP;
+// Koni testi: hedef, vuranın önündeki kılıç yayı içinde mi?
+function koniIcinde(ben, hx, hy, menzil) {
+  const dx = hx - ben.x, dy = hy - ben.y, d = Math.hypot(dx, dy);
+  if (d > menzil) return false;
+  let fark = Math.abs(Math.atan2(dy, dx) - ben.aci);
+  if (fark > Math.PI) fark = Math.PI * 2 - fark;
+  return fark <= SOPA_ACI;
+}
+
+// Hurda droneyi oyuncudan uzak bir noktada yeniden doğur (baskı sürsün).
+function droneYenidenDogur(durum, d) {
+  const ben = durum.oyuncular[0];
+  let dk = rastgeleNokta(durum.harita);
+  for (let i = 0; i < 40; i++) {
+    if (Math.hypot(dk.x - ben.x, dk.y - ben.y) >= 700) break;
+    dk = rastgeleNokta(durum.harita);
+  }
+  d.x = dk.x; d.y = dk.y; d.hedefX = dk.x; d.hedefY = dk.y;
+  d.hp = DRONE_HP; d.yok = 0; d.sersem = 0.5; d.mod = "devriye"; d.hedefId = null; d._kilit = 0;
+  akisEkle(durum, "🚁 Yeni drone sevkiyatı geldi");
+}
+
+// Enerji kılıcı: geniş savurma — konideki TÜM diri botları bayılt+sat,
+// konideki droneleri geri savur + sersemlet (3 vuruşta hurda + patlama).
+// Savururken kısa ileri hamle yapılır; isabet vuruş donması + sarsıntı verir.
+function kilicVur(durum, ben) {
+  ben._sopaCd = SOPA_BEKLEME; ben._sopaFlash = SOPA_SAVURMA;
+  durum.sesler.push("kilic");
+  // İleri hamle (duvara saygılı)
+  hareketEt(durum.harita, ben, Math.cos(ben.aci) * KILIC_HAMLE, Math.sin(ben.aci) * KILIC_HAMLE);
+  const menzil = SOPA_MENZIL + OYUNCU_YARICAP;
+  let isabet = 0;
+
   for (const s of durum.oyuncular) {
     if (s.id === "ben" || s.yakalandi || s.cikti) continue;
-    const dx = s.x - ben.x, dy = s.y - ben.y, d = Math.hypot(dx, dy);
-    if (d > enD) continue;
-    let fark = Math.abs(Math.atan2(dy, dx) - ben.aci);
-    if (fark > Math.PI) fark = Math.PI * 2 - fark;
-    if (fark <= SOPA_ACI) { hedef = s; enD = d; }
+    if (!koniIcinde(ben, s.x, s.y, menzil)) continue;
+    yakalanIsle(durum, s, "sopa"); ben.sat++; durum.sesler.push("sat");
+    isabet++;
   }
-  if (hedef) { yakalanIsle(durum, hedef, "sopa"); ben.sat++; durum.sesler.push("sat"); }
+
+  for (const d of durum.droneler) {
+    if (d.yok > 0 || !koniIcinde(ben, d.x, d.y, menzil)) continue;
+    isabet++;
+    d.hp--;
+    d.sersem = Math.max(d.sersem, KILIC_SERSEM);
+    d._kilit = 0; d.mod = "devriye"; d.hedefId = null;
+    // Geri savrulma (vuruş yönünde)
+    const yon = Math.atan2(d.y - ben.y, d.x - ben.x);
+    d.x += Math.cos(yon) * KILIC_SAVURMA_GUC;
+    d.y += Math.sin(yon) * KILIC_SAVURMA_GUC;
+    parcacikEkle(durum, d.x, d.y, 14, "140,240,255", 200, 2.4);
+    if (d.hp <= 0) {
+      d.yok = DRONE_YENIDEN;
+      durum.sesler.push("patlama");
+      durum.sarsinti = Math.max(durum.sarsinti, 14);
+      akisEkle(durum, "💥 Droneyi hurdaya çıkardın!");
+      parcacikEkle(durum, d.x, d.y, 34, "255,160,60", 260, 3);
+      parcacikEkle(durum, d.x, d.y, 18, "255,90,60", 180, 2.4);
+    } else {
+      durum.sesler.push("darbe");
+      akisEkle(durum, `⚔ Droneye vurdun (${d.hp} dayanım kaldı)`);
+    }
+  }
+
+  if (isabet) {
+    durum.hitstop = Math.max(durum.hitstop, 0.06);
+    durum.sarsinti = Math.max(durum.sarsinti, 8);
+  }
 }
 
 export function guncelle(durum, dt, girdi) {
   if (durum.bitti) return;
+  // Vuruş donması: isabet anında dünya bir an durur (aksiyon vurgusu)
+  if (durum.hitstop > 0) { durum.hitstop -= dt; return; }
+  durum.sarsinti = Math.max(0, durum.sarsinti - dt * 40);
   durum.zaman += dt;
   parcaciklariGuncelle(durum, dt);
 
@@ -399,7 +473,7 @@ export function guncelle(durum, dt, girdi) {
       // Hayatta kalma içgüdüsü: yakın (sersem olmayan) drone'dan uzaklaş — her moddan öncelikli.
       let kx = 0, ky = 0;
       for (const dr of durum.droneler) {
-        if (dr.sersem > 0) continue;
+        if (dr.sersem > 0 || dr.yok > 0) continue;
         const du = Math.hypot(s.x - dr.x, s.y - dr.y);
         if (du < 220) { kx += (s.x - dr.x) / (du || 1); ky += (s.y - dr.y) / (du || 1); }
       }
@@ -427,7 +501,22 @@ export function guncelle(durum, dt, girdi) {
       s.durgun = 0;
     } else {
       const v = girdi.hareketVektoru();
-      if (v.x !== 0 || v.y !== 0) {
+      // Atılım (dash): kısa süre yüksek hızda kayma — iz parçacıkları bırakır
+      s._dashCd = Math.max(0, s._dashCd - dt);
+      if (girdi.dashAl() && s._dashCd <= 0 && s._dash <= 0) {
+        s._dash = DASH_SURE; s._dashCd = DASH_BEKLEME;
+        s._dashYon = (v.x || v.y) ? { x: v.x, y: v.y } : { x: Math.cos(s.aci), y: Math.sin(s.aci) };
+        durum.sesler.push("dash");
+      }
+      if (s._dash > 0) {
+        s._dash -= dt;
+        const ox = s.x, oy = s.y;
+        hareketEt(durum.harita, s, s._dashYon.x * OYUNCU_HIZ * DASH_CARPAN * dt, s._dashYon.y * OYUNCU_HIZ * DASH_CARPAN * dt);
+        s.aci = Math.atan2(s._dashYon.y, s._dashYon.x);
+        s.durgun = 0;
+        s._yuru += Math.hypot(s.x - ox, s.y - oy);
+        parcacikEkle(durum, s.x, s.y, 2, "150,220,255", 40, 2);
+      } else if (v.x !== 0 || v.y !== 0) {
         const ox = s.x, oy = s.y;
         hareketEt(durum.harita, s, v.x * OYUNCU_HIZ * dt, v.y * OYUNCU_HIZ * dt);
         s.aci = Math.atan2(v.y, v.x);
@@ -436,13 +525,22 @@ export function guncelle(durum, dt, girdi) {
       } else {
         s.durgun += dt;
       }
+      // Veri çipi toplama (üstünden geç)
+      for (const c of durum.cipler) {
+        if (c.alindi || Math.hypot(c.x - s.x, c.y - s.y) > CIP_YARICAP) continue;
+        c.alindi = true; s.cip++;
+        const kalan = durum.cipler.filter((k) => !k.alindi).length;
+        durum.sesler.push("cip");
+        akisEkle(durum, kalan ? `💿 Veri çipi aldın (${s.cip}/${durum.cipler.length})` : "🌟 TÜM ÇİPLERİ TOPLADIN!");
+        parcacikEkle(durum, c.x, c.y, 16, "120,255,200", 160, 2.2);
+      }
       // Beceriler
       s._sopaCd = Math.max(0, s._sopaCd - dt);
       s._kalkanCd = Math.max(0, s._kalkanCd - dt);
       s._kapiCd = Math.max(0, s._kapiCd - dt);
       s.kalkan = Math.max(0, s.kalkan - dt);
       s._sopaFlash = Math.max(0, s._sopaFlash - dt);
-      if (girdi.sopaAl() && s._sopaCd <= 0) sopaVur(durum, s);
+      if (girdi.sopaAl() && s._sopaCd <= 0) kilicVur(durum, s);
       // Kapı: menzildeki kapıyı AÇ/KAPA (kapalı kapı herkes için engel; drone hızlı açar)
       if (girdi.kapiAl() && s._kapiCd <= 0) kapiToggle(durum, s);
       // Makine ele geçirme (E basılı tut)
@@ -463,7 +561,13 @@ export function guncelle(durum, dt, girdi) {
 
   // Drone AI (her drone bağımsız devriye/kovala/ateş)
   for (const d of durum.droneler) {
-    // Sersem (hack darbesi): ne algılar ne hareket eder — kaçmak için pencere.
+    // Hurda (kılıçla düşürüldü): sahada yok; süresi dolunca uzakta yeniden doğar.
+    if (d.yok > 0) {
+      d.yok -= dt;
+      if (d.yok <= 0) droneYenidenDogur(durum, d);
+      continue;
+    }
+    // Sersem (hack/kılıç darbesi): ne algılar ne hareket eder — kaçmak için pencere.
     if (d.sersem > 0) {
       d.sersem -= dt;
       d._kilit = 0;

@@ -10,7 +10,7 @@ import { ciz } from "./render.js";
 import * as ses from "./ses.js";
 
 // Mobil dokunsal geri bildirim (ms desenleri) — destek yoksa sessizce atlanır
-const TITRESIM = { yakalandi: [90, 50, 90], yakala: 45, sopa: 25, ates: 35, kacti: [30, 30, 60], sersem: 60 };
+const TITRESIM = { yakalandi: [90, 50, 90], yakala: 45, sopa: 25, kilic: 20, darbe: 35, patlama: [60, 40, 90], dash: 15, cip: 15, ates: 35, kacti: [30, 30, 60], sersem: 60 };
 
 export class Motor {
   constructor(canvas, opts = {}) {
@@ -85,7 +85,7 @@ export class Motor {
       const izlenen = this.durum.oyuncular.find((s) => s.id === this.durum.izlenenId) || this.durum.oyuncular[0];
       let enYakin = Infinity;
       if (!this.durum.bitti) {
-        for (const dr of this.durum.droneler || []) enYakin = Math.min(enYakin, Math.hypot(izlenen.x - dr.x, izlenen.y - dr.y));
+        for (const dr of this.durum.droneler || []) { if (dr.yok > 0) continue; enYakin = Math.min(enYakin, Math.hypot(izlenen.x - dr.x, izlenen.y - dr.y)); }
       }
       ses.droneYakinlik(enYakin);
       if (this.durum.bitti && !this._bitisBildirildi) {

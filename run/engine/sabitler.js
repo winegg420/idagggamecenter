@@ -53,12 +53,29 @@ export const ATES_SURE = 1.05;            // kilit → ateş süresi (bu kadar m
 export const ZORLUK_ARALIK = 22;          // sn, her kademede zorluk artışı
 export const ZORLUK_MAKS = 4;             // maks kademe (1..4)
 
-// Beceriler — tasarım: sopa (bayılt+sat) + kalkan (dokunulmazlık)
-export const SOPA_MENZIL = 52;            // sopa vuruş menzili
+// Beceriler — enerji kılıcı (bayılt+sat, droneları savurur) + kalkan + atılım
+export const SOPA_MENZIL = 118;           // kılıç erişimi (drone ateş menzilinden uzun — önce sen vurursun)
 export const SOPA_ACI = Math.PI * 0.55;   // önde koni yarı açısı (~100°)
-export const SOPA_BEKLEME = 2.4;          // cooldown (sn)
+export const SOPA_BEKLEME = 1.5;          // cooldown (sn)
+export const SOPA_SAVURMA = 0.22;         // savurma animasyon süresi (sn)
+export const KILIC_HAMLE = 30;            // savururken ileri hamle mesafesi
 export const KALKAN_SURE = 3.0;           // dokunulmazlık süresi (sn)
 export const KALKAN_BEKLEME = 8.0;        // cooldown (sn)
+
+// Kılıç ↔ drone çatışması: her vuruş droneyi savurur + sersemletir; 3 vuruşta hurda.
+export const DRONE_HP = 3;                // kılıç vuruş dayanımı
+export const KILIC_SAVURMA_GUC = 170;     // drone geri savrulma mesafesi
+export const KILIC_SERSEM = 1.3;          // vuruş sonrası drone sersemleme süresi (sn)
+export const DRONE_YENIDEN = 12;          // hurda drone bu süre sonra uzakta yeniden doğar (sn)
+
+// Atılım (dash) — kısa süreli hızlı kayma (Shift / 💨)
+export const DASH_SURE = 0.22;            // atılım süresi (sn)
+export const DASH_CARPAN = 3.2;           // atılım hız çarpanı
+export const DASH_BEKLEME = 2.6;          // cooldown (sn)
+
+// Veri çipleri — haritaya saçılmış toplanabilirler (keşif/risk ödülü)
+export const CIP_SAYISI = 10;             // round başına çip
+export const CIP_YARICAP = 26;            // üstünden geçince toplanır
 
 // AI ele geçirme — nesneler aktifleşir, drone o bölgeye çekilir (tasarım 6)
 export const NESNE_AKTIF_ARALIK = 8;      // sn, yeni bir nesne aktifleşir
