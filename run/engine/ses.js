@@ -128,6 +128,12 @@ export function cal(ad) {
         setTimeout(() => baglam() && ton("sine", 1400, 1900, 0.2, 0.3), 170); break;
       case "sersem":               // EMP darbesi (droneler sersemler)
         ton("sine", 220, 30, 0.5, 0.5); gurultuAt(0.3, "lowpass", 700, 0.4); break;
+      case "tespit":               // drone seni fark etti (keskin stinger)
+        ton("sawtooth", 1800, 900, 0.12, 0.5); gurultuAt(0.08, "highpass", 2600, 0.35);
+        setTimeout(() => baglam() && ton("square", 500, 500, 0.1, 0.3), 60); break;
+      case "kalp":                 // neredeyse-yakalanma kalp atışı (çift bas vuruş)
+        ton("sine", 68, 48, 0.12, 0.5);
+        setTimeout(() => baglam() && ton("sine", 60, 42, 0.14, 0.4), 140); break;
       case "kapi":                 // kapı kapanma / kırılma
         gurultuAt(0.22, "lowpass", 220, 0.6); break;
       case "ui":                   // arayüz tık

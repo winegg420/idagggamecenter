@@ -16,13 +16,19 @@ export default function GamePage() {
   const motorRef = useRef(null);
   const [sonuc, setSonuc] = useState(null);
   const [siralama, setSiralama] = useState([]);
+  const [enYakin, setEnYakin] = useState(null);
 
   const basla = useCallback(() => {
     try {
       motorRef.current?.dur();
       setSonuc(null);
       const m = new Motor(canvasRef.current, {
-        onBitti: (s) => { setSonuc(s); setSiralama(m.durum?.siralama || []); },
+        onBitti: (s) => {
+          setSonuc(s);
+          setSiralama(m.durum?.siralama || []);
+          const uz = m.durum?.enYakin;
+          setEnYakin(Number.isFinite(uz) ? Math.round(uz) : null);
+        },
       });
       m.basla();
       motorRef.current = m;
@@ -76,6 +82,9 @@ export default function GamePage() {
             <h1>{sonuc === "kacti" ? "KAÇTIN! 🏃" : "YAKALANDIN 🤖"}</h1>
             <div className="run-sonuc-alt">
               {sonuc === "kacti" ? "Tesisten kurtuldun." : "Drone seni yakaladı — round'un sonunu izledin."}
+              {sonuc === "kacti" && enYakin !== null && enYakin < 120 && (
+                <div className="run-azkalsin">⚡ Az kalsın! Drone'a en yakın anın: {enYakin} birim</div>
+              )}
             </div>
             <table className="run-siralama">
               <tbody>
@@ -84,7 +93,7 @@ export default function GamePage() {
                     <td className="yer">{i + 1}.</td>
                     <td>{r.ad}</td>
                     <td>{DURUM_AD[r.durum] || ""}</td>
-                    <td className="rz">💰{r.sat}</td>
+                    <td className="rz">💥{r.hurda}</td>
                     <td className="hz">💾{r.hack}</td>
                     <td className="hz">💿{r.cip || 0}</td>
                   </tr>

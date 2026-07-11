@@ -6,7 +6,7 @@
 // "kapalı kapı" yalnızca drone'u durdurur (bkz. durum.js).
 // ============================================================
 
-import { KAPI_GENISLIK, KAPI_KALINLIK } from "./sabitler.js";
+import { KAPI_GENISLIK, KAPI_KALINLIK, PANEL_MESAFE_MIN, PANEL_MESAFE_MAKS } from "./sabitler.js";
 
 const KOL = 4, SAT = 4, KOR = 110;   // hücre ızgarası + koridor genişliği
 const ENGEL_PAY = 10;                // çarpışma için engel şişirme
@@ -273,7 +273,27 @@ function haritaUret() {
     { x: basX - 40, y: 0, w: 80, h: 56, ad: "Kuzey Çıkış" },
   ];
 
-  return { genislik: W, yukseklik: H, baslangic: { x: basX, y: basY }, alanlar, cikislar, nesneler, engeller, kapilar };
+  const harita = { genislik: W, yukseklik: H, baslangic: { x: basX, y: basY }, alanlar, cikislar, nesneler, engeller, kapilar };
+
+  // Çıkış panelleri: her çıkışın 250-400 birim yakınında yürünebilir bir nokta.
+  // Panel hack'lenmeden çıkış kilitli kalır (durum.js). Tohumlu → deterministik.
+  harita.paneller = [];
+  for (let ci = 0; ci < cikislar.length; ci++) {
+    const c = cikislar[ci];
+    const cx = c.x + c.w / 2, cy = c.y + c.h / 2;
+    let nokta = null;
+    for (let d = 0; d < 200 && !nokta; d++) {
+      const a = rnd() * Math.PI * 2;
+      const r = PANEL_MESAFE_MIN + rnd() * (PANEL_MESAFE_MAKS - PANEL_MESAFE_MIN);
+      const px = cx + Math.cos(a) * r, py = cy + Math.sin(a) * r;
+      if (yurunebilir(harita, px, py)) nokta = { x: px, y: py };
+    }
+    // Emniyet: hiç nokta bulunamazsa çıkışın hemen önü (koridor her zaman yürünebilir)
+    if (!nokta) nokta = { x: Math.min(Math.max(cx, KOR), W - KOR), y: Math.min(Math.max(cy, KOR), H - KOR) };
+    harita.paneller.push({ x: nokta.x, y: nokta.y, cikis: ci, ad: c.ad + " Paneli" });
+  }
+
+  return harita;
 }
 
 export const OFIS = haritaUret();

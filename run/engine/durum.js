@@ -21,8 +21,13 @@ import {
   KAPI_MENZIL, KAPI_BEKLEME, KAPI_ACILMA, KAPI_KIRILMA, KAPI_BOT_ACMA,
   HACK_MENZIL, HACK_SURE, HACK_SERSEM_MENZIL, SERSEM_SURE, PARCACIK_MAKS,
   TARAMA_MENZIL, TARAMA_ACI, TARAMA_SALINIM, CIKIS_SURE,
+  GERGINLIK_KOVALA, GERGINLIK_YAKIN, GERGINLIK_AZALIS, SAKIN_SURE,
+  IPUCU_ESIK, IPUCU_GECIKME, IPUCU_BEKLEME, NEFES_ESIK, DESTEK_MENZIL, DESTEK_MESAFE,
+  AGIR_ACI_CARPAN, AGIR_HIZ_CARPAN, SESSIZ_HEAT_CARPAN,
+  CIKIS_ALARM_SURE, CIKIS_ALARM_CARPAN, GENEL_ALARM_SURE,
+  SON_BASKI_CARPAN, TESPIT_FLASH, KALP_MESAFE_CARPAN,
 } from "./sabitler.js";
-import { OFIS, yurunebilir, cikistaMi, duvarKesiyorMu } from "./harita.js";
+import { OFIS, yurunebilir, duvarKesiyorMu } from "./harita.js";
 import { cikisYonu } from "./navigasyon.js";
 
 const BOT_ADLARI = ["Neo", "Trinity", "Ghost", "Vega", "Kilo", "Rook", "Delta"];
@@ -139,20 +144,27 @@ function kapiAc(durum, k, droneAcisi) {
 }
 
 // --- Ele geçirme (hack) ---
-function enYakinAktifNesne(harita, x, y, menzil) {
+// Hedef adayları: aktif makineler + açılmamış ÇIKIŞ PANELLERİ (aynı mekanik).
+function enYakinHackHedefi(harita, x, y, menzil) {
   let en = null, enD = menzil;
   for (const n of harita.nesneler || []) {
     if (!n.aktif) continue;
     const d = Math.hypot(n.x - x, n.y - y);
     if (d < enD) { enD = d; en = n; }
   }
+  for (const p of harita.paneller || []) {
+    if (p.acildi) continue;
+    const d = Math.hypot(p.x - x, p.y - y);
+    if (d < enD) { enD = d; en = p; }
+  }
   return en;
 }
 
-// Aktif makineyi basılı tutarak ele geçir: ödül + yakın droneler sersemler.
-// Bedeli: hack sırasında yavaşsın/duruyorsun → ısı algılamasına açıksın.
+// Aktif makineyi/paneli basılı tutarak ele geçir: makine → EMP + ödül;
+// panel → bağlı çıkış kalıcı açılır (bekçiler tetiklenir).
+// Bedeli: hack sırasında duruyorsun → ısı algılamasına açıksın.
 function hackGuncelle(durum, ben, dt, basili) {
-  const hedef = enYakinAktifNesne(durum.harita, ben.x, ben.y, HACK_MENZIL);
+  const hedef = enYakinHackHedefi(durum.harita, ben.x, ben.y, HACK_MENZIL);
   ben.hackHedef = basili && hedef ? hedef : null;
   if (!ben.hackHedef) {
     ben._hackIlerleme = Math.max(0, ben._hackIlerleme - dt * 2);
@@ -164,6 +176,7 @@ function hackGuncelle(durum, ben, dt, basili) {
 
   // Tamamlandı
   ben._hackIlerleme = 0; ben.hackHedef = null;
+  if (hedef.cikis !== undefined) { panelAc(durum, hedef); return; }  // çıkış paneli
   hedef.aktif = false; hedef._sure = 0;
   ben.hack++;
   durum.sesler.push("hack");
@@ -196,12 +209,12 @@ function cikisIsle(durum, s) {
   akisEkle(durum, `🏃 ${s.ad} çıkışa ulaştı`);
   durum.sesler.push(s.id === "ben" ? "kacti" : "kapi");
 }
-function yakalanIsle(durum, s, sebep) {
+function yakalanIsle(durum, s) {
   if (s.yakalandi || s.cikti) return;
   s.yakalandi = true; s._bitisZaman = durum.zaman;
-  akisEkle(durum, sebep === "sopa" ? `🦇 ${s.ad} satıldı (Sen)` : `🤖 ${s.ad} yakalandı`);
+  akisEkle(durum, `🤖 ${s.ad} yakalandı`);
   durum.sesler.push("yakala");
-  parcacikEkle(durum, s.x, s.y, 16, sebep === "sopa" ? "255,220,120" : "255,80,70", 170, 2.4);
+  parcacikEkle(durum, s.x, s.y, 16, "255,80,70", 170, 2.4);
   s.hackHedef = null; s._hackIlerleme = 0;   // yarım kalan ele geçirme iptal
   if (s.id === "ben") { durum.sesler.push("yakalandi"); durum.sarsinti = Math.max(durum.sarsinti, 16); durum.izleyici = true; durum._izleyiciSayaci = IZLEYICI_MAKS; }
 }
@@ -214,7 +227,7 @@ export function createDurum() {
     id: "ben", ad: "Sen", bot: false,
     x: harita.baslangic.x, y: harita.baslangic.y, aci: -Math.PI / 2,
     yakalandi: false, cikti: false, durgun: 0, _bitisZaman: 0,
-    sat: 0, hack: 0, cip: 0, kalkan: 0, _sopaCd: 0, _kalkanCd: 0, _sopaFlash: 0,
+    hurda: 0, hack: 0, cip: 0, kalkan: 0, _sopaCd: 0, _kalkanCd: 0, _sopaFlash: 0,
     _kapiCd: 0, _hackIlerleme: 0, hackHedef: null, _cikis: 0, _yuru: 0,
     _dash: 0, _dashCd: 0, _dashYon: { x: 0, y: -1 },
   });
@@ -243,6 +256,8 @@ export function createDurum() {
       kayip: 0, sersem: 0, _kilit: 0, _ates: 0, hp: DRONE_HP, yok: 0,
       _faz: Math.random() * Math.PI * 2,               // tarama konisi salınım fazı
       _bekci: i < harita.cikislar.length ? i : -1,     // ilk 3 drone çıkış bekçisi
+      tip: "normal",                                   // kademe 3-4'te: "agir" | "sessiz"
+      _ipucu: null, _destek: -1, _alarm: 0,            // yönetmen ipucu / destek hedefi / panel alarmı
     });
   }
 
@@ -263,6 +278,9 @@ export function createDurum() {
   for (const n of harita.nesneler || []) { n.aktif = false; n._sure = 0; }
   // Kapılar açık başlar.
   for (const k of harita.kapilar || []) { k.kapali = false; k._acilma = 0; k.kirilma = 0; }
+  // Çıkışlar KİLİTLİ başlar — yakınındaki panel hack'lenince kalıcı açılır.
+  for (const c of harita.cikislar) c.acik = false;
+  for (const p of harita.paneller || []) p.acildi = false;
 
   return {
     harita, oyuncular, droneler, cipler,
@@ -279,24 +297,70 @@ export function createDurum() {
     siralama: null,              // round sonu 2 katmanlı sıralama
     kamera: { x: harita.baslangic.x, y: harita.baslangic.y },
     sesler: [],                  // ses olay kuyruğu (motor boşaltır)
+    // Yönetmen (director): görünmez gerginlik göstergesi + ipucu zamanlaması
+    gerginlik: 0, _gerginlikOnce: 0, _sakin: 0, _ipucuCd: 0, _nefes: 0, _izler: [], _izSayac: 0,
+    genelAlarm: 0,               // ≥2 çıkış açılınca 30sn hızlı devriye penceresi
+    tespitFlash: 0,              // tespit anı kırmızı ekran flaşı
+    _sonBaski: false,            // tek kaçak kaldı — droneler güçlendi
+    enYakin: Infinity, _kalpCd: 0, // "az kalsın" istatistiği + kalp atışı zamanlayıcısı
   };
+}
+
+// Panel hack'lendi: bağlı çıkış kalıcı açılır, bekçileri tetiklenir (alarm),
+// 2. çıkış açılınca kısa süreli GENEL ALARM (tüm droneler hızlı devriye).
+function panelAc(durum, panel) {
+  if (panel.acildi) return;
+  panel.acildi = true;
+  const cikis = durum.harita.cikislar[panel.cikis];
+  cikis.acik = true;
+  durum.sesler.push("alarm");
+  akisEkle(durum, `🚨 ${cikis.ad} aktif edildi!`);
+  parcacikEkle(durum, panel.x, panel.y, 26, "120,255,170", 210, 2.8);
+  // Bekçi tepkisi: o çıkışın bekçileri bir süre tetikte (hız + tarama açısı +%20)
+  for (const d of durum.droneler) {
+    if (d._bekci === panel.cikis) d._alarm = CIKIS_ALARM_SURE;
+  }
+  const acikSayi = durum.harita.cikislar.filter((c) => c.acik).length;
+  if (acikSayi === 2 && durum.genelAlarm <= 0) {
+    durum.genelAlarm = GENEL_ALARM_SURE;
+    durum.sesler.push("alarm");
+    akisEkle(durum, "🚨 GENEL ALARM — tüm droneler hızlandı!");
+  }
+}
+
+// Açık bir çıkışın içinde mi? (kilitli çıkışta beklemek kaçırtmaz)
+function acikCikistaMi(harita, x, y) {
+  return harita.cikislar.some((c) => c.acik && x >= c.x && x <= c.x + c.w && y >= c.y && y <= c.y + c.h);
+}
+
+// Drone'un anlık tarama konisi yarı açısı (tipe + panel alarmına göre).
+// Sessiz drone'un konisi YOKTUR (görünmez tehdit — ısıyla avlanır).
+export function taramaAcisi(d) {
+  if (d.tip === "sessiz") return 0;
+  let aci = TARAMA_ACI;
+  if (d.tip === "agir") aci *= AGIR_ACI_CARPAN;
+  if (d._alarm > 0) aci *= CIKIS_ALARM_CARPAN;
+  return aci;
 }
 
 // Bir hayatta kalan, verilen drone tarafından algılanabilir mi?
 function algilanabilir(durum, s, d) {
   if (s.yakalandi || s.cikti) return false;
-  const gorusCarpan = 1 + (durum.zorluk - 1) * 0.09;
+  let gorusCarpan = 1 + (durum.zorluk - 1) * 0.09;
+  if (durum._sonBaski) gorusCarpan *= SON_BASKI_CARPAN;   // tek kaçak: menziller genişler
   const uz = Math.hypot(s.x - d.x, s.y - d.y);
   // Aydınlıkta: GPS ile geniş menzilde görülür
   if (uz < DRONE_GORUS * gorusCarpan && aydinliktaMi(durum.harita, s.x, s.y)) return true;
-  // Karanlıkta hareketsiz: ısı ile yakın menzilde
-  if (uz < HEAT_YARICAP * gorusCarpan && s.durgun >= HEAT_SURE) return true;
+  // Karanlıkta hareketsiz: ısı ile yakın menzilde (sessiz drone'da menzil geniş)
+  const heatCarpan = d.tip === "sessiz" ? SESSIZ_HEAT_CARPAN : 1;
+  if (uz < HEAT_YARICAP * gorusCarpan * heatCarpan && s.durgun >= HEAT_SURE) return true;
   // KIRMIZI TARAMA KONİSİ: koninin içindeysen ve arada duvar yoksa ANINDA görülürsün.
   // Kırmızı ışığı gören oyuncu kaçmalı/saklanmalı (duvar arkası güvenli).
-  if (uz < TARAMA_MENZIL * gorusCarpan) {
+  const koniAci = taramaAcisi(d);
+  if (koniAci > 0 && uz < TARAMA_MENZIL * gorusCarpan) {
     let fark = Math.abs(Math.atan2(s.y - d.y, s.x - d.x) - (d._tarama ?? d.aci));
     if (fark > Math.PI) fark = Math.PI * 2 - fark;
-    if (fark <= TARAMA_ACI && !duvarKesiyorMu(durum.harita, d.x, d.y, s.x, s.y)) return true;
+    if (fark <= koniAci && !duvarKesiyorMu(durum.harita, d.x, d.y, s.x, s.y)) return true;
   }
   return false;
 }
@@ -315,7 +379,7 @@ function siralamaYap(durum) {
   return [...kacan, ...tutulan, ...kalan].map((s) => ({
     ad: s.ad, ben: s.id === "ben",
     durum: s.cikti ? "kacti" : s.yakalandi ? "yakalandi" : "kaldi",
-    sat: s.sat || 0, hack: s.hack || 0, cip: s.cip || 0,
+    hurda: s.hurda || 0, hack: s.hack || 0, cip: s.cip || 0,
   }));
 }
 
@@ -346,10 +410,11 @@ function droneYenidenDogur(durum, d) {
   }
   d.x = dk.x; d.y = dk.y; d.hedefX = dk.x; d.hedefY = dk.y;
   d.hp = DRONE_HP; d.yok = 0; d.sersem = 0.5; d.mod = "devriye"; d.hedefId = null; d._kilit = 0;
+  d._ipucu = null; d._destek = -1; d._alarm = 0;
   akisEkle(durum, "🚁 Yeni drone sevkiyatı geldi");
 }
 
-// Enerji kılıcı: geniş savurma — konideki TÜM diri botları bayılt+sat,
+// Enerji kılıcı: geniş savurma — SADECE dronelere işler (insanlara zarar vermez):
 // konideki droneleri geri savur + sersemlet (3 vuruşta hurda + patlama).
 // Savururken kısa ileri hamle yapılır; isabet vuruş donması + sarsıntı verir.
 function kilicVur(durum, ben) {
@@ -360,13 +425,6 @@ function kilicVur(durum, ben) {
   hareketEt(durum.harita, ben, Math.cos(ben.aci) * KILIC_HAMLE, Math.sin(ben.aci) * KILIC_HAMLE);
   const menzil = SOPA_MENZIL + OYUNCU_YARICAP;
   let isabet = 0;
-
-  for (const s of durum.oyuncular) {
-    if (s.id === "ben" || s.yakalandi || s.cikti) continue;
-    if (!koniIcinde(ben, s.x, s.y, menzil)) continue;
-    yakalanIsle(durum, s, "sopa"); ben.sat++; durum.sesler.push("sat");
-    isabet++;
-  }
 
   for (const d of durum.droneler) {
     if (d.yok > 0 || !koniIcinde(ben, d.x, d.y, menzil)) continue;
@@ -381,6 +439,7 @@ function kilicVur(durum, ben) {
     parcacikEkle(durum, d.x, d.y, 14, "140,240,255", 200, 2.4);
     if (d.hp <= 0) {
       d.yok = DRONE_YENIDEN;
+      ben.hurda++;
       durum.sesler.push("patlama");
       durum.sarsinti = Math.max(durum.sarsinti, 14);
       akisEkle(durum, "💥 Droneyi hurdaya çıkardın!");
@@ -418,8 +477,32 @@ export function guncelle(durum, dt, girdi) {
   if (durum._zorlukSayaci <= 0 && durum.zorluk < ZORLUK_MAKS) {
     durum.zorluk++; durum._zorlukSayaci = ZORLUK_ARALIK;
     akisEkle(durum, `⚡ Zorluk arttı — Kademe ${durum.zorluk}`);
+    // Drone çeşitliliği: kademe 3'te bir AĞIR (geniş koni, yavaş), kademe 4'te
+    // bir SESSİZ (koni yok, ısı menzili geniş — hareketsizlik güvenli değil) drone.
+    const normaller = durum.droneler.filter((d) => d.tip === "normal" && d.yok <= 0);
+    if (durum.zorluk === 3 && normaller.length) {
+      normaller[Math.floor(Math.random() * normaller.length)].tip = "agir";
+      akisEkle(durum, "🛡 AĞIR DRONE devrede — geniş tarama ışını!");
+      durum.sesler.push("alarm");
+    }
+    if (durum.zorluk === 4 && normaller.length) {
+      normaller[Math.floor(Math.random() * normaller.length)].tip = "sessiz";
+      akisEkle(durum, "👻 SESSİZ DRONE devrede — ışıksız avlanır!");
+      durum.sesler.push("alarm");
+    }
   }
   const hizCarpan = 1 + (durum.zorluk - 1) * 0.11;
+
+  // Genel alarm penceresi: tüm droneler devriyede de kovalama hızında gezer.
+  durum.genelAlarm = Math.max(0, durum.genelAlarm - dt);
+  // Cila zamanlayıcıları
+  durum.tespitFlash = Math.max(0, durum.tespitFlash - dt);
+  durum._kalpCd = Math.max(0, durum._kalpCd - dt);
+  // Son-oyuncu baskısı: tek kaçak kalınca drone menzilleri +%15 (round hızlanır)
+  if (!durum._sonBaski) {
+    const diri = durum.oyuncular.filter((s) => !s.yakalandi && !s.cikti).length;
+    if (diri === 1) { durum._sonBaski = true; akisEkle(durum, "⚠ Son kaçak — droneler güçlendi!"); }
+  }
 
   // Işık/karanlık değişimi: periyodik olarak aydınlık odaları karıştır (tasarım 5)
   durum.isikSayaci -= dt;
@@ -458,12 +541,31 @@ export function guncelle(durum, dt, girdi) {
       // Round ilerledikçe (ya da oyuncu elendiğinde) botlar çıkışa yönelir → round çözülür.
       if (!s._kacis && (durum.zaman > BOT_KACIS_ZAMANI || durum.izleyici)) s._kacis = true;
       if (s._kacis) {
-        // Odalar duvarlı: düz çizgi yerine BFS akış alanını takip et (kapı geçitlerini bulur).
-        const yon = cikisYonu(s.x, s.y);
-        if (yon) s._yon = Math.atan2(yon.y, yon.x) + (Math.random() - 0.5) * 0.12;
-        else {
-          const c = enYakinCikis(durum.harita, s.x, s.y);
-          if (c) s._yon = Math.atan2(c.y - s.y, c.x - s.x) + (Math.random() - 0.5) * 0.5;
+        // Kilitli çıkış: bot önce yakındaki paneli açar (kilitli çıkışta takılı kalmaz).
+        let panel = null, panelUz = 620;
+        for (const p of durum.harita.paneller || []) {
+          if (p.acildi) continue;
+          const pd = Math.hypot(p.x - s.x, p.y - s.y);
+          if (pd < panelUz) { panelUz = pd; panel = p; }
+        }
+        const acikVar = durum.harita.cikislar.some((c) => c.acik);
+        if (panel && (!acikVar || panelUz < 260) && !duvarKesiyorMu(durum.harita, s.x, s.y, panel.x, panel.y)) {
+          if (panelUz < 46) {
+            // Panelde durup "hackler" — süre dolunca çıkış açılır
+            s._panelSure = (s._panelSure || 0) + dt;
+            s.durgun = 0;
+            if (s._panelSure >= HACK_SURE) { s._panelSure = 0; panelAc(durum, panel); }
+            continue;
+          }
+          s._yon = Math.atan2(panel.y - s.y, panel.x - s.x);
+        } else {
+          // Odalar duvarlı: düz çizgi yerine BFS akış alanını takip et (kapı geçitlerini bulur).
+          const yon = cikisYonu(s.x, s.y);
+          if (yon) s._yon = Math.atan2(yon.y, yon.x) + (Math.random() - 0.5) * 0.12;
+          else {
+            const c = enYakinCikis(durum.harita, s.x, s.y);
+            if (c) s._yon = Math.atan2(c.y - s.y, c.x - s.x) + (Math.random() - 0.5) * 0.5;
+          }
         }
       } else {
         // Oyuncudan çok uzaklaşınca ona doğru yönel (grup halinde görünür kalsınlar)
@@ -479,8 +581,8 @@ export function guncelle(durum, dt, girdi) {
         if (du < 220) { kx += (s.x - dr.x) / (du || 1); ky += (s.y - dr.y) / (du || 1); }
       }
       if (kx || ky) s._yon = Math.atan2(ky, kx) + (Math.random() - 0.5) * 0.4;
-      // Kaçış kanalı: çıkışın içindeyse durup bekler; süre dolunca kaçar
-      if (cikistaMi(durum.harita, s.x, s.y)) {
+      // Kaçış kanalı: AÇIK çıkışın içindeyse durup bekler; süre dolunca kaçar
+      if (acikCikistaMi(durum.harita, s.x, s.y)) {
         s._cikis += dt;
         s.durgun = 0;
         if (s._cikis >= CIKIS_SURE) cikisIsle(durum, s);
@@ -550,8 +652,8 @@ export function guncelle(durum, dt, girdi) {
       if (girdi.kalkanBasiliMi()) {
         if (!s._kalkanBasili) { s._kalkanBasili = true; if (s._kalkanCd <= 0 && s.kalkan <= 0) { s.kalkan = KALKAN_SURE; s._kalkanCd = KALKAN_BEKLEME; durum.sesler.push("kalkan"); } }
       } else s._kalkanBasili = false;
-      // Kaçış kanalı: çıkışın içinde CIKIS_SURE bekleyince kaçarsın (anında değil)
-      if (cikistaMi(durum.harita, s.x, s.y)) {
+      // Kaçış kanalı: AÇIK çıkışın içinde CIKIS_SURE bekleyince kaçarsın (kilitliyse işlemez)
+      if (acikCikistaMi(durum.harita, s.x, s.y)) {
         s._cikis += dt;
         if (s._cikis >= CIKIS_SURE) cikisIsle(durum, s);
       } else {
@@ -560,7 +662,47 @@ export function guncelle(durum, dt, girdi) {
     }
   }
 
-  // Drone AI (her drone bağımsız devriye/kovala/ateş)
+  // --- YÖNETMEN (director) — oyuncunun baskı düzeyini ölçer, rahatlık uzarsa
+  // boş bir drone'a GEÇMİŞ konum ipucu verir (tam konum asla — adil kalır),
+  // baskı çökünce 6-10sn nefes payı bırakır (Alien: Isolation dersi).
+  const ben0 = durum.oyuncular[0];
+  durum._izSayac -= dt;
+  if (durum._izSayac <= 0) {
+    durum._izSayac = 0.5;
+    durum._izler.push({ x: ben0.x, y: ben0.y, zaman: durum.zaman });
+    if (durum._izler.length > 14) durum._izler.shift();
+  }
+  if (!ben0.yakalandi && !ben0.cikti) {
+    // Artış: bir drone menzilde ama henüz kovalamıyor (gerilim tırmanır)
+    let yakinVar = false;
+    for (const d of durum.droneler) {
+      if (d.yok > 0 || d.sersem > 0) continue;
+      const uz = Math.hypot(ben0.x - d.x, ben0.y - d.y);
+      if (uz < DRONE_GORUS) { yakinVar = true; if (d.mod !== "kovala") durum.gerginlik += GERGINLIK_YAKIN * dt; }
+    }
+    // Sakinlik: uzun süre drone yaklaşmadıysa gerginlik düşer
+    durum._sakin = yakinVar ? 0 : durum._sakin + dt;
+    if (durum._sakin >= SAKIN_SURE) durum.gerginlik -= GERGINLIK_AZALIS * dt;
+    durum.gerginlik = Math.max(0, Math.min(100, durum.gerginlik));
+    // Nefes payı: gerginlik eşiğin altına DÜŞTÜĞÜ an yönetmen 6-10sn ipucu vermez
+    if (durum._gerginlikOnce > NEFES_ESIK && durum.gerginlik <= NEFES_ESIK) durum._nefes = rastgele(6, 10);
+    durum._gerginlikOnce = durum.gerginlik;
+    durum._ipucuCd = Math.max(0, durum._ipucuCd - dt);
+    durum._nefes = Math.max(0, durum._nefes - dt);
+    // İpucu: eşik aşıldıysa en yakın BOŞ devriye drone'u son bilinen bölgeye çek
+    if (durum.gerginlik >= IPUCU_ESIK && durum._ipucuCd <= 0 && durum._nefes <= 0) {
+      const iz = [...durum._izler].reverse().find((k) => durum.zaman - k.zaman >= IPUCU_GECIKME) || durum._izler[0];
+      let en = null, enD = Infinity;
+      for (const d of durum.droneler) {
+        if (d.yok > 0 || d.sersem > 0 || d.mod !== "devriye" || d._ipucu) continue;
+        const uz = Math.hypot(ben0.x - d.x, ben0.y - d.y);
+        if (uz < enD) { enD = uz; en = d; }
+      }
+      if (iz && en) { en._ipucu = { x: iz.x, y: iz.y }; durum._ipucuCd = IPUCU_BEKLEME; }
+    }
+  }
+
+  // Drone AI (her drone bağımsız devriye/kovala/destek/ateş)
   for (const d of durum.droneler) {
     // Hurda (kılıçla düşürüldü): sahada yok; süresi dolunca uzakta yeniden doğar.
     if (d.yok > 0) {
@@ -576,26 +718,62 @@ export function guncelle(durum, dt, girdi) {
       if (Math.random() < dt * 8) parcacikEkle(durum, d.x, d.y, 1, "255,220,120", 60, 1.6);
       continue;
     }
+    d._alarm = Math.max(0, d._alarm - dt);
     const adaylar = durum.oyuncular.filter((s) => algilanabilir(durum, s, d));
     if (adaylar.length) {
       const ben = adaylar.find((s) => s.id === "ben");
       const hedef = ben || adaylar[0];
+      const yeniKovala = d.mod !== "kovala";
       d.hedefId = hedef.id; d.mod = "kovala"; d.kayip = 0;
       d.hedefX = hedef.x; d.hedefY = hedef.y;
+      if (yeniKovala) {
+        // Yönetmen: her kovalama başlangıcı gerginliği zıplatır
+        durum.gerginlik = Math.min(100, durum.gerginlik + GERGINLIK_KOVALA);
+        // Tespit stinger'ı: SEN fark edildiysen kırmızı flaş + keskin ses
+        if (hedef.id === "ben") { durum.tespitFlash = TESPIT_FLASH; durum.sesler.push("tespit"); }
+        // Alarm çağrısı: en yakın boş devriye drone destek olur (pens hareketi)
+        let dst = null, dstUz = DESTEK_MENZIL;
+        for (const d2 of durum.droneler) {
+          if (d2 === d || d2.yok > 0 || d2.sersem > 0 || d2.mod !== "devriye") continue;
+          const uz = Math.hypot(d2.x - d.x, d2.y - d.y);
+          if (uz < dstUz) { dstUz = uz; dst = d2; }
+        }
+        if (dst) { dst.mod = "destek"; dst._destek = durum.droneler.indexOf(d); dst._ipucu = null; }
+      }
     } else if (d.mod === "kovala") {
       d.kayip += dt; d._kilit = 0;
       if (d.kayip >= KAYIP_SURE) { d.mod = "devriye"; d.hedefId = null; }
     }
 
-    // Boş (devriye) drone yakındaki aktif nesneye çekilir (AI ele geçirme).
-    if (d.mod === "devriye" && aktifNesneler.length) {
+    // Destek (pens hareketi): kovalayanın yanına konumlanır, kilit-ateş yapmaz.
+    // Kovalayan hedefi bırakınca destek de devriyeye döner.
+    if (d.mod === "destek") {
+      const avci = durum.droneler[d._destek];
+      if (!avci || avci.mod !== "kovala" || avci.yok > 0) { d.mod = "devriye"; d._destek = -1; }
+      else {
+        const yan = avci.aci + Math.PI / 2;
+        d.hedefX = avci.x + Math.cos(yan) * DESTEK_MESAFE;
+        d.hedefY = avci.y + Math.sin(yan) * DESTEK_MESAFE;
+      }
+    }
+
+    // Yönetmen ipucu: devriye drone oyuncunun SON BİLİNEN bölgesine yönelir.
+    if (d.mod === "devriye" && d._ipucu) {
+      d.hedefX = d._ipucu.x; d.hedefY = d._ipucu.y;
+      if (Math.hypot(d._ipucu.x - d.x, d._ipucu.y - d.y) < 40) d._ipucu = null;
+    } else if (d.mod === "devriye" && aktifNesneler.length) {
+      // Boş (devriye) drone yakındaki aktif nesneye çekilir (AI ele geçirme).
       let en = null, enD = NESNE_CEK_MENZIL;
       for (const n of aktifNesneler) { const dd = Math.hypot(n.x - d.x, n.y - d.y); if (dd < enD) { enD = dd; en = n; } }
       if (en) { d.hedefX = en.x; d.hedefY = en.y; }
     }
 
-    const hiz = (d.mod === "kovala" ? DRONE_KOVALA_HIZ : DRONE_DEVRIYE_HIZ) * hizCarpan;
-    if (d.mod === "devriye" && Math.hypot(d.hedefX - d.x, d.hedefY - d.y) < 30 && !aktifNesneler.length) {
+    // Hız: devriye normal (genel alarmda kovalama hızı); ağır drone yavaş;
+    // panel alarmındaki bekçi geçici hızlı.
+    let hiz = (d.mod === "devriye" && durum.genelAlarm <= 0 ? DRONE_DEVRIYE_HIZ : DRONE_KOVALA_HIZ) * hizCarpan;
+    if (d.tip === "agir") hiz *= AGIR_HIZ_CARPAN;
+    if (d._alarm > 0) hiz *= CIKIS_ALARM_CARPAN;
+    if (d.mod === "devriye" && !d._ipucu && Math.hypot(d.hedefX - d.x, d.hedefY - d.y) < 30 && !aktifNesneler.length) {
       // Bekçi drone çoğunlukla kendi çıkışının çevresinde devriye gezer (çıkışlar korunur)
       const bekci = d._bekci >= 0 ? durum.harita.cikislar[d._bekci] : null;
       if (bekci && Math.random() < 0.65) {
@@ -630,17 +808,32 @@ export function guncelle(durum, dt, girdi) {
     for (const s of durum.oyuncular) {
       if (s.yakalandi || s.cikti) continue;
       const uz = Math.hypot(s.x - d.x, s.y - d.y);
-      if (uz < YAKALA_YARICAP) { if (s.kalkan > 0) continue; yakalanIsle(durum, s, "drone"); continue; }
+      if (uz < YAKALA_YARICAP) { if (s.kalkan > 0) continue; yakalanIsle(durum, s); continue; }
       // Kilit-ateş sadece kovaladığı hedefe
       if (d.mod === "kovala" && s.id === d.hedefId && uz < ATES_MENZIL) {
         kilitVar = true;
         if (s.kalkan <= 0) {
           d._kilit += dt;
-          if (d._kilit >= ATES_SURE) { d._kilit = 0; d._ates = 0.2; durum.sesler.push("ates"); yakalanIsle(durum, s, "drone"); }
+          if (d._kilit >= ATES_SURE) { d._kilit = 0; d._ates = 0.2; durum.sesler.push("ates"); yakalanIsle(durum, s); }
         }
       }
     }
     if (!kilitVar) d._kilit = Math.max(0, d._kilit - dt * 2);
+  }
+
+  // "Az kalsın" istatistiği + neredeyse-yakalanma kalp atışı: en yakın aktif drone
+  if (!ben0.yakalandi && !ben0.cikti) {
+    let enUz = Infinity;
+    for (const d of durum.droneler) {
+      if (d.yok > 0 || d.sersem > 0) continue;
+      enUz = Math.min(enUz, Math.hypot(ben0.x - d.x, ben0.y - d.y));
+    }
+    durum.enYakin = Math.min(durum.enYakin, enUz);
+    // Çok yakında ve kaçarken: hafif titreme + kalp atışı (vuruş sarsıntısından ayrı, hafif)
+    if (enUz < YAKALA_YARICAP * KALP_MESAFE_CARPAN && ben0.durgun < 0.15) {
+      durum.sarsinti = Math.max(durum.sarsinti, 3);
+      if (durum._kalpCd <= 0) { durum._kalpCd = 0.55; durum.sesler.push("kalp"); }
+    }
   }
 
   // İzleyici modu: oyuncu elendiyse round'u bir süre daha sürdür (botları izle),

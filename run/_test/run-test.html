@@ -73,7 +73,7 @@
           const sir = motor?.durum?.siralama || [];
           const durAd = { kacti: "🏃 Kaçtı", yakalandi: "🤖 Yakalandı", kaldi: "· Kaldı" };
           tablo.innerHTML = sir.map((r, i) =>
-            `<tr class="${r.ben ? "ben" : ""}"><td class="yer">${i + 1}.</td><td>${r.ad}</td><td>${durAd[r.durum] || ""}</td><td class="rz">💰${r.sat}</td><td class="rz">💾${r.hack}</td></tr>`
+            `<tr class="${r.ben ? "ben" : ""}"><td class="yer">${i + 1}.</td><td>${r.ad}</td><td>${durAd[r.durum] || ""}</td><td class="rz">💥${r.hurda}</td><td class="rz">💾${r.hack}</td></tr>`
           ).join("");
           sonuc.classList.add("acik");
         },
@@ -98,7 +98,7 @@
       const sersem = d.droneler.filter(x => x.sersem > 0).length;
       const kapali = d.harita.kapilar.filter(k => k.kapali).length;
       hud.textContent = `${d.genelBakis ? "GENEL BAKIŞ · " : ""}Konum: ${oda} · Drone: ${kov ? kov + " kovalıyor!" : "devriye"}`
-        + `${sersem ? " · " + sersem + " sersem" : ""} · Kapalı kapı: ${kapali} · 💰${ben.sat} 💾${ben.hack}`;
+        + `${sersem ? " · " + sersem + " sersem" : ""} · Kapalı kapı: ${kapali} · 💥${ben.hurda} 💾${ben.hack}`;
     }, 150);
   </script>
 </body>

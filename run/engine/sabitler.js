@@ -53,7 +53,7 @@ export const ATES_SURE = 1.05;            // kilit → ateş süresi (bu kadar m
 export const ZORLUK_ARALIK = 22;          // sn, her kademede zorluk artışı
 export const ZORLUK_MAKS = 4;             // maks kademe (1..4)
 
-// Beceriler — enerji kılıcı (bayılt+sat, droneları savurur) + kalkan + atılım
+// Beceriler — enerji kılıcı (SADECE dronelere işler, insanlara değil) + kalkan + atılım
 export const SOPA_MENZIL = 118;           // kılıç erişimi (drone ateş menzilinden uzun — önce sen vurursun)
 export const SOPA_ACI = Math.PI * 0.55;   // önde koni yarı açısı (~100°)
 export const SOPA_SAVURMA = 0.22;         // savurma animasyon süresi (sn)
@@ -104,6 +104,37 @@ export const HACK_MENZIL = 64;            // nesneye bu mesafede hack başlar
 export const HACK_SURE = 1.6;             // tamamlanma süresi (sn)
 export const HACK_SERSEM_MENZIL = 320;    // tamamlanınca bu menzildeki droneler sersemler
 export const SERSEM_SURE = 2.6;           // drone sersemleme süresi (sn)
+
+// Yönetmen (director) katmanı — Alien: Isolation "Menace Gauge" uyarlaması.
+// Oyuncunun baskı düzeyini görünmez bir göstergede tutar; eşik aşılınca boş
+// drone'a oyuncunun GEÇMİŞ konumu ipucu verilir (tam konum asla — adil kalır).
+export const GERGINLIK_KOVALA = 25;       // bir drone kovalamaya geçince anlık artış
+export const GERGINLIK_YAKIN = 6;         // drone menzilindeyken saniyelik artış
+export const GERGINLIK_AZALIS = 3;        // sakin dönemde saniyelik düşüş
+export const SAKIN_SURE = 8;              // bu kadar sn drone yaklaşmazsa düşüş başlar
+export const IPUCU_ESIK = 70;             // gerginlik bunu aşınca ipucu verilir
+export const IPUCU_GECIKME = 3.5;         // ipucu = oyuncunun bu kadar sn ÖNCEKİ konumu
+export const IPUCU_BEKLEME = 6;           // iki ipucu arası asgari süre
+export const NEFES_ESIK = 25;             // altına inince yönetmen 6-10sn bekler (nefes payı)
+export const DESTEK_MENZIL = 500;         // kovalayana bu menzildeki devriye destek olur
+export const DESTEK_MESAFE = 50;          // destek drone kovalayanın bu kadar yakınına konumlanır
+
+// Drone çeşitliliği (kademe 3-4'te dönüşür)
+export const AGIR_ACI_CARPAN = 1.6;       // ağır drone tarama konisi çarpanı (geniş ışın)
+export const AGIR_HIZ_CARPAN = 0.85;      // ağır drone yavaştır
+export const SESSIZ_HEAT_CARPAN = 1.4;    // sessiz drone: koni yok, ısı menzili geniş
+
+// Kilitli çıkışlar — çıkışlar kilitli başlar; yakındaki panel hack'lenince açılır
+export const PANEL_MESAFE_MIN = 250;      // panelin çıkışa asgari uzaklığı
+export const PANEL_MESAFE_MAKS = 400;     // panelin çıkışa azami uzaklığı
+export const CIKIS_ALARM_SURE = 12;       // panel açılınca bekçi droneler bu süre tetikte
+export const CIKIS_ALARM_CARPAN = 1.2;    // tetikteyken hız + tarama açısı çarpanı
+export const GENEL_ALARM_SURE = 30;       // 2. çıkış açılınca tüm droneler hızlı devriye
+
+// Cila (juice)
+export const SON_BASKI_CARPAN = 1.15;     // tek kaçak kalınca drone görüş/ısı çarpanı
+export const TESPIT_FLASH = 0.15;         // tespit anı kırmızı ekran flaşı süresi
+export const KALP_MESAFE_CARPAN = 2;      // YAKALA_YARICAP × bu kadar yakında kalp atışı
 
 // Parçacıklar (vuruş/hack/ateş/kapı efektleri)
 export const PARCACIK_MAKS = 220;         // aynı anda en fazla parçacık

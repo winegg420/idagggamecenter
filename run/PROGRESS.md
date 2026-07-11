@@ -336,6 +336,64 @@ Tek-oyunculu sürüm yayına hazır hale getirildi. Kapatılan hatalar:
 - `npm run build` OK (RunApp 63.0 kB). Chrome: savurma yayı + kılıç + 4'lü HUD + çip sayacı ekran
   görüntüsüyle doğrulandı; konsol hatasız.
 
+## 2026-07-11 — REVİZYON PAKETİ (kılıç düzeltmesi + PRO ana ekran + Yönetmen AI + kilitli çıkışlar + cila)
+İda'nın verdiği teknik spesifikasyon (DBD "Exit Gate" + Alien: Isolation "Director AI" uyarlaması)
+uygulandı. Faz 2.3 (çıkış konumu varyasyonu) spec'in kendi önerisiyle ATLANDI (isteğe bağlı, ayrı test turu ister).
+
+### Kılıç SADECE dronelere işler (İda: "başka oyuncuları kesemeyeyim")
+- `kilicVur` içindeki oyuncu-vurma döngüsü kaldırıldı; "sat" mekaniği tamamen çıktı.
+- Yeni istatistik: **💥 hurda** (`ben.hurda`) — hurdaya çıkarılan drone sayısı; HUD, sıralama
+  tablosu (React + test HTML) ve kill feed güncellendi. `yakalanIsle` sadeleşti (sopa dalı silindi).
+
+### PRO ana ekran (`MenuPage.jsx` + `run.css` menü bölümü yeniden)
+- Tam ekran açılış: perspektifli akan neon ızgara + dikey güvenlik tarama çizgisi + süzülen
+  parçacıklar + vinyet (tamamı CSS, görsel varlık yok).
+- Glitch'li dev RUN logosu (kırmızı/camgöbeği kayma katmanları), "TESİS-07 · SİMÜLASYON AKTİF"
+  durum çubuğu, kesik-köşe (clip-path) nabız atan **OYUNA GİR** CTA'sı.
+- 6 özellik kartı (hover'lı) + klavye kontrol şeması (`kbd`; dokunmatikte gizli) + alt bilgi.
+- `prefers-reduced-motion` desteği. Sonuç ekranı butonları aynı stili paylaşır.
+
+### FAZ 1 — Yönetmen (Director) katmanı (`durum.js`, `sabitler.js`)
+- **Gerginlik göstergesi (0-100, görünmez):** drone menzildeyken artar (+6/sn), kovalama
+  başlayınca +25; 8sn+ drone yaklaşmazsa düşer (-3/sn). Eşik 70 aşılınca en yakın BOŞ devriye
+  drone'una **oyuncunun 3.5sn ÖNCEKİ konumu** ipucu verilir (`d._ipucu`; tam konum asla — adil).
+  İki ipucu arası ≥6sn; gerginlik 25 altına düşünce **6-10sn nefes payı** (ipucu verilmez).
+- **Alarm çağrısı / destek:** bir drone kovalamaya geçince 500 birim içindeki en yakın devriye
+  drone `destek` moduna geçer: kovalayanın 50 birim yanına konumlanır (pens hareketi), kilit-ateş
+  yapmaz; kovalama bitince devriyeye döner.
+- **Drone çeşitliliği:** Kademe 3'te 1 drone **AĞIR** olur (koni ×1.6, hız ×0.85, 1.9x gövde,
+  çift ışın yuvası, turuncu); Kademe 4'te 1 drone **SESSİZ** olur (tarama konisi YOK, ısı menzili
+  ×1.4, koyu mor, sönük göz). Kill feed duyurur.
+
+### FAZ 2 — Kilitli çıkışlar + kontrol paneli (`harita.js`, `durum.js`, `render.js`)
+- **3 çıkış paneli** (`harita.paneller`, tohumlu; çıkışa 250-400 birim, yürünebilir doğrulamalı).
+- Çıkışlar **kilitli başlar** (`cikis.acik=false`): kilitliyken beklemek kaçırtmaz (test edildi).
+  Panel mevcut hack mekaniğiyle açılır (E basılı, 1.6sn) → çıkış **kalıcı** açılır.
+- **Açılış alarmı:** kill feed "🚨 X Çıkış aktif edildi!", o çıkışın bekçileri 12sn tetikte
+  (hız + koni ×1.2). **2. çıkış açılınca 30sn GENEL ALARM:** tüm droneler devriyede kovalama hızında.
+- **Botlar panelleri açar:** kaçış modunda görüş hattı açık en yakın panele gidip 1.6sn "hackler"
+  (kilitli çıkışta takılı kalmazlar — başsız testte doğrulandı).
+- **Görsel:** kilitli çıkış kırmızı/durağan şerit + 🔒; kenar okları kırmızı; panel turuncu nabızlı
+  terminal (açılınca yeşil söner); pusula açık çıkış yoksa **en yakın panele** (turuncu "PANEL Xm")
+  yönlendirir; kilitli çıkışta durunca "🔒 KİLİTLİ — önce paneli hackle" uyarısı; round başı hedef
+  yazısı "PANELİ HACKLE — ÇIKIŞI AÇ".
+
+### FAZ 3 — Cila (juice)
+- **Tespit stinger'ı:** drone SENİ fark ettiği an 0.15sn kırmızı vignette flaşı + keskin `tespit` sesi.
+- **Son-oyuncu baskısı:** tek kaçak kalınca drone görüş/ısı ×1.15 (+kill feed uyarısı).
+- **Neredeyse-yakalanma:** aktif drone yakala yarıçapının 2 katı içinde ve kaçarken hafif titreme
+  + `kalp` (çift bas vuruş) sesi.
+- **"Az kalsın" istatistiği:** round boyunca en yakın drone mesafesi (`durum.enYakin`); kaçınca
+  sonuç ekranında "⚡ Az kalsın! Drone'a en yakın anın: N birim" (yalnız <120 birimse).
+
+### Doğrulama
+- Başsız Node testi **31/31 sağlama geçti** (paneller yürünebilir + akış alanı %100, kilitli çıkış
+  kaçırtmıyor, panel 1.62sn'de açılıyor + bekçi alarmı, kılıç botu ETKİLEMİYOR + drone hp düşüyor +
+  3 vuruş hurda, gerginlik/ipucu/destek/tespit, kademe 3-4 ağır+sessiz dönüşümü, 120sn istisna yok,
+  botlar panel açıp kaçıyor).
+- `npm run build` OK (RunApp 70.8 kB). Chrome: yeni menü + oyun içi kilitli çıkış/pusula/hedef
+  yazısı ekran görüntüsüyle doğrulandı, konsol temiz.
+
 ## Sıradaki
 - **Multiplayer** (PatiRun/Bildim presence+broadcast) — spec Faz 10, backend gerektirir; **en son**.
 - İsteğe bağlı: round sonucu/istatistik kalıcılığı (şu an hiçbir şey kaydedilmiyor — bilinçli).
