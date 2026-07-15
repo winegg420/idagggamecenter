@@ -1,0 +1,69 @@
+<!doctype html>
+<!-- KAFA TOPU görsel duman testi: Supabase/giriş olmadan bot-vs-bot maçı
+     render eder. Sadece dev sunucusunda kullanılır:
+     http://localhost:5173/kafatopu/_test/mac-test.html -->
+<html lang="tr">
+<head>
+  <meta charset="utf-8" />
+  <title>KafaTopu Motor Testi</title>
+  <style>
+    body { margin: 0; background: #06121f; display: flex; flex-direction: column; align-items: center; color: #fff; font-family: system-ui; }
+    canvas { width: min(100vw, 1100px); }
+    #bilgi { padding: 8px; font-size: 14px; }
+  </style>
+</head>
+<body>
+  <div id="bilgi">yükleniyor…</div>
+  <canvas id="sahne" width="1000" height="560"></canvas>
+  <script type="module">
+    import { macKur, macTick, girdiAyarla, anlikDurum } from "../engine/oyun.js";
+    import { botDurumKur, botGirdiHesapla } from "../engine/bot.js";
+    import { sahneCiz } from "../engine/render.js";
+    import { kafaBul, KURGUSAL_KAFALAR, fotoKafalariYukle } from "../shared/karakterler.js";
+
+    // Manifest'te foto kafa varsa slot 0 onu kullansın (kırpma/animasyon testi).
+    const fotolar = await fotoKafalariYukle();
+    const meta = KURGUSAL_KAFALAR.slice(0, 4).map((k, s) => ({
+      slot: s, takim: s % 2 === 0 ? 1 : 2, kafa: k.id, yetenek: k.yetenek,
+      ad: k.ad, adminGuc: false, kafaKaydi: kafaBul(k.id),
+    }));
+    if (fotolar[0]) {
+      meta[0].kafa = fotolar[0].id;
+      meta[0].kafaKaydi = kafaBul(fotolar[0].id);
+      meta[0].ad = fotolar[0].ad;
+    }
+    // Görsellerin yüklenmesine kısa süre tanı.
+    await new Promise((r) => setTimeout(r, 800));
+    const mac = macKur({ mod: "2v2", meta });
+    const botlar = meta.map(() => botDurumKur());
+
+    const canvas = document.getElementById("sahne");
+    const ctx = canvas.getContext("2d");
+    const bilgi = document.getElementById("bilgi");
+
+    let onceki = performance.now();
+    function dongu(simdi) {
+      const dt = simdi - onceki;
+      onceki = simdi;
+      for (let s = 0; s < meta.length; s++)
+        girdiAyarla(mac, s, botGirdiHesapla(mac, s, botlar[s]));
+      macTick(mac, dt);
+      const view = anlikDurum(mac, false);
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      ctx.clearRect(0, 0, 1000, 560);
+      sahneCiz(ctx, view, meta, view.t);
+      bilgi.textContent = `faz=${view.faz} skor=${view.skor[0]}-${view.skor[1]} kalan=${Math.ceil(view.kalan / 1000)}s`;
+      window.__ktTest = { faz: view.faz, skor: view.skor };
+    }
+    function rafDongu(simdi) {
+      requestAnimationFrame(rafDongu);
+      dongu(simdi);
+    }
+    requestAnimationFrame(rafDongu);
+    // Sekme arka plandayken rAF durur; simülasyon interval ile sürsün.
+    setInterval(() => {
+      if (performance.now() - onceki > 300) dongu(performance.now());
+    }, 200);
+  </script>
+</body>
+</html>

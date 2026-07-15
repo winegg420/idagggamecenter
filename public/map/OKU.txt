@@ -1,0 +1,26 @@
+KAFA TOPU — Saha Arka Planı (Club Afrodit)
+==========================================
+
+Havuz başı / sahil fotoğraflarını bu klasöre koy ve manifest.json oluştur.
+
+Katman mantığı (parallax): arkadaki katman yavaş, öndeki hızlı kayar.
+"hiz" 0 = sabit, 1 = saha ile birlikte. Önerilen düzen:
+
+{
+  "katmanlar": [
+    { "dosya": "gok_dag.jpg",   "hiz": 0.03 },
+    { "dosya": "kaydirak.png",  "hiz": 0.10 },
+    { "dosya": "plaj_on.png",   "hiz": 0.20 }
+  ]
+}
+
+Öneriler:
+- En arka katman (gökyüzü/dağ): tam kare JPG olabilir.
+- Orta/ön katmanlar (kaydırak, kule, ağaçlar, plaj): şeffaf PNG olursa
+  katmanlar üst üste doğal biner.
+- Genişlik en az 1160 px (parallax kayma payı), yükseklik ~560 px oranında.
+- Oyun, okunurluk için fon üzerine hafif karartma uygular; fotoğraflar
+  gerçek ve tanınır kalır.
+
+manifest.json yokken oyun, prosedürel (kod-çizim) Club Afrodit esintili
+sahne kullanır — kaydırak, dağ, palmiye, havuz kenarı. Oyun yine tam çalışır.

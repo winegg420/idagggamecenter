@@ -1,0 +1,23 @@
+KAFA TOPU — Foto Kafalar
+========================
+
+Gerçek fotoğraflardan hazırlanmış kafa görsellerini bu klasöre koy.
+
+Öneriler:
+- Kare PNG, şeffaf arka plan, yüz ortalanmış (oyun daire içine kırpar).
+- 256x256 veya 512x512 ideal.
+
+Sonra manifest.json'a her kafa için bir kayıt ekle:
+
+{
+  "kafalar": [
+    { "id": "ida",  "ad": "İda",  "dosya": "ida.png" },
+    { "id": "ahmet", "ad": "Ahmet", "dosya": "ahmet.png" }
+  ]
+}
+
+- "id": benzersiz, küçük harf, boşluksuz (veritabanına bu yazılır).
+- "dosya": bu klasördeki dosya adı.
+
+Kaydettikten sonra oyun içindeki Karakter ekranında otomatik görünür.
+Manifest boşken sadece 5 kurgusal karakter listelenir — oyun yine tam çalışır.

@@ -1,0 +1,12 @@
+{
+  "kafalar": [
+    {
+      "id": "ida",
+      "ad": "İda",
+      "dosya": "ida.png",
+      "odakX": 0.36,
+      "odakY": 0.55,
+      "yaricap": 0.38
+    }
+  ]
+}

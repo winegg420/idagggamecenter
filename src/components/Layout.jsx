@@ -78,6 +78,9 @@ export default function Layout() {
           <span className="ikon">⚔️</span>Meydan Oku
           {bekleyen > 0 && <span className="rozet">{bekleyen}</span>}
         </NavLink>
+        <NavLink to="/kafatopu" className={({ isActive }) => (isActive ? "aktif" : "")}>
+          <span className="ikon">⚽</span>Kafa Topu
+        </NavLink>
         <NavLink to="/siralama" className={({ isActive }) => (isActive ? "aktif" : "")}>
           <span className="ikon">📊</span>Sıralama
         </NavLink>

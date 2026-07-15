@@ -9,6 +9,9 @@ import Layout from "./components/Layout.jsx";
 const GladiusApp = lazy(() => import("../gladius/app/GladiusApp.jsx"));
 // RUN: bağımsız karanlık labirent kaçış modülü, /run altında lazy yüklenir.
 const RunApp = lazy(() => import("../run/app/RunApp.jsx"));
+// KAFA TOPU: 2D fizik futbol modülü, /kafatopu altında lazy yüklenir.
+// Bildim oturumunu kullanır (giriş duvarının arkasındadır).
+const KafaTopuApp = lazy(() => import("../kafatopu/app/KafaTopuApp.jsx"));
 import Login from "./pages/Login.jsx";
 import Home from "./pages/Home.jsx";
 import TournamentPage from "./pages/TournamentPage.jsx";
@@ -61,6 +64,14 @@ export default function App() {
         element={
           <Suspense fallback={<div className="yukleniyor">RUN yükleniyor…</div>}>
             <RunApp />
+          </Suspense>
+        }
+      />
+      <Route
+        path="/kafatopu/*"
+        element={
+          <Suspense fallback={<div className="yukleniyor">Kafa Topu yükleniyor…</div>}>
+            <KafaTopuApp />
           </Suspense>
         }
       />
