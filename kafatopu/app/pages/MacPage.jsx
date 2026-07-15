@@ -272,6 +272,29 @@ export default function MacPage() {
     window.addEventListener("resize", gecikmeliBoyutlandir);
     window.addEventListener("orientationchange", gecikmeliBoyutlandir);
     window.visualViewport?.addEventListener("resize", gecikmeliBoyutlandir);
+    document.addEventListener("fullscreenchange", gecikmeliBoyutlandir);
+
+    // --- Mobil GERÇEK tam ekran: tarayıcı çubuğu + sistem tuşları gizlenir ---
+    // Tarayıcılar tam ekranı yalnızca kullanıcı hareketi sırasında verir;
+    // bu yüzden maç ekranına İLK dokunuşta istenir, başarılınca yatay
+    // kilit denenir (Android'de çalışır; iPhone Safari desteklemez —
+    // orada tek yol uygulamayı ana ekrana eklemek).
+    const tamEkranIste = () => {
+      if (!dokunmatikVarMi() || document.fullscreenElement) return;
+      try {
+        const el = document.documentElement;
+        const istek = el.requestFullscreen
+          ? el.requestFullscreen({ navigationUI: "hide" })
+          : el.webkitRequestFullscreen?.();
+        Promise.resolve(istek)
+          .then(() => {
+            try { screen.orientation?.lock?.("landscape").catch(() => {}); } catch { /* desteklenmiyor */ }
+          })
+          .catch(() => {});
+      } catch { /* desteklenmiyor — normal görünümde devam */ }
+    };
+    window.addEventListener("pointerdown", tamEkranIste);
+    window.addEventListener("touchstart", tamEkranIste, { passive: true });
 
     // --- Bot maçı kurulumu ---
     // Context'teki profil henüz yüklenmemiş olabilir (sayfa yenileme ile
@@ -504,7 +527,15 @@ export default function MacPage() {
       window.removeEventListener("resize", gecikmeliBoyutlandir);
       window.removeEventListener("orientationchange", gecikmeliBoyutlandir);
       window.visualViewport?.removeEventListener("resize", gecikmeliBoyutlandir);
+      document.removeEventListener("fullscreenchange", gecikmeliBoyutlandir);
+      window.removeEventListener("pointerdown", tamEkranIste);
+      window.removeEventListener("touchstart", tamEkranIste);
       boyutZamanlayicilar.forEach(clearTimeout);
+      // Maçtan çıkınca tam ekrandan ve yatay kilitten çık (menü normal akar).
+      try { screen.orientation?.unlock?.(); } catch { /* desteklenmiyor */ }
+      if (document.fullscreenElement) {
+        document.exitFullscreen?.().catch(() => {});
+      }
       document.removeEventListener("visibilitychange", gorunurlukDegisti);
       window.removeEventListener("blur", gorunurlukDegisti);
       try { wakeLock?.release(); } catch { /* zaten bırakılmış */ }

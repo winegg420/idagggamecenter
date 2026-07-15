@@ -4,7 +4,7 @@
   "description": "Türkçe bilgi yarışması: gece turnuvası, 1v1 meydan okumalar, rütbeler.",
   "start_url": "/",
   "display": "standalone",
-  "orientation": "portrait",
+  "orientation": "any",
   "background_color": "#0d0b1f",
   "theme_color": "#0d0b1f",
   "lang": "tr",
