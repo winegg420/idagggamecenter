@@ -8,6 +8,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "../../../src/lib/supabase.js";
+import { useAuth } from "../../../src/context/AuthContext.jsx";
 import { useKT } from "../KafaTopuApp.jsx";
 import { ligBul } from "../../shared/ligler.js";
 import { kafaBul } from "../../shared/karakterler.js";
@@ -17,11 +18,14 @@ import KafaSecici from "../components/KafaSecici.jsx";
 
 export default function MenuPage() {
   const { profil, adminMi, user } = useKT();
+  const { profile: bildimProfil, refreshProfile } = useAuth();
   const navigate = useNavigate();
   const lig = ligBul(profil?.puan ?? 1000);
 
-  const [modal, setModal] = useState(null); // null | 'oyna' | 'oda' | 'katil'
+  const [modal, setModal] = useState(null); // null | 'oyna' | 'oda' | 'katil' | 'isim'
   const [katilKod, setKatilKod] = useState("");
+  const [yeniAd, setYeniAd] = useState("");
+  const [isimHata, setIsimHata] = useState("");
   const [mesaj, setMesaj] = useState("");
   const [davetler, setDavetler] = useState([]);
   const canvasRef = useRef(null);
@@ -151,15 +155,51 @@ export default function MenuPage() {
     }
   };
 
+  // Oyuncu ismi Bildim profiles.username'dir; lobi/maç/sıralamada her yerde
+  // aynı isim görünür. Kurallar Bildim ana sayfasıyla birebir (min 3, benzersiz).
+  const isimKaydet = async () => {
+    setIsimHata("");
+    const ad = yeniAd.trim();
+    if (ad.length < 3) {
+      setIsimHata("İsim en az 3 karakter olmalı.");
+      return;
+    }
+    try {
+      const { error } = await supabase
+        .from("profiles")
+        .update({ username: ad })
+        .eq("id", user.id);
+      if (error) throw error;
+      refreshProfile?.(user.id);
+      setModal(null);
+    } catch (e) {
+      console.error("KafaTopu isim değiştirme hatası:", e);
+      setIsimHata(e?.code === "23505" ? "Bu isim alınmış, başka bir tane dene." : "İsim kaydedilemedi.");
+    }
+  };
+
   return (
     <div className="kt-menu-root">
       <canvas ref={canvasRef} className="kt-menu-sahne" />
       <div className="kt-menu-karartma" />
 
-      {/* Üst şerit: lig + kısayollar */}
+      {/* Üst şerit: isim + lig + kısayollar */}
       <div className="kt-menu-ust">
-        <span className="kt-lig-rozet" style={{ color: lig.renk }}>
-          {lig.ikon} {lig.ad} · {profil?.puan ?? "…"}
+        <span style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
+          <button
+            className="kt-ikon-btn kt-isim-chip"
+            title="İsmini değiştir"
+            onClick={() => {
+              setYeniAd(bildimProfil?.username ?? "");
+              setIsimHata("");
+              setModal("isim");
+            }}
+          >
+            👤 {bildimProfil?.username ?? "…"} ✏️
+          </button>
+          <span className="kt-lig-rozet" style={{ color: lig.renk }}>
+            {lig.ikon} {lig.ad} · {profil?.puan ?? "…"}
+          </span>
         </span>
         <span className="kt-menu-ust-sag">
           <button className="kt-ikon-btn" title="Sıralama" onClick={() => navigate("/kafatopu/siralama")}>📊</button>
@@ -252,6 +292,33 @@ export default function MenuPage() {
           <button className="kt-btn oda-btn" onClick={() => odaKur("2v2")}>
             <span className="kt-btn-ikon">👥</span>
             <span>2v2 Odası<span className="kt-btn-detay">4 kişilik takım maçı</span></span>
+          </button>
+        </Modal>
+      )}
+
+      {modal === "isim" && (
+        <Modal baslik="Oyuncu İsmi" kapat={() => setModal(null)}>
+          <div className="kt-alt-yazi" style={{ marginBottom: 10 }}>
+            Bu isim maçta, oda lobisinde ve sıralamada görünür
+            (Bildim hesabınla ortaktır).
+          </div>
+          <div className="kt-form-satir">
+            <input
+              autoFocus
+              maxLength={20}
+              placeholder="Yeni ismin"
+              value={yeniAd}
+              onChange={(e) => setYeniAd(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && isimKaydet()}
+              style={{ textAlign: "center", fontSize: "1.1rem", fontWeight: 800 }}
+            />
+          </div>
+          {isimHata && (
+            <div className="kt-alt-yazi" style={{ color: "#ffb3a8" }}>{isimHata}</div>
+          )}
+          <button className="kt-btn" onClick={isimKaydet}>
+            <span className="kt-btn-ikon">💾</span>
+            <span>Kaydet</span>
           </button>
         </Modal>
       )}

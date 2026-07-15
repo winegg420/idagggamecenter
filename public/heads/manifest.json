@@ -2,7 +2,7 @@
   "kafalar": [
     {
       "id": "ida",
-      "ad": "İda",
+      "ad": "idaGG",
       "dosya": "ida.png",
       "odakX": 0.36,
       "odakY": 0.55,
@@ -10,7 +10,7 @@
     },
     {
       "id": "kafa2",
-      "ad": "Kafa 2",
+      "ad": "Baran",
       "dosya": "kafa2.png",
       "odakX": 0.5,
       "odakY": 0.5,
@@ -18,7 +18,7 @@
     },
     {
       "id": "kafa3",
-      "ad": "Kafa 3",
+      "ad": "Aykut",
       "dosya": "kafa3.png",
       "odakX": 0.52,
       "odakY": 0.51,

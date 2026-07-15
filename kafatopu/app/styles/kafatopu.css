@@ -594,3 +594,15 @@
   cursor: pointer;
 }
 .kt-cikis-btn:active { transform: scale(.93); }
+
+/* Isim chip (menu ust seridi) */
+.kt-isim-chip {
+  width: auto;
+  padding: 0 14px;
+  font-size: 0.85rem;
+  font-weight: 800;
+  white-space: nowrap;
+  max-width: 46vw;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
