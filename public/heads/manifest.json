@@ -23,6 +23,14 @@
       "odakX": 0.52,
       "odakY": 0.51,
       "yaricap": 0.48
+    },
+    {
+      "id": "emirhan",
+      "ad": "Emirhan",
+      "dosya": "emirhan.png",
+      "odakX": 0.5,
+      "odakY": 0.46,
+      "yaricap": 0.44
     }
   ]
 }
