@@ -11,10 +11,11 @@ import { supabase } from "../../../src/lib/supabase.js";
 import { useAuth } from "../../../src/context/AuthContext.jsx";
 import { useKT } from "../KafaTopuApp.jsx";
 import { ligBul } from "../../shared/ligler.js";
-import { kafaBul } from "../../shared/karakterler.js";
+import { kafaBul, tumRoster, fotoKafalariYukle } from "../../shared/karakterler.js";
 import { sahneCiz } from "../../engine/render.js";
 import { SAHA, OYUNCU, TOP } from "../../shared/sabitler.js";
 import KafaSecici from "../components/KafaSecici.jsx";
+import KafaOnizleme from "../components/KafaOnizleme.jsx";
 
 export default function MenuPage() {
   const { profil, adminMi, user } = useKT();
@@ -22,7 +23,8 @@ export default function MenuPage() {
   const navigate = useNavigate();
   const lig = ligBul(profil?.puan ?? 1000);
 
-  const [modal, setModal] = useState(null); // null | 'oyna' | 'oda' | 'katil' | 'isim'
+  const [modal, setModal] = useState(null); // null | 'oyna' | 'oda' | 'katil' | 'isim' | 'antrenman'
+  const [rakipRoster, setRakipRoster] = useState(tumRoster());
   const [katilKod, setKatilKod] = useState("");
   const [yeniAd, setYeniAd] = useState("");
   const [isimHata, setIsimHata] = useState("");
@@ -282,9 +284,41 @@ export default function MenuPage() {
             <span className="kt-btn-ikon">⚡</span>
             <span>Hızlı Maç 2v2<span className="kt-btn-detay">2'ye 2 kapışma</span></span>
           </button>
-          <button className="kt-btn antrenman" onClick={() => navigate("/kafatopu/mac/bot?mod=1v1")}>
+          <button
+            className="kt-btn antrenman"
+            onClick={() => {
+              fotoKafalariYukle().then(() => setRakipRoster(tumRoster())).catch(() => {});
+              setModal("antrenman");
+            }}
+          >
             <span className="kt-btn-ikon">🤖</span>
             <span>Antrenman<span className="kt-btn-detay">Bota karşı çevrimdışı</span></span>
+          </button>
+        </Modal>
+      )}
+
+      {modal === "antrenman" && (
+        <Modal baslik="Rakibini Seç" kapat={() => setModal(null)}>
+          <div className="kt-alt-yazi" style={{ marginBottom: 10 }}>
+            Bota karşı çevrimdışı antrenman — rakip botun kafasını seç.
+          </div>
+          <div className="kt-kafa-secici-sarici">
+            <div className="kt-kafa-secici">
+              {rakipRoster.map((k) => (
+                <div
+                  key={k.id}
+                  className="kt-kafa-secici-item"
+                  onClick={() => navigate(`/kafatopu/mac/bot?mod=1v1&rakip=${k.id}`)}
+                >
+                  <KafaOnizleme kafaId={k.id} takim={2} genislik={56} yukseklik={72} />
+                  <div className="ad">{k.ad}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+          <button className="kt-btn antrenman" onClick={() => navigate("/kafatopu/mac/bot?mod=1v1")}>
+            <span className="kt-btn-ikon">🎲</span>
+            <span>Rastgele Rakip<span className="kt-btn-detay">Bot kafasını oyun seçsin</span></span>
           </button>
         </Modal>
       )}

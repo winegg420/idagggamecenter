@@ -106,12 +106,20 @@ export function oyuncuCiz(ctx, oy, m, simMs) {
     ctx.beginPath();
     ctx.arc(0, 0, r, 0, Math.PI * 2);
     ctx.clip();
+    // Zemin dolgusu: şeffaf PNG'lerde daire içi boş kalmasın
+    ctx.fillStyle = renk.koyu;
+    ctx.fill();
     // Yüz rakibe baksın: takım 2 için aynala
     ctx.scale(bakis, 1);
     const kk = m.kafaKaydi;
-    const sr = (kk.yaricap ?? 0.5) * Math.min(img.width, img.height);
-    const sx = (kk.odakX ?? 0.5) * img.width - sr;
-    const sy = (kk.odakY ?? 0.5) * img.height - sr;
+    // Kırpma penceresi görselin dışına taşarsa daire içinde boşluk kalır;
+    // yarıçapı sığdır ve pencereyi görüntü sınırları içine kaydır.
+    let sr = (kk.yaricap ?? 0.5) * Math.min(img.width, img.height);
+    sr = Math.min(sr, img.width / 2, img.height / 2);
+    let sx = (kk.odakX ?? 0.5) * img.width - sr;
+    let sy = (kk.odakY ?? 0.5) * img.height - sr;
+    sx = Math.max(0, Math.min(sx, img.width - sr * 2));
+    sy = Math.max(0, Math.min(sy, img.height - sr * 2));
     ctx.drawImage(img, sx, sy, sr * 2, sr * 2, -r, -r, r * 2, r * 2);
     ctx.restore();
     ctx.strokeStyle = renk.forma;

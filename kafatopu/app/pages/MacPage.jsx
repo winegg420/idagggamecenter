@@ -316,6 +316,8 @@ export default function MacPage() {
       }
       if (!aktif) return;
       const sayi = botMod === "2v2" ? 4 : 2;
+      // Seçilen rakip kafa (?rakip=id); yoksa kurgusal roster'dan sırayla.
+      const rakipId = arama.get("rakip");
       const meta = [];
       for (let s = 0; s < sayi; s++) {
         const takim = s % 2 === 0 ? 1 : 2;
@@ -325,10 +327,14 @@ export default function MacPage() {
             ad: "Sen", userId: user.id, adminGuc: user.id === ADMIN_UUID,
           });
         } else {
-          const rk = KURGUSAL_KAFALAR[s % KURGUSAL_KAFALAR.length];
+          const secilen = s === 1 && rakipId ? kafaBul(rakipId) : null;
+          const rk = secilen ?? KURGUSAL_KAFALAR[s % KURGUSAL_KAFALAR.length];
           meta.push({
-            slot: s, takim, kafa: rk.id, yetenek: rk.yetenek,
-            ad: BOT_ADLAR[(s - 1) % BOT_ADLAR.length], userId: null, adminGuc: false,
+            slot: s, takim, kafa: rk.id,
+            // Foto kafaların sabit yeteneği yok; bota rastgele bir güç ver.
+            yetenek: rk.yetenek ?? KURGUSAL_KAFALAR[Math.floor(Math.random() * KURGUSAL_KAFALAR.length)].yetenek,
+            ad: secilen ? rk.ad : BOT_ADLAR[(s - 1) % BOT_ADLAR.length],
+            userId: null, adminGuc: false,
           });
           botDurumlari.set(s, botDurumKur());
         }
@@ -739,7 +745,10 @@ export default function MacPage() {
               <button
                 className="kt-btn antrenman"
                 onClick={() =>
-                  navigate(`/kafatopu/mac/bot?mod=${botMod}&r=${Date.now()}`, { replace: true })
+                  navigate(
+                    `/kafatopu/mac/bot?mod=${botMod}&r=${Date.now()}${arama.get("rakip") ? `&rakip=${arama.get("rakip")}` : ""}`,
+                    { replace: true }
+                  )
                 }
               >
                 <span className="kt-btn-ikon">🔄</span><span>Tekrar oyna</span>
