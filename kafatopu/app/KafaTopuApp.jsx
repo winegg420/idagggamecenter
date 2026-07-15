@@ -13,6 +13,7 @@ import { arkaplanYukle } from "../engine/render.js";
 import MenuPage from "./pages/MenuPage.jsx";
 import KarakterPage from "./pages/KarakterPage.jsx";
 import KuyrukPage from "./pages/KuyrukPage.jsx";
+import OdaPage from "./pages/OdaPage.jsx";
 import MacPage from "./pages/MacPage.jsx";
 import SiralamaPage from "./pages/SiralamaPage.jsx";
 import AdminPage from "./pages/AdminPage.jsx";
@@ -65,6 +66,7 @@ export default function KafaTopuApp() {
           <Route index element={<MenuPage />} />
           <Route path="karakter" element={<KarakterPage />} />
           <Route path="kuyruk/:mod/:tur" element={<KuyrukPage />} />
+          <Route path="oda/:kod" element={<OdaPage />} />
           <Route path="mac/:id" element={<MacPage />} />
           <Route path="siralama" element={<SiralamaPage />} />
           <Route path="admin" element={<AdminPage />} />
