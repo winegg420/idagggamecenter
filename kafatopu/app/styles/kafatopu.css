@@ -235,13 +235,13 @@
 .kt-dokunmatik .kt-tus {
   position: absolute;
   bottom: 14px;
-  width: 64px;
-  height: 64px;
+  width: 88px;
+  height: 88px;
   border-radius: 50%;
   border: 2px solid rgba(255, 255, 255, 0.4);
   background: rgba(10, 30, 50, 0.55);
   color: #fff;
-  font-size: 1.5rem;
+  font-size: 2rem;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -249,16 +249,24 @@
   touch-action: none;
 }
 .kt-tus:active, .kt-tus.basili { background: rgba(242, 197, 34, 0.5); }
-.kt-tus.sol { left: 16px; }
-.kt-tus.sag { left: 96px; }
-.kt-tus.zipla { right: 96px; bottom: 74px; }
-.kt-tus.vur { right: 16px; }
-.kt-tus.guc { right: 96px; }
+/* Sol el: büyük yön tuşları yan yana */
+.kt-tus.sol { left: 14px; }
+.kt-tus.sag { left: 116px; }
+/* Sağ el: zıplama ve vuruş EN ALTTA büyük; güç üstte küçük */
+.kt-tus.zipla { right: 116px; bottom: 14px; }
+.kt-tus.vur { right: 14px; }
+.kt-tus.guc {
+  right: 14px;
+  bottom: 118px;
+  width: 62px;
+  height: 62px;
+  font-size: 1.4rem;
+}
 
 .kt-guc-bar {
   position: absolute;
-  bottom: 152px; right: 16px;
-  width: 144px; height: 8px;
+  bottom: 190px; right: 14px;
+  width: 130px; height: 8px;
   border-radius: 4px;
   background: rgba(255, 255, 255, 0.15);
   overflow: hidden;
@@ -623,4 +631,13 @@
 @keyframes kt-ipucu-kaybol {
   0%, 75% { opacity: 1; }
   100% { opacity: 0; visibility: hidden; }
+}
+
+/* Dar dikey ekranlarda dokunmatik tuslar cakismasin */
+@media (max-width: 480px) {
+  .kt-dokunmatik .kt-tus { width: 72px; height: 72px; font-size: 1.6rem; }
+  .kt-tus.sag { left: 96px; }
+  .kt-tus.zipla { right: 96px; }
+  .kt-tus.guc { bottom: 98px; width: 54px; height: 54px; font-size: 1.2rem; }
+  .kt-guc-bar { bottom: 164px; width: 110px; }
 }
