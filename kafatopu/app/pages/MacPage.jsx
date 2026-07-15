@@ -90,11 +90,40 @@ export default function MacPage() {
     }
   }, []);
 
+  // ---- Skor raporu (anti-cheat: her oyuncu kendi gördüğü skoru bildirir) ----
+  // Sunucu iki takımdan uyuşan rapor gelmeden kesinleştirmez; 'onay_bekliyor'
+  // dönerse (rakip henüz raporlamadı/koptu) aralıklarla yeniden denenir.
+  const raporlaRef = useRef(false);
+  const raporla = useCallback(
+    async (skor) => {
+      if (botMu || raporlaRef.current) return;
+      raporlaRef.current = true;
+      for (let deneme = 0; deneme < 12; deneme++) {
+        try {
+          const { data, error } = await supabase.rpc("kafatopu_sonuc_kaydet", {
+            p_mac_id: id,
+            p_skor1: skor[0],
+            p_skor2: skor[1],
+          });
+          if (error) throw error;
+          if (data === "bitti" || data === "iptal") return data;
+        } catch (e) {
+          console.error("KafaTopu skor raporu hatası:", e);
+          return null;
+        }
+        await new Promise((r) => setTimeout(r, 5000));
+      }
+      return null;
+    },
+    [botMu, id]
+  );
+
   // ---- Sonuç kapanışı ----
   const sonucuGoster = useCallback(
     async (skor, tur) => {
       if (bittiRef.current) return;
       bittiRef.current = true;
+      raporla(skor); // arka planda sürer; kesinleşme sunucuda
       const benimTakim = metaRef.current?.[slotRef.current]?.takim ?? 1;
       const kazanan = skor[0] > skor[1] ? 1 : skor[1] > skor[0] ? 2 : 0;
       let puanDegisim = null;
@@ -121,25 +150,15 @@ export default function MacPage() {
       setSonuc({ skor, kazanan, benimTakim, puanDegisim, tur });
       setAsama("sonuc");
     },
-    [botMu, id, user?.id, profilYukle]
+    [botMu, id, user?.id, profilYukle, raporla]
   );
 
-  // Host: sonucu veritabanına yaz + herkese duyur.
+  // Host: maç bitişini herkese duyur (skor kaydı raporla() ile herkesçe yapılır).
   const hostSonucKaydet = useCallback(
-    async (skor) => {
-      try {
-        const { error } = await supabase.rpc("kafatopu_sonuc_kaydet", {
-          p_mac_id: id,
-          p_skor1: skor[0],
-          p_skor2: skor[1],
-        });
-        if (error) throw error;
-      } catch (e) {
-        console.error("KafaTopu sonuç kaydı hatası:", e);
-      }
+    (skor) => {
       kanalRef.current?.yayinla("bitti", { skor });
     },
-    [id]
+    []
   );
 
   // ---- Kurulum ----
@@ -377,7 +396,15 @@ export default function MacPage() {
           },
           onBitti: (payload) => {
             if (!aktif || hostMuRef.current) return;
-            sonucuGoster(payload.skor, mac.tur);
+            // Host yayınının skoru kendi gördüğümüzle tutarlı mı? Kabul edilen
+            // tek fark hükmen çekilme deseni; değilse KENDİ skorumuzu raporlarız
+            // (uyuşmazlıkta sunucu maçı iptal eder, kimse ELO kazanamaz).
+            const kendi = sonSnapRef.current?.skor ?? [0, 0];
+            const p = Array.isArray(payload?.skor) ? payload.skor : kendi;
+            const hukmen1 = p[1] === kendi[1] && p[0] === Math.max(3, kendi[0], kendi[1] + 1);
+            const hukmen2 = p[0] === kendi[0] && p[1] === Math.max(3, kendi[1], kendi[0] + 1);
+            const gecerli = (p[0] === kendi[0] && p[1] === kendi[1]) || hukmen1 || hukmen2;
+            sonucuGoster(gecerli ? p : kendi, mac.tur);
           },
           onHata: () => {
             if (aktif && !bittiRef.current) setHataMesaj("Bağlantı sorunu — yeniden bağlanılıyor…");
@@ -391,6 +418,17 @@ export default function MacPage() {
         }
       }
     };
+
+    // Nabız: maç sürerken sunucuya canlılık kanıtı (anti-cheat — rakip
+    // oyundayken tek taraflı skor kesinleştirilemez).
+    const nabiz = setInterval(() => {
+      if (!aktif || botMu || bittiRef.current) return;
+      if (!macRef.current && !sonSnapRef.current) return; // maç henüz başlamadı
+      supabase.rpc("kafatopu_nabiz", { p_mac_id: id }).then(
+        () => {},
+        (e) => console.error("KafaTopu nabız hatası:", e)
+      );
+    }, 10000);
 
     // Kopma sayacı (1 sn'de bir kontrol)
     const kopmaSayaci = setInterval(() => {
@@ -421,6 +459,7 @@ export default function MacPage() {
       aktif = false;
       cancelAnimationFrame(rafRef.current);
       clearInterval(kalpAtisi);
+      clearInterval(nabiz);
       clearInterval(kopmaSayaci);
       window.removeEventListener("resize", boyutlandir);
       girdi.yokEt();
@@ -439,7 +478,9 @@ export default function MacPage() {
     asamaRef.current = asama;
   }, [asama]);
 
-  // Rakip koptu → mevcut skorla maçı bitir (kalan herhangi bir oyuncu yapabilir).
+  // Rakip koptu → mevcut skorla maçı bitir. Kesinleşme sunucuda: rakibin
+  // nabzı gerçekten kesilmişse ~15-25 sn içinde tek taraflı onaylanır
+  // (raporla() arka planda denemeye devam eder).
   const kopukMaciBitir = async () => {
     const skor = sonSnapRef.current?.skor ?? [0, 0];
     const hicOynanmadi = !sonSnapRef.current;
@@ -449,9 +490,6 @@ export default function MacPage() {
         navigate("/kafatopu");
         return;
       }
-      await supabase.rpc("kafatopu_sonuc_kaydet", {
-        p_mac_id: id, p_skor1: skor[0], p_skor2: skor[1],
-      });
     } catch (e) {
       console.error("KafaTopu kopuk maç kapatma hatası:", e);
     }
@@ -472,15 +510,14 @@ export default function MacPage() {
         await supabase.rpc("kafatopu_mac_iptal", { p_mac_id: id });
       } else {
         // Hükmen: çekilen taraf kaybeder (rakip en az 3 ve önde olacak şekilde).
+        // Rakip aynı hükmen skoru onaylayınca sunucu kesinleştirir.
         const skor = sonSnapRef.current.skor;
         const benTakim = metaRef.current?.[slotRef.current]?.takim ?? 1;
         let s1 = skor[0], s2 = skor[1];
         if (benTakim === 1) s2 = Math.max(3, s2, s1 + 1);
         else s1 = Math.max(3, s1, s2 + 1);
-        await supabase.rpc("kafatopu_sonuc_kaydet", {
-          p_mac_id: id, p_skor1: s1, p_skor2: s2,
-        });
         kanalRef.current?.yayinla("bitti", { skor: [s1, s2] });
+        raporla([s1, s2]); // arka planda onaya kadar dener
       }
     } catch (e) {
       console.error("KafaTopu maçtan çıkış hatası:", e);
