@@ -124,6 +124,17 @@ export default function Home() {
 
   return (
     <div className="anasayfa">
+      {/* ---------- Kafa Topu üst sekmesi ---------- */}
+      <Link to="/kafatopu" className="kafatopu-serit">
+        <span className="kt-serit-top">⚽</span>
+        <span className="kt-serit-metin">
+          <b>KAFA TOPU</b>
+          <small>Sahilde 1v1 &amp; 2v2 kafa topu — kendi fotoğrafınla oyna!</small>
+        </span>
+        <span className="kt-serit-yeni">YENİ</span>
+        <span className="kt-serit-ok">▶</span>
+      </Link>
+
       {bildirimSor && (
         <div className="bildirim-serit">
           <div className="ikon">🔔</div>

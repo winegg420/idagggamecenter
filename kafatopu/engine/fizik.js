@@ -117,6 +117,13 @@ export function dunyaKur(mod) {
 
 // Sabit adımlı fizik ilerletme + top hız tavanı.
 export function fizikAdim(dunya) {
+  // Plaj topu yüzerliği: oyuncular ağır düşerken top süzülsün diye
+  // topa yerçekiminin bir kısmını dengeleyen ters kuvvet uygulanır.
+  const g = dunya.engine.gravity;
+  Body.applyForce(dunya.top, dunya.top.position, {
+    x: 0,
+    y: -dunya.top.mass * g.y * (g.scale ?? 0.001) * TOP.YUZERLIK,
+  });
   Matter.Engine.update(dunya.engine, FIZIK.TICK_MS);
   const v = dunya.top.velocity;
   const hiz = Math.hypot(v.x, v.y);

@@ -19,7 +19,8 @@ export const KALE = {
 
 // Fizik
 export const FIZIK = {
-  YERCEKIMI: 1.35,
+  // Head Ball hissi: yüksek yerçekimi + kısa zıplama (tepe ~140px ≈ 1.6 kafa).
+  YERCEKIMI: 2.0,
   TICK_MS: 1000 / 60,          // sabit adım 60Hz
 };
 
@@ -27,7 +28,7 @@ export const FIZIK = {
 export const OYUNCU = {
   KAFA_R: 44,
   HIZ: 6.1,                     // yatay hız (birim/tick)
-  ZIPLAMA: 15.2,                // zıplama ilk hızı
+  ZIPLAMA: 12.4,                // zıplama ilk hızı (kısa, keskin sıçrama)
   VURUS_MENZIL: 96,             // ayak vuruşu menzili (merkezden)
   VURUS_X: 12.5,                // vuruşun topa verdiği yatay hız
   VURUS_Y: 8.5,                 // vuruşun topa verdiği dikey hız (yukarı)
@@ -41,6 +42,7 @@ export const TOP = {
   HAVA_SURTUNME: 0.008,
   YOGUNLUK: 0.0009,
   MAX_HIZ: 26,                  // patlamayı önlemek için hız tavanı
+  YUZERLIK: 0.35,               // plaj topu: yerçekiminin %35'i etki etmez (süzülür)
 };
 
 // Maç akışı
