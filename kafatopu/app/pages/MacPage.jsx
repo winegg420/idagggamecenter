@@ -186,10 +186,16 @@ export default function MacPage() {
       const canvas = canvasRef.current;
       if (!canvas || !view) return;
       const ctx = canvas.getContext("2d");
-      const olcek = canvas.width / SAHA.W;
-      ctx.setTransform(olcek, 0, 0, olcek, 0, 0);
-      ctx.clearRect(0, 0, SAHA.W, SAHA.H);
-      sahneCiz(ctx, view, metaRef.current || [], view.t || performance.now());
+      // Saha ekrana sığacak şekilde ölçeklenip ortalanır; kalan ekran
+      // boşlukları (pay) sahnenin devamıyla doldurulur → her yönde tam ekran.
+      const sc = Math.min(canvas.width / SAHA.W, canvas.height / SAHA.H);
+      const ofX = (canvas.width - SAHA.W * sc) / 2;
+      const ofY = (canvas.height - SAHA.H * sc) / 2;
+      ctx.setTransform(sc, 0, 0, sc, ofX, ofY);
+      ctx.clearRect(-ofX / sc, -ofY / sc, canvas.width / sc, canvas.height / sc);
+      sahneCiz(ctx, view, metaRef.current || [], view.t || performance.now(), {
+        sol: ofX / sc, sag: ofX / sc, ust: ofY / sc, alt: ofY / sc,
+      });
     };
 
     const dongu = (simdi) => {
@@ -240,22 +246,20 @@ export default function MacPage() {
       }
     };
 
-    // --- Canvas boyutlandırma: ekrana SIĞDIR (genişlik VE yükseklik) ---
-    // Salt genişliğe göre boyutlama, yatay telefonda sahayı ekrandan taşırıp
-    // "yarım" gösteriyordu. visualViewport kullanılır (iOS adres çubuğu payı).
+    // --- Canvas boyutlandırma: TÜM ekranı kapla ---
+    // Saha çizim sırasında ortalanır, boşluklar sahneyle doldurulur;
+    // böylece yatayda da dikeyde de siyah bant kalmaz.
+    // visualViewport kullanılır (iOS adres çubuğu payı).
     const boyutlandir = () => {
       const canvas = canvasRef.current;
       if (!canvas) return;
-      const vw = window.visualViewport?.width ?? window.innerWidth;
-      const vh = window.visualViewport?.height ?? window.innerHeight;
-      const olcek = Math.min(vw / SAHA.W, vh / SAHA.H, 1200 / SAHA.W);
-      const w = Math.max(200, Math.floor(SAHA.W * olcek));
-      const h = Math.max(112, Math.floor(SAHA.H * olcek));
+      const vw = Math.max(200, Math.round(window.visualViewport?.width ?? window.innerWidth));
+      const vh = Math.max(112, Math.round(window.visualViewport?.height ?? window.innerHeight));
       const dpr = Math.min(window.devicePixelRatio || 1, 2);
-      canvas.style.width = w + "px";
-      canvas.style.height = h + "px";
-      canvas.width = Math.round(w * dpr);
-      canvas.height = Math.round(h * dpr);
+      canvas.style.width = vw + "px";
+      canvas.style.height = vh + "px";
+      canvas.width = Math.round(vw * dpr);
+      canvas.height = Math.round(vh * dpr);
     };
     // Döndürme anında tarayıcılar bir süre ESKİ ölçüleri bildirir;
     // hemen + 300ms + 800ms sonra tekrar ölçülür.

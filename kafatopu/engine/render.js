@@ -332,33 +332,40 @@ function prosedurelKatmanlar() {
 
 // ---------- Ana çizim ----------
 // snap: anlikDurum paketi; meta: kafaKaydi eklenmiş oyuncu meta listesi.
-export function sahneCiz(ctx, snap, meta, simMs) {
+// pay: saha dışında kalan ekran boşlukları (mantıksal birim) — tam ekran
+// görünüm için arka plan bu paylara da uzatılır (yanlar/üst/alt boş kalmaz).
+export function sahneCiz(ctx, snap, meta, simMs, pay = { sol: 0, sag: 0, ust: 0, alt: 0 }) {
   const parallaxKaynak = ((snap.top?.x ?? SAHA.W / 2) - SAHA.W / 2);
+  const solX = -pay.sol;
+  const genis = SAHA.W + pay.sol + pay.sag;
+  const ustY = -pay.ust;
+  const boyH = SAHA.H + pay.ust + pay.alt;
 
-  // Arka plan
+  // Arka plan (paylar dahil tüm ekranı kaplar)
   const liste = katmanlar && katmanlar.length ? katmanlar : prosedurelKatmanlar();
   for (const k of liste) {
     if (k.img && (k.img.width || k.img.complete !== false)) {
-      const ofset = -80 - parallaxKaynak * k.hiz;
       try {
-        // Fotoğraf katmanları sahayı kaplayacak şekilde ölçeklenir.
+        // Katman, saha + paylar + parallax marjını kaplayacak şekilde ölçeklenir.
         const iw = k.img.width || SAHA.W + 160;
         const ih = k.img.height || SAHA.H;
-        const olcek = Math.max((SAHA.W + 160) / iw, SAHA.H / ih);
-        ctx.drawImage(k.img, ofset, SAHA.H - ih * olcek, iw * olcek, ih * olcek);
+        const olcek = Math.max((genis + 160) / iw, boyH / ih);
+        const x = solX - 80 - parallaxKaynak * k.hiz;
+        const y = (SAHA.H + pay.alt) - ih * olcek;
+        ctx.drawImage(k.img, x, y, iw * olcek, ih * olcek);
       } catch { /* görsel henüz yüklenmedi */ }
     }
   }
   // Oyun elemanları net görünsün: hafif kontrast karartması
   ctx.fillStyle = "rgba(8, 20, 34, 0.16)";
-  ctx.fillRect(0, 0, SAHA.W, SAHA.H);
+  ctx.fillRect(solX, ustY, genis, boyH);
 
-  // Zemin (kum/deck)
-  const zg = ctx.createLinearGradient(0, SAHA.ZEMIN_Y, 0, SAHA.H);
+  // Zemin (kum/deck) — yanlara ve alta doğru uzatılır
+  const zg = ctx.createLinearGradient(0, SAHA.ZEMIN_Y, 0, SAHA.H + pay.alt);
   zg.addColorStop(0, "#e7cf9f");
   zg.addColorStop(1, "#c9a86f");
   ctx.fillStyle = zg;
-  ctx.fillRect(0, SAHA.ZEMIN_Y, SAHA.W, SAHA.H - SAHA.ZEMIN_Y);
+  ctx.fillRect(solX, SAHA.ZEMIN_Y, genis, SAHA.H - SAHA.ZEMIN_Y + pay.alt);
   // kum dokusu: deterministik benekler (her karede aynı, titremez)
   for (let i = 0; i < 90; i++) {
     const bx = (i * 137.5) % SAHA.W;
@@ -367,7 +374,7 @@ export function sahneCiz(ctx, snap, meta, simMs) {
     ctx.fillRect(bx, by, 2.4, 2.4);
   }
   ctx.fillStyle = "rgba(255,255,255,0.75)";
-  ctx.fillRect(0, SAHA.ZEMIN_Y, SAHA.W, 3);
+  ctx.fillRect(solX, SAHA.ZEMIN_Y, genis, 3);
   // orta çizgi + orta yuvarlak
   ctx.strokeStyle = "rgba(255,255,255,0.5)";
   ctx.lineWidth = 3;
