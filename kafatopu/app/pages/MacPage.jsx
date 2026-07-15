@@ -44,6 +44,7 @@ export default function MacPage() {
   const [sonuc, setSonuc] = useState(null); // { skor, kazanan, benimTakim, puanDegisim, tur }
   const [kopuk, setKopuk] = useState(false);
   const [bitirmeHakki, setBitirmeHakki] = useState(false);
+  const [cikisOnay, setCikisOnay] = useState(false);
 
   const canvasRef = useRef(null);
   const macRef = useRef(null);          // host/bot simülasyonu
@@ -458,6 +459,35 @@ export default function MacPage() {
     sonucuGoster(skor, macBilgiRef.current?.tur);
   };
 
+  // Maçtan çıkış: bot/bekleme = serbest; aktif online maç = hükmen mağlubiyet.
+  const cikisYap = async () => {
+    setCikisOnay(false);
+    if (botMu) {
+      navigate("/kafatopu");
+      return;
+    }
+    try {
+      if (!sonSnapRef.current || asama === "bekleme") {
+        // Maç hiç oynanmadı: iptal, kimse puan kaybetmez.
+        await supabase.rpc("kafatopu_mac_iptal", { p_mac_id: id });
+      } else {
+        // Hükmen: çekilen taraf kaybeder (rakip en az 3 ve önde olacak şekilde).
+        const skor = sonSnapRef.current.skor;
+        const benTakim = metaRef.current?.[slotRef.current]?.takim ?? 1;
+        let s1 = skor[0], s2 = skor[1];
+        if (benTakim === 1) s2 = Math.max(3, s2, s1 + 1);
+        else s1 = Math.max(3, s1, s2 + 1);
+        await supabase.rpc("kafatopu_sonuc_kaydet", {
+          p_mac_id: id, p_skor1: s1, p_skor2: s2,
+        });
+        kanalRef.current?.yayinla("bitti", { skor: [s1, s2] });
+      }
+    } catch (e) {
+      console.error("KafaTopu maçtan çıkış hatası:", e);
+    }
+    navigate("/kafatopu");
+  };
+
   const dokunmatik = dokunmatikVarMi();
   const meta = metaRef.current || [];
   const benimTakim = meta[slotRef.current]?.takim ?? 1;
@@ -480,6 +510,33 @@ export default function MacPage() {
         {asama === "oyun" && (
           <div className="kt-yatay-ipucu">📱 Telefonu yan çevir — saha büyür</div>
         )}
+
+        {/* Maçtan çıkış */}
+        {asama !== "sonuc" && asama !== "hata" && (
+          <button className="kt-cikis-btn" title="Maçtan çık" onClick={() => setCikisOnay(true)}>
+            ✕
+          </button>
+        )}
+        {cikisOnay && (
+          <div className="kt-sonuc-panel" style={{ zIndex: 8 }}>
+            <div style={{ fontSize: "2.2rem" }}>🚪</div>
+            <div className="kt-sonuc-baslik" style={{ fontSize: "1.5rem" }}>Maçtan çıkılsın mı?</div>
+            <div className="kt-alt-yazi" style={{ maxWidth: 320 }}>
+              {botMu
+                ? "Antrenman kaydedilmez, direkt menüye dönersin."
+                : asama === "bekleme" || !sonSnapRef.current
+                  ? "Maç başlamadığı için iptal edilir, kimse puan kaybetmez."
+                  : "Çekilirsen hükmen mağlup sayılırsın (rakip kazanır)."}
+            </div>
+            <button className="kt-btn tehlike" onClick={cikisYap}>
+              <span className="kt-btn-ikon">🚪</span><span>Evet, çık</span>
+            </button>
+            <button className="kt-btn" onClick={() => setCikisOnay(false)}>
+              <span className="kt-btn-ikon">⚽</span><span>Devam et</span>
+            </button>
+          </div>
+        )}
+
         <div className="kt-ust-bilgi">
           {botMu ? `🤖 Antrenman ${botMod}` : `${macBilgiRef.current?.tur === "ranked" ? "🏆 Ranked" : "⚡ Hızlı"} ${macBilgiRef.current?.mod ?? ""}`}
           {" · "}Sen: <b style={{ color: TAKIM_RENK[benimTakim]?.forma }}>{TAKIM_RENK[benimTakim]?.ad}</b>

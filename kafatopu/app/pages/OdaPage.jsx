@@ -10,6 +10,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { supabase } from "../../../src/lib/supabase.js";
 import { useKT } from "../KafaTopuApp.jsx";
 import KafaOnizleme from "../components/KafaOnizleme.jsx";
+import KafaSecici from "../components/KafaSecici.jsx";
 
 const POLL_MS = 2500;
 
@@ -229,6 +230,11 @@ export default function OdaPage() {
           {dolu ? "Kurucunun başlatması bekleniyor…" : `Oyuncu bekleniyor (${oyuncular.length}/${kapasite})`}
         </div>
       )}
+
+      {/* Karakter seçimi (maç başlamadan değiştirilebilir) */}
+      <div className="kt-kart" style={{ marginTop: 12 }}>
+        <KafaSecici />
+      </div>
 
       {/* Arkadaş daveti */}
       <div className="kt-kart" style={{ marginTop: 12 }}>

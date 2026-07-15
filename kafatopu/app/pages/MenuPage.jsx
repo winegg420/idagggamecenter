@@ -13,6 +13,7 @@ import { ligBul } from "../../shared/ligler.js";
 import { kafaBul } from "../../shared/karakterler.js";
 import { sahneCiz } from "../../engine/render.js";
 import { SAHA, OYUNCU, TOP } from "../../shared/sabitler.js";
+import KafaSecici from "../components/KafaSecici.jsx";
 
 export default function MenuPage() {
   const { profil, adminMi, user } = useKT();
@@ -214,6 +215,7 @@ export default function MenuPage() {
       {/* ---------- Modallar ---------- */}
       {modal === "oyna" && (
         <Modal baslik="Maç Türü Seç" kapat={() => setModal(null)}>
+          <KafaSecici />
           <button className="kt-btn ranked" onClick={() => navigate("/kafatopu/kuyruk/1v1/ranked")}>
             <span className="kt-btn-ikon">🏆</span>
             <span>Ranked 1v1<span className="kt-btn-detay">ELO puanı için</span></span>

@@ -544,3 +544,53 @@
 }
 .kt-oda-oyuncu.bos { opacity: .55; border-style: dashed; }
 .kt-oda-bos-ikon { font-size: 2.4rem; padding: 18px 0 14px; }
+
+/* ---------- Hızlı karakter seçici ---------- */
+.kt-kafa-secici-sarici { margin-bottom: 12px; }
+.kt-kafa-secici-baslik { font-weight: 800; font-size: .85rem; margin-bottom: 6px; opacity: .9; }
+.kt-kafa-secici {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 4px 2px 8px;
+  -webkit-overflow-scrolling: touch;
+}
+.kt-kafa-secici-item {
+  min-width: 68px;
+  text-align: center;
+  border: 2px solid rgba(255,255,255,.14);
+  border-radius: 12px;
+  padding: 4px 2px 5px;
+  background: rgba(8,25,43,.6);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.kt-kafa-secici-item.secili { border-color: #f2c522; background: rgba(242,197,34,.14); }
+.kt-kafa-secici-item canvas { width: 56px; height: 72px; }
+.kt-kafa-secici-item .ad {
+  font-size: .68rem;
+  font-weight: 700;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 64px;
+  margin: 0 auto;
+}
+
+/* ---------- Maçtan çıkış butonu ---------- */
+.kt-cikis-btn {
+  position: absolute;
+  top: 8px;
+  right: 10px;
+  z-index: 6;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,.3);
+  background: rgba(120,30,20,.75);
+  color: #fff;
+  font-size: 1.1rem;
+  font-weight: 900;
+  cursor: pointer;
+}
+.kt-cikis-btn:active { transform: scale(.93); }
