@@ -7,6 +7,14 @@
       "odakX": 0.36,
       "odakY": 0.55,
       "yaricap": 0.38
+    },
+    {
+      "id": "kafa2",
+      "ad": "Kafa 2",
+      "dosya": "kafa2.png",
+      "odakX": 0.5,
+      "odakY": 0.5,
+      "yaricap": 0.4
     }
   ]
 }

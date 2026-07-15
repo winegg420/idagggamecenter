@@ -7,7 +7,7 @@
 import Matter from "matter-js";
 import { SAHA, KALE, FIZIK, OYUNCU, TOP } from "../shared/sabitler.js";
 
-const { Engine, Bodies, Body, Composite, Events } = Matter;
+const { Engine, Bodies, Body, Composite } = Matter;
 
 // Oyuncu başlangıç noktaları (slot sırasına göre). Takım 1 sol, takım 2 sağ.
 export function baslangicNoktalari(mod) {
@@ -73,32 +73,37 @@ export function dunyaKur(mod) {
     zemin, tavan, solDuvar, sagDuvar, solDirek, sagDirek, top, ...oyuncular,
   ]);
 
-  // ---- Yere basma takibi (zıplama izni için) ----
-  // Oyuncunun altında temas varsa (zemin, direk, top ya da başka kafa) yerdedir.
-  const yerdeSayac = oyuncular.map(() => 0);
-  const oyuncuIndex = new Map(oyuncular.map((b, i) => [b.id, i]));
-
-  const temasGuncelle = (pair, delta) => {
-    const { bodyA, bodyB } = pair;
-    for (const [oy, diger] of [[bodyA, bodyB], [bodyB, bodyA]]) {
-      const i = oyuncuIndex.get(oy.id);
-      if (i === undefined) continue;
-      // Temas eden gövde oyuncunun altındaysa "yer" say.
-      if (diger.position.y > oy.position.y + OYUNCU.KAFA_R * 0.4) {
-        yerdeSayac[i] = Math.max(0, yerdeSayac[i] + delta);
+  // ---- Yere basma kontrolü (zıplama izni) ----
+  // Olay tabanlı sayaç yerine her çağrıda anlık geometri kontrolü yapılır;
+  // sayaç top/kafa temaslarında takılı kalıp "havada sürekli zıplama"
+  // (göğe uçma) hatası üretebiliyordu. Kurallar:
+  //  - yükselirken (vy < -1) asla "yerde" değilsin (çift zıplama olmaz),
+  //  - zemine yakınsan yerdesin,
+  //  - başka bir kafanın tam üstündeysen yerdesin (kafadan sekme klasiği).
+  const yerdeMi = (i) => {
+    const b = oyuncular[i];
+    if (b.velocity.y < -1) return false;
+    const r = b.circleRadius || OYUNCU.KAFA_R; // Body.scale yarıçapı günceller
+    if (b.position.y + r >= SAHA.ZEMIN_Y - 4) return true;
+    for (let j = 0; j < oyuncular.length; j++) {
+      if (j === i) continue;
+      const d = oyuncular[j];
+      const dr = d.circleRadius || OYUNCU.KAFA_R;
+      const ustY = d.position.y - dr; // diğer kafanın tepesi
+      if (
+        Math.abs(b.position.x - d.position.x) < (r + dr) * 0.75 &&
+        b.position.y + r >= ustY - 6 &&
+        b.position.y + r <= ustY + dr * 0.6
+      ) {
+        return true;
       }
     }
+    return false;
   };
-  Events.on(engine, "collisionStart", (e) => e.pairs.forEach((p) => temasGuncelle(p, +1)));
-  Events.on(engine, "collisionEnd", (e) => e.pairs.forEach((p) => temasGuncelle(p, -1)));
 
   return {
     engine, top, oyuncular,
-    yerdeMi: (i) =>
-      yerdeSayac[i] > 0 ||
-      // Emniyet: sayaç kaçarsa zemine yakınlık da yer kabul edilir.
-      (oyuncular[i].position.y >= SAHA.ZEMIN_Y - OYUNCU.KAFA_R - 2 &&
-        Math.abs(oyuncular[i].velocity.y) < 1),
+    yerdeMi,
     // Kale ağzı bariyeri (kalkan yeteneği): takim 1 → sol kale, 2 → sağ kale.
     kalkanEkle(takim) {
       const x = takim === 1 ? KALE.DERINLIK + 8 : SAHA.W - KALE.DERINLIK - 8;
