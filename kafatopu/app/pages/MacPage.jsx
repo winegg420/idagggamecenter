@@ -17,7 +17,7 @@ import { girdiKur, dokunmatikVarMi } from "../../engine/girdi.js";
 import { sahneCiz } from "../../engine/render.js";
 import { macKanaliKur } from "../../net/kanal.js";
 import { interpKur } from "../../net/interpolasyon.js";
-import { kafaBul, KURGUSAL_KAFALAR } from "../../shared/karakterler.js";
+import { kafaBul, KURGUSAL_KAFALAR, fotoKafalariYukle } from "../../shared/karakterler.js";
 import { SAHA, AG, MAC } from "../../shared/sabitler.js";
 import { TAKIM_RENK } from "../../engine/kafaCizim.js";
 
@@ -232,9 +232,24 @@ export default function MacPage() {
     window.addEventListener("resize", boyutlandir);
 
     // --- Bot maçı kurulumu ---
-    const botKur = () => {
-      const benimKafa = profil?.kafa ?? "volkan";
-      const benimYetenek = profil?.yetenek ?? "ates_sutu";
+    // Context'teki profil henüz yüklenmemiş olabilir (sayfa yenileme ile
+    // doğrudan maça girilince); seçili kafayı sunucudan bekleyerek al.
+    const botKur = async () => {
+      let benimKafa = profil?.kafa ?? "volkan";
+      let benimYetenek = profil?.yetenek ?? "ates_sutu";
+      try {
+        await fotoKafalariYukle();
+        if (!profil) {
+          const { data, error } = await supabase.rpc("kafatopu_profil_al");
+          if (!error && data) {
+            benimKafa = data.kafa;
+            benimYetenek = data.yetenek;
+          }
+        }
+      } catch (e) {
+        console.error("KafaTopu bot maçı profil hatası:", e);
+      }
+      if (!aktif) return;
       const sayi = botMod === "2v2" ? 4 : 2;
       const meta = [];
       for (let s = 0; s < sayi; s++) {
@@ -264,6 +279,9 @@ export default function MacPage() {
     // --- Online maç kurulumu ---
     const onlineKur = async () => {
       try {
+        // Foto kafa manifesti hazır olmadan kafaBul çağrılırsa foto kafalar
+        // kurgusala düşer; önce manifesti bekle.
+        await fotoKafalariYukle().catch(() => {});
         const [{ data: mac, error: e1 }, { data: oyuncular, error: e2 }] = await Promise.all([
           supabase.from("kafatopu_maclar").select("*").eq("id", id).single(),
           supabase.from("kafatopu_mac_oyunculari").select("*").eq("mac_id", id).order("slot"),
