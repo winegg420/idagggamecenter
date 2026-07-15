@@ -240,17 +240,34 @@ export default function MacPage() {
       }
     };
 
-    // --- Canvas boyutlandırma ---
+    // --- Canvas boyutlandırma: ekrana SIĞDIR (genişlik VE yükseklik) ---
+    // Salt genişliğe göre boyutlama, yatay telefonda sahayı ekrandan taşırıp
+    // "yarım" gösteriyordu. visualViewport kullanılır (iOS adres çubuğu payı).
     const boyutlandir = () => {
       const canvas = canvasRef.current;
       if (!canvas) return;
-      const geniş = Math.min(canvas.parentElement.clientWidth, 1200);
+      const vw = window.visualViewport?.width ?? window.innerWidth;
+      const vh = window.visualViewport?.height ?? window.innerHeight;
+      const olcek = Math.min(vw / SAHA.W, vh / SAHA.H, 1200 / SAHA.W);
+      const w = Math.max(200, Math.floor(SAHA.W * olcek));
+      const h = Math.max(112, Math.floor(SAHA.H * olcek));
       const dpr = Math.min(window.devicePixelRatio || 1, 2);
-      canvas.width = geniş * dpr;
-      canvas.height = geniş * (SAHA.H / SAHA.W) * dpr;
-      canvas.style.height = "auto";
+      canvas.style.width = w + "px";
+      canvas.style.height = h + "px";
+      canvas.width = Math.round(w * dpr);
+      canvas.height = Math.round(h * dpr);
     };
-    window.addEventListener("resize", boyutlandir);
+    // Döndürme anında tarayıcılar bir süre ESKİ ölçüleri bildirir;
+    // hemen + 300ms + 800ms sonra tekrar ölçülür.
+    let boyutZamanlayicilar = [];
+    const gecikmeliBoyutlandir = () => {
+      boyutZamanlayicilar.forEach(clearTimeout);
+      boyutlandir();
+      boyutZamanlayicilar = [setTimeout(boyutlandir, 300), setTimeout(boyutlandir, 800)];
+    };
+    window.addEventListener("resize", gecikmeliBoyutlandir);
+    window.addEventListener("orientationchange", gecikmeliBoyutlandir);
+    window.visualViewport?.addEventListener("resize", gecikmeliBoyutlandir);
 
     // --- Bot maçı kurulumu ---
     // Context'teki profil henüz yüklenmemiş olabilir (sayfa yenileme ile
@@ -480,7 +497,10 @@ export default function MacPage() {
       clearInterval(kalpAtisi);
       clearInterval(nabiz);
       clearInterval(kopmaSayaci);
-      window.removeEventListener("resize", boyutlandir);
+      window.removeEventListener("resize", gecikmeliBoyutlandir);
+      window.removeEventListener("orientationchange", gecikmeliBoyutlandir);
+      window.visualViewport?.removeEventListener("resize", gecikmeliBoyutlandir);
+      boyutZamanlayicilar.forEach(clearTimeout);
       document.removeEventListener("visibilitychange", gorunurlukDegisti);
       window.removeEventListener("blur", gorunurlukDegisti);
       try { wakeLock?.release(); } catch { /* zaten bırakılmış */ }

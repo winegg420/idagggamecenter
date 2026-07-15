@@ -85,13 +85,23 @@ export default function MenuPage() {
       canvas.width = canvas.clientWidth * dpr;
       canvas.height = canvas.clientWidth * (SAHA.H / SAHA.W) * dpr;
     };
+    // Döndürmede tarayıcı bir süre eski ölçü bildirir; gecikmeli tekrar ölç.
+    let zamanlayicilar = [];
+    const gecikmeliBoyutlandir = () => {
+      zamanlayicilar.forEach(clearTimeout);
+      boyutlandir();
+      zamanlayicilar = [setTimeout(boyutlandir, 300), setTimeout(boyutlandir, 800)];
+    };
     boyutlandir();
-    window.addEventListener("resize", boyutlandir);
+    window.addEventListener("resize", gecikmeliBoyutlandir);
+    window.addEventListener("orientationchange", gecikmeliBoyutlandir);
     const raf = requestAnimationFrame(dongu);
     return () => {
       aktif = false;
       cancelAnimationFrame(raf);
-      window.removeEventListener("resize", boyutlandir);
+      window.removeEventListener("resize", gecikmeliBoyutlandir);
+      window.removeEventListener("orientationchange", gecikmeliBoyutlandir);
+      zamanlayicilar.forEach(clearTimeout);
     };
   }, [profil?.kafa]);
 

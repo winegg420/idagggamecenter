@@ -152,8 +152,17 @@
   user-select: none;
   -webkit-user-select: none;
 }
-.kt-canvas-sarici { position: relative; width: 100%; max-width: 1200px; }
-.kt-canvas-sarici canvas { display: block; width: 100%; height: auto; border-radius: 6px; }
+/* Sarmalayıcı tam ekranı kaplar (dokunmatik tuşlar ekran köşelerinde kalır);
+   canvas JS tarafından ekrana SIĞACAK şekilde boyutlanır ve ortalanır. */
+.kt-canvas-sarici {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.kt-canvas-sarici canvas { display: block; border-radius: 6px; }
 
 .kt-hud {
   position: absolute;
