@@ -25,10 +25,11 @@ export function useKT() {
 }
 
 export default function KafaTopuApp() {
-  const { user } = useAuth();
+  const { user, profile: bildimProfil } = useAuth();
   const [profil, setProfil] = useState(null);
   const [adminMi, setAdminMi] = useState(false);
   const [hata, setHata] = useState(null);
+  const [cevrimici, setCevrimici] = useState([]); // oyunda çevrimiçi olanlar [{user_id, ad}]
 
   const profilYukle = useCallback(async () => {
     try {
@@ -56,10 +57,44 @@ export default function KafaTopuApp() {
     arkaplanYukle().catch(() => {});
   }, [user, profilYukle]);
 
+  // Global çevrimiçi durumu: oyun açıkken presence kanalına kaydol.
+  // Oda lobisi bu listeyle "çevrimiçi oyuncular"a davet gösterir.
+  useEffect(() => {
+    if (!user) return;
+    const kanal = supabase.channel("kafatopu:cevrimici", {
+      config: { presence: { key: user.id } },
+    });
+    kanal.on("presence", { event: "sync" }, () => {
+      try {
+        const durum = kanal.presenceState();
+        setCevrimici(
+          Object.entries(durum).map(([uid, kayitlar]) => ({
+            user_id: uid,
+            ad: kayitlar[0]?.ad ?? "Oyuncu",
+          }))
+        );
+      } catch (e) {
+        console.error("KafaTopu çevrimiçi listesi hatası:", e);
+      }
+    });
+    kanal.subscribe(async (durum) => {
+      if (durum === "SUBSCRIBED") {
+        try {
+          await kanal.track({ ad: bildimProfil?.username ?? "Oyuncu" });
+        } catch (e) {
+          console.error("KafaTopu çevrimiçi kaydı hatası:", e);
+        }
+      }
+    });
+    return () => {
+      supabase.removeChannel(kanal);
+    };
+  }, [user, bildimProfil?.username]);
+
   if (!user) return <Navigate to="/" replace />;
 
   return (
-    <KTContext.Provider value={{ profil, setProfil, profilYukle, adminMi, user }}>
+    <KTContext.Provider value={{ profil, setProfil, profilYukle, adminMi, user, cevrimici }}>
       <div className="kt-root">
         {hata && <div className="kt-hata-banner">{hata}</div>}
         <Routes>

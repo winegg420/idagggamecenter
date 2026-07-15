@@ -16,7 +16,7 @@ const POLL_MS = 2500;
 
 export default function OdaPage() {
   const { kod } = useParams();
-  const { user } = useKT();
+  const { user, cevrimici } = useKT();
   const navigate = useNavigate();
 
   const [oda, setOda] = useState(null);
@@ -236,30 +236,65 @@ export default function OdaPage() {
         <KafaSecici />
       </div>
 
-      {/* Arkadaş daveti */}
-      <div className="kt-kart" style={{ marginTop: 12 }}>
-        <b>🎟 Arkadaş davet et</b>
-        {arkadaslar.length === 0 && (
-          <div className="kt-alt-yazi" style={{ marginTop: 6 }}>
-            Bildim arkadaş listen boş — kodu ya da linki paylaşarak da çağırabilirsin.
-          </div>
-        )}
-        {arkadaslar.map((a) => {
-          const zatenIcerde = oyuncular.some((o) => o.user_id === a.id);
-          return (
-            <div key={a.id} className="kt-sira-satir">
-              <span className="kt-sira-ad">{a.username}</span>
-              {zatenIcerde ? (
-                <span className="kt-istatistik">Odada ✓</span>
-              ) : gonderilen[a.id] ? (
-                <span className="kt-istatistik">Davet gitti ✓</span>
-              ) : (
-                <button className="kt-mini-btn kabul" onClick={() => davetEt(a)}>Davet Et</button>
+      {/* Çevrimiçi oyuncular: oyunu şu an açık olan herkes (arkadaş şartı yok) */}
+      {(() => {
+        const cevrimiciIdler = new Set(cevrimici.map((c) => c.user_id));
+        const davetlikCevrimici = cevrimici.filter(
+          (c) => c.user_id !== user.id && !oyuncular.some((o) => o.user_id === c.user_id)
+        );
+        return (
+          <>
+            <div className="kt-kart" style={{ marginTop: 12 }}>
+              <b>🟢 Çevrimiçi oyuncular</b>
+              {davetlikCevrimici.length === 0 && (
+                <div className="kt-alt-yazi" style={{ marginTop: 6 }}>
+                  Şu an oyunda başka kimse yok — kodu ya da linki paylaşarak çağırabilirsin.
+                </div>
               )}
+              {davetlikCevrimici.map((c) => (
+                <div key={c.user_id} className="kt-sira-satir">
+                  <span className="kt-sira-ad">🟢 {c.ad}</span>
+                  {gonderilen[c.user_id] ? (
+                    <span className="kt-istatistik">Davet gitti ✓</span>
+                  ) : (
+                    <button className="kt-mini-btn kabul" onClick={() => davetEt({ id: c.user_id })}>
+                      Davet Et
+                    </button>
+                  )}
+                </div>
+              ))}
             </div>
-          );
-        })}
-      </div>
+
+            {/* Arkadaş daveti */}
+            <div className="kt-kart" style={{ marginTop: 12 }}>
+              <b>🎟 Arkadaş davet et</b>
+              {arkadaslar.length === 0 && (
+                <div className="kt-alt-yazi" style={{ marginTop: 6 }}>
+                  Bildim arkadaş listen boş — kodu ya da linki paylaşarak da çağırabilirsin.
+                </div>
+              )}
+              {arkadaslar.map((a) => {
+                const zatenIcerde = oyuncular.some((o) => o.user_id === a.id);
+                return (
+                  <div key={a.id} className="kt-sira-satir">
+                    <span className="kt-sira-ad">
+                      {cevrimiciIdler.has(a.id) ? "🟢 " : "⚪ "}
+                      {a.username}
+                    </span>
+                    {zatenIcerde ? (
+                      <span className="kt-istatistik">Odada ✓</span>
+                    ) : gonderilen[a.id] ? (
+                      <span className="kt-istatistik">Davet gitti ✓</span>
+                    ) : (
+                      <button className="kt-mini-btn kabul" onClick={() => davetEt(a)}>Davet Et</button>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </>
+        );
+      })()}
 
       <button className="kt-btn tehlike" onClick={ayril}>
         <span className="kt-btn-ikon">🚪</span>
