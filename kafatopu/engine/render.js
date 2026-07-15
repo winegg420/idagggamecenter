@@ -32,6 +32,9 @@ export async function arkaplanYukle() {
 }
 
 // Prosedürel katmanlar bir kez offscreen'e çizilir (performans).
+// Amaç: fotoğraflar eklenene dek gerçekçi bir havuz başı/sahil sahnesi —
+// ışık/gölgeli kaydırak kulesi, destek ayaklı borular, sisli dağlar,
+// bulutlar, dokulu kum ve parıltılı havuz.
 let cache = null;
 function prosedurelKatmanlar() {
   if (cache) return cache;
@@ -43,89 +46,279 @@ function prosedurelKatmanlar() {
     return c;
   };
 
-  // En arka: gökyüzü + güneş + dağ silueti
+  // ---------- En arka: gökyüzü + güneş + bulutlar + sisli dağlar ----------
   const gok = yap((ctx, w, h) => {
     const g = ctx.createLinearGradient(0, 0, 0, h);
-    g.addColorStop(0, "#5ec6e8");
-    g.addColorStop(0.55, "#a5e3f5");
-    g.addColorStop(1, "#ffe9c4");
+    g.addColorStop(0, "#2f8fd0");
+    g.addColorStop(0.45, "#7cc4e8");
+    g.addColorStop(0.78, "#cfeaf2");
+    g.addColorStop(1, "#ffe9c8");
     ctx.fillStyle = g;
     ctx.fillRect(0, 0, w, h);
-    // güneş
-    ctx.fillStyle = "rgba(255,240,180,0.95)";
-    ctx.beginPath();
-    ctx.arc(w * 0.78, h * 0.18, 46, 0, Math.PI * 2);
-    ctx.fill();
-    // dağ silueti
-    ctx.fillStyle = "#7fae9e";
-    ctx.beginPath();
-    ctx.moveTo(0, h * 0.62);
-    ctx.lineTo(w * 0.18, h * 0.38);
-    ctx.lineTo(w * 0.34, h * 0.56);
-    ctx.lineTo(w * 0.5, h * 0.3);
-    ctx.lineTo(w * 0.68, h * 0.55);
-    ctx.lineTo(w * 0.84, h * 0.42);
-    ctx.lineTo(w, h * 0.6);
-    ctx.lineTo(w, h);
-    ctx.lineTo(0, h);
-    ctx.closePath();
-    ctx.fill();
-  });
 
-  // Orta plan: aquapark kaydırağı + kule + palmiyeler
-  const orta = yap((ctx, w, h) => {
-    // kule
-    ctx.fillStyle = "#e8dcc8";
-    ctx.fillRect(w * 0.68, h * 0.3, 34, h * 0.45);
-    ctx.fillStyle = "#cbb894";
-    ctx.fillRect(w * 0.665, h * 0.28, 42, 12);
-    // kaydırak boruları (renkli spiraller)
-    const boru = (renk, ox, geniş) => {
-      ctx.strokeStyle = renk;
-      ctx.lineWidth = geniş;
-      ctx.lineCap = "round";
-      ctx.beginPath();
-      ctx.moveTo(w * 0.7 + ox, h * 0.33);
-      ctx.bezierCurveTo(w * 0.52 + ox, h * 0.3, w * 0.5 + ox, h * 0.62, w * 0.36 + ox, h * 0.62);
-      ctx.bezierCurveTo(w * 0.26 + ox, h * 0.62, w * 0.3 + ox, h * 0.78, w * 0.22 + ox, h * 0.82);
-      ctx.stroke();
-    };
-    boru("#f2a33c", 0, 16);
-    boru("#3fa9d8", 22, 16);
-    boru("#e2574c", 44, 16);
-    // palmiyeler
-    const palmiye = (x, boy) => {
-      ctx.strokeStyle = "#8a6238";
-      ctx.lineWidth = 10;
-      ctx.beginPath();
-      ctx.moveTo(x, h * 0.86);
-      ctx.quadraticCurveTo(x + 12, h * 0.86 - boy * 0.6, x + 4, h * 0.86 - boy);
-      ctx.stroke();
-      ctx.fillStyle = "#3e9e4f";
-      for (let i = 0; i < 6; i++) {
-        const a = (i / 6) * Math.PI * 2;
+    // Güneş: parlak çekirdek + geniş ışıma
+    const gx = w * 0.79, gy = h * 0.16;
+    const isik = ctx.createRadialGradient(gx, gy, 8, gx, gy, 150);
+    isik.addColorStop(0, "rgba(255,252,230,0.95)");
+    isik.addColorStop(0.25, "rgba(255,240,180,0.55)");
+    isik.addColorStop(1, "rgba(255,240,180,0)");
+    ctx.fillStyle = isik;
+    ctx.fillRect(gx - 160, gy - 160, 320, 320);
+    ctx.fillStyle = "#fff6d8";
+    ctx.beginPath();
+    ctx.arc(gx, gy, 34, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Yumuşak bulutlar (elips kümeleri)
+    const bulut = (x, y, olcek, alfa) => {
+      ctx.fillStyle = `rgba(255,255,255,${alfa})`;
+      for (const [ox, oy, rx, ry] of [
+        [0, 0, 42, 15], [30, -8, 32, 13], [-32, -5, 28, 11], [58, 2, 24, 9],
+      ]) {
         ctx.beginPath();
-        ctx.ellipse(
-          x + 4 + Math.cos(a) * 26, h * 0.86 - boy + Math.sin(a) * 12,
-          30, 9, a * 0.5, 0, Math.PI * 2
-        );
+        ctx.ellipse(x + ox * olcek, y + oy * olcek, rx * olcek, ry * olcek, 0, 0, Math.PI * 2);
         ctx.fill();
       }
     };
-    palmiye(w * 0.1, 120);
-    palmiye(w * 0.9, 140);
+    bulut(w * 0.16, h * 0.14, 1.15, 0.85);
+    bulut(w * 0.48, h * 0.09, 0.85, 0.7);
+    bulut(w * 0.62, h * 0.22, 0.7, 0.55);
+    bulut(w * 0.92, h * 0.3, 0.9, 0.6);
+
+    // Uzak sıradağ (soluk, sisli mavi-gri)
+    const sira = (renk, tabanY, tepe, kaydir) => {
+      ctx.fillStyle = renk;
+      ctx.beginPath();
+      ctx.moveTo(0, tabanY);
+      for (let x = 0; x <= w; x += 8) {
+        const t = x / w;
+        const y =
+          tabanY -
+          tepe * (0.5 + 0.5 * Math.sin(t * 5.1 + kaydir)) *
+          (0.6 + 0.4 * Math.sin(t * 2.3 + kaydir * 2));
+        ctx.lineTo(x, y);
+      }
+      ctx.lineTo(w, h);
+      ctx.lineTo(0, h);
+      ctx.closePath();
+      ctx.fill();
+    };
+    sira("rgba(120,150,175,0.55)", h * 0.62, h * 0.3, 1.2);
+    sira("rgba(90,130,120,0.75)", h * 0.72, h * 0.34, 3.7);
+    // Dağ eteğinde sis şeridi
+    const sis = ctx.createLinearGradient(0, h * 0.55, 0, h * 0.8);
+    sis.addColorStop(0, "rgba(255,255,255,0)");
+    sis.addColorStop(1, "rgba(235,245,248,0.5)");
+    ctx.fillStyle = sis;
+    ctx.fillRect(0, h * 0.55, w, h * 0.25);
   });
 
-  // Ön plan (saha gerisi): havuz kenarı + plaj
-  const on = yap((ctx, w, h) => {
-    // havuz suyu şeridi
-    ctx.fillStyle = "rgba(64,180,220,0.85)";
-    ctx.fillRect(0, h * 0.8, w, h * 0.08);
+  // ---------- Orta plan: aquapark kulesi + borular + palmiyeler ----------
+  const orta = yap((ctx, w, h) => {
+    const zemin = h * 0.88;
+
+    // -- Kaydırak kulesi (ışıklı/gölgeli, platform + korkuluk + merdiven) --
+    const kx = w * 0.72, kw = 46, kUst = h * 0.24;
+    // gövde: güneş sağ üstte → sol yüz gölgeli
+    const kg = ctx.createLinearGradient(kx, 0, kx + kw, 0);
+    kg.addColorStop(0, "#b9a583");
+    kg.addColorStop(0.5, "#e3d4b4");
+    kg.addColorStop(1, "#efe3c6");
+    ctx.fillStyle = kg;
+    ctx.fillRect(kx, kUst, kw, zemin - kUst);
+    // kat çizgileri
+    ctx.strokeStyle = "rgba(90,70,45,0.25)";
+    ctx.lineWidth = 2;
+    for (let y = kUst + 30; y < zemin; y += 42) {
+      ctx.beginPath(); ctx.moveTo(kx, y); ctx.lineTo(kx + kw, y); ctx.stroke();
+    }
+    // merdiven (yan raylı)
+    ctx.strokeStyle = "#8f7a58";
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(kx + kw + 6, zemin); ctx.lineTo(kx + kw + 6, kUst + 16);
+    ctx.moveTo(kx + kw + 18, zemin); ctx.lineTo(kx + kw + 18, kUst + 16);
+    ctx.stroke();
+    ctx.lineWidth = 2;
+    for (let y = kUst + 24; y < zemin; y += 14) {
+      ctx.beginPath(); ctx.moveTo(kx + kw + 6, y); ctx.lineTo(kx + kw + 18, y); ctx.stroke();
+    }
+    // platform + korkuluk
+    ctx.fillStyle = "#a08a63";
+    ctx.fillRect(kx - 14, kUst - 8, kw + 34, 10);
+    ctx.fillStyle = "#c9b58d";
+    ctx.fillRect(kx - 14, kUst - 12, kw + 34, 5);
+    ctx.strokeStyle = "#7d6947";
+    ctx.lineWidth = 2.5;
+    for (let px = kx - 10; px <= kx + kw + 16; px += 12) {
+      ctx.beginPath(); ctx.moveTo(px, kUst - 12); ctx.lineTo(px, kUst - 34); ctx.stroke();
+    }
+    ctx.beginPath(); ctx.moveTo(kx - 14, kUst - 34); ctx.lineTo(kx + kw + 20, kUst - 34); ctx.stroke();
+    // çatı tentesi
+    ctx.fillStyle = "#e2574c";
+    ctx.beginPath();
+    ctx.moveTo(kx - 20, kUst - 34);
+    ctx.lineTo(kx + kw / 2, kUst - 58);
+    ctx.lineTo(kx + kw + 26, kUst - 34);
+    ctx.closePath();
+    ctx.fill();
     ctx.fillStyle = "rgba(255,255,255,0.25)";
-    for (let x = 0; x < w; x += 60) {
+    ctx.beginPath();
+    ctx.moveTo(kx + kw / 2, kUst - 58);
+    ctx.lineTo(kx + kw + 26, kUst - 34);
+    ctx.lineTo(kx + kw / 2, kUst - 34);
+    ctx.closePath();
+    ctx.fill();
+
+    // -- Kaydırak boruları: gölge katmanı + ana renk + üst ışık şeridi --
+    const boruYol = (ox) => {
       ctx.beginPath();
-      ctx.arc(x + 20, h * 0.83, 10, 0, Math.PI);
+      ctx.moveTo(kx + 6 + ox, kUst + 4);
+      ctx.bezierCurveTo(w * 0.52 + ox, h * 0.28, w * 0.5 + ox, h * 0.6, w * 0.36 + ox, h * 0.6);
+      ctx.bezierCurveTo(w * 0.25 + ox, h * 0.6, w * 0.3 + ox, h * 0.76, w * 0.2 + ox, h * 0.82);
+    };
+    const boru = (renk, koyu, ox) => {
+      ctx.lineCap = "round";
+      // dış kontur (koyu — hacim)
+      ctx.strokeStyle = koyu;
+      ctx.lineWidth = 19;
+      boruYol(ox);
+      ctx.stroke();
+      // gövde
+      ctx.strokeStyle = renk;
+      ctx.lineWidth = 14;
+      boruYol(ox);
+      ctx.stroke();
+      // üst ışık şeridi (güneş yansıması)
+      ctx.strokeStyle = "rgba(255,255,255,0.45)";
+      ctx.lineWidth = 4;
+      boruYol(ox - 3);
+      ctx.stroke();
+    };
+    // destek ayakları (boruların altına, önce çizilir)
+    ctx.strokeStyle = "#9aa4ab";
+    ctx.lineWidth = 7;
+    for (const [sx, sy] of [[w * 0.5, h * 0.44], [w * 0.36, h * 0.6], [w * 0.27, h * 0.7]]) {
+      ctx.beginPath(); ctx.moveTo(sx, sy); ctx.lineTo(sx, zemin); ctx.stroke();
+      // çapraz destek
+      ctx.lineWidth = 4;
+      ctx.beginPath(); ctx.moveTo(sx - 14, zemin); ctx.lineTo(sx, sy + 26); ctx.stroke();
+      ctx.lineWidth = 7;
+    }
+    boru("#f2a33c", "#b56f14", 0);
+    boru("#3fa9d8", "#1c6e99", 24);
+    boru("#e2574c", "#9c2c22", 48);
+    // çıkış köpüğü (kaydırak sonu su sıçraması)
+    ctx.fillStyle = "rgba(255,255,255,0.75)";
+    for (const [fx, fy, fr] of [[w * 0.2, h * 0.85, 10], [w * 0.23, h * 0.86, 7], [w * 0.18, h * 0.87, 6]]) {
+      ctx.beginPath(); ctx.arc(fx + 48, fy, fr, 0, Math.PI * 2); ctx.fill();
+    }
+
+    // -- Palmiyeler (halkalı gövde + damarlı yapraklar + hindistan cevizi) --
+    const palmiye = (x, boy, yon) => {
+      // gölge
+      ctx.fillStyle = "rgba(30,40,30,0.18)";
+      ctx.beginPath();
+      ctx.ellipse(x + 8, zemin + 4, boy * 0.5, 7, 0, 0, Math.PI * 2);
       ctx.fill();
+      // gövde: eğri, halka dokulu
+      const tepeX = x + yon * boy * 0.22, tepeY = zemin - boy;
+      ctx.strokeStyle = "#8a6238";
+      ctx.lineWidth = 13;
+      ctx.lineCap = "round";
+      ctx.beginPath();
+      ctx.moveTo(x, zemin);
+      ctx.quadraticCurveTo(x + yon * boy * 0.05, zemin - boy * 0.55, tepeX, tepeY);
+      ctx.stroke();
+      ctx.strokeStyle = "rgba(60,40,20,0.35)";
+      ctx.lineWidth = 2;
+      for (let t = 0.12; t < 0.95; t += 0.12) {
+        const px = x + (tepeX - x) * t, py = zemin + (tepeY - zemin) * t;
+        ctx.beginPath(); ctx.moveTo(px - 7, py); ctx.lineTo(px + 7, py - 3); ctx.stroke();
+      }
+      // yapraklar: orta damarlı, iki ton yeşil
+      for (let i = 0; i < 7; i++) {
+        const a = -Math.PI * 0.95 + (i / 6) * Math.PI * 0.9;
+        const ux = Math.cos(a), uy = Math.sin(a) * 0.55 - 0.25;
+        const boyY = boy * (0.42 + (i % 2) * 0.08);
+        const ucX = tepeX + ux * boyY, ucY = tepeY + uy * boyY;
+        ctx.fillStyle = i % 2 ? "#2e8440" : "#3fa653";
+        ctx.beginPath();
+        ctx.moveTo(tepeX, tepeY);
+        ctx.quadraticCurveTo(tepeX + ux * boyY * 0.5, tepeY + uy * boyY * 0.5 - 14, ucX, ucY);
+        ctx.quadraticCurveTo(tepeX + ux * boyY * 0.5, tepeY + uy * boyY * 0.5 + 10, tepeX, tepeY + 4);
+        ctx.closePath();
+        ctx.fill();
+      }
+      // hindistan cevizleri
+      ctx.fillStyle = "#6b4a26";
+      for (const [cx2, cy2] of [[-6, 4], [6, 7], [0, 12]]) {
+        ctx.beginPath(); ctx.arc(tepeX + cx2, tepeY + cy2, 5, 0, Math.PI * 2); ctx.fill();
+      }
+    };
+    palmiye(w * 0.08, 150, 1);
+    palmiye(w * 0.93, 170, -1);
+    palmiye(w * 0.55, 110, -1);
+
+    // -- Şezlong + şemsiye (sahil detayı) --
+    const semsiye = (x) => {
+      ctx.strokeStyle = "#8a8378";
+      ctx.lineWidth = 4;
+      ctx.beginPath(); ctx.moveTo(x, zemin); ctx.lineTo(x, zemin - 66); ctx.stroke();
+      ctx.fillStyle = "#e2574c";
+      ctx.beginPath();
+      ctx.moveTo(x - 44, zemin - 60);
+      ctx.quadraticCurveTo(x, zemin - 96, x + 44, zemin - 60);
+      ctx.closePath();
+      ctx.fill();
+      ctx.fillStyle = "rgba(255,255,255,0.35)";
+      ctx.beginPath();
+      ctx.moveTo(x - 15, zemin - 68);
+      ctx.quadraticCurveTo(x, zemin - 92, x + 44, zemin - 60);
+      ctx.quadraticCurveTo(x + 20, zemin - 66, x - 15, zemin - 68);
+      ctx.closePath();
+      ctx.fill();
+      // şezlong
+      ctx.fillStyle = "#f5f0e6";
+      ctx.fillRect(x + 14, zemin - 14, 46, 6);
+      ctx.fillStyle = "#3fa9d8";
+      ctx.fillRect(x + 14, zemin - 20, 46, 6);
+      ctx.strokeStyle = "#8a8378";
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(x + 18, zemin - 8); ctx.lineTo(x + 18, zemin);
+      ctx.moveTo(x + 54, zemin - 8); ctx.lineTo(x + 54, zemin);
+      ctx.stroke();
+    };
+    semsiye(w * 0.42);
+  });
+
+  // ---------- Ön plan: parıltılı havuz + taş bordür ----------
+  const on = yap((ctx, w, h) => {
+    const suUst = h * 0.78, suAlt = h * 0.9;
+    // havuz suyu: derinlik gradyanı
+    const su = ctx.createLinearGradient(0, suUst, 0, suAlt);
+    su.addColorStop(0, "#57c4e8");
+    su.addColorStop(1, "#1f86b8");
+    ctx.fillStyle = su;
+    ctx.fillRect(0, suUst, w, suAlt - suUst);
+    // su yüzeyi parıltıları
+    ctx.strokeStyle = "rgba(255,255,255,0.5)";
+    ctx.lineWidth = 2;
+    for (let i = 0; i < 26; i++) {
+      const x = (i * 97) % w, y = suUst + 6 + ((i * 53) % (suAlt - suUst - 12));
+      ctx.beginPath();
+      ctx.moveTo(x, y);
+      ctx.quadraticCurveTo(x + 14, y - 3, x + 28, y);
+      ctx.stroke();
+    }
+    // taşma oluğu / taş bordür (havuz üst kenarı)
+    ctx.fillStyle = "#e8e2d2";
+    ctx.fillRect(0, suUst - 8, w, 8);
+    ctx.strokeStyle = "rgba(120,110,90,0.4)";
+    ctx.lineWidth = 1.5;
+    for (let x = 0; x < w; x += 34) {
+      ctx.beginPath(); ctx.moveTo(x, suUst - 8); ctx.lineTo(x, suUst); ctx.stroke();
     }
   });
 
@@ -166,6 +359,13 @@ export function sahneCiz(ctx, snap, meta, simMs) {
   zg.addColorStop(1, "#c9a86f");
   ctx.fillStyle = zg;
   ctx.fillRect(0, SAHA.ZEMIN_Y, SAHA.W, SAHA.H - SAHA.ZEMIN_Y);
+  // kum dokusu: deterministik benekler (her karede aynı, titremez)
+  for (let i = 0; i < 90; i++) {
+    const bx = (i * 137.5) % SAHA.W;
+    const by = SAHA.ZEMIN_Y + 6 + ((i * 61) % (SAHA.H - SAHA.ZEMIN_Y - 10));
+    ctx.fillStyle = i % 3 ? "rgba(140,110,70,0.25)" : "rgba(255,255,255,0.3)";
+    ctx.fillRect(bx, by, 2.4, 2.4);
+  }
   ctx.fillStyle = "rgba(255,255,255,0.75)";
   ctx.fillRect(0, SAHA.ZEMIN_Y, SAHA.W, 3);
   // orta çizgi + orta yuvarlak

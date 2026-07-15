@@ -33,6 +33,8 @@ export const OYUNCU = {
   VURUS_X: 12.5,                // vuruşun topa verdiği yatay hız
   VURUS_Y: 8.5,                 // vuruşun topa verdiği dikey hız (yukarı)
   VURUS_BEKLEME_MS: 340,        // iki vuruş arası bekleme
+  BAYILMA_MS: 1100,             // topsuz vuruş rakibi bu kadar bayıltır
+  BAYILMA_KORUMA_MS: 2200,      // bayılma sonrası tekrar bayıltılamama süresi
 };
 
 // Top

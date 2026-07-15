@@ -26,9 +26,13 @@ export function oyuncuCiz(ctx, oy, m, simMs) {
   const vurusta = vurusYasi >= 0 && vurusYasi < 260;
   const vurusFaz = vurusta ? Math.sin((vurusYasi / 260) * Math.PI) : 0;
 
-  // Eğilme: koşarken hıza göre, vuruşta öne sallanma
+  const bayilmis = (oy.ef || 0) & EFEKT_BAYRAK.bayilmis;
+
+  // Eğilme: koşarken hıza göre, vuruşta öne sallanma, bayılınca sersem sallanma
   const egilme =
-    Math.max(-0.16, Math.min(0.16, (oy.vx || 0) * 0.014)) + vurusFaz * 0.22 * bakis;
+    Math.max(-0.16, Math.min(0.16, (oy.vx || 0) * 0.014)) +
+    vurusFaz * 0.22 * bakis +
+    (bayilmis ? Math.sin(simMs / 90) * 0.18 : 0);
   // Dikeyde gerilme/ezilme: zıplarken uzar, düşerken hafif basıklaşır
   const vy = oy.vy || 0;
   const gerilme = Math.max(-0.08, Math.min(0.1, -vy * 0.008));
@@ -120,6 +124,20 @@ export function oyuncuCiz(ctx, oy, m, simMs) {
   }
 
   ctx.restore(); // kafa dönüşümü
+
+  // Bayılma: kafanın üstünde dönen yıldızlar
+  if (bayilmis) {
+    ctx.font = `${Math.max(14, r * 0.4)}px serif`;
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    for (let s = 0; s < 3; s++) {
+      const a = simMs / 240 + (s * Math.PI * 2) / 3;
+      ctx.globalAlpha = 0.85;
+      ctx.fillText("⭐", Math.cos(a) * r * 0.75, -r * 1.25 + Math.sin(a) * r * 0.22);
+    }
+    ctx.globalAlpha = 1;
+  }
+
   ctx.restore(); // konum
 }
 

@@ -13,6 +13,7 @@ const { Body } = Matter;
 // Efekt bit bayrakları (ağ/render için kompakt gösterim)
 export const EFEKT_BAYRAK = {
   ates: 1, buz: 2, hiz: 4, dev_sut: 8, buyuk: 16, mini: 32, kalkan: 64,
+  bayilmis: 128,
 };
 
 // Düşen güç türleri
@@ -57,6 +58,7 @@ export function efektBayraklari(oyDurum, simMs) {
   if (e.dev_sut > simMs) b |= EFEKT_BAYRAK.dev_sut;
   if (e.buyuk > simMs || e.dev > simMs) b |= EFEKT_BAYRAK.buyuk;
   if (e.mini > simMs) b |= EFEKT_BAYRAK.mini;
+  if (oyDurum.bayilmaBitis > simMs) b |= EFEKT_BAYRAK.bayilmis;
   return b;
 }
 

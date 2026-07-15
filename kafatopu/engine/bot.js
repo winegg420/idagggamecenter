@@ -72,6 +72,21 @@ export function botGirdiHesapla(mac, slot, botDurum) {
   const kaleyeMesafe = Math.abs(top.position.x - kaleX);
   if (kaleyeMesafe < 200 && mesafe < BOT.VURUS_MESAFE + 20) g.vur = true;
 
+  // Topsuz vuruş: top uzaktayken önümdeki rakibi ara sıra bayılt
+  if (mesafe > BOT.VURUS_MESAFE * 1.5) {
+    for (let r = 0; r < mac.meta.length; r++) {
+      if (mac.meta[r].takim === takim) continue;
+      const rb = mac.dunya.oyuncular[r];
+      const rdx = rb.position.x - b.position.x;
+      if (Math.abs(rdx) < BOT.VURUS_MESAFE &&
+          Math.abs(rb.position.y - b.position.y) < OYUNCU.KAFA_R * 1.6 &&
+          Math.sign(rdx) === yon && Math.random() < 0.03) {
+        g.vur = true;
+        break;
+      }
+    }
+  }
+
   // Yetenek: skor gerideyse ya da top tehlikedeyken kullan (kabaca)
   const benimSkor = mac.skor[takim - 1];
   const rakipSkor = mac.skor[takim === 1 ? 1 : 0];
