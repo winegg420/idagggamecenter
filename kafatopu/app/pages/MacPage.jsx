@@ -186,15 +186,15 @@ export default function MacPage() {
       const canvas = canvasRef.current;
       if (!canvas || !view) return;
       const ctx = canvas.getContext("2d");
-      // Saha ekrana sığacak şekilde ölçeklenip ortalanır; kalan ekran
-      // boşlukları (pay) sahnenin devamıyla doldurulur → her yönde tam ekran.
-      const sc = Math.min(canvas.width / SAHA.W, canvas.height / SAHA.H);
-      const ofX = (canvas.width - SAHA.W * sc) / 2;
-      const ofY = (canvas.height - SAHA.H * sc) / 2;
-      ctx.setTransform(sc, 0, 0, sc, ofX, ofY);
-      ctx.clearRect(-ofX / sc, -ofY / sc, canvas.width / sc, canvas.height / sc);
+      // Kaleler ekranın EN KENARINDA dursun: saha genişliğe tam oturtulur,
+      // zemin alta sabitlenir. Ekran sahadan basıksa üstteki gökyüzü kırpılır
+      // (fizik değişmez; top nadiren üstte kısa süre ekran dışına çıkabilir).
+      const sc = canvas.width / SAHA.W;
+      const ofY = canvas.height - SAHA.H * sc;
+      ctx.setTransform(sc, 0, 0, sc, 0, ofY);
+      ctx.clearRect(0, -ofY / sc, canvas.width / sc, canvas.height / sc);
       sahneCiz(ctx, view, metaRef.current || [], view.t || performance.now(), {
-        sol: ofX / sc, sag: ofX / sc, ust: ofY / sc, alt: ofY / sc,
+        sol: 0, sag: 0, ust: Math.max(0, ofY / sc), alt: 0,
       });
     };
 
@@ -680,6 +680,12 @@ export default function MacPage() {
             <div className="kt-geri-sayim">{hud.geriSayim}</div>
           </div>
         )}
+        {/* Maç sonu yaklaşırken son 5 saniye ekranda sayılır */}
+        {asama === "oyun" && hud.faz === "oyun" && hud.saniye <= 5 && hud.saniye > 0 && (
+          <div className="kt-orta-mesaj">
+            <div className="kt-geri-sayim son5">{hud.saniye}</div>
+          </div>
+        )}
         {golFlash > 0 && asama === "oyun" && (
           <div className="kt-orta-mesaj">
             <div className="kt-gol-yazi">GOOOL!</div>
@@ -805,10 +811,10 @@ function DokunmatikKontroller({ girdiRef, yb }) {
       <button className={`kt-tus sag ${basili.sag ? "basili" : ""}`} {...tut("sag")}>▶</button>
       <button className={`kt-tus zipla ${basili.zipla ? "basili" : ""}`} {...tut("zipla")}>⬆</button>
       <button className={`kt-tus vur ${basili.vur ? "basili" : ""}`} {...tut("vur")}>⚽</button>
-      <button className={`kt-tus guc ${basili.guc ? "basili" : ""}`} {...tut("guc")}>✨</button>
-      <div className="kt-guc-bar">
-        <div style={{ width: `${100 - Math.min(100, (yb / 15000) * 100)}%` }} />
-      </div>
+      {/* Soğuma ayrı bar yerine tuşun içinde sayılır (saha üstünde çizgi kalmasın) */}
+      <button className={`kt-tus guc ${basili.guc ? "basili" : ""} ${yb > 0 ? "soguyor" : ""}`} {...tut("guc")}>
+        {yb > 0 ? Math.ceil(yb / 1000) : "✨"}
+      </button>
     </div>
   );
 }

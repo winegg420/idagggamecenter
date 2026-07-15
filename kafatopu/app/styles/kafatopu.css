@@ -205,6 +205,10 @@
   text-shadow: 0 3px 8px rgba(0, 0, 0, 0.7);
 }
 .kt-geri-sayim { font-size: 5rem; font-weight: 900; animation: kt-zipla 0.5s ease infinite alternate; }
+/* Maç sonu son 5 saniye sayacı: turuncu, biraz küçük */
+.kt-geri-sayim.son5 { color: #ff9b2e; text-shadow: 0 3px 12px rgba(0,0,0,.5); }
+/* Güç tuşu soğurken sönük görünür, içinde kalan saniye yazar */
+.kt-tus.guc.soguyor { opacity: 0.55; font-weight: 900; }
 @keyframes kt-zipla { from { transform: scale(1); } to { transform: scale(1.15); } }
 .kt-gol-yazi { font-size: 4rem; font-weight: 900; color: #f2c522; animation: kt-zipla .3s ease infinite alternate; }
 
