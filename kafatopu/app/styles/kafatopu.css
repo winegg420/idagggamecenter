@@ -606,3 +606,12 @@
   overflow: hidden;
   text-overflow: ellipsis;
 }
+
+/* Yatay tutus ipucu birkac saniye sonra kaybolsun (mac boyunca durmasin) */
+@media (orientation: portrait) and (max-width: 700px) {
+  .kt-yatay-ipucu { animation: kt-ipucu-kaybol 6s forwards; }
+}
+@keyframes kt-ipucu-kaybol {
+  0%, 75% { opacity: 1; }
+  100% { opacity: 0; visibility: hidden; }
+}

@@ -129,10 +129,11 @@ export default function MacPage() {
       let puanDegisim = null;
 
       if (!botMu && tur === "ranked") {
-        // ELO sunucuda işlendi; kendi değişimimizi oku (kısa gecikmeyle dene).
-        for (let deneme = 0; deneme < 4 && puanDegisim === null; deneme++) {
+        // ELO sunucuda kesinleşince oku; iki taraflı onay mobil ağda birkaç
+        // saniye sürebilir, o yüzden sabırlı poll.
+        for (let deneme = 0; deneme < 8 && puanDegisim === null; deneme++) {
           try {
-            await new Promise((r) => setTimeout(r, 700));
+            await new Promise((r) => setTimeout(r, 900));
             const { data } = await supabase
               .from("kafatopu_mac_oyunculari")
               .select("puan_degisim, mac:kafatopu_maclar(durum)")
@@ -440,6 +441,24 @@ export default function MacPage() {
       }
     }, 1000);
 
+    // Mobil: maç sırasında ekran uykuya dalmasın (Wake Lock — destek yoksa
+    // sessizce geçilir). Görünürlük geri gelince kilit yeniden alınır.
+    let wakeLock = null;
+    const kilitAl = async () => {
+      try {
+        wakeLock = await navigator.wakeLock?.request("screen");
+      } catch { /* desteklenmiyor ya da izin yok — kritik değil */ }
+    };
+    kilitAl();
+
+    // Uygulama arka plana geçince: takılı kalan tuşları bırak + kilidi tazele.
+    const gorunurlukDegisti = () => {
+      girdi.sifirla();
+      if (document.visibilityState === "visible") kilitAl();
+    };
+    document.addEventListener("visibilitychange", gorunurlukDegisti);
+    window.addEventListener("blur", gorunurlukDegisti);
+
     boyutlandir();
     if (botMu) botKur();
     else onlineKur();
@@ -462,6 +481,9 @@ export default function MacPage() {
       clearInterval(nabiz);
       clearInterval(kopmaSayaci);
       window.removeEventListener("resize", boyutlandir);
+      document.removeEventListener("visibilitychange", gorunurlukDegisti);
+      window.removeEventListener("blur", gorunurlukDegisti);
+      try { wakeLock?.release(); } catch { /* zaten bırakılmış */ }
       girdi.yokEt();
       kanalRef.current?.kapat();
       kanalRef.current = null;
@@ -691,6 +713,8 @@ export default function MacPage() {
 function DokunmatikKontroller({ girdiRef, yb }) {
   const [basili, setBasili] = useState({});
   const tut = (ad) => ({
+    // Uzun basışta bağlam menüsü / seçim açılmasın (mobil)
+    onContextMenu: (e) => e.preventDefault(),
     onPointerDown: (e) => {
       e.preventDefault();
       e.currentTarget.setPointerCapture?.(e.pointerId);

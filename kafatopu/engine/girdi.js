@@ -46,6 +46,12 @@ export function girdiKur() {
     tusAyarla(ad, basili) {
       if (ad in dokunma) dokunma[ad] = basili;
     },
+    // Uygulama arka plana geçince çağrılır: kaçan pointerup/keyup yüzünden
+    // tuş "basılı" kalmasın (mobilde karakterin kendi kendine koşması bug'ı).
+    sifirla() {
+      for (const k of Object.keys(klavye)) klavye[k] = false;
+      for (const k of Object.keys(dokunma)) dokunma[k] = false;
+    },
     yokEt() {
       window.removeEventListener("keydown", bas);
       window.removeEventListener("keyup", birak);
