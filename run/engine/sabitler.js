@@ -88,13 +88,13 @@ export const BOT_KACIS_ZAMANI = 18;       // sn
 export const IZLEYICI_MAKS = 26;          // sn
 
 // Kapılar — oda duvarlarındaki geçitler. Kapalı kapı FİZİKSEL engeldir:
-// oyuncular ve botlar da geçemez (Q ile aç/kapa). Drone yarım saniyede açar.
+// oyuncular/botlar da geçemez (ama Q ile HERKES her an açıp kapatabilir).
+// DRONE kapalı kapıyı AÇAMAZ — beklemek zorunda; kapı 5 sn'de kendiliğinden açılır.
 export const KAPI_GENISLIK = 96;          // geçit boşluğu
 export const KAPI_KALINLIK = 14;          // duvar/kapı kalınlığı
 export const KAPI_MENZIL = 82;            // oyuncu bu mesafedeki kapıyı açıp kapatabilir
 export const KAPI_BEKLEME = 1.2;          // kapı aç/kapa cooldown (sn)
-export const KAPI_ACILMA = 14;            // kapalı kapı bu süre sonra kendiliğinden açılır
-export const KAPI_KIRILMA = 0.5;          // drone kapalı kapıyı bu sürede açar
+export const KAPI_ACILMA = 5;             // kapalı kapı bu süre sonra kendiliğinden açılır
 export const KAPI_BOT_ACMA = 0.7;         // bot kapalı kapıyı iterek bu sürede açar
 
 // Etkileşimli makine (ele geçirme / hack) — tasarım 6 devamı.
@@ -146,3 +146,9 @@ export const LOBI_ODA_W = 560;            // hazırlık odası genişliği
 export const LOBI_ODA_H = 420;            // hazırlık odası yüksekliği
 export const LOBI_KOR_W = 170;            // giriş koridoru genişliği
 export const LOBI_KOR_H = 980;            // giriş koridoru uzunluğu (yürüme/keşif payı)
+export const LOBI_RISK = 280;             // koridorun geçide yakın "riskli bölge" segmenti (renk/ışık değişir)
+
+// Çıkış rotasyonu — erken kaçışlarda kullanılan çıkış MÜHÜRLENİR, gizli bir
+// yedek çıkış aktifleşir; bu sayıya ulaşınca protokol çözülür (mühür durur,
+// kalan çıkışları herkes kullanabilir).
+export const SERBEST_KACIS = 3;

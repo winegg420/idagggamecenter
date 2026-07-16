@@ -10,23 +10,30 @@ import { OFIS, yurunebilir } from "./harita.js";
 const HUCRE = 26;                       // ızgara çözünürlüğü (kapı geçidi ~76px → 2-3 hücre)
 const ENGELLI = -1, ULASILMAZ = -2;
 
-function alanKur(harita) {
+// Yürünebilirlik ızgarası bir kez kurulur (geometri sabit); akış alanı ise
+// KAYNAK çıkış kümesinden yeniden hesaplanabilir — çıkışlar mühürlenip yedekler
+// aktifleştikçe botlar hep KULLANILABİLİR çıkışa yönelir.
+let yurunurOnbellek = null;
+function alanKur(harita, kaynaklar) {
   const kol = Math.ceil(harita.genislik / HUCRE);
   const sat = Math.ceil(harita.yukseklik / HUCRE);
   const mesafe = new Int32Array(kol * sat).fill(ULASILMAZ);
 
   const merkez = (c, r) => [c * HUCRE + HUCRE / 2, r * HUCRE + HUCRE / 2];
-  const yurunur = new Uint8Array(kol * sat);
-  for (let r = 0; r < sat; r++) {
-    for (let c = 0; c < kol; c++) {
-      const [x, y] = merkez(c, r);
-      yurunur[r * kol + c] = yurunebilir(harita, x, y) ? 1 : 0;
+  if (!yurunurOnbellek) {
+    yurunurOnbellek = new Uint8Array(kol * sat);
+    for (let r = 0; r < sat; r++) {
+      for (let c = 0; c < kol; c++) {
+        const [x, y] = merkez(c, r);
+        yurunurOnbellek[r * kol + c] = yurunebilir(harita, x, y) ? 1 : 0;
+      }
     }
   }
+  const yurunur = yurunurOnbellek;
 
-  // Kaynak: çıkış dikdörtgenlerinin kapsadığı yürünebilir hücreler
+  // Kaynak: verilen çıkış dikdörtgenlerinin kapsadığı yürünebilir hücreler
   const kuyruk = [];
-  for (const ck of harita.cikislar) {
+  for (const ck of kaynaklar) {
     const c0 = Math.floor(ck.x / HUCRE), c1 = Math.floor((ck.x + ck.w) / HUCRE);
     const r0 = Math.floor(ck.y / HUCRE), r1 = Math.floor((ck.y + ck.h) / HUCRE);
     for (let r = r0; r <= r1 && r < sat; r++) {
@@ -54,7 +61,13 @@ function alanKur(harita) {
   return { kol, sat, mesafe, yurunur };
 }
 
-const ALAN = alanKur(OFIS);
+let ALAN = alanKur(OFIS, OFIS.cikislar);
+
+// Akış alanını verilen (kullanılabilir) çıkış kümesinden yeniden kurar.
+// Round başında ve her mühürleme/aktifleşmede çağrılır (BFS ~30k hücre, ucuz).
+export function akisAlaniKur(cikisler) {
+  ALAN = alanKur(OFIS, cikisler && cikisler.length ? cikisler : OFIS.cikislar);
+}
 
 // (x,y) noktasından çıkışa doğru birim yön vektörü. Yol yoksa null.
 export function cikisYonu(x, y) {

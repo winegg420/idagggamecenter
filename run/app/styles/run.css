@@ -350,6 +350,23 @@
   .run-hud-ipucu { display: none; }
 }
 
+.run-izleyici-gec {
+  position: fixed;
+  left: 50%;
+  bottom: calc(30px + env(safe-area-inset-bottom));
+  transform: translateX(-50%);
+  padding: 10px 22px;
+  border-radius: 10px;
+  border: 1px solid rgba(120, 200, 240, 0.5);
+  background: rgba(12, 22, 36, 0.85);
+  color: #cfe8f7;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  z-index: 6;
+}
+.run-izleyici-gec:active { background: rgba(46, 110, 165, 0.5); }
+
 .run-cikis-btn {
   position: fixed;
   right: 12px; top: 12px;

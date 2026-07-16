@@ -18,7 +18,8 @@ import {
   DASH_SURE, DASH_CARPAN, DASH_BEKLEME, CIP_SAYISI, CIP_YARICAP,
   NESNE_AKTIF_ARALIK, NESNE_AKTIF_SURE, NESNE_CEK_MENZIL,
   BOT_KACIS_ZAMANI, IZLEYICI_MAKS,
-  KAPI_MENZIL, KAPI_BEKLEME, KAPI_ACILMA, KAPI_KIRILMA, KAPI_BOT_ACMA,
+  KAPI_MENZIL, KAPI_BEKLEME, KAPI_ACILMA, KAPI_BOT_ACMA,
+  LOBI_RISK, SERBEST_KACIS,
   HACK_MENZIL, HACK_SURE, HACK_SERSEM_MENZIL, SERSEM_SURE, PARCACIK_MAKS,
   TARAMA_MENZIL, TARAMA_ACI, TARAMA_SALINIM, CIKIS_SURE,
   GERGINLIK_KOVALA, GERGINLIK_YAKIN, GERGINLIK_AZALIS, SAKIN_SURE,
@@ -28,9 +29,16 @@ import {
   SON_BASKI_CARPAN, TESPIT_FLASH, KALP_MESAFE_CARPAN,
 } from "./sabitler.js";
 import { OFIS, yurunebilir, duvarKesiyorMu } from "./harita.js";
-import { cikisYonu } from "./navigasyon.js";
+import { cikisYonu, akisAlaniKur } from "./navigasyon.js";
 
 const BOT_ADLARI = ["Neo", "Trinity", "Ghost", "Vega", "Kilo", "Rook", "Delta"];
+
+// Lobi sohbeti — botlar hazırlık bölgesinde gerçek oyuncular gibi laflar
+const SOHBET = [
+  "hazır mısın?", "bu sefer çıkıyorum 😤", "kılıcı dene (J)", "dash çok hızlı ya",
+  "geçitten sonra dönüş yok", "önce panel, sonra kaçış", "beraber mi girelim?",
+  "ben önden giderim", "şşş... duydun mu?", "çipleri unutma 💿", "kapıları kapat, drone giremez",
+];
 
 function rastgele(min, max) { return min + Math.random() * (max - min); }
 
@@ -73,10 +81,18 @@ function aydinliktaMi(harita, x, y) {
   return false;
 }
 
-// En yakın çıkışın merkezi.
+// Kullanılabilir çıkışlar: AÇIK olan varsa yalnız açıklar (botlar oraya aksın);
+// hiçbiri açık değilse mevcut+mühürsüz kilitliler (panel açılmayı bekler).
+function kullanilabilirCikislar(harita) {
+  const acik = harita.cikislar.filter((c) => c.acik && c.mevcut && !c.muhur);
+  if (acik.length) return acik;
+  return harita.cikislar.filter((c) => c.mevcut && !c.muhur);
+}
+
+// En yakın KULLANILABİLİR çıkışın merkezi (gizli/mühürlü çıkışlar hedef olamaz).
 function enYakinCikis(harita, x, y) {
   let en = null, enD = Infinity;
-  for (const c of harita.cikislar) {
+  for (const c of kullanilabilirCikislar(harita)) {
     const cx = c.x + c.w / 2, cy = c.y + c.h / 2, d = Math.hypot(cx - x, cy - y);
     if (d < enD) { enD = d; en = { x: cx, y: cy }; }
   }
@@ -148,6 +164,12 @@ function kapiAc(durum, k, droneAcisi) {
 
 // --- Ele geçirme (hack) ---
 // Hedef adayları: aktif makineler + açılmamış ÇIKIŞ PANELLERİ (aynı mekanik).
+// Gizli ya da mühürlü çıkışın paneli hack'lenemez.
+export function panelHacklenebilir(harita, p) {
+  if (p.acildi) return false;
+  const c = harita.cikislar[p.cikis];
+  return !!c && c.mevcut && !c.muhur;
+}
 function enYakinHackHedefi(harita, x, y, menzil) {
   let en = null, enD = menzil;
   for (const n of harita.nesneler || []) {
@@ -156,7 +178,7 @@ function enYakinHackHedefi(harita, x, y, menzil) {
     if (d < enD) { enD = d; en = n; }
   }
   for (const p of harita.paneller || []) {
-    if (p.acildi) continue;
+    if (!panelHacklenebilir(harita, p)) continue;
     const d = Math.hypot(p.x - x, p.y - y);
     if (d < enD) { enD = d; en = p; }
   }
@@ -206,11 +228,34 @@ function akisEkle(durum, metin) {
 }
 
 // Bir oyuncuyu çözer (kaçtı ya da yakalandı) ve akışa yazar.
+// ÇIKIŞ ROTASYONU: erken kaçışlarda kullanılan çıkış MÜHÜRLENİR ve gizli bir
+// yedek çıkış aktifleşir; SERBEST_KACIS kaçışa ulaşılınca protokol çözülür —
+// mühürleme durur, kalan çıkışları herkes kullanabilir.
 function cikisIsle(durum, s) {
   if (s.yakalandi || s.cikti) return;
   s.cikti = true; s._bitisZaman = durum.zaman;
   akisEkle(durum, `🏃 ${s.ad} çıkışa ulaştı`);
   durum.sesler.push(s.id === "ben" ? "kacti" : "kapi");
+  durum.kacisSayisi++;
+  if (durum.kacisSayisi >= SERBEST_KACIS) {
+    if (!durum._serbest) {
+      durum._serbest = true;
+      durum.sesler.push("alarm");
+      akisEkle(durum, "🔓 Çıkış protokolü çözüldü — çıkışlar artık mühürlenmiyor!");
+    }
+    return;
+  }
+  const cikis = durum.harita.cikislar.find((c) =>
+    c.acik && s.x >= c.x && s.x <= c.x + c.w && s.y >= c.y && s.y <= c.y + c.h);
+  const yedek = durum.harita.cikislar.find((c) => !c.mevcut);
+  if (!cikis || !yedek) return;    // yedek kalmadıysa mühürleme yapılmaz (yol hep açık)
+  cikis.muhur = true; cikis.acik = false;
+  yedek.mevcut = true;
+  // Bot akış alanını yeni kullanılabilir çıkış kümesine göre yeniden kur
+  akisAlaniKur(kullanilabilirCikislar(durum.harita));
+  durum.sesler.push("alarm");
+  akisEkle(durum, `🚪 ${cikis.ad} mühürlendi — YENİ ÇIKIŞ: ${yedek.ad} (kilitli)`);
+  parcacikEkle(durum, cikis.x + cikis.w / 2, cikis.y + cikis.h / 2, 20, "255,120,90", 170, 2.4);
 }
 function yakalanIsle(durum, s) {
   if (s.yakalandi || s.cikti) return;
@@ -258,7 +303,7 @@ export function createDurum() {
       x: dk.x, y: dk.y, aci: 0, mod: "devriye", hedefId: null, hedefX: dk.x, hedefY: dk.y,
       kayip: 0, sersem: 0, _kilit: 0, _ates: 0, hp: DRONE_HP, yok: 0,
       _faz: Math.random() * Math.PI * 2,               // tarama konisi salınım fazı
-      _bekci: i < harita.cikislar.length ? i : -1,     // ilk 3 drone çıkış bekçisi
+      _bekci: i < 3 ? i : -1,                          // ilk 3 drone başlangıç çıkışlarının bekçisi
       tip: "normal",                                   // kademe 3-4'te: "agir" | "sessiz"
       _ipucu: null, _destek: -1, _alarm: 0,            // yönetmen ipucu / destek hedefi / panel alarmı
     });
@@ -281,16 +326,21 @@ export function createDurum() {
   for (const n of harita.nesneler || []) { n.aktif = false; n._sure = 0; }
   // Kapılar açık başlar.
   for (const k of harita.kapilar || []) { k.kapali = false; k._acilma = 0; k.kirilma = 0; }
-  // Çıkışlar KİLİTLİ başlar — yakınındaki panel hack'lenince kalıcı açılır.
-  for (const c of harita.cikislar) c.acik = false;
+  // Çıkışlar KİLİTLİ başlar — yakınındaki panel hack'lenince açılır.
+  // Yedek çıkışlar GİZLİ başlar (mevcut=false); mühürleme oldukça aktifleşirler.
+  for (const c of harita.cikislar) { c.acik = false; c.mevcut = !c.yedek; c.muhur = false; }
   for (const p of harita.paneller || []) p.acildi = false;
+  // Bot akış alanı: yalnız KULLANILABİLİR çıkışlara yönlendirsin
+  akisAlaniKur(kullanilabilirCikislar(harita));
 
   return {
     harita, oyuncular, droneler, cipler,
     parcaciklar: [],
     sarsinti: 0, hitstop: 0,     // ekran sarsıntısı + vuruş donması (aksiyon hissi)
     // LOBİ fazı: droneler/zorluk/yönetmen devrede değil; giriş geçidi aşılınca "aksiyon"
-    faz: "lobi", aksiyonBas: 0,
+    faz: "lobi", aksiyonBas: 0, _riskUyari: false, _sohbetCd: 2,
+    // Çıkış rotasyonu durumu + izleyici fener yumuşatması
+    kacisSayisi: 0, _serbest: false, izlAci: -Math.PI / 2,
     zaman: 0, isikSayaci: ISIK_DEGISIM_ARALIK,
     bitti: false, sonuc: null,   // 'kacti' | 'yakalandi'
     izleyici: false, _izleyiciSayaci: 0,
@@ -338,9 +388,12 @@ function aksiyonBaslat(durum, gk) {
 // 2. çıkış açılınca kısa süreli GENEL ALARM (tüm droneler hızlı devriye).
 function panelAc(durum, panel) {
   if (panel.acildi) return;
-  panel.acildi = true;
   const cikis = durum.harita.cikislar[panel.cikis];
+  if (!cikis || !cikis.mevcut || cikis.muhur) return;   // gizli/mühürlü çıkışın paneli işlemez
+  panel.acildi = true;
   cikis.acik = true;
+  // Artık açık bir çıkış var: bot akışı açık çıkış(lar)a yönelsin
+  akisAlaniKur(kullanilabilirCikislar(durum.harita));
   durum.sesler.push("alarm");
   akisEkle(durum, `🚨 ${cikis.ad} aktif edildi!`);
   parcacikEkle(durum, panel.x, panel.y, 26, "120,255,170", 210, 2.8);
@@ -495,6 +548,22 @@ export function guncelle(durum, dt, girdi) {
 
   const lobide = durum.faz === "lobi";     // hazırlık fazı: tehdit sistemleri kapalı
 
+  // Lobi sohbeti: botlar arada bir laflar (gerçek oyuncular takılıyor hissi)
+  if (lobide) {
+    durum._sohbetCd -= dt;
+    if (durum._sohbetCd <= 0) {
+      durum._sohbetCd = 2.2 + Math.random() * 3.4;
+      const sessizler = durum.oyuncular.filter((s) => s.bot && !s._sohbet);
+      if (sessizler.length) {
+        const s = sessizler[Math.floor(Math.random() * sessizler.length)];
+        s._sohbet = { metin: SOHBET[Math.floor(Math.random() * SOHBET.length)], sure: 3.4 };
+      }
+    }
+  }
+  for (const s of durum.oyuncular) {
+    if (s._sohbet && (s._sohbet.sure -= dt) <= 0) s._sohbet = null;
+  }
+
   // Kapılar: kapalı kapı süresi dolunca kendiliğinden açılır (mühürlü giriş hariç).
   for (const k of durum.harita.kapilar) {
     if (!k.kapali || k.girisi) continue;
@@ -576,7 +645,7 @@ export function guncelle(durum, dt, girdi) {
         // Kilitli çıkış: bot önce yakındaki paneli açar (kilitli çıkışta takılı kalmaz).
         let panel = null, panelUz = 620;
         for (const p of durum.harita.paneller || []) {
-          if (p.acildi) continue;
+          if (!panelHacklenebilir(durum.harita, p)) continue;
           const pd = Math.hypot(p.x - s.x, p.y - s.y);
           if (pd < panelUz) { panelUz = pd; panel = p; }
         }
@@ -600,10 +669,11 @@ export function guncelle(durum, dt, girdi) {
           }
         }
       } else {
-        // Oyuncudan çok uzaklaşınca ona doğru yönel (grup halinde görünür kalsınlar)
+        // Oyuncudan çok uzaklaşınca ona doğru yönel (grup halinde görünür kalsınlar);
+        // lobide daha sıkı kümelenirler (yan yana takılma/sohbet hissi)
         const ben0 = durum.oyuncular[0];
         const gdx = ben0.x - s.x, gdy = ben0.y - s.y, gd = Math.hypot(gdx, gdy);
-        if (gd > BOT_GRUP_MENZIL) s._yon = Math.atan2(gdy, gdx) + (Math.random() - 0.5) * 0.7;
+        if (gd > (lobide ? 190 : BOT_GRUP_MENZIL)) s._yon = Math.atan2(gdy, gdx) + (Math.random() - 0.5) * 0.7;
       }
       // Hayatta kalma içgüdüsü: yakın (sersem olmayan) drone'dan uzaklaş — her moddan öncelikli.
       let kx = 0, ky = 0;
@@ -696,8 +766,14 @@ export function guncelle(durum, dt, girdi) {
 
   const ben0 = durum.oyuncular[0];
 
-  // LOBİ fazı: oyuncu giriş geçidini aştı mı? Aştıysa aksiyon başlar.
+  // LOBİ fazı: riskli bölge uyarısı + geçit aşıldıysa aksiyon başlar.
   if (durum.faz === "lobi") {
+    const riskY = (durum.harita.tesisYuksekligi || 0) + LOBI_RISK;
+    if (!durum._riskUyari && ben0.y < riskY) {
+      durum._riskUyari = true;
+      durum.sesler.push("alarm");
+      akisEkle(durum, "⚠ Riskli bölge — geçitten sonra dönüş yok!");
+    }
     const gk = durum.harita.kapilar.find((k) => k.girisi);
     if (gk && ben0.y < gk.y - 26) aksiyonBaslat(durum, gk);
   }
@@ -833,15 +909,11 @@ export function guncelle(durum, dt, girdi) {
     d._tarama = d.mod === "kovala" ? d.aci : d.aci + Math.sin(durum.zaman * 1.3 + d._faz) * TARAMA_SALINIM;
     const ddx = d.hedefX - d.x, ddy = d.hedefY - d.y, duz = Math.hypot(ddx, ddy) || 1;
     const nx = d.x + (ddx / duz) * hiz * dt, ny = d.y + (ddy / duz) * hiz * dt;
-    // Kapalı kapı enerji perdesi: drone geçemez, kırmak zorunda (oyuncuya zaman kazandırır).
-    // Mühürlü giriş geçidi (girisi) KIRILAMAZ — lobi kalıcı olarak kapalıdır.
+    // Kapalı kapı enerji perdesi: DRONE AÇAMAZ — beklemek zorunda (kapı 5 sn'de
+    // kendiliğinden açılır, oyuncular Q ile her an açıp kapatabilir).
     const perde = durum.harita.kapilar.find((k) => k.kapali && kapidaMi(k, nx, ny));
     if (perde) {
-      if (!perde.girisi) {
-        perde.kirilma += dt;
-        if (Math.random() < dt * 12) parcacikEkle(durum, nx, ny, 1, "255,90,70", 90, 1.8);
-        if (perde.kirilma >= KAPI_KIRILMA) kapiAc(durum, perde, true);
-      }
+      if (Math.random() < dt * 8) parcacikEkle(durum, nx, ny, 1, "255,90,70", 90, 1.8);
     } else {
       d.x = nx; d.y = ny;
     }
@@ -898,6 +970,15 @@ export function guncelle(durum, dt, girdi) {
   if (ben.yakalandi || ben.cikti) {
     const mevcut = durum.oyuncular.find((s) => s.id === durum.izlenenId && !s.yakalandi && !s.cikti);
     izlenen = mevcut || durum.oyuncular.find((s) => !s.yakalandi && !s.cikti) || ben;
+  }
+  // İzleyici fener yumuşatması: bot yön değiştirdikçe ışık konisi savrulup
+  // "ekran bug'ı" gibi çakmasın — açı sarmalı lerp ile takip edilir.
+  if (durum.izlenenId !== izlenen.id) durum.izlAci = izlenen.aci;
+  else {
+    let fark = izlenen.aci - durum.izlAci;
+    while (fark > Math.PI) fark -= Math.PI * 2;
+    while (fark < -Math.PI) fark += Math.PI * 2;
+    durum.izlAci += fark * Math.min(1, dt * 7);
   }
   durum.izlenenId = izlenen.id;
   durum.kamera.x += (izlenen.x - durum.kamera.x) * Math.min(1, dt * 6);

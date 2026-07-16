@@ -434,6 +434,42 @@ uygulandı. Faz 2.3 (çıkış konumu varyasyonu) spec'in kendi önerisiyle ATLA
   akış alanı %100). Test: scratchpad `run-lobi-test.mjs`.
 - `npm run build` OK (RunApp 78.5 kB). Gerçek iPhone/Android testi İda'da.
 
+## 2026-07-17 (2. tur) — Kapı revizyonu + çıkış rotasyonu + lobi kompleksi + izleyici düzeltmeleri
+
+### Kapılar (İda: "drone geçemesin, 5 sn'de açılsın, herkes açıp kapatabilsin")
+- `KAPI_ACILMA` 14→**5 sn** (kapalı kapı kendiliğinden açılır).
+- **Drone kapalı kapıyı artık AÇAMAZ/KIRAMAZ** — perde önünde bekler (kırılma mekaniği ve
+  çubuğu kaldırıldı). Oyuncular Q ile her an açıp kapatır, botlar iterek açabilir (0.7 sn).
+
+### Çıkış rotasyonu (tek kullanımlık erken çıkışlar)
+- Harita 3→**6 çıkış slotu**: Batı/Doğu/Kuzey görünür başlar; **Servis Çıkışı, Yükleme
+  Rampası, Acil Tünel GİZLİ yedek** (çizilmez, paneli işlemez).
+- İlk kaçışlarda kullanılan çıkış **MÜHÜRLENİR** (gri ✖, tekrar açılamaz) ve bir yedek
+  **aktifleşir** (kilitli belirir, kill feed duyurur). `SERBEST_KACIS=3` kaçışa ulaşılınca
+  "🔓 çıkış protokolü çözüldü" — mühürleme durur, kalan çıkışları herkes kullanır.
+- **Akış alanı artık dinamik** (`navigasyon.akisAlaniKur`): yürünürlük ızgarası önbellekli,
+  BFS kaynağı = kullanılabilir çıkışlar (AÇIK varsa yalnız açıklar). Round başında, panel
+  açılınca ve mühürlemede yeniden kurulur → botlar asla mühürlü/gizli çıkışta takılmaz.
+
+### Lobi kompleksi (İda: "birkaç oda gezsinler, sohbet etsinler, risk bölgesi renk değiştirsin")
+- Lobi artık 6 alan: Hazırlık Lobisi + **Eğitim Odası** (tezgahlar) + **Ekipman Odası**
+  (raf/kutu) + bağlantı koridorları + Giriş Koridoru.
+- **Sohbet balonları:** lobide botlar 2-6 sn arayla kısa laflar atar ("hazır mısın?",
+  "önce panel, sonra kaçış"...); lobide oyuncu etrafında daha sıkı kümelenirler.
+- **Riskli bölge:** koridorun geçide yakın 280 birimi kırmızı zemin + tehlike şeritleri +
+  "⚠ RİSKLİ BÖLGE" + kızaran ok/kenar ışıkları; içine ilk girişte alarm + akış uyarısı.
+
+### Yakalanma sonrası temizlik (İda: "karakter takılıyor, ekran bugları")
+- Yakalanan/kaçan oyuncular sahadan kalkar (gri ceset/yeşil hayalet çizimi kaldırıldı).
+- İzleyici fener açısı `izlAci` sarmallı lerp ile yumuşatıldı — izlenen bot ani dönünce
+  ışık konisi savrulup ekran çakması yapmıyor.
+- **▶ İzlemeyi Geç** butonu (izleyici modunda alt-orta): round beklemeden sonuca atlar.
+
+### Doğrulama
+- Başsız test **37/37**, 3 kez üst üste (kapı 5 sn otomatik açılış, mühür+yedek aktifleşme,
+  3. kaçışta serbest mod, lobi sohbeti, riskli bölge uyarısı, 7/7 bot çözülüyor, NaN yok).
+- `npm run build` OK (RunApp 82.9 kB).
+
 ## Sıradaki
 - **Multiplayer** (PatiRun/Bildim presence+broadcast) — spec Faz 10, backend gerektirir; **en son**.
 - İsteğe bağlı: round sonucu/istatistik kalıcılığı (şu an hiçbir şey kaydedilmiyor — bilinçli).

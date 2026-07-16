@@ -8,12 +8,12 @@
 
 import {
   GORUS_YARICAP, FENER_UZUNLUK, FENER_ACI, OYUNCU_YARICAP, KARANLIK_ALFA,
-  KAPI_KALINLIK, KAPI_KIRILMA, KAPI_MENZIL, HACK_SURE, HACK_MENZIL,
-  TARAMA_MENZIL, CIKIS_SURE,
+  KAPI_KALINLIK, KAPI_MENZIL, KAPI_BEKLEME, HACK_SURE, HACK_MENZIL,
+  TARAMA_MENZIL, CIKIS_SURE, LOBI_RISK,
   SOPA_MENZIL, SOPA_ACI, SOPA_SAVURMA, SOPA_BEKLEME, DASH_BEKLEME,
 } from "./sabitler.js";
 import { odaAdi } from "./harita.js";
-import { taramaAcisi } from "./durum.js";
+import { taramaAcisi, panelHacklenebilir } from "./durum.js";
 
 // --- Işık oklüzyonu (fener duvardan sızmasın) ---
 // Duvar dikdörtgenlerinin ışığa sırtı dönük kenarlarından gölge dörtgenleri
@@ -172,32 +172,42 @@ export function ciz(ctx, durum, view) {
     }
   }
   // Çıkış kapıları: AÇIK → yeşil kayan şeritli "acil çıkış"; KİLİTLİ → kırmızı,
-  // durağan şeritli, kilit sembollü (panel hack'lenince yeşile döner).
+  // durağan şeritli, kilit sembollü. MÜHÜRLÜ → gri, ✖ (biri kullandı, kapandı).
+  // GİZLİ (mevcut değil) çıkışlar hiç çizilmez — aktifleşince belirir.
   for (const c of durum.harita.cikislar) {
-    const acik = !!c.acik;
-    ctx.fillStyle = acik ? "#12351f" : "#3a1414"; ctx.fillRect(c.x, c.y, c.w, c.h);
-    ctx.save();
-    ctx.beginPath(); ctx.rect(c.x, c.y, c.w, c.h); ctx.clip();
-    const yatayGecit = c.w > c.h;              // kuzey çıkışı yatay, yan çıkışlar dikey
-    const kayma = acik ? (t * 36) % 22 : 0;    // kilitliyken şeritler akmaz
-    ctx.fillStyle = acik
-      ? `rgba(70,240,130,${0.30 + 0.12 * Math.sin(t * 5)})`
-      : `rgba(255,80,70,${0.22 + 0.10 * Math.sin(t * 2.5)})`;
-    if (yatayGecit) for (let sy = c.y - 22 + kayma; sy < c.y + c.h; sy += 22) ctx.fillRect(c.x + 4, sy, c.w - 8, 7);
-    else for (let sx = c.x - 22 + kayma; sx < c.x + c.w; sx += 22) ctx.fillRect(sx, c.y + 4, 7, c.h - 8);
-    ctx.restore();
-    ctx.strokeStyle = acik ? "rgba(90,255,150,0.85)" : "rgba(255,90,80,0.85)"; ctx.lineWidth = 3;
+    if (!c.mevcut) continue;
+    const acik = !!c.acik, muhur = !!c.muhur;
+    ctx.fillStyle = muhur ? "#232028" : acik ? "#12351f" : "#3a1414"; ctx.fillRect(c.x, c.y, c.w, c.h);
+    if (!muhur) {
+      ctx.save();
+      ctx.beginPath(); ctx.rect(c.x, c.y, c.w, c.h); ctx.clip();
+      const yatayGecit = c.w > c.h;              // üst/alt çıkışlar yatay, yan çıkışlar dikey
+      const kayma = acik ? (t * 36) % 22 : 0;    // kilitliyken şeritler akmaz
+      ctx.fillStyle = acik
+        ? `rgba(70,240,130,${0.30 + 0.12 * Math.sin(t * 5)})`
+        : `rgba(255,80,70,${0.22 + 0.10 * Math.sin(t * 2.5)})`;
+      if (yatayGecit) for (let sy = c.y - 22 + kayma; sy < c.y + c.h; sy += 22) ctx.fillRect(c.x + 4, sy, c.w - 8, 7);
+      else for (let sx = c.x - 22 + kayma; sx < c.x + c.w; sx += 22) ctx.fillRect(sx, c.y + 4, 7, c.h - 8);
+      ctx.restore();
+    }
+    ctx.strokeStyle = muhur ? "rgba(150,140,160,0.6)" : acik ? "rgba(90,255,150,0.85)" : "rgba(255,90,80,0.85)";
+    ctx.lineWidth = 3;
     ctx.strokeRect(c.x + 1.5, c.y + 1.5, c.w - 3, c.h - 3);
     if (!acik) {
-      ctx.fillStyle = "rgba(255,150,140,0.95)"; ctx.font = "bold 16px system-ui";
+      ctx.fillStyle = muhur ? "rgba(190,180,200,0.9)" : "rgba(255,150,140,0.95)";
+      ctx.font = "bold 16px system-ui";
       ctx.textAlign = "center"; ctx.textBaseline = "middle";
-      ctx.fillText("🔒", c.x + c.w / 2, c.y + c.h / 2);
+      ctx.fillText(muhur ? "✖" : "🔒", c.x + c.w / 2, c.y + c.h / 2);
     }
   }
-  // Çıkış panelleri: terminal kutusu — açılmamış turuncu nabız, açılmış sönük yeşil
+  // Çıkış panelleri: terminal kutusu — açılmamış turuncu nabız, açılmış sönük
+  // yeşil, mühürlü çıkışınki ölü gri. Gizli çıkışın paneli çizilmez.
   for (const p of durum.harita.paneller || []) {
-    const pn = p.acildi ? 0 : 0.5 + 0.5 * Math.sin(t * 6);
-    if (!p.acildi) {
+    const pc = durum.harita.cikislar[p.cikis];
+    if (!pc || !pc.mevcut) continue;
+    const olu = pc.muhur && !p.acildi;
+    const pn = p.acildi || olu ? 0 : 0.5 + 0.5 * Math.sin(t * 6);
+    if (!p.acildi && !olu) {
       ctx.save();
       ctx.strokeStyle = `rgba(255,190,80,${0.35 + 0.4 * pn})`; ctx.lineWidth = 2.5;
       ctx.shadowColor = "rgba(255,190,80,0.9)"; ctx.shadowBlur = 16;
@@ -205,9 +215,11 @@ export function ciz(ctx, durum, view) {
       ctx.restore();
     }
     ctx.fillStyle = "#101820"; ctx.fillRect(p.x - 10, p.y - 8, 20, 16);
-    ctx.fillStyle = p.acildi ? "rgba(90,220,140,0.75)" : `rgba(255,190,80,${0.55 + 0.4 * pn})`;
+    ctx.fillStyle = olu ? "rgba(110,110,125,0.6)"
+      : p.acildi ? "rgba(90,220,140,0.75)" : `rgba(255,190,80,${0.55 + 0.4 * pn})`;
     ctx.fillRect(p.x - 8, p.y - 6, 16, 12);
-    ctx.strokeStyle = p.acildi ? "rgba(120,255,170,0.7)" : "rgba(255,210,120,0.9)";
+    ctx.strokeStyle = olu ? "rgba(140,140,155,0.6)"
+      : p.acildi ? "rgba(120,255,170,0.7)" : "rgba(255,210,120,0.9)";
     ctx.lineWidth = 1.5; ctx.strokeRect(p.x - 10, p.y - 8, 20, 16);
   }
 
@@ -254,11 +266,35 @@ export function ciz(ctx, durum, view) {
   if (!genel) {
     for (const s of durum.oyuncular) {
       if (s.id === izlenen.id) continue;
+      // Yakalanan/kaçan oyuncular sahadan KALKAR — takılı ceset/hayalet çizilmez
+      // (yakalanma sonrası "karakter takılıyor" ekran bug'ı kapatıldı).
+      if (s.yakalandi || s.cikti) continue;
       // Görünürlük kuralı gövdeye de uygulanır: ışığında (veya aydınlık odada,
       // görüş hattı açıkken) değilse SİLÜETİ BİLE çizilmez.
       if (!isikta(durum.harita, izlenen, s.x, s.y)) continue;
-      const renk = s.yakalandi ? "#5a6472" : s.cikti ? "#4dd08a" : s.id === "ben" ? "#f0c651" : "#49c6e0";
-      cizKisi(ctx, s.x, s.y, s, renk, t, s.id === "ben" && !s.yakalandi);
+      const renk = s.id === "ben" ? "#f0c651" : "#49c6e0";
+      cizKisi(ctx, s.x, s.y, s, renk, t, s.id === "ben");
+    }
+    // Lobi sohbet balonları: konuşan botların üstünde kısa laflar (aydınlık bölge)
+    for (const s of durum.oyuncular) {
+      if (!s._sohbet || s.yakalandi || s.cikti) continue;
+      if (s.id !== izlenen.id && !isikta(durum.harita, izlenen, s.x, s.y)) continue;
+      const metin = s._sohbet.metin;
+      const al = Math.min(1, s._sohbet.sure / 0.5);
+      ctx.save();
+      ctx.font = "11px system-ui"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+      const gen = ctx.measureText(metin).width + 16;
+      const bx0 = s.x, by0 = s.y - 34;
+      ctx.globalAlpha = al;
+      ctx.fillStyle = "rgba(12,20,30,0.88)";
+      yuvarlakDikdortgen(ctx, bx0 - gen / 2, by0 - 11, gen, 22, 8); ctx.fill();
+      ctx.strokeStyle = "rgba(110,235,205,0.5)"; ctx.lineWidth = 1;
+      yuvarlakDikdortgen(ctx, bx0 - gen / 2, by0 - 11, gen, 22, 8); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(bx0 - 4, by0 + 11); ctx.lineTo(bx0 + 4, by0 + 11); ctx.lineTo(bx0, by0 + 17); ctx.closePath();
+      ctx.fillStyle = "rgba(12,20,30,0.88)"; ctx.fill();
+      ctx.fillStyle = "#d9f6ec";
+      ctx.fillText(metin, bx0, by0);
+      ctx.restore();
     }
     for (const dr of durum.droneler || []) { if (dr.yok > 0) continue; cizDrone(ctx, dr.x, dr.y, dr.aci, dr.mod === "kovala", t, dr.sersem > 0, dr.tip); }
     // Drone kilit/ateş ışını (kovaladığı hedefe)
@@ -282,7 +318,9 @@ export function ciz(ctx, durum, view) {
   // --- Normal mod: STEALTH karanlık + fener (ekran uzayı, duvar gölgeli) ---
   if (!genel) {
     const [bx, by] = w2s(izlenen.x, izlenen.y);
-    const aci = izlenen.aci;
+    // İzleyicideyken fener açısı yumuşatılmış izlAci'den gelir (bot ani dönüşleri
+    // ışığı savurup ekran çakması yapmasın); kendi karakterinde gecikmesiz.
+    const aci = izlenen.id === "ben" ? izlenen.aci : (durum.izlAci ?? izlenen.aci);
     const golge = golgeYolu(durum.harita, izlenen.x, izlenen.y, w2s);
     const L = isikKatmani(w, h);
 
@@ -476,7 +514,7 @@ export function ciz(ctx, durum, view) {
       } else {
         panelMi = true;
         for (const p of durum.harita.paneller || []) {
-          if (p.acildi) continue;
+          if (!panelHacklenebilir(durum.harita, p)) continue;
           const u = Math.hypot(p.x - izlenen.x, p.y - izlenen.y);
           if (u < enU) { enU = u; enC = { x: p.x, y: p.y }; }
         }
@@ -497,11 +535,13 @@ export function ciz(ctx, durum, view) {
         ctx.fillText((panelMi ? "PANEL " : "") + Math.round(enU / 10) + "m", 0, 16);
         ctx.restore();
       }
-      // Kilitli çıkışın içinde bekliyorsa uyar: önce panel açılmalı
-      if (durum.harita.cikislar.some((c) => !c.acik &&
-        izlenen.x >= c.x && izlenen.x <= c.x + c.w && izlenen.y >= c.y && izlenen.y <= c.y + c.h)) {
-        ctx.fillStyle = "rgba(255,150,120,0.95)"; ctx.font = "bold 13px system-ui"; ctx.textAlign = "center";
-        ctx.fillText("🔒 KİLİTLİ — önce paneli hackle", bx, by - 42);
+      // Kilitli/mühürlü çıkışın içinde bekliyorsa uyar
+      const ustunde = durum.harita.cikislar.find((c) => c.mevcut && !c.acik &&
+        izlenen.x >= c.x && izlenen.x <= c.x + c.w && izlenen.y >= c.y && izlenen.y <= c.y + c.h);
+      if (ustunde) {
+        ctx.fillStyle = ustunde.muhur ? "rgba(200,190,215,0.95)" : "rgba(255,150,120,0.95)";
+        ctx.font = "bold 13px system-ui"; ctx.textAlign = "center";
+        ctx.fillText(ustunde.muhur ? "✖ MÜHÜRLÜ — başka çıkış bul" : "🔒 KİLİTLİ — önce paneli hackle", bx, by - 42);
       }
     }
   }
@@ -513,9 +553,9 @@ export function ciz(ctx, durum, view) {
     const bw = Math.max(3, k.w * zoom), bh = Math.max(3, k.h * zoom);
     if (kx + bw < 0 || ky + bh < 0 || kx > w || ky > h) continue;
     const nabiz = 0.5 + 0.5 * Math.sin(t * 12);
-    const kiriliyor = k.kirilma > 0;
-    // Mühürlü giriş geçidi kırmızı (kalıcı); normal perde camgöbeği, kırılan turuncu
-    const renk = k.girisi ? "255,80,90" : kiriliyor ? "255,120,60" : "90,200,255";
+    // Mühürlü giriş geçidi kırmızı (kalıcı); normal perde camgöbeği.
+    // Drone artık kapı kıramadığından kırılma çubuğu yok.
+    const renk = k.girisi ? "255,80,90" : "90,200,255";
     ctx.save();
     ctx.globalCompositeOperation = "lighter";
     ctx.fillStyle = `rgba(${renk},${0.16 + 0.2 * nabiz})`;
@@ -524,12 +564,6 @@ export function ciz(ctx, durum, view) {
     ctx.lineWidth = 2; ctx.shadowColor = `rgba(${renk},0.9)`; ctx.shadowBlur = 12;
     ctx.strokeRect(kx, ky, bw, bh);
     ctx.restore();
-    if (kiriliyor) {
-      const cx0 = kx + bw / 2, cy0 = ky + bh / 2;
-      ctx.fillStyle = "rgba(10,14,20,0.85)"; ctx.fillRect(cx0 - 23, cy0 - 21, 46, 6);
-      ctx.fillStyle = "rgba(255,120,60,0.95)";
-      ctx.fillRect(cx0 - 22, cy0 - 20, 44 * Math.min(1, k.kirilma / KAPI_KIRILMA), 4);
-    }
   }
 
   // Ele geçirme (hack) halkası + ilerleme yayı
@@ -565,15 +599,17 @@ export function ciz(ctx, durum, view) {
     ctx.restore();
   }
 
-  // Çıkış neon markerları (her zaman görünür); ekran dışındaysa kenara
-  // sabitlenmiş yön oku olur — oyuncu çıkışın yönünü hep bilir.
+  // Çıkış neon markerları (mevcut olanlar); ekran dışındaysa kenara sabitlenmiş
+  // yön oku olur. Gizli çıkışlar işaretlenmez; mühürlü çıkışın kenar oku çizilmez.
   for (const c of durum.harita.cikislar) {
+    if (!c.mevcut) continue;
     let [rx, ry] = w2s(c.x + c.w / 2, c.y + c.h / 2);
     const K = 26;
     const disarida = rx < K || rx > w - K || ry < K || ry > h - K;
-    const rnk = c.acik ? "70,240,130" : "255,90,80";       // kilitli çıkış kırmızı işaretlenir
-    const isaret = c.acik ? "⎋" : "🔒";
-    const metinRenk = c.acik ? "#7dffb0" : "#ff9a90";
+    if (c.muhur && disarida) continue;                     // mühürlüye yönlendirme yapılmaz
+    const rnk = c.muhur ? "150,140,160" : c.acik ? "70,240,130" : "255,90,80";
+    const isaret = c.muhur ? "✖" : c.acik ? "⎋" : "🔒";
+    const metinRenk = c.muhur ? "#b8b0c4" : c.acik ? "#7dffb0" : "#ff9a90";
     ctx.save();
     if (disarida && !genel) {
       const yon = Math.atan2(ry - h / 2, rx - w / 2);
@@ -690,7 +726,7 @@ function cizHud(ctx, durum, view, ben) {
   beceri(px, "⚔", "Kılıç (J)", ben._sopaCd || 0, SOPA_BEKLEME, 0, "#9ae8ff");
   beceri(px + adim, "💨", "Atılım (⇧)", ben._dashCd || 0, DASH_BEKLEME, ben._dash > 0 ? ben._dash : 0, "#bfe0ff");
   beceri(px + adim * 2, "🛡", "Kalkan (K)", ben._kalkanCd || 0, 8, ben.kalkan || 0, "#5ac8ff");
-  beceri(px + adim * 3, "🚪", "Kapı (Q)", ben._kapiCd || 0, 3, 0, "#8ad6ff");
+  beceri(px + adim * 3, "🚪", "Kapı (Q)", ben._kapiCd || 0, KAPI_BEKLEME, 0, "#8ad6ff");
 
   // Sayaçlar: hurdaya çıkardığın droneler + ele geçirdiğin + veri çipleri
   ctx.font = "bold 13px system-ui"; ctx.textAlign = "left"; ctx.fillStyle = "rgba(255,180,90,0.95)";
@@ -821,15 +857,37 @@ function mobilyaCiz(ctx, a, s2, t) {
   if (a.tip === "lobi") {
     if (/Koridoru/.test(ad)) {
       const cx = a.x + a.w / 2;
+      const riskSinir = a.y + LOBI_RISK;      // koridorun geçide yakın kısmı = RİSKLİ BÖLGE
+      // Riskli bölge: zemin/ışık rengi değişir — kırmızı ton + tehlike şeritleri
+      ctx.fillStyle = `rgba(255,60,50,${0.12 + 0.05 * Math.sin(t * 2.2)})`;
+      ctx.fillRect(a.x, a.y, a.w, LOBI_RISK);
+      ctx.save();
+      ctx.beginPath(); ctx.rect(a.x, a.y, a.w, LOBI_RISK); ctx.clip();
+      ctx.strokeStyle = "rgba(255,150,60,0.28)"; ctx.lineWidth = 7;
+      for (let sx = a.x - LOBI_RISK; sx < a.x + a.w + LOBI_RISK; sx += 42) {
+        ctx.beginPath(); ctx.moveTo(sx, a.y + LOBI_RISK); ctx.lineTo(sx + LOBI_RISK, a.y); ctx.stroke();
+      }
+      ctx.restore();
+      // sınır çizgisi + uyarı yazısı
+      ctx.strokeStyle = `rgba(255,120,70,${0.5 + 0.3 * Math.sin(t * 4)})`; ctx.lineWidth = 3;
+      ctx.beginPath(); ctx.moveTo(a.x, riskSinir); ctx.lineTo(a.x + a.w, riskSinir); ctx.stroke();
+      ctx.fillStyle = `rgba(255,170,120,${0.7 + 0.3 * Math.sin(t * 3)})`;
+      ctx.font = "bold 14px system-ui"; ctx.textAlign = "center";
+      ctx.fillText("⚠ RİSKLİ BÖLGE", cx, a.y + LOBI_RISK / 2);
+      // yön okları: güvenli kısımda turkuaz, riskli kısımda kırmızı
       for (let oy = a.y + a.h - 90; oy > a.y + 60; oy -= 190) {
+        const riskte = oy < riskSinir;
         const par = 0.25 + 0.15 * Math.sin(t * 2.4 + oy * 0.02);
-        ctx.strokeStyle = `rgba(110,235,205,${par})`; ctx.lineWidth = 4; ctx.lineCap = "round";
+        ctx.strokeStyle = riskte ? `rgba(255,120,90,${par + 0.15})` : `rgba(110,235,205,${par})`;
+        ctx.lineWidth = 4; ctx.lineCap = "round";
         ctx.beginPath(); ctx.moveTo(cx - 14, oy + 12); ctx.lineTo(cx, oy - 4); ctx.lineTo(cx + 14, oy + 12); ctx.stroke();
       }
-      // kenar şeritleri (pist ışığı hissi)
+      // kenar şeritleri (pist ışığı hissi; riskli kısımda kızarır)
       ctx.fillStyle = "rgba(110,235,205,0.10)";
-      ctx.fillRect(a.x + 6, a.y, 4, a.h); ctx.fillRect(a.x + a.w - 10, a.y, 4, a.h);
-    } else {
+      ctx.fillRect(a.x + 6, riskSinir, 4, a.h - LOBI_RISK); ctx.fillRect(a.x + a.w - 10, riskSinir, 4, a.h - LOBI_RISK);
+      ctx.fillStyle = "rgba(255,110,80,0.16)";
+      ctx.fillRect(a.x + 6, a.y, 4, LOBI_RISK); ctx.fillRect(a.x + a.w - 10, a.y, 4, LOBI_RISK);
+    } else if (ad) {
       const [cx, cy] = s2(a.x + a.w / 2, a.y + a.h / 2);
       ctx.strokeStyle = "rgba(110,235,205,0.16)"; ctx.lineWidth = 2;
       ctx.beginPath(); ctx.arc(cx, cy, Math.min(a.w, a.h) * 0.24, 0, Math.PI * 2); ctx.stroke();

@@ -270,10 +270,15 @@ function haritaUret() {
   const basX = xOff[Math.floor(KOL / 2)] - KOR / 2;
   const basY = yOff[Math.floor(SAT / 2)] - KOR / 2;
 
+  // İlk 3 çıkış rounda GÖRÜNÜR başlar; `yedek:true` olanlar gizlidir —
+  // bir çıkış kullanılıp mühürlenince sırayla aktifleşirler (durum.js).
   const cikislar = [
     { x: 0, y: basY - 40, w: 56, h: 80, ad: "Batı Çıkış" },
     { x: W - 56, y: basY - 40, w: 56, h: 80, ad: "Doğu Çıkış" },
     { x: basX - 40, y: 0, w: 80, h: 56, ad: "Kuzey Çıkış" },
+    { x: Math.round(W * 0.22), y: 0, w: 80, h: 56, ad: "Servis Çıkışı", yedek: true },
+    { x: Math.round(W * 0.2), y: H - 56, w: 80, h: 56, ad: "Yükleme Rampası", yedek: true },
+    { x: Math.round(W * 0.78), y: H - 56, w: 80, h: 56, ad: "Acil Tünel", yedek: true },
   ];
 
   // --- LOBİ: güvenli hazırlık bölgesi (tesisin altında) ---
@@ -288,7 +293,20 @@ function haritaUret() {
     x: basX - LOBI_ODA_W / 2, y: H + LOBI_KOR_H, w: LOBI_ODA_W, h: LOBI_ODA_H,
     ad: "Hazırlık Lobisi", tip: "lobi", lobi: true, aydinlik: true,
   };
-  alanlar.push(lobiKor, lobiOda);
+  // Yan odalar: lobi bir "güvenli kompleks" — oyuncular droneler gelmeden
+  // birkaç oda/koridor gezip tuşları dener, birlikte takılır.
+  const egitimOda = {
+    x: lobiOda.x - 110 - 440, y: lobiOda.y + 30, w: 440, h: 350,
+    ad: "Eğitim Odası", tip: "lobi", lobi: true, aydinlik: true,
+  };
+  const ekipmanOda = {
+    x: lobiOda.x + lobiOda.w + 110, y: lobiOda.y + 30, w: 440, h: 350,
+    ad: "Ekipman Odası", tip: "lobi", lobi: true, aydinlik: true,
+  };
+  // Yan odalara kısa bağlantı koridorları (adsız — etiket/yazı çizilmez)
+  const solBaglanti = { x: lobiOda.x - 118, y: lobiOda.y + 130, w: 126, h: 120, tip: "lobi", lobi: true, aydinlik: true };
+  const sagBaglanti = { x: lobiOda.x + lobiOda.w - 8, y: lobiOda.y + 130, w: 126, h: 120, tip: "lobi", lobi: true, aydinlik: true };
+  alanlar.push(lobiKor, lobiOda, egitimOda, ekipmanOda, solBaglanti, sagBaglanti);
   // Lobi mobilyası: seyrek — kenarlarda keşfedilecek küçük detaylar, yol kapanmaz
   engeller.push(
     { x: lobiOda.x + 46, y: lobiOda.y + 56, w: 74, h: 18, tip: "bank" },
@@ -296,6 +314,13 @@ function haritaUret() {
     { x: lobiOda.x + 52, y: lobiOda.y + lobiOda.h - 122, w: 62, h: 62, tip: "bitki_adasi" },
     { x: lobiOda.x + lobiOda.w - 114, y: lobiOda.y + lobiOda.h - 122, w: 62, h: 62, tip: "bitki_adasi" },
     { x: lobiOda.x + lobiOda.w / 2 - 62, y: lobiOda.y + lobiOda.h - 32, w: 124, h: 16, tip: "monitor_duvari" },
+    // Eğitim odası: tezgahlar (tuş deneme alanı hissi)
+    { x: egitimOda.x + 60, y: egitimOda.y + 70, w: egitimOda.w - 120, h: 28, tip: "lab_tezgah" },
+    { x: egitimOda.x + 60, y: egitimOda.y + egitimOda.h - 98, w: egitimOda.w - 120, h: 28, tip: "lab_tezgah" },
+    // Ekipman odası: raf + kutu istifleri
+    { x: ekipmanOda.x + 56, y: ekipmanOda.y + 66, w: ekipmanOda.w - 112, h: 22, tip: "raf_kutu" },
+    { x: ekipmanOda.x + 70, y: ekipmanOda.y + ekipmanOda.h - 140, w: 96, h: 70, tip: "kutu_blok" },
+    { x: ekipmanOda.x + ekipmanOda.w - 166, y: ekipmanOda.y + ekipmanOda.h - 140, w: 96, h: 70, tip: "kutu_blok" },
   );
   // Giriş geçidi: koridorun tesise açıldığı yer. `girisi:true` — oyuncu/bot/drone
   // tarafından açılıp kapatılamaz; aksiyon başlayınca durum.js mühürler.

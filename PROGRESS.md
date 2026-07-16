@@ -262,6 +262,15 @@ Head Soccer tarzı 2D fizik futbolu; `kafatopu/` altında izole modül, `/kafato
 - Test yöntemi: oyun-sim.mjs scratchpad scripti kafaCizim.js'in daire kırpma matematiğini birebir simüle edip PNG üretiyor — yeni kafa eklerken görsel doğrulama için tekrar kullanılabilir.
 - Denenip vazgeçilen: omuzlu geniş kompozisyon (ida gibi) — fotoğraf uzaktan çekildiğinden kafa dairede küçük kalıyor.
 
+## 2026-07-17 (3. oturum) — RUN: kapı revizyonu + çıkış rotasyonu + lobi kompleksi
+- Kapılar: drone kapalı kapıyı açamaz (bekler), kapı 5 sn'de kendiliğinden açılır, oyuncular
+  Q ile her an açıp kapatır. Çıkışlar: 6 slot (3 gizli yedek) — erken kaçışta kullanılan çıkış
+  mühürlenir + yedek aktifleşir, 3. kaçışta protokol çözülür (herkes çıkabilir); bot akış alanı
+  dinamik yeniden kuruluyor. Lobi kompleksi: Eğitim + Ekipman odaları, bot sohbet balonları,
+  koridor sonunda kırmızı "RİSKLİ BÖLGE" segmenti. Yakalanma sonrası: cesetler çizilmiyor,
+  izleyici feneri yumuşatıldı, "İzlemeyi Geç" butonu eklendi.
+- Doğrulama: başsız test 37/37 (3 tekrar), build OK. Ayrıntı: `run/PROGRESS.md`.
+
 ## 2026-07-17 (2. oturum) — RUN: lobi fazı + mobil tam ekran/iOS + kılıç görünürlüğü
 - İda'nın 4 maddesi işlendi: (1) mobilde tam ekran + yatay kilit + iOS kasma/tuş düzeltmeleri
   (Kafa Topu'ndaki webkit fullscreen, native touch, alpha:false, wake lock, girdi sıfırlama

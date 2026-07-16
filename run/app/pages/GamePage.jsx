@@ -42,6 +42,16 @@ export default function GamePage() {
   const [sonuc, setSonuc] = useState(null);
   const [siralama, setSiralama] = useState([]);
   const [enYakin, setEnYakin] = useState(null);
+  const [izleyici, setIzleyici] = useState(false);
+
+  // İzleyici modunu yokla (yakalandıysan "İzlemeyi Geç" butonu görünsün)
+  useEffect(() => {
+    const id = setInterval(() => {
+      const d = motorRef.current?.durum;
+      setIzleyici(!!(d && d.izleyici && !d.bitti));
+    }, 400);
+    return () => clearInterval(id);
+  }, []);
 
   const basla = useCallback(() => {
     try {
@@ -199,6 +209,13 @@ export default function GamePage() {
       </div>
 
       <button className="run-cikis-btn" onClick={() => nav("/run")}>✕</button>
+
+      {izleyici && !sonuc && (
+        <button
+          className="run-izleyici-gec"
+          onClick={() => { const d = motorRef.current?.durum; if (d) d._izleyiciSayaci = 0.01; }}
+        >▶ İzlemeyi Geç</button>
+      )}
 
       {sonuc && (
         <div className="run-sonuc">
