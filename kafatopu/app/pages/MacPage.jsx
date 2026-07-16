@@ -185,7 +185,8 @@ export default function MacPage() {
     const ciz = (view) => {
       const canvas = canvasRef.current;
       if (!canvas || !view) return;
-      const ctx = canvas.getContext("2d");
+      // Opak canvas: Safari/iOS'ta kompozit maliyetini ciddi düşürür
+      const ctx = canvas.getContext("2d", { alpha: false });
       // Kaleler ekranın EN KENARINDA dursun: saha genişliğe tam oturtulur,
       // zemin alta sabitlenir. Ekran sahadan basıksa üstteki gökyüzü kırpılır
       // (fizik değişmez; top nadiren üstte kısa süre ekran dışına çıkabilir).
@@ -273,6 +274,7 @@ export default function MacPage() {
     window.addEventListener("orientationchange", gecikmeliBoyutlandir);
     window.visualViewport?.addEventListener("resize", gecikmeliBoyutlandir);
     document.addEventListener("fullscreenchange", gecikmeliBoyutlandir);
+    document.addEventListener("webkitfullscreenchange", gecikmeliBoyutlandir);
 
     // --- Mobil GERÇEK tam ekran: tarayıcı çubuğu + sistem tuşları gizlenir ---
     // Tarayıcılar tam ekranı yalnızca kullanıcı hareketi sırasında verir;
@@ -280,7 +282,10 @@ export default function MacPage() {
     // kilit denenir (Android'de çalışır; iPhone Safari desteklemez —
     // orada tek yol uygulamayı ana ekrana eklemek).
     const tamEkranIste = () => {
-      if (!dokunmatikVarMi() || document.fullscreenElement) return;
+      // Safari webkit önekli fullscreenElement kullanır; kontrol edilmezse
+      // HER dokunuşta yeniden tam ekran istenir (iPad/iPhone'da takılma +
+      // yutulan tuş basışları). İki alanı da kontrol et.
+      if (!dokunmatikVarMi() || document.fullscreenElement || document.webkitFullscreenElement) return;
       try {
         const el = document.documentElement;
         const istek = el.requestFullscreen
@@ -534,6 +539,7 @@ export default function MacPage() {
       window.removeEventListener("orientationchange", gecikmeliBoyutlandir);
       window.visualViewport?.removeEventListener("resize", gecikmeliBoyutlandir);
       document.removeEventListener("fullscreenchange", gecikmeliBoyutlandir);
+      document.removeEventListener("webkitfullscreenchange", gecikmeliBoyutlandir);
       window.removeEventListener("pointerdown", tamEkranIste);
       window.removeEventListener("touchstart", tamEkranIste);
       boyutZamanlayicilar.forEach(clearTimeout);
@@ -541,6 +547,8 @@ export default function MacPage() {
       try { screen.orientation?.unlock?.(); } catch { /* desteklenmiyor */ }
       if (document.fullscreenElement) {
         document.exitFullscreen?.().catch(() => {});
+      } else if (document.webkitFullscreenElement) {
+        try { document.webkitExitFullscreen?.(); } catch { /* desteklenmiyor */ }
       }
       document.removeEventListener("visibilitychange", gorunurlukDegisti);
       window.removeEventListener("blur", gorunurlukDegisti);
@@ -780,39 +788,88 @@ export default function MacPage() {
 }
 
 // Ekran üstü dokunmatik butonlar — girdi modülünün dokunma durumunu besler.
+// iOS Safari'de bir tuş basılı tutulurken ikinci parmağın pointer olayları
+// güvenilir gelmiyor (çoklu dokunuşta tuşlar "çalışmıyor" hissi); bu yüzden
+// dokunuşlar native touch olaylarıyla (non-passive) işlenir. preventDefault,
+// çift dokunuş zoom'unu, uzun basış büyütecini ve sentetik mouse'u da keser.
 function DokunmatikKontroller({ girdiRef, yb }) {
   const [basili, setBasili] = useState({});
+  const kokRef = useRef(null);
+
+  useEffect(() => {
+    const kok = kokRef.current;
+    if (!kok) return;
+    const dokunusTus = new Map(); // touch.identifier → tuş adı
+    const ayarla = (ad, b) => {
+      girdiRef.current?.tusAyarla(ad, b);
+      setBasili((o) => (o[ad] === b ? o : { ...o, [ad]: b }));
+    };
+    const bas = (e) => {
+      const ad = e.target?.closest?.("[data-tus]")?.dataset?.tus;
+      if (!ad) return;
+      e.preventDefault();
+      for (let i = 0; i < e.changedTouches.length; i++) {
+        dokunusTus.set(e.changedTouches[i].identifier, ad);
+      }
+      ayarla(ad, true);
+    };
+    const birak = (e) => {
+      let islendi = false;
+      for (let i = 0; i < e.changedTouches.length; i++) {
+        const ad = dokunusTus.get(e.changedTouches[i].identifier);
+        if (ad === undefined) continue;
+        dokunusTus.delete(e.changedTouches[i].identifier);
+        islendi = true;
+        // Aynı tuşu başka bir parmak hâlâ basılı tutmuyorsa bırak
+        if (![...dokunusTus.values()].includes(ad)) ayarla(ad, false);
+      }
+      if (islendi && e.cancelable) e.preventDefault();
+    };
+    kok.addEventListener("touchstart", bas, { passive: false });
+    kok.addEventListener("touchend", birak, { passive: false });
+    kok.addEventListener("touchcancel", birak, { passive: false });
+    return () => {
+      kok.removeEventListener("touchstart", bas);
+      kok.removeEventListener("touchend", birak);
+      kok.removeEventListener("touchcancel", birak);
+    };
+  }, [girdiRef]);
+
+  // Masaüstü (mouse/kalem) için pointer olayları; dokunuşlar yukarıda işlenir.
   const tut = (ad) => ({
     // Uzun basışta bağlam menüsü / seçim açılmasın (mobil)
     onContextMenu: (e) => e.preventDefault(),
     onPointerDown: (e) => {
+      if (e.pointerType === "touch") return;
       e.preventDefault();
-      e.currentTarget.setPointerCapture?.(e.pointerId);
       girdiRef.current?.tusAyarla(ad, true);
       setBasili((b) => ({ ...b, [ad]: true }));
     },
-    onPointerUp: () => {
+    onPointerUp: (e) => {
+      if (e.pointerType === "touch") return;
       girdiRef.current?.tusAyarla(ad, false);
       setBasili((b) => ({ ...b, [ad]: false }));
     },
-    onPointerCancel: () => {
+    onPointerCancel: (e) => {
+      if (e.pointerType === "touch") return;
       girdiRef.current?.tusAyarla(ad, false);
       setBasili((b) => ({ ...b, [ad]: false }));
     },
-    onPointerLeave: () => {
+    onPointerLeave: (e) => {
+      if (e.pointerType === "touch") return;
       girdiRef.current?.tusAyarla(ad, false);
       setBasili((b) => ({ ...b, [ad]: false }));
     },
   });
 
   return (
-    <div className="kt-dokunmatik">
-      <button className={`kt-tus sol ${basili.sol ? "basili" : ""}`} {...tut("sol")}>◀</button>
-      <button className={`kt-tus sag ${basili.sag ? "basili" : ""}`} {...tut("sag")}>▶</button>
-      <button className={`kt-tus zipla ${basili.zipla ? "basili" : ""}`} {...tut("zipla")}>⬆</button>
-      <button className={`kt-tus vur ${basili.vur ? "basili" : ""}`} {...tut("vur")}>⚽</button>
+    <div className="kt-dokunmatik" ref={kokRef}>
+      <button data-tus="sol" className={`kt-tus sol ${basili.sol ? "basili" : ""}`} {...tut("sol")}>◀</button>
+      <button data-tus="sag" className={`kt-tus sag ${basili.sag ? "basili" : ""}`} {...tut("sag")}>▶</button>
+      <button data-tus="zipla" className={`kt-tus zipla ${basili.zipla ? "basili" : ""}`} {...tut("zipla")}>⬆</button>
+      <button data-tus="vur" className={`kt-tus vur ${basili.vur ? "basili" : ""}`} {...tut("vur")}>⚽</button>
       {/* Soğuma ayrı bar yerine tuşun içinde sayılır (saha üstünde çizgi kalmasın) */}
-      <button className={`kt-tus guc ${basili.guc ? "basili" : ""} ${yb > 0 ? "soguyor" : ""}`} {...tut("guc")}>
+      <button data-tus="guc" className={`kt-tus guc ${basili.guc ? "basili" : ""} ${yb > 0 ? "soguyor" : ""}`} {...tut("guc")}>
         {yb > 0 ? Math.ceil(yb / 1000) : "✨"}
       </button>
     </div>

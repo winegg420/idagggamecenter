@@ -151,6 +151,8 @@
   touch-action: none;
   user-select: none;
   -webkit-user-select: none;
+  -webkit-touch-callout: none;
+  -webkit-tap-highlight-color: transparent;
 }
 /* Sarmalayıcı tam ekranı kaplar (dokunmatik tuşlar ekran köşelerinde kalır);
    canvas JS tarafından ekrana SIĞACAK şekilde boyutlanır ve ortalanır. */
@@ -251,6 +253,10 @@
   justify-content: center;
   pointer-events: auto;
   touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+  -webkit-tap-highlight-color: transparent;
 }
 .kt-tus:active, .kt-tus.basili { background: rgba(242, 197, 34, 0.5); }
 /* Ergonomi: yön tuşları SOL kenara, zıpla+vur SAĞ kenara yaslanır;

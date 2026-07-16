@@ -31,6 +31,14 @@
       "odakX": 0.5,
       "odakY": 0.46,
       "yaricap": 0.44
+    },
+    {
+      "id": "adenis",
+      "ad": "Adenis",
+      "dosya": "adenis.png",
+      "odakX": 0.49,
+      "odakY": 0.4,
+      "yaricap": 0.31
     }
   ]
 }

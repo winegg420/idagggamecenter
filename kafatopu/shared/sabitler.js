@@ -81,6 +81,6 @@ export const YETENEK = {
 export const AG = {
   DURUM_HZ_MS: 50,              // host durum yayını 20Hz
   GIRDI_HZ_MS: 50,              // misafir girdi yayını 20Hz
-  INTERP_GECIKME_MS: 100,       // misafir render gecikmesi (yumuşatma)
+  INTERP_GECIKME_MS: 120,       // misafir render gecikmesi (mobil ağ jitter'ı 100ms'i deliyordu)
   BAGLANTI_BEKLE_SN: 25,        // lobi: herkes bu sürede gelmezse iptal hakkı
 };
