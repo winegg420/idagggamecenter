@@ -6,7 +6,10 @@
 // "kapalı kapı" yalnızca drone'u durdurur (bkz. durum.js).
 // ============================================================
 
-import { KAPI_GENISLIK, KAPI_KALINLIK, PANEL_MESAFE_MIN, PANEL_MESAFE_MAKS } from "./sabitler.js";
+import {
+  KAPI_GENISLIK, KAPI_KALINLIK, PANEL_MESAFE_MIN, PANEL_MESAFE_MAKS,
+  LOBI_ODA_W, LOBI_ODA_H, LOBI_KOR_W, LOBI_KOR_H,
+} from "./sabitler.js";
 
 const KOL = 4, SAT = 4, KOR = 110;   // hücre ızgarası + koridor genişliği
 const ENGEL_PAY = 10;                // çarpışma için engel şişirme
@@ -263,7 +266,7 @@ function haritaUret() {
     }
   }
 
-  // Başlangıç: orta koridor kavşağı (değişken boyutlarda W/2,H/2 oda içine düşebilir)
+  // Tesis içi referans kavşağı: orta koridor (çıkışlar buna hizalı)
   const basX = xOff[Math.floor(KOL / 2)] - KOR / 2;
   const basY = yOff[Math.floor(SAT / 2)] - KOR / 2;
 
@@ -273,7 +276,40 @@ function haritaUret() {
     { x: basX - 40, y: 0, w: 80, h: 56, ad: "Kuzey Çıkış" },
   ];
 
-  const harita = { genislik: W, yukseklik: H, baslangic: { x: basX, y: basY }, alanlar, cikislar, nesneler, engeller, kapilar };
+  // --- LOBİ: güvenli hazırlık bölgesi (tesisin altında) ---
+  // Oyuncular hazırlık odasında doğar, giriş koridorunu yürüyerek geçer;
+  // koridorun tepesindeki geçit (girisi kapısı) aşılınca aksiyon başlar ve
+  // geçit mühürlenir (lobiye dönüş yok — saklanma istismarı kapalı).
+  const lobiKor = {
+    x: basX - LOBI_KOR_W / 2, y: H - 8, w: LOBI_KOR_W, h: LOBI_KOR_H + 16,
+    ad: "Giriş Koridoru", tip: "lobi", lobi: true, aydinlik: true,
+  };
+  const lobiOda = {
+    x: basX - LOBI_ODA_W / 2, y: H + LOBI_KOR_H, w: LOBI_ODA_W, h: LOBI_ODA_H,
+    ad: "Hazırlık Lobisi", tip: "lobi", lobi: true, aydinlik: true,
+  };
+  alanlar.push(lobiKor, lobiOda);
+  // Lobi mobilyası: seyrek — kenarlarda keşfedilecek küçük detaylar, yol kapanmaz
+  engeller.push(
+    { x: lobiOda.x + 46, y: lobiOda.y + 56, w: 74, h: 18, tip: "bank" },
+    { x: lobiOda.x + lobiOda.w - 120, y: lobiOda.y + 56, w: 74, h: 18, tip: "bank" },
+    { x: lobiOda.x + 52, y: lobiOda.y + lobiOda.h - 122, w: 62, h: 62, tip: "bitki_adasi" },
+    { x: lobiOda.x + lobiOda.w - 114, y: lobiOda.y + lobiOda.h - 122, w: 62, h: 62, tip: "bitki_adasi" },
+    { x: lobiOda.x + lobiOda.w / 2 - 62, y: lobiOda.y + lobiOda.h - 32, w: 124, h: 16, tip: "monitor_duvari" },
+  );
+  // Giriş geçidi: koridorun tesise açıldığı yer. `girisi:true` — oyuncu/bot/drone
+  // tarafından açılıp kapatılamaz; aksiyon başlayınca durum.js mühürler.
+  kapilar.push({
+    x: basX - LOBI_KOR_W / 2, y: H - 6, w: LOBI_KOR_W, h: KAPI_KALINLIK,
+    yatay: true, oda: "Simülasyon Girişi", girisi: true,
+  });
+
+  const harita = {
+    genislik: W, yukseklik: H + LOBI_KOR_H + LOBI_ODA_H + 24,
+    tesisYuksekligi: H,
+    baslangic: { x: basX, y: H + LOBI_KOR_H + LOBI_ODA_H / 2 },
+    alanlar, cikislar, nesneler, engeller, kapilar,
+  };
 
   // Çıkış panelleri: her çıkışın 250-400 birim yakınında yürünebilir bir nokta.
   // Panel hack'lenmeden çıkış kilitli kalır (durum.js). Tohumlu → deterministik.

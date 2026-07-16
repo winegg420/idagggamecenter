@@ -262,6 +262,14 @@ Head Soccer tarzı 2D fizik futbolu; `kafatopu/` altında izole modül, `/kafato
 - Test yöntemi: oyun-sim.mjs scratchpad scripti kafaCizim.js'in daire kırpma matematiğini birebir simüle edip PNG üretiyor — yeni kafa eklerken görsel doğrulama için tekrar kullanılabilir.
 - Denenip vazgeçilen: omuzlu geniş kompozisyon (ida gibi) — fotoğraf uzaktan çekildiğinden kafa dairede küçük kalıyor.
 
+## 2026-07-17 (2. oturum) — RUN: lobi fazı + mobil tam ekran/iOS + kılıç görünürlüğü
+- İda'nın 4 maddesi işlendi: (1) mobilde tam ekran + yatay kilit + iOS kasma/tuş düzeltmeleri
+  (Kafa Topu'ndaki webkit fullscreen, native touch, alpha:false, wake lock, girdi sıfırlama
+  dersleri RUN'a taşındı); (2) kılıç yalnız kendi karakterde görünür; (3-4) her round tesisin
+  altındaki "Hazırlık Lobisi + Giriş Koridoru"nda başlar — droneler/zorluk/yönetmen kapalı,
+  oyuncu keşif yapıp koridoru bitirince geçitten geçer, geçit MÜHÜRLENİR ve aksiyon başlar.
+- Doğrulama: başsız test 23/23, build OK. Ayrıntı: `run/PROGRESS.md`.
+
 ## 2026-07-17 — RUN sitede aktif edildi (Kafa Topu deseniyle)
 - `/run` rotası zaten canlıdaydı ama sitede görünür girişi yoktu. Kafa Topu'ndaki gibi iki giriş eklendi:
   - **Ana sayfa şeridi:** Home.jsx'te kafatopu-serit'in altına `run-serit` (cyberpunk mor/neon gradient, koşan 🏃 animasyonu, YENİ rozeti). Metin sınıfları (kt-serit-metin/yeni/ok) yeniden kullanıldı.

@@ -394,6 +394,46 @@ uygulandı. Faz 2.3 (çıkış konumu varyasyonu) spec'in kendi önerisiyle ATLA
 - `npm run build` OK (RunApp 70.8 kB). Chrome: yeni menü + oyun içi kilitli çıkış/pusula/hedef
   yazısı ekran görüntüsüyle doğrulandı, konsol temiz.
 
+## 2026-07-17 — LOBİ FAZI + mobil tam ekran/iOS + kılıç görünürlüğü (İda'nın 4 maddelik geri bildirimi)
+
+### Lobi koridoru (yeni round akışı)
+- **Harita** (`harita.js`): tesisin ALTINA "Hazırlık Lobisi" (560×420 oda) + "Giriş Koridoru"
+  (170×980, kuzeye) eklendi; ikisi de `lobi:true` + hep aydınlık (güvenli bölge okuması).
+  Oyuncular lobide doğar. Koridorun tepesinde `girisi:true` geçidi — Q/bot/drone açamaz-kapatamaz.
+- **Faz makinesi** (`durum.js`): `faz:"lobi"` → geçit aşılınca `aksiyonBaslat`: geçit MÜHÜRLENİR
+  (kalıcı, kırılamaz — lobiye dönüş/saklanma istismarı yok), lobide kalan botlar geçidin iç
+  tarafına ışınlanır (birlikte giriş), "🚨 SİMÜLASYON BAŞLADI" duyurusu.
+- **Lobide kapalı olanlar:** drone AI (kımıldamaz/algılamaz), zorluk eğrisi, yönetmen (gerginlik/
+  ipucu/destek), nesne aktifleşmesi, ışık karıştırma, bot kaçış sayacı, son-baskı. Süre/kademe
+  HUD'u ve bot kaçışı AKSİYON başlangıcından sayılır. `rastgeleNokta` lobi alanlarını atlar →
+  drone spawn/devriye/yeniden doğuş ve çipler hep tesiste.
+- **Görsel:** koridorda tesise çağıran nabızlı yön okları + pist kenar ışıkları; odada "GÜVENLİ
+  BÖLGE" halkası; geçit lobide yeşil davet çerçevesi ("▲ SİMÜLASYON GİRİŞİ"), mühürlüyken kırmızı
+  perde; HUD lobide "🚶 HAZIRLIK" + "KORİDORU GEÇ — SİMÜLASYON BAŞLASIN"; lobide tarama konisi çizilmez.
+
+### Kılıç görünürlüğü
+- Elde taşınan enerji kılıcı artık YALNIZ kendi karakterinde çizilir (`cizKisi` içinde `s.id==="ben"`
+  şartı) — ışıyan bıçak diğer oyuncuların/botların elinde görünmez (stealth + MP'ye hazır kural).
+
+### Mobil tam ekran + yatay + iOS akıcılık (Kafa Topu dersleri uygulandı)
+- **GamePage:** ilk dokunuşta `requestFullscreen({navigationUI:"hide"})` + webkit önekleri
+  (iOS Safari `webkitFullscreenElement`) + `screen.orientation.lock("landscape")`; çıkışta geri al.
+  Yalnız dokunmatik cihazda (`hover:none`). Wake Lock (ekran uyumaz, görünürlükte yeniden alınır).
+  visibilitychange/blur'da `girdi.sifirla()` (tuş takılı kalması bug'ı kapalı).
+- **Girdi:** joystick NATIVE touch olaylarıyla (identifier takibi, non-passive preventDefault);
+  pointer olayları yalnız fare/kalem. Beceri butonları da native touch (kapsayıcıda `data-eylem`
+  haritası; hack basılı-tut identifier ile). Çift dokunuş zoom/büyüteç engellendi.
+- **Motor:** canvas `alpha:false` (Safari kompozit maliyeti düşer); orientationchange +
+  visualViewport.resize + fullscreenchange dinleyicileri + 0/300/800ms gecikmeli yeniden ölçüm.
+- **CSS:** canvas %100/%100 (100vh yerine — iOS adres çubuğu), dikeyde "telefonu yan çevir"
+  ipucu (7 sn'de söner), dokunmatikte butonlar 64px + tap-highlight/touch-callout kapalı.
+
+### Doğrulama
+- Başsız Node testi **23/23** (lobi: droneler kımıldamaz/zorluk donuk/kaçış yok; geçiş: mühür +
+  botlar içeride; mühürden geri dönülemiyor; aksiyon: devriye + kademe + 7/7 bot çözüldü; NaN yok;
+  akış alanı %100). Test: scratchpad `run-lobi-test.mjs`.
+- `npm run build` OK (RunApp 78.5 kB). Gerçek iPhone/Android testi İda'da.
+
 ## Sıradaki
 - **Multiplayer** (PatiRun/Bildim presence+broadcast) — spec Faz 10, backend gerektirir; **en son**.
 - İsteğe bağlı: round sonucu/istatistik kalıcılığı (şu an hiçbir şey kaydedilmiyor — bilinçli).

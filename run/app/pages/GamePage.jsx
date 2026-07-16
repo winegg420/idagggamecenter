@@ -10,10 +10,35 @@ import * as ses from "../../engine/ses.js";
 
 const DURUM_AD = { kacti: "🏃 Kaçtı", yakalandi: "🤖 Yakalandı", kaldi: "· Kaldı" };
 
+// --- Tam ekran (webkit önekli — iOS Safari fullscreenElement'i webkit ile tutar) ---
+const tamEkranEl = () =>
+  document.fullscreenElement || document.webkitFullscreenElement || null;
+function tamEkranIste() {
+  if (tamEkranEl()) return;                  // her dokunuşta yeniden isteme (jank yapar)
+  const el = document.documentElement;
+  try {
+    const istek = el.requestFullscreen || el.webkitRequestFullscreen;
+    const p = istek?.call(el, { navigationUI: "hide" });
+    p?.catch?.(() => {});
+  } catch { /* desteklenmiyor (iPhone Safari) — oyun normal görünümde sürer */ }
+  try { screen.orientation?.lock?.("landscape")?.catch?.(() => {}); } catch {}
+}
+function tamEkranCik() {
+  try { screen.orientation?.unlock?.(); } catch {}
+  try {
+    if (tamEkranEl()) {
+      const cik = document.exitFullscreen || document.webkitExitFullscreen;
+      cik?.call(document)?.catch?.(() => {});
+    }
+  } catch {}
+}
+
 export default function GamePage() {
   const nav = useNavigate();
   const canvasRef = useRef(null);
   const motorRef = useRef(null);
+  const rootRef = useRef(null);
+  const dokunRef = useRef(null);
   const [sonuc, setSonuc] = useState(null);
   const [siralama, setSiralama] = useState([]);
   const [enYakin, setEnYakin] = useState(null);
@@ -41,36 +66,135 @@ export default function GamePage() {
     basla();
     const ac = () => { try { ses.devamEt(); } catch {} };
     window.addEventListener("pointerdown", ac, { once: true });
+    window.addEventListener("touchstart", ac, { once: true });
     window.addEventListener("keydown", ac, { once: true });
     return () => {
       try { motorRef.current?.dur(); } catch {}
       try { ses.ortamDur(); } catch {}   // uğultu/vızıltı menüye taşınmasın
       window.removeEventListener("pointerdown", ac);
+      window.removeEventListener("touchstart", ac);
       window.removeEventListener("keydown", ac);
     };
   }, [basla]);
 
+  // Mobil: ilk dokunuşta tam ekran + yatay kilit; sayfadan çıkınca geri al.
+  useEffect(() => {
+    const dokunmatik = window.matchMedia?.("(hover: none)")?.matches;
+    if (!dokunmatik) return;
+    const dokun = () => tamEkranIste();
+    const el = rootRef.current;
+    el?.addEventListener("touchstart", dokun, { passive: true });
+    return () => {
+      el?.removeEventListener("touchstart", dokun);
+      tamEkranCik();
+    };
+  }, []);
+
+  // Ekran uykuya dalmasın (Wake Lock) + arka plana geçişte basılı girdileri temizle
+  // (kaçan touchend/keyup ile "kendi kendine yürüme" olmasın).
+  useEffect(() => {
+    let kilit = null, aktif = true;
+    const kilitAl = async () => {
+      try {
+        if (aktif && document.visibilityState === "visible")
+          kilit = await navigator.wakeLock?.request?.("screen");
+      } catch { /* desteklenmiyor/izin yok — önemli değil */ }
+    };
+    kilitAl();
+    const gorunum = () => {
+      motorRef.current?.girdi?.sifirla?.();
+      if (document.visibilityState === "visible") kilitAl();
+    };
+    const odakKaybi = () => motorRef.current?.girdi?.sifirla?.();
+    document.addEventListener("visibilitychange", gorunum);
+    window.addEventListener("blur", odakKaybi);
+    return () => {
+      aktif = false;
+      try { kilit?.release?.(); } catch {}
+      document.removeEventListener("visibilitychange", gorunum);
+      window.removeEventListener("blur", odakKaybi);
+    };
+  }, []);
+
   const g = () => motorRef.current?.girdi;
 
+  // Dokunmatik beceri butonları NATIVE touch ile: iOS Safari joystick basılıyken
+  // ikinci parmağın pointer olayını güvenilir iletmiyor (Kafa Topu dersi).
+  // Fare/kalem için buton üzerindeki onPointerDown (touch hariç) çalışmaya devam eder.
+  useEffect(() => {
+    const el = dokunRef.current;
+    if (!el) return;
+    const eylemBasla = (ad) => {
+      try { ses.devamEt(); } catch {}
+      const gi = motorRef.current?.girdi;
+      if (!gi) return;
+      if (ad === "bakis") { try { ses.cal("ui"); } catch {} gi.dokunGenelBakis(); }
+      else if (ad === "kilic") gi.dokunSopa();
+      else if (ad === "dash") gi.dokunDash();
+      else if (ad === "kalkan") gi.dokunKalkan();
+      else if (ad === "kapi") gi.dokunKapi();
+      else if (ad === "hack") gi.dokunHackBasla();
+    };
+    const hackParmaklar = new Set();
+    const ts = (e) => {
+      const b = e.target?.closest?.("button[data-eylem]");
+      if (!b) return;
+      e.preventDefault();                    // buton dokunuşu zoom/joystick'e karışmasın
+      const ad = b.dataset.eylem;
+      eylemBasla(ad);
+      if (ad === "hack") for (const t of e.changedTouches) hackParmaklar.add(t.identifier);
+    };
+    const te = (e) => {
+      for (const t of e.changedTouches) {
+        if (hackParmaklar.delete(t.identifier)) motorRef.current?.girdi?.dokunHackBitir();
+      }
+    };
+    el.addEventListener("touchstart", ts, { passive: false });
+    el.addEventListener("touchend", te);
+    el.addEventListener("touchcancel", te);
+    return () => {
+      el.removeEventListener("touchstart", ts);
+      el.removeEventListener("touchend", te);
+      el.removeEventListener("touchcancel", te);
+    };
+  }, []);
+
+  // Fare/kalem için buton tetikleyici (dokunuşlar native touch'tan işlenir)
+  const fare = (ad) => (e) => {
+    if (e.pointerType === "touch") return;
+    try { ses.devamEt(); } catch {}
+    const gi = g();
+    if (!gi) return;
+    if (ad === "bakis") { try { ses.cal("ui"); } catch {} gi.dokunGenelBakis(); }
+    else if (ad === "kilic") gi.dokunSopa();
+    else if (ad === "dash") gi.dokunDash();
+    else if (ad === "kalkan") gi.dokunKalkan();
+    else if (ad === "kapi") gi.dokunKapi();
+    else if (ad === "hack") gi.dokunHackBasla();
+  };
+
   return (
-    <div className="run-oyun">
+    <div className="run-oyun" ref={rootRef}>
       <canvas ref={canvasRef} className="run-canvas" />
 
       <div className="run-hud-ipucu">
         WASD/oklar · ⚔ Kılıç J · 💨 Atılım Shift · 🛡 Kalkan K · ⚡ Ele geçir E (basılı tut) · 🚪 Kapı Q · 🗺 Plan M
       </div>
 
-      <div className="run-dokun">
-        <button onPointerDown={() => { ses.devamEt(); ses.cal("ui"); g()?.dokunGenelBakis(); }}>🗺</button>
-        <button onPointerDown={() => { ses.devamEt(); g()?.dokunSopa(); }}>⚔</button>
-        <button onPointerDown={() => { ses.devamEt(); g()?.dokunDash(); }}>💨</button>
-        <button onPointerDown={() => { ses.devamEt(); g()?.dokunKalkan(); }}>🛡</button>
-        <button onPointerDown={() => { ses.devamEt(); g()?.dokunKapi(); }}>🚪</button>
+      <div className="run-dikey-ipucu">🔄 Telefonu yan çevir — oyun yatayda tam ekran</div>
+
+      <div className="run-dokun" ref={dokunRef}>
+        <button data-eylem="bakis" onPointerDown={fare("bakis")}>🗺</button>
+        <button data-eylem="kilic" onPointerDown={fare("kilic")}>⚔</button>
+        <button data-eylem="dash" onPointerDown={fare("dash")}>💨</button>
+        <button data-eylem="kalkan" onPointerDown={fare("kalkan")}>🛡</button>
+        <button data-eylem="kapi" onPointerDown={fare("kapi")}>🚪</button>
         <button
-          onPointerDown={() => { ses.devamEt(); g()?.dokunHackBasla(); }}
-          onPointerUp={() => g()?.dokunHackBitir()}
-          onPointerLeave={() => g()?.dokunHackBitir()}
-          onPointerCancel={() => g()?.dokunHackBitir()}
+          data-eylem="hack"
+          onPointerDown={fare("hack")}
+          onPointerUp={(e) => { if (e.pointerType !== "touch") g()?.dokunHackBitir(); }}
+          onPointerLeave={(e) => { if (e.pointerType !== "touch") g()?.dokunHackBitir(); }}
+          onPointerCancel={(e) => { if (e.pointerType !== "touch") g()?.dokunHackBitir(); }}
         >⚡</button>
       </div>
 

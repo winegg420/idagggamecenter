@@ -35,13 +35,15 @@ const BOT_ADLARI = ["Neo", "Trinity", "Ghost", "Vega", "Kilo", "Rook", "Delta"];
 function rastgele(min, max) { return min + Math.random() * (max - min); }
 
 // Haritada rastgele yürünebilir bir nokta (odalardan birinin içinden).
+// Lobi alanları HARİÇ: drone devriyesi/spawn'ı, çip ve yeniden doğuş hep tesiste kalır.
 function rastgeleNokta(harita) {
   for (let d = 0; d < 40; d++) {
     const a = harita.alanlar[Math.floor(Math.random() * harita.alanlar.length)];
+    if (a.lobi) continue;
     const x = a.x + Math.random() * a.w, y = a.y + Math.random() * a.h;
     if (yurunebilir(harita, x, y)) return { x, y };
   }
-  return { ...harita.baslangic };
+  return { x: harita.baslangic.x, y: (harita.tesisYuksekligi || harita.yukseklik) / 2 };
 }
 
 // Başlangıca yakın yürünebilir bir nokta (botlar oyuncunun yanında başlasın → görünür).
@@ -112,6 +114,7 @@ function kapidaMi(k, x, y, pay = 12) {
 function enYakinKapi(harita, x, y, menzil) {
   let en = null, enD = menzil;
   for (const k of harita.kapilar) {
+    if (k.girisi) continue;                 // giriş geçidi elle/itmeyle açılıp kapanamaz
     const kx = k.x + k.w / 2, ky = k.y + k.h / 2, d = Math.hypot(kx - x, ky - y);
     if (d < enD) { enD = d; en = k; }
   }
@@ -286,6 +289,8 @@ export function createDurum() {
     harita, oyuncular, droneler, cipler,
     parcaciklar: [],
     sarsinti: 0, hitstop: 0,     // ekran sarsıntısı + vuruş donması (aksiyon hissi)
+    // LOBİ fazı: droneler/zorluk/yönetmen devrede değil; giriş geçidi aşılınca "aksiyon"
+    faz: "lobi", aksiyonBas: 0,
     zaman: 0, isikSayaci: ISIK_DEGISIM_ARALIK,
     bitti: false, sonuc: null,   // 'kacti' | 'yakalandi'
     izleyici: false, _izleyiciSayaci: 0,
@@ -304,6 +309,29 @@ export function createDurum() {
     _sonBaski: false,            // tek kaçak kaldı — droneler güçlendi
     enYakin: Infinity, _kalpCd: 0, // "az kalsın" istatistiği + kalp atışı zamanlayıcısı
   };
+}
+
+// LOBİ → AKSİYON geçişi: oyuncu giriş geçidini aşınca çağrılır.
+// Geçit mühürlenir (lobiye dönüş yok), lobide kalan botlar tesise ışınlanır
+// (birlikte giriş — mühür arkasında kimse kalmaz), tehdit sistemleri devreye girer.
+function aksiyonBaslat(durum, gk) {
+  durum.faz = "aksiyon";
+  durum.aksiyonBas = durum.zaman;
+  gk.kapali = true; gk._acilma = 0; gk.kirilma = 0;
+  for (const s of durum.oyuncular) {
+    if (!s.bot || s.yakalandi || s.cikti || s.y <= gk.y) continue;
+    let yerlesti = false;
+    for (let d = 0; d < 30 && !yerlesti; d++) {
+      const px = gk.x + 20 + Math.random() * (gk.w - 40);
+      const py = gk.y - 36 - Math.random() * 70;
+      if (yurunebilir(durum.harita, px, py)) { s.x = px; s.y = py; yerlesti = true; }
+    }
+    if (!yerlesti) { s.x = gk.x + gk.w / 2; s.y = gk.y - 60; }
+  }
+  durum.sesler.push("alarm");
+  durum.tespitFlash = TESPIT_FLASH;
+  akisEkle(durum, "🚨 SİMÜLASYON BAŞLADI — droneler devrede!");
+  parcacikEkle(durum, gk.x + gk.w / 2, gk.y + gk.h / 2, 26, "255,90,90", 190, 2.6);
 }
 
 // Panel hack'lendi: bağlı çıkış kalıcı açılır, bekçileri tetiklenir (alarm),
@@ -465,16 +493,18 @@ export function guncelle(durum, dt, girdi) {
   durum.zaman += dt;
   parcaciklariGuncelle(durum, dt);
 
-  // Kapılar: kapalı kapı süresi dolunca kendiliğinden açılır.
+  const lobide = durum.faz === "lobi";     // hazırlık fazı: tehdit sistemleri kapalı
+
+  // Kapılar: kapalı kapı süresi dolunca kendiliğinden açılır (mühürlü giriş hariç).
   for (const k of durum.harita.kapilar) {
-    if (!k.kapali) continue;
+    if (!k.kapali || k.girisi) continue;
     k._acilma -= dt;
     if (k._acilma <= 0) kapiAc(durum, k, false);
   }
 
   // Zorluk eğrisi: zamanla droneler hızlanır/görüşü artar (algilanabilir + hız çarpanı)
-  durum._zorlukSayaci -= dt;
-  if (durum._zorlukSayaci <= 0 && durum.zorluk < ZORLUK_MAKS) {
+  if (!lobide) durum._zorlukSayaci -= dt;
+  if (!lobide && durum._zorlukSayaci <= 0 && durum.zorluk < ZORLUK_MAKS) {
     durum.zorluk++; durum._zorlukSayaci = ZORLUK_ARALIK;
     akisEkle(durum, `⚡ Zorluk arttı — Kademe ${durum.zorluk}`);
     // Drone çeşitliliği: kademe 3'te bir AĞIR (geniş koni, yavaş), kademe 4'te
@@ -499,23 +529,24 @@ export function guncelle(durum, dt, girdi) {
   durum.tespitFlash = Math.max(0, durum.tespitFlash - dt);
   durum._kalpCd = Math.max(0, durum._kalpCd - dt);
   // Son-oyuncu baskısı: tek kaçak kalınca drone menzilleri +%15 (round hızlanır)
-  if (!durum._sonBaski) {
+  if (!lobide && !durum._sonBaski) {
     const diri = durum.oyuncular.filter((s) => !s.yakalandi && !s.cikti).length;
     if (diri === 1) { durum._sonBaski = true; akisEkle(durum, "⚠ Son kaçak — droneler güçlendi!"); }
   }
 
-  // Işık/karanlık değişimi: periyodik olarak aydınlık odaları karıştır (tasarım 5)
-  durum.isikSayaci -= dt;
+  // Işık/karanlık değişimi: periyodik olarak aydınlık odaları karıştır (tasarım 5).
+  // Lobi alanları HEP aydınlık kalır (güvenli bölge okuması).
+  if (!lobide) durum.isikSayaci -= dt;
   if (durum.isikSayaci <= 0) {
     durum.isikSayaci = ISIK_DEGISIM_ARALIK;
-    const adliOdalar = durum.harita.alanlar.filter((a) => a.ad);
+    const adliOdalar = durum.harita.alanlar.filter((a) => a.ad && !a.lobi);
     for (const a of adliOdalar) a.aydinlik = Math.random() < 0.4;
   }
 
   // AI ele geçirme: periyodik olarak bir nesne aktifleşir (drone çeker), süresi dolunca söner.
-  durum._nesneSayaci -= dt;
+  if (!lobide) durum._nesneSayaci -= dt;
   const nesneler = durum.harita.nesneler || [];
-  if (durum._nesneSayaci <= 0 && nesneler.length) {
+  if (!lobide && durum._nesneSayaci <= 0 && nesneler.length) {
     durum._nesneSayaci = NESNE_AKTIF_ARALIK;
     const pasif = nesneler.filter((n) => !n.aktif);
     if (pasif.length) {
@@ -539,7 +570,8 @@ export function guncelle(durum, dt, girdi) {
       s._yonZaman -= dt;
       if (s._yonZaman <= 0) { s._yon = Math.random() * Math.PI * 2; s._yonZaman = rastgele(0.6, 2); }
       // Round ilerledikçe (ya da oyuncu elendiğinde) botlar çıkışa yönelir → round çözülür.
-      if (!s._kacis && (durum.zaman > BOT_KACIS_ZAMANI || durum.izleyici)) s._kacis = true;
+      // Süre AKSİYON başlangıcından sayılır — lobide bekleme kaçışı tetiklemez.
+      if (!s._kacis && !lobide && (durum.zaman - durum.aksiyonBas > BOT_KACIS_ZAMANI || durum.izleyici)) s._kacis = true;
       if (s._kacis) {
         // Kilitli çıkış: bot önce yakındaki paneli açar (kilitli çıkışta takılı kalmaz).
         let panel = null, panelUz = 620;
@@ -662,10 +694,20 @@ export function guncelle(durum, dt, girdi) {
     }
   }
 
+  const ben0 = durum.oyuncular[0];
+
+  // LOBİ fazı: oyuncu giriş geçidini aştı mı? Aştıysa aksiyon başlar.
+  if (durum.faz === "lobi") {
+    const gk = durum.harita.kapilar.find((k) => k.girisi);
+    if (gk && ben0.y < gk.y - 26) aksiyonBaslat(durum, gk);
+  }
+
+  // Lobide tehdit katmanları (yönetmen + drone AI) tamamen kapalı — sadece
+  // yürüme/keşif. Kamera takibi aşağıda her fazda çalışır.
+  if (durum.faz !== "lobi") {
   // --- YÖNETMEN (director) — oyuncunun baskı düzeyini ölçer, rahatlık uzarsa
   // boş bir drone'a GEÇMİŞ konum ipucu verir (tam konum asla — adil kalır),
   // baskı çökünce 6-10sn nefes payı bırakır (Alien: Isolation dersi).
-  const ben0 = durum.oyuncular[0];
   durum._izSayac -= dt;
   if (durum._izSayac <= 0) {
     durum._izSayac = 0.5;
@@ -792,11 +834,14 @@ export function guncelle(durum, dt, girdi) {
     const ddx = d.hedefX - d.x, ddy = d.hedefY - d.y, duz = Math.hypot(ddx, ddy) || 1;
     const nx = d.x + (ddx / duz) * hiz * dt, ny = d.y + (ddy / duz) * hiz * dt;
     // Kapalı kapı enerji perdesi: drone geçemez, kırmak zorunda (oyuncuya zaman kazandırır).
+    // Mühürlü giriş geçidi (girisi) KIRILAMAZ — lobi kalıcı olarak kapalıdır.
     const perde = durum.harita.kapilar.find((k) => k.kapali && kapidaMi(k, nx, ny));
     if (perde) {
-      perde.kirilma += dt;
-      if (Math.random() < dt * 12) parcacikEkle(durum, nx, ny, 1, "255,90,70", 90, 1.8);
-      if (perde.kirilma >= KAPI_KIRILMA) kapiAc(durum, perde, true);
+      if (!perde.girisi) {
+        perde.kirilma += dt;
+        if (Math.random() < dt * 12) parcacikEkle(durum, nx, ny, 1, "255,90,70", 90, 1.8);
+        if (perde.kirilma >= KAPI_KIRILMA) kapiAc(durum, perde, true);
+      }
     } else {
       d.x = nx; d.y = ny;
     }
@@ -835,6 +880,7 @@ export function guncelle(durum, dt, girdi) {
       if (durum._kalpCd <= 0) { durum._kalpCd = 0.55; durum.sesler.push("kalp"); }
     }
   }
+  } // faz !== "lobi" sonu
 
   // İzleyici modu: oyuncu elendiyse round'u bir süre daha sürdür (botları izle),
   // güvenlik süresi dolunca ya da herkes çözülünce bitir.

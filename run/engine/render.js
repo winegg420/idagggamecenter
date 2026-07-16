@@ -87,13 +87,13 @@ const TABAN = {
   ofis: "#2b3c4d", acik_ofis: "#2d3e4a", sunucu: "#233742", toplanti: "#303b4e",
   dinlenme: "#3a3550", mutfak: "#3b4046", kafeterya: "#413c35", arsiv: "#38392f",
   depo: "#333734", guvenlik: "#2c3b50", lab: "#28414b", giris: "#384153",
-  atrium: "#2c4534", plaza: "#334357",
+  atrium: "#2c4534", plaza: "#334357", lobi: "#2e4544",
 };
 const KENAR = {
   ofis: "90,180,215", acik_ofis: "90,180,215", sunucu: "80,225,205", toplanti: "150,170,235",
   dinlenme: "185,140,235", mutfak: "230,190,120", kafeterya: "240,175,95", arsiv: "195,180,115",
   depo: "205,165,95", guvenlik: "240,120,120", lab: "120,205,255", giris: "160,200,240",
-  atrium: "95,220,140", plaza: "140,190,230",
+  atrium: "95,220,140", plaza: "140,190,230", lobi: "110,235,205",
 };
 
 export function ciz(ctx, durum, view) {
@@ -154,6 +154,22 @@ export function ciz(ctx, durum, view) {
   for (const k of durum.harita.kapilar || []) {
     if (k.x > gR || k.y > gB || k.x + k.w < gL || k.y + k.h < gT) continue;
     cizKapiEsigi(ctx, k);
+  }
+  // LOBİ fazında giriş geçidi davet eder: yeşil nabızlı çerçeve + yönlendirme yazısı
+  if (durum.faz === "lobi") {
+    const gk = (durum.harita.kapilar || []).find((k) => k.girisi);
+    if (gk) {
+      const pn = 0.45 + 0.35 * Math.sin(t * 4);
+      ctx.save();
+      ctx.strokeStyle = `rgba(90,255,170,${pn})`; ctx.lineWidth = 3;
+      ctx.shadowColor = "rgba(90,255,170,0.9)"; ctx.shadowBlur = 16;
+      ctx.strokeRect(gk.x - 4, gk.y - 6, gk.w + 8, gk.h + 12);
+      ctx.shadowBlur = 6;
+      ctx.fillStyle = `rgba(150,255,200,${0.7 + 0.3 * Math.sin(t * 4)})`;
+      ctx.font = "bold 15px system-ui"; ctx.textAlign = "center";
+      ctx.fillText("▲ SİMÜLASYON GİRİŞİ", gk.x + gk.w / 2, gk.y + 40);
+      ctx.restore();
+    }
   }
   // Çıkış kapıları: AÇIK → yeşil kayan şeritli "acil çıkış"; KİLİTLİ → kırmızı,
   // durağan şeritli, kilit sembollü (panel hack'lenince yeşile döner).
@@ -405,6 +421,7 @@ export function ciz(ctx, durum, view) {
     // (arada duvar yoksa) anında fark edilirsin. Duvarlar koniyi keser.
     let koniSayisi = 0;
     for (const dr of durum.droneler || []) {
+      if (durum.faz === "lobi") break;      // lobide droneler uykuda — tarama yok
       if (dr.sersem > 0 || dr.yok > 0 || koniSayisi >= 4) continue;
       const koniAci = taramaAcisi(dr);            // sessiz drone: koni yok (görünmez tehdit)
       if (koniAci <= 0) continue;
@@ -497,7 +514,8 @@ export function ciz(ctx, durum, view) {
     if (kx + bw < 0 || ky + bh < 0 || kx > w || ky > h) continue;
     const nabiz = 0.5 + 0.5 * Math.sin(t * 12);
     const kiriliyor = k.kirilma > 0;
-    const renk = kiriliyor ? "255,120,60" : "90,200,255";
+    // Mühürlü giriş geçidi kırmızı (kalıcı); normal perde camgöbeği, kırılan turuncu
+    const renk = k.girisi ? "255,80,90" : kiriliyor ? "255,120,60" : "90,200,255";
     ctx.save();
     ctx.globalCompositeOperation = "lighter";
     ctx.fillStyle = `rgba(${renk},${0.16 + 0.2 * nabiz})`;
@@ -628,6 +646,7 @@ function cizEtkilesimIpucu(ctx, durum, ben, w2s) {
   if (!hedef && ben._kapiCd <= 0) {
     let enD = KAPI_MENZIL;
     for (const k of durum.harita.kapilar || []) {
+      if (k.girisi) continue;               // giriş geçidi Q ile açılıp kapanamaz
       const kx = k.x + k.w / 2, ky = k.y + k.h / 2, d = Math.hypot(kx - ben.x, ky - ben.y);
       if (d < enD) { enD = d; hedef = { x: kx, y: ky }; metin = k.kapali ? "Q — kapıyı aç" : "Q — kapıyı kapat"; }
     }
@@ -721,16 +740,34 @@ function cizHud(ctx, durum, view, ben) {
   ctx.fillStyle = "rgba(170,210,235,0.85)";
   ctx.fillText("📍 " + oda, 14, 20);
 
-  // --- Zorluk kademesi + süre (üst-orta) ---
-  const sn = Math.floor(durum.zaman);
-  const sure = Math.floor(sn / 60) + ":" + String(sn % 60).padStart(2, "0");
+  // --- Zorluk kademesi + süre (üst-orta) — süre AKSİYON başlangıcından sayılır ---
   ctx.textAlign = "center"; ctx.font = "bold 12px system-ui";
-  ctx.fillStyle = "rgba(255,180,90,0.85)";
-  ctx.fillText("⚡ Kademe " + durum.zorluk + "  ·  ⏱ " + sure, w / 2, 20);
+  if (durum.faz === "lobi") {
+    ctx.fillStyle = "rgba(130,240,200,0.9)";
+    ctx.fillText("🚶 HAZIRLIK — güvenli bölge", w / 2, 20);
+  } else {
+    const sn = Math.floor(Math.max(0, durum.zaman - (durum.aksiyonBas || 0)));
+    const sure = Math.floor(sn / 60) + ":" + String(sn % 60).padStart(2, "0");
+    ctx.fillStyle = "rgba(255,180,90,0.85)";
+    ctx.fillText("⚡ Kademe " + durum.zorluk + "  ·  ⏱ " + sure, w / 2, 20);
+  }
 
-  // --- Round başı hedef yazısı (ilk saniyeler, sönümlenir) ---
-  if (durum.zaman < 6 && !durum.bitti) {
-    const al = durum.zaman < 4.4 ? 1 : (6 - durum.zaman) / 1.6;
+  // --- Faz hedef yazıları ---
+  if (durum.faz === "lobi" && !durum.bitti) {
+    // Lobi: kalıcı yönlendirme (hafif nabız) — koridoru geçince aksiyon başlar
+    const al = 0.75 + 0.25 * Math.sin(t * 2.5);
+    ctx.textAlign = "center";
+    ctx.fillStyle = `rgba(140,255,200,${al})`;
+    ctx.font = "bold 24px system-ui";
+    ctx.shadowColor = "rgba(90,255,170,0.55)"; ctx.shadowBlur = 12;
+    ctx.fillText("KORİDORU GEÇ — SİMÜLASYON BAŞLASIN", w / 2, h * 0.26);
+    ctx.shadowBlur = 0;
+    ctx.font = "13px system-ui";
+    ctx.fillStyle = "rgba(200,230,225,0.9)";
+    ctx.fillText("Burası güvenli: kontrolleri dene, etrafı keşfet · geçitten geçince droneler devreye girer ve geçit mühürlenir", w / 2, h * 0.26 + 26);
+  } else if (durum.faz !== "lobi" && durum.zaman - durum.aksiyonBas < 6 && !durum.bitti) {
+    const ak = durum.zaman - durum.aksiyonBas;
+    const al = ak < 4.4 ? 1 : (6 - ak) / 1.6;
     ctx.textAlign = "center";
     ctx.fillStyle = `rgba(140,255,180,${al})`;
     ctx.font = "bold 26px system-ui";
@@ -775,6 +812,29 @@ function mobilyaCiz(ctx, a, s2, t) {
         const [x, y] = s2(cx, a.y + a.h / 2);
         ctx.beginPath(); ctx.moveTo(x - 8, y - 8); ctx.lineTo(x + 6, y); ctx.lineTo(x - 8, y + 8); ctx.stroke();
       }
+    }
+    return;
+  }
+
+  // Lobi: ofis dekoru yok — koridorda tesise (kuzeye) çağıran ışıklı yön okları,
+  // odada zemin şeridi. Güvenli bölge sade ve okunaklı kalsın.
+  if (a.tip === "lobi") {
+    if (/Koridoru/.test(ad)) {
+      const cx = a.x + a.w / 2;
+      for (let oy = a.y + a.h - 90; oy > a.y + 60; oy -= 190) {
+        const par = 0.25 + 0.15 * Math.sin(t * 2.4 + oy * 0.02);
+        ctx.strokeStyle = `rgba(110,235,205,${par})`; ctx.lineWidth = 4; ctx.lineCap = "round";
+        ctx.beginPath(); ctx.moveTo(cx - 14, oy + 12); ctx.lineTo(cx, oy - 4); ctx.lineTo(cx + 14, oy + 12); ctx.stroke();
+      }
+      // kenar şeritleri (pist ışığı hissi)
+      ctx.fillStyle = "rgba(110,235,205,0.10)";
+      ctx.fillRect(a.x + 6, a.y, 4, a.h); ctx.fillRect(a.x + a.w - 10, a.y, 4, a.h);
+    } else {
+      const [cx, cy] = s2(a.x + a.w / 2, a.y + a.h / 2);
+      ctx.strokeStyle = "rgba(110,235,205,0.16)"; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.arc(cx, cy, Math.min(a.w, a.h) * 0.24, 0, Math.PI * 2); ctx.stroke();
+      ctx.fillStyle = "rgba(160,240,220,0.35)"; ctx.font = "bold 12px system-ui"; ctx.textAlign = "center";
+      ctx.fillText("GÜVENLİ BÖLGE", cx, cy + 4);
     }
     return;
   }
@@ -974,21 +1034,23 @@ function cizKisi(ctx, x, y, s, aksan, t, sen) {
   ctx.beginPath(); ctx.ellipse(-r * 0.32, -adim * r * 0.5, r * 0.2, r * 0.34, 0, 0, Math.PI * 2); ctx.fill();
   ctx.beginPath(); ctx.ellipse(r * 0.32, adim * r * 0.5, r * 0.2, r * 0.34, 0, 0, Math.PI * 2); ctx.fill();
 
-  // enerji kılıcı: sağ elde — koyu kabza + ışıyan camgöbeği bıçak.
-  // Savururken kabzadan geniş yay çizer (kesme izi ayrıca ekranda çizilir).
-  const savurma = s._sopaFlash > 0 ? ((1 - s._sopaFlash / SOPA_SAVURMA) * 2.6 - 1.3) * (s._savurmaYon || 1) : 0.55;
-  ctx.save();
-  ctx.translate(r * 0.85, -adim * r * 0.4);
-  ctx.rotate(savurma - Math.PI / 2);
-  ctx.strokeStyle = "#2a3340"; ctx.lineWidth = 5; ctx.lineCap = "round";       // kabza
-  ctx.beginPath(); ctx.moveTo(0, r * 0.1); ctx.lineTo(0, -r * 0.35); ctx.stroke();
-  ctx.strokeStyle = s._sopaFlash > 0 ? "#eaffff" : "#8ae4ff";                  // bıçak
-  ctx.lineWidth = 3.5;
-  ctx.shadowColor = "rgba(120,225,255,0.95)"; ctx.shadowBlur = s._sopaFlash > 0 ? 14 : 8;
-  ctx.beginPath(); ctx.moveTo(0, -r * 0.35); ctx.lineTo(0, -r * 1.9); ctx.stroke();
-  ctx.strokeStyle = "rgba(255,255,255,0.9)"; ctx.lineWidth = 1.2; ctx.shadowBlur = 0;
-  ctx.beginPath(); ctx.moveTo(0, -r * 0.45); ctx.lineTo(0, -r * 1.8); ctx.stroke(); // öz çizgisi
-  ctx.restore();
+  // enerji kılıcı: SADECE kendi karakterinde çizilir — elindeki kılıç diğer
+  // oyunculara görünmez (stealth: ışıyan bıçak konum ele vermesin; MP'ye hazır kural).
+  if (s.id === "ben") {
+    const savurma = s._sopaFlash > 0 ? ((1 - s._sopaFlash / SOPA_SAVURMA) * 2.6 - 1.3) * (s._savurmaYon || 1) : 0.55;
+    ctx.save();
+    ctx.translate(r * 0.85, -adim * r * 0.4);
+    ctx.rotate(savurma - Math.PI / 2);
+    ctx.strokeStyle = "#2a3340"; ctx.lineWidth = 5; ctx.lineCap = "round";       // kabza
+    ctx.beginPath(); ctx.moveTo(0, r * 0.1); ctx.lineTo(0, -r * 0.35); ctx.stroke();
+    ctx.strokeStyle = s._sopaFlash > 0 ? "#eaffff" : "#8ae4ff";                  // bıçak
+    ctx.lineWidth = 3.5;
+    ctx.shadowColor = "rgba(120,225,255,0.95)"; ctx.shadowBlur = s._sopaFlash > 0 ? 14 : 8;
+    ctx.beginPath(); ctx.moveTo(0, -r * 0.35); ctx.lineTo(0, -r * 1.9); ctx.stroke();
+    ctx.strokeStyle = "rgba(255,255,255,0.9)"; ctx.lineWidth = 1.2; ctx.shadowBlur = 0;
+    ctx.beginPath(); ctx.moveTo(0, -r * 0.45); ctx.lineTo(0, -r * 1.8); ctx.stroke(); // öz çizgisi
+    ctx.restore();
+  }
 
   // kollar (adımın tersi salınım) + ten rengi eller
   ctx.fillStyle = ceket;

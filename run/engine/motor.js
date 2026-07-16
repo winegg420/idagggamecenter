@@ -16,7 +16,9 @@ export class Motor {
   constructor(canvas, opts = {}) {
     this.canvas = canvas;
     this.opts = opts;
-    this.ctx = canvas.getContext("2d");
+    // alpha:false → opak canvas: Safari/iOS kompozit maliyeti düşer (arka plan her
+    // karede tam doldurulduğundan görsel fark yok).
+    this.ctx = canvas.getContext("2d", { alpha: false });
     this.durum = createDurum(opts);
     this.girdi = new Girdi(canvas);
     this.view = { w: 0, h: 0 };
@@ -27,6 +29,9 @@ export class Motor {
     this._hataLoglandi = false;
     this._dongu = this._dongu.bind(this);
     this._boyutla = this._boyutla.bind(this);
+    // Döndürme/tam ekran geçişinde tarayıcı bir süre eski ölçü bildirir —
+    // gecikmeli yeniden ölçümlerle yakala (Kafa Topu dersi).
+    this._boyutlaGec = () => { this._boyutla(); setTimeout(this._boyutla, 300); setTimeout(this._boyutla, 800); };
   }
 
   basla() {
@@ -34,6 +39,10 @@ export class Motor {
     this._calisiyor = true;
     this.girdi.baglan();
     window.addEventListener("resize", this._boyutla);
+    window.addEventListener("orientationchange", this._boyutlaGec);
+    window.visualViewport?.addEventListener("resize", this._boyutla);
+    document.addEventListener("fullscreenchange", this._boyutlaGec);
+    document.addEventListener("webkitfullscreenchange", this._boyutlaGec);
     this._boyutla();
     this._sonT = performance.now();
     this._rafId = requestAnimationFrame(this._dongu);
@@ -45,6 +54,10 @@ export class Motor {
     this._rafId = null;
     this.girdi.cozul();
     window.removeEventListener("resize", this._boyutla);
+    window.removeEventListener("orientationchange", this._boyutlaGec);
+    window.visualViewport?.removeEventListener("resize", this._boyutla);
+    document.removeEventListener("fullscreenchange", this._boyutlaGec);
+    document.removeEventListener("webkitfullscreenchange", this._boyutlaGec);
   }
 
   _boyutla() {

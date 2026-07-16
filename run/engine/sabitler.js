@@ -138,3 +138,11 @@ export const KALP_MESAFE_CARPAN = 2;      // YAKALA_YARICAP × bu kadar yakında
 
 // Parçacıklar (vuruş/hack/ateş/kapı efektleri)
 export const PARCACIK_MAKS = 220;         // aynı anda en fazla parçacık
+
+// LOBİ — güvenli hazırlık bölgesi (tesisin altında oda + kuzeye çıkan koridor).
+// Oyuncular burada doğar, droneler devrede DEĞİLDİR; koridorun sonundaki geçit
+// aşılınca simülasyon (aksiyon) başlar ve geçit arkalarından mühürlenir.
+export const LOBI_ODA_W = 560;            // hazırlık odası genişliği
+export const LOBI_ODA_H = 420;            // hazırlık odası yüksekliği
+export const LOBI_KOR_W = 170;            // giriş koridoru genişliği
+export const LOBI_KOR_H = 980;            // giriş koridoru uzunluğu (yürüme/keşif payı)

@@ -303,9 +303,38 @@
 .run-oyun {
   position: absolute; inset: 0;
   -webkit-touch-callout: none;   /* uzun basışta iOS menüsü açılmasın */
+  -webkit-tap-highlight-color: transparent;
   overscroll-behavior: none;
 }
-.run-canvas { display: block; width: 100vw; height: 100vh; touch-action: none; }
+/* Ebeveyne göre boyut (100vh yerine): iOS adres çubuğu vh'yi şişirir,
+   .run-root fixed inset:0 gerçek görünür alanı verir. */
+.run-canvas { display: block; width: 100%; height: 100%; touch-action: none; }
+
+/* Dikey tutuş ipucu: sadece dokunmatik + dikey; birkaç saniye sonra söner */
+.run-dikey-ipucu { display: none; }
+@media (hover: none) and (orientation: portrait) {
+  .run-dikey-ipucu {
+    display: block;
+    position: fixed;
+    top: calc(14px + env(safe-area-inset-top));
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 9px 16px;
+    border-radius: 10px;
+    background: rgba(8, 14, 22, 0.88);
+    border: 1px solid rgba(120, 220, 240, 0.45);
+    color: #cfeef7;
+    font-size: 13px;
+    white-space: nowrap;
+    z-index: 6;
+    pointer-events: none;
+    animation: run-ipucu-son 7s forwards;
+  }
+}
+@keyframes run-ipucu-son {
+  0%, 78% { opacity: 1; }
+  100% { opacity: 0; visibility: hidden; }
+}
 
 .run-hud-ipucu {
   position: fixed;
@@ -349,11 +378,18 @@
   color: #fff;
   font-size: 24px;
   cursor: pointer;
-  touch-action: manipulation;
+  touch-action: none;             /* çift dokunuş zoom'u tamamen kapalı (iOS) */
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
   -webkit-user-select: none;
   user-select: none;
 }
 .run-dokun button:active { background: rgba(46, 110, 165, 0.4); }
+/* Dokunmatikte butonlar biraz daha büyük — başparmak hedefi rahat olsun */
+@media (hover: none) {
+  .run-dokun { gap: 12px; }
+  .run-dokun button { width: 64px; height: 64px; font-size: 27px; }
+}
 /* Masaüstünde dokun butonları gizli (klavye var); sadece harita butonu kalır */
 @media (hover: hover) and (pointer: fine) {
   .run-dokun button { display: none; }
