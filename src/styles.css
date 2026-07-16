@@ -663,3 +663,37 @@ input:focus { border-color: var(--primary); }
   letter-spacing: 0.5px;
 }
 .kt-serit-ok { font-size: 0.9rem; opacity: 0.85; }
+
+/* ---------- RUN ana sayfa üst sekmesi ---------- */
+.run-serit {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 14px;
+  padding: 12px 16px;
+  border-radius: 16px;
+  text-decoration: none;
+  color: #e8f6ff;
+  background: linear-gradient(120deg, #0b0f2a 0%, #21125e 55%, #7a1fa0 130%);
+  border: 1px solid rgba(120, 220, 255, 0.35);
+  box-shadow: 0 6px 18px rgba(60, 20, 120, 0.45);
+  position: relative;
+  overflow: hidden;
+}
+.run-serit::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 85% 20%, rgba(120, 220, 255, 0.22), transparent 45%);
+  pointer-events: none;
+}
+.run-serit:active { transform: scale(0.985); }
+.run-serit-ikon {
+  font-size: 1.9rem;
+  animation: run-serit-kos 0.9s ease-in-out infinite;
+  filter: drop-shadow(0 0 6px rgba(120, 220, 255, 0.8));
+}
+@keyframes run-serit-kos {
+  0%, 100% { transform: translateX(0); }
+  50% { transform: translateX(5px) skewX(-8deg); }
+}

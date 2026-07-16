@@ -135,6 +135,17 @@ export default function Home() {
         <span className="kt-serit-ok">▶</span>
       </Link>
 
+      {/* ---------- RUN üst sekmesi ---------- */}
+      <Link to="/run" className="run-serit">
+        <span className="run-serit-ikon">🏃</span>
+        <span className="kt-serit-metin">
+          <b>RUN</b>
+          <small>Karanlık labirentten kaç — dronelara yakalanma!</small>
+        </span>
+        <span className="kt-serit-yeni">YENİ</span>
+        <span className="kt-serit-ok">▶</span>
+      </Link>
+
       {bildirimSor && (
         <div className="bildirim-serit">
           <div className="ikon">🔔</div>
