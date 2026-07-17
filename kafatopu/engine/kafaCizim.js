@@ -14,6 +14,38 @@ export const TAKIM_RENK = {
   2: { forma: "#2f6fe0", koyu: "#1b479c", ad: "Mavi" },
 };
 
+// ---------- Performans önbellekleri (iPhone kasma düzeltmesi) ----------
+// Emoji: Safari'de renkli emoji'yi her karede fillText ile rasterlemek pahalı;
+// bir kez 64px tuvale çizilir, sonra drawImage ile ölçeklenerek basılır.
+const emojiOnbellek = new Map();
+export function emojiGorsel(ikon) {
+  let c = emojiOnbellek.get(ikon);
+  if (!c) {
+    c = document.createElement("canvas");
+    c.width = c.height = 64;
+    const t = c.getContext("2d");
+    t.font = "52px serif";
+    t.textAlign = "center";
+    t.textBaseline = "middle";
+    t.fillText(ikon, 32, 36);
+    emojiOnbellek.set(ikon, c);
+  }
+  return c;
+}
+
+// Gradient nesnelerini her karede yeniden yaratmamak için önbellek.
+// (CanvasGradient tuvale bağlı değildir; farklı context'lerde kullanılabilir.)
+const gradyanOnbellek = new Map();
+function gradyanAl(key, uret) {
+  let g = gradyanOnbellek.get(key);
+  if (!g) {
+    if (gradyanOnbellek.size > 300) gradyanOnbellek.clear(); // sınırsız büyümesin
+    g = uret();
+    gradyanOnbellek.set(key, g);
+  }
+  return g;
+}
+
 // oy: { x, y, vx, vy, va, ol, ef } — anlikDurum paketindeki oyuncu kaydı
 // m: meta { takim, kafaKaydi (kafaBul sonucu), ad }
 export function oyuncuCiz(ctx, oy, m, simMs) {
@@ -74,10 +106,12 @@ export function oyuncuCiz(ctx, oy, m, simMs) {
   ctx.fill();
 
   // Forma (takım rengi — takım ayrımının ana göstergesi)
-  const fg = ctx.createLinearGradient(0, -r * 0.1, 0, r * 0.42);
-  fg.addColorStop(0, renk.forma);
-  fg.addColorStop(1, renk.koyu);
-  ctx.fillStyle = fg;
+  ctx.fillStyle = gradyanAl(`f|${m.takim}|${r.toFixed(1)}`, () => {
+    const fg = ctx.createLinearGradient(0, -r * 0.1, 0, r * 0.42);
+    fg.addColorStop(0, renk.forma);
+    fg.addColorStop(1, renk.koyu);
+    return fg;
+  });
   ctx.beginPath();
   ctx.roundRect(-r * 0.42, -r * 0.12, r * 0.84, r * 0.5, r * 0.14);
   ctx.fill();
@@ -133,15 +167,19 @@ export function oyuncuCiz(ctx, oy, m, simMs) {
 
   ctx.restore(); // kafa dönüşümü
 
-  // Bayılma: kafanın üstünde dönen yıldızlar
+  // Bayılma: kafanın üstünde dönen yıldızlar (önbellekli emoji görseli)
   if (bayilmis) {
-    ctx.font = `${Math.max(14, r * 0.4)}px serif`;
-    ctx.textAlign = "center";
-    ctx.textBaseline = "middle";
+    const boy = Math.max(14, r * 0.4);
+    const yildiz = emojiGorsel("⭐");
+    ctx.globalAlpha = 0.85;
     for (let s = 0; s < 3; s++) {
       const a = simMs / 240 + (s * Math.PI * 2) / 3;
-      ctx.globalAlpha = 0.85;
-      ctx.fillText("⭐", Math.cos(a) * r * 0.75, -r * 1.25 + Math.sin(a) * r * 0.22);
+      ctx.drawImage(
+        yildiz,
+        Math.cos(a) * r * 0.75 - boy / 2,
+        -r * 1.25 + Math.sin(a) * r * 0.22 - boy / 2,
+        boy, boy
+      );
     }
     ctx.globalAlpha = 1;
   }
@@ -163,10 +201,12 @@ function kurgusalYuzCiz(ctx, r, bakis, c, renk) {
   const p = c || { ten: "#e8b48a", sac: "#4a3423", sacStil: "dik", goz: "#333", aksesuar: "yok" };
 
   // Kafa tabanı
-  const g = ctx.createRadialGradient(-r * 0.3, -r * 0.35, r * 0.2, 0, 0, r);
-  g.addColorStop(0, aydinlat(p.ten, 18));
-  g.addColorStop(1, p.ten);
-  ctx.fillStyle = g;
+  ctx.fillStyle = gradyanAl(`k|${p.ten}|${r.toFixed(1)}`, () => {
+    const g = ctx.createRadialGradient(-r * 0.3, -r * 0.35, r * 0.2, 0, 0, r);
+    g.addColorStop(0, aydinlat(p.ten, 18));
+    g.addColorStop(1, p.ten);
+    return g;
+  });
   ctx.beginPath();
   ctx.arc(0, 0, r, 0, Math.PI * 2);
   ctx.fill();

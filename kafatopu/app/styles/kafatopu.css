@@ -164,7 +164,9 @@
   align-items: center;
   justify-content: center;
 }
-.kt-canvas-sarici canvas { display: block; border-radius: 6px; }
+/* border-radius YOK: iOS Safari tam ekran canvas'a köşe yuvarlama uygulanınca
+   her karede ekstra kırpma/kompozit katmanı ekliyor (kasma kaynağı). */
+.kt-canvas-sarici canvas { display: block; }
 
 .kt-hud {
   position: absolute;

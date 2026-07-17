@@ -6,7 +6,7 @@
 // ============================================================
 
 import { SAHA, KALE, TOP, GUC } from "../shared/sabitler.js";
-import { oyuncuCiz, TAKIM_RENK } from "./kafaCizim.js";
+import { oyuncuCiz, TAKIM_RENK, emojiGorsel } from "./kafaCizim.js";
 
 // ---------- Arka plan katmanları ----------
 // manifest.json: { "katmanlar": [{ "dosya": "gok.jpg", "hiz": 0.05 }, ...] }
@@ -330,23 +330,89 @@ function prosedurelKatmanlar() {
   return cache;
 }
 
-// ---------- Ana çizim ----------
-// snap: anlikDurum paketi; meta: kafaKaydi eklenmiş oyuncu meta listesi.
-// pay: saha dışında kalan ekran boşlukları (mantıksal birim) — tam ekran
-// görünüm için arka plan bu paylara da uzatılır (yanlar/üst/alt boş kalmaz).
-export function sahneCiz(ctx, snap, meta, simMs, pay = { sol: 0, sag: 0, ust: 0, alt: 0 }) {
-  const parallaxKaynak = ((snap.top?.x ?? SAHA.W / 2) - SAHA.W / 2);
+// ---------- Statik sahne önbelleği (cihaz çözünürlüğünde bir kez pişer) ----------
+// iPhone kasma düzeltmesi: arka plan katmanları + zemin/kum/kale gibi statik
+// öğeler her karede yeniden çizilmek yerine cihaz pikselinde BİR KEZ pişirilir;
+// kare başına yalnız 1:1 drawImage kalır. (Safari'de ölçekli tam ekran çizim +
+// yüzlerce path/gradient komutu kare süresinin çoğunu yiyordu.)
+let pisirik = null; // { key, katmanlar: [{ c, hiz, marj }], kaplama }
+
+function statikleriPisir(ctx, liste, pay, sc, ofX, ofY) {
+  const W = ctx.canvas.width, H = ctx.canvas.height;
+  const key = `${W}|${H}|${sc.toFixed(4)}|${Math.round(ofX)}|${Math.round(ofY)}|${pay.sol}|${pay.ust}|${pay.alt}`;
+  if (pisirik?.key === key) return pisirik;
+
+  // Foto katman henüz yüklenmediyse pişirme (yüklenince pişer; o ana dek
+  // eski doğrudan çizim yolu kullanılır).
+  for (const k of liste) {
+    if (k.img && k.img.tagName === "IMG" && !(k.img.complete && k.img.width)) return null;
+  }
+
   const solX = -pay.sol;
   const genis = SAHA.W + pay.sol + pay.sag;
-  const ustY = -pay.ust;
   const boyH = SAHA.H + pay.ust + pay.alt;
 
-  // Arka plan (paylar dahil tüm ekranı kaplar)
-  const liste = katmanlar && katmanlar.length ? katmanlar : prosedurelKatmanlar();
+  // Parallax katmanları: son ölçekte, kayma marjıyla ayrı tuvallere
+  const katmanC = liste.map((k) => {
+    const marj = Math.ceil(k.hiz * (SAHA.W / 2 + 80) * sc) + 2;
+    const c = document.createElement("canvas");
+    c.width = W + marj * 2;
+    c.height = H;
+    const t = c.getContext("2d");
+    t.setTransform(sc, 0, 0, sc, ofX + marj, ofY);
+    const iw = k.img.width || SAHA.W + 160;
+    const ih = k.img.height || SAHA.H;
+    const olcek = Math.max((genis + 160) / iw, boyH / ih);
+    t.drawImage(k.img, solX - 80, (SAHA.H + pay.alt) - ih * olcek, iw * olcek, ih * olcek);
+    return { c, hiz: k.hiz, marj };
+  });
+
+  // Kaplama: karartma + zemin + kum + çizgiler + kaleler (hepsi statik)
+  const kap = document.createElement("canvas");
+  kap.width = W;
+  kap.height = H;
+  const t = kap.getContext("2d");
+  t.setTransform(sc, 0, 0, sc, ofX, ofY);
+  t.fillStyle = "rgba(8, 20, 34, 0.16)";
+  t.fillRect(solX, -pay.ust, genis, boyH);
+  const zg = t.createLinearGradient(0, SAHA.ZEMIN_Y, 0, SAHA.H + pay.alt);
+  zg.addColorStop(0, "#e7cf9f");
+  zg.addColorStop(1, "#c9a86f");
+  t.fillStyle = zg;
+  t.fillRect(solX, SAHA.ZEMIN_Y, genis, SAHA.H - SAHA.ZEMIN_Y + pay.alt);
+  // kum dokusu: deterministik benekler
+  for (let i = 0; i < 90; i++) {
+    const bx = (i * 137.5) % SAHA.W;
+    const by = SAHA.ZEMIN_Y + 6 + ((i * 61) % (SAHA.H - SAHA.ZEMIN_Y - 10));
+    t.fillStyle = i % 3 ? "rgba(140,110,70,0.25)" : "rgba(255,255,255,0.3)";
+    t.fillRect(bx, by, 2.4, 2.4);
+  }
+  t.fillStyle = "rgba(255,255,255,0.75)";
+  t.fillRect(solX, SAHA.ZEMIN_Y, genis, 3);
+  // orta çizgi
+  t.strokeStyle = "rgba(255,255,255,0.5)";
+  t.lineWidth = 3;
+  t.setLineDash([10, 12]);
+  t.beginPath();
+  t.moveTo(SAHA.W / 2, SAHA.ZEMIN_Y);
+  t.lineTo(SAHA.W / 2, 120);
+  t.stroke();
+  t.setLineDash([]);
+  kaleCiz(t, 1);
+  kaleCiz(t, 2);
+
+  pisirik = { key, katmanlar: katmanC, kaplama: kap };
+  return pisirik;
+}
+
+// Eski doğrudan çizim yolu — yalnızca foto katmanlar yüklenene dek kullanılır.
+function dogrudanArkaplanCiz(ctx, liste, pay, parallaxKaynak) {
+  const solX = -pay.sol;
+  const genis = SAHA.W + pay.sol + pay.sag;
+  const boyH = SAHA.H + pay.ust + pay.alt;
   for (const k of liste) {
     if (k.img && (k.img.width || k.img.complete !== false)) {
       try {
-        // Katman, saha + paylar + parallax marjını kaplayacak şekilde ölçeklenir.
         const iw = k.img.width || SAHA.W + 160;
         const ih = k.img.height || SAHA.H;
         const olcek = Math.max((genis + 160) / iw, boyH / ih);
@@ -356,38 +422,42 @@ export function sahneCiz(ctx, snap, meta, simMs, pay = { sol: 0, sag: 0, ust: 0,
       } catch { /* görsel henüz yüklenmedi */ }
     }
   }
-  // Oyun elemanları net görünsün: hafif kontrast karartması
   ctx.fillStyle = "rgba(8, 20, 34, 0.16)";
-  ctx.fillRect(solX, ustY, genis, boyH);
-
-  // Zemin (kum/deck) — yanlara ve alta doğru uzatılır
+  ctx.fillRect(solX, -pay.ust, genis, boyH);
   const zg = ctx.createLinearGradient(0, SAHA.ZEMIN_Y, 0, SAHA.H + pay.alt);
   zg.addColorStop(0, "#e7cf9f");
   zg.addColorStop(1, "#c9a86f");
   ctx.fillStyle = zg;
   ctx.fillRect(solX, SAHA.ZEMIN_Y, genis, SAHA.H - SAHA.ZEMIN_Y + pay.alt);
-  // kum dokusu: deterministik benekler (her karede aynı, titremez)
-  for (let i = 0; i < 90; i++) {
-    const bx = (i * 137.5) % SAHA.W;
-    const by = SAHA.ZEMIN_Y + 6 + ((i * 61) % (SAHA.H - SAHA.ZEMIN_Y - 10));
-    ctx.fillStyle = i % 3 ? "rgba(140,110,70,0.25)" : "rgba(255,255,255,0.3)";
-    ctx.fillRect(bx, by, 2.4, 2.4);
-  }
   ctx.fillStyle = "rgba(255,255,255,0.75)";
   ctx.fillRect(solX, SAHA.ZEMIN_Y, genis, 3);
-  // orta çizgi + orta yuvarlak
-  ctx.strokeStyle = "rgba(255,255,255,0.5)";
-  ctx.lineWidth = 3;
-  ctx.setLineDash([10, 12]);
-  ctx.beginPath();
-  ctx.moveTo(SAHA.W / 2, SAHA.ZEMIN_Y);
-  ctx.lineTo(SAHA.W / 2, 120);
-  ctx.stroke();
-  ctx.setLineDash([]);
-
-  // Kaleler
   kaleCiz(ctx, 1);
   kaleCiz(ctx, 2);
+}
+
+// ---------- Ana çizim ----------
+// snap: anlikDurum paketi; meta: kafaKaydi eklenmiş oyuncu meta listesi.
+// pay: saha dışında kalan ekran boşlukları (mantıksal birim) — tam ekran
+// görünüm için arka plan bu paylara da uzatılır (yanlar/üst/alt boş kalmaz).
+export function sahneCiz(ctx, snap, meta, simMs, pay = { sol: 0, sag: 0, ust: 0, alt: 0 }) {
+  const parallaxKaynak = ((snap.top?.x ?? SAHA.W / 2) - SAHA.W / 2);
+
+  // Arka plan + statik saha (paylar dahil tüm ekranı kaplar)
+  const liste = katmanlar && katmanlar.length ? katmanlar : prosedurelKatmanlar();
+  const m = ctx.getTransform();
+  const p = statikleriPisir(ctx, liste, pay, m.a, m.e, m.f);
+  if (p) {
+    ctx.save();
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    for (const k of p.katmanlar) {
+      const kayma = Math.max(-k.marj + 2, Math.min(k.marj - 2, parallaxKaynak * k.hiz * m.a));
+      ctx.drawImage(k.c, Math.round(-k.marj - kayma), 0);
+    }
+    ctx.drawImage(p.kaplama, 0, 0);
+    ctx.restore();
+  } else {
+    dogrudanArkaplanCiz(ctx, liste, pay, parallaxKaynak);
+  }
 
   // Kalkan bariyerleri (yetenek)
   (snap.oy || []).forEach((oy, i) => {
@@ -414,10 +484,10 @@ export function sahneCiz(ctx, snap, meta, simMs, pay = { sol: 0, sag: 0, ust: 0,
     ctx.arc(0, 0, GUC.R, 0, Math.PI * 2);
     ctx.fill();
     ctx.stroke();
-    ctx.font = `${GUC.R * 1.2}px serif`;
-    ctx.textAlign = "center";
-    ctx.textBaseline = "middle";
-    ctx.fillText(g.ikon || "⭐", 0, 2);
+    // Emoji her karede fillText ile rasterlenirse Safari'de pahalı;
+    // bir kez küçük tuvale çizilir, sonra drawImage ile basılır.
+    const boy = GUC.R * 1.3;
+    ctx.drawImage(emojiGorsel(g.ikon || "⭐"), -boy / 2, -boy / 2 + 2, boy, boy);
     ctx.restore();
   }
 

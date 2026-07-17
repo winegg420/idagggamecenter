@@ -181,12 +181,21 @@ export default function MacPage() {
     let sonZaman = performance.now();
     let sonYayin = 0;
     let sonGirdiYayin = 0;
+    // Çizim ~60fps ile sınırlanır: 120Hz ProMotion iPhone'larda kare başına
+    // tam sahne çizmek GPU'yu ikiye katlayıp ısınma/kısılma (kasma) yapıyordu.
+    // 12ms eşiği: 120Hz'de her 2. kare çizilir, 60Hz'de her kare geçer.
+    let sonCizim = 0;
+    // FPS'e göre otomatik çözünürlük: zayıf cihazda kasma yerine netlikten ver.
+    let kalite = 1;
+    let fpsKare = 0, fpsSure = 0;
+    let ctx = null;
 
     const ciz = (view) => {
       const canvas = canvasRef.current;
       if (!canvas || !view) return;
-      // Opak canvas: Safari/iOS'ta kompozit maliyetini ciddi düşürür
-      const ctx = canvas.getContext("2d", { alpha: false });
+      // Opak canvas: Safari/iOS'ta kompozit maliyetini ciddi düşürür.
+      // Context bir kez alınıp saklanır (her karede getContext çağrılmaz).
+      if (!ctx || ctx.canvas !== canvas) ctx = canvas.getContext("2d", { alpha: false });
       // Kaleler ekranın EN KENARINDA dursun: saha genişliğe tam oturtulur,
       // zemin alta sabitlenir. Ekran sahadan basıksa üstteki gökyüzü kırpılır
       // (fizik değişmez; top nadiren üstte kısa süre ekran dışına çıkabilir).
@@ -203,6 +212,21 @@ export default function MacPage() {
       if (!aktif) return;
       const dt = simdi - sonZaman;
       sonZaman = simdi;
+
+      // FPS ölçümü (arka plan duraklamaları hariç) → gerekirse çözünürlük düşür
+      if (dt > 0 && dt < 250) {
+        fpsKare += 1;
+        fpsSure += dt;
+        if (fpsSure >= 2500) {
+          const fps = (fpsKare * 1000) / fpsSure;
+          fpsKare = 0;
+          fpsSure = 0;
+          if (fps < 45 && kalite > 0.5) {
+            kalite = Math.max(0.5, kalite - 0.15);
+            boyutlandir();
+          }
+        }
+      }
 
       const mac = macRef.current;
 
@@ -229,15 +253,21 @@ export default function MacPage() {
             sonucuGoster(snap.skor, botMu ? "hizli" : macBilgiRef.current?.tur);
           }
         }
-        const view = anlikDurum(mac, false);
-        hudGuncelle(view, slotRef.current);
-        ciz(view);
-      } else if (interpRef.current) {
-        // --- Misafir: interpolasyonlu görünüm ---
-        const view = interpRef.current.ornekle();
-        if (view) {
+        if (simdi - sonCizim >= 12) {
+          sonCizim = simdi;
+          const view = anlikDurum(mac, false);
           hudGuncelle(view, slotRef.current);
           ciz(view);
+        }
+      } else if (interpRef.current) {
+        // --- Misafir: interpolasyonlu görünüm ---
+        if (simdi - sonCizim >= 12) {
+          sonCizim = simdi;
+          const view = interpRef.current.ornekle();
+          if (view) {
+            hudGuncelle(view, slotRef.current);
+            ciz(view);
+          }
         }
         // Girdi yayını (20Hz)
         if (simdi - sonGirdiYayin >= AG.GIRDI_HZ_MS) {
@@ -256,7 +286,12 @@ export default function MacPage() {
       if (!canvas) return;
       const vw = Math.max(200, Math.round(window.visualViewport?.width ?? window.innerWidth));
       const vh = Math.max(112, Math.round(window.visualViewport?.height ?? window.innerHeight));
-      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      // Çözünürlük: dpr (en çok 2) × otomatik kalite; ayrıca toplam piksel
+      // tavanı — büyük ekranlı telefon/tabletlerde GPU'yu boğmamak için.
+      let dpr = Math.min(window.devicePixelRatio || 1, 2) * kalite;
+      const TAVAN_PIKSEL = 1500000;
+      if (vw * vh * dpr * dpr > TAVAN_PIKSEL) dpr = Math.sqrt(TAVAN_PIKSEL / (vw * vh));
+      dpr = Math.max(0.85, dpr);
       canvas.style.width = vw + "px";
       canvas.style.height = vh + "px";
       canvas.width = Math.round(vw * dpr);
