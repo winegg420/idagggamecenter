@@ -91,7 +91,7 @@ function izCiz(ctx, iz, t) {
   for (let i = 1; i < iz.length; i++) {
     const a = iz[i - 1];
     const b = iz[i];
-    const yas = (t - b.t) / 0.16; // 0=taze, 1=eski
+    const yas = (t - b.t) / 0.2; // 0=taze, 1=eski (IZ_OMUR ile hizalı)
     const alfa = Math.max(0, 1 - yas);
     const kalinlik = 3 + 16 * (i / iz.length) * alfa;
     ctx.strokeStyle = `rgba(180,240,255,${alfa * 0.5})`;

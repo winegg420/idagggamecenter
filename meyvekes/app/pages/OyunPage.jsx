@@ -25,6 +25,9 @@ export default function OyunPage() {
   const sonZamanRef = useRef(0);
   const wakeRef = useRef(null);
   const bittiRef = useRef(false);
+  const ctxRef = useRef(null);
+  const kaliteRef = useRef(1);
+  const fpsRef = useRef({ ema: 16, olcum: 0 });
 
   const [durum, setDurum] = useState("hazir"); // hazir | baslatiliyor | oynaniyor | hata
   const [hata, setHata] = useState("");
@@ -65,19 +68,38 @@ export default function OyunPage() {
     if (!Number.isFinite(dt) || dt < 0) dt = 0;
     sonZamanRef.current = simdi;
 
-    // boyut senkronu (viewport'u doldur)
-    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    // adaptif çözünürlük: FPS düşükse kaliteyi kademeli düşür (netlik ↓, akıcılık ↑)
+    const ft = fpsRef.current;
+    ft.ema = ft.ema * 0.9 + Math.min(dt * 1000, 100) * 0.1;
+    ft.olcum += dt;
+    if (ft.olcum > 2) {
+      ft.olcum = 0;
+      if (ft.ema > 26 && kaliteRef.current > 0.55) kaliteRef.current = Math.max(0.55, kaliteRef.current - 0.15);
+      else if (ft.ema < 19 && kaliteRef.current < 1) kaliteRef.current = Math.min(1, kaliteRef.current + 0.1);
+    }
+
+    // boyut senkronu (viewport'u doldur) — dpr tavanı + piksel bütçesi
     const W = canvas.clientWidth;
     const H = canvas.clientHeight;
-    if (canvas.width !== Math.round(W * dpr) || canvas.height !== Math.round(H * dpr)) {
-      canvas.width = Math.round(W * dpr);
-      canvas.height = Math.round(H * dpr);
+    let olcek = Math.min(window.devicePixelRatio || 1, 1.5) * kaliteRef.current;
+    const butce = 1300000; // ~1.3M piksel tavanı (büyük ekran/tabletlerde ısınma kontrolü)
+    if (W * H * olcek * olcek > butce) olcek = Math.sqrt(butce / (W * H));
+    const bw = Math.max(1, Math.round(W * olcek));
+    const bh = Math.max(1, Math.round(H * olcek));
+    if (canvas.width !== bw || canvas.height !== bh) {
+      canvas.width = bw;
+      canvas.height = bh;
     }
-    const ctx = canvas.getContext("2d");
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    let ctx = ctxRef.current;
+    if (!ctx) {
+      ctx = canvas.getContext("2d", { alpha: false });
+      ctxRef.current = ctx;
+    }
+    const sc = bw / W; // mantıksal (CSS px) → tampon ölçeği
+    ctx.setTransform(sc, 0, 0, sc, 0, 0);
 
     const k = koordinatHesap(takip.video, W, H);
-    oyun.guncelle(dt, takip.eller, (nx, ny) => k.esle(nx, ny), W, H);
+    oyun.guncelle(dt, takip.eller, takip.damga, (nx, ny) => k.esle(nx, ny), W, H);
     ciz(ctx, oyun, takip.video, k, W, H, takip.eller);
 
     // HUD'u ~12fps ile güncelle (React churn azalt)

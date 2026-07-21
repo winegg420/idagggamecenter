@@ -10,11 +10,18 @@ import { rastgeleMeyve } from "./meyveler.js";
 
 const YERCEKIMI = 1500; // px/s²
 const MAC_SURESI = 60;
-const KILIC_KALINLIK = 20; // hitbox toleransı (px)
-const MIN_SEGMENT = 12; // bu hızın altındaki el hareketi kesmez (px/kare)
-const MAX_SEGMENT = 320; // bundan uzun sıçrama = el sırası değişti, sayma
+const KILIC_KALINLIK = 30; // hitbox toleransı (px) — cömert: kesmek kolay olsun
+const MIN_SEGMENT = 9; // bu hareketin altındaki el kesmez (statik el sayılmaz)
+const MAX_ORAN = 0.75; // kesim segmenti köşegenin bu oranını aşarsa sayma (sahte/geçiş)
+// Eşleştirme cömert: hızlı savurmada avuç uzağa sıçrar ama yine aynı el sayılmalı.
+// Gerçekte iki farklı el birbirine bu kadar yaklaşıp uzaklaşmaz; absürt bağlantıları
+// zaten MAX_ORAN kesim segmentinde eler (uzun segment kesmez).
+const ESLESME_ORAN = 0.9;
 const COMBO_PENCERE = 0.55; // sn
-const IZ_OMUR = 0.16; // bıçak izi ömrü (sn)
+const IZ_OMUR = 0.2; // bıçak izi ömrü (sn)
+// Kesim/iz için el üzerinden örneklenen noktalar: bilek, 5 parmak ucu, avuç.
+// Böylece tüm el/bilek bir "bıçak" gibi davranır (tek nokta değil).
+const KESIM_NOKTA = [0, 4, 8, 12, 16, 20, 9];
 
 // Nokta–doğru parçası mesafesi.
 function segMesafe(px, py, ax, ay, bx, by) {
@@ -34,7 +41,9 @@ export class Oyun {
     this.yarilar = []; // kesilmiş yarımlar
     this.parcaciklar = [];
     this.popuplar = []; // uçan puan metinleri
-    this.izler = []; // her el için [{x,y,t}] bıçak izi
+    this.izler = []; // render için: her takip edilen el için [{x,y,t}] bıçak izi
+    this._takip = []; // kimlik eşleştirmeli el takibi
+    this._sonDamga = -1; // en son işlenen algılama karesi
 
     this.puan = 0;
     this.puanSol = 0;
@@ -47,7 +56,6 @@ export class Oyun {
     this.geriSayim = 3;
     this.sure = MAC_SURESI;
     this._spawnZaman = 0.4;
-    this._oncekiNoktalar = null; // [{palm:{x,y}, uc:{x,y}, taraf}]
     this._t = 0;
   }
 
@@ -149,8 +157,86 @@ export class Oyun {
     }
   }
 
-  // eller: ElTakip.eller (ham landmark) ; harita: (nx,ny)->{x,y} ekran px
-  guncelle(dt, eller, harita, W, H) {
+  // Algılanan elleri önceki karedeki ellere kimlikle eşleştirir (en yakın avuç),
+  // her el için 7 anahtar noktadan segment çizip meyvelerle kesişimi test eder.
+  // Kimlik eşleştirme sayesinde hızlı/uzun savurmalar reddedilmez (el geçişi değil).
+  _elleriIsle(eller, harita, W, H) {
+    const diag = Math.hypot(W, H);
+    const maxSeg = diag * MAX_ORAN;
+    const eslesmeMax = diag * ESLESME_ORAN;
+
+    const guncel = eller.map((e) => {
+      const pts = KESIM_NOKTA.map((idx) => {
+        const n = e.noktalar[idx] || e.noktalar[9] || e.noktalar[0];
+        return harita(n.x, n.y);
+      });
+      const palm = pts[6] || pts[0]; // KESIM_NOKTA'da 9 (avuç) → 7. eleman
+      return { pts, palm, taraf: palm.x < W / 2 ? "sol" : "sag" };
+    });
+
+    const kullanildi = new Array(this._takip.length).fill(false);
+    const yeni = [];
+
+    for (const g of guncel) {
+      let enIyi = -1;
+      let enMesafe = eslesmeMax;
+      for (let j = 0; j < this._takip.length; j++) {
+        if (kullanildi[j]) continue;
+        const d = Math.hypot(this._takip[j].palm.x - g.palm.x, this._takip[j].palm.y - g.palm.y);
+        if (d < enMesafe) {
+          enMesafe = d;
+          enIyi = j;
+        }
+      }
+      if (enIyi >= 0) {
+        const onc = this._takip[enIyi];
+        kullanildi[enIyi] = true;
+        if (this.faz === "oyun") {
+          for (let k = 0; k < g.pts.length; k++) {
+            const a = onc.pts[k];
+            const b = g.pts[k];
+            if (!a) continue;
+            const uz = Math.hypot(b.x - a.x, b.y - a.y);
+            if (uz < MIN_SEGMENT || uz > maxSeg) continue;
+            for (const f of this.meyveler) {
+              if (f.kesildi) continue;
+              if (segMesafe(f.x, f.y, a.x, a.y, b.x, b.y) < f.r + KILIC_KALINLIK) {
+                this._kes(f, g.taraf, W);
+              }
+            }
+          }
+        }
+        onc.pts = g.pts;
+        onc.palm = g.palm;
+        onc.taraf = g.taraf;
+        onc.iz.push({ x: g.palm.x, y: g.palm.y, t: this._t });
+        onc.gorulen = this._t;
+        yeni.push(onc);
+      } else {
+        yeni.push({
+          pts: g.pts,
+          palm: g.palm,
+          taraf: g.taraf,
+          iz: [{ x: g.palm.x, y: g.palm.y, t: this._t }],
+          gorulen: this._t,
+        });
+      }
+    }
+
+    // eşleşmeyen eski elleri izleri tazeyken koru (iz sönene dek), sonra düşür
+    for (let j = 0; j < this._takip.length; j++) {
+      if (kullanildi[j]) continue;
+      const h = this._takip[j];
+      while (h.iz.length && this._t - h.iz[0].t > IZ_OMUR) h.iz.shift();
+      if (h.iz.length) yeni.push(h);
+    }
+
+    this._takip = yeni;
+  }
+
+  // eller: ElTakip.eller (ham landmark) ; damga: algılama kare no (yeni veri işareti)
+  // harita: (nx,ny)->{x,y} ekran px
+  guncelle(dt, eller, damga, harita, W, H) {
     dt = Math.min(dt, 0.05); // büyük sıçramaları sınırla (sekme arası)
     this._t += dt;
 
@@ -175,48 +261,18 @@ export class Oyun {
       }
     }
 
-    // ---- el noktalarını ekrana taşı + bıçak izi + kesim ----
-    const noktalar = [];
-    for (let i = 0; i < eller.length; i++) {
-      const n = eller[i].noktalar;
-      const palm = harita((n[9] || n[0]).x, (n[9] || n[0]).y);
-      const uc = harita((n[8] || n[9] || n[0]).x, (n[8] || n[9] || n[0]).y);
-      noktalar.push({ palm, uc, taraf: eller[i].taraf });
-
-      // bıçak izi (avuç merkezinden)
-      if (!this.izler[i]) this.izler[i] = [];
-      this.izler[i].push({ x: palm.x, y: palm.y, t: this._t });
+    // ---- el takibi + bıçak izi + kesim (yalnız YENİ algılama karesinde) ----
+    // Algılama ~15-25 fps; render 60 fps. Aynı algılama verisiyle tekrar kesim
+    // işlemek anlamsız ve yanlış (segment ~0). damga değişince bir kez işle.
+    if (damga !== this._sonDamga) {
+      this._sonDamga = damga;
+      this._elleriIsle(eller, harita, W, H);
     }
-    // fazla iz slotlarını temizle + eski noktaları at
-    this.izler.length = Math.max(noktalar.length, 0) || this.izler.length;
-    for (const iz of this.izler) {
-      if (!iz) continue;
-      while (iz.length && this._t - iz[0].t > IZ_OMUR) iz.shift();
+    // izleri her karede (zamanla) süz
+    for (const h of this._takip) {
+      while (h.iz.length && this._t - h.iz[0].t > IZ_OMUR) h.iz.shift();
     }
-
-    // kesim: yalnız oyun fazında ve el sayısı sabit kaldıysa
-    if (this.faz === "oyun" && this._oncekiNoktalar && this._oncekiNoktalar.length === noktalar.length) {
-      for (let i = 0; i < noktalar.length; i++) {
-        const cur = noktalar[i];
-        const onc = this._oncekiNoktalar[i];
-        // iki kesim noktası: avuç ve işaret ucu
-        for (const par of [
-          [onc.palm, cur.palm],
-          [onc.uc, cur.uc],
-        ]) {
-          const [a, b] = par;
-          const uz = Math.hypot(b.x - a.x, b.y - a.y);
-          if (uz < MIN_SEGMENT || uz > MAX_SEGMENT) continue;
-          for (const f of this.meyveler) {
-            if (f.kesildi) continue;
-            if (segMesafe(f.x, f.y, a.x, a.y, b.x, b.y) < f.r + KILIC_KALINLIK) {
-              this._kes(f, cur.taraf, W);
-            }
-          }
-        }
-      }
-    }
-    this._oncekiNoktalar = noktalar;
+    this.izler = this._takip.map((h) => h.iz);
 
     // ---- fizik: meyveler ----
     for (const f of this.meyveler) {

@@ -326,3 +326,16 @@ Kamera tabanlı, gerçek el hareketiyle meyve kesme oyunu (Fruit Ninja mantığ�
 - **Migration uygulanmadı:** `20260612000038_meyvekes_temel.sql` Supabase Studio'da çalıştırılmalı (bu makinede `db push` 403 veriyor). Uygulanmadan skor kaydı/sıralama çalışmaz — oyunun kendisi (kamera+kesim) migration'sız da çalışır.
 - **Gerçek cihaz testi:** kamera+MediaPipe otomasyon ortamında test edilemedi (kamera yok, CDN gerekir). Telefonda/kamerada canlı test gerekli: kamera izni akışı, el takibi akıcılığı (özellikle arkadaş modu 4 el), kesim hissi.
 - Gerçek meyve fotoğrafları (rembg) istenirse `/public/meyve/` + manifest ile eklenir (OKU.txt tarifli); şu an emoji sprite ile tam çalışır.
+
+## 2026-07-22 (2. oturum) — MEYVE KES: kasma + kesememe KÖK SEBEP düzeltmesi
+Kullanıcı canlı testi: (1) "inanılmaz kasıyor", (2) "ellerimi/kollarımı bıçak gibi algılayamıyor, meyve kesemiyorum; hızlı savurunca / el kadrajdan çıkıp geri gelince yakalamalı".
+
+**Kasma kök sebep:** MediaPipe Hands eski `hands.js` çıkarımı **ana thread'de (WASM)** çalışır; her `send()` render'ı 20-60ms bloklar. rAF ile sürekli çağrılınca ana thread doyuyor.
+- `eltakip.js`: (a) çıkarım için **256/320 küçük offscreen kareye** downscale edip onu gönderiyoruz (blok süresi kısaldı; kamera 640→480x360). (b) rAF yerine **setTimeout self-throttle**: gecikme = son çıkarım süresi (25–130ms clamp) → ~%50 doluluk, kalanı render'a kalıyor; zayıf cihaz otomatik yavaşlar. (c) render'dan bağımsız çalışır.
+- `OyunPage.jsx`: context `alpha:false` + **önbelleğe alındı** (kare başına getContext yok), **dpr tavanı 1.5** + **1.3M piksel bütçesi**, **adaptif kalite** (EMA<38fps ise kalite 1→0.55 kademeli düşer, canvas yeniden boyutlanır).
+
+**Kesememe kök sebep:** (a) `MAX_SEGMENT=320px` sabiti, FPS düşünce/hızlı savurunca oluşan gerçek uzun segmentleri "el geçişi" sanıp reddediyordu. (b) Kesim yalnız 2 noktadan (avuç+işaret) bakıyordu, tolerans dar. (c) Güven eşikleri yüksekti (el kaybolunca geç yakalıyor).
+- `oyun.js`: **kimlik eşleştirmeli el takibi** (`_elleriIsle`) — algılanan eller önceki kareye en yakın avuçla eşlenir; artık izler/kesikler fiziksel ele bağlı, hızlı/uzun savurma reddedilmez. **7 anahtar nokta** (bilek+5 parmak ucu+avuç) → tüm el "bıçak". Kesim yalnız **yeni algılama karesinde** işlenir (`damga`; 60fps render × 15-25fps algılama → mükerrer/yanlış kesim yok). `KILIC_KALINLIK` 20→30, `MIN_SEGMENT` 12→9, segment üst sınırı köşegen oranına bağlandı (`MAX_ORAN 0.75`), eşleştirme cömert (`ESLESME_ORAN 0.9`; absürt bağlantı yine MAX_ORAN'da elenir).
+- `eltakip.js`: `minDetectionConfidence` 0.6→0.5, `minTrackingConfidence` 0.5→0.4 (el hızla girip çıksa çabuk yakalanır).
+
+Doğrulama: başsız motor testi v2 (Node) — 60sn tam oyun (100 kesim, NaN yok), kesin kesim ✓, **4 dizili meyve tek savuruşla combo=4** ✓, **hızlı savurma (480px) kesiyor** ✓. Build OK (MeyveKesApp ~21 kB). Gerçek telefon/kamera testi yine kullanıcıda (otomasyonda kamera yok).

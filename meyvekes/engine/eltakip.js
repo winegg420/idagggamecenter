@@ -56,16 +56,22 @@ export class ElTakip {
       this.stream = await navigator.mediaDevices.getUserMedia({
         video: {
           facingMode: "user",
-          width: { ideal: 640 },
-          height: { ideal: 480 },
+          width: { ideal: 480 },
+          height: { ideal: 360 },
           frameRate: { ideal: 30 },
         },
         audio: false,
       });
       this.video.srcObject = this.stream;
       await this.video.play();
-      this.videoGenislik = this.video.videoWidth || 640;
-      this.videoYukseklik = this.video.videoHeight || 480;
+      this.videoGenislik = this.video.videoWidth || 480;
+      this.videoYukseklik = this.video.videoHeight || 360;
+      // Çıkarım için küçük offscreen kare (ana thread bloklama süresini kısaltır).
+      // Görüntü tam video'dan çizilir; MediaPipe'a bu küçük kare gönderilir.
+      this._kucuk = document.createElement("canvas");
+      this._kucuk.width = 320;
+      this._kucuk.height = 240;
+      this._kucukCtx = this._kucuk.getContext("2d", { alpha: false });
     } catch (e) {
       if (e && (e.name === "NotAllowedError" || e.name === "SecurityError")) {
         throw new Error("Kamera izni reddedildi. Oynamak için kamera erişimine izin ver.");
@@ -85,8 +91,9 @@ export class ElTakip {
       this.hands.setOptions({
         maxNumHands: maxEl,
         modelComplexity: 0,
-        minDetectionConfidence: 0.6,
-        minTrackingConfidence: 0.5,
+        // Düşük eşik = el hızla hareket edip kadraja girip çıksa bile çabuk yakalanır.
+        minDetectionConfidence: 0.5,
+        minTrackingConfidence: 0.4,
         selfieMode: false, // aynalamayı çizim tarafında yapıyoruz
       });
       this.hands.onResults((sonuc) => this._sonuc(sonuc));
@@ -95,9 +102,13 @@ export class ElTakip {
       throw new Error("El takip modeli yüklenemedi (internet gerekli): " + (e?.message || e));
     }
 
+    this.damga = 0;
+    this._sonInference = 30;
     this.hazir = true;
     this.durduruldu = false;
-    this._dongu = requestAnimationFrame(() => this._gonder());
+    // setTimeout tabanlı döngü: render rAF'ından bağımsız çalışır, çıkarım
+    // süresine göre kendini yavaşlatır → ana thread render'a nefes payı bırakır.
+    this._gonder();
   }
 
   _sonuc(sonuc) {
@@ -112,23 +123,27 @@ export class ElTakip {
       eller.push({ noktalar, taraf: ekranX < 0.5 ? "sol" : "sag" });
     }
     this.eller = eller;
+    this.damga = (this.damga || 0) + 1; // yeni veri işareti (kesim işleme için)
   }
 
   async _gonder() {
     if (this.durduruldu) return;
-    const simdi = performance.now();
-    // ~30 fps sınırı + tek gönderim (üst üste binmesin).
-    if (!this._mesgul && this.hands && this.video && this.video.readyState >= 2 && simdi - this._sonKare >= 32) {
-      this._mesgul = true;
-      this._sonKare = simdi;
+    if (this.hands && this.video && this.video.readyState >= 2) {
+      const t0 = performance.now();
       try {
-        await this.hands.send({ image: this.video });
+        // Küçük kareye çiz → MediaPipe'a onu gönder (çıkarım çok daha hızlı).
+        this._kucukCtx.drawImage(this.video, 0, 0, this._kucuk.width, this._kucuk.height);
+        await this.hands.send({ image: this._kucuk });
       } catch {
         /* tek kare hatası — yut, döngü devam */
       }
-      this._mesgul = false;
+      this._sonInference = performance.now() - t0;
     }
-    this._dongu = requestAnimationFrame(() => this._gonder());
+    if (this.durduruldu) return;
+    // Gecikme = çıkarım süresi kadar (25–130 ms) → yaklaşık %50 doluluk,
+    // kalan zamanı render kullanır (kasma önlenir). Zayıf cihaz otomatik yavaşlar.
+    const gecikme = Math.min(Math.max(this._sonInference, 25), 130);
+    this._dongu = setTimeout(() => this._gonder(), gecikme);
   }
 
   _kamerayiKapat() {
@@ -148,7 +163,7 @@ export class ElTakip {
   durdur() {
     this.durduruldu = true;
     this.hazir = false;
-    if (this._dongu) cancelAnimationFrame(this._dongu);
+    if (this._dongu) clearTimeout(this._dongu);
     this._dongu = null;
     this._kamerayiKapat();
     try {
