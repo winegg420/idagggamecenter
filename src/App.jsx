@@ -12,6 +12,9 @@ const RunApp = lazy(() => import("../run/app/RunApp.jsx"));
 // KAFA TOPU: 2D fizik futbol modülü, /kafatopu altında lazy yüklenir.
 // Bildim oturumunu kullanır (giriş duvarının arkasındadır).
 const KafaTopuApp = lazy(() => import("../kafatopu/app/KafaTopuApp.jsx"));
+// MEYVE KES: kamera + el takibi (MediaPipe) meyve kesme oyunu, /meyvekes altında.
+// Bildim oturumunu ve kullanıcı/avatar sistemini kullanır (giriş duvarının arkasında).
+const MeyveKesApp = lazy(() => import("../meyvekes/app/MeyveKesApp.jsx"));
 import Login from "./pages/Login.jsx";
 import Home from "./pages/Home.jsx";
 import TournamentPage from "./pages/TournamentPage.jsx";
@@ -72,6 +75,14 @@ export default function App() {
         element={
           <Suspense fallback={<div className="yukleniyor">Kafa Topu yükleniyor…</div>}>
             <KafaTopuApp />
+          </Suspense>
+        }
+      />
+      <Route
+        path="/meyvekes/*"
+        element={
+          <Suspense fallback={<div className="yukleniyor">Meyve Kes yükleniyor…</div>}>
+            <MeyveKesApp />
           </Suspense>
         }
       />

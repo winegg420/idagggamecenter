@@ -84,6 +84,9 @@ export default function Layout() {
         <NavLink to="/run" className={({ isActive }) => (isActive ? "aktif" : "")}>
           <span className="ikon">🏃</span>RUN
         </NavLink>
+        <NavLink to="/meyvekes" className={({ isActive }) => (isActive ? "aktif" : "")}>
+          <span className="ikon">🍉</span>Meyve Kes
+        </NavLink>
         <NavLink to="/siralama" className={({ isActive }) => (isActive ? "aktif" : "")}>
           <span className="ikon">📊</span>Sıralama
         </NavLink>

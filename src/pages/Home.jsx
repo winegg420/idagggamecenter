@@ -146,6 +146,17 @@ export default function Home() {
         <span className="kt-serit-ok">▶</span>
       </Link>
 
+      {/* ---------- Meyve Kes üst sekmesi ---------- */}
+      <Link to="/meyvekes" className="meyve-serit">
+        <span className="meyve-serit-ikon">🍉</span>
+        <span className="kt-serit-metin">
+          <b>MEYVE KES</b>
+          <small>Kameranı aç, ellerinle havadaki meyveleri kes!</small>
+        </span>
+        <span className="kt-serit-yeni">YENİ</span>
+        <span className="kt-serit-ok">▶</span>
+      </Link>
+
       {bildirimSor && (
         <div className="bildirim-serit">
           <div className="ikon">🔔</div>

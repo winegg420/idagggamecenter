@@ -1,0 +1,24 @@
+MEYVE KES — gerçek meyve fotoğrafları (isteğe bağlı)
+=====================================================
+
+Oyun varsayılan olarak emoji sprite'larıyla çalışır (🍉🍎🍊…). Daha gerçekçi
+görünüm istersen, arka planı silinmiş (rembg / şeffaf PNG) gerçek meyve
+fotoğrafları ekleyebilirsin — tıpkı Kafa Topu'ndaki /public/heads yöntemi gibi.
+
+NASIL:
+1) Her meyve için kare, şeffaf arka planlı bir PNG hazırla (ör. 512x512).
+   Meyve kadrajı ortalasın, kenarlarda boşluk az olsun.
+2) Dosyaları bu klasöre koy: public/meyve/karpuz.png, elma.png, ...
+3) manifest.json'u güncelle (aşağıdaki şablon). "id" oyun içindeki meyve
+   kimliğiyle EŞLEŞMELİ (engine/meyveler.js içindeki MEYVELER listesi):
+     karpuz, elma, portakal, limon, cilek, muz, kivi, seftali, ananas, uzum
+
+Sadece bir kısmını eklesen de olur; eklenmeyenler emoji ile çizilir.
+Kesilince meyve ikiye ayrılır; sprite üst/alt yarımlara kırpılarak gösterilir.
+
+manifest.json örneği:
+[
+  { "id": "karpuz",  "dosya": "karpuz.png" },
+  { "id": "elma",    "dosya": "elma.png" },
+  { "id": "portakal","dosya": "portakal.png" }
+]

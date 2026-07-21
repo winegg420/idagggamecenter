@@ -296,3 +296,33 @@ Head Soccer tarzı 2D fizik futbolu; `kafatopu/` altında izole modül, `/kafato
   5. **Sabit çözünürlük** — zayıf cihazda FPS düşünce netlik düşmüyordu. Düzeltme: FPS 2.5sn pencerede ölçülür, <45 ise kalite kademeli düşer (1 → 0.5, adım 0.15) ve canvas yeniden boyutlanır; ayrıca 1.5M piksel tavanı (büyük ekran/tablet). Arka plan duraklamaları (dt>250ms) ölçüme katılmaz.
 - Doğrulama: Node sahte-canvas duman testi (pişirme tek sefer, parallax kaymaları hız oranlarıyla birebir, ana tuvalde fillText kalmadı) + build temiz. Chrome eklentisi bağlı olmadığından tarayıcı görsel testi yapılamadı — GERÇEK iPhone'da test edilmeli: antrenman maçı akıcılığı + online 1v1 + menü arka planı (bake menüde de devrede).
 - Değişen dosyalar: `kafatopu/engine/render.js`, `kafatopu/engine/kafaCizim.js`, `kafatopu/app/pages/MacPage.jsx`, `kafatopu/app/styles/kafatopu.css`.
+
+## 2026-07-22 — MEYVE KES modülü (yeni oyun sekmesi, baştan sona)
+
+Kamera tabanlı, gerçek el hareketiyle meyve kesme oyunu (Fruit Ninja mantığı ama kontrol el/kol). `meyvekes/` altında izole modül, `/meyvekes/*` route'u; Kafa Topu/RUN deseniyle entegre. Bildim oturumu + kullanıcı/avatar sistemini kullanır (giriş duvarının arkasında).
+
+### Teknoloji / mimari
+- **El takibi:** MediaPipe Hands, CDN'den dinamik script yüklenir (`@mediapipe/hands@0.4.1675469240`) — npm paketine bağımlılık eklenmedi, bundle küçük kaldı. `engine/eltakip.js`: ön kamera (getUserMedia, facingMode user, 640x480), modelComplexity 0 (lite), aynı anda tek gönderim + ~30fps sınırı (4 el takibinde bile akıcı). Video gizli olarak DOM'a eklenir (bazı tarayıcılar bağlı olmayan video'dan kare çözmez).
+- **Render:** `engine/render.js` — alt katman canlı kamera (aynalı, cover); üstünde meyveler, kesik yarımlar (sprite üst/alt kırpma), splat parçacıkları, her el için soluklaşan bıçak izi (blade trail), uçan puan metinleri, parmak ucu ışıkları. Arka plan görseli YOK (istendiği gibi).
+- **Meyve sprite:** `engine/meyveler.js` — gerçek fotoğraf kesme yöntemi tercihli (`/public/meyve/manifest.json` + şeffaf PNG, heads deseni). Foto yoksa emoji offscreen tuvale bir kez rasterlenip önbelleğe alınır (kare başına fillText yok). 10 meyve + nadir altın (bonus).
+- **Oyun mantığı:** `engine/oyun.js` — faz makinesi (geri 3-2-1 → oyun 60sn → bitti), yerçekimi fiziği (alttan fırla, düş), kesim = el avuç(9)+işaret ucu(8) segmenti meyve hitbox'ıyla kesişince. Ceza yok (kaçan meyve puan kaybettirmez). Combo: 0.55sn penceresinde art arda kesim → bonus. MIN/MAX segment sınırı (el sırası değişimi kaynaklı sahte kesimi eler).
+
+### İki mod (istendiği gibi)
+- **Tekli:** maxNumHands 2, normal tempo (0.95→0.65sn aralık, zorluk eğrisi).
+- **Arkadaşla (yerel, aynı ekran/kamera):** maxNumHands 4, **daha hızlı** akış (0.62→0.40sn). İki kişi ortak/işbirliği (rekabet değil); kesim ekranın sol/sağ yarısına göre P1/P2 olarak ayrı sayılır + toplam skor. HUD'da 👈/toplam/👉.
+
+### Skor / sıralama
+- DB: `20260612000038_meyvekes_temel.sql` — `meyvekes_skorlar` (user_id+mod pk, en_iyi, toplam_kesim, oyun_sayisi). RLS select-only; yazım security-definer RPC. `meyvekes_skor_kaydet` (upsert, en_iyi=max), `meyvekes_siralama` (top 100, public.profiles join → username+avatar). Yeni auth YOK, Bildim profilleri kullanılır.
+- UI: `app/pages/` — MenuPage (mod kartları + nasıl oynanır), OyunPage (kamera + canvas + HUD + geri sayım + sonuç paneli + kayıt), SiralamaPage (tekli/arkadaş sekmesi, avatar + rekor). Başla ekranı: getUserMedia jesti + tam ekran + wake lock butona bağlı.
+
+### Entegrasyon
+- `src/App.jsx`: lazy `/meyvekes/*` route (KafaTopuApp deseni). `src/components/Layout.jsx`: tabbar'a 🍉 Meyve Kes sekmesi. `src/pages/Home.jsx` + `src/styles.css`: ana sayfaya `meyve-serit` (kırmızı/turuncu/yeşil gradient, sallanan 🍉, YENİ rozeti). Mevcut Bildim koduna minimal dokunuş.
+
+### Doğrulama
+- `npm run build` OK — MeyveKesApp ayrı lazy chunk (~20 kB js / ~7 kB gzip); Bildim/Kafa Topu/RUN paketleri etkilenmedi.
+- Başsız motor testi (Node, `scratchpad/mk-test.mjs`): 60sn tam oyun (104 kesim, 144 puan, faz bitti, NaN yok), kesin kesim testi geçti, combo max 4. Hata yönetimi: kamera izni reddi / kamera yok / model yüklenemedi için ayrı anlaşılır mesajlar + Tekrar Dene.
+
+### Bekleyen / manuel
+- **Migration uygulanmadı:** `20260612000038_meyvekes_temel.sql` Supabase Studio'da çalıştırılmalı (bu makinede `db push` 403 veriyor). Uygulanmadan skor kaydı/sıralama çalışmaz — oyunun kendisi (kamera+kesim) migration'sız da çalışır.
+- **Gerçek cihaz testi:** kamera+MediaPipe otomasyon ortamında test edilemedi (kamera yok, CDN gerekir). Telefonda/kamerada canlı test gerekli: kamera izni akışı, el takibi akıcılığı (özellikle arkadaş modu 4 el), kesim hissi.
+- Gerçek meyve fotoğrafları (rembg) istenirse `/public/meyve/` + manifest ile eklenir (OKU.txt tarifli); şu an emoji sprite ile tam çalışır.

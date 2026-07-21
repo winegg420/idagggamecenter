@@ -697,3 +697,36 @@ input:focus { border-color: var(--primary); }
   0%, 100% { transform: translateX(0); }
   50% { transform: translateX(5px) skewX(-8deg); }
 }
+
+/* ---------- Meyve Kes ana sayfa üst sekmesi ---------- */
+.meyve-serit {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 14px;
+  padding: 12px 16px;
+  border-radius: 16px;
+  text-decoration: none;
+  color: #fff;
+  background: linear-gradient(120deg, #ff5f6d 0%, #ffc371 60%, #06d6a0 135%);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  box-shadow: 0 6px 18px rgba(255, 95, 109, 0.4);
+  position: relative;
+  overflow: hidden;
+}
+.meyve-serit::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 85% 20%, rgba(255, 255, 255, 0.3), transparent 45%);
+  pointer-events: none;
+}
+.meyve-serit:active { transform: scale(0.985); }
+.meyve-serit-ikon {
+  font-size: 1.9rem;
+  animation: meyve-serit-sallan 1.8s ease-in-out infinite;
+}
+@keyframes meyve-serit-sallan {
+  0%, 100% { transform: rotate(-10deg); }
+  50% { transform: rotate(12deg) scale(1.08); }
+}
