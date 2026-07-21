@@ -1,7 +1,7 @@
 {
-  "name": "Bildim! — Bilgi Yarışması",
-  "short_name": "Bildim!",
-  "description": "Türkçe bilgi yarışması: gece turnuvası, 1v1 meydan okumalar, rütbeler.",
+  "name": "idagggamecenter",
+  "short_name": "idagggamecenter",
+  "description": "idaGG Game Center — birçok oyun tek çatı altında.",
   "start_url": "/",
   "display": "standalone",
   "orientation": "any",
