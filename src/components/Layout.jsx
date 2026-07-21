@@ -53,7 +53,7 @@ export default function Layout() {
     <div className="app">
       <RankUpOverlay />
       <header className="topbar">
-        <Link to="/" style={{ textDecoration: "none" }}>
+        <Link to="/bildim" style={{ textDecoration: "none" }}>
           <span className="logo">Bildim!</span>
         </Link>
         {profile && (
@@ -68,7 +68,7 @@ export default function Layout() {
       </main>
 
       <nav className="tabbar">
-        <NavLink to="/" end className={({ isActive }) => (isActive ? "aktif" : "")}>
+        <NavLink to="/bildim" end className={({ isActive }) => (isActive ? "aktif" : "")}>
           <span className="ikon">🏠</span>Ana Sayfa
         </NavLink>
         <NavLink to="/turnuva" className={({ isActive }) => (isActive ? "aktif" : "")}>
@@ -78,14 +78,8 @@ export default function Layout() {
           <span className="ikon">⚔️</span>Meydan Oku
           {bekleyen > 0 && <span className="rozet">{bekleyen}</span>}
         </NavLink>
-        <NavLink to="/kafatopu" className={({ isActive }) => (isActive ? "aktif" : "")}>
-          <span className="ikon">⚽</span>Kafa Topu
-        </NavLink>
-        <NavLink to="/run" className={({ isActive }) => (isActive ? "aktif" : "")}>
-          <span className="ikon">🏃</span>RUN
-        </NavLink>
-        <NavLink to="/meyvekes" className={({ isActive }) => (isActive ? "aktif" : "")}>
-          <span className="ikon">🍉</span>Meyve Kes
+        <NavLink to="/" className={({ isActive }) => (isActive ? "aktif" : "")}>
+          <span className="ikon">🎮</span>Merkez
         </NavLink>
         <NavLink to="/siralama" className={({ isActive }) => (isActive ? "aktif" : "")}>
           <span className="ikon">📊</span>Sıralama

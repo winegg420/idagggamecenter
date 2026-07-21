@@ -124,38 +124,6 @@ export default function Home() {
 
   return (
     <div className="anasayfa">
-      {/* ---------- Kafa Topu üst sekmesi ---------- */}
-      <Link to="/kafatopu" className="kafatopu-serit">
-        <span className="kt-serit-top">⚽</span>
-        <span className="kt-serit-metin">
-          <b>KAFA TOPU</b>
-          <small>Sahilde 1v1 &amp; 2v2 kafa topu — kendi fotoğrafınla oyna!</small>
-        </span>
-        <span className="kt-serit-yeni">YENİ</span>
-        <span className="kt-serit-ok">▶</span>
-      </Link>
-
-      {/* ---------- RUN üst sekmesi ---------- */}
-      <Link to="/run" className="run-serit">
-        <span className="run-serit-ikon">🏃</span>
-        <span className="kt-serit-metin">
-          <b>RUN</b>
-          <small>Karanlık labirentten kaç — dronelara yakalanma!</small>
-        </span>
-        <span className="kt-serit-yeni">YENİ</span>
-        <span className="kt-serit-ok">▶</span>
-      </Link>
-
-      {/* ---------- Meyve Kes üst sekmesi ---------- */}
-      <Link to="/meyvekes" className="meyve-serit">
-        <span className="meyve-serit-ikon">🍉</span>
-        <span className="kt-serit-metin">
-          <b>MEYVE KES</b>
-          <small>Kameranı aç, ellerinle havadaki meyveleri kes!</small>
-        </span>
-        <span className="kt-serit-yeni">YENİ</span>
-        <span className="kt-serit-ok">▶</span>
-      </Link>
 
       {bildirimSor && (
         <div className="bildirim-serit">

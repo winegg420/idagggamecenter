@@ -94,7 +94,7 @@ export default function MenuPage() {
             <span className="gl-oyuncu">Hoş geldin, {profile.username}</span>
           )}
           <Link to="/" className="gl-geri-link">
-            ← Bildim'e dön
+            ← Oyun Merkezi
           </Link>
         </footer>
       </div>

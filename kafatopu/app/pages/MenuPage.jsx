@@ -261,7 +261,7 @@ export default function MenuPage() {
             🔑 KODLA KATIL
           </button>
         </div>
-        <Link to="/" className="kt-menu-geri">← Bildim!'e dön</Link>
+        <Link to="/" className="kt-menu-geri">← Oyun Merkezi</Link>
       </div>
 
       {/* ---------- Modallar ---------- */}

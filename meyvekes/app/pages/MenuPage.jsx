@@ -5,7 +5,7 @@ export default function MenuPage() {
   const git = useNavigate();
   return (
     <div className="mk-menu">
-      <Link to="/" className="mk-geri">← Bildim</Link>
+      <Link to="/" className="mk-geri">← Oyun Merkezi</Link>
 
       <div className="mk-baslik">
         <span className="mk-logo-emoji">🍉</span>

@@ -698,6 +698,202 @@ input:focus { border-color: var(--primary); }
   50% { transform: translateX(5px) skewX(-8deg); }
 }
 
+/* ============================================================
+   idaGG GAME CENTER — oyun portalı ana sayfası
+   ============================================================ */
+.gc-root {
+  position: relative;
+  min-height: 100vh;
+  min-height: 100dvh;
+  color: #eef2ff;
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  padding: 0 18px calc(40px + env(safe-area-inset-bottom));
+  overflow-x: hidden;
+  background: #070b16;
+}
+.gc-arka {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 12% 8%, rgba(101, 87, 255, 0.35), transparent 42%),
+    radial-gradient(circle at 88% 12%, rgba(255, 95, 109, 0.28), transparent 45%),
+    radial-gradient(circle at 50% 100%, rgba(6, 214, 160, 0.22), transparent 55%),
+    linear-gradient(180deg, #0a1024 0%, #070b16 100%);
+  animation: gc-arka-kay 18s ease-in-out infinite alternate;
+}
+@keyframes gc-arka-kay {
+  0% { filter: hue-rotate(0deg); transform: scale(1); }
+  100% { filter: hue-rotate(22deg); transform: scale(1.08); }
+}
+.gc-root > *:not(.gc-arka) { position: relative; z-index: 1; }
+
+/* Üst bar */
+.gc-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 18px 2px 10px;
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  backdrop-filter: blur(8px);
+}
+.gc-brand { display: flex; align-items: center; gap: 12px; }
+.gc-brand-mark {
+  font-size: 2rem;
+  filter: drop-shadow(0 0 10px rgba(120, 130, 255, 0.7));
+  animation: gc-mark-nabiz 2.6s ease-in-out infinite;
+}
+@keyframes gc-mark-nabiz { 0%, 100% { transform: scale(1) rotate(-4deg); } 50% { transform: scale(1.12) rotate(4deg); } }
+.gc-brand-text { display: flex; flex-direction: column; line-height: 1; }
+.gc-brand-name {
+  font-size: 1.5rem;
+  font-weight: 900;
+  letter-spacing: 0.5px;
+  background: linear-gradient(90deg, #8a7bff, #ff8fb1, #4fd1c5);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.gc-brand-sub { font-size: 0.62rem; font-weight: 800; letter-spacing: 4px; opacity: 0.7; margin-top: 3px; }
+.gc-user {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+  color: inherit;
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  padding: 6px 12px 6px 6px;
+  border-radius: 999px;
+  transition: background 0.15s;
+}
+.gc-user:active { background: rgba(255, 255, 255, 0.14); }
+.gc-user-info { display: flex; flex-direction: column; line-height: 1.15; }
+.gc-user-name { font-weight: 800; font-size: 0.9rem; max-width: 120px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.gc-user-puan { font-size: 0.74rem; color: #ffd166; }
+
+/* Hero */
+.gc-hero { padding: 22px 2px 8px; }
+.gc-hero-baslik { margin: 0; font-size: 1.8rem; font-weight: 900; }
+.gc-hero-baslik span {
+  background: linear-gradient(90deg, #ff8fb1, #ffd166);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.gc-hero-alt { margin: 6px 0 0; opacity: 0.75; font-size: 0.95rem; }
+
+/* Bölüm + grid */
+.gc-bolum { margin-top: 20px; }
+.gc-bolum-baslik { font-size: 1.15rem; font-weight: 800; margin: 0 0 14px; letter-spacing: 0.3px; }
+.gc-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 16px;
+}
+
+/* Oyun kartı */
+.gc-kart {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-height: 190px;
+  padding: 18px;
+  border-radius: 22px;
+  text-decoration: none;
+  color: #fff;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.18);
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+.gc-kart::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 80% 0%, rgba(255, 255, 255, 0.28), transparent 50%);
+  pointer-events: none;
+}
+.gc-kart:hover { transform: translateY(-6px); box-shadow: 0 18px 44px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.25); }
+.gc-kart:active { transform: translateY(-2px) scale(0.99); }
+/* parlama süpürmesi */
+.gc-kart-parlama {
+  position: absolute;
+  top: 0;
+  left: -60%;
+  width: 55%;
+  height: 100%;
+  background: linear-gradient(100deg, transparent, rgba(255, 255, 255, 0.35), transparent);
+  transform: skewX(-18deg);
+  transition: left 0.5s ease;
+  pointer-events: none;
+}
+.gc-kart:hover .gc-kart-parlama { left: 120%; }
+.gc-yeni {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  z-index: 2;
+  background: #ffd21f;
+  color: #4a3400;
+  font-size: 0.64rem;
+  font-weight: 900;
+  letter-spacing: 0.5px;
+  padding: 3px 9px;
+  border-radius: 999px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+.gc-kart-ikon {
+  font-size: 3.2rem;
+  line-height: 1;
+  filter: drop-shadow(0 6px 12px rgba(0, 0, 0, 0.4));
+}
+.gc-kart-govde { flex: 1; margin-top: 12px; }
+.gc-kart-ad { display: block; font-size: 1.35rem; font-weight: 900; letter-spacing: 0.3px; }
+.gc-kart-aciklama { display: block; font-size: 0.82rem; opacity: 0.92; margin-top: 4px; line-height: 1.35; }
+.gc-kart-alt {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 14px;
+}
+.gc-kart-etiket {
+  font-size: 0.68rem;
+  font-weight: 700;
+  background: rgba(0, 0, 0, 0.28);
+  padding: 4px 10px;
+  border-radius: 999px;
+}
+.gc-kart-oyna {
+  font-size: 0.82rem;
+  font-weight: 900;
+  letter-spacing: 0.5px;
+  background: rgba(255, 255, 255, 0.22);
+  padding: 6px 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.gc-footer { text-align: center; opacity: 0.55; font-size: 0.78rem; margin-top: 34px; }
+
+@media (max-width: 520px) {
+  .gc-hero-baslik { font-size: 1.45rem; }
+  .gc-grid { grid-template-columns: 1fr 1fr; gap: 12px; }
+  .gc-kart { min-height: 168px; padding: 14px; border-radius: 18px; }
+  .gc-kart-ikon { font-size: 2.6rem; }
+  .gc-kart-ad { font-size: 1.1rem; }
+  .gc-kart-aciklama { font-size: 0.72rem; }
+  .gc-kart-oyna { padding: 5px 10px; font-size: 0.74rem; }
+  .gc-kart-etiket { font-size: 0.6rem; }
+}
+@media (max-width: 360px) {
+  .gc-grid { grid-template-columns: 1fr; }
+}
+
 /* ---------- Meyve Kes ana sayfa üst sekmesi ---------- */
 .meyve-serit {
   display: flex;

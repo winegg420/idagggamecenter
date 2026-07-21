@@ -339,3 +339,12 @@ Kullanıcı canlı testi: (1) "inanılmaz kasıyor", (2) "ellerimi/kollarımı b
 - `eltakip.js`: `minDetectionConfidence` 0.6→0.5, `minTrackingConfidence` 0.5→0.4 (el hızla girip çıksa çabuk yakalanır).
 
 Doğrulama: başsız motor testi v2 (Node) — 60sn tam oyun (100 kesim, NaN yok), kesin kesim ✓, **4 dizili meyve tek savuruşla combo=4** ✓, **hızlı savurma (480px) kesiyor** ✓. Build OK (MeyveKesApp ~21 kB). Gerçek telefon/kamera testi yine kullanıcıda (otomasyonda kamera yok).
+
+## 2026-07-22 (3. oturum) — idaGG GAME CENTER ana sayfası (oyun portalı)
+Kullanıcı: siteye girince direkt Bildim çıkmasın; A-kalite profesyonel bir oyun sitesi ana sayfası olsun, Bildim/Kafa Topu/Meyve Kes gibi her oyun tıklanan bir sekme/kart olsun.
+- **Yeni sayfa `src/pages/GameCenter.jsx`:** "idaGG GAME CENTER" markası + kullanıcı chip'i (avatar/isim/puan) + hero karşılama + responsive oyun kartı grid'i. 5 oyun kartı (Bildim!/Kafa Topu/Meyve Kes/RUN/Gladius) — her biri kendi temasında gradient, büyük ikon, açıklama, kategori etiketi, YENİ rozeti, OYNA butonu; hover'da yükselme + parlama süpürmesi. Yeni oyun eklemek = `OYNALAR` dizisine bir kart eklemek.
+- **Yönlendirme (`src/App.jsx`):** `/` artık GameCenter (Layout dışında, tam ekran); Bildim quiz ana sayfası `/bildim`'e taşındı (diğer quiz rotaları — turnuva/meydan/mac/siralama/arkadaslar/profil — aynı kaldı). `*` → `/` (hub).
+- **`src/components/Layout.jsx`:** logo + "Ana Sayfa" sekmesi → `/bildim`; kalabalık 3 oyun sekmesi (Kafa Topu/RUN/Meyve Kes) yerine tek "🎮 Merkez" sekmesi (`/` hub'a dönüş) → Bildim tabbar sadeleşti.
+- **`src/pages/Home.jsx`:** üç oyun şeridi kaldırıldı (artık hub'da). Modül menülerindeki geri linkleri "← Oyun Merkezi" yapıldı (kafatopu/meyvekes/run/gladius).
+- **Stiller:** `src/styles.css`'e kapsamlı `.gc-*` bloğu (animasyonlu radial-glow arka plan, cam efektli sticky header, gradient kartlar, parlama animasyonu, 520px/360px kırılımlarıyla mobil grid).
+- Doğrulama: build OK; **görsel doğrulama** — gerçek CSS ile bağımsız statik önizleme yerel sunucuda Chrome'la ekran görüntüsü alındı (marka, hero, 5 kart, rozetler, etiketler A-kalite render oldu). Canlı siteyi kullanıcı giriş yaparak doğrulayacak.

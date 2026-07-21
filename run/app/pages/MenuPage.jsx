@@ -54,7 +54,7 @@ export default function MenuPage() {
             <button className="run-oyna-btn" onClick={() => nav("/run/oyna")}>
               <span className="run-oyna-ikon">▶</span> OYUNA GİR
             </button>
-            <button className="run-geri-btn" onClick={() => nav("/")}>← Bildim'e dön</button>
+            <button className="run-geri-btn" onClick={() => nav("/")}>← Oyun Merkezi</button>
           </div>
         </header>
 

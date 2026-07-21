@@ -16,6 +16,7 @@ const KafaTopuApp = lazy(() => import("../kafatopu/app/KafaTopuApp.jsx"));
 // Bildim oturumunu ve kullanıcı/avatar sistemini kullanır (giriş duvarının arkasında).
 const MeyveKesApp = lazy(() => import("../meyvekes/app/MeyveKesApp.jsx"));
 import Login from "./pages/Login.jsx";
+import GameCenter from "./pages/GameCenter.jsx";
 import Home from "./pages/Home.jsx";
 import TournamentPage from "./pages/TournamentPage.jsx";
 import ChallengesPage from "./pages/ChallengesPage.jsx";
@@ -86,8 +87,10 @@ export default function App() {
           </Suspense>
         }
       />
+      {/* idaGG Game Center: sitenin ana giriş sayfası (oyun portalı). */}
+      <Route path="/" element={<GameCenter />} />
       <Route element={<Layout />}>
-        <Route path="/" element={<Home />} />
+        <Route path="/bildim" element={<Home />} />
         <Route path="/turnuva" element={<TournamentPage />} />
         <Route path="/meydan" element={<ChallengesPage />} />
         <Route path="/mac/:id" element={<MatchPage />} />
