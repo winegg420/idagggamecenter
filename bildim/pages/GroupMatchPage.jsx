@@ -1,12 +1,13 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { supabase } from "../lib/supabase.js";
-import { useAuth } from "../context/AuthContext.jsx";
+import { supabase } from "../../src/lib/supabase.js";
+import { useAuth } from "../../src/context/AuthContext.jsx";
+import Avatar from "../../src/components/Avatar.jsx";
 import QuestionCard from "../components/QuestionCard.jsx";
 
-const MAC_SECIMI = `*,
-  p1:profiles!matches_oyuncu1_fkey(id, username, avatar_url),
-  p2:profiles!matches_oyuncu2_fkey(id, username, avatar_url)`;
+const GRUP_SECIMI = `*,
+  katilimcilar:group_match_players(group_match_id, user_id, davet_durumu, skor, joined_at,
+    profil:profiles(id, username, avatar_url))`;
 
 const EMOJILER = ["👍", "😂", "😮", "😡", "🔥", "😎"];
 const KALIPLAR = [
@@ -20,7 +21,7 @@ const KALIPLAR = [
   "HAHAHAHAHA",
 ];
 
-export default function MatchPage() {
+export default function GroupMatchPage() {
   const { id } = useParams();
   const { user, refreshProfile } = useAuth();
   const navigate = useNavigate();
@@ -50,14 +51,14 @@ export default function MatchPage() {
   const mesajGonder = async (mesaj) => {
     setKaliplarAcik(false);
     balonGoster(user.id, mesaj);
-    await supabase.rpc("send_match_message", { p_match_id: id, p_mesaj: mesaj });
+    await supabase.rpc("send_group_match_message", { p_group_match_id: id, p_mesaj: mesaj });
   };
 
   useEffect(() => {
     supabase
-      .from("match_jokers")
+      .from("group_match_jokers")
       .select("tip")
-      .eq("match_id", id)
+      .eq("group_match_id", id)
       .eq("user_id", user.id)
       .then(({ data }) => {
         const k = { elli: false, sure: false };
@@ -68,8 +69,8 @@ export default function MatchPage() {
 
   const jokerKullan = async (tip) => {
     setJokerHata(null);
-    const { data, error } = await supabase.rpc("use_joker", {
-      p_match_id: id,
+    const { data, error } = await supabase.rpc("use_group_joker", {
+      p_group_match_id: id,
       p_tip: tip,
     });
     if (error) {
@@ -83,8 +84,8 @@ export default function MatchPage() {
 
   const macYukle = useCallback(async () => {
     const { data } = await supabase
-      .from("matches")
-      .select(MAC_SECIMI)
+      .from("group_matches")
+      .select(GRUP_SECIMI)
       .eq("id", id)
       .single();
     if (data) setMac(data);
@@ -94,15 +95,20 @@ export default function MatchPage() {
   useEffect(() => {
     macYukle();
     const kanal = supabase
-      .channel(`mac-${id}`)
+      .channel(`grup-mac-${id}`)
       .on(
         "postgres_changes",
-        { event: "UPDATE", schema: "public", table: "matches", filter: `id=eq.${id}` },
-        (payload) => setMac((eski) => ({ ...eski, ...payload.new }))
+        { event: "UPDATE", schema: "public", table: "group_matches", filter: `id=eq.${id}` },
+        () => macYukle()
       )
       .on(
         "postgres_changes",
-        { event: "INSERT", schema: "public", table: "match_messages", filter: `match_id=eq.${id}` },
+        { event: "*", schema: "public", table: "group_match_players", filter: `group_match_id=eq.${id}` },
+        () => macYukle()
+      )
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "group_match_messages", filter: `group_match_id=eq.${id}` },
         (payload) => balonGoster(payload.new.user_id, payload.new.mesaj)
       )
       .subscribe();
@@ -122,7 +128,7 @@ export default function MatchPage() {
     setCevapladim(false);
     if (pollRef.current) clearInterval(pollRef.current);
     supabase
-      .rpc("get_match_question", { p_match_id: mac.id })
+      .rpc("get_group_match_question", { p_group_match_id: mac.id })
       .then(({ data, error }) => {
         if (!error && data?.[0]) setSoru(data[0]);
       });
@@ -137,17 +143,16 @@ export default function MatchPage() {
   }, [mac?.durum, refreshProfile, user.id]);
 
   const ilerletmeyiDene = useCallback(() => {
-    supabase.rpc("advance_match", { p_match_id: id }).then(() => macYukle());
+    supabase.rpc("advance_group_match", { p_group_match_id: id }).then(() => macYukle());
   }, [id, macYukle]);
 
   const cevapla = async (i) => {
-    const { data, error } = await supabase.rpc("submit_match_answer", {
-      p_match_id: id,
+    const { data, error } = await supabase.rpc("submit_group_match_answer", {
+      p_group_match_id: id,
       p_cevap: i,
     });
     if (error) throw error;
     setCevapladim(true);
-    // Rakip de cevapladıysa erken ilerlesin diye periyodik kontrol
     if (pollRef.current) clearInterval(pollRef.current);
     pollRef.current = setInterval(ilerletmeyiDene, 2500);
     return data?.[0];
@@ -159,29 +164,79 @@ export default function MatchPage() {
     setTimeout(ilerletmeyiDene, Math.random() * 800 + 1000);
   }, [ilerletmeyiDene]);
 
+  const cevapVer = async (kabul) => {
+    const { error } = await supabase.rpc("respond_group_challenge", {
+      p_group_match_id: id,
+      p_kabul: kabul,
+    });
+    if (!error) macYukle();
+  };
+
   if (!mac) return <div className="yukleniyor">Yükleniyor…</div>;
 
-  const benP1 = mac.oyuncu1 === user.id;
-  const benimSkor = benP1 ? mac.oyuncu1_skor : mac.oyuncu2_skor;
-  const rakipSkor = benP1 ? mac.oyuncu2_skor : mac.oyuncu1_skor;
-  const rakipProfil = benP1 ? mac.p2 : mac.p1;
-  const benimProfil = benP1 ? mac.p1 : mac.p2;
+  const katilimcilar = mac.katilimcilar ?? [];
+  const benimKayit = katilimcilar.find((k) => k.user_id === user.id);
+  const siraliSkor = [...katilimcilar]
+    .filter((k) => k.davet_durumu === "kabul")
+    .sort((a, b) => b.skor - a.skor);
 
   if (mac.durum === "bekliyor") {
+    const bekleyenler = katilimcilar.filter((k) => k.davet_durumu === "bekliyor");
     return (
       <div className="buyuk-mesaj">
         <div className="emoji">⏳</div>
-        <h2>Cevap bekleniyor</h2>
-        <p className="alt-yazi">{rakipProfil?.username} henüz kabul etmedi.</p>
+        <h2>Grup maçı bekleniyor</h2>
+        <p className="alt-yazi" style={{ marginBottom: 16 }}>
+          {bekleyenler.length > 0
+            ? `${bekleyenler.map((b) => b.profil?.username).join(", ")} henüz kabul etmedi.`
+            : "Herkes hazır olunca maç otomatik başlayacak."}
+        </p>
+        <div className="kart" style={{ maxWidth: 340, margin: "0 auto" }}>
+          {katilimcilar.map((k) => (
+            <div key={k.user_id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "6px 0" }}>
+              <Avatar profile={k.profil} boyut={34} />
+              <span style={{ flex: 1, fontWeight: 600, textAlign: "left" }}>
+                {k.profil?.username} {k.user_id === user.id && "(sen)"}
+              </span>
+              <span
+                className="rutbe-chip"
+                style={{
+                  color:
+                    k.davet_durumu === "kabul"
+                      ? "var(--success)"
+                      : k.davet_durumu === "red"
+                        ? "var(--danger)"
+                        : "var(--text-dim)",
+                }}
+              >
+                {k.davet_durumu === "kabul" ? "Hazır ✓" : k.davet_durumu === "red" ? "Reddetti" : "Bekliyor…"}
+              </span>
+            </div>
+          ))}
+        </div>
+        {benimKayit?.davet_durumu === "bekliyor" && (
+          <div style={{ display: "flex", flexDirection: "column", gap: 10, maxWidth: 340, margin: "20px auto 0" }}>
+            <button className="btn" onClick={() => cevapVer(true)}>
+              Kabul Et
+            </button>
+            <button className="btn tehlike" onClick={() => cevapVer(false)}>
+              Reddet
+            </button>
+          </div>
+        )}
+        <button className="btn ikincil" style={{ marginTop: 16, maxWidth: 340 }} onClick={() => navigate("/meydan")}>
+          ← Geri dön
+        </button>
       </div>
     );
   }
 
-  if (mac.durum === "reddedildi" || mac.durum === "iptal") {
+  if (mac.durum === "iptal") {
     return (
       <div className="buyuk-mesaj">
         <div className="emoji">🙅</div>
-        <h2>Meydan okuma reddedildi</h2>
+        <h2>Grup maçı iptal edildi</h2>
+        <p className="alt-yazi">Davetlilerden biri reddetti.</p>
         <button className="btn" style={{ marginTop: 16 }} onClick={() => navigate("/meydan")}>
           ← Geri dön
         </button>
@@ -196,80 +251,23 @@ export default function MatchPage() {
       <div className="buyuk-mesaj">
         <div className="emoji">{berabere ? "🤝" : kazandim ? "🎉" : "😢"}</div>
         <h2>
-          {berabere ? "Berabere!" : kazandim ? "Kazandın! +20 puan" : "Kaybettin"}
+          {berabere ? "Berabere!" : kazandim ? `Kazandın! +${10 * mac.oyuncu_sayisi} puan` : "Kaybettin"}
         </h2>
-        <div className="skor-tabela" style={{ marginTop: 20 }}>
-          <div className="taraf">
-            <div className="isim">{benimProfil?.username} (sen)</div>
-            <div className="skor">{benimSkor}</div>
-          </div>
-          <div className="vs">VS</div>
-          <div className="taraf">
-            <div className="isim">{rakipProfil?.username}</div>
-            <div className="skor">{rakipSkor}</div>
-          </div>
+        <div className="kart" style={{ maxWidth: 340, margin: "20px auto 0" }}>
+          {siraliSkor.map((k, i) => (
+            <div key={k.user_id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "6px 0" }}>
+              <span className={`sira-no ${i < 1 ? "ilk3" : ""}`}>{i + 1}</span>
+              <Avatar profile={k.profil} boyut={34} />
+              <span style={{ flex: 1, fontWeight: 600, textAlign: "left" }}>
+                {k.profil?.username} {k.user_id === user.id && "(sen)"}
+              </span>
+              <span style={{ fontWeight: 800 }}>{k.skor}</span>
+            </div>
+          ))}
         </div>
-        <div style={{ display: "flex", flexDirection: "column", gap: 10, maxWidth: 340, margin: "20px auto 0" }}>
-          <button
-            className="btn"
-            onClick={async () => {
-              const { data, error } = await supabase.rpc("create_challenge", {
-                p_rakip: rakipProfil.id,
-                p_kategori: mac.kategori,
-              });
-              if (!error && data) navigate(`/mac/${data}`);
-              else navigate("/meydan");
-            }}
-          >
-            🔁 Rövanş
-          </button>
-          {(() => {
-            const sonucYazi = berabere
-              ? `${rakipProfil?.username} ile ${benimSkor}-${rakipSkor} berabere kaldım`
-              : kazandim
-                ? `${rakipProfil?.username}'i ${benimSkor}-${rakipSkor} yendim! 🏆`
-                : `${rakipProfil?.username} karşısında kıl payı kaybettim`;
-            const mesaj = `🧠 Bildim!'de ${sonucYazi} Sen de gel, kapışalım: ${window.location.origin}/?davet=${user.id}`;
-            const enc = encodeURIComponent(mesaj);
-            return (
-              <div className="paylas-bar">
-                <a
-                  className="paylas wa"
-                  href={`https://wa.me/?text=${enc}`}
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  💬 WhatsApp
-                </a>
-                <a
-                  className="paylas x"
-                  href={`https://twitter.com/intent/tweet?text=${enc}`}
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  𝕏 Paylaş
-                </a>
-                <button
-                  className="paylas diger"
-                  onClick={async () => {
-                    if (navigator.share) {
-                      try {
-                        await navigator.share({ title: "Bildim!", text: mesaj });
-                      } catch { /* vazgeçti */ }
-                    } else {
-                      await navigator.clipboard.writeText(mesaj);
-                    }
-                  }}
-                >
-                  📤 Diğer
-                </button>
-              </div>
-            );
-          })()}
-          <button className="btn ikincil" onClick={() => navigate("/meydan")}>
-            ← Meydan okumalara dön
-          </button>
-        </div>
+        <button className="btn ikincil" style={{ marginTop: 16, maxWidth: 340, margin: "16px auto 0" }} onClick={() => navigate("/meydan")}>
+          ← Meydan okumalara dön
+        </button>
       </div>
     );
   }
@@ -277,32 +275,26 @@ export default function MatchPage() {
   // Aktif maç
   return (
     <div>
-      <div className="skor-tabela">
-        <div className="taraf">
-          <div className="isim">{benimProfil?.username} (sen)</div>
-          <div className="skor">{benimSkor}</div>
+      <div className="grup-skor-listesi">
+        <div className="alt-yazi" style={{ textAlign: "center", marginBottom: 8 }}>
+          Soru {mac.aktif_soru + 1}/{mac.soru_ids?.length ?? 20}
         </div>
-        <div className="vs">
-          {mac.aktif_soru + 1}/{mac.soru_ids?.length ?? 5}
-        </div>
-        <div className="taraf">
-          <div className="isim">{rakipProfil?.username}</div>
-          <div className="skor">{rakipSkor}</div>
-        </div>
-      </div>
-
-      {(balonlar[user.id] || balonlar[rakipProfil?.id]) && (
-        <div className="balon-satir">
-          <div className="balon-yuva">
-            {balonlar[user.id] && <div className="balon">{balonlar[user.id]}</div>}
-          </div>
-          <div className="balon-yuva sag">
-            {balonlar[rakipProfil?.id] && (
-              <div className="balon rakip">{balonlar[rakipProfil?.id]}</div>
+        {siraliSkor.map((k) => (
+          <div
+            key={k.user_id}
+            className={`grup-skor-satir ${k.user_id === user.id ? "sen" : ""}`}
+          >
+            <Avatar profile={k.profil} boyut={30} />
+            <span className="isim">{k.profil?.username}{k.user_id === user.id && " (sen)"}</span>
+            {balonlar[k.user_id] && (
+              <span className={`balon grup ${k.user_id === user.id ? "" : "rakip"}`}>
+                {balonlar[k.user_id]}
+              </span>
             )}
+            <span className="skor">{k.skor}</span>
           </div>
-        </div>
-      )}
+        ))}
+      </div>
 
       <div className="sohbet-bar">
         {EMOJILER.map((e) => (
@@ -341,7 +333,7 @@ export default function MatchPage() {
 
       {cevapladim && (
         <div className="alt-yazi" style={{ textAlign: "center", marginTop: 14 }}>
-          Rakibin cevaplaması bekleniyor…
+          Diğer oyuncuların cevaplaması bekleniyor…
         </div>
       )}
     </div>

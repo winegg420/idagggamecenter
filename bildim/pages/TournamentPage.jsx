@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { supabase } from "../lib/supabase.js";
-import { useAuth } from "../context/AuthContext.jsx";
+import { supabase } from "../../src/lib/supabase.js";
+import { useAuth } from "../../src/context/AuthContext.jsx";
 import Countdown from "../components/Countdown.jsx";
 import QuestionCard from "../components/QuestionCard.jsx";
-import Avatar from "../components/Avatar.jsx";
+import Avatar from "../../src/components/Avatar.jsx";
 
 export default function TournamentPage() {
   const { user, refreshProfile } = useAuth();

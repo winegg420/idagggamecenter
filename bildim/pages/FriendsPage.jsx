@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { supabase } from "../lib/supabase.js";
-import { useAuth } from "../context/AuthContext.jsx";
-import Avatar from "../components/Avatar.jsx";
+import { supabase } from "../../src/lib/supabase.js";
+import { useAuth } from "../../src/context/AuthContext.jsx";
+import Avatar from "../../src/components/Avatar.jsx";
 
 const DOSTLUK_SECIMI = `id, requester, addressee, durum,
   req:profiles!friendships_requester_fkey(id, username, avatar_url, puan),

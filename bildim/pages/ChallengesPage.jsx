@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { supabase } from "../lib/supabase.js";
-import { useAuth } from "../context/AuthContext.jsx";
-import Avatar from "../components/Avatar.jsx";
+import { supabase } from "../../src/lib/supabase.js";
+import { useAuth } from "../../src/context/AuthContext.jsx";
+import Avatar from "../../src/components/Avatar.jsx";
 
 const MAC_SECIMI = `*,
   p1:profiles!matches_oyuncu1_fkey(id, username, avatar_url, puan),

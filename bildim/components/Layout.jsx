@@ -1,7 +1,7 @@
 import { Outlet, NavLink, Link } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { useAuth } from "../context/AuthContext.jsx";
-import { supabase } from "../lib/supabase.js";
+import { useAuth } from "../../src/context/AuthContext.jsx";
+import { supabase } from "../../src/lib/supabase.js";
 import RankUpOverlay from "./RankUpOverlay.jsx";
 
 export default function Layout() {

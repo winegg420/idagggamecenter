@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { supabase } from "../lib/supabase.js";
+import { supabase } from "../../src/lib/supabase.js";
 import { kalanSure, sunucuOffsetMs } from "../lib/zaman.js";
 
 const HARFLER = ["A", "B", "C", "D"];

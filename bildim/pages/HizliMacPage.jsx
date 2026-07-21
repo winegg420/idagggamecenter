@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { supabase } from "../lib/supabase.js";
-import { useAuth } from "../context/AuthContext.jsx";
-import Avatar from "../components/Avatar.jsx";
+import { supabase } from "../../src/lib/supabase.js";
+import { useAuth } from "../../src/context/AuthContext.jsx";
+import Avatar from "../../src/components/Avatar.jsx";
 import QuestionCard from "../components/QuestionCard.jsx";
 
 const HIZLI_SECIMI = `*,

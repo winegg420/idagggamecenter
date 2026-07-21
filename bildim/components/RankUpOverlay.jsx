@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useAuth } from "../context/AuthContext.jsx";
+import { useAuth } from "../../src/context/AuthContext.jsx";
 import { RUTBELER, rutbeBul } from "../lib/ranks.js";
 
 /**

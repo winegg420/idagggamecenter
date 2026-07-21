@@ -348,3 +348,12 @@ Kullanıcı: siteye girince direkt Bildim çıkmasın; A-kalite profesyonel bir 
 - **`src/pages/Home.jsx`:** üç oyun şeridi kaldırıldı (artık hub'da). Modül menülerindeki geri linkleri "← Oyun Merkezi" yapıldı (kafatopu/meyvekes/run/gladius).
 - **Stiller:** `src/styles.css`'e kapsamlı `.gc-*` bloğu (animasyonlu radial-glow arka plan, cam efektli sticky header, gradient kartlar, parlama animasyonu, 520px/360px kırılımlarıyla mobil grid).
 - Doğrulama: build OK; **görsel doğrulama** — gerçek CSS ile bağımsız statik önizleme yerel sunucuda Chrome'la ekran görüntüsü alındı (marka, hero, 5 kart, rozetler, etiketler A-kalite render oldu). Canlı siteyi kullanıcı giriş yaparak doğrulayacak.
+
+## 2026-07-22 (4. oturum) — Bildim quiz kendi bildim/ klasörüne taşındı (tam modül izolasyonu)
+Kullanıcı: her oyun ayrı klasörde, bağımsız geliştirilebilir, aynı depoda farklı klasörde, birbirine karışmasın.
+- **Doğrulama:** 4 aksiyon oyunu (gladius/run/kafatopu/meyvekes) zaten izoleydi — çapraz import yok; her biri kabuğa tek lazy route ile bağlı; ortak yalnız supabase client + AuthContext + Avatar (bilinçli paylaşım). Tek istisna: Bildim quiz `src/` içinde kabukla karışıktı.
+- **Taşındı (`git mv`, geçmiş korundu):** quiz sayfaları → `bildim/pages/` (Home, MatchPage, GroupMatchPage, HizliMacPage, ChallengesPage, TournamentPage, LeaderboardPage, FriendsPage, ProfilePage); quiz bileşenleri → `bildim/components/` (Layout, QuestionCard, RankBadge, Countdown, RankUpOverlay); quiz lib → `bildim/lib/` (ranks, push, zaman).
+- **`src/`'de kalan (paylaşılan kabuk):** main.jsx, App.jsx, context/AuthContext, lib/supabase, components/Avatar, pages/GameCenter, pages/Login, styles.css.
+- **Import düzeltmeleri:** taşınan dosyalarda paylaşılan referanslar `../../src/...`, kardeş referanslar `../components|../lib`; App.jsx quiz sayfaları + Layout `../bildim/...`. Route yapısı/URL'ler değişmedi (quiz rotaları hâlâ top-level; `/bildim` = quiz ana sayfası).
+- **Sonuç:** 5/5 modül izole (hiçbir oyun başkasının klasöründen import etmiyor); `bildim/` yalnız `../../src` (paylaşılan) + kendi içine bağlı. CLAUDE.md "Dizin Yapısı" yeni portal yapısına göre güncellendi.
+- Doğrulama: `npm run build` OK (176 modül, hata yok), çapraz-import taraması temiz. Not: gladius tasarım dokümanındaki `src/lib/ranks.js`/`push.js` referansları artık `bildim/lib/`'de (sadece prose, kod değil).

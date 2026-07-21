@@ -2,7 +2,7 @@ import { lazy, Suspense } from "react";
 import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "./context/AuthContext.jsx";
 import { supabaseHazir } from "./lib/supabase.js";
-import Layout from "./components/Layout.jsx";
+import Layout from "../bildim/components/Layout.jsx";
 
 // Gladius: bağımsız oyun modülü, /gladius altında lazy yüklenir.
 // Bildim quiz koduna tek dokunuş burasıdır (kod tamamen gladius/ klasöründe).
@@ -17,15 +17,15 @@ const KafaTopuApp = lazy(() => import("../kafatopu/app/KafaTopuApp.jsx"));
 const MeyveKesApp = lazy(() => import("../meyvekes/app/MeyveKesApp.jsx"));
 import Login from "./pages/Login.jsx";
 import GameCenter from "./pages/GameCenter.jsx";
-import Home from "./pages/Home.jsx";
-import TournamentPage from "./pages/TournamentPage.jsx";
-import ChallengesPage from "./pages/ChallengesPage.jsx";
-import MatchPage from "./pages/MatchPage.jsx";
-import GroupMatchPage from "./pages/GroupMatchPage.jsx";
-import HizliMacPage from "./pages/HizliMacPage.jsx";
-import LeaderboardPage from "./pages/LeaderboardPage.jsx";
-import FriendsPage from "./pages/FriendsPage.jsx";
-import ProfilePage from "./pages/ProfilePage.jsx";
+import Home from "../bildim/pages/Home.jsx";
+import TournamentPage from "../bildim/pages/TournamentPage.jsx";
+import ChallengesPage from "../bildim/pages/ChallengesPage.jsx";
+import MatchPage from "../bildim/pages/MatchPage.jsx";
+import GroupMatchPage from "../bildim/pages/GroupMatchPage.jsx";
+import HizliMacPage from "../bildim/pages/HizliMacPage.jsx";
+import LeaderboardPage from "../bildim/pages/LeaderboardPage.jsx";
+import FriendsPage from "../bildim/pages/FriendsPage.jsx";
+import ProfilePage from "../bildim/pages/ProfilePage.jsx";
 
 export default function App() {
   const { session, loading } = useAuth();

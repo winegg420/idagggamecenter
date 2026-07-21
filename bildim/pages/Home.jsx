@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { supabase } from "../lib/supabase.js";
-import { useAuth } from "../context/AuthContext.jsx";
+import { supabase } from "../../src/lib/supabase.js";
+import { useAuth } from "../../src/context/AuthContext.jsx";
 import Countdown from "../components/Countdown.jsx";
-import Avatar from "../components/Avatar.jsx";
+import Avatar from "../../src/components/Avatar.jsx";
 import { pushDestekleniyor, bildirimleriAc } from "../lib/push.js";
 import { sonrakiTurnuvaSeans } from "../lib/zaman.js";
 import { rutbeBul, sonrakiRutbe } from "../lib/ranks.js";

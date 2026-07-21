@@ -31,14 +31,28 @@ npx supabase functions deploy generate-questions
 
 ## Dizin Yapısı
 
-- `src/pages/` — Sayfa bileşenleri (Home, MatchPage, GroupMatchPage, HizliMacPage, ChallengesPage, TournamentPage, Leaderboard, Profile, Friends, Login)
-- `src/components/` — Paylaşılan bileşenler (Avatar, QuestionCard, RankBadge, Countdown, Layout, RankUpOverlay)
-- `src/context/AuthContext.jsx` — Kimlik doğrulama durumu
-- `src/lib/` — `supabase.js` (client), `ranks.js` (rütbeler), `push.js` (bildirim), `zaman.js` (zaman yardımcıları)
-- `src/App.jsx` — Route tanımları
-- `supabase/migrations/` — Sıralı SQL migration'ları (şema, RLS, RPC'ler, soru partileri)
+Site bir **oyun portalıdır** (idaGG Game Center). **Her oyun kendi kök klasöründe, bağımsız geliştirilebilir bir modüldür** — hiçbiri diğerinin klasöründen import etmez; her biri kabuğa (`src/App.jsx`) tek bir lazy route satırıyla bağlanır.
+
+Paylaşılan kabuk (`src/` — tüm oyunlar buna bağlıdır, tersi değil):
+- `src/main.jsx` — Uygulama girişi (BrowserRouter + AuthProvider + `styles.css`)
+- `src/App.jsx` — Route tanımları; her oyun buraya tek satırla bağlanır
+- `src/pages/GameCenter.jsx` — Ana giriş sayfası (oyun portalı); `src/pages/Login.jsx` — site giriş kapısı
+- `src/context/AuthContext.jsx` — Kimlik doğrulama durumu (tüm oyunlar paylaşır)
+- `src/lib/supabase.js` — Supabase client (tüm oyunlar paylaşır)
+- `src/components/Avatar.jsx` — Paylaşılan avatar bileşeni
+- `src/styles.css` — Global stiller (`.gc-*` Game Center dahil)
+
+Oyun modülleri (her biri izole; `app/` + `engine/` + gerektikçe `shared/`/`net/`/`lib/`):
+- `bildim/` — **Bildim!** bilgi yarışması (`pages/`, `components/` [Layout, QuestionCard, RankBadge, Countdown, RankUpOverlay], `lib/` [ranks, push, zaman]). Route: `/bildim` ve quiz alt rotaları.
+- `kafatopu/` — Kafa Topu (2D fizik futbol, multiplayer). Route: `/kafatopu/*`. DB öneki `kafatopu_`.
+- `meyvekes/` — Meyve Kes (kamera + MediaPipe el takibi). Route: `/meyvekes/*`. DB öneki `meyvekes_`.
+- `run/` — RUN (karanlık labirent kaçış). Route: `/run/*`.
+- `gladius/` — Gladius (arena dövüş). Route: `/gladius/*`. DB öneki `gl_`.
+
+Ortak:
+- `supabase/migrations/` — Sıralı SQL migration'ları (tek DB; her oyunun tabloları önekli, ayrı dosyada)
 - `supabase/functions/` — Edge Functions (`generate-questions`, `send-push`)
-- `public/` — PWA varlıkları (`sw.js`, `manifest.webmanifest`, ikonlar)
+- `public/` — PWA varlıkları (`sw.js`, `manifest.webmanifest`, ikonlar); oyun varlıkları namespace'li (`heads/`, `map/`, `meyve/`)
 
 ## Ortam Değişkenleri
 
