@@ -25,10 +25,13 @@ create table if not exists public.pr_users (
 );
 alter table public.pr_users enable row level security;
 
+drop policy if exists "users_select_all" on public.pr_users;
 create policy "users_select_all" on public.pr_users
   for select to authenticated using (true);
+drop policy if exists "users_insert_self" on public.pr_users;
 create policy "users_insert_self" on public.pr_users
   for insert to authenticated with check (auth.uid() = id);
+drop policy if exists "users_update_self" on public.pr_users;
 create policy "users_update_self" on public.pr_users
   for update to authenticated using (auth.uid() = id);
 
@@ -44,12 +47,16 @@ create table if not exists public.pr_friendships (
 );
 alter table public.pr_friendships enable row level security;
 
+drop policy if exists "friendships_select_own" on public.pr_friendships;
 create policy "friendships_select_own" on public.pr_friendships
   for select to authenticated using (auth.uid() in (user1, user2));
+drop policy if exists "friendships_insert_own" on public.pr_friendships;
 create policy "friendships_insert_own" on public.pr_friendships
   for insert to authenticated with check (auth.uid() = user1);
+drop policy if exists "friendships_update_own" on public.pr_friendships;
 create policy "friendships_update_own" on public.pr_friendships
   for update to authenticated using (auth.uid() in (user1, user2));
+drop policy if exists "friendships_delete_own" on public.pr_friendships;
 create policy "friendships_delete_own" on public.pr_friendships
   for delete to authenticated using (auth.uid() in (user1, user2));
 
@@ -62,10 +69,13 @@ create table if not exists public.pr_blocks (
 );
 alter table public.pr_blocks enable row level security;
 
+drop policy if exists "blocks_select_own" on public.pr_blocks;
 create policy "blocks_select_own" on public.pr_blocks
   for select to authenticated using (auth.uid() = blocker_id);
+drop policy if exists "blocks_insert_own" on public.pr_blocks;
 create policy "blocks_insert_own" on public.pr_blocks
   for insert to authenticated with check (auth.uid() = blocker_id);
+drop policy if exists "blocks_delete_own" on public.pr_blocks;
 create policy "blocks_delete_own" on public.pr_blocks
   for delete to authenticated using (auth.uid() = blocker_id);
 
@@ -79,12 +89,16 @@ create table if not exists public.pr_rooms (
 );
 alter table public.pr_rooms enable row level security;
 
+drop policy if exists "rooms_select_all" on public.pr_rooms;
 create policy "rooms_select_all" on public.pr_rooms
   for select to authenticated using (true);
+drop policy if exists "rooms_insert_own" on public.pr_rooms;
 create policy "rooms_insert_own" on public.pr_rooms
   for insert to authenticated with check (auth.uid() = host_id);
+drop policy if exists "rooms_update_host" on public.pr_rooms;
 create policy "rooms_update_host" on public.pr_rooms
   for update to authenticated using (auth.uid() = host_id);
+drop policy if exists "rooms_delete_host" on public.pr_rooms;
 create policy "rooms_delete_host" on public.pr_rooms
   for delete to authenticated using (auth.uid() = host_id);
 
@@ -99,10 +113,13 @@ create table if not exists public.pr_races (
 );
 alter table public.pr_races enable row level security;
 
+drop policy if exists "races_select_all" on public.pr_races;
 create policy "races_select_all" on public.pr_races
   for select to authenticated using (true);
+drop policy if exists "races_insert_auth" on public.pr_races;
 create policy "races_insert_auth" on public.pr_races
   for insert to authenticated with check (true);
+drop policy if exists "races_update_auth" on public.pr_races;
 create policy "races_update_auth" on public.pr_races
   for update to authenticated using (true);
 
@@ -119,8 +136,10 @@ create table if not exists public.pr_race_participants (
 );
 alter table public.pr_race_participants enable row level security;
 
+drop policy if exists "participants_select_all" on public.pr_race_participants;
 create policy "participants_select_all" on public.pr_race_participants
   for select to authenticated using (true);
+drop policy if exists "participants_insert_self" on public.pr_race_participants;
 create policy "participants_insert_self" on public.pr_race_participants
   for insert to authenticated with check (auth.uid() = user_id);
 
@@ -134,10 +153,13 @@ create table if not exists public.pr_character_customizations (
 );
 alter table public.pr_character_customizations enable row level security;
 
+drop policy if exists "customizations_select_all" on public.pr_character_customizations;
 create policy "customizations_select_all" on public.pr_character_customizations
   for select to authenticated using (true);
+drop policy if exists "customizations_upsert_self" on public.pr_character_customizations;
 create policy "customizations_upsert_self" on public.pr_character_customizations
   for insert to authenticated with check (auth.uid() = user_id);
+drop policy if exists "customizations_update_self" on public.pr_character_customizations;
 create policy "customizations_update_self" on public.pr_character_customizations
   for update to authenticated using (auth.uid() = user_id);
 
@@ -151,10 +173,13 @@ create table if not exists public.pr_character_xp (
 );
 alter table public.pr_character_xp enable row level security;
 
+drop policy if exists "xp_select_all" on public.pr_character_xp;
 create policy "xp_select_all" on public.pr_character_xp
   for select to authenticated using (true);
+drop policy if exists "xp_insert_self" on public.pr_character_xp;
 create policy "xp_insert_self" on public.pr_character_xp
   for insert to authenticated with check (auth.uid() = user_id);
+drop policy if exists "xp_update_self" on public.pr_character_xp;
 create policy "xp_update_self" on public.pr_character_xp
   for update to authenticated using (auth.uid() = user_id);
 
@@ -167,6 +192,7 @@ create table if not exists public.pr_badges (
 );
 alter table public.pr_badges enable row level security;
 
+drop policy if exists "badges_select_all" on public.pr_badges;
 create policy "badges_select_all" on public.pr_badges
   for select to authenticated using (true);
 
@@ -179,8 +205,10 @@ create table if not exists public.pr_user_badges (
 );
 alter table public.pr_user_badges enable row level security;
 
+drop policy if exists "user_badges_select_all" on public.pr_user_badges;
 create policy "user_badges_select_all" on public.pr_user_badges
   for select to authenticated using (true);
+drop policy if exists "user_badges_insert_self" on public.pr_user_badges;
 create policy "user_badges_insert_self" on public.pr_user_badges
   for insert to authenticated with check (auth.uid() = user_id);
 
@@ -195,10 +223,13 @@ create table if not exists public.pr_best_times (
 );
 alter table public.pr_best_times enable row level security;
 
+drop policy if exists "best_times_select_own" on public.pr_best_times;
 create policy "best_times_select_own" on public.pr_best_times
   for select to authenticated using (auth.uid() = user_id);
+drop policy if exists "best_times_insert_self" on public.pr_best_times;
 create policy "best_times_insert_self" on public.pr_best_times
   for insert to authenticated with check (auth.uid() = user_id);
+drop policy if exists "best_times_update_self" on public.pr_best_times;
 create policy "best_times_update_self" on public.pr_best_times
   for update to authenticated using (auth.uid() = user_id);
 
@@ -212,6 +243,7 @@ create table if not exists public.pr_error_logs (
 );
 alter table public.pr_error_logs enable row level security;
 
+drop policy if exists "error_logs_insert_auth" on public.pr_error_logs;
 create policy "error_logs_insert_auth" on public.pr_error_logs
   for insert to authenticated with check (true);
 

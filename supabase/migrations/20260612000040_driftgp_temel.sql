@@ -45,17 +45,25 @@ alter table public.dg_customizations enable row level security;
 alter table public.dg_race_results enable row level security;
 
 -- Profiller: herkes okuyabilir (kullanıcı listesi/davet için), sadece sahibi yazabilir
+drop policy if exists "profiles_select_all" on public.dg_profiles;
 create policy "profiles_select_all" on public.dg_profiles for select using (true);
+drop policy if exists "profiles_upsert_own" on public.dg_profiles;
 create policy "profiles_upsert_own" on public.dg_profiles for insert with check (auth.uid() = id);
+drop policy if exists "profiles_update_own" on public.dg_profiles;
 create policy "profiles_update_own" on public.dg_profiles for update using (auth.uid() = id);
 
 -- Kişiselleştirme: sadece sahibi
+drop policy if exists "customizations_select_own" on public.dg_customizations;
 create policy "customizations_select_own" on public.dg_customizations for select using (auth.uid() = user_id);
+drop policy if exists "customizations_insert_own" on public.dg_customizations;
 create policy "customizations_insert_own" on public.dg_customizations for insert with check (auth.uid() = user_id);
+drop policy if exists "customizations_update_own" on public.dg_customizations;
 create policy "customizations_update_own" on public.dg_customizations for update using (auth.uid() = user_id);
 
 -- Yarış sonuçları: herkes okuyabilir (liderlik tablosu için), sadece sahibi ekleyebilir
+drop policy if exists "race_results_select_all" on public.dg_race_results;
 create policy "race_results_select_all" on public.dg_race_results for select using (true);
+drop policy if exists "race_results_insert_own" on public.dg_race_results;
 create policy "race_results_insert_own" on public.dg_race_results for insert with check (auth.uid() = user_id);
 
 -- Realtime yayınları için (oda kanalları broadcast/presence kullanır, tablo gerekmez)
@@ -77,8 +85,11 @@ create table if not exists public.dg_ghosts (
 alter table public.dg_ghosts enable row level security;
 
 -- Herkes hayaleti okur; her authenticated oyuncu (en hizli tur) yazabilir
+drop policy if exists "ghosts_select_all" on public.dg_ghosts;
 create policy "ghosts_select_all" on public.dg_ghosts for select using (true);
+drop policy if exists "ghosts_insert_auth" on public.dg_ghosts;
 create policy "ghosts_insert_auth" on public.dg_ghosts for insert to authenticated
   with check (auth.uid() is not null);
+drop policy if exists "ghosts_update_auth" on public.dg_ghosts;
 create policy "ghosts_update_auth" on public.dg_ghosts for update to authenticated
   using (auth.uid() is not null);
