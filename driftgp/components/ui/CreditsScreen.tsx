@@ -14,7 +14,7 @@ interface Credit {
 const CREDITS: Credit[] = [
   {
     role: 'Araç modelleri, pist ve sesler',
-    author: 'idaGP ekibi',
+    author: 'DidaGP ekibi',
     url: 'https://github.com',
     license: 'Özgün',
     note: 'Tüm araç gövdeleri, çevre objeleri ve ses efektleri prosedürel olarak özgün üretilmiştir',
@@ -41,7 +41,7 @@ export function CreditsScreen() {
       </div>
 
       <p className="credits-intro">
-        idaGP, aşağıdaki sanatçıların ücretsiz ve ticari kullanıma açık (CC0) 3D varlıklarını kullanır.
+        DidaGP, aşağıdaki sanatçıların ücretsiz ve ticari kullanıma açık (CC0) 3D varlıklarını kullanır.
         CC0 atıf gerektirmese de teşekkür borçluyuz!
       </p>
 
