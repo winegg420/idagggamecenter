@@ -450,3 +450,15 @@ DriftGP (~9.400 satır TS, three.js/R3F 3D drift yarışı) IDA GG Game Center'a
 
 ### Doğrulama
 - Build temiz (846 modül). Migration'lar kullanıcıda (SQL Editor).
+
+## 2026-07-22 (9. oturum) — FAZ 8: otomatik test + doğrulama
+
+- **Motor testleri:** Meyve Kes 11/11 ✓, Kafa Topu 27/27 ✓ (entegrasyon sonrası regresyon yok).
+- **Çapraz-import izolasyonu:** 7 oyun (bildim/kafatopu/meyvekes/run/gladius/patirun/driftgp) taranıp doğrulandı — **hiçbir oyun başka oyunun klasöründen import etmiyor**. PatiRun/DriftGP yalnız `../../src/context/AuthContext` + `../../src/lib/supabase` paylaşıyor (tek kimlik için bilinçli paylaşım).
+- **Build:** temiz (846 modül); 6 oyun ayrı lazy chunk (DriftGp/Gladius/KafaTopu/MeyveKes/PatiRun/Run) — birbirini şişirmiyor; three.js yalnız DriftGP chunk'ında.
+- **Route'lar:** /, /bildim/*, /kafatopu, /meyvekes, /patirun, /driftgp, /run, /gladius, /siralama-genel + eski Bildim yolları geriye uyumlu.
+- **Gerçek cihaz testleri kullanıcıda:** Meyve Kes kamera, DriftGP eğim sensörü (HTTPS), PatiRun/DriftGP/Kafa Topu multiplayer.
+
+### Faz durumu özeti
+- ✅ Faz 0 (Meyve Kes), 1 (Bildim taşıma), 2 (PatiRun), 3 (DriftGP), 4 (ortak kimlik), 5 (görünürlük), 6 (birleşik sıralama + kart/DEMO), 7 (PWA), 8 (otomatik test).
+- ⏳ Faz 6 tam A-sınıfı ana sayfa görsel yeniden tasarımı: GameCenter zaten animasyonlu (radial-glow, cam header, gradient kart + shimmer/hover) — daha ileri parallax/motion opsiyonel cila olarak bırakıldı.
