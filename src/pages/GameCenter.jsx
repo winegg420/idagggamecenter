@@ -37,6 +37,15 @@ const OYUNLAR = [
     yeni: true,
   },
   {
+    ad: "PatiRun",
+    aciklama: "Sevimli patilerle 2D yarış — arkadaşlarınla kapış!",
+    ikon: "🐾",
+    yol: "/patirun",
+    etiket: "Yarış · Çok Oyunculu",
+    grad: "linear-gradient(135deg, #3a86ff 0%, #74a57f 100%)",
+    yeni: true,
+  },
+  {
     ad: "RUN",
     aciklama: "Karanlık labirentten kaç — dronelara yakalanma!",
     ikon: "🏃",

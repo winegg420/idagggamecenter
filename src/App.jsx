@@ -22,6 +22,9 @@ const KafaTopuApp = lazy(() => import("../kafatopu/app/KafaTopuApp.jsx"));
 // MEYVE KES: kamera + el takibi (MediaPipe) meyve kesme oyunu, /meyvekes altında.
 // Bildim oturumunu ve kullanıcı/avatar sistemini kullanır (giriş duvarının arkasında).
 const MeyveKesApp = lazy(() => import("../meyvekes/app/MeyveKesApp.jsx"));
+// PATIRUN: 2D pati yarışı (multiplayer), /patirun altında lazy yüklenir.
+// Bildim oturumunu kullanır (tek kimlik); tüm kodu patirun/ klasöründe izoledir.
+const PatiRunApp = lazy(() => import("../patirun/app/PatiRunApp.jsx"));
 import Login from "./pages/Login.jsx";
 import GameCenter from "./pages/GameCenter.jsx";
 import Home from "../bildim/pages/Home.jsx";
@@ -91,6 +94,14 @@ export default function App() {
         element={
           <Suspense fallback={<div className="yukleniyor">Meyve Kes yükleniyor…</div>}>
             <MeyveKesApp />
+          </Suspense>
+        }
+      />
+      <Route
+        path="/patirun/*"
+        element={
+          <Suspense fallback={<div className="yukleniyor">PatiRun yükleniyor…</div>}>
+            <PatiRunApp />
           </Suspense>
         }
       />

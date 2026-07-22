@@ -390,3 +390,23 @@ Büyük çok-fazlı entegrasyon görevi başladı (Meyve Kes düzeltme + PatiRun
 - **Faz 5:** Görünürlük RLS (admin hepsini, normal online-only).
 - **Faz 6:** Ana sayfa A-sınıfı yeniden tasarım + birleşik puan sıralaması.
 - **Faz 8:** Baştan sona test.
+
+## 2026-07-22 (6. oturum) — FAZ 2: PatiRun entegrasyonu
+
+PatiRun (~12.500 satır TS, 2D pati yarışı, multiplayer) IDA GG Game Center'a taşındı — izole modül, `/patirun/*` route'u, Bildim tek kimliği.
+
+### Yapılanlar
+- **Kod taşıma:** PatiRun `src/{game,render2d,net,screens,lib,services,stores,config,components}` → `patirun/`. TS/TSX olduğu gibi (Vite/esbuild derler). İzole `patirun/tsconfig.json` (tip kontrolü sadece patirun/ içinde; ana build tsc kullanmaz).
+- **Çift Supabase client sorunu çözüldü:** PatiRun kendi client'ını kuruyordu → `patirun/lib/supabase.ts` artık Bildim'in **tek paylaşılan client'ını** re-export eder (aynı storage'da iki GoTrue oturum kilidini çakıştırırdı).
+- **Auth birleştirme (Faz 4 ile uyumlu):** kendi Google-OAuth ekranı (`AuthScreen.tsx`) **silindi**; `authStore` yeniden yazıldı — Bildim oturumundan `setBridgedUser` ile beslenir. `PatiRunApp.jsx` köprüsü: `useAuth()` → `pr_users` satırını upsert (FK hedefi + username'i profiles ile senkron) → authStore'u besler. **Ayrı kullanıcı adı seçme ekranı yok.** `setUsername` → `profiles.username` (paylaşılan kimlik, 23505 kontrolü); yarış avatarı (oyuna özgü kozmetik) `pr_users.avatar_id`'de kalır. appStore başlangıç ekranı `auth`→`menu`. `RunnerStrip` (AuthScreen'deydi) `components/RunnerStrip.tsx`'e taşındı. Ayarlar modalına "🏠 Oyun Merkezi'ne dön".
+- **DB göçü:** `supabase/migrations/20260612000039_patirun_temel.sql` — PatiRun 001_schema+002_avatar birleşik, **tüm tablolar `pr_` önekli** (pr_users, pr_friendships, pr_blocks, pr_rooms, pr_races, pr_race_participants, pr_character_customizations, pr_character_xp, pr_badges, pr_user_badges, pr_best_times, pr_error_logs) + RPC `pr_apply_race_result`/`pr_cleanup_error_logs`. `auth.users` FK'ları korundu. Realtime: PatiRun broadcast/presence kullanır (postgres_changes yok) → publication değişikliği gerekmez. Kanallar namespace'lendi: `pr-quickmatch`, `pr-room:*`, `pr-online` (diğer oyunlarla çakışmaz).
+- **CSS izolasyonu:** PatiRun'ın 2000 satır **global** CSS'i (`*`, `body`, `.btn`, `.toast`...) Bildim'i bozardı → scratchpad script'iyle tümü **`.pr-root` altına scope'landı** (`patirun/app/styles/patirun.css`, keyframes/media korunarak). App `<div className="pr-root">` içinde.
+- **Entegrasyon:** `src/App.jsx` lazy `/patirun/*`; GameCenter'a 🐾 PatiRun kartı.
+
+### Otonom kararlar
+- **Bağımsız leaderboard** (prompt önerisi kabul): PatiRun kendi puan/rütbe/sıralamasını korur; sadece kimlik/giriş ortak. `pr_users.username` = profiles.username senkron kopyası (join'ler için; köprü + setUsername senkronlar).
+- **Yarış avatarı ≠ kimlik avatarı:** PatiRun'ın avatars.ts kozmetiği oyuna özgü kaldı; kimlik fotoğrafı (profiles.avatar_url) paylaşılan. PatiRun UI'si foto avatar render etmediğinden yeniden yazılmadı.
+
+### Doğrulama
+- **Build temiz** — 239 modül; **PatiRun ayrı lazy chunk** (PatiRunApp ~178 kB js / ~33 kB css); Bildim/diğer oyun paketleri etkilenmedi.
+- Gerçek multiplayer/eşleşme testi kullanıcıda (2 cihaz gerekir — prompt'ta belirtildi).
