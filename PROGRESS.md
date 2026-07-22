@@ -433,3 +433,20 @@ DriftGP (~9.400 satır TS, three.js/R3F 3D drift yarışı) IDA GG Game Center'a
 ### Doğrulama
 - **Build temiz** — 841 modül; **DriftGP ayrı lazy chunk** (DriftGpApp ~1.08 MB js / ~gzip ~300 kB — three.js doğası, yalnız /driftgp'de yüklenir). Ana Bildim bundle 521 kB'da kaldı (three.js sızmadı).
 - Gerçek cihaz testi kullanıcıda: telefon eğim sensörü (yalnız HTTPS/deploy sonrası) + multiplayer.
+
+## 2026-07-22 (8. oturum) — FAZ 6 (birleşik sıralama) + FAZ 5 (görünürlük)
+
+### FAZ 6 — Birleşik puan sıralaması (profil ikonu davranışı)
+- **Migration `20260612000041_birlesik_siralama.sql`:** `birlesik_siralama()` RPC (security definer, authenticated) — profiles + kafatopu_profiller + meyvekes_skorlar(sum en_iyi) + pr_users + dg_profiles(xp jsonb) LEFT JOIN, user_id üzerinden; oyun bazlı puan + toplam, botlar hariç, toplam desc, limit 100. (pr_/dg_/meyvekes migration'larından SONRA çalıştırılmalı.)
+- **Yeni sayfa `src/pages/BirlesikSiralama.jsx`** (route `/siralama-genel`): oyun ikonlu sütunlar (Bildim/Kafa Topu/DriftGP/Meyve Kes/PatiRun) + Toplam; kendi satırın vurgulu; migration yoksa anlaşılır uyarı. Stiller styles.css `.sr-*`.
+- **GameCenter profil ikonu** artık Bildim profilini değil bu **birleşik sıralamayı** açar (`/siralama-genel`).
+- RUN kalıcı skor tutmadığından tabloda yok; Gladius (demo) dahil edilmedi (prompt listesiyle uyumlu).
+
+### FAZ 5 — Görünürlük kuralı (oyuncu arama)
+- **Migration `20260612000042_gorunurluk.sql`:** `profiles.last_seen` kolonu + index; `kalp_at()` RPC (kendi last_seen'i tazeler); `oyuncu_ara(p_arama)` RPC — **admin (hileli_mi()) herkesi**, normal oyuncu **yalnız online** (son 2 dk) olanları görür + `online` bayrağı döner. **profiles select RLS'i DEĞİŞTİRİLMEDİ** → sıralama/leaderboard herkese açık kalır (prompt şartı).
+- **Heartbeat paylaşılan `AuthContext`'te** (tüm oyunlar tek kabuğu kullanır): oturum açıkken ~60 sn'de bir + görünürlük dönüşünde `kalp_at()`.
+- **Bildim `FriendsPage` araması** doğrudan profiles sorgusundan `oyuncu_ara` RPC'sine geçti.
+- **Kapsam kararı:** Kafa Topu'nun online-oyuncu listesi zaten presence tabanlı (doğası gereği online-only); PatiRun PlayersScreen (pr_users) opsiyonel takip işi olarak bırakıldı — kanonik kimlik araması (Bildim) kurala uygun.
+
+### Doğrulama
+- Build temiz (846 modül). Migration'lar kullanıcıda (SQL Editor).

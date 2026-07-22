@@ -62,6 +62,29 @@ export function AuthProvider({ children }) {
     return () => subscription.unsubscribe();
   }, [refreshProfile]);
 
+  // Online takibi (Faz 5): oturum açıkken ~60 sn'de bir kalp_at() → profiles.last_seen.
+  // Tüm oyunlar bu paylaşılan kabuğu kullandığı için tek yerde yapılır.
+  useEffect(() => {
+    if (!supabaseHazir || !session) return;
+    let durdu = false;
+    const at = async () => {
+      if (durdu || document.visibilityState !== "visible") return;
+      try {
+        await supabase.rpc("kalp_at");
+      } catch {
+        /* RPC yoksa (migration bekliyor) veya ağ hatası — sessiz geç */
+      }
+    };
+    at();
+    const id = setInterval(at, 60000);
+    document.addEventListener("visibilitychange", at);
+    return () => {
+      durdu = true;
+      clearInterval(id);
+      document.removeEventListener("visibilitychange", at);
+    };
+  }, [session]);
+
   const signOut = () => supabase?.auth.signOut();
 
   return (

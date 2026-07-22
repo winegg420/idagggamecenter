@@ -92,11 +92,11 @@ export default function GameCenter() {
             <span className="gc-brand-sub">GAME CENTER</span>
           </div>
         </div>
-        <Link to="/profil" className="gc-user">
+        <Link to="/siralama-genel" className="gc-user" title="Genel puan sıralaması">
           <Avatar profile={profile} boyut={40} />
           <div className="gc-user-info">
             <span className="gc-user-name">{ad}</span>
-            <span className="gc-user-puan">⭐ {profile?.puan ?? 0}</span>
+            <span className="gc-user-puan">🏆 Sıralama</span>
           </div>
         </Link>
       </header>

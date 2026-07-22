@@ -30,6 +30,7 @@ const PatiRunApp = lazy(() => import("../patirun/app/PatiRunApp.jsx"));
 const DriftGpApp = lazy(() => import("../driftgp/app/DriftGpApp.jsx"));
 import Login from "./pages/Login.jsx";
 import GameCenter from "./pages/GameCenter.jsx";
+import BirlesikSiralama from "./pages/BirlesikSiralama.jsx";
 import Home from "../bildim/pages/Home.jsx";
 import TournamentPage from "../bildim/pages/TournamentPage.jsx";
 import ChallengesPage from "../bildim/pages/ChallengesPage.jsx";
@@ -118,6 +119,8 @@ export default function App() {
       />
       {/* idaGG Game Center: sitenin ana giriş sayfası (oyun portalı). */}
       <Route path="/" element={<GameCenter />} />
+      {/* Birleşik puan sıralaması (tüm oyunlar) — profil ikonundan açılır. */}
+      <Route path="/siralama-genel" element={<BirlesikSiralama />} />
 
       {/* Bildim! bilgi yarışması — tüm quiz rotaları /bildim/* altında (modül izolasyonu). */}
       <Route path="/bildim" element={<Layout />}>

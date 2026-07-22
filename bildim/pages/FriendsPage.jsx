@@ -42,14 +42,19 @@ export default function FriendsPage() {
       setSonuclar([]);
       return;
     }
-    const { data } = await supabase
-      .from("profiles")
-      .select("id, username, avatar_url, puan")
-      .ilike("username", `%${q.trim()}%`)
-      .neq("id", user.id)
-      .limit(8);
+    // Görünürlük kuralı (Faz 5): admin herkesi, normal oyuncu yalnız online
+    // olanları görür. Doğrudan profiles sorgusu yerine oyuncu_ara RPC'si.
+    let data = [];
+    try {
+      const sonuc = await supabase.rpc("oyuncu_ara", { p_arama: q.trim() });
+      if (sonuc.error) throw sonuc.error;
+      data = sonuc.data ?? [];
+    } catch (e) {
+      console.error("Oyuncu arama hatası:", e);
+      data = [];
+    }
     // Geciken eski istek, daha yeni sonuçların üzerine yazmasın
-    if (istek === aramaNo.current) setSonuclar(data ?? []);
+    if (istek === aramaNo.current) setSonuclar(data);
   };
 
   const istekGonder = async (hedefId) => {

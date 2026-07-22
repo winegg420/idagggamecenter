@@ -847,6 +847,40 @@ input:focus { border-color: var(--primary); }
   border-radius: 999px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
+/* ---- Birleşik sıralama tablosu ---- */
+.sr-bilgi { text-align: center; opacity: 0.85; padding: 24px 12px; }
+.sr-hata { color: #ff9db2; }
+.sr-tablo-sar { overflow-x: auto; -webkit-overflow-scrolling: touch; border-radius: 14px; }
+.sr-tablo {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 520px;
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 14px;
+  overflow: hidden;
+}
+.sr-tablo th, .sr-tablo td { padding: 10px 8px; text-align: center; font-size: 0.9rem; }
+.sr-tablo thead th {
+  position: sticky;
+  top: 0;
+  background: rgba(20, 16, 40, 0.9);
+  backdrop-filter: blur(6px);
+  font-size: 0.78rem;
+  letter-spacing: 0.4px;
+  color: #cbd2f0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+}
+.sr-tablo tbody tr { border-bottom: 1px solid rgba(255, 255, 255, 0.06); }
+.sr-tablo tbody tr:nth-child(-n + 3) .sr-sira { font-weight: 900; color: #ffd21f; }
+.sr-sira { width: 38px; opacity: 0.85; }
+.sr-oyuncu { text-align: left; }
+.sr-oyuncu-hucre { display: flex; align-items: center; gap: 8px; }
+.sr-ad { font-weight: 700; white-space: nowrap; }
+.sr-oyun-ikon { font-size: 1.1rem; }
+.sr-oyun { opacity: 0.92; font-variant-numeric: tabular-nums; }
+.sr-toplam { font-weight: 900; color: #7ce0c0; font-variant-numeric: tabular-nums; }
+.sr-ben { background: rgba(124, 224, 192, 0.14); outline: 1px solid rgba(124, 224, 192, 0.3); }
+
 /* DEMO rozeti — tam sürüme erişmemiş oyunlar (RUN multiplayer yok, Gladius iskelet) */
 .gc-demo {
   position: absolute;
