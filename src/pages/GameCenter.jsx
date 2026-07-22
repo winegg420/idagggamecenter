@@ -61,7 +61,8 @@ const OYUNLAR = [
     yol: "/run",
     etiket: "Aksiyon · Gizlilik",
     grad: "linear-gradient(135deg, #21125e 0%, #7a1fa0 100%)",
-    yeni: true,
+    yeni: false,
+    demo: true, // multiplayer henüz yok — DEMO
   },
   {
     ad: "Gladius",
@@ -71,6 +72,7 @@ const OYUNLAR = [
     etiket: "Dövüş · Arena",
     grad: "linear-gradient(135deg, #b91d1d 0%, #f0a020 100%)",
     yeni: false,
+    demo: true, // Faz 0 iskelet — DEMO
   },
 ];
 
@@ -112,9 +114,10 @@ export default function GameCenter() {
         <h2 className="gc-bolum-baslik">🕹️ Oyunlar</h2>
         <div className="gc-grid">
           {OYUNLAR.map((o) => (
-            <Link key={o.yol} to={o.yol} className="gc-kart" style={{ background: o.grad }}>
+            <Link key={o.yol} to={o.yol} className={"gc-kart" + (o.demo ? " gc-kart-demo" : "")} style={{ background: o.grad }}>
               <span className="gc-kart-parlama" aria-hidden="true" />
               {o.yeni && <span className="gc-yeni">YENİ</span>}
+              {o.demo && <span className="gc-demo">DEMO</span>}
               <div className="gc-kart-ikon">{o.ikon}</div>
               <div className="gc-kart-govde">
                 <span className="gc-kart-ad">{o.ad}</span>
