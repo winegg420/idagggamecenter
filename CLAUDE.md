@@ -4,7 +4,9 @@ Bu dosya, bu depoda çalışan Claude Code (ve diğer AI ajanları) için proje 
 
 ## Proje
 
-**Bildim!** — Türkçe bilgi yarışması web uygulaması. Gece turnuvası, 1v1 meydan okuma, grup maçı, "Hızlı Olan Kazanır" ve arkadaş sistemi içerir. PWA olarak çalışır (push bildirimi + service worker).
+**IDA GG Game Center** (GitHub: `idagggamecenter`) — birçok oyunu tek çatı altında toplayan bir oyun portalı (PWA). Site adı artık "Bildim" değil; **Bildim! yalnızca hub içindeki oyunlardan biridir** (bilgi yarışması). Tüm oyunlar tek kimliği (`profiles`: username + avatar) ve tek Supabase projesini paylaşır; her oyun kendi klasöründe **bağımsız geliştirilebilir izole bir modüldür** ve her an ayrı repoya taşınabilir.
+
+**Her modülün kendi `CLAUDE.md` + `PROGRESS.md` dosyası vardır** (o klasörde). Bu kök dosyalar hub geneli içindir; modülde çalışırken önce o modülün `CLAUDE.md`'sini oku.
 
 ## Teknoloji Yığını
 
@@ -46,8 +48,12 @@ Oyun modülleri (her biri izole; `app/` + `engine/` + gerektikçe `shared/`/`net
 - `bildim/` — **Bildim!** bilgi yarışması (`pages/`, `components/` [Layout, QuestionCard, RankBadge, Countdown, RankUpOverlay], `lib/` [ranks, push, zaman]). Route: `/bildim` ve quiz alt rotaları.
 - `kafatopu/` — Kafa Topu (2D fizik futbol, multiplayer). Route: `/kafatopu/*`. DB öneki `kafatopu_`.
 - `meyvekes/` — Meyve Kes (kamera + MediaPipe el takibi). Route: `/meyvekes/*`. DB öneki `meyvekes_`.
-- `run/` — RUN (karanlık labirent kaçış). Route: `/run/*`.
-- `gladius/` — Gladius (arena dövüş). Route: `/gladius/*`. DB öneki `gl_`.
+- `run/` — RUN (karanlık labirent kaçış, tek-oyunculu prototip). Route: `/run/*`. Backend yok. **DEMO**.
+- `gladius/` — Gladius (arena dövüş, Faz 0 iskelet). Route: `/gladius/*`. DB öneki `gl_`. **DEMO**.
+- `patirun/` — PatiRun (2D pati yarışı, multiplayer; React+TS+Zustand). Route: `/patirun/*`. DB öneki `pr_`. Bildim oturumuna köprüyle bağlı (`app/PatiRunApp.jsx`).
+- `driftgp/` — DidaGP (3D drift yarışı; three.js/R3F+Zustand). Route: `/driftgp/*`. DB öneki `dg_`. Bildim oturumuna köprüyle bağlı (`app/DriftGpApp.jsx`). Not: kullanıcıya görünen ad **DidaGP** (eski kod adı "DriftGP").
+
+Her modül yalnızca paylaşılan kabuğa (`src/`: `App.jsx` lazy route + `context/AuthContext` + `lib/supabase` + `components/Avatar`) bağlıdır; hiçbiri diğer oyunun klasöründen import etmez. Bağımsız repoya ayırma yolu her modülün kendi `CLAUDE.md`'sinde yazılıdır.
 
 Ortak:
 - `supabase/migrations/` — Sıralı SQL migration'ları (tek DB; her oyunun tabloları önekli, ayrı dosyada)
