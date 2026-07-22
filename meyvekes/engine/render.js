@@ -136,7 +136,54 @@ function popupCiz(ctx, pp) {
   ctx.restore();
 }
 
-// Ana çizim. eller: ham landmark (el iskeleti ipucu için).
+// MediaPipe el iskeleti bağlantıları (bilek → parmaklar).
+const EL_BAGLANTI = [
+  [0, 1], [1, 2], [2, 3], [3, 4],
+  [0, 5], [5, 6], [6, 7], [7, 8],
+  [5, 9], [9, 10], [10, 11], [11, 12],
+  [9, 13], [13, 14], [14, 15], [15, 16],
+  [13, 17], [17, 18], [18, 19], [19, 20],
+  [0, 17],
+];
+
+function elIskeletCiz(ctx, eller, k) {
+  ctx.save();
+  ctx.lineCap = "round";
+  ctx.lineJoin = "round";
+  for (const el of eller) {
+    const n = el.noktalar;
+    if (!n || n.length < 21) continue;
+    // parlak dış hat (bıçak parıltısı)
+    ctx.strokeStyle = "rgba(120,220,255,0.35)";
+    ctx.lineWidth = 12;
+    ctx.beginPath();
+    for (const [a, b] of EL_BAGLANTI) {
+      if (!n[a] || !n[b]) continue;
+      const pa = k.esle(n[a].x, n[a].y);
+      const pb = k.esle(n[b].x, n[b].y);
+      ctx.moveTo(pa.x, pa.y);
+      ctx.lineTo(pb.x, pb.y);
+    }
+    ctx.stroke();
+    // iç çizgi
+    ctx.strokeStyle = "rgba(235,250,255,0.9)";
+    ctx.lineWidth = 3;
+    ctx.stroke();
+    // eklemler + parmak ucu ışıkları
+    for (let i = 0; i < 21; i++) {
+      if (!n[i]) continue;
+      const pt = k.esle(n[i].x, n[i].y);
+      const uc = i === 4 || i === 8 || i === 12 || i === 16 || i === 20;
+      ctx.fillStyle = uc ? "rgba(180,240,255,0.95)" : "rgba(200,245,255,0.6)";
+      ctx.beginPath();
+      ctx.arc(pt.x, pt.y, uc ? 7 : 4, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+  ctx.restore();
+}
+
+// Ana çizim. eller: ham landmark (el iskeleti için).
 export function ciz(ctx, oyun, video, k, W, H, eller) {
   ctx.clearRect(0, 0, W, H);
   videoCiz(ctx, video, k, W);
@@ -149,20 +196,9 @@ export function ciz(ctx, oyun, video, k, W, H, eller) {
   for (const y of oyun.yarilar) yarimCiz(ctx, y);
   for (const p of oyun.parcaciklar) parcacikCiz(ctx, p);
 
-  // el noktaları (parmak uçlarında küçük ışıklar)
-  ctx.save();
-  for (const el of eller) {
-    for (const idx of [4, 8, 12, 16, 20]) {
-      const n = el.noktalar[idx];
-      if (!n) continue;
-      const pt = k.esle(n.x, n.y);
-      ctx.fillStyle = "rgba(180,240,255,0.75)";
-      ctx.beginPath();
-      ctx.arc(pt.x, pt.y, 6, 0, Math.PI * 2);
-      ctx.fill();
-    }
-  }
-  ctx.restore();
+  // el iskeleti — tüm el "bıçak" gibi ışıldar (güçlü görsel geri bildirim:
+  // el algılanıyor mu, tam olarak nerede görülüyor kullanıcı anında görür).
+  elIskeletCiz(ctx, eller, k);
 
   for (const iz of oyun.izler) izCiz(ctx, iz, oyun._t);
   for (const pp of oyun.popuplar) popupCiz(ctx, pp);

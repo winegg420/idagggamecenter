@@ -1,7 +1,7 @@
 {
-  "name": "idagggamecenter",
-  "short_name": "idagggamecenter",
-  "description": "idaGG Game Center — birçok oyun tek çatı altında.",
+  "name": "IDA GG Game Center",
+  "short_name": "IDA GG",
+  "description": "IDA GG Game Center — birçok oyun tek çatı altında.",
   "start_url": "/",
   "display": "standalone",
   "orientation": "any",

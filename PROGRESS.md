@@ -357,3 +357,36 @@ Kullanıcı: her oyun ayrı klasörde, bağımsız geliştirilebilir, aynı depo
 - **Import düzeltmeleri:** taşınan dosyalarda paylaşılan referanslar `../../src/...`, kardeş referanslar `../components|../lib`; App.jsx quiz sayfaları + Layout `../bildim/...`. Route yapısı/URL'ler değişmedi (quiz rotaları hâlâ top-level; `/bildim` = quiz ana sayfası).
 - **Sonuç:** 5/5 modül izole (hiçbir oyun başkasının klasöründen import etmiyor); `bildim/` yalnız `../../src` (paylaşılan) + kendi içine bağlı. CLAUDE.md "Dizin Yapısı" yeni portal yapısına göre güncellendi.
 - Doğrulama: `npm run build` OK (176 modül, hata yok), çapraz-import taraması temiz. Not: gladius tasarım dokümanındaki `src/lib/ranks.js`/`push.js` referansları artık `bildim/lib/`'de (sadece prose, kod değil).
+
+## 2026-07-22 (5. oturum) — IDA GG Game Center entegrasyonu: Faz 0/1/7
+
+Büyük çok-fazlı entegrasyon görevi başladı (Meyve Kes düzeltme + PatiRun/DriftGP göçü + ortak kimlik + yeni ana sayfa + tek PWA). Bu oturumda öncelikli hata + tractable fazlar tamamlandı; iki büyük dış port (Faz 2/3, ~22k satır) sonraki oturumlara.
+
+### FAZ 0 — Meyve Kes kök sebep düzeltmesi (öncelik)
+- **Kök sebep 1 (kasma + kesememe):** eski `@mediapipe/hands` legacy çözümü ana thread'i WASM ile bloklar; modern **MediaPipe Tasks Vision `HandLandmarker` (GPU delegesi)**'ne geçildi — `detectForVideo` senkron, GPU'da çalışır (kasma çözülür), busy-flag yarışı yok.
+- **Kök sebep 2 (koordinat kayması → "kesemiyorum"):** landmark'lar sabit 320×240 (4:3) offscreen kareye normalize ediliyordu; kamera 16:9 dönünce görüntü bozularak küçültülüyor, landmark'lar gerçek elin konumundan kayıyordu. Yeni motor **video karesini doğrudan işler** → aspect bozulması ve koordinat kayması ortadan kalktı.
+- GPU başarısızsa **CPU delegesine otomatik düşüş**; düşük güven eşikleri (0.4) korundu (hızlı girip çıkan el çabuk yakalanır).
+- **Görsel teşhis eklendi:** render'a tam **el iskeleti** çizimi (tüm el "bıçak" gibi ışıldar; el algılanıyor mu/nerede kullanıcı anında görür) + OyunPage'e **"🖐 el görünmüyor / 🖐 N"** rozeti (kamera açık ama el yoksa kırmızı uyarı).
+- **Değişen dosyalar:** `meyvekes/engine/eltakip.js` (baştan yazıldı), `meyvekes/engine/render.js` (el iskeleti), `meyvekes/app/pages/OyunPage.jsx` (el sayacı), `meyvekes/app/styles/meyvekes.css` (rozet). Kesim mantığı (`oyun.js`) landmark formatı aynı olduğu için değişmedi.
+- **Kalıcı test:** `meyvekes/_test/motor-test.mjs` (Node, 11 test) — faz makinesi, kesim, statik el kesmez, hızlı savurma keser, 4'lü combo, 60sn tam oyun. **11/11 geçti.** CDN URL'leri (vision_bundle.mjs + wasm + model.task) HTTP 200 doğrulandı. Build temiz (MeyveKesApp ~22 kB; MediaPipe CDN'den, bundle'a girmiyor).
+- **Kalan:** gerçek kamera+el testi kullanıcıda (otomasyonda kamera yok).
+
+### FAZ 1 — Bildim quiz'i /bildim/* altına taşı
+- Tüm quiz rotaları `/bildim/*` altına nest edildi (App.jsx: `/bildim` = Layout, index=Home, alt: turnuva/meydan/mac/:id/grup-mac/:id/hizli-mac/:id/siralama/arkadaslar/profil).
+- **Geriye uyumluluk:** eski top-level yollar için `BildimeYonlendir` bileşeni (parametre+query korunarak `/bildim/*`'a yönlendirir) → push bildirimi deep-link'leri, bookmark, eski linkler kırılmaz.
+- Tüm iç navigasyon (`bildim/pages/*` + `bildim/components/Layout.jsx`, ~33 kullanım) `/bildim/*` önekine güncellendi. İş mantığı/auth/RLS'e dokunulmadı (saf route taşıma). Build temiz.
+
+### FAZ 7 — Tek PWA kimliği
+- `public/manifest.webmanifest`: name "IDA GG Game Center", short_name "IDA GG". `index.html`: title + description + apple-mobile-web-app-title "IDA GG Game Center". Tek manifest, tüm oyunlar paylaşır.
+
+### Otonom kararlar
+- Marka biçimi tutarsızdı (`idagggamecenter` vs `idaGG`); Faz 6 prompt'undaki **"IDA GG Game Center"** biçimi standart alındı.
+- Meyve Kes'te legacy MediaPipe yerine Tasks Vision seçimi: iki önceki oturum legacy ile kasma/kesememeyi çözemedi; modern API endüstri standardı güvenilir yol.
+
+### Bekleyen fazlar (sonraki oturumlar)
+- **Faz 2:** PatiRun portu (~12.5k satır TS, 2D canvas; supabase+zustand). `pr_` prefix DB göçü, auth birleştirme, `/patirun/*`.
+- **Faz 3:** DriftGP portu (~9.4k satır TS, three.js+R3F+drei+zustand). `dg_` prefix DB göçü, hayalet herkese açık, `/driftgp/*`.
+- **Faz 4:** Ortak kimlik (büyük kısmı zaten var — paylaşılan AuthContext/profiles).
+- **Faz 5:** Görünürlük RLS (admin hepsini, normal online-only).
+- **Faz 6:** Ana sayfa A-sınıfı yeniden tasarım + birleşik puan sıralaması.
+- **Faz 8:** Baştan sona test.

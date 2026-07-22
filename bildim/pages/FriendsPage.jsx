@@ -78,7 +78,7 @@ export default function FriendsPage() {
     setHata(null);
     const { error, data } = await supabase.rpc("create_challenge", { p_rakip: hedefId });
     if (error) setHata(error.message);
-    else if (data) navigate("/meydan");
+    else if (data) navigate("/bildim/meydan");
   };
 
   const digerProfil = (f) => (f.requester === user.id ? f.add : f.req);

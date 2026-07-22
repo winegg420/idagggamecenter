@@ -93,7 +93,7 @@ export default function Home() {
     setMesaj(null);
     const { data, error } = await supabase.rpc("quick_match");
     if (error) setMesaj(error.message);
-    else if (data) navigate(`/mac/${data}`);
+    else if (data) navigate(`/bildim/mac/${data}`);
   };
 
   const adKaydet = async () => {
@@ -242,7 +242,7 @@ export default function Home() {
               <span className="canli-nokta" />
               Turnuva ŞU AN canlı!
             </h2>
-            <button className="btn" onClick={() => navigate("/turnuva")}>
+            <button className="btn" onClick={() => navigate("/bildim/turnuva")}>
               İzle / Oyna →
             </button>
           </>
@@ -254,7 +254,7 @@ export default function Home() {
             </div>
             {mesaj && <div className="hata-kutu">{mesaj}</div>}
             {lobide ? (
-              <button className="btn ikincil" onClick={() => navigate("/turnuva")}>
+              <button className="btn ikincil" onClick={() => navigate("/bildim/turnuva")}>
                 ✅ Lobidesin ({lobiSayisi} oyuncu) — Lobiye git
               </button>
             ) : (
@@ -278,22 +278,22 @@ export default function Home() {
       </button>
 
       <div className="mod-grid">
-        <button className="mod-kart meydan" onClick={() => navigate("/meydan")}>
+        <button className="mod-kart meydan" onClick={() => navigate("/bildim/meydan")}>
           <span className="mod-ikon">⚔️</span>
           <span className="mod-ad">Meydan Oku</span>
           <span className="mod-alt">Arkadaşına veya bota</span>
         </button>
-        <button className="mod-kart hizli" onClick={() => navigate("/meydan")}>
+        <button className="mod-kart hizli" onClick={() => navigate("/bildim/meydan")}>
           <span className="mod-ikon">🏁</span>
           <span className="mod-ad">Hızlı Olan Kazanır</span>
           <span className="mod-alt">İlk bilen puanı kapar</span>
         </button>
-        <button className="mod-kart grup" onClick={() => navigate("/meydan")}>
+        <button className="mod-kart grup" onClick={() => navigate("/bildim/meydan")}>
           <span className="mod-ikon">👨‍👩‍👧‍👦</span>
           <span className="mod-ad">Grup Maçı</span>
           <span className="mod-alt">3-5 kişilik yarış</span>
         </button>
-        <button className="mod-kart turnuva" onClick={() => navigate("/turnuva")}>
+        <button className="mod-kart turnuva" onClick={() => navigate("/bildim/turnuva")}>
           <span className="mod-ikon">🏆</span>
           <span className="mod-ad">Turnuva</span>
           <span className="mod-alt">Son kalan kazanır</span>
@@ -353,7 +353,7 @@ export default function Home() {
             <span style={{ fontWeight: 800, fontSize: 14 }}>⭐ {p.puan}</span>
           </div>
         ))}
-        <Link to="/siralama" className="alt-yazi" style={{ display: "block", textAlign: "center", marginTop: 8 }}>
+        <Link to="/bildim/siralama" className="alt-yazi" style={{ display: "block", textAlign: "center", marginTop: 8 }}>
           Tüm sıralamayı gör →
         </Link>
       </div>

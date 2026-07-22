@@ -1,5 +1,12 @@
 import { lazy, Suspense } from "react";
 import { Routes, Route, Navigate, useLocation } from "react-router-dom";
+
+// Eski top-level quiz yollarını yeni /bildim/* yapısına yönlendirir (parametreyi
+// korur). Geriye uyumluluk: push bildirimi deep-link'leri, bookmark, eski linkler.
+function BildimeYonlendir() {
+  const { pathname, search } = useLocation();
+  return <Navigate to={"/bildim" + pathname + search} replace />;
+}
 import { useAuth } from "./context/AuthContext.jsx";
 import { supabaseHazir } from "./lib/supabase.js";
 import Layout from "../bildim/components/Layout.jsx";
@@ -89,18 +96,31 @@ export default function App() {
       />
       {/* idaGG Game Center: sitenin ana giriş sayfası (oyun portalı). */}
       <Route path="/" element={<GameCenter />} />
-      <Route element={<Layout />}>
-        <Route path="/bildim" element={<Home />} />
-        <Route path="/turnuva" element={<TournamentPage />} />
-        <Route path="/meydan" element={<ChallengesPage />} />
-        <Route path="/mac/:id" element={<MatchPage />} />
-        <Route path="/grup-mac/:id" element={<GroupMatchPage />} />
-        <Route path="/hizli-mac/:id" element={<HizliMacPage />} />
-        <Route path="/siralama" element={<LeaderboardPage />} />
-        <Route path="/arkadaslar" element={<FriendsPage />} />
-        <Route path="/profil" element={<ProfilePage />} />
-        <Route path="*" element={<Navigate to="/" replace />} />
+
+      {/* Bildim! bilgi yarışması — tüm quiz rotaları /bildim/* altında (modül izolasyonu). */}
+      <Route path="/bildim" element={<Layout />}>
+        <Route index element={<Home />} />
+        <Route path="turnuva" element={<TournamentPage />} />
+        <Route path="meydan" element={<ChallengesPage />} />
+        <Route path="mac/:id" element={<MatchPage />} />
+        <Route path="grup-mac/:id" element={<GroupMatchPage />} />
+        <Route path="hizli-mac/:id" element={<HizliMacPage />} />
+        <Route path="siralama" element={<LeaderboardPage />} />
+        <Route path="arkadaslar" element={<FriendsPage />} />
+        <Route path="profil" element={<ProfilePage />} />
       </Route>
+
+      {/* Geriye uyumluluk: eski top-level yollar → /bildim/* (parametre korunur). */}
+      <Route path="/turnuva" element={<BildimeYonlendir />} />
+      <Route path="/meydan" element={<BildimeYonlendir />} />
+      <Route path="/mac/:id" element={<BildimeYonlendir />} />
+      <Route path="/grup-mac/:id" element={<BildimeYonlendir />} />
+      <Route path="/hizli-mac/:id" element={<BildimeYonlendir />} />
+      <Route path="/siralama" element={<BildimeYonlendir />} />
+      <Route path="/arkadaslar" element={<BildimeYonlendir />} />
+      <Route path="/profil" element={<BildimeYonlendir />} />
+
+      <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
 }

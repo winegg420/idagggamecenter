@@ -1,48 +1,41 @@
 // ============================================================
-// MEYVE KES — el takibi (MediaPipe Hands)
-// Ön kamera akışını açar, MediaPipe Hands modelini CDN'den yükler ve
-// el işaret noktalarını sürekli takip eder. Ayna (mirror) düzeltmesi
-// burada yapılmaz — çizim/kesim tarafı ekran koordinatına çevirirken
-// aynalar (ön kamera selfie görünümü).
+// MEYVE KES — el takibi (MediaPipe Tasks Vision · HandLandmarker)
+// Ön kamera akışını açar, modern HandLandmarker modelini CDN'den (ESM)
+// yükler ve el işaret noktalarını GPU'da takip eder.
 //
-// Performans: modelComplexity 0 (lite), düşük çözünürlük, aynı anda tek
-// gönderim (busy bayrağı) — 4 el takibinde bile akıcı kalması için.
+// Neden Tasks Vision (eski @mediapipe/hands yerine):
+//  - GPU delegesi → çıkarım ana thread'i bloklamaz (kasma çözülür).
+//  - detectForVideo SENKRON döner → busy-flag/callback yarışı yok.
+//  - Video KARESİNİ DOĞRUDAN işler → landmark'lar gerçek kamera en-boy
+//    oranına göre normalize olur; sabit 320x240 offscreen kareye küçültme
+//    kaynaklı aspect bozulması (koordinat kayması) ORTADAN KALKAR.
+//
+// Aynalama (selfie) çizim/kesim tarafında yapılır (koordinatHesap.esle).
+// Bu sınıf ham normalize landmark verir; taraf (sol/sag) ekran konumuna göre.
 // ============================================================
 
-const CDN_SURUM = "0.4.1675469240";
-const CDN_KOK = `https://cdn.jsdelivr.net/npm/@mediapipe/hands@${CDN_SURUM}`;
-
-function scriptYukle(src) {
-  return new Promise((coz, ret) => {
-    // Zaten yüklüyse tekrar ekleme.
-    if (document.querySelector(`script[data-mp="${src}"]`)) return coz();
-    const s = document.createElement("script");
-    s.src = src;
-    s.async = true;
-    s.crossOrigin = "anonymous";
-    s.dataset.mp = src;
-    s.onload = () => coz();
-    s.onerror = () => ret(new Error("MediaPipe yüklenemedi"));
-    document.head.appendChild(s);
-  });
-}
+const TASKS_SURUM = "0.10.14";
+const CDN_KOK = `https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@${TASKS_SURUM}`;
+const MODEL_URL = "https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task";
 
 export class ElTakip {
   constructor() {
     this.video = null;
     this.stream = null;
-    this.hands = null;
+    this.landmarker = null;
     this.eller = []; // [{ noktalar: [{x,y,z}...], taraf: 'sol'|'sag' }]
     this.hazir = false;
     this.durduruldu = false;
-    this._mesgul = false;
-    this._sonKare = 0;
+    this.damga = 0; // yeni algılama karesi işareti (kesim işleme için)
+    this.elSayisi = 0; // teşhis: o an algılanan el sayısı
     this._dongu = null;
+    this._sonTs = -1;
+    this._sonInference = 30;
     this.videoGenislik = 640;
     this.videoYukseklik = 480;
   }
 
-  // Kamera + MediaPipe'ı başlatır. Hata durumunda anlamlı mesajla reddeder.
+  // Kamera + HandLandmarker'ı başlatır. Hata durumunda anlamlı mesajla reddeder.
   async baslat(maxEl) {
     // 1) Kamera izni + akış
     try {
@@ -51,27 +44,22 @@ export class ElTakip {
       this.video.muted = true;
       this.video.setAttribute("playsinline", "");
       // Bazı tarayıcılar DOM'a bağlı olmayan video'dan kare çözmez → gizli ekle.
-      this.video.style.cssText = "position:fixed;width:1px;height:1px;opacity:0;pointer-events:none;left:-10px;top:-10px;";
+      this.video.style.cssText =
+        "position:fixed;width:1px;height:1px;opacity:0;pointer-events:none;left:-10px;top:-10px;";
       document.body.appendChild(this.video);
       this.stream = await navigator.mediaDevices.getUserMedia({
         video: {
           facingMode: "user",
-          width: { ideal: 480 },
-          height: { ideal: 360 },
+          width: { ideal: 640 },
+          height: { ideal: 480 },
           frameRate: { ideal: 30 },
         },
         audio: false,
       });
       this.video.srcObject = this.stream;
       await this.video.play();
-      this.videoGenislik = this.video.videoWidth || 480;
-      this.videoYukseklik = this.video.videoHeight || 360;
-      // Çıkarım için küçük offscreen kare (ana thread bloklama süresini kısaltır).
-      // Görüntü tam video'dan çizilir; MediaPipe'a bu küçük kare gönderilir.
-      this._kucuk = document.createElement("canvas");
-      this._kucuk.width = 320;
-      this._kucuk.height = 240;
-      this._kucukCtx = this._kucuk.getContext("2d", { alpha: false });
+      this.videoGenislik = this.video.videoWidth || 640;
+      this.videoYukseklik = this.video.videoHeight || 480;
     } catch (e) {
       if (e && (e.name === "NotAllowedError" || e.name === "SecurityError")) {
         throw new Error("Kamera izni reddedildi. Oynamak için kamera erişimine izin ver.");
@@ -82,67 +70,82 @@ export class ElTakip {
       throw new Error("Kamera açılamadı: " + (e?.message || e));
     }
 
-    // 2) MediaPipe Hands (CDN)
+    // 2) HandLandmarker (Tasks Vision, CDN üzerinden ESM)
     try {
-      await scriptYukle(`${CDN_KOK}/hands.js`);
-      const Hands = window.Hands;
-      if (!Hands) throw new Error("Hands global bulunamadı");
-      this.hands = new Hands({ locateFile: (dosya) => `${CDN_KOK}/${dosya}` });
-      this.hands.setOptions({
-        maxNumHands: maxEl,
-        modelComplexity: 0,
-        // Düşük eşik = el hızla hareket edip kadraja girip çıksa bile çabuk yakalanır.
-        minDetectionConfidence: 0.5,
-        minTrackingConfidence: 0.4,
-        selfieMode: false, // aynalamayı çizim tarafında yapıyoruz
-      });
-      this.hands.onResults((sonuc) => this._sonuc(sonuc));
+      // Vite'ın build sırasında bu CDN URL'sini çözmeye çalışmaması için @vite-ignore.
+      const vision = await import(/* @vite-ignore */ `${CDN_KOK}/vision_bundle.mjs`);
+      const { HandLandmarker, FilesetResolver } = vision;
+      if (!HandLandmarker || !FilesetResolver) {
+        throw new Error("HandLandmarker global bulunamadı");
+      }
+      const fileset = await FilesetResolver.forVisionTasks(`${CDN_KOK}/wasm`);
+
+      // Önce GPU delegesi; başarısız olursa CPU'ya düş (yaşlı/uyumsuz GPU'lar).
+      const olustur = (delege) =>
+        HandLandmarker.createFromOptions(fileset, {
+          baseOptions: { modelAssetPath: MODEL_URL, delegate: delege },
+          numHands: maxEl,
+          runningMode: "VIDEO",
+          // Düşük eşik = el hızla girip çıksa bile çabuk yakalanır.
+          minHandDetectionConfidence: 0.4,
+          minHandPresenceConfidence: 0.4,
+          minTrackingConfidence: 0.4,
+        });
+      try {
+        this.landmarker = await olustur("GPU");
+      } catch {
+        this.landmarker = await olustur("CPU");
+      }
     } catch (e) {
       this._kamerayiKapat();
       throw new Error("El takip modeli yüklenemedi (internet gerekli): " + (e?.message || e));
     }
 
-    this.damga = 0;
-    this._sonInference = 30;
     this.hazir = true;
     this.durduruldu = false;
+    this.damga = 0;
+    this._sonTs = -1;
     // setTimeout tabanlı döngü: render rAF'ından bağımsız çalışır, çıkarım
     // süresine göre kendini yavaşlatır → ana thread render'a nefes payı bırakır.
     this._gonder();
   }
 
-  _sonuc(sonuc) {
+  _isle(sonuc) {
     const eller = [];
-    const cok = sonuc.multiHandLandmarks || [];
+    const cok = (sonuc && sonuc.landmarks) || [];
     for (let i = 0; i < cok.length; i++) {
-      const noktalar = cok[i];
-      // Aynalı görünümde ekranın solu = kullanıcının sağ eli; taraf, ekran
-      // konumuna göre belirlenir (arkadaş modunda P1/P2 için avuç x'i).
+      const noktalar = cok[i]; // [{x,y,z}...] normalize (video karesine göre)
       const palm = noktalar[9] || noktalar[0];
-      const ekranX = palm ? 1 - palm.x : 0.5; // aynalanmış x
+      // Aynalı görünümde ekranın solu = kullanıcının sağ eli.
+      const ekranX = palm ? 1 - palm.x : 0.5;
       eller.push({ noktalar, taraf: ekranX < 0.5 ? "sol" : "sag" });
     }
     this.eller = eller;
-    this.damga = (this.damga || 0) + 1; // yeni veri işareti (kesim işleme için)
+    this.elSayisi = eller.length;
+    this.damga++;
   }
 
-  async _gonder() {
+  _gonder() {
     if (this.durduruldu) return;
-    if (this.hands && this.video && this.video.readyState >= 2) {
+    const v = this.video;
+    if (this.landmarker && v && v.readyState >= 2 && v.videoWidth > 0) {
+      // detectForVideo zaman damgası KESİN ARTAN olmalı; aynı kareyi iki kez
+      // işlememek için video zamanı ilerlediğinde çalıştır.
+      let ts = Math.round(performance.now());
+      if (ts <= this._sonTs) ts = this._sonTs + 1;
+      this._sonTs = ts;
       const t0 = performance.now();
       try {
-        // Küçük kareye çiz → MediaPipe'a onu gönder (çıkarım çok daha hızlı).
-        this._kucukCtx.drawImage(this.video, 0, 0, this._kucuk.width, this._kucuk.height);
-        await this.hands.send({ image: this._kucuk });
+        const sonuc = this.landmarker.detectForVideo(v, ts);
+        this._isle(sonuc);
       } catch {
         /* tek kare hatası — yut, döngü devam */
       }
       this._sonInference = performance.now() - t0;
     }
     if (this.durduruldu) return;
-    // Gecikme = çıkarım süresi kadar (25–130 ms) → yaklaşık %50 doluluk,
-    // kalan zamanı render kullanır (kasma önlenir). Zayıf cihaz otomatik yavaşlar.
-    const gecikme = Math.min(Math.max(this._sonInference, 25), 130);
+    // Gecikme = çıkarım süresi kadar (16–120 ms) → render'a nefes payı bırakır.
+    const gecikme = Math.min(Math.max(this._sonInference, 16), 120);
     this._dongu = setTimeout(() => this._gonder(), gecikme);
   }
 
@@ -167,11 +170,11 @@ export class ElTakip {
     this._dongu = null;
     this._kamerayiKapat();
     try {
-      this.hands?.close?.();
+      this.landmarker?.close?.();
     } catch {
       /* yut */
     }
-    this.hands = null;
+    this.landmarker = null;
     this.eller = [];
   }
 }

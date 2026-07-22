@@ -160,7 +160,7 @@ export default function HizliMacPage() {
             </button>
           </div>
         )}
-        <button className="btn ikincil" style={{ marginTop: 16, maxWidth: 340 }} onClick={() => navigate("/meydan")}>
+        <button className="btn ikincil" style={{ marginTop: 16, maxWidth: 340 }} onClick={() => navigate("/bildim/meydan")}>
           ← Geri dön
         </button>
       </div>
@@ -173,7 +173,7 @@ export default function HizliMacPage() {
         <div className="emoji">🙅</div>
         <h2>Hızlı yarış iptal edildi</h2>
         <p className="alt-yazi">Davetlilerden biri reddetti.</p>
-        <button className="btn" style={{ marginTop: 16 }} onClick={() => navigate("/meydan")}>
+        <button className="btn" style={{ marginTop: 16 }} onClick={() => navigate("/bildim/meydan")}>
           ← Geri dön
         </button>
       </div>
@@ -201,7 +201,7 @@ export default function HizliMacPage() {
             </div>
           ))}
         </div>
-        <button className="btn ikincil" style={{ marginTop: 16, maxWidth: 340, margin: "16px auto 0" }} onClick={() => navigate("/meydan")}>
+        <button className="btn ikincil" style={{ marginTop: 16, maxWidth: 340, margin: "16px auto 0" }} onClick={() => navigate("/bildim/meydan")}>
           ← Meydan okumalara dön
         </button>
       </div>

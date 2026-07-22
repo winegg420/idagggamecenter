@@ -31,7 +31,7 @@ export default function OyunPage() {
 
   const [durum, setDurum] = useState("hazir"); // hazir | baslatiliyor | oynaniyor | hata
   const [hata, setHata] = useState("");
-  const [hud, setHud] = useState({ faz: "geri", geri: 3, sure: 60, puan: 0, combo: 0, sol: 0, sag: 0 });
+  const [hud, setHud] = useState({ faz: "geri", geri: 3, sure: 60, puan: 0, combo: 0, sol: 0, sag: 0, el: 0 });
   const [sonuc, setSonuc] = useState(null); // { puan, kesim, sol, sag }
   const [kayitDurum, setKayitDurum] = useState(""); // '', 'kaydediliyor', 'kaydedildi', 'hata'
   const hudRef = useRef(0);
@@ -113,6 +113,7 @@ export default function OyunPage() {
         combo: oyun.combo,
         sol: oyun.puanSol,
         sag: oyun.puanSag,
+        el: takip.elSayisi || 0,
       });
     }
 
@@ -270,6 +271,13 @@ export default function OyunPage() {
             )}
           </div>
           {hud.combo >= 3 && hud.faz === "oyun" && <div className="mk-combo">🔥 COMBO x{hud.combo}</div>}
+
+          {/* el takibi teşhisi: kamera açık ama el görülmüyorsa uyarır */}
+          {hud.faz === "oyun" && (
+            <div className={"mk-el-durum " + (hud.el > 0 ? "mk-el-var" : "mk-el-yok")}>
+              {hud.el > 0 ? `🖐 ${hud.el}` : "🖐 el görünmüyor"}
+            </div>
+          )}
 
           {hud.faz === "geri" && (
             <div className="mk-katman mk-gerisayim">

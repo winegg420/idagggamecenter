@@ -57,7 +57,7 @@ export default function Layout() {
           <span className="logo">Bildim!</span>
         </Link>
         {profile && (
-          <Link to="/profil" style={{ textDecoration: "none", color: "inherit" }}>
+          <Link to="/bildim/profil" style={{ textDecoration: "none", color: "inherit" }}>
             <span className="puan-chip">⭐ {profile.puan}</span>
           </Link>
         )}
@@ -71,20 +71,20 @@ export default function Layout() {
         <NavLink to="/bildim" end className={({ isActive }) => (isActive ? "aktif" : "")}>
           <span className="ikon">🏠</span>Ana Sayfa
         </NavLink>
-        <NavLink to="/turnuva" className={({ isActive }) => (isActive ? "aktif" : "")}>
+        <NavLink to="/bildim/turnuva" className={({ isActive }) => (isActive ? "aktif" : "")}>
           <span className="ikon">🏆</span>Turnuva
         </NavLink>
-        <NavLink to="/meydan" className={({ isActive }) => (isActive ? "aktif" : "")}>
+        <NavLink to="/bildim/meydan" className={({ isActive }) => (isActive ? "aktif" : "")}>
           <span className="ikon">⚔️</span>Meydan Oku
           {bekleyen > 0 && <span className="rozet">{bekleyen}</span>}
         </NavLink>
         <NavLink to="/" className={({ isActive }) => (isActive ? "aktif" : "")}>
           <span className="ikon">🎮</span>Merkez
         </NavLink>
-        <NavLink to="/siralama" className={({ isActive }) => (isActive ? "aktif" : "")}>
+        <NavLink to="/bildim/siralama" className={({ isActive }) => (isActive ? "aktif" : "")}>
           <span className="ikon">📊</span>Sıralama
         </NavLink>
-        <NavLink to="/arkadaslar" className={({ isActive }) => (isActive ? "aktif" : "")}>
+        <NavLink to="/bildim/arkadaslar" className={({ isActive }) => (isActive ? "aktif" : "")}>
           <span className="ikon">👥</span>Arkadaşlar
         </NavLink>
       </nav>

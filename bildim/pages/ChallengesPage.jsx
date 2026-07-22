@@ -168,7 +168,7 @@ export default function ChallengesPage() {
       p_kabul: kabul,
     });
     if (error) setHata(error.message);
-    else if (kabul) navigate(`/mac/${macId}`);
+    else if (kabul) navigate(`/bildim/mac/${macId}`);
     else yukle();
   };
 
@@ -195,7 +195,7 @@ export default function ChallengesPage() {
     if (error) setGrupHata(error.message);
     else {
       setGrupSecili([]);
-      navigate(`/grup-mac/${data}`);
+      navigate(`/bildim/grup-mac/${data}`);
     }
   };
 
@@ -206,7 +206,7 @@ export default function ChallengesPage() {
       p_kabul: kabul,
     });
     if (error) setGrupHata(error.message);
-    else if (kabul) navigate(`/grup-mac/${grupMacId}`);
+    else if (kabul) navigate(`/bildim/grup-mac/${grupMacId}`);
     else grupYukle();
   };
 
@@ -229,7 +229,7 @@ export default function ChallengesPage() {
     if (error) setHizliHata(error.message);
     else {
       setHizliSecili([]);
-      navigate(`/hizli-mac/${data}`);
+      navigate(`/bildim/hizli-mac/${data}`);
     }
   };
 
@@ -240,7 +240,7 @@ export default function ChallengesPage() {
       p_kabul: kabul,
     });
     if (error) setHizliHata(error.message);
-    else if (kabul) navigate(`/hizli-mac/${hizliMacId}`);
+    else if (kabul) navigate(`/bildim/hizli-mac/${hizliMacId}`);
     else hizliYukle();
   };
 
@@ -532,7 +532,7 @@ export default function ChallengesPage() {
                 </div>
                 <div className="detay">Hızlı Olan Kazanır</div>
               </div>
-              <button className="btn kucuk" onClick={() => navigate(`/hizli-mac/${hm.id}`)}>
+              <button className="btn kucuk" onClick={() => navigate(`/bildim/hizli-mac/${hm.id}`)}>
                 Oyna →
               </button>
             </div>
@@ -632,7 +632,7 @@ export default function ChallengesPage() {
                 </div>
                 <div className="detay">{gm.oyuncu_sayisi} kişilik grup maçı</div>
               </div>
-              <button className="btn kucuk" onClick={() => navigate(`/grup-mac/${gm.id}`)}>
+              <button className="btn kucuk" onClick={() => navigate(`/bildim/grup-mac/${gm.id}`)}>
                 Oyna →
               </button>
             </div>
@@ -652,7 +652,7 @@ export default function ChallengesPage() {
                   {m.oyuncu1_skor} - {m.oyuncu2_skor}
                 </div>
               </div>
-              <button className="btn kucuk" onClick={() => navigate(`/mac/${m.id}`)}>
+              <button className="btn kucuk" onClick={() => navigate(`/bildim/mac/${m.id}`)}>
                 Oyna →
               </button>
             </div>

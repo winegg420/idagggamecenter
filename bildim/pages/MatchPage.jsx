@@ -182,7 +182,7 @@ export default function MatchPage() {
       <div className="buyuk-mesaj">
         <div className="emoji">🙅</div>
         <h2>Meydan okuma reddedildi</h2>
-        <button className="btn" style={{ marginTop: 16 }} onClick={() => navigate("/meydan")}>
+        <button className="btn" style={{ marginTop: 16 }} onClick={() => navigate("/bildim/meydan")}>
           ← Geri dön
         </button>
       </div>
@@ -217,8 +217,8 @@ export default function MatchPage() {
                 p_rakip: rakipProfil.id,
                 p_kategori: mac.kategori,
               });
-              if (!error && data) navigate(`/mac/${data}`);
-              else navigate("/meydan");
+              if (!error && data) navigate(`/bildim/mac/${data}`);
+              else navigate("/bildim/meydan");
             }}
           >
             🔁 Rövanş
@@ -266,7 +266,7 @@ export default function MatchPage() {
               </div>
             );
           })()}
-          <button className="btn ikincil" onClick={() => navigate("/meydan")}>
+          <button className="btn ikincil" onClick={() => navigate("/bildim/meydan")}>
             ← Meydan okumalara dön
           </button>
         </div>

@@ -20,7 +20,7 @@ export default function LeaderboardPage() {
       p_kategori: null,
     });
     if (error) setHata(error.message);
-    else if (data) navigate(`/mac/${data}`);
+    else if (data) navigate(`/bildim/mac/${data}`);
   };
 
   useEffect(() => {

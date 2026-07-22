@@ -242,6 +242,25 @@
 }
 @keyframes mk-nabiz { to { transform: translateX(-50%) scale(1.12); } }
 
+/* el takibi teşhis rozeti (sağ alt) */
+.mk-el-durum {
+  position: absolute;
+  right: 12px;
+  bottom: 12px;
+  z-index: 8;
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: #fff;
+  backdrop-filter: blur(4px);
+  pointer-events: none;
+  transition: background 0.2s, opacity 0.2s;
+}
+.mk-el-var { background: rgba(46, 160, 110, 0.55); }
+.mk-el-yok { background: rgba(200, 60, 60, 0.6); animation: mk-nabiz-yok 0.8s ease-in-out infinite alternate; }
+@keyframes mk-nabiz-yok { to { opacity: 0.55; } }
+
 .mk-gerisayim { background: rgba(0, 0, 0, 0.35); }
 .mk-gerisayim-sayi {
   font-size: 6rem;
