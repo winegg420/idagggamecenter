@@ -71,6 +71,19 @@ function AdaptiveQuality() {
       scale.current = Math.min(1, scale.current + 0.08);
       gl.setPixelRatio(Math.max(minRatio, base * scale.current));
     }
+    // Son çare: çözünürlük dibe vurduğu halde hâlâ kasıyorsa (özellikle 6+ çekirdekli
+    // olduğu için lowEnd sayılmayan ama GPU'su zayıf orta-seviye iPhone'lar — gölge
+    // açık kalır) dinamik gölgeyi kapat. Gölge, mobilde piksel başına en pahalı geçiş;
+    // araç altındaki temas gölgesi (fake AO) kaldığından görsel kabul edilebilir.
+    // Bir kez kapatılır, geri açılmaz (aç/kapa titremesini önlemek için).
+    if (fps < 42 && scale.current <= 0.55 && gl.shadowMap.enabled) {
+      gl.shadowMap.enabled = false;
+      gl.shadowMap.needsUpdate = true;
+      scene.traverse((o) => {
+        const l = o as THREE.Light;
+        if (l.isLight && l.castShadow) l.castShadow = false;
+      });
+    }
   });
   return null;
 }
