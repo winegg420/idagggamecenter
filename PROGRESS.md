@@ -462,3 +462,21 @@ DriftGP (~9.400 satır TS, three.js/R3F 3D drift yarışı) IDA GG Game Center'a
 ### Faz durumu özeti
 - ✅ Faz 0 (Meyve Kes), 1 (Bildim taşıma), 2 (PatiRun), 3 (DriftGP), 4 (ortak kimlik), 5 (görünürlük), 6 (birleşik sıralama + kart/DEMO), 7 (PWA), 8 (otomatik test).
 - ⏳ Faz 6 tam A-sınıfı ana sayfa görsel yeniden tasarımı: GameCenter zaten animasyonlu (radial-glow, cam header, gradient kart + shimmer/hover) — daha ileri parallax/motion opsiyonel cila olarak bırakıldı.
+
+## 2026-07-22 (10. oturum) — Bağımsız repolardan taşıma doğrulaması + mobil kasma denetimi
+
+### Taşıma doğrulaması (PC'deki eski bağımsız klasörler)
+- Kullanıcının PC'sinde `Desktop/PatiRun` ve `Desktop/DidaGP` **ayrı bağımsız Vite projeleri + kendi `.git` repoları** olarak duruyordu (GitHub: `winegg420/PatiRun`, `winegg420/DidaGP`).
+- **Karşılaştırma:** kaynak kod (patirun 70, driftgp 47 dosya), `pr_`/`dg_` migration'ları ve `.env` (URL/ANON — hub tek Supabase projesiyle zaten ortak) tam taşınmış. Eksik olan **tek fonksiyonel varlık**: DidaGP ses dosyaları.
+- **DidaGP sesleri taşındı:** `public/sounds/` (26 wav, ~1.9 MB — motor aileleri muscle/race/sport + drift/nitro/crash/glass/pop/scrape). `driftgp/game/audio.ts` bunları `/sounds/*.wav` diye fetch ediyor; eksikken sentetik/prosedürel sese düşüyordu. Commit `b597204`.
+- **Karar:** eski GitHub repoları (`PatiRun`, `DidaGP`) artık fonksiyonel gereksiz; **silme değil arşivle** önerildi (commit geçmişleri hub'a gelmedi — sadece son hal kopyalanmıştı). Vercel'de eski projeler varsa kapatılmalı.
+
+### Mobil (iPhone) kasma denetimi — 7 oyun
+- **Bulgu: kod tabanı zaten güçlü optimize.** Her gerçek-zamanlı oyunda adaptif FPS-tabanlı kalite ölçekleme + `devicePixelRatio` sınırı + dengeli timer/listener temizliği mevcut. `setInterval`'lar (kritik) her oyunda temizleniyor; oyun döngülerinde kare-içi GC-allocation yok.
+  - **Kafa Topu:** `render.js` statik sahneyi cihaz pikselinde bir kez "pişiriyor" (`statikleriPisir`), gradient/emoji önbellekli, `alpha:false`, FPS<45→kalite düşür (120Hz ProMotion özel kod). iOS kasma zaten çözülmüş → **dokunulmadı** (CLAUDE.md "iOS cila korunur").
+  - **Meyve Kes:** MediaPipe Tasks Vision (GPU delege) + senkron `detectForVideo` + `setTimeout` self-throttle + piksel bütçesi + adaptif çözünürlük + HUD 12fps. Zaten optimal → **dokunulmadı**.
+- **Düzeltilen tek gerçek sorun — DidaGP gölge (commit `84e7cce`):** `quality.ts` gölgeyi yalnız `lowEnd` (mobil **ve** ≤4 çekirdek) cihazda kapatıyordu; 6+ çekirdekli orta-seviye iPhone'larda gölge açık kalıp `AdaptiveQuality`'nin çözünürlük düşüşüne dahil değildi. `DriftGpInner.tsx` `AdaptiveQuality`'e eklendi: çözünürlük dibe (scale≤0.55) indiği halde FPS<42 ise `gl.shadowMap.enabled=false` + ışıkların `castShadow=false` (bir kez, geri açılmaz — titreme önlemi). Gölge mobilde en pahalı geçiş; temas gölgesi (fake AO) kaldığından görsel kabul edilebilir.
+
+### Doğrulama
+- Build temiz (✓ 4.94s). Her iki commit `main`'e push edildi → Vercel production deploy.
+- **Gerçek cihaz testi kullanıcıda:** iPhone'da DidaGP (gölge kapanınca akıcılık + gerçek motor sesleri), Kafa Topu, Meyve Kes.
