@@ -410,3 +410,26 @@ PatiRun (~12.500 satır TS, 2D pati yarışı, multiplayer) IDA GG Game Center'a
 ### Doğrulama
 - **Build temiz** — 239 modül; **PatiRun ayrı lazy chunk** (PatiRunApp ~178 kB js / ~33 kB css); Bildim/diğer oyun paketleri etkilenmedi.
 - Gerçek multiplayer/eşleşme testi kullanıcıda (2 cihaz gerekir — prompt'ta belirtildi).
+
+## 2026-07-22 (7. oturum) — FAZ 3: DriftGP (DidaGP) entegrasyonu
+
+DriftGP (~9.400 satır TS, three.js/R3F 3D drift yarışı) IDA GG Game Center'a taşındı — izole modül, `/driftgp/*`, Bildim tek kimliği.
+
+### Yapılanlar
+- **Kod taşıma:** DidaGP `src/{game,net,store,lib,components,dev}` → `driftgp/`. İzole `driftgp/tsconfig.json`. App.tsx → `driftgp/app/DriftGpInner.tsx` (import yolları `./`→`../`).
+- **Bağımlılıklar:** three@^0.185, @react-three/fiber@^9.6, @react-three/drei@^10.7 Bildim'e eklendi (sadece DriftGP lazy chunk'ında; ana bundle etkilenmedi).
+- **Çift client çözümü:** `driftgp/lib/supabase.ts` Bildim'in paylaşılan client'ını re-export eder. Bildim client'ına `realtime.eventsPerSecond: 20` eklendi (DriftGP 15Hz pozisyon senkronu + Kafa Topu için; varsayılan 10/s dardı).
+- **Auth (Faz 4):** DriftGP zaten `supabase.auth.getUser()` ile oturumu okur → Bildim oturumu aktifken **otomatik çalışır**, ayrı authStore köprüsü gerekmez. `DriftGpApp.jsx` köprüsü sadece görünen adı senkronlar: `profiles.username` → `profileStore.playerName`. ProfileScreen'den **Google giriş/çıkış UI kaldırıldı**; isim editörü artık **paylaşılan `profiles.username`**'i günceller (23505 kontrolü, min 3) → tüm oyunlarda yansır. "🏠 Oyun Merkezi'ne dön" eklendi.
+- **HAYALET (Faz 3.5 — owner kısıtı kaldırıldı):** `cloudSync.uploadGhostIfBest` artık tek hesaba (OWNER_EMAIL) bağlı değil — **her authenticated oyuncunun en iyi turu**, buluttaki hayaletten hızlıysa yüklenir; hayalet adı = Bildim `profiles.username`. RLS de açıldı: `ghosts_insert/update_owner` (email eşitliği) → `ghosts_insert/update_auth` (authenticated herkes).
+- **DB göçü:** `supabase/migrations/20260612000040_driftgp_temel.sql` — schema.sql `dg_` önekli (dg_profiles, dg_customizations, dg_race_results, dg_ghosts), tümü auth.users FK. Ghost RLS açık. Realtime: broadcast/presence (postgres_changes yok) → publication gerekmez. Kanallar `dg-` namespace'li: `dg-user:*`, `dg-room:*`, `dg-lobby`.
+- **CSS izolasyonu:** 2088 satır global CSS `.dg-root` altına scope'landı (`driftgp/app/styles/driftgp.css`). App `<div className="dg-root">` içinde.
+- **Entegrasyon:** `src/App.jsx` lazy `/driftgp/*`; GameCenter'a 🏎️ DriftGP kartı.
+
+### Otonom kararlar
+- **Bağımsız leaderboard** (prompt önerisi kabul): DriftGP kendi XP/rütbe/hayalet sistemini korur; kimlik ortak.
+- **eventsPerSecond bump:** Bildim paylaşılan client'ına 20/s eklendi — realtime rate limiti yükseltmek yalnızca izin verir (Kafa Topu dahil mevcut mantığı bozmaz).
+- **DriftGP oyun avatarı yok** (araç seçimi kozmetik); kimlik = profiles.username.
+
+### Doğrulama
+- **Build temiz** — 841 modül; **DriftGP ayrı lazy chunk** (DriftGpApp ~1.08 MB js / ~gzip ~300 kB — three.js doğası, yalnız /driftgp'de yüklenir). Ana Bildim bundle 521 kB'da kaldı (three.js sızmadı).
+- Gerçek cihaz testi kullanıcıda: telefon eğim sensörü (yalnız HTTPS/deploy sonrası) + multiplayer.

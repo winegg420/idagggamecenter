@@ -28,6 +28,15 @@ const OYUNLAR = [
     yeni: false,
   },
   {
+    ad: "DriftGP",
+    aciklama: "3D drift yarışı — telefonu eğ, en iyi turla hayalet ol!",
+    ikon: "🏎️",
+    yol: "/driftgp",
+    etiket: "Yarış · 3D",
+    grad: "linear-gradient(135deg, #16213e 0%, #e94560 100%)",
+    yeni: true,
+  },
+  {
     ad: "Meyve Kes",
     aciklama: "Kameranı aç, ellerinle havadaki meyveleri kes!",
     ikon: "🍉",

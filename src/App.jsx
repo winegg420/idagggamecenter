@@ -25,6 +25,9 @@ const MeyveKesApp = lazy(() => import("../meyvekes/app/MeyveKesApp.jsx"));
 // PATIRUN: 2D pati yarışı (multiplayer), /patirun altında lazy yüklenir.
 // Bildim oturumunu kullanır (tek kimlik); tüm kodu patirun/ klasöründe izoledir.
 const PatiRunApp = lazy(() => import("../patirun/app/PatiRunApp.jsx"));
+// DRIFTGP (DidaGP): 3D araba yarışı (three.js/R3F), /driftgp altında lazy yüklenir.
+// Bildim oturumunu kullanır (tek kimlik); tüm kodu driftgp/ klasöründe izoledir.
+const DriftGpApp = lazy(() => import("../driftgp/app/DriftGpApp.jsx"));
 import Login from "./pages/Login.jsx";
 import GameCenter from "./pages/GameCenter.jsx";
 import Home from "../bildim/pages/Home.jsx";
@@ -102,6 +105,14 @@ export default function App() {
         element={
           <Suspense fallback={<div className="yukleniyor">PatiRun yükleniyor…</div>}>
             <PatiRunApp />
+          </Suspense>
+        }
+      />
+      <Route
+        path="/driftgp/*"
+        element={
+          <Suspense fallback={<div className="yukleniyor">DriftGP yükleniyor…</div>}>
+            <DriftGpApp />
           </Suspense>
         }
       />

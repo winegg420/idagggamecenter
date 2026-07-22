@@ -1,0 +1,20 @@
+{
+  "//": "DriftGP modülü izole tip kontrolü. Ana Bildim build'i Vite/esbuild ile çalışır ve tsc kullanmaz; bu dosya yalnızca driftgp/ içinde 'tsc --noEmit' ile isteğe bağlı tip kontrolü içindir.",
+  "compilerOptions": {
+    "target": "es2023",
+    "lib": ["ES2023", "DOM", "DOM.Iterable"],
+    "module": "esnext",
+    "types": ["vite/client", "three"],
+    "skipLibCheck": true,
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "allowJs": true,
+    "verbatimModuleSyntax": true,
+    "moduleDetection": "force",
+    "noEmit": true,
+    "jsx": "react-jsx",
+    "strict": true,
+    "noFallthroughCasesInSwitch": true
+  },
+  "include": ["."]
+}
