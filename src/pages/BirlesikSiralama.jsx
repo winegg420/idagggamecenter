@@ -12,7 +12,7 @@ import Avatar from "../components/Avatar.jsx";
 const SUTUNLAR = [
   { key: "bildim", ad: "Bildim", ikon: "🧠" },
   { key: "kafatopu", ad: "Kafa Topu", ikon: "⚽" },
-  { key: "driftgp", ad: "DriftGP", ikon: "🏎️" },
+  { key: "driftgp", ad: "idaGP", ikon: "🏎️" },
   { key: "meyvekes", ad: "Meyve Kes", ikon: "🍉" },
   { key: "patirun", ad: "PatiRun", ikon: "🐾" },
 ];

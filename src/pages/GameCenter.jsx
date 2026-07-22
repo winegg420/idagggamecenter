@@ -28,7 +28,7 @@ const OYUNLAR = [
     yeni: false,
   },
   {
-    ad: "DriftGP",
+    ad: "idaGP",
     aciklama: "3D drift yarışı — telefonu eğ, en iyi turla hayalet ol!",
     ikon: "🏎️",
     yol: "/driftgp",

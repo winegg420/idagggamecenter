@@ -75,7 +75,7 @@ export function MenuScreen() {
       {/* başlık */}
       <div className="menu-title-wrap">
         <h1 className="game-title">
-          DIDA<span>GP</span>
+          IDA<span>GP</span>
         </h1>
         <div className="title-tag">ARCADE&nbsp;RACING</div>
       </div>

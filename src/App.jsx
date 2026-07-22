@@ -112,7 +112,7 @@ export default function App() {
       <Route
         path="/driftgp/*"
         element={
-          <Suspense fallback={<div className="yukleniyor">DriftGP yükleniyor…</div>}>
+          <Suspense fallback={<div className="yukleniyor">idaGP yükleniyor…</div>}>
             <DriftGpApp />
           </Suspense>
         }
