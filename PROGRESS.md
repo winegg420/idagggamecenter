@@ -536,3 +536,19 @@ takılma/gecikme olmasın.
   oyun içi tarayıcı testi otomasyonda yapılamıyor.
 - **Kullanıcıda kalan (yapılamayan):** gerçek iPhone testi ve 2 cihazlı multiplayer eşzamanlılık
   testi — bu ortamda kamera ve fiziksel cihaz yok.
+
+---
+
+## 11. Oturum — 24 Temmuz 2026: Kafa Topu 2 yeni kafa + tüm oyunlarda senkron/kasma denetimi
+
+**Yapılanlar:**
+- **Kafa Topu — 2 yeni foto kafa:** `emirali` (Emir Ali) ve `bedo` (Bedo) `public/heads/manifest.json`'a eklendi (verilen odak/yarıçap değerleriyle).
+- **Kasma düzeltmesi (görsel boyutu):** Yeni görseller 2250×3000, ~2.8–3.3 MB idi → yavaş operatörde (Vodafone) yükleme/decode kasması. 825×1100'e küçültülüp JPEG'e çevrildi (tam foto, şeffaflık yok — daireye kırpıldığı için güvenli): **3.3 MB → 121 KB, 2.8 MB → 124 KB (~25×)**. Manifest `.jpg`'ye güncellendi. emirhan/kafa3 gerçek cutout (şeffaf) olduğundan PNG bırakıldı.
+- **DidaGP senkron start bug'ı ("1 sn erken başlama"):** Kök neden — `raceGoAt` host'ta gönderim anında, istemcide ALIM anında ayarlanıyordu; fark = 'go' mesajının tek yönlü ağ gecikmesi (kötü mobil ağda ~1 sn). Çözüm: bekleme fazında NTP tarzı ping/pong ile saat-offset (host−self) ölçülür; 'go' epoch'u yerel saate çevrilir (`goAt − offset`) → mesajın uçuş süresinden bağımsız gerçek senkron. Offset ölçülemezse eski göreli yönteme düşer. (`driftgp/net/multiplayer.ts`)
+- **PatiRun aynı bug:** `onGo` geri sayımı alım anına göre hizalıyordu (aynı tek-yönlü gecikme sapması). Aynı NTP saat-offset düzeltmesi `RoomClient`'a eklendi (`syncClock`, `hostToLocal`, `clockSynced`); `MpRaceScreen.onGo` offset-düzeltmeli. (`patirun/net/roomClient.ts`, `patirun/screens/MpRaceScreen.tsx`)
+- **Kafa Topu:** host-otoriter model — geri sayım host'un simülasyon durumundan gelir, saat sapması/erken başlama mümkün değil. Zaten FPS'e göre otomatik çözünürlük, 60fps cap, opak canvas, wake lock, girdi öngörü ofseti var. Değişiklik gerekmedi.
+- **Meyve Kes:** tek oyunculu (kamera + el takibi); realtime kanal yok, "senkron" = el-gecikme telafisi. İlgili değil.
+
+**Test:** `npm run build` temiz (EXIT=0, DidaGP + PatiRun dahil tüm modüller derlendi).
+
+**Kullanıcıda kalan test:** İki gerçek cihazla (özellikle farklı operatör/telefon) DidaGP ve PatiRun'da eşzamanlı start doğrulaması — bu ortamda 2 fiziksel cihaz yok. Yeni kafaların oyun içi görünümü (Kafa Topu karakter seçimi).

@@ -38,3 +38,9 @@ idaGG Game Center'a entegre; ELO puanı birleşik sıralamaya (`birlesik_siralam
   verir; yalnız görsel yatay ofset, her karede `0.94^kare` sönümlenir, ±1.1 kafa yarıçapı ile
   sınırlı. Otorite host'ta kalır (skor/fizik değişmedi), sapma birikmez.
 - Motor testleri 27/27 ✓ (regresyon yok). Gerçek 2 cihaz testi kullanıcıda.
+
+---
+
+## 24 Temmuz 2026 — 2 yeni foto kafa + görsel kasma düzeltmesi
+
+`emirali` (Emir Ali) ve `bedo` (Bedo) `public/heads/manifest.json`'a eklendi. Görseller 2250×3000 / ~3 MB idi (yavaş operatörde kasma) → 825×1100 JPEG, ~120 KB (~25× küçük). Tam foto oldukları (şeffaflık yok, daireye kırpılıyor) için JPEG güvenli; manifest `.jpg`'ye güncellendi. Host-otoriter senkron modeli değişmedi (erken başlama sorunu bu oyunda yok).

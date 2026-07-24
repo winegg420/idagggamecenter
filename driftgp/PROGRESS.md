@@ -1819,3 +1819,9 @@ DidaGP, idaGG Game Center hub'ına `driftgp/` modülü olarak entegre edildi. Pa
 - `net/multiplayer.ts`: host `go` yayınına gönderim anını (`t0`) ekliyor; alıcılar `goAt`ı epoch
   olarak değil **kalan süre** olarak alıp yerel saate çeviriyor (`Date.now() + (goAt - t0)`).
   Telefon saatleri saptığında geri sayım kayıyordu; ready-gate mimarisi aynen korundu.
+
+---
+
+## 24 Temmuz 2026 — Senkron start düzeltmesi (NTP saat-offset)
+
+"1 saniye erken başlama" bug'ı çözüldü. Kök neden: `raceGoAt` host'ta gönderim, istemcide alım anında ayarlanıyordu → fark = 'go' mesajının tek yönlü ağ gecikmesi. Çözüm: bekleme fazında `syncClock()` birkaç ping/pong ile host−self saat-offset'ini ölçer (en düşük RTT örneği); 'go' handler epoch'u `goAt − clockOffset` ile yerel saate çevirir. Offset yoksa eski göreli yönteme düşer. Değişen: `net/multiplayer.ts`. Build temiz.

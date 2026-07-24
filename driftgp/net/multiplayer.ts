@@ -86,6 +86,12 @@ class MultiplayerManager {
   lastError: string | null = null;
   /** presence'ta host meta'lı bir üye görülüyor mu (oda doğrulama + host devri için) */
   private hostPresent = false;
+  /** host saati − kendi saatim (ms). NTP tarzı ping/pong ile ölçülür; host'ta 0.
+   *  'go' epoch'unu (host saatinde) yerel saate çevirmek için kullanılır → gerçek senkron start. */
+  private clockOffset = 0;
+  /** offset örneklerinin en düşük RTT'lisi (en az tıkanık ölçüm en güvenilirdir) */
+  private clockBestRtt = Infinity;
+  private clockPingTimers: number[] = [];
 
   private room: RealtimeChannel | null = null;
   private lobby: RealtimeChannel | null = null;
@@ -257,13 +263,41 @@ class MultiplayerManager {
         this.notify();
       });
 
-      // host'un GO kararı: tüm istemciler geri sayımı bu epoch'a hizalar → herkes AYNI ANDA başlar
+      // istemci saat-senkron ping'i (yalnız host yanıtlar) → alan istemcinin offset'ini ölçer
+      ch.on('broadcast', { event: 'ping' }, ({ payload }) => {
+        if (!this.isHost) return;
+        const { id, t0 } = payload as { id: string; t0: number };
+        this.room
+          ?.send({ type: 'broadcast', event: 'pong', payload: { to: id, t0, t1: Date.now() } })
+          .catch(() => {/* geçici ağ hatası — sonraki ping telafi eder */});
+      });
+
+      // host'tan gelen pong → NTP tarzı offset (host saati − kendi saatim) hesapla, en düşük RTT'yi tut
+      ch.on('broadcast', { event: 'pong' }, ({ payload }) => {
+        const { to, t0, t1 } = payload as { to: string; t0: number; t1: number };
+        if (to !== this.selfId) return;
+        const t3 = Date.now();
+        const rtt = t3 - t0;
+        if (rtt < this.clockBestRtt) {
+          this.clockBestRtt = rtt;
+          // t1 host'un alım/gönderim anı; simetrik gecikme varsayımıyla offset = host − self
+          this.clockOffset = t1 - (t0 + t3) / 2;
+        }
+      });
+
+      // host'un GO kararı: tüm istemciler geri sayımı host epoch'una hizalar → herkes AYNI ANDA başlar
       ch.on('broadcast', { event: 'go' }, ({ payload }) => {
         const { goAt, t0 } = payload as { goAt: number; t0?: number };
-        // Cihaz saatleri (özellikle telefonlarda) birbirinden sapabilir; epoch'u
-        // olduğu gibi kullanmak geri sayımı kaydırır. Bunun yerine "GO'ya kalan
-        // süre"yi alıp YEREL saate çeviriyoruz → herkes gerçekten aynı anda başlar.
-        this.raceGoAt = t0 != null ? Date.now() + (goAt - t0) : goAt;
+        // Cihaz saatleri (özellikle telefonlarda) sapar; ayrıca 'go' mesajının tek yönlü
+        // ağ gecikmesi kadar geç ulaşması geri sayımı kaydırır (bir oyuncu ~1 sn erken başlar).
+        // Çözüm: goAt host saatindedir; önceden ölçtüğümüz saat-offset'i ile YEREL saate
+        // çeviririz (clientTime = hostTime − offset) → mesajın uçuş süresinden bağımsız senkron.
+        // Offset ölçülemediyse (ping yanıtsız) eski göreli yönteme düş: alım + kalan süre.
+        if (this.clockBestRtt !== Infinity) {
+          this.raceGoAt = goAt - this.clockOffset;
+        } else {
+          this.raceGoAt = t0 != null ? Date.now() + (goAt - t0) : goAt;
+        }
         this.notify();
       });
 
@@ -361,6 +395,10 @@ class MultiplayerManager {
     this.raceGoAt = null;
     this.readyIds.clear();
     this.expectedIds.clear();
+    this.clockPingTimers.forEach(clearTimeout);
+    this.clockPingTimers = [];
+    this.clockOffset = 0;
+    this.clockBestRtt = Infinity;
     if (this.goTimeout !== null) clearTimeout(this.goTimeout);
     this.goTimeout = null;
     this.notify();
@@ -512,12 +550,33 @@ class MultiplayerManager {
     this.raceGoAt = null;
     this.readyIds.clear();
     this.expectedIds = new Set([this.selfId, ...this.players.keys()]);
+    // istemci: GO'dan önce host saatiyle offset'i ölç (senkron start bunun üzerine kurulur)
+    if (!this.isHost) this.syncClock();
     if (this.goTimeout !== null) clearTimeout(this.goTimeout);
     // güvenlik: bir istemci takılıp 'ready' gönderemezse yarış sonsuza dek beklemesin
     this.goTimeout = window.setTimeout(() => {
       this.goTimeout = null;
       this.sendGo();
     }, 12000);
+  }
+
+  /** İstemci saatini host saatine göre kalibre eder: birkaç ping/pong, en düşük RTT örneği tutulur.
+   *  ~4.4 sn'lik GO penceresinden çok önce tamamlanır; sonucu 'go' handler'ı kullanır. */
+  private syncClock() {
+    this.clockPingTimers.forEach(clearTimeout);
+    this.clockPingTimers = [];
+    this.clockBestRtt = Infinity;
+    const sendPing = () => {
+      if (!this.room || this.isHost) return;
+      this.room
+        .send({ type: 'broadcast', event: 'ping', payload: { id: this.selfId, t0: Date.now() } })
+        .catch(() => {/* geçici ağ hatası — diğer örnekler telafi eder */});
+    };
+    // 4 örnek, 220 ms arayla → tıkanık anları atlayıp en iyi (min-RTT) offset'i yakala.
+    // (Az tutuldu: 6 kişilik odada host'un pong yanıtları realtime hız limitini zorlamasın.)
+    for (let i = 0; i < 4; i++) {
+      this.clockPingTimers.push(window.setTimeout(sendPing, i * 220));
+    }
   }
 
   /** Yarış sahnesi yüklendiğinde Scene tarafından çağrılır — "hazırım" sinyali. */

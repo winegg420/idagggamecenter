@@ -160,3 +160,9 @@ PatiRun, idaGG Game Center hub'ına `patirun/` modülü olarak entegre edildi. K
 - `startAt` yedek olarak korunuyor (go düşerse yarış yine başlar; süre +2.5 sn'ye çıkarıldı).
 - Değişen dosyalar: `net/protocol.ts`, `net/roomClient.ts`, `screens/LobbyScreen.tsx`,
   `screens/MpRaceScreen.tsx`. Build temiz; 2 cihaz testi kullanıcıda.
+
+---
+
+## 24 Temmuz 2026 — Senkron start düzeltmesi (NTP saat-offset)
+
+DidaGP ile aynı senkron-start bug'ı PatiRun'da da vardı: `onGo` geri sayımı mesajın ALIM anına göre hizalıyor, tek yönlü ağ gecikmesini yok sayıyordu (kötü ağda ~1 sn kayma). `RoomClient`'a NTP tarzı saat senkronu eklendi: `syncClock()` (bekleme fazında ping/pong ile host−self offset), `hostToLocal()`, `clockSynced`. `MpRaceScreen.onGo` artık kalibre edildiyse `hostToLocal(goAt) − now` ile hizalar, aksi halde eski göreli yönteme düşer. Değişen: `net/roomClient.ts`, `screens/MpRaceScreen.tsx`. Build temiz.

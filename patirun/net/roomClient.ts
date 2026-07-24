@@ -54,6 +54,10 @@ export class RoomClient {
   private cb: RoomCallbacks = {};
   /** Gönderen (oyuncu/bot) başına son pozisyon gönderim zamanı */
   private lastPosSent = new Map<string, number>();
+  /** host saati − kendi saatim (ms). NTP tarzı ping/pong ile ölçülür; host'ta 0. */
+  private clockOffset = 0;
+  private clockBestRtt = Infinity;
+  private pingTimers: number[] = [];
   private presenceData: { username: string; character: string; team: number; vote: string | null; danceAt: number };
   players: RoomPlayer[] = [];
 
@@ -128,6 +132,23 @@ export class RoomClient {
       .on('broadcast', { event: 'go' }, ({ payload }) =>
         client.cb.onGo?.({ ...(payload as GoMsg), recvAt: Date.now() }),
       )
+      // saat senkron ping'i (yalnız host yanıtlar)
+      .on('broadcast', { event: 'ping' }, ({ payload }) => {
+        if (!client.isHost) return;
+        const { u, t0 } = payload as { u: string; t0: number };
+        client.send('pong', { to: u, t0, t1: Date.now() });
+      })
+      // host'tan pong → NTP tarzı offset (host − self), en düşük RTT örneği tutulur
+      .on('broadcast', { event: 'pong' }, ({ payload }) => {
+        const { to, t0, t1 } = payload as { to: string; t0: number; t1: number };
+        if (to !== client.selfId) return;
+        const t3 = Date.now();
+        const rtt = t3 - t0;
+        if (rtt < client.clockBestRtt) {
+          client.clockBestRtt = rtt;
+          client.clockOffset = t1 - (t0 + t3) / 2;
+        }
+      })
       .on('broadcast', { event: 'pos' }, ({ payload }) => client.cb.onPos?.(payload as PosMsg))
       .on('broadcast', { event: 'skill' }, ({ payload }) =>
         client.cb.onSkill?.(payload as SkillMsg),
@@ -224,6 +245,33 @@ export class RoomClient {
     this.send('go', msg);
   }
 
+  /** Saat host'a göre kalibre edildi mi (GO'yu mutlak epoch'a çevirmek için). */
+  get clockSynced(): boolean {
+    return this.clockBestRtt !== Infinity;
+  }
+
+  /** Host saatindeki bir epoch'u yerel saate çevir (clientTime = hostTime − offset). */
+  hostToLocal(hostEpoch: number): number {
+    return hostEpoch - this.clockOffset;
+  }
+
+  /**
+   * İstemci saatini host saatine göre kalibre eder: birkaç ping/pong, en düşük
+   * RTT örneği tutulur. Yarış başlamadan (bekleme fazında) çağrılır; sonucu
+   * GO hizalaması kullanır → yarış tüm cihazlarda gerçekten aynı anda başlar.
+   */
+  syncClock(): void {
+    if (this.isHost) return; // host referans saat; offset 0
+    this.pingTimers.forEach(clearTimeout);
+    this.pingTimers = [];
+    this.clockBestRtt = Infinity;
+    const sendPing = () => this.send('ping', { u: this.selfId, t0: Date.now() });
+    // 4 örnek, 220 ms arayla → tıkanık anları atlayıp en iyi offset'i yakala
+    for (let i = 0; i < 4; i++) {
+      this.pingTimers.push(window.setTimeout(sendPing, i * 220));
+    }
+  }
+
   /** Pozisyon: gönderen başına saniyede en fazla POSITION_SEND_RATE mesaj. */
   sendPos(msg: PosMsg): void {
     const now = Date.now();
@@ -255,6 +303,8 @@ export class RoomClient {
   }
 
   async leave(): Promise<void> {
+    this.pingTimers.forEach(clearTimeout);
+    this.pingTimers = [];
     try {
       await this.channel.unsubscribe();
     } catch {

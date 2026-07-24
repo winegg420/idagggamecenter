@@ -123,8 +123,15 @@ export function MpRaceScreen() {
         herkesHazirsaBaslat();
       },
       onGo: (msg) => {
-        const gecen = msg.recvAt != null ? Date.now() - msg.recvAt : 0;
-        hizala(msg.goAt - msg.t0 - gecen);
+        // Öncelik: host saatine kalibre edildiyse GO epoch'unu yerel saate çevir
+        // → mesajın tek yönlü ağ gecikmesinden bağımsız, gerçek senkron start.
+        // Kalibre edilmediyse (ping yanıtsız) eski göreli yönteme düş.
+        if (client.clockSynced) {
+          hizala(client.hostToLocal(msg.goAt) - Date.now());
+        } else {
+          const gecen = msg.recvAt != null ? Date.now() - msg.recvAt : 0;
+          hizala(msg.goAt - msg.t0 - gecen);
+        }
       },
       onPos: (msg) => {
         const buf = setup.buffers.get(msg.u);
@@ -209,6 +216,8 @@ export function MpRaceScreen() {
     goSent.current = false;
     goApplied.current = false;
     client.sendReady();
+    // istemci: GO'dan önce host saatiyle offset'i ölç (senkron start bunun üzerine kurulur)
+    client.syncClock();
     if (!client.isHost) return;
     herkesHazirsaBaslat();
     const zamanAsimi = window.setTimeout(() => gonderGo(), 7000);
