@@ -43,7 +43,7 @@
     {
       "id": "emirali",
       "ad": "Emir Ali",
-      "dosya": "emirali.jpg",
+      "dosya": "emirali.png",
       "odakX": 0.5,
       "odakY": 0.375,
       "yaricap": 0.3
@@ -51,7 +51,7 @@
     {
       "id": "bedo",
       "ad": "Bedo",
-      "dosya": "bedo.jpg",
+      "dosya": "bedo.png",
       "odakX": 0.44,
       "odakY": 0.32,
       "yaricap": 0.32
