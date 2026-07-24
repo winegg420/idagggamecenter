@@ -26,3 +26,23 @@
 
 - **Gerçek kamera + el testi kullanıcıda** (otomasyonda kamera yok): iskelet elde mi, "🖐" rozeti yanıyor mu, meyve kesiliyor mu, kasma var mı.
 - Gerçek meyve fotoğrafları istenirse `public/meyve/` + manifest (şu an emoji sprite ile tam çalışır).
+
+## 2026-07-24 — Kol=bıçak, gecikme telafisi, agresif savurma
+
+Kullanıcı: "eller kollar komple bıçak olmalı; el kadrajdan çıkıp girince hemen senkron olmalı;
+meyveleri hızlı kesemiyorum, koca bıçakları çılgınca savurmak istiyorum."
+
+- **Kılıç modeli:** kol, bilek→avuç ekseninin tersine türetilir (`KOL_ORAN 3.4` × el boyu), uç
+  parmak ucundan ileri uzatılır (`UC_ORAN 1.35`). Kesim = kılıç boyunca 9 örnek + 5 parmak ucu
+  segmentleri. El hızı > 360 px/s ise **kılıç gövdesinin tamamı** da keser (kareler arası boşluk
+  sorunu). `MAX_ORAN` 1.05, `MIN_SEGMENT` 6, `KILIC_KALINLIK` 34.
+- **Gecikme telafisi:** `eltakip.gecikmeSn` (kare yaşı + çıkarım + yarım kare) kadar el ileri
+  sarılır (tavan 100 px); çizimde ayrıca 50 ms'e kadar ekstrapolasyon. Render artık ham landmark
+  değil **motor geometrisini** çizer → görülen bıçak = kesen bıçak.
+- **Yeniden yakalama:** MediaPipe eşikleri 0.3; döngü `requestVideoFrameCallback` ile kare-güdümlü;
+  aynı video karesi iki kez işlenmez; kamera `frameRate ideal 60`.
+- **Görsel:** `kilicCiz` (hâle/gövde/çekirdek 3 katman pala), iskelet inceltildi (daha ucuz), iz
+  kılıç ucundan çıkıyor. Spawn temposu artırıldı (tekli 0.80→0.50, arkadaş 0.52→0.32).
+- **Test:** motor-test 16/16 ✓ (yeni: kol bıçağı, gecikme telafisi, kadraj dışı→geri dönüş).
+  `_test/kilic-test.html` — kamera/oturum gerektirmeyen görsel test (Chrome'da doğrulandı).
+- **Kalan:** gerçek kamera + iPhone testi kullanıcıda.

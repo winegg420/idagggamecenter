@@ -10,18 +10,29 @@ import { rastgeleMeyve } from "./meyveler.js";
 
 const YERCEKIMI = 1500; // px/s²
 const MAC_SURESI = 60;
-const KILIC_KALINLIK = 30; // hitbox toleransı (px) — cömert: kesmek kolay olsun
-const MIN_SEGMENT = 9; // bu hareketin altındaki el kesmez (statik el sayılmaz)
-const MAX_ORAN = 0.75; // kesim segmenti köşegenin bu oranını aşarsa sayma (sahte/geçiş)
+const KILIC_KALINLIK = 34; // hitbox toleransı (px) — cömert: kesmek kolay olsun
+const MIN_SEGMENT = 6; // bu hareketin altındaki el kesmez (statik el sayılmaz)
+const MAX_ORAN = 1.05; // kesim segmenti köşegenin bu oranını aşarsa sayma (sahte/geçiş)
 // Eşleştirme cömert: hızlı savurmada avuç uzağa sıçrar ama yine aynı el sayılmalı.
 // Gerçekte iki farklı el birbirine bu kadar yaklaşıp uzaklaşmaz; absürt bağlantıları
 // zaten MAX_ORAN kesim segmentinde eler (uzun segment kesmez).
 const ESLESME_ORAN = 0.9;
 const COMBO_PENCERE = 0.55; // sn
-const IZ_OMUR = 0.2; // bıçak izi ömrü (sn)
-// Kesim/iz için el üzerinden örneklenen noktalar: bilek, 5 parmak ucu, avuç.
-// Böylece tüm el/bilek bir "bıçak" gibi davranır (tek nokta değil).
-const KESIM_NOKTA = [0, 4, 8, 12, 16, 20, 9];
+const IZ_OMUR = 0.22; // bıçak izi ömrü (sn)
+
+// ---- KILIÇ: el + kol tek parça dev bıçak ----
+// MediaPipe yalnız eli verir; kolu bilek→avuç ekseninin TERSİNE uzatarak
+// türetiyoruz (dirsek o yönde olur). Böylece "el ve kolun tamamı bıçak":
+// kabza omuz tarafında, uç parmakların ötesinde.
+const KOL_ORAN = 3.4; // el boyunun katı — bilekten geriye (kol/kabza)
+const UC_ORAN = 1.35; // el boyunun katı — orta parmak ucundan ileri (bıçak ucu)
+const KILIC_ORNEK = 9; // kılıç gövdesinde kesim için örneklenen nokta sayısı
+const PARMAK_UC = [4, 8, 12, 16, 20];
+// Bu hızın üstünde savururken kılıç GÖVDESİ de keser (agresif savurmada
+// kareler arası boşluğa düşen meyve kaçmasın — "hızlı kesemiyorum" düzeltmesi).
+const SUPURME_HIZ = 360; // px/s
+const TELAFI_MAX_PX = 100; // gecikme telafisinin tavanı (px)
+const RENDER_ILERI_MAX = 0.05; // sn — çizimde ileri sarma tavanı
 
 // Nokta–doğru parçası mesafesi.
 function segMesafe(px, py, ax, ay, bx, by) {
@@ -34,6 +45,62 @@ function segMesafe(px, py, ax, ay, bx, by) {
   return Math.hypot(px - (ax + t * dx), py - (ay + t * dy));
 }
 
+// El landmark'larından (ekran px) kılıç geometrisi: kuyruk (kol) → uç (bıçak).
+function kilicHesap(tum) {
+  const bilek = tum[0] || tum[9];
+  const mcp = tum[9] || tum[0];
+  const ortaUc = tum[12] || mcp;
+  let dx = mcp.x - bilek.x;
+  let dy = mcp.y - bilek.y;
+  let boy = Math.hypot(dx, dy);
+  if (!(boy > 1)) {
+    dx = 0;
+    dy = -1;
+    boy = 40;
+  } else {
+    dx /= boy;
+    dy /= boy;
+  }
+  return {
+    kuyruk: { x: bilek.x - dx * boy * KOL_ORAN, y: bilek.y - dy * boy * KOL_ORAN },
+    uc: { x: ortaUc.x + dx * boy * UC_ORAN, y: ortaUc.y + dy * boy * UC_ORAN },
+    boy,
+  };
+}
+
+// Kılıç gövdesi boyunca eşit aralıklı örnekler + parmak uçları.
+// İndeksler kareler arası tutarlıdır (aynı indeks = aynı fiziksel nokta).
+function kesimNoktalari(kilic, tum) {
+  const pts = [];
+  const { kuyruk, uc } = kilic;
+  for (let i = 0; i < KILIC_ORNEK; i++) {
+    const t = i / (KILIC_ORNEK - 1);
+    pts.push({ x: kuyruk.x + (uc.x - kuyruk.x) * t, y: kuyruk.y + (uc.y - kuyruk.y) * t });
+  }
+  for (const idx of PARMAK_UC) {
+    const n = tum[idx];
+    pts.push(n ? { x: n.x, y: n.y } : { x: uc.x, y: uc.y });
+  }
+  return pts;
+}
+
+// El geometrisinin tamamını (landmark + kılıç + kesim noktaları) ötele.
+function oteleEl(g, kx, ky) {
+  for (const p of g.tum) {
+    p.x += kx;
+    p.y += ky;
+  }
+  for (const p of g.pts) {
+    p.x += kx;
+    p.y += ky;
+  }
+  g.kilic.kuyruk.x += kx;
+  g.kilic.kuyruk.y += ky;
+  g.kilic.uc.x += kx;
+  g.kilic.uc.y += ky;
+  // palm, tum[9]'un ta kendisi (referans) → yeniden ötelenmez.
+}
+
 export class Oyun {
   constructor(mod) {
     this.mod = mod === "arkadas" ? "arkadas" : "tekli";
@@ -42,6 +109,7 @@ export class Oyun {
     this.parcaciklar = [];
     this.popuplar = []; // uçan puan metinleri
     this.izler = []; // render için: her takip edilen el için [{x,y,t}] bıçak izi
+    this.eller = []; // render için: ekran uzayında el+kılıç geometrisi
     this._takip = []; // kimlik eşleştirmeli el takibi
     this._sonDamga = -1; // en son işlenen algılama karesi
 
@@ -67,8 +135,9 @@ export class Oyun {
   _spawnAralik() {
     const gecen = MAC_SURESI - this.sure;
     const zorluk = Math.min(1, gecen / 45); // ilk 45 sn'de artan tempo
-    if (this.mod === "arkadas") return 0.62 - 0.22 * zorluk; // 0.62 → 0.40
-    return 0.95 - 0.30 * zorluk; // 0.95 → 0.65
+    // Agresif savurma oynanışı için yoğun akış (boşta kalan kılıç sıkıcı).
+    if (this.mod === "arkadas") return 0.52 - 0.20 * zorluk; // 0.52 → 0.32
+    return 0.80 - 0.30 * zorluk; // 0.80 → 0.50
   }
 
   _meyveFirlat(W, H) {
@@ -160,18 +229,21 @@ export class Oyun {
   // Algılanan elleri önceki karedeki ellere kimlikle eşleştirir (en yakın avuç),
   // her el için 7 anahtar noktadan segment çizip meyvelerle kesişimi test eder.
   // Kimlik eşleştirme sayesinde hızlı/uzun savurmalar reddedilmez (el geçişi değil).
-  _elleriIsle(eller, harita, W, H) {
+  _elleriIsle(eller, harita, W, H, telafiSn) {
     const diag = Math.hypot(W, H);
     const maxSeg = diag * MAX_ORAN;
     const eslesmeMax = diag * ESLESME_ORAN;
 
     const guncel = eller.map((e) => {
-      const pts = KESIM_NOKTA.map((idx) => {
-        const n = e.noktalar[idx] || e.noktalar[9] || e.noktalar[0];
-        return harita(n.x, n.y);
-      });
-      const palm = pts[6] || pts[0]; // KESIM_NOKTA'da 9 (avuç) → 7. eleman
-      return { pts, palm, taraf: palm.x < W / 2 ? "sol" : "sag" };
+      const n = e.noktalar;
+      const tum = [];
+      for (let i = 0; i < 21; i++) {
+        const p = n[i] || n[9] || n[0];
+        tum.push(harita(p.x, p.y));
+      }
+      const kilic = kilicHesap(tum);
+      const palm = tum[9] || tum[0];
+      return { tum, kilic, palm, pts: kesimNoktalari(kilic, tum), taraf: palm.x < W / 2 ? "sol" : "sag" };
     });
 
     const kullanildi = new Array(this._takip.length).fill(false);
@@ -191,7 +263,24 @@ export class Oyun {
       if (enIyi >= 0) {
         const onc = this._takip[enIyi];
         kullanildi[enIyi] = true;
+
+        // ---- gecikme telafisi ----
+        // Kamera→çıkarım→ekran arasında geçen süre kadar eli ileri sar; böylece
+        // bıçak "elin şu an olduğu yerde" görünür ve orayı keser (senkron hissi).
+        const dtA = Math.max(0.008, this._t - onc.gorulen);
+        const hx = (g.palm.x - onc.palm.x) / dtA;
+        const hy = (g.palm.y - onc.palm.y) / dtA;
+        let kx = hx * telafiSn;
+        let ky = hy * telafiSn;
+        const kmag = Math.hypot(kx, ky);
+        if (kmag > TELAFI_MAX_PX) {
+          kx = (kx / kmag) * TELAFI_MAX_PX;
+          ky = (ky / kmag) * TELAFI_MAX_PX;
+        }
+        if (kx || ky) oteleEl(g, kx, ky);
+
         if (this.faz === "oyun") {
+          const hiz = Math.hypot(hx, hy);
           for (let k = 0; k < g.pts.length; k++) {
             const a = onc.pts[k];
             const b = g.pts[k];
@@ -205,19 +294,38 @@ export class Oyun {
               }
             }
           }
+          // Agresif savurmada kılıcın TÜM gövdesi (kol dahil) keser: iki algılama
+          // karesi arasında noktalar arası boşluğa düşen meyve kaçmasın.
+          if (hiz > SUPURME_HIZ) {
+            const { kuyruk, uc } = g.kilic;
+            for (const f of this.meyveler) {
+              if (f.kesildi) continue;
+              if (segMesafe(f.x, f.y, kuyruk.x, kuyruk.y, uc.x, uc.y) < f.r + KILIC_KALINLIK) {
+                this._kes(f, g.taraf, W);
+              }
+            }
+          }
         }
         onc.pts = g.pts;
+        onc.tum = g.tum;
+        onc.kilic = g.kilic;
         onc.palm = g.palm;
         onc.taraf = g.taraf;
-        onc.iz.push({ x: g.palm.x, y: g.palm.y, t: this._t });
+        onc.hiz.x = hx;
+        onc.hiz.y = hy;
+        onc.iz.push({ x: g.kilic.uc.x, y: g.kilic.uc.y, t: this._t });
         onc.gorulen = this._t;
         yeni.push(onc);
       } else {
         yeni.push({
           pts: g.pts,
+          tum: g.tum,
+          kilic: g.kilic,
           palm: g.palm,
           taraf: g.taraf,
-          iz: [{ x: g.palm.x, y: g.palm.y, t: this._t }],
+          hiz: { x: 0, y: 0 },
+          kayma: { x: 0, y: 0 },
+          iz: [{ x: g.kilic.uc.x, y: g.kilic.uc.y, t: this._t }],
           gorulen: this._t,
         });
       }
@@ -236,7 +344,7 @@ export class Oyun {
 
   // eller: ElTakip.eller (ham landmark) ; damga: algılama kare no (yeni veri işareti)
   // harita: (nx,ny)->{x,y} ekran px
-  guncelle(dt, eller, damga, harita, W, H) {
+  guncelle(dt, eller, damga, harita, W, H, gecikmeSn = 0) {
     dt = Math.min(dt, 0.05); // büyük sıçramaları sınırla (sekme arası)
     this._t += dt;
 
@@ -266,13 +374,21 @@ export class Oyun {
     // işlemek anlamsız ve yanlış (segment ~0). damga değişince bir kez işle.
     if (damga !== this._sonDamga) {
       this._sonDamga = damga;
-      this._elleriIsle(eller, harita, W, H);
+      this._elleriIsle(eller, harita, W, H, Math.min(Math.max(gecikmeSn, 0), 0.18));
     }
     // izleri her karede (zamanla) süz
     for (const h of this._takip) {
       while (h.iz.length && this._t - h.iz[0].t > IZ_OMUR) h.iz.shift();
+      // Çizim ekstrapolasyonu: algılama ~20-30 fps, çizim 60 fps. Son bilinen hızla
+      // ileri sararak kılıç elin gerçek konumunda görünür (araya donan kare kalmaz).
+      const ileri = Math.min(RENDER_ILERI_MAX, Math.max(0, this._t - h.gorulen));
+      if (!h.kayma) h.kayma = { x: 0, y: 0 };
+      h.kayma.x = h.hiz.x * ileri;
+      h.kayma.y = h.hiz.y * ileri;
     }
     this.izler = this._takip.map((h) => h.iz);
+    // render için: ekran uzayında el/kılıç geometrisi (+ kayma ile ileri sarım)
+    this.eller = this._takip;
 
     // ---- fizik: meyveler ----
     for (const f of this.meyveler) {

@@ -480,3 +480,59 @@ DriftGP (~9.400 satır TS, three.js/R3F 3D drift yarışı) IDA GG Game Center'a
 ### Doğrulama
 - Build temiz (✓ 4.94s). Her iki commit `main`'e push edildi → Vercel production deploy.
 - **Gerçek cihaz testi kullanıcıda:** iPhone'da DidaGP (gölge kapanınca akıcılık + gerçek motor sesleri), Kafa Topu, Meyve Kes.
+
+## 2026-07-24 (11. oturum) — Meyve Kes "kol=bıçak" + tüm multiplayer senkron sertleştirmesi
+
+Kullanıcı: (1) Meyve Kes'te el/kol komple bıçak olsun, kadraj dışına çıkıp girince anında senkron
+olsun, agresif savurmayla hızlı kesebileyim; (2) multiplayer modlarda maçlar aynı anda başlasın,
+takılma/gecikme olmasın.
+
+### MEYVE KES — kesim modeli baştan kuruldu
+- **Kılıç geometrisi (`engine/oyun.js`):** MediaPipe yalnız eli verir; kol, bilek→avuç ekseninin
+  TERSİNE uzatılarak türetiliyor (`KOL_ORAN 3.4` × el boyu) ve parmak ucundan ileri bıçak ucu
+  (`UC_ORAN 1.35`) ekleniyor. Sonuç: **kabzası omuz tarafında, ucu parmakların ötesinde tek parça
+  dev bıçak**. Kesim, kılıç gövdesi boyunca 9 örnek + 5 parmak ucu = 14 noktanın kare-arası
+  segmentleriyle test ediliyor (indeksler kareler arası tutarlı).
+- **Agresif savurma:** el hızı > `SUPURME_HIZ` (360 px/s) ise kılıcın **tüm gövdesi** (kol dahil)
+  de keser → iki algılama karesi arasındaki boşluğa düşen meyve artık kaçmıyor. `MAX_ORAN`
+  0.75→1.05 (uzun savuruş artık "sahte" sayılmıyor), `MIN_SEGMENT` 9→6, `KILIC_KALINLIK` 30→34.
+- **Gecikme telafisi (senkron hissi):** `eltakip.js` gerçek gecikmeyi ölçüyor (kare yaşı + çıkarım
+  + yarım kare) ve `oyun.js` eli bu kadar ileri sarıyor (tavan 100px). Ayrıca çizimde 60 fps'e
+  ekstrapolasyon (`RENDER_ILERI_MAX` 50ms) → algılama 25 fps olsa bile kılıç elin gerçek yerinde.
+  **Çizilen bıçak ile kesen bıçak birebir aynı** (render artık ham landmark değil motor
+  geometrisini kullanıyor).
+- **Kadrajdan çıkıp girince:** MediaPipe eşikleri 0.4→**0.3** (model "emin olmayı" beklemiyor);
+  algılama döngüsü `requestVideoFrameCallback` ile **kare-güdümlü** (en taze kare), aynı video
+  karesi iki kez işlenmiyor (boşa CPU yanmıyor), kamera `frameRate ideal 60`.
+- **Görsel:** `render.js`'e `kilicCiz` — kol boyunca 3 katmanlı (hâle/gövde/çekirdek) enerji palası;
+  el iskeleti inceltildi (12px→3px stroke, 21→5 daire) → çizim maliyeti düştü. Bıçak izi artık
+  **kılıcın ucundan** çıkıyor ve kalınlaştı.
+- **Tempo:** spawn aralığı tekli 0.95→0.80/0.50, arkadaş 0.62→0.52/0.32 (bol meyve = savurmaya değer).
+- **Test:** `meyvekes/_test/motor-test.mjs` 11→**16 test** (kol bıçağı, gecikme telafisi
+  telafisiz/telafili karşılaştırması, kadraj dışı→geri dönüş) — **16/16 ✓**.
+  Yeni araç: `meyvekes/_test/kilic-test.html` (kamera/oturum gerektirmeyen görsel test; Chrome'da
+  doğrulandı: kılıç çiziliyor, meyveler kesiliyor, combo x3, NaN yok, konsol temiz).
+
+### MULTIPLAYER — "aynı anda başla, takılma"
+- **Ortak kök sebep (PatiRun + DidaGP):** başlangıç anı **epoch (`Date.now()`)** olarak yayınlanıyordu;
+  cihaz saatleri sapınca geri sayım kayıyordu. Artık mesajda host'un gönderim anı (`t0`) da var,
+  alıcı **"kalan süre"yi** alıp kendi saatine çeviriyor → saat farkı etkisiz.
+  - `driftgp/net/multiplayer.ts`: `go` yayınına `t0`, alıcıda `raceGoAt = Date.now() + (goAt - t0)`.
+  - `patirun/net/protocol.ts|roomClient.ts`: `StartMsg.t0` + alıcıda `recvAt`; yeni `ready`/`go`
+    mesajları. `MpRaceScreen`: sahne kurulunca **"hazırım"**, host herkesi bekleyip (7 sn güvenlik
+    zaman aşımı) `go` yayınlıyor, herkes geri sayımı aynı ana hizalıyor (DidaGP'deki kanıtlanmış
+    desen). `startAt` yedek olarak duruyor (go düşerse yarış yine başlar, süre +2.5 sn'ye çıkarıldı).
+- **Kafa Topu (host-otoriter, başlangıç zaten senkron) — takılma ve girdi gecikmesi:**
+  - `net/interpolasyon.js`: sabit 120 ms tampon → **jitter'a adaptif** (70-260 ms; yukarı hızlı,
+    aşağı yavaş uyum) + paket gecikirse **90 ms'ye kadar ekstrapolasyon** (donma yerine akış).
+    Ekstrapolasyonda artık son İKİ paket kullanılıyor (eğim doğru).
+  - `app/pages/MacPage.jsx`: misafirde **girdi gecikmesi maskeleme** — kendi kafan tuşa anında
+    tepki verir (yalnız görsel yatay ofset, `0.94^kare` ile sönümlenir, ±1.1 kafa yarıçapı sınırı).
+    Otorite host'ta kalır, sapma birikmez.
+
+### Doğrulama
+- Meyve Kes 16/16 ✓, Kafa Topu 27/27 ✓ (regresyon yok), `npm run build` temiz (846 modül, 4.95 sn).
+- Chrome görsel testi: Meyve Kes kılıç/kesim (izole test sayfası). Hub'a giriş duvarı olduğundan
+  oyun içi tarayıcı testi otomasyonda yapılamıyor.
+- **Kullanıcıda kalan (yapılamayan):** gerçek iPhone testi ve 2 cihazlı multiplayer eşzamanlılık
+  testi — bu ortamda kamera ve fiziksel cihaz yok.

@@ -91,9 +91,9 @@ function izCiz(ctx, iz, t) {
   for (let i = 1; i < iz.length; i++) {
     const a = iz[i - 1];
     const b = iz[i];
-    const yas = (t - b.t) / 0.2; // 0=taze, 1=eski (IZ_OMUR ile hizalı)
+    const yas = (t - b.t) / 0.22; // 0=taze, 1=eski (IZ_OMUR ile hizalı)
     const alfa = Math.max(0, 1 - yas);
-    const kalinlik = 3 + 16 * (i / iz.length) * alfa;
+    const kalinlik = 4 + 26 * (i / iz.length) * alfa;
     ctx.strokeStyle = `rgba(180,240,255,${alfa * 0.5})`;
     ctx.lineWidth = kalinlik + 6;
     ctx.beginPath();
@@ -146,45 +146,85 @@ const EL_BAGLANTI = [
   [0, 17],
 ];
 
-function elIskeletCiz(ctx, eller, k) {
+// Kol + eli kaplayan DEV enerji bıçağı. h: oyun motorunun takip kaydı
+// (ekran uzayında tum/kilic + ileri sarım kayması).
+function kilicCiz(ctx, h) {
+  const kay = h.kayma || { x: 0, y: 0 };
+  const ax = h.kilic.kuyruk.x + kay.x;
+  const ay = h.kilic.kuyruk.y + kay.y;
+  const bx = h.kilic.uc.x + kay.x;
+  const by = h.kilic.uc.y + kay.y;
+  const dx = bx - ax;
+  const dy = by - ay;
+  const uz = Math.hypot(dx, dy) || 1;
+  const nx = -dy / uz; // dik birim vektör (bıçak genişliği yönü)
+  const ny = dx / uz;
+  // Kabza tarafı geniş, uç sivri — gerçek bir pala silueti.
+  const en = Math.max(16, Math.min(46, h.kilic.boy * 0.62));
+
+  ctx.save();
+  ctx.lineJoin = "round";
+  // 1) hâle (dış parıltı)
+  ctx.globalAlpha = 0.22;
+  ctx.fillStyle = "#7ae7ff";
+  ctx.beginPath();
+  ctx.moveTo(ax + nx * en * 1.35, ay + ny * en * 1.35);
+  ctx.lineTo(bx, by);
+  ctx.lineTo(ax - nx * en * 1.35, ay - ny * en * 1.35);
+  ctx.closePath();
+  ctx.fill();
+  // 2) gövde
+  ctx.globalAlpha = 0.72;
+  ctx.fillStyle = "#22c8ff";
+  ctx.beginPath();
+  ctx.moveTo(ax + nx * en, ay + ny * en);
+  ctx.lineTo(bx, by);
+  ctx.lineTo(ax - nx * en, ay - ny * en);
+  ctx.closePath();
+  ctx.fill();
+  // 3) sıcak çekirdek
+  ctx.globalAlpha = 0.95;
+  ctx.fillStyle = "#eafcff";
+  ctx.beginPath();
+  ctx.moveTo(ax + nx * en * 0.4, ay + ny * en * 0.4);
+  ctx.lineTo(bx, by);
+  ctx.lineTo(ax - nx * en * 0.4, ay - ny * en * 0.4);
+  ctx.closePath();
+  ctx.fill();
+  ctx.restore();
+}
+
+function elIskeletCiz(ctx, h) {
+  const n = h.tum;
+  if (!n || n.length < 21) return;
+  const kx = h.kayma ? h.kayma.x : 0;
+  const ky = h.kayma ? h.kayma.y : 0;
   ctx.save();
   ctx.lineCap = "round";
   ctx.lineJoin = "round";
-  for (const el of eller) {
-    const n = el.noktalar;
-    if (!n || n.length < 21) continue;
-    // parlak dış hat (bıçak parıltısı)
-    ctx.strokeStyle = "rgba(120,220,255,0.35)";
-    ctx.lineWidth = 12;
+  ctx.strokeStyle = "rgba(235,250,255,0.85)";
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  for (const [a, b] of EL_BAGLANTI) {
+    if (!n[a] || !n[b]) continue;
+    ctx.moveTo(n[a].x + kx, n[a].y + ky);
+    ctx.lineTo(n[b].x + kx, n[b].y + ky);
+  }
+  ctx.stroke();
+  // parmak ucu ışıkları (bıçağın kesici noktaları)
+  ctx.fillStyle = "rgba(180,240,255,0.95)";
+  for (const i of [4, 8, 12, 16, 20]) {
+    if (!n[i]) continue;
     ctx.beginPath();
-    for (const [a, b] of EL_BAGLANTI) {
-      if (!n[a] || !n[b]) continue;
-      const pa = k.esle(n[a].x, n[a].y);
-      const pb = k.esle(n[b].x, n[b].y);
-      ctx.moveTo(pa.x, pa.y);
-      ctx.lineTo(pb.x, pb.y);
-    }
-    ctx.stroke();
-    // iç çizgi
-    ctx.strokeStyle = "rgba(235,250,255,0.9)";
-    ctx.lineWidth = 3;
-    ctx.stroke();
-    // eklemler + parmak ucu ışıkları
-    for (let i = 0; i < 21; i++) {
-      if (!n[i]) continue;
-      const pt = k.esle(n[i].x, n[i].y);
-      const uc = i === 4 || i === 8 || i === 12 || i === 16 || i === 20;
-      ctx.fillStyle = uc ? "rgba(180,240,255,0.95)" : "rgba(200,245,255,0.6)";
-      ctx.beginPath();
-      ctx.arc(pt.x, pt.y, uc ? 7 : 4, 0, Math.PI * 2);
-      ctx.fill();
-    }
+    ctx.arc(n[i].x + kx, n[i].y + ky, 6, 0, Math.PI * 2);
+    ctx.fill();
   }
   ctx.restore();
 }
 
-// Ana çizim. eller: ham landmark (el iskeleti için).
-export function ciz(ctx, oyun, video, k, W, H, eller) {
+// Ana çizim. El/kılıç geometrisi motordan gelir (ekran uzayında, gecikme
+// telafili) — çizilen bıçak ile kesen bıçak birebir aynı yerdedir.
+export function ciz(ctx, oyun, video, k, W, H) {
   ctx.clearRect(0, 0, W, H);
   videoCiz(ctx, video, k, W);
 
@@ -196,9 +236,12 @@ export function ciz(ctx, oyun, video, k, W, H, eller) {
   for (const y of oyun.yarilar) yarimCiz(ctx, y);
   for (const p of oyun.parcaciklar) parcacikCiz(ctx, p);
 
-  // el iskeleti — tüm el "bıçak" gibi ışıldar (güçlü görsel geri bildirim:
-  // el algılanıyor mu, tam olarak nerede görülüyor kullanıcı anında görür).
-  elIskeletCiz(ctx, eller, k);
+  // kol + el = tek parça dev bıçak (kullanıcı nerede kestiğini net görür)
+  for (const h of oyun.eller) {
+    if (!h.kilic) continue;
+    kilicCiz(ctx, h);
+    elIskeletCiz(ctx, h);
+  }
 
   for (const iz of oyun.izler) izCiz(ctx, iz, oyun._t);
   for (const pp of oyun.popuplar) popupCiz(ctx, pp);

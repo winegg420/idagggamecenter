@@ -99,8 +99,8 @@ export default function OyunPage() {
     ctx.setTransform(sc, 0, 0, sc, 0, 0);
 
     const k = koordinatHesap(takip.video, W, H);
-    oyun.guncelle(dt, takip.eller, takip.damga, (nx, ny) => k.esle(nx, ny), W, H);
-    ciz(ctx, oyun, takip.video, k, W, H, takip.eller);
+    oyun.guncelle(dt, takip.eller, takip.damga, (nx, ny) => k.esle(nx, ny), W, H, takip.gecikmeSn);
+    ciz(ctx, oyun, takip.video, k, W, H);
 
     // HUD'u ~12fps ile güncelle (React churn azalt)
     if (simdi - hudRef.current > 80) {

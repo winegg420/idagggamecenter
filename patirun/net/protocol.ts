@@ -52,8 +52,15 @@ export interface VoteMsg {
 }
 
 export interface StartMsg {
-  /** Yarışın başlayacağı epoch ms (geri sayım dahil) */
+  /** Yarışın başlayacağı epoch ms (geri sayım dahil) — HOST saatinde */
   startAt: number;
+  /**
+   * Host'un mesajı gönderdiği andaki saati. Alıcı `startAt - t0` (kalan süre)
+   * ile çalışır; böylece cihaz saatleri farklı olsa da geri sayım kaymaz.
+   */
+  t0?: number;
+  /** Mesajın YEREL alınma anı (alıcı doldurur, ağda gitmez) */
+  recvAt?: number;
   map: MapId;
   timeOfDay: 'gunduz' | 'gece';
   /** Oyuncu id → takım (0 = takımsız) */
@@ -69,6 +76,22 @@ export interface StartMsg {
    * yürütür ve pozisyonlarını yayınlar; diğer istemciler uzak koşucu sayar.
    */
   bots?: { id: string; name: string; character: string }[];
+}
+
+/** "Yarış sahnem yüklendi" sinyali — host herkesi bekler (senkron start). */
+export interface ReadyMsg {
+  u: string;
+}
+
+/**
+ * Host'un kesin başlangıç kararı: `goAt - t0` = GO'ya kalan süre.
+ * Herkes bu kalan süreye hizalanır → yarış tüm cihazlarda aynı anda başlar.
+ */
+export interface GoMsg {
+  t0: number;
+  goAt: number;
+  /** Yerel alınma anı (alıcı doldurur) */
+  recvAt?: number;
 }
 
 export interface FinishMsg {

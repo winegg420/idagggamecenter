@@ -1,7 +1,7 @@
 // Oda istemcisi: Supabase Realtime kanal yönetimi (presence + broadcast).
 import type { RealtimeChannel } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabase';
-import type { ChatMsg, FinishMsg, PosMsg, SkillMsg, StartMsg } from './protocol';
+import type { ChatMsg, FinishMsg, GoMsg, PosMsg, ReadyMsg, SkillMsg, StartMsg } from './protocol';
 import { NETWORK } from '../config/constants';
 
 export interface RoomPlayer {
@@ -18,6 +18,10 @@ export interface RoomCallbacks {
   onPlayers?: (players: RoomPlayer[]) => void;
   onChat?: (msg: ChatMsg) => void;
   onStart?: (msg: StartMsg) => void;
+  /** Bir oyuncunun yarış sahnesi yüklendi (host senkron start için toplar) */
+  onReady?: (msg: ReadyMsg) => void;
+  /** Host'un "şu kadar sonra GO" kararı — herkes buna hizalanır */
+  onGo?: (msg: GoMsg) => void;
   onPos?: (msg: PosMsg) => void;
   onSkill?: (msg: SkillMsg) => void;
   onFinish?: (msg: FinishMsg) => void;
@@ -115,7 +119,14 @@ export class RoomClient {
       .on('presence', { event: 'sync' }, () => client.syncPlayers())
       .on('broadcast', { event: 'chat' }, ({ payload }) => client.cb.onChat?.(payload as ChatMsg))
       .on('broadcast', { event: 'start' }, ({ payload }) =>
-        client.cb.onStart?.(payload as StartMsg),
+        // recvAt: geri sayım YEREL alınma anına göre hesaplanır (saat farkı etkisiz)
+        client.cb.onStart?.({ ...(payload as StartMsg), recvAt: Date.now() }),
+      )
+      .on('broadcast', { event: 'ready' }, ({ payload }) =>
+        client.cb.onReady?.(payload as ReadyMsg),
+      )
+      .on('broadcast', { event: 'go' }, ({ payload }) =>
+        client.cb.onGo?.({ ...(payload as GoMsg), recvAt: Date.now() }),
       )
       .on('broadcast', { event: 'pos' }, ({ payload }) => client.cb.onPos?.(payload as PosMsg))
       .on('broadcast', { event: 'skill' }, ({ payload }) =>
@@ -199,6 +210,18 @@ export class RoomClient {
   sendStart(msg: StartMsg): void {
     if (!this.isHost) return;
     this.send('start', msg);
+  }
+
+  /** "Sahnem hazır" — host bunları toplayıp GO yayınlar (senkron start). */
+  sendReady(): void {
+    const msg: ReadyMsg = { u: this.selfId };
+    this.send('ready', msg);
+  }
+
+  /** Host: kesin başlangıç anı. */
+  sendGo(msg: GoMsg): void {
+    if (!this.isHost) return;
+    this.send('go', msg);
   }
 
   /** Pozisyon: gönderen başına saniyede en fazla POSITION_SEND_RATE mesaj. */

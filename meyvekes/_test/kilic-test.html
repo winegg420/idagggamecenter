@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8" />
+<title>Meyve Kes — kılıç/kesim görsel testi</title>
+<style>
+  html, body { margin: 0; background: #101018; color: #eee; font: 14px system-ui; }
+  canvas { display: block; width: 100vw; height: 78vh; }
+  #bilgi { padding: 8px 12px; font-variant-numeric: tabular-nums; }
+</style>
+</head>
+<body>
+<canvas id="tuval"></canvas>
+<div id="bilgi">yükleniyor…</div>
+<script type="module">
+// Kamera/oturum gerektirmeyen görsel test: sentetik bir el (kol dahil) ekranda
+// savrulur, meyveler fırlar. Kılıç çizimi + kesim + gecikme telafisi doğrulanır.
+import { Oyun } from "../engine/oyun.js";
+import { ciz } from "../engine/render.js";
+
+const tuval = document.getElementById("tuval");
+const ctx = tuval.getContext("2d", { alpha: false });
+const bilgi = document.getElementById("bilgi");
+const oyun = new Oyun("tekli");
+oyun.faz = "oyun"; // geri sayımı atla
+const harita = (nx, ny) => ({ x: nx * tuval.width, y: ny * tuval.height });
+
+// 21 landmark'lık el: avuç merkezinden parmaklara doğru açılan basit iskelet.
+function elUret(cx, cy, aci) {
+  const W = tuval.width, H = tuval.height;
+  const ux = Math.cos(aci), uy = Math.sin(aci);
+  const px = -uy, py = ux;
+  const boy = 90;
+  const n = new Array(21);
+  const koy = (i, x, y) => (n[i] = { x: x / W, y: y / H, z: 0 });
+  koy(0, cx - ux * boy, cy - uy * boy); // bilek
+  koy(9, cx, cy); // avuç
+  for (let f = 0; f < 5; f++) {
+    const yan = (f - 2) * 22;
+    const uzun = boy * (0.75 + 0.12 * (2 - Math.abs(f - 2)));
+    for (let s = 1; s <= 4; s++) {
+      const t = s / 4;
+      const idx = f * 4 + s;
+      koy(idx, cx + ux * uzun * t + px * yan, cy + uy * uzun * t + py * yan);
+    }
+  }
+  for (let i = 0; i < 21; i++) if (!n[i]) koy(i, cx, cy);
+  return { noktalar: n, taraf: cx < W / 2 ? "sol" : "sag" };
+}
+
+let damga = 0;
+let sonAlgilama = 0;
+let sonKare = performance.now();
+let nanHata = "";
+
+// NOT: sabit adım + setInterval — sekme arka plandayken rAF durduğu için
+// otomasyon ekran görüntüsü alırken oyun ilerlemiyordu (meyve spawn olmuyordu).
+function dongu() {
+  const simdi = performance.now();
+  const dt = 1 / 60;
+  sonKare = simdi;
+  const dpr = Math.min(devicePixelRatio || 1, 1.5);
+  const w = Math.round(tuval.clientWidth * dpr);
+  const h = Math.round(tuval.clientHeight * dpr);
+  if (tuval.width !== w || tuval.height !== h) {
+    tuval.width = w;
+    tuval.height = h;
+  }
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+
+  // Algılama ~25 fps (gerçek MediaPipe temposu), çizim 60 fps.
+  let eller = [];
+  if (simdi - sonAlgilama > 40) {
+    sonAlgilama = simdi;
+    damga++;
+  }
+  const t = simdi / 1000;
+  const cx = tuval.width / 2 + Math.sin(t * 2.4) * tuval.width * 0.32;
+  const cy = tuval.height * 0.55 + Math.cos(t * 1.7) * tuval.height * 0.22;
+  eller = [elUret(cx, cy, Math.sin(t * 2.4) * 1.2 - Math.PI / 2)];
+
+  oyun.guncelle(dt, eller, damga, harita, tuval.width, tuval.height, 0.04);
+  ciz(ctx, oyun, null, { esle: harita }, tuval.width, tuval.height);
+
+  const h0 = oyun.eller[0];
+  if (h0 && (!Number.isFinite(h0.kilic.uc.x) || !Number.isFinite(h0.kilic.kuyruk.y))) {
+    nanHata = "KILIÇ KOORDİNATI NaN!";
+  }
+  bilgi.textContent =
+    `faz: ${oyun.faz} | sure: ${Math.round(oyun.sure)} | ` +
+    `kesim: ${oyun.kesimSayisi} | puan: ${oyun.puan} | combo: ${oyun.combo} | ` +
+    `havada meyve: ${oyun.meyveler.length} | el: ${oyun.eller.length} | ` +
+    `kılıç boyu: ${h0 ? Math.round(Math.hypot(h0.kilic.uc.x - h0.kilic.kuyruk.x, h0.kilic.uc.y - h0.kilic.kuyruk.y)) : 0}px ` +
+    (nanHata ? " | " + nanHata : "");
+  window.__test = { kesim: oyun.kesimSayisi, el: oyun.eller.length, nanHata };
+  window.__oyun = oyun;
+}
+setInterval(dongu, 16);
+</script>
+</body>
+</html>

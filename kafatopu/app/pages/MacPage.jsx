@@ -18,7 +18,7 @@ import { sahneCiz } from "../../engine/render.js";
 import { macKanaliKur } from "../../net/kanal.js";
 import { interpKur } from "../../net/interpolasyon.js";
 import { kafaBul, KURGUSAL_KAFALAR, fotoKafalariYukle } from "../../shared/karakterler.js";
-import { SAHA, AG, MAC } from "../../shared/sabitler.js";
+import { SAHA, AG, MAC, OYUNCU } from "../../shared/sabitler.js";
 import { TAKIM_RENK } from "../../engine/kafaCizim.js";
 
 // Geliştirici hesabı (migration'lardaki sabit UUID ile aynı) — maç içi
@@ -208,6 +208,23 @@ export default function MacPage() {
       });
     };
 
+    // --- Misafir girdi gecikmesi maskeleme ---
+    // Misafirin girdisi host'a gidip durumun geri gelmesi ~1 gidiş-dönüş sürer;
+    // bu arada kafa "geç tepki veriyor" hissi verir. Kendi kafamıza yalnız GÖRSEL
+    // bir yatay ofset uygulanır: tuşa basınca anında hareket başlar, host verisi
+    // geldikçe ofset sönümlenerek erir (otorite host'ta kalır, sapma birikmez).
+    let ongoruOfset = 0;
+    const ongoruUygula = (view, g, dtMs) => {
+      const kare = Math.min(4, dtMs / 16.67);
+      const yon = (g.sag ? 1 : 0) - (g.sol ? 1 : 0);
+      ongoruOfset += yon * OYUNCU.HIZ * kare;
+      ongoruOfset *= Math.pow(0.94, kare); // ~120 ms'de yarıya iner
+      const sinir = OYUNCU.KAFA_R * 1.1;
+      ongoruOfset = Math.max(-sinir, Math.min(sinir, ongoruOfset));
+      const ben = view.oy?.[slotRef.current];
+      if (ben) ben.x += ongoruOfset;
+    };
+
     const dongu = (simdi) => {
       if (!aktif) return;
       const dt = simdi - sonZaman;
@@ -262,9 +279,11 @@ export default function MacPage() {
       } else if (interpRef.current) {
         // --- Misafir: interpolasyonlu görünüm ---
         if (simdi - sonCizim >= 12) {
+          const cizimDt = simdi - sonCizim;
           sonCizim = simdi;
           const view = interpRef.current.ornekle();
           if (view) {
+            ongoruUygula(view, girdi.oku(), cizimDt);
             hudGuncelle(view, slotRef.current);
             ciz(view);
           }

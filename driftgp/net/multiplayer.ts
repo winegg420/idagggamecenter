@@ -259,8 +259,11 @@ class MultiplayerManager {
 
       // host'un GO kararı: tüm istemciler geri sayımı bu epoch'a hizalar → herkes AYNI ANDA başlar
       ch.on('broadcast', { event: 'go' }, ({ payload }) => {
-        const { goAt } = payload as { goAt: number };
-        this.raceGoAt = goAt;
+        const { goAt, t0 } = payload as { goAt: number; t0?: number };
+        // Cihaz saatleri (özellikle telefonlarda) birbirinden sapabilir; epoch'u
+        // olduğu gibi kullanmak geri sayımı kaydırır. Bunun yerine "GO'ya kalan
+        // süre"yi alıp YEREL saate çeviriyoruz → herkes gerçekten aynı anda başlar.
+        this.raceGoAt = t0 != null ? Date.now() + (goAt - t0) : goAt;
         this.notify();
       });
 
@@ -547,10 +550,12 @@ class MultiplayerManager {
       this.goTimeout = null;
     }
     // 4.4 sn ileri: ~0.9 sn "HAZIR OL" + 3 sn kırmızı ışıklı geri sayım + yayın gecikme payı
-    const goAt = Date.now() + 4400;
+    const t0 = Date.now();
+    const goAt = t0 + 4400;
     this.raceGoAt = goAt;
     this.room
-      .send({ type: 'broadcast', event: 'go', payload: { goAt } })
+      // t0 = host'un gönderim anı; alıcı "kalan süre"yi kendi saatine çevirir.
+      .send({ type: 'broadcast', event: 'go', payload: { goAt, t0 } })
       .catch((err) => console.error('[DidaGP] GO yayınlanamadı:', err));
     this.notify();
   }

@@ -1813,3 +1813,9 @@ DidaGP, idaGG Game Center hub'ına `driftgp/` modülü olarak entegre edildi. Pa
 ## Hub'da mobil kasma düzeltmeleri (2026-07-22)
 - **Ses varlıkları taşındı:** bağımsız projeden hub'a geçerken `public/sounds/` (26 wav) taşınmamıştı; `game/audio.ts` `/sounds/*.wav` fetch'i başarısız olup sentetik sese düşüyordu. Hub `public/sounds/`'a kopyalandı → gerçek motor/drift/çarpma sesleri geri geldi.
 - **Adaptif gölge kapatma:** `app/DriftGpInner.tsx` içindeki `AdaptiveQuality`, çözünürlüğü minimuma (scale≤0.55) indirdiği halde FPS<42 ise dinamik gölgeyi runtime'da kapatır (`gl.shadowMap.enabled=false` + ışık `castShadow=false`). Neden: `game/quality.ts` gölgeyi yalnız `lowEnd` (≤4 çekirdek) cihazda kapatıyor; 6+ çekirdekli orta-seviye iPhone'larda gölge açık kalıp kasmaya yol açıyordu. Bir kez kapatılır (aç/kapa titremesi önlemi); temas gölgesi kaldığından görsel kabul edilebilir.
+
+## 2026-07-24 — GO mesajında saat farkı telafisi
+
+- `net/multiplayer.ts`: host `go` yayınına gönderim anını (`t0`) ekliyor; alıcılar `goAt`ı epoch
+  olarak değil **kalan süre** olarak alıp yerel saate çeviriyor (`Date.now() + (goAt - t0)`).
+  Telefon saatleri saptığında geri sayım kayıyordu; ready-gate mimarisi aynen korundu.

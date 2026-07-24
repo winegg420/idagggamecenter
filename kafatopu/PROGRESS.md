@@ -27,3 +27,14 @@ idaGG Game Center'a entegre; ELO puanı birleşik sıralamaya (`birlesik_siralam
 ## Kalan / manuel
 
 - Gerçek 2 cihazla online 1v1/2v2 + kopma senaryosu testi (kullanıcıda).
+
+## 2026-07-24 — Misafir tarafı takılma + girdi gecikmesi
+
+- `net/interpolasyon.js`: sabit 120 ms tampon → **jitter'a adaptif** (70-260 ms; yukarı hızlı,
+  aşağı yavaş uyum). Paket gecikirse son iki paketin hızıyla **90 ms'ye kadar ekstrapolasyon**
+  (donma/zıplama yerine akış). Tek paket durumunda snap'in kopyası döner (tüketici mutasyonu
+  orijinali bozmasın).
+- `app/pages/MacPage.jsx`: misafirde **girdi gecikmesi maskeleme** — kendi kafan tuşa anında tepki
+  verir; yalnız görsel yatay ofset, her karede `0.94^kare` sönümlenir, ±1.1 kafa yarıçapı ile
+  sınırlı. Otorite host'ta kalır (skor/fizik değişmedi), sapma birikmez.
+- Motor testleri 27/27 ✓ (regresyon yok). Gerçek 2 cihaz testi kullanıcıda.

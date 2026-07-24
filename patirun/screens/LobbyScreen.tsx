@@ -136,8 +136,12 @@ export function LobbyScreen() {
       }
     }
 
+    const t0 = Date.now();
     const msg = {
-      startAt: Date.now() + (RACE.START_LIGHTS * RACE.START_LIGHT_INTERVAL + 0.4) * 1000 + 1500,
+      t0,
+      // Yedek zamanlama: 'go' mesajı gelmezse (ağ sorunu) yarış yine de başlar.
+      // Normalde herkes "hazır" deyince host GO yayınlar ve geri sayım hizalanır.
+      startAt: t0 + (RACE.START_LIGHTS * RACE.START_LIGHT_INTERVAL + 0.4) * 1000 + 2500,
       map: winner,
       timeOfDay: (Math.random() < 0.3 ? 'gece' : 'gunduz') as 'gece' | 'gunduz',
       teams,
@@ -148,7 +152,7 @@ export function LobbyScreen() {
     };
     client.sendStart(msg);
     // Host kendine de aynı mesajı uygular (broadcast self kapalı)
-    useRoomStore.getState().setStartMsg(msg);
+    useRoomStore.getState().setStartMsg({ ...msg, recvAt: Date.now() });
   };
   startRaceRef.current = startRace;
 

@@ -148,3 +148,15 @@ Stack: React + Vite + TS, React Three Fiber + drei, Zustand, Supabase (ücretsiz
 
 ## idaGG Game Center'a taşındı (2026-07-22)
 PatiRun, idaGG Game Center hub'ına `patirun/` modülü olarak entegre edildi. Kendi Supabase client'ı → Bildim paylaşılan client; Google-OAuth → Bildim oturumu köprüsü; tablolar `pr_` önekli; CSS `.pr-root` scope. Ayrıntı: repo kökü `PROGRESS.md` (Faz 2) + `patirun/CLAUDE.md` "HUB ENTEGRASYONU".
+
+## 2026-07-24 — Senkron yarış başlangıcı (ready/go + saat farkı telafisi)
+
+- **Kök sebep:** başlangıç anı host'un `Date.now()` epoch'u olarak yayınlanıyordu; cihaz saatleri
+  saparsa geri sayım kayıyor, yavaş yüklenen cihaz geri sayımı kaçırıyordu.
+- **Çözüm (DidaGP'deki kanıtlanmış desen):** `StartMsg.t0` (host gönderim anı) + alıcıda `recvAt`
+  → geri sayım "kalan süre"den hesaplanır, saat farkı etkisiz. Yeni `ready`/`go` mesajları:
+  `MpRaceScreen` sahne kurulunca `sendReady()`, host herkesi bekler (7 sn güvenlik zaman aşımı)
+  ve `go{t0, goAt}` yayınlar; herkes geri sayımı aynı ana hizalar (`engine.time`).
+- `startAt` yedek olarak korunuyor (go düşerse yarış yine başlar; süre +2.5 sn'ye çıkarıldı).
+- Değişen dosyalar: `net/protocol.ts`, `net/roomClient.ts`, `screens/LobbyScreen.tsx`,
+  `screens/MpRaceScreen.tsx`. Build temiz; 2 cihaz testi kullanıcıda.

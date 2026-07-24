@@ -39,7 +39,13 @@ export function MpRaceScreen() {
   const setup = useMemo(() => {
     if (!client || !startMsg) return null;
     const track = getTrack2D(getMap2D(startMsg.map));
-    const countdown = Math.max(0.5, (startMsg.startAt - Date.now()) / 1000);
+    // Geri sayım, host saatiyle DEĞİL "mesajda kalan süre + yerelde geçen süre"
+    // ile hesaplanır → cihaz saatleri farklı olsa da herkes aynı anda başlar.
+    const kalanMs =
+      startMsg.t0 != null && startMsg.recvAt != null
+        ? startMsg.startAt - startMsg.t0 - (Date.now() - startMsg.recvAt)
+        : startMsg.startAt - Date.now();
+    const countdown = Math.max(0.5, kalanMs / 1000);
     const engine = new RaceEngine(track, countdown);
     engine.shortcutOpen = startMsg.shortcutOpen;
     const buffers = new Map<string, InterpolationBuffer>();
@@ -77,10 +83,49 @@ export function MpRaceScreen() {
 
   const engine = setup?.engine ?? null;
 
+  // --- Senkron start: herkes sahnesini yükleyince host GO yayınlar ---
+  const readyIds = useRef<Set<string>>(new Set());
+  const goSent = useRef(false);
+  const goApplied = useRef(false);
+  const playersRef = useRef(players);
+  playersRef.current = players;
+
+  /** Kalan süreye göre geri sayımı yeniden hizala (herkes aynı ana kilitlenir). */
+  const hizala = (kalanMs: number) => {
+    if (!engine || engine.phase !== 'countdown' || goApplied.current) return;
+    goApplied.current = true;
+    engine.time = -Math.max(0.4, kalanMs / 1000);
+  };
+
+  const gonderGo = () => {
+    if (!client?.isHost || goSent.current) return;
+    goSent.current = true;
+    const t0 = Date.now();
+    const goAt = t0 + 3200; // 3 ışıklı geri sayım + yayın payı
+    client.sendGo({ t0, goAt });
+    hizala(goAt - t0);
+  };
+
+  const herkesHazirsaBaslat = () => {
+    if (!client?.isHost || goSent.current) return;
+    for (const p of playersRef.current) {
+      if (!readyIds.current.has(p.id)) return; // hâlâ yükleniyor
+    }
+    gonderGo();
+  };
+
   // Ağ olayları → motor
   useEffect(() => {
     if (!client || !engine || !setup) return;
     client.setCallbacks({
+      onReady: (msg) => {
+        readyIds.current.add(msg.u);
+        herkesHazirsaBaslat();
+      },
+      onGo: (msg) => {
+        const gecen = msg.recvAt != null ? Date.now() - msg.recvAt : 0;
+        hizala(msg.goAt - msg.t0 - gecen);
+      },
       onPos: (msg) => {
         const buf = setup.buffers.get(msg.u);
         if (buf) buf.push({ t: Date.now(), s: msg.s, x: msg.x, y: msg.y, f: msg.f });
@@ -155,6 +200,21 @@ export function MpRaceScreen() {
       if (graceTimer.current !== null) window.clearTimeout(graceTimer.current);
     };
   }, [engine]);
+
+  // Sahnem kuruldu → "hazırım". Host ayrıca kendini işaretler ve güvenlik
+  // zaman aşımı kurar (bir istemci takılırsa yarış sonsuza dek beklemesin).
+  useEffect(() => {
+    if (!client || !engine) return;
+    readyIds.current = new Set([selfId]);
+    goSent.current = false;
+    goApplied.current = false;
+    client.sendReady();
+    if (!client.isHost) return;
+    herkesHazirsaBaslat();
+    const zamanAsimi = window.setTimeout(() => gonderGo(), 7000);
+    return () => window.clearTimeout(zamanAsimi);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [client, engine, selfId]);
 
   const finishSent = useRef(false);
   const botFinishSent = useRef(new Set<string>());

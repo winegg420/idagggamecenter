@@ -28,9 +28,15 @@ export class ElTakip {
     this.durduruldu = false;
     this.damga = 0; // yeni algılama karesi işareti (kesim işleme için)
     this.elSayisi = 0; // teşhis: o an algılanan el sayısı
+    // Algılama gecikmesi (sn): kamera karesi ile sonucun ekrana yansıması arasındaki
+    // gerçek gecikme. Oyun bunu el konumunu ileri sarmak için kullanır (senkron hissi).
+    this.gecikmeSn = 0.04;
     this._dongu = null;
     this._sonTs = -1;
     this._sonInference = 30;
+    this._sonIsleme = 0;
+    this._sonVideoZaman = -1;
+    this._rvfc = null;
     this.videoGenislik = 640;
     this.videoYukseklik = 480;
   }
@@ -52,7 +58,9 @@ export class ElTakip {
           facingMode: "user",
           width: { ideal: 640 },
           height: { ideal: 480 },
-          frameRate: { ideal: 30 },
+          // Yüksek kamera fps = daha taze kare = daha az gecikme. Cihaz
+          // desteklemezse ideal olduğu için sessizce 30'a düşer.
+          frameRate: { ideal: 60, min: 24 },
         },
         audio: false,
       });
@@ -86,10 +94,11 @@ export class ElTakip {
           baseOptions: { modelAssetPath: MODEL_URL, delegate: delege },
           numHands: maxEl,
           runningMode: "VIDEO",
-          // Düşük eşik = el hızla girip çıksa bile çabuk yakalanır.
-          minHandDetectionConfidence: 0.4,
-          minHandPresenceConfidence: 0.4,
-          minTrackingConfidence: 0.4,
+          // Düşük eşik = el kadrajdan çıkıp geri girince ANINDA yeniden yakalanır
+          // (yüksek eşikte model birkaç kare "emin olmayı" bekler → gecikme hissi).
+          minHandDetectionConfidence: 0.3,
+          minHandPresenceConfidence: 0.3,
+          minTrackingConfidence: 0.3,
         });
       try {
         this.landmarker = await olustur("GPU");
@@ -105,9 +114,22 @@ export class ElTakip {
     this.durduruldu = false;
     this.damga = 0;
     this._sonTs = -1;
-    // setTimeout tabanlı döngü: render rAF'ından bağımsız çalışır, çıkarım
-    // süresine göre kendini yavaşlatır → ana thread render'a nefes payı bırakır.
-    this._gonder();
+    this._sonIsleme = 0;
+    this._sonVideoZaman = -1;
+    // Kare-güdümlü döngü: requestVideoFrameCallback varsa kamera karesi hazır olur
+    // olmaz işleriz (en taze veri = en az gecikme); yoksa setTimeout'a düşeriz.
+    // Her iki yolda da çıkarım süresine göre kendini kısar → render'a nefes kalır.
+    this._dongulat();
+  }
+
+  // İşlemeye değer mi? (aynı kareyi tekrar işleme + CPU bütçesi)
+  _isleyebilir(v, simdi) {
+    if (!this.landmarker || !v || v.readyState < 2 || v.videoWidth === 0) return false;
+    // Aynı video karesi iki kez işlenirse boşa CPU yanar ve taze kare gecikir.
+    if (v.currentTime === this._sonVideoZaman) return false;
+    // Bütçe: çıkarım ne kadar sürüyorsa en az o kadar ara ver (~%50 doluluk).
+    const hedefAralik = Math.min(Math.max(this._sonInference, 12), 110);
+    return simdi - this._sonIsleme >= hedefAralik;
   }
 
   _isle(sonuc) {
@@ -125,28 +147,50 @@ export class ElTakip {
     this.damga++;
   }
 
-  _gonder() {
+  // Tek çıkarım adımı. kareYasi: kameranın bu kareyi ürettiği andan bu yana
+  // geçen süre (rVFC verirse gerçek değer, yoksa 0 sayılır).
+  _adim(kareYasi = 0) {
     if (this.durduruldu) return;
     const v = this.video;
-    if (this.landmarker && v && v.readyState >= 2 && v.videoWidth > 0) {
-      // detectForVideo zaman damgası KESİN ARTAN olmalı; aynı kareyi iki kez
-      // işlememek için video zamanı ilerlediğinde çalıştır.
-      let ts = Math.round(performance.now());
-      if (ts <= this._sonTs) ts = this._sonTs + 1;
-      this._sonTs = ts;
-      const t0 = performance.now();
-      try {
-        const sonuc = this.landmarker.detectForVideo(v, ts);
-        this._isle(sonuc);
-      } catch {
-        /* tek kare hatası — yut, döngü devam */
-      }
-      this._sonInference = performance.now() - t0;
+    const simdi = performance.now();
+    if (!this._isleyebilir(v, simdi)) return;
+    this._sonIsleme = simdi;
+    this._sonVideoZaman = v.currentTime;
+    // detectForVideo zaman damgası KESİN ARTAN olmalı.
+    let ts = Math.round(simdi);
+    if (ts <= this._sonTs) ts = this._sonTs + 1;
+    this._sonTs = ts;
+    const t0 = performance.now();
+    try {
+      const sonuc = this.landmarker.detectForVideo(v, ts);
+      this._isle(sonuc);
+    } catch {
+      /* tek kare hatası — yut, döngü devam */
     }
+    this._sonInference = performance.now() - t0;
+    // Toplam gecikme = kare yaşı + çıkarım + bir sonraki çizime kadar geçecek
+    // yarım kare. Oyun bu kadar ileri saracak (bkz. oyun.js telafi).
+    this.gecikmeSn = Math.min(0.18, (kareYasi + this._sonInference + 8) / 1000);
+  }
+
+  _dongulat() {
     if (this.durduruldu) return;
-    // Gecikme = çıkarım süresi kadar (16–120 ms) → render'a nefes payı bırakır.
-    const gecikme = Math.min(Math.max(this._sonInference, 16), 120);
-    this._dongu = setTimeout(() => this._gonder(), gecikme);
+    const v = this.video;
+    if (v && typeof v.requestVideoFrameCallback === "function") {
+      this._rvfc = v.requestVideoFrameCallback((simdi, meta) => {
+        if (this.durduruldu) return;
+        // meta.expectedDisplayTime yerine gerçek yakalama anını kullan.
+        const yakalama = meta && meta.captureTime ? meta.captureTime : simdi;
+        this._adim(Math.max(0, performance.now() - yakalama));
+        this._dongulat();
+      });
+      return;
+    }
+    // Yedek yol: kısa aralıklı tick — _isleyebilir zaten bütçeyi uygular.
+    this._dongu = setTimeout(() => {
+      this._adim(0);
+      this._dongulat();
+    }, 8);
   }
 
   _kamerayiKapat() {
@@ -168,6 +212,14 @@ export class ElTakip {
     this.hazir = false;
     if (this._dongu) clearTimeout(this._dongu);
     this._dongu = null;
+    try {
+      if (this._rvfc !== null && this.video?.cancelVideoFrameCallback) {
+        this.video.cancelVideoFrameCallback(this._rvfc);
+      }
+    } catch {
+      /* yut */
+    }
+    this._rvfc = null;
     this._kamerayiKapat();
     try {
       this.landmarker?.close?.();
