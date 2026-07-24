@@ -18,7 +18,10 @@ const MAX_ORAN = 1.05; // kesim segmenti köşegenin bu oranını aşarsa sayma 
 // zaten MAX_ORAN kesim segmentinde eler (uzun segment kesmez).
 const ESLESME_ORAN = 0.9;
 const COMBO_PENCERE = 0.55; // sn
-const IZ_OMUR = 0.22; // bıçak izi ömrü (sn)
+const IZ_OMUR = 0.18; // bıçak izi ömrü (sn) — kısa & keskin (Fruit Ninja hissi)
+// Bıçak izi YALNIZ hareket varken çizilir: son iz noktasından bu kadar (px)
+// uzaklaşılmadıysa yeni nokta eklenmez → el dururken ekranda hiçbir iz belirmez.
+const IZ_MIN_HAREKET = 5;
 
 // ---- KILIÇ: el + kol tek parça dev bıçak ----
 // MediaPipe yalnız eli verir; kolu bilek→avuç ekseninin TERSİNE uzatarak
@@ -313,7 +316,15 @@ export class Oyun {
         onc.taraf = g.taraf;
         onc.hiz.x = hx;
         onc.hiz.y = hy;
-        onc.iz.push({ x: g.kilic.uc.x, y: g.kilic.uc.y, t: this._t });
+        // Bıçak izi ucu = orta parmak ucu (elin doğal öncü noktası). Yalnız yeterince
+        // hareket varsa nokta ekle → el dururken iz büyümez, kısa sürede söner ve kaybolur.
+        {
+          const ucN = g.tum[12] || g.palm;
+          const sonIz = onc.iz.length ? onc.iz[onc.iz.length - 1] : null;
+          if (!sonIz || Math.hypot(ucN.x - sonIz.x, ucN.y - sonIz.y) > IZ_MIN_HAREKET) {
+            onc.iz.push({ x: ucN.x, y: ucN.y, t: this._t });
+          }
+        }
         onc.gorulen = this._t;
         yeni.push(onc);
       } else {
@@ -325,7 +336,7 @@ export class Oyun {
           taraf: g.taraf,
           hiz: { x: 0, y: 0 },
           kayma: { x: 0, y: 0 },
-          iz: [{ x: g.kilic.uc.x, y: g.kilic.uc.y, t: this._t }],
+          iz: [{ x: (g.tum[12] || g.palm).x, y: (g.tum[12] || g.palm).y, t: this._t }],
           gorulen: this._t,
         });
       }

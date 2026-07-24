@@ -46,3 +46,16 @@ meyveleri hızlı kesemiyorum, koca bıçakları çılgınca savurmak istiyorum.
 - **Test:** motor-test 16/16 ✓ (yeni: kol bıçağı, gecikme telafisi, kadraj dışı→geri dönüş).
   `_test/kilic-test.html` — kamera/oturum gerektirmeyen görsel test (Chrome'da doğrulandı).
 - **Kalan:** gerçek kamera + iPhone testi kullanıcıda.
+
+---
+
+## 25 Temmuz 2026 — Fruit Ninja bıçak izi + boşta bıçak yok + kasma
+
+Kullanıcı geri bildirimi: (1) el dururken bıçak görünmemeli, (2) bıçak efekti "elektrik gibi berbat" → Fruit Ninja izi, (3) hâlâ kasma.
+
+- **Elektrik efekti kaldırıldı:** Her algılanan el için sürekli çizilen dev enerji-kılıcı (`kilicCiz`) + el iskeleti (`elIskeletCiz`) silindi. Bunlar el hareketsizken bile landmark jitter'ıyla titreyip "elektrik" görüntüsü veriyordu. Artık gerçek kol zaten kamerada görünür; üzerine sadece iz çizilir.
+- **Fruit Ninja izi (`render.js izCiz` yeniden yazıldı):** Uçlarda sivri, ortada dolgun BEYAZ pala şeridi + altında mavimsi additif parıltı (shadowBlur yok → mobilde ucuz). Tazelikle incelir, 0.18 sn'de söner.
+- **Boşta bıçak yok (`oyun.js`):** İz noktası artık orta parmak ucundan (elin doğal öncü noktası) ve YALNIZ son noktadan >5px hareket varsa eklenir (`IZ_MIN_HAREKET`). El dururken yeni nokta eklenmez, mevcut noktalar kısa sürede söner → ekranda hiç iz kalmaz. Kesim mantığı (kol bıçağı + MIN_SEGMENT) değişmedi.
+- **Kasma:** `eltakip.js` throttle'ı çıkarım süresinin ~1.8 katına çıkarıldı (eski: 1×, tavan 110ms → yeni: 1.8×, tavan 150ms). detectForVideo ana thread'de senkron olduğundan yavaş/CPU cihazda süresi boyunca render donuyordu; artık daha seyrek işlenip ana thread'e nefes bırakılıyor (kasma yerine akıcı render).
+
+**Test:** motor-test 16/16 ✓ (kesim/kol bıçağı/statik el/gecikme telafisi regresyonsuz). `npm run build` temiz (bundle 24.5→23.8 KB).

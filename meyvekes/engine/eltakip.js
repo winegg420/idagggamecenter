@@ -127,8 +127,13 @@ export class ElTakip {
     if (!this.landmarker || !v || v.readyState < 2 || v.videoWidth === 0) return false;
     // Aynı video karesi iki kez işlenirse boşa CPU yanar ve taze kare gecikir.
     if (v.currentTime === this._sonVideoZaman) return false;
-    // Bütçe: çıkarım ne kadar sürüyorsa en az o kadar ara ver (~%50 doluluk).
-    const hedefAralik = Math.min(Math.max(this._sonInference, 12), 110);
+    // Bütçe: detectForVideo ana thread'de SENKRON çalışır; süresi boyunca render
+    // (rAF) donar. Bu yüzden çıkarım ne kadar YAVAŞSA o kadar seyrek işleriz —
+    // aralığı çıkarım süresinin ~1.8 katı tutup ana thread'e nefes bırakırız.
+    // Hızlı GPU cihazda süre ~10-15ms → aralık ~18-27ms (bol takip); yavaş/CPU
+    // cihazda süre ~90ms → aralık ~150ms (kasma yerine akıcı render, takip biraz
+    // seyrek). Böylece "hiçbir cihazda kasma" hedefi korunur.
+    const hedefAralik = Math.min(Math.max(this._sonInference * 1.8, 14), 150);
     return simdi - this._sonIsleme >= hedefAralik;
   }
 
