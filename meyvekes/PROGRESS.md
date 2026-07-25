@@ -155,3 +155,38 @@ kesmesi, 60 Hz'de duran elin kesmemesi). Build temiz (worker ayrı chunk, 1.9 kB
 
 **Kalan (kullanıcıda):** gerçek kamera + iPhone testi. Konsolda `[MeyveKes] Worker ... ana thread'e
 düşülüyor` uyarısı görürsen worker yolu o cihazda kurulamamış demektir (oyun yine çalışır).
+
+### Aynı gün düzeltme — DURAN EL KESİYORDU (hareket kapısı)
+
+Kullanıcı: *"elim sabit dururken bile meyveleri kesiyor; SADECE elimi kolumu kıpırdattığımda
+kesmeli"*. **Benim yaptığım düzeltmenin yan etkisiydi:**
+
+- Algılama worker sayesinde ~15 Hz'den 60 Hz'e çıktı. MediaPipe landmark'ları el sabit dururken
+  de 2-5 px titrer. Kare başına 6 px'lik mesafe eşiği 15 Hz'de titremeyi eliyordu; 60 Hz'de aynı
+  titreme "kare başına 4 px = 250 px/s" gibi göründü ve eklediğim 170 px/s hız tabanını aştı.
+- Üstüne gecikme telafisi (`hiz × telafiSn`) titremeyi ~3 kat büyütüyordu (dtA küçüldükçe daha
+  fazla). Sonuç: duran elin dev kılıcı önünden geçen her meyveyi kesiyordu.
+
+**Kalıcı çözüm — hareket kapısı:** kesim izni artık ANLIK kare mesafesine değil,
+`HAREKET_PENCERE = 0.12 sn` boyunca biriken **NET (yönlü) yer değiştirmeye** bakıyor. Titreme
+sıfır ortalamalı olduğu için net yolu birkaç px'te kalır; gerçek savurma aynı pencerede 100+ px
+yol alır. Kapı kapalıyken **kesim de, gecikme telafisi de, bıçak izi de** üretilmez (hepsi tek
+karardan besleniyor → duran elde ekranda hiçbir şey olmuyor).
+
+- Eşikler **ekran köşegenine oranlı** (`SAVURMA_ORAN 0.3/sn`, `IZ_HIZ_ORAN 0.09`,
+  `SUPURME_ORAN 0.36`): landmark titremesi normalize uzayda sabit olduğu için px'e çevrilince
+  ekranla birlikte büyüyor. Sabit px eşiği telefonda katı, geniş masaüstü ekranda gevşek kalıyordu.
+- **Pencere dolmadan anlık hıza güvenilmez** (`SAVURMA_MIN_PENCERE 0.05 sn`): elin yeni
+  yakalandığı ilk karede tek karelik titreme "480 px/s" görünüp kapıyı açıyordu (telefon
+  testinde yakalandı). Kapı ya 50 ms örnek birikmesini ya da titremenin asla üretemeyeceği
+  net yolu (`SAVURMA_NET_ORAN 0.05 × köşegen`) ister — ikinci koşul köprüden dönen elin ilk
+  karede kesmesini korur.
+- `MIN_HIZ` (kare-başı hız tabanı) kaldırıldı; yerini bu kapı aldı.
+
+**Test:** 39/39 ✓ — yeni: duran el ±4 px titremeyle 1 sn boyunca (meyve kılıcın TAM üstünde)
+kesmiyor ve iz üretmiyor; aynı sınama telefon çözünürlüğünde (390×844) de geçiyor; ölçülü ve
+hızlı savurmalar kesmeye devam ediyor; 60 sn tam maç simülasyonunda 103 kesim.
+
+**Ders (kritik):** algılama frekansını değiştirmek, kare-başı mesafe/hız eşiklerinin anlamını
+değiştirir. Bu tür eşikler ya zaman penceresine ya ekran boyuna oranlı olmalı — sabit px/kare
+eşikleri frekans veya çözünürlük değişince sessizce bozulur.

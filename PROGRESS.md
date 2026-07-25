@@ -639,3 +639,13 @@ tavanı köşegenin %50'si). Test: **36/36 ✓**. Ayrıntı: `meyvekes/PROGRESS.
 **Kullanıcıda kalan (otomasyonda yapılamaz):** gerçek kamera + iPhone ile Meyve Kes testi;
 2 cihazla DidaGP/PatiRun/Kafa Topu online maç testi. `patirun/game/__tests__` vitest gerektiriyor,
 hub'da vitest kurulu değil.
+
+### Aynı gün düzeltme — Meyve Kes: duran el kesiyordu
+
+Worker'lı çıkarımın yan etkisi: algılama ~15 Hz'den 60 Hz'e çıkınca landmark titremesi (2-5 px)
+kare başına "gerçek hareket" gibi göründü, gecikme telafisi de bunu ~3 kat büyüttü → **duran elin
+kılıcı önünden geçen meyveleri kesiyordu.** Kesim izni artık anlık kare mesafesine değil 0.12 sn'lik
+pencerede biriken NET (yönlü) yer değiştirmeye bakıyor; eşikler ekran köşegenine oranlı; pencere
+dolmadan anlık hıza güvenilmiyor. Kapı kapalıyken kesim + gecikme telafisi + bıçak izi birlikte
+kapanıyor. Test 39/39 (yeni: ±4 px titreyen duran el, hem masaüstü hem telefon çözünürlüğünde,
+meyve kılıcın tam üstünde dururken 1 sn boyunca kesmiyor). Ayrıntı: `meyvekes/PROGRESS.md`.

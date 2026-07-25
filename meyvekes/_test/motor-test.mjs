@@ -326,33 +326,87 @@ function agizYap(pxX, pxY, acikPx, genPx = 80) {
   ok("uçtan uca köprü kesmiyor (tavan)", b.kesimSayisi === 0);
 }
 
-// ---- Test 15: yüksek frekanslı algılama (worker) yavaş savurmayı reddetmiyor ----
-// Worker'lı çıkarımda algılama 60 Hz'e çıkar; kare başına mesafe küçülür.
-// Sabit 6 px mesafe tabanı gerçek savurmaları reddediyordu → hız tabanı eklendi.
+// ---- Test 15: 60 Hz algılamada HAREKET KAPISI ----
+// Worker'lı çıkarımda algılama 60 Hz'e çıkar. Landmark titremesi (2-5 px) kare
+// başına "gerçek hareket" gibi görünüp DURAN ELDE kesim yapıyordu (kullanıcı
+// şikâyeti). Kesim izni artık ~0.12 sn penceredeki NET yer değiştirmeye bakar.
 {
-  console.log("Test 15: 60 Hz algılamada yavaş savurma");
+  console.log("Test 15: 60 Hz algılamada hareket kapısı");
   const o = new Oyun("tekli");
   while (o.faz !== "oyun") o.guncelle(0.05, [], 0, harita, W, H);
   o.meyveler = [];
-  let x = 340;
+  let x = 300;
   o.guncelle(1 / 60, [elYap(x, 300)], 1, harita, W, H);
-  o.meyveler = [{ meyve: { r: 34, renk: "#f00", altin: false }, x: 360, y: 300, vx: 0, vy: 0, r: 34, aci: 0, donHiz: 0 }];
-  // 300 px/s'lik ölçülü savurma: 60 Hz'de kare başına yalnız 5 px
-  for (let i = 0; i < 6; i++) {
-    x += 5;
+  o.meyveler = [{ meyve: { r: 34, renk: "#f00", altin: false }, x: 380, y: 300, vx: 0, vy: 0, r: 34, aci: 0, donHiz: 0 }];
+  // ölçülü ama GERÇEK savurma: 60 Hz'de kare başına 8 px (~480 px/s)
+  for (let i = 0; i < 10; i++) {
+    x += 8;
     o.guncelle(1 / 60, [elYap(x, 300)], 2 + i, harita, W, H);
   }
   ok("60 Hz'de ölçülü savurma kesti", o.kesimSayisi === 1);
 
-  // aynı frekansta duran el (yalnız ±1 px gürültü) kesmemeli
+  // KULLANICI ŞİKÂYETİ: el sabit dururken (yalnız landmark titremesi) meyve
+  // kesilmemeli — meyve kılıcın TAM üstünde dursa bile.
   const d = new Oyun("tekli");
   while (d.faz !== "oyun") d.guncelle(0.05, [], 0, harita, W, H);
+  let tohum = 7;
+  const titre = () => {
+    // deterministik sözde-rastgele ±4 px titreme
+    tohum = (tohum * 1103515245 + 12345) & 0x7fffffff;
+    return ((tohum % 800) / 100 - 4);
+  };
   d.guncelle(1 / 60, [elYap(400, 300)], 1, harita, W, H);
-  d.meyveler = [{ meyve: { r: 34, renk: "#f00", altin: false }, x: 402, y: 300, vx: 0, vy: 0, r: 34, aci: 0, donHiz: 0 }];
-  for (let i = 0; i < 20; i++) {
-    d.guncelle(1 / 60, [elYap(400 + (i % 2), 300)], 2 + i, harita, W, H);
+  for (let i = 0; i < 60; i++) {
+    // her karede kılıcın üstüne yeni meyve koy (kesim şansı sürekli olsun)
+    d.meyveler = [{ meyve: { r: 34, renk: "#f00", altin: false }, x: 400, y: 300, vx: 0, vy: 0, r: 34, aci: 0, donHiz: 0 }];
+    d.guncelle(1 / 60, [elYap(400 + titre(), 300 + titre())], 2 + i, harita, W, H);
   }
-  ok("60 Hz'de duran el (gürültü) kesmedi", d.kesimSayisi === 0);
+  ok("duran el (±4 px titreme) 1 sn boyunca kesmedi", d.kesimSayisi === 0);
+  ok("duran el iz de üretmedi", d.izler.every((iz) => iz.length === 0));
+}
+
+// ---- Test 16: eşikler ekran boyundan bağımsız (telefon dikey ekran) ----
+// Hareket kapısı eşikleri köşegene oranlı; küçük telefon ekranında da duran el
+// kesmemeli, gerçek savurma kesmeli.
+{
+  console.log("Test 16: telefon ekranında hareket kapısı");
+  const W2 = 390;
+  const H2 = 844; // iPhone 14 mantıksal çözünürlük
+  const harita2 = (nx, ny) => ({ x: nx * W2, y: ny * H2 });
+  const el2 = (pxX, pxY) => {
+    const noktalar = [];
+    for (let i = 0; i < 21; i++) {
+      const ox = ((i % 5) - 2) * 4;
+      const oy = (((i / 5) | 0) - 2) * 4;
+      noktalar.push({ x: (pxX + ox) / W2, y: (pxY + oy) / H2, z: 0 });
+    }
+    return { noktalar, taraf: pxX < W2 / 2 ? "sol" : "sag" };
+  };
+
+  const d = new Oyun("tekli");
+  while (d.faz !== "oyun") d.guncelle(0.05, [], 0, harita2, W2, H2);
+  let tohum = 3;
+  const titre = () => {
+    tohum = (tohum * 1103515245 + 12345) & 0x7fffffff;
+    return (tohum % 800) / 100 - 4;
+  };
+  d.guncelle(1 / 60, [el2(190, 400)], 1, harita2, W2, H2);
+  for (let i = 0; i < 60; i++) {
+    d.meyveler = [{ meyve: { r: 30, renk: "#f00", altin: false }, x: 190, y: 400, vx: 0, vy: 0, r: 30, aci: 0, donHiz: 0 }];
+    d.guncelle(1 / 60, [el2(190 + titre(), 400 + titre())], 2 + i, harita2, W2, H2);
+  }
+  ok("telefonda duran el kesmedi", d.kesimSayisi === 0);
+
+  const o = new Oyun("tekli");
+  while (o.faz !== "oyun") o.guncelle(0.05, [], 0, harita2, W2, H2);
+  let y = 300;
+  o.guncelle(1 / 60, [el2(190, y)], 1, harita2, W2, H2);
+  o.meyveler = [{ meyve: { r: 30, renk: "#f00", altin: false }, x: 190, y: 400, vx: 0, vy: 0, r: 30, aci: 0, donHiz: 0 }];
+  for (let i = 0; i < 10; i++) {
+    y += 10; // ~600 px/s savurma
+    o.guncelle(1 / 60, [el2(190, y)], 2 + i, harita2, W2, H2);
+  }
+  ok("telefonda gerçek savurma kesti", o.kesimSayisi === 1);
 }
 
 console.log(`\nSonuç: ${gecti} geçti, ${kaldi} kaldı`);
