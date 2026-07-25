@@ -584,5 +584,8 @@ karesinde (+5 px hareket koşuluyla) ekleniyordu; aynı düzenlemede kasma için
 eklendi (`meyvekes/_test/yeme-test.html`). Chrome eklentisi bu oturumda bağlı olmadığından tarayıcı
 otomasyonu yapılamadı.
 
-**Kullanıcıda kalan:** Gerçek kamera testi — iz görünüyor mu, kesim hissi, ağızla yutma isabeti,
-kasma. Ayrıca `npx supabase db push` (yeni migration) onayı: yapılmadan "Meyve Ye" skorları kaydedilmez.
+**Migration:** `npx supabase db push` 403 verdi (CLI oturumunun yetkisi yok) → SQL aynı gün
+**Supabase Dashboard → SQL Editor**'den elle uygulandı ve başarılı oldu. Bu projede migration yolu
+budur; CLI push'a güvenme.
+
+**Kullanıcıda kalan:** Gerçek kamera testi — iz görünüyor mu, kesim hissi, ağızla yutma isabeti, kasma.
