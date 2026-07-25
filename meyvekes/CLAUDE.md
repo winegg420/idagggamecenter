@@ -16,7 +16,7 @@ Bu dosya, `meyvekes/` modülü için rehberdir. **idaGG Game Center** hub'ının
 
 ## Dizin Yapısı (`meyvekes/`)
 
-- `engine/` — eltakip.js (kamera + HandLandmarker, video karesini doğrudan işler → aspect kayması yok), yuztakip.js (kamera + FaceLandmarker → ağız noktaları), oyun.js (faz makinesi + fizik + kesim/yutma algılama; kimlik eşleştirmeli el takibi, kol bıçağı), meyveler.js (sprite/emoji önbellek + foto manifest), render.js (kamera + meyve + iz + kesim efektleri + ağız halkası), ses.js (WebAudio efektleri)
+- `engine/` — **takip-worker.js** (çıkarım worker'ı: el/yüz landmarker, ana thread bloklanmaz), **takip-cekirdek.js** (worker yaşam döngüsü + kare transferi, iki takip modülünün ortak altyapısı), eltakip.js (kamera + HandLandmarker; çıkarım önce worker'da, olmazsa ana thread), yuztakip.js (kamera + FaceLandmarker → ağız noktaları; aynı worker yolu), oyun.js (faz makinesi + fizik + kesim/yutma algılama; kimlik eşleştirmeli el takibi, kol bıçağı), meyveler.js (sprite/emoji önbellek + foto manifest), render.js (kamera + meyve + iz + kesim efektleri + ağız halkası), ses.js (WebAudio efektleri)
 - `app/` — pages (MenuPage, OyunPage [kamera+canvas+HUD+teşhis rozeti+ses düğmesi], SiralamaPage), styles
 - `_test/` — motor-test.mjs (Node başsız, 31 doğrulama: faz, kesim, statik el, hızlı savurma, combo, gecikme telafisi, iz üretimi, meyve ye, efektler), kilic-test.html + yeme-test.html (kamerasız görsel testler)
 
@@ -33,7 +33,8 @@ Tablolar **`meyvekes_` önekli**: `meyvekes_skorlar` (user_id+mod pk, en_iyi, to
 
 ## Kritik Notlar (kök-neden dersleri)
 
-- **Kasma:** legacy MediaPipe ana thread'i WASM ile bloklardı → Tasks Vision GPU + senkron `detectForVideo` + setTimeout self-throttle.
+- **Kasma:** legacy MediaPipe ana thread'i WASM ile bloklardı → Tasks Vision. Ama `detectForVideo` SENKRON olduğu için ana thread'de çağrıldığı sürece render donuyor, bu yüzden algılama kendini kısmak zorunda kalıyordu (zayıf cihazda ~7 algılama/sn). **Nihai çözüm: çıkarım worker'da** (`takip-worker.js`) → kısma yok, kameranın her karesi işlenir. Ana thread yalnız `createImageBitmap` + transfer yapar. Worker kurulamazsa/sonuç üretmezse otomatik ana-thread yedeği.
+- **El kadrajdan çıkıp geri girince tanınmaması:** iki katmanlı sorundu — (a) algılama kör penceresi (yukarıdaki worker çözümü), (b) `oyun.js`'te el kaybolunca takip kimliğinin ANINDA düşmesi → geri gelen el hızsız/segmentsiz yeni kimlik olduğu için ilk savurma kesmiyordu. Çözüm: `KAYIP_SURE` (0.4 sn) köprüsü + iki geçişli eşleştirme; köprü segmentinin tavanı köşegenin %50'si (uçtan uca bedava kesim olmasın).
 - **Kesememe:** landmark'lar sabit 320x240 kareye normalize edilince 16:9 kamerada aspect bozulup **kayıyordu** → artık video karesi doğrudan işlenir.
 - **Görsel teşhis:** "🖐 el görünmüyor" / "😐 yüz görünmüyor" rozeti — kamera/takip sorunları anında görünür.
 - GPU başarısızsa CPU delegesine otomatik düşüş.

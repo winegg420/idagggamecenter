@@ -4,15 +4,24 @@
 // yükler ve el işaret noktalarını GPU'da takip eder.
 //
 // Neden Tasks Vision (eski @mediapipe/hands yerine):
-//  - GPU delegesi → çıkarım ana thread'i bloklamaz (kasma çözülür).
 //  - detectForVideo SENKRON döner → busy-flag/callback yarışı yok.
-//  - Video KARESİNİ DOĞRUDAN işler → landmark'lar gerçek kamera en-boy
+//  - Kamera karesini DOĞRUDAN işler → landmark'lar gerçek kamera en-boy
 //    oranına göre normalize olur; sabit 320x240 offscreen kareye küçültme
 //    kaynaklı aspect bozulması (koordinat kayması) ORTADAN KALKAR.
+//
+// ÇALIŞMA YOLU 1 (tercih edilen): çıkarım WORKER'da (takip-worker.js).
+//   Ana thread yalnız kareyi kopyalar (createImageBitmap) ve transfer eder;
+//   çıkarım ayrı thread'de koştuğu için KISMA GEREKMEZ → kamera her karesi
+//   işlenir (30-60 algılama/sn) ve render 60 fps akıcı kalır. El kadrajdan
+//   çıkıp geri girdiğinde 1-2 kare içinde yeniden yakalanır.
+// ÇALIŞMA YOLU 2 (yedek): worker/OffscreenCanvas yoksa eski ana-thread yolu.
+//   Orada çıkarım render'ı bloklar, bu yüzden kendini kısar (bkz. _isleyebilir).
 //
 // Aynalama (selfie) çizim/kesim tarafında yapılır (koordinatHesap.esle).
 // Bu sınıf ham normalize landmark verir; taraf (sol/sag) ekran konumuna göre.
 // ============================================================
+
+import { WorkerCikarim } from "./takip-cekirdek.js";
 
 const TASKS_SURUM = "0.10.14";
 const CDN_KOK = `https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@${TASKS_SURUM}`;
@@ -39,6 +48,72 @@ export class ElTakip {
     this._rvfc = null;
     this.videoGenislik = 640;
     this.videoYukseklik = 480;
+    // Worker çıkarımı (tercih edilen yol) — bkz. takip-cekirdek.js
+    this._cekirdek = null;
+    this._maxEl = 2;
+    this._yedekGecis = false;
+  }
+
+  /** HandLandmarker'ı ANA THREAD'de kurar (yedek yol). */
+  async _anaThreadBaslat(maxEl) {
+    // Vite'ın build sırasında bu CDN URL'sini çözmeye çalışmaması için @vite-ignore.
+    const vision = await import(/* @vite-ignore */ `${CDN_KOK}/vision_bundle.mjs`);
+    const { HandLandmarker, FilesetResolver } = vision;
+    if (!HandLandmarker || !FilesetResolver) {
+      throw new Error("HandLandmarker global bulunamadı");
+    }
+    const fileset = await FilesetResolver.forVisionTasks(`${CDN_KOK}/wasm`);
+    // Önce GPU delegesi; başarısız olursa CPU'ya düş (yaşlı/uyumsuz GPU'lar).
+    const olustur = (delege) =>
+      HandLandmarker.createFromOptions(fileset, {
+        baseOptions: { modelAssetPath: MODEL_URL, delegate: delege },
+        numHands: maxEl,
+        runningMode: "VIDEO",
+        // Düşük eşik = el kadrajdan çıkıp geri girince ANINDA yeniden yakalanır
+        // (yüksek eşikte model birkaç kare "emin olmayı" bekler → gecikme hissi).
+        minHandDetectionConfidence: 0.3,
+        minHandPresenceConfidence: 0.3,
+        minTrackingConfidence: 0.3,
+      });
+    try {
+      this.landmarker = await olustur("GPU");
+    } catch {
+      this.landmarker = await olustur("CPU");
+    }
+  }
+
+  /** Worker yolu çalışma anında sonuç üretemiyorsa (ör. bu tarayıcıda çıkarım
+   *  ImageBitmap'i kabul etmiyorsa) canlı canlı ana-thread yoluna geç. Oyun
+   *  bozulmaz: en kötü hâlde eski (kısmalı) davranışa döner. */
+  async _yedegeDus() {
+    if (this._yedekGecis) return;
+    this._yedekGecis = true;
+    this._cekirdek = null;
+    try {
+      await this._anaThreadBaslat(this._maxEl);
+    } catch (e) {
+      console.error("[MeyveKes] Ana thread el takibi de kurulamadı:", e);
+    }
+  }
+
+  /** Worker çıkarımını kurar; desteklenmiyorsa false (ana-thread yedeğine düşülür). */
+  async _workerBaslat(maxEl) {
+    this._maxEl = maxEl;
+    const cekirdek = new WorkerCikarim({
+      model: "el",
+      cdnKok: CDN_KOK,
+      modelUrl: MODEL_URL,
+      maxEl,
+      onSonuc: (veri, gecikmeSn) => {
+        if (this.durduruldu) return;
+        this._ellerAyarla(veri.eller || []);
+        this.gecikmeSn = gecikmeSn;
+      },
+      onYedek: () => this._yedegeDus(),
+    });
+    if (!(await cekirdek.kur())) return false;
+    this._cekirdek = cekirdek;
+    return true;
   }
 
   // Kamera + HandLandmarker'ı başlatır. Hata durumunda anlamlı mesajla reddeder.
@@ -78,33 +153,21 @@ export class ElTakip {
       throw new Error("Kamera açılamadı: " + (e?.message || e));
     }
 
-    // 2) HandLandmarker (Tasks Vision, CDN üzerinden ESM)
-    try {
-      // Vite'ın build sırasında bu CDN URL'sini çözmeye çalışmaması için @vite-ignore.
-      const vision = await import(/* @vite-ignore */ `${CDN_KOK}/vision_bundle.mjs`);
-      const { HandLandmarker, FilesetResolver } = vision;
-      if (!HandLandmarker || !FilesetResolver) {
-        throw new Error("HandLandmarker global bulunamadı");
-      }
-      const fileset = await FilesetResolver.forVisionTasks(`${CDN_KOK}/wasm`);
+    // 2) Çıkarım motoru — ÖNCE worker (ana thread bloklanmaz, kısma gerekmez)
+    if (await this._workerBaslat(maxEl)) {
+      this.hazir = true;
+      this.durduruldu = false;
+      this.damga = 0;
+      this._sonTs = -1;
+      this._sonIsleme = 0;
+      this._sonVideoZaman = -1;
+      this._dongulat();
+      return;
+    }
 
-      // Önce GPU delegesi; başarısız olursa CPU'ya düş (yaşlı/uyumsuz GPU'lar).
-      const olustur = (delege) =>
-        HandLandmarker.createFromOptions(fileset, {
-          baseOptions: { modelAssetPath: MODEL_URL, delegate: delege },
-          numHands: maxEl,
-          runningMode: "VIDEO",
-          // Düşük eşik = el kadrajdan çıkıp geri girince ANINDA yeniden yakalanır
-          // (yüksek eşikte model birkaç kare "emin olmayı" bekler → gecikme hissi).
-          minHandDetectionConfidence: 0.3,
-          minHandPresenceConfidence: 0.3,
-          minTrackingConfidence: 0.3,
-        });
-      try {
-        this.landmarker = await olustur("GPU");
-      } catch {
-        this.landmarker = await olustur("CPU");
-      }
+    // 3) Yedek: HandLandmarker ana thread'de (Tasks Vision, CDN üzerinden ESM)
+    try {
+      await this._anaThreadBaslat(maxEl);
     } catch (e) {
       this._kamerayiKapat();
       throw new Error("El takip modeli yüklenemedi (internet gerekli): " + (e?.message || e));
@@ -137,8 +200,12 @@ export class ElTakip {
   }
 
   _isle(sonuc) {
+    this._ellerAyarla((sonuc && sonuc.landmarks) || []);
+  }
+
+  // cok: [[{x,y,z}×21], ...] — normalize landmark listesi (worker ya da yerel çıkarım)
+  _ellerAyarla(cok) {
     const eller = [];
-    const cok = (sonuc && sonuc.landmarks) || [];
     for (let i = 0; i < cok.length; i++) {
       const noktalar = cok[i]; // [{x,y,z}...] normalize (video karesine göre)
       const palm = noktalar[9] || noktalar[0];
@@ -180,19 +247,25 @@ export class ElTakip {
   _dongulat() {
     if (this.durduruldu) return;
     const v = this.video;
+    // Yol her karede yeniden bakılır: çalışma anında yedeğe geçiş olabilir.
+    const adimAt = (yas) => {
+      if (this._cekirdek?.aktif) this._cekirdek.kareGonder(this.video, yas);
+      else this._adim(yas);
+    };
     if (v && typeof v.requestVideoFrameCallback === "function") {
       this._rvfc = v.requestVideoFrameCallback((simdi, meta) => {
         if (this.durduruldu) return;
         // meta.expectedDisplayTime yerine gerçek yakalama anını kullan.
         const yakalama = meta && meta.captureTime ? meta.captureTime : simdi;
-        this._adim(Math.max(0, performance.now() - yakalama));
+        adimAt(Math.max(0, performance.now() - yakalama));
         this._dongulat();
       });
       return;
     }
-    // Yedek yol: kısa aralıklı tick — _isleyebilir zaten bütçeyi uygular.
+    // Yedek yol: kısa aralıklı tick (rVFC yoksa). Worker yolunda "meşgul"
+    // bayrağı, ana-thread yolunda _isleyebilir bütçesi hızı sınırlar.
     this._dongu = setTimeout(() => {
-      this._adim(0);
+      adimAt(0);
       this._dongulat();
     }, 8);
   }
@@ -225,6 +298,8 @@ export class ElTakip {
     }
     this._rvfc = null;
     this._kamerayiKapat();
+    this._cekirdek?.kapat();
+    this._cekirdek = null;
     try {
       this.landmarker?.close?.();
     } catch {

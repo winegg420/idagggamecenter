@@ -293,5 +293,67 @@ function agizYap(pxX, pxY, acikPx, genPx = 80) {
   ok("efektler söndü", o.slashlar.length === 0 && o.dalgalar.length === 0 && o.sarsinti === 0);
 }
 
+// ---- Test 14: HIZLI geri giriş (köprü) — ilk karede keser ----
+// Kullanıcı şikâyeti: "kollarım ekrandan çıkıp hızlıca girince oyun tanımıyor".
+// Kısa kayıpta kimlik korunur (KAYIP_SURE) → dönüş savurması İLK karede kesmeli.
+{
+  console.log("Test 14: hızlı geri giriş köprüsü");
+  const o = new Oyun("tekli");
+  while (o.faz !== "oyun") o.guncelle(0.05, [], 0, harita, W, H);
+  o.guncelle(0.03, [elYap(250, 300)], 1, harita, W, H);
+  // 0.15 sn kadraj dışı (KAYIP_SURE=0.4 içinde) → kimlik korunmalı
+  for (let i = 0; i < 5; i++) o.guncelle(0.03, [], 2, harita, W, H);
+  o.meyveler = [{ meyve: { r: 40, renk: "#f00", altin: false }, x: 360, y: 300, vx: 0, vy: 0, r: 40, aci: 0, donHiz: 0 }];
+  o.guncelle(0.03, [elYap(430, 300)], 3, harita, W, H);
+  ok("kısa kayıp sonrası İLK karede kesti", o.kesimSayisi === 1);
+
+  // Uzun kayıp (KAYIP_SURE üstü) köprü kurmaz — kimlik gerçekten düşer
+  const u = new Oyun("tekli");
+  while (u.faz !== "oyun") u.guncelle(0.05, [], 0, harita, W, H);
+  u.guncelle(0.03, [elYap(250, 300)], 1, harita, W, H);
+  for (let i = 0; i < 20; i++) u.guncelle(0.03, [], 2, harita, W, H); // 0.6 sn
+  u.meyveler = [{ meyve: { r: 40, renk: "#f00", altin: false }, x: 360, y: 300, vx: 0, vy: 0, r: 40, aci: 0, donHiz: 0 }];
+  u.guncelle(0.03, [elYap(430, 300)], 3, harita, W, H);
+  ok("uzun kayıpta köprü kurulmadı", u.kesimSayisi === 0);
+
+  // Ekranın bir ucundan diğerine köprü "bedava kesim" vermez (segment tavanı)
+  const b = new Oyun("tekli");
+  while (b.faz !== "oyun") b.guncelle(0.05, [], 0, harita, W, H);
+  b.guncelle(0.03, [elYap(40, 300)], 1, harita, W, H);
+  for (let i = 0; i < 4; i++) b.guncelle(0.03, [], 2, harita, W, H);
+  b.meyveler = [{ meyve: { r: 30, renk: "#f00", altin: false }, x: 400, y: 300, vx: 0, vy: 0, r: 30, aci: 0, donHiz: 0 }];
+  b.guncelle(0.03, [elYap(780, 300)], 3, harita, W, H);
+  ok("uçtan uca köprü kesmiyor (tavan)", b.kesimSayisi === 0);
+}
+
+// ---- Test 15: yüksek frekanslı algılama (worker) yavaş savurmayı reddetmiyor ----
+// Worker'lı çıkarımda algılama 60 Hz'e çıkar; kare başına mesafe küçülür.
+// Sabit 6 px mesafe tabanı gerçek savurmaları reddediyordu → hız tabanı eklendi.
+{
+  console.log("Test 15: 60 Hz algılamada yavaş savurma");
+  const o = new Oyun("tekli");
+  while (o.faz !== "oyun") o.guncelle(0.05, [], 0, harita, W, H);
+  o.meyveler = [];
+  let x = 340;
+  o.guncelle(1 / 60, [elYap(x, 300)], 1, harita, W, H);
+  o.meyveler = [{ meyve: { r: 34, renk: "#f00", altin: false }, x: 360, y: 300, vx: 0, vy: 0, r: 34, aci: 0, donHiz: 0 }];
+  // 300 px/s'lik ölçülü savurma: 60 Hz'de kare başına yalnız 5 px
+  for (let i = 0; i < 6; i++) {
+    x += 5;
+    o.guncelle(1 / 60, [elYap(x, 300)], 2 + i, harita, W, H);
+  }
+  ok("60 Hz'de ölçülü savurma kesti", o.kesimSayisi === 1);
+
+  // aynı frekansta duran el (yalnız ±1 px gürültü) kesmemeli
+  const d = new Oyun("tekli");
+  while (d.faz !== "oyun") d.guncelle(0.05, [], 0, harita, W, H);
+  d.guncelle(1 / 60, [elYap(400, 300)], 1, harita, W, H);
+  d.meyveler = [{ meyve: { r: 34, renk: "#f00", altin: false }, x: 402, y: 300, vx: 0, vy: 0, r: 34, aci: 0, donHiz: 0 }];
+  for (let i = 0; i < 20; i++) {
+    d.guncelle(1 / 60, [elYap(400 + (i % 2), 300)], 2 + i, harita, W, H);
+  }
+  ok("60 Hz'de duran el (gürültü) kesmedi", d.kesimSayisi === 0);
+}
+
 console.log(`\nSonuç: ${gecti} geçti, ${kaldi} kaldı`);
 process.exit(kaldi > 0 ? 1 : 0);

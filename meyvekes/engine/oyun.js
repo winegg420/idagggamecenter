@@ -12,11 +12,27 @@ const YERCEKIMI = 1500; // px/s²
 const MAC_SURESI = 60;
 const KILIC_KALINLIK = 34; // hitbox toleransı (px) — cömert: kesmek kolay olsun
 const MIN_SEGMENT = 6; // bu hareketin altındaki el kesmez (statik el sayılmaz)
+// Statik el filtresinin HIZ tabanı (px/s). Worker'lı çıkarımda algılama 30-60 Hz'e
+// çıktığı için kare başına mesafe küçülür; sabit 6 px tabanı yavaş ama gerçek
+// savurmaları reddeder hale geliyordu. Bu yüzden mesafe tabanı algılama aralığıyla
+// ölçeklenir, gürültüyü ise bu hız tabanı eler.
+const MIN_HIZ = 170; // px/s
 const MAX_ORAN = 1.05; // kesim segmenti köşegenin bu oranını aşarsa sayma (sahte/geçiş)
 // Eşleştirme cömert: hızlı savurmada avuç uzağa sıçrar ama yine aynı el sayılmalı.
 // Gerçekte iki farklı el birbirine bu kadar yaklaşıp uzaklaşmaz; absürt bağlantıları
 // zaten MAX_ORAN kesim segmentinde eler (uzun segment kesmez).
 const ESLESME_ORAN = 0.9;
+// ---- Kadraj dışına çıkıp geri girme (köprü) ----
+// El kadrajdan çıkınca kimliği HEMEN silinmez; bu süre kadar "kayıp" olarak
+// saklanır. Geri girdiğinde aynı kimliğe bağlanır → dönüş savurması ilk karede
+// keser ("oyun kolumu tanımıyor" hissinin motor tarafındaki nedeni buydu:
+// yeni kimlik hızsız/segmentsiz doğduğu için ilk savurma boşa gidiyordu).
+const KAYIP_SURE = 0.4; // sn
+// Köprüyle bağlanan elin kesim segmenti bu orandan uzun olamaz (ekran köşegeni
+// çarpanı) — kadrajın bir ucundan diğerine "bedava kesim" olmasın.
+const KOPRU_MAX_ORAN = 0.5;
+// Köprü atlaması bu orandan büyükse bıçak izi sıfırlanır (ekranı kesen şerit çizmesin).
+const KOPRU_IZ_SIFIR = 0.25;
 const COMBO_PENCERE = 0.55; // sn
 const IZ_OMUR = 0.3; // bıçak izi ömrü (sn) — Fruit Ninja hissi
 // Bıçak izi YALNIZ el hareket ederken üretilir. Nokta ekleme kararı HIZA bakar
@@ -355,21 +371,48 @@ export class Oyun {
 
     const kullanildi = new Array(this._takip.length).fill(false);
     const yeni = [];
-
-    for (const g of guncel) {
-      let enIyi = -1;
-      let enMesafe = eslesmeMax;
-      for (let j = 0; j < this._takip.length; j++) {
-        if (kullanildi[j]) continue;
-        const d = Math.hypot(this._takip[j].palm.x - g.palm.x, this._takip[j].palm.y - g.palm.y);
-        if (d < enMesafe) {
-          enMesafe = d;
-          enIyi = j;
+    // İki geçişli eşleştirme: önce CANLI eller (kimlik takası olmasın), sonra
+    // "kayıp" eller (kadrajdan çıkıp geri gelen el eski kimliğine bağlanır).
+    const eslesme = new Array(guncel.length).fill(-1);
+    for (let pas = 0; pas < 2; pas++) {
+      for (let gi = 0; gi < guncel.length; gi++) {
+        if (eslesme[gi] >= 0) continue;
+        const g = guncel[gi];
+        let enIyi = -1;
+        let enMesafe = eslesmeMax;
+        for (let j = 0; j < this._takip.length; j++) {
+          if (kullanildi[j]) continue;
+          const h = this._takip[j];
+          if (pas === 0 ? h.kayip : !h.kayip) continue;
+          // Kayıp el köprüsü yalnız KAYIP_SURE içinde geçerli. (Algılama karesi
+          // gelmediği sürece kayıt düşürülmez; tazeliği burada da denetle.)
+          if (h.kayip && this._t - h.gorulen > KAYIP_SURE) continue;
+          const d = Math.hypot(h.palm.x - g.palm.x, h.palm.y - g.palm.y);
+          if (d < enMesafe) {
+            enMesafe = d;
+            enIyi = j;
+          }
+        }
+        if (enIyi >= 0) {
+          eslesme[gi] = enIyi;
+          kullanildi[enIyi] = true;
         }
       }
+    }
+
+    for (let gi = 0; gi < guncel.length; gi++) {
+      const g = guncel[gi];
+      const enIyi = eslesme[gi];
       if (enIyi >= 0) {
         const onc = this._takip[enIyi];
-        kullanildi[enIyi] = true;
+        const kopru = !!onc.kayip; // kadraj dışından dönen el
+        onc.kayip = false;
+        if (kopru) {
+          // Uzun atlamada eski iz noktalarını at: ekranı boydan boya kesen
+          // yapay şerit oluşmasın (dönüş savurmasının izi yeniden başlar).
+          const atlama = Math.hypot(g.palm.x - onc.palm.x, g.palm.y - onc.palm.y);
+          if (atlama > diag * KOPRU_IZ_SIFIR) onc.iz.length = 0;
+        }
 
         // ---- gecikme telafisi ----
         // Kamera→çıkarım→ekran arasında geçen süre kadar eli ileri sar; böylece
@@ -388,12 +431,17 @@ export class Oyun {
 
         if (this.faz === "oyun") {
           const hiz = Math.hypot(hx, hy);
+          // Köprüyle dönen elde segment tavanı daraltılır (ekranı boydan boya
+          // tarayan "bedava kesim" olmasın); normal takipte eski tavan geçerli.
+          const segTavan = kopru ? diag * KOPRU_MAX_ORAN : maxSeg;
+          // mesafe tabanı algılama aralığıyla ölçeklenir (60 Hz'de ~3 px, 30 Hz'de 6 px)
+          const mesafeTaban = MIN_SEGMENT * Math.min(1, dtA / 0.033);
           for (let k = 0; k < g.pts.length; k++) {
             const a = onc.pts[k];
             const b = g.pts[k];
             if (!a) continue;
             const uz = Math.hypot(b.x - a.x, b.y - a.y);
-            if (uz < MIN_SEGMENT || uz > maxSeg) continue;
+            if (uz < mesafeTaban || uz / dtA < MIN_HIZ || uz > segTavan) continue;
             for (const f of this.meyveler) {
               if (f.kesildi) continue;
               if (segMesafe(f.x, f.y, a.x, a.y, b.x, b.y) < f.r + KILIC_KALINLIK) {
@@ -435,16 +483,21 @@ export class Oyun {
           kayma: { x: 0, y: 0 },
           iz: [], // ilk nokta, el hareket etmeye başlayınca çizim karesinde eklenir
           gorulen: this._t,
+          kayip: false,
         });
       }
     }
 
-    // eşleşmeyen eski elleri izleri tazeyken koru (iz sönene dek), sonra düşür
+    // Eşleşmeyen eller: KAYIP_SURE boyunca "kayıp" olarak saklanır (kadrajdan
+    // çıkıp geri gelen el kimliğini korusun) — süre dolunca düşer.
     for (let j = 0; j < this._takip.length; j++) {
       if (kullanildi[j]) continue;
       const h = this._takip[j];
       while (h.iz.length && this._t - h.iz[0].t > IZ_OMUR) h.iz.shift();
-      if (h.iz.length) yeni.push(h);
+      if (this._t - h.gorulen <= KAYIP_SURE) {
+        h.kayip = true;
+        yeni.push(h);
+      }
     }
 
     this._takip = yeni;

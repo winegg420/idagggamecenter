@@ -108,3 +108,50 @@ Ek olarak eski taper formülünde son noktanın kalınlığı tam 0 oluyordu (2 
 - `npm run build` temiz (MeyveKesApp 23.8 → 35.9 KB; yüz takibi + ses + efektler dahil).
 - `_test/yeme-test.html` (yeni): kamerasız görsel test — sentetik ağız açılıp kapanır, meyveler nişan alır.
 - **Kalan:** gerçek kamera testi kullanıcıda (iz görünürlüğü, yutma isabeti, kasma).
+
+---
+
+## 25 Temmuz 2026 — Çıkarım WORKER'a taşındı + kadraj dışı köprüsü
+
+Kullanıcı: *"kollarım ekrandan çıkıp hızlıca ekrana girdiğinde oyun kollarımı tanıyamıyor;
+gerekirse baştan yaz, A kalite yap"*.
+
+**Kök neden (iki katman):**
+1. **Algılama katmanı:** `detectForVideo` SENKRON çalışır; ana thread'de çağrıldığında çıkarım
+   süresi boyunca (10-60 ms) render donar. Bu yüzden algılama, çıkarım süresinin ~1.5 katına
+   kısılmak zorundaydı (tavan 130 ms → zayıf cihazda ~7 algılama/sn). El kadrajdan çıkıp geri
+   girdiğinde **130 ms'ye kadar kör pencere** oluşuyordu.
+2. **Motor katmanı:** el kaybolunca takip kimliği yalnız bıçak izi tazeyken saklanıyordu; iz
+   yoksa kimlik ANINDA düşüyordu. Geri girişte yeni kimlik hızsız/segmentsiz doğduğu için
+   **dönüş savurması boşa gidiyordu** (ilk kare hiç kesmiyordu).
+
+**Çözüm 1 — worker çıkarımı (yeni `engine/takip-worker.js` + `engine/takip-cekirdek.js`):**
+- Çıkarım ayrı thread'de koşar → **kısma tamamen kaldırıldı**: kameranın her karesi işlenir
+  (30-60 algılama/sn) ve render 60 fps akıcı kalır. Yeniden yakalama 1-2 kare.
+- Ana thread yalnız `createImageBitmap(video)` ile kareyi kopyalayıp **transfer** eder.
+  Uçuşta tek kare tutulur (kuyruk birikmez) → her zaman EN TAZE kare işlenir.
+- Aynı worker iki modeli de kurar: `model:'el'` HandLandmarker, `model:'yuz'` FaceLandmarker →
+  **Meyve Ye modundaki kasma da aynı çözümden faydalanıyor** (`yuztakip.js` de çekirdeğe bağlandı).
+- **Üç kademeli emniyet:** (a) Worker/`createImageBitmap` yoksa veya kurulum başarısızsa eski
+  ana-thread yolu (kısmalı) devreye girer; (b) worker kurulup da 10 kare üst üste sonuç
+  üretemezse ÇALIŞMA ANINDA ana thread'e geçilir (`_yedegeDus`); (c) GPU delegesi başarısızsa
+  worker içinde CPU'ya düşülür — worker'da CPU artık kasma demek değil.
+- Public API (`eller`, `damga`, `gecikmeSn`, `elSayisi`, `video`) DEĞİŞMEDİ → `oyun.js`/`OyunPage`
+  dokunulmadı.
+
+**Çözüm 2 — kadraj dışı köprüsü (`engine/oyun.js`):**
+- Eşleşmeyen el kimliği `KAYIP_SURE = 0.4 sn` boyunca "kayıp" olarak saklanır; el geri girdiğinde
+  **aynı kimliğe bağlanır** → dönüş savurması İLK karede keser.
+- Eşleştirme iki geçişli: önce canlı eller (kimlik takası olmaz), sonra kayıp eller.
+- İstismar önlemi: köprü segmentinin tavanı köşegenin %50'si (`KOPRU_MAX_ORAN`) → ekranın bir
+  ucundan diğerine "bedava kesim" yok; büyük atlamada eski iz noktaları silinir (yapay şerit yok).
+- `MIN_HIZ = 170 px/s` eklendi: algılama 60 Hz'e çıktığında kare başına mesafe küçüldüğü için
+  sabit 6 px tabanı gerçek savurmaları reddediyordu. Artık mesafe tabanı algılama aralığıyla
+  ölçeklenir (60 Hz'de ~3 px), gürültüyü hız tabanı eler.
+
+**Test:** `node meyvekes/_test/motor-test.mjs` → **36/36 ✓** (yeni: hızlı geri giriş köprüsü,
+uzun kayıpta köprü kurulmaması, uçtan uca bedava kesim olmaması, 60 Hz'de ölçülü savurmanın
+kesmesi, 60 Hz'de duran elin kesmemesi). Build temiz (worker ayrı chunk, 1.9 kB).
+
+**Kalan (kullanıcıda):** gerçek kamera + iPhone testi. Konsolda `[MeyveKes] Worker ... ana thread'e
+düşülüyor` uyarısı görürsen worker yolu o cihazda kurulamamış demektir (oyun yine çalışır).
