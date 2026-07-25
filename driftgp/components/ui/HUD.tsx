@@ -61,6 +61,7 @@ export function HUD() {
   const damage = useGameStore((s) => s.damage);
   const position = useGameStore((s) => s.position);
   const racerCount = useGameStore((s) => s.racerCount);
+  const assist = useGameStore((s) => s.assist);
   const dashTheme = useGarageStore((s) => s.getCustomization(s.selectedCarId).dashTheme);
   const hasSiren = getCar(useGarageStore.getState().selectedCarId).hasSiren;
   const setPaused = useGameStore((s) => s.setPaused);
@@ -101,10 +102,17 @@ export function HUD() {
         <span className="hud-gear">{gear}</span>
       </div>
 
-      <div className="hud-nitro-bar">
+      <div className={`hud-nitro-bar ${assist > 0.15 ? 'yetisme' : ''}`}>
         <div className="hud-nitro-fill" style={{ width: `${Math.round(nitroEnergy * 100)}%` }} />
         <span className="hud-nitro-label">NİTRO</span>
       </div>
+
+      {/* yetişme sistemi: geride kalınca motor yardımı + hızlı nitro dolumu devrede */}
+      {assist > 0.15 && (
+        <div className="hud-catchup">
+          ⚡ YETİŞME <span>%{Math.round(assist * 100)}</span>
+        </div>
+      )}
 
       {/* hasar göstergesi — hasar alınca belirir; sarı→turuncu→kırmızı, yangında yanıp söner */}
       {damage > 0.05 && (

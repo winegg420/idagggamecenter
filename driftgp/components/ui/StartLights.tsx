@@ -41,7 +41,10 @@ function MultiStart() {
       } else {
         setCount(Math.min(4, Math.ceil(remaining / 1000)));
       }
-    }, 50);
+      // 20 ms yoklama: yeşil ışığın (racePhase='racing') istemciler arası
+      // sapması yoklama aralığı kadardır — 50 ms'te bir oyuncu diğerinden
+      // yarım araç boyu önde başlıyordu. 20 ms'te sapma ihmal edilebilir.
+    }, 20);
     return () => clearInterval(iv);
   }, []);
 

@@ -1825,3 +1825,52 @@ DidaGP, idaGG Game Center hub'ına `driftgp/` modülü olarak entegre edildi. Pa
 ## 24 Temmuz 2026 — Senkron start düzeltmesi (NTP saat-offset)
 
 "1 saniye erken başlama" bug'ı çözüldü. Kök neden: `raceGoAt` host'ta gönderim, istemcide alım anında ayarlanıyordu → fark = 'go' mesajının tek yönlü ağ gecikmesi. Çözüm: bekleme fazında `syncClock()` birkaç ping/pong ile host−self saat-offset'ini ölçer (en düşük RTT örneği); 'go' handler epoch'u `goAt − clockOffset` ile yerel saate çevirir. Offset yoksa eski göreli yönteme düşer. Değişen: `net/multiplayer.ts`. Build temiz.
+
+---
+
+## 25 Temmuz 2026 — YETİŞME SİSTEMİ 2.0 (rekabet dengesi)
+
+Kullanıcı geri bildirimi (tekrarlanan): *"maça birinci başlayan iyi oynuyorsa çok büyük fark
+atabiliyor, diğer oyuncular ona yetişemiyor; arkada kalanın nitrosu daha hızlı dolmalı, arabası
+hızlanmalı, birinci fark atamamalı"*.
+
+**Eski sistemin neden yetmediği (kök neden):**
+1. Yardım YALNIZ nitro deposunu dolduruyordu → oyuncu ⚡ tuşuna basmazsa hiçbir etkisi yoktu.
+2. Eşikler çok genişti: yardım 0.05 turda (~4 sn) başlıyor, 0.35 turda (~25 sn) tavana çıkıyordu →
+   denge noktası ~11 sn farkta kuruluyordu (lider görüş alanı dışında).
+3. Son turun ikinci yarısında yardım TAMAMEN kesiliyordu → tam bitişte kopma.
+4. Acemi sürücü farkı düzlükte değil **virajda** kaybediyor; hız yardımı bunu telafi etmiyordu.
+
+**Yeni sistem (`game/carPhysics.ts`):**
+- `catchupStrength(gapLaps)` — 0.006 turda (~0.5 sn) başlar, **0.055 turda (~4 sn) tavan**.
+  Denge noktası buraya oturur: lider ~4 sn'den fazla açamaz.
+- Yardım artık **fiziğe** işliyor (`StepOptions.assist`), nitro tuşundan bağımsız:
+  üst hız ×1.17, ivme ×1.6, viraj tutunması ×1.3, kayma (scrub) cezası −%30,
+  duvar sürtünme kaybı −%40. Yani geride kalan araç düzlükte de virajda da canlı.
+- Nitro dolumu 0.34 → **0.42/sn** (harcama 0.35/sn) → çok geride kalan fiilen kesintisiz nitro.
+- `leashStrength(aheadLaps)` — **lider tasması**: yalnız 1. sıradaki araca, takipçiye ~1.5 sn'den
+  fazla fark attıkça uygulanır (tavan: üst hız −%6, ivme −%18). Burun buruna düelloda 0.
+- `slipstreamStrength(dist, lateral)` — öndeki aracın hava boşluğunda (1.5-16 m, ±3.4 m) küçük ek
+  güç → sollama gerçek yarış hissi kazanır.
+- Final taper: son turun son çeyreğinde yardımlar kesilmiyor, **yarıya** iniyor (kopma yok,
+  bitiş yine sürüş becerisiyle belirleniyor).
+
+**`components/game/Scene.tsx`:** kare sonunda lider/takipçi ilerlemesi + slipstream hesaplanıp
+`assistRef`/`leashRef`'e yumuşatılarak yazılır, sonraki karenin fiziğinde kullanılır. Hesap
+**her istemcide yerel** (MP'de herkese aynı kural, ek senkron veri gerekmez).
+
+**HUD:** yardım devredeyken nitro barı yeşile döner + "⚡ YETİŞME %n" rozeti (oyuncu neden
+hızlandığını görür). `store/gameStore.ts`'e `assist` alanı eklendi.
+
+**Doğrulama — `_test/yetisme-test.mts`** (başsız, `node --experimental-strip-types`):
+usta bot (skill 1.0) vs acemi bot (skill 0.55), 2 tur, aynı araç:
+| | maks fark | bitiş farkı | liderin süresi |
+|---|---|---|---|
+| yetişme KAPALI | 0.188 tur (~11 sn) | 9.68 sn | 118.3 sn |
+| yetişme AÇIK | **0.071 tur (~4 sn)** | **2.63 sn** | 120.2 sn (%1.6 bozulma) |
+
+7 kontrol de geçti: fark yarıdan fazla kapanıyor, usta sürücü YİNE kazanıyor (yardım hile değil),
+liderin süresi bozulmuyor, burun buruna düelloda hiçbir yardım verilmiyor.
+
+**Senkron start:** `StartLights.tsx` yoklama aralığı 50 ms → 20 ms (yeşil ışığın istemciler arası
+sapması yoklama aralığı kadardı; 50 ms'te yarım araç boyu avantaj oluşabiliyordu).

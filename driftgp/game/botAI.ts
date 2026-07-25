@@ -54,8 +54,8 @@ export function botNitroIncome(skill: number): number {
   return 0.05 + Math.max(0, skill - 0.82) * 0.65; // 0.05 .. 0.167 (harcama 0.35/sn → %14..%48 nitro payı)
 }
 
-/** Bot yetişme nitrosu — oyuncu eğrisinden (catchupNitroRate: 0.05 turda başlar, 0.35'te
- *  tavan) ÇOK daha erken başlar ve dik tırmanır. Gerekçe: oyuncu farkı saniyeler içinde
+/** Bot yetişme nitrosu — oyuncu eğrisiyle (catchupStrength: 0.008 turda başlar, 0.12'de
+ *  tavan) aynı mertebede, biraz daha erken tırmanır. Gerekçe: oyuncu farkı saniyeler içinde
  *  açıyor; bot ancak KESİNTİSİZ nitroyla (fizik ×1.3) o tempoya yetişebilir. ~1 sn geride
  *  yardım başlar, ~7-8 sn geride tavan: dolum (0.38) harcamayı (0.35) aşar → depo hep dolu,
  *  bot fiili olarak sürekli nitroyla kovalar. Fark kapanınca yardım kendiliğinden söner →

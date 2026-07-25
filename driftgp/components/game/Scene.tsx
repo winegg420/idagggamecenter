@@ -7,7 +7,18 @@ import { Sky, Stars } from '@react-three/drei';
 import * as THREE from 'three';
 import { getTrackData, getTrackDef } from '../../game/tracks';
 import { startPose } from '../../game/track';
-import { createCarState, stepCar, resolveCarCollision, resolveGhostCollision, DAMAGE_SMOKE, DAMAGE_FIRE, catchupNitroRate } from '../../game/carPhysics';
+import {
+  createCarState,
+  stepCar,
+  resolveCarCollision,
+  resolveGhostCollision,
+  DAMAGE_SMOKE,
+  DAMAGE_FIRE,
+  CATCHUP_MAX_RATE,
+  catchupStrength,
+  leashStrength,
+  slipstreamStrength,
+} from '../../game/carPhysics';
 import { createBotDriver, botInput, updatePace, botNitroIncome, botCatchupNitroRate, type BotDriver } from '../../game/botAI';
 import { inputManager } from '../../game/input';
 import { audio } from '../../game/audio';
@@ -105,6 +116,10 @@ export function Scene() {
   const shadowLightRef = useRef<THREE.DirectionalLight>(null);
   const shadowTarget = useMemo(() => new THREE.Object3D(), []);
   const brakeRef = useRef(false);
+  // Yetişme sistemi (rubber-band): kare sonunda hesaplanır, sonraki karenin fiziğinde
+  // kullanılır (1 kare gecikme hissedilmez, kod tek yerde kalır).
+  const assistRef = useRef(0);
+  const leashRef = useRef(0);
   const lastBumpAudio = useRef(0);
   const shake = useRef(0);
   const readySent = useRef(false);
@@ -211,7 +226,12 @@ export function Scene() {
     const input = s.finished
       ? { steer: 0, throttle: 0, brake: true, drift: false, nitro: false }
       : inputManager.read();
-    stepCar(s, input, effectiveStats, track, dt, { totalLaps, running });
+    stepCar(s, input, effectiveStats, track, dt, {
+      totalLaps,
+      running,
+      assist: assistRef.current,
+      leash: leashRef.current,
+    });
 
     const g = playerGroup.current;
     if (g) {
@@ -258,21 +278,18 @@ export function Scene() {
         if (!p.quit) leadEst = Math.max(leadEst, progressOf(p.lap, p.trackIndex, track.count));
       }
     }
-    const finalSprint = leadEst >= (totalLaps + 0.5) * track.count;
+    // Son turun son çeyreğinde (lider bazlı) yardımlar YARIYA iner: bitiş dürüstleşir ama
+    // geride kalan menzilde kalır. (Eskiden tamamen kesiliyordu → "son turda koptum" hissi.)
+    const finalTaper = leadEst >= (totalLaps + 0.7) * track.count ? 0.5 : 1;
     for (const bot of bots) {
       if (!bot.state.finished) {
-        // rubber-band: oyuncuya göre tur farkı → geride kalan hızlanır, öne kaçan nefes bırakır;
-        // final sprintte herkes gerçek temposuna döner
-        if (finalSprint) {
-          bot.driver.pace = 1;
-        } else {
-          const botProg = progressOf(bot.state.lap, bot.state.trackIndex, track.count);
-          updatePace(bot.driver, (myProg - botProg) / track.count);
-          // bot yetişme nitrosu — oyuncu eğrisinden çok daha erken/dik (botCatchupNitroRate):
-          // geride kalan bot depoyu dolu tutup fiilen KESİNTİSİZ nitroyla lideri kovalar
-          const rate = botCatchupNitroRate((leadEst - botProg) / track.count);
-          if (rate > 0) bot.state.nitroEnergy = Math.min(1, bot.state.nitroEnergy + rate * Math.min(dt, 0.05));
-        }
+        // rubber-band: oyuncuya göre tur farkı → geride kalan hızlanır, öne kaçan nefes bırakır
+        const botProg = progressOf(bot.state.lap, bot.state.trackIndex, track.count);
+        updatePace(bot.driver, ((myProg - botProg) / track.count) * finalTaper);
+        // bot yetişme nitrosu — oyuncu eğrisinden çok daha erken/dik (botCatchupNitroRate):
+        // geride kalan bot depoyu dolu tutup fiilen KESİNTİSİZ nitroyla lideri kovalar
+        const rate = botCatchupNitroRate((leadEst - botProg) / track.count) * finalTaper;
+        if (rate > 0) bot.state.nitroEnergy = Math.min(1, bot.state.nitroEnergy + rate * Math.min(dt, 0.05));
         // oyuncunun drift gelirinin bot karşılığı: sabit yavaş nitro dolumu (final sprintte
         // de sürer — oyuncu da driftle kazanmaya devam eder; catchup DEĞİL, temel gelir)
         if (running) bot.state.nitroEnergy = Math.min(1, bot.state.nitroEnergy + botNitroIncome(bot.driver.skill) * Math.min(dt, 0.05));
@@ -363,17 +380,35 @@ export function Scene() {
       });
     }
 
-    // --- pozisyon hesabı + lider ilerlemesi (yetişme nitrosu için) ---
+    // --- pozisyon + lider/takipçi ilerlemesi + slipstream (yetişme sistemi girdileri) ---
     const myProgress = progressOf(s.lap, s.trackIndex, track.count);
     let position = 1;
     let leaderProgress = myProgress;
+    let chaserProgress = -Infinity; // benden HEMEN arkadaki (lider tasması için)
+    let draft = 0; // öndeki araçların hava boşluğu (0..1)
+    // Bir rakibi (bot ya da uzak oyuncu) sıralamaya ve slipstream'e işler.
+    const rakipIsle = (prog: number, x: number, z: number, onPist: boolean) => {
+      if (prog > myProgress) {
+        if (!s.finished) position++;
+        if (prog > leaderProgress) leaderProgress = prog;
+        if (onPist) {
+          // önümde mi + ne kadar yakın? (kendi yön vektörümde izdüşüm)
+          const dx = x - s.x;
+          const dz = z - s.z;
+          const fwd = dx * Math.cos(s.heading) + dz * Math.sin(s.heading);
+          const lat = -dx * Math.sin(s.heading) + dz * Math.cos(s.heading);
+          if (fwd > 0) draft = Math.max(draft, slipstreamStrength(fwd, lat));
+        }
+      } else if (prog > chaserProgress) {
+        chaserProgress = prog;
+      }
+    };
     if (mode === 'solo') {
       for (const bot of bots) {
         const bp = bot.state.finished
           ? progressOf(totalLaps + 1, 0, track.count) + (1000 - (bot.state.raceTime || 999))
           : progressOf(bot.state.lap, bot.state.trackIndex, track.count);
-        if (bp > myProgress && !s.finished) position++;
-        if (bp > leaderProgress) leaderProgress = bp;
+        rakipIsle(bp, bot.state.x, bot.state.z, !bot.state.finished);
       }
     } else {
       for (const p of multiplayer.players.values()) {
@@ -383,17 +418,31 @@ export function Scene() {
           p.finished && p.finishTime >= 0
             ? progressOf(totalLaps + 1, 0, track.count)
             : progressOf(p.lap, p.trackIndex, track.count);
-        if (pp > myProgress && !s.finished) position++;
-        if (pp > leaderProgress) leaderProgress = pp;
+        rakipIsle(pp, p.x, p.z, !p.finished && !!p.snapCur);
       }
     }
 
-    // --- yetişme nitrosu: geride kalana kademeli otomatik dolum (lider farkı açamaz) ---
-    // Son turun ikinci yarısında kesilir → bitişe normal, dürüst yarış (finalSprint yukarıda)
-    if (running && !s.finished && !finalSprint) {
+    // --- YETİŞME SİSTEMİ: motor yardımı + hızlı nitro dolumu + lider tasması ---
+    // Üç kaynak da YEREL hesaplanır (MP'de herkese aynı kural). Amaç: 1. fark atamasın,
+    // geride kalan menzilde kalsın — ama düelloda (fark küçükken) kimse yapay güç almasın.
+    if (running && !s.finished) {
       const gapLaps = (leaderProgress - myProgress) / track.count;
-      const rate = catchupNitroRate(gapLaps);
+      const catchup = catchupStrength(gapLaps) * finalTaper;
+      // slipstream katkısı: yakın takipte küçük ek güç (yardım tavanını aşmaz)
+      const assist = Math.min(1, catchup + draft * 0.35);
+      // lider tasması: yalnız 1. sıradayken ve takipçiye fark attıkça
+      const aheadLaps = position === 1 && chaserProgress > -Infinity ? (myProgress - chaserProgress) / track.count : 0;
+      const leash = leashStrength(aheadLaps) * finalTaper;
+      // yumuşak geçiş (ani güç sıçraması sürüşü bozmasın)
+      const k = Math.min(1, dt * 3);
+      assistRef.current += (assist - assistRef.current) * k;
+      leashRef.current += (leash - leashRef.current) * k;
+      // nitro deposu: geride kalanda otomatik ve hızlı dolar (tavanda harcamayı aşar)
+      const rate = CATCHUP_MAX_RATE * catchup;
       if (rate > 0) s.nitroEnergy = Math.min(1, s.nitroEnergy + rate * Math.min(dt, 0.05));
+    } else if (!running) {
+      assistRef.current = 0;
+      leashRef.current = 0;
     }
 
     // --- kamera ---
@@ -438,6 +487,7 @@ export function Scene() {
             ? bots.length + 1
             : [...multiplayer.players.values()].filter((p) => !p.quit).length + 1,
         boosting: s.nitroActive,
+        assist: assistRef.current,
       });
       // minimap: oyuncu + rakip pozisyonları
       const racers: number[] = [];

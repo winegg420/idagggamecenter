@@ -31,26 +31,63 @@ export function addDamage(s: CarState, severity: number): void {
   s.damage = Math.min(1, s.damage + (severity - 4) / 805);
 }
 
-// --- Yetişme nitrosu (rubber-band) — geride kalan oyunculara kademeli otomatik nitro ---
-/** liderle fark bu tur oranını (tur cinsinden) aşınca yardım başlar (~3-5 sn geride) */
-export const CATCHUP_START = 0.05;
-/** yardımın tavana ulaştığı tur farkı (~25-30 sn geride) */
-export const CATCHUP_FULL = 0.35;
-/** tavan dolum hızı (nitro/sn) — nitro harcaması 0.35/sn; tavanda dolum harcamayı neredeyse
- *  karşılar → çok geride kalan drift yapmasa bile sürekli nitroyla 1.'yi yakalamaya yaklaşır.
- *  Son turun ikinci yarısında Scene bu yardımı tamamen keser (dürüst final sprint). */
-export const CATCHUP_MAX_RATE = 0.34;
+// --- YETİŞME SİSTEMİ (rubber-band) — "lider fark atamaz, geride kalan yetişir" ---
+// İki koldan çalışır ve İKİSİ de her istemcide YEREL hesaplanır (MP'de adalet: herkese
+// birebir aynı kural uygulanır, ekstra senkron veri gerektirmez):
+//   1) MOTOR YARDIMI (assist): geride kalanın hız/ivme çarpanı büyür — oyuncu nitro
+//      tuşuna hiç basmasa bile araç fiilen hızlanır (acemi oyuncu da yarışta kalır).
+//   2) NİTRO DOLUMU: depo otomatik ve HIZLI dolar (tavanda harcamayı aşar) → geride
+//      kalan pratikte kesintisiz nitroyla kovalar.
+// Simetriği: LEASH — açık ara lider olan araç hafifçe kısılır (fark açmak imkânsızlaşır).
+//
+/** liderle fark bu tur oranını aşınca yardım başlar (~0.5 sn geride) */
+export const CATCHUP_START = 0.006;
+/** yardımın tavana ulaştığı tur farkı (~4 sn geride) — burada denge kurulur: yardım
+ *  tavana oturduğunda fark büyümesi durur, yani lider ~4 sn'den fazla açamaz. */
+export const CATCHUP_FULL = 0.055;
+/** tavan dolum hızı (nitro/sn) — harcama 0.35/sn; tavanda dolum harcamayı AŞAR → çok
+ *  geride kalan drift yapmasa bile sürekli nitro basabilir. */
+export const CATCHUP_MAX_RATE = 0.42;
+/** tam yardımda üst hız kazancı (motor yardımı) */
+export const ASSIST_TOP_GAIN = 0.17;
+/** tam yardımda ivme kazancı — çıkışlarda/çarpışma sonrası toparlanma bunu gerektirir */
+export const ASSIST_ACCEL_GAIN = 0.6;
+/** tam leash'te liderin üst hız kaybı (hissedilir ama aracı "bozmaz") */
+export const LEASH_TOP_LOSS = 0.06;
+/** tam leash'te liderin ivme kaybı */
+export const LEASH_ACCEL_LOSS = 0.18;
 
 /**
- * Geride kalan oyuncunun nitro dolum hızı (nitro/sn). gapLaps = liderle fark (tur cinsinden).
- * Kademeli (ease-in) eğri: az geridekine az, çok geridekine çok yardım → 1. asla farkı
- * açamaz ama öndeki oyuncuya HİÇ yardım verilmez (gap<=eşik → 0). Her istemci kendi
- * aracı için yerel hesaplar (MP'de adalet: herkese aynı kural, senkron veri gerektirmez).
+ * Geride kalanın yardım şiddeti (0..1). gapLaps = liderle fark (tur cinsinden).
+ * Lineer-hızlı ramp: 1 sn geride kalan bile hemen küçük bir yardım alır, ~8-10 sn
+ * geride tavana oturur. Öndeki/lider araca HİÇ yardım verilmez (gap<=eşik → 0).
  */
-export function catchupNitroRate(gapLaps: number): number {
+export function catchupStrength(gapLaps: number): number {
   if (gapLaps <= CATCHUP_START) return 0;
-  const t = Math.min(1, (gapLaps - CATCHUP_START) / (CATCHUP_FULL - CATCHUP_START));
-  return CATCHUP_MAX_RATE * t * Math.sqrt(t);
+  return Math.min(1, (gapLaps - CATCHUP_START) / (CATCHUP_FULL - CATCHUP_START));
+}
+
+/** Yardım şiddetinden nitro dolum hızı (nitro/sn). */
+export function catchupNitroRate(gapLaps: number): number {
+  return CATCHUP_MAX_RATE * catchupStrength(gapLaps);
+}
+
+/**
+ * Liderin "tasma" (leash) şiddeti (0..1). aheadLaps = takipçiye attığı fark (tur cinsinden).
+ * Yalnız 1. sıradaki araca uygulanır ve fark ~2 sn'yi geçtikten sonra devreye girer →
+ * burun buruna düelloda kimse kısılmaz, ama kaçış girişimi ~10 sn farkta tavana oturur.
+ */
+export function leashStrength(aheadLaps: number): number {
+  const start = 0.015;
+  const full = 0.07;
+  if (aheadLaps <= start) return 0;
+  return Math.min(1, (aheadLaps - start) / (full - start));
+}
+
+/** Slipstream (hava boşluğu): öndeki araca yakın takipte hız kazancı — 0..1 şiddet. */
+export function slipstreamStrength(distM: number, lateralM: number): number {
+  if (distM > 16 || distM < 1.5 || Math.abs(lateralM) > 3.4) return 0;
+  return Math.min(1, (16 - distM) / 12);
 }
 
 function wrapAngleTo(a: number): number {
@@ -178,6 +215,10 @@ export interface StepOptions {
   totalLaps: number;
   /** yarış başladı mı (start ışıkları söndü mü) */
   running: boolean;
+  /** yetişme yardımı 0..1 (geride kalan araç) — hız/ivme çarpanını büyütür */
+  assist?: number;
+  /** lider tasması 0..1 (açık ara 1. olan araç) — hız/ivmeyi hafifçe kısar */
+  leash?: number;
 }
 
 export function stepCar(
@@ -205,8 +246,14 @@ export function stepCar(
   // hasar cezası: yüksek hasarda motor güç kaybeder (lineer, oyunu bitirmez ama hissedilir)
   const dmgTop = 1 - s.damage * DAMAGE_TOP_LOSS;
   const dmgAccel = 1 - s.damage * DAMAGE_ACCEL_LOSS;
-  const effTop = (s.nitroActive ? topSpeed * 1.3 : topSpeed) * dmgTop;
-  const effAccel = (s.nitroActive ? baseAccel * 1.8 : baseAccel) * dmgAccel;
+  // yetişme yardımı / lider tasması (rubber-band) — bkz. catchupStrength / leashStrength.
+  // Yardım nitro tuşundan BAĞIMSIZ çalışır: geride kalan araç kendiliğinden daha canlıdır.
+  const asi = Math.max(0, Math.min(1, opts.assist ?? 0));
+  const lea = Math.max(0, Math.min(1, opts.leash ?? 0));
+  const bandTop = (1 + ASSIST_TOP_GAIN * asi) * (1 - LEASH_TOP_LOSS * lea);
+  const bandAccel = (1 + ASSIST_ACCEL_GAIN * asi) * (1 - LEASH_ACCEL_LOSS * lea);
+  const effTop = (s.nitroActive ? topSpeed * 1.3 : topSpeed) * dmgTop * bandTop;
+  const effAccel = (s.nitroActive ? baseAccel * 1.8 : baseAccel) * dmgAccel * bandAccel;
 
   // --- Boyuna dinamik (gaz/fren/sürtünme) ---
   const throttle = opts.running && !s.finished ? input.throttle : 0;
@@ -232,16 +279,19 @@ export function stepCar(
   // --- Grip / drift: hız yönü heading'i takip eder ---
   // hız arttıkça grip düşer → yüksek hızda viraj almak kaymaya yol açar
   const gripSpeedScale = Math.min(1, Math.max(0.3, 22 / Math.max(s.speed, 1)));
-  const gripRate = input.drift
+  // Yetişme yardımı virajlara da yansır: geride kalan araç daha çok tutunur. Acemi sürücü
+  // farkı düzlükte değil VİRAJDA kaybediyor — yalnız hız/ivme yardımı yetişmeye yetmiyordu.
+  const gripRate = (input.drift
     ? 1.6 + stats.driftControl * 1.2 // drift: gevşek takip → kayma
-    : (5 + stats.grip * 7) * gripSpeedScale; // normal: sıkı takip
+    : (5 + stats.grip * 7) * gripSpeedScale) * (1 + 0.3 * asi); // normal: sıkı takip
   const diff = wrapAngle(s.heading - s.velAngle);
   s.velAngle = wrapAngle(s.velAngle + diff * Math.min(1, gripRate * dt));
   s.slip = wrapAngle(s.heading - s.velAngle);
   s.drifting = input.drift && Math.abs(s.slip) > 0.12 && s.speed > 8;
 
-  // yana kayma hız kaybettirir (scrub); drift modunda ceza azalır → drift ödüllendirilir
-  const scrubFactor = input.drift ? 0.6 : 1.4;
+  // yana kayma hız kaybettirir (scrub); drift modunda ceza azalır → drift ödüllendirilir.
+  // Yetişme yardımı scrub cezasını da hafifletir (savrulan acemi araç toparlanabilsin).
+  const scrubFactor = (input.drift ? 0.6 : 1.4) * (1 - 0.3 * asi);
   s.speed = Math.max(0, s.speed - Math.abs(s.slip) * 5 * scrubFactor * dt);
 
   // drift → nitro enerjisi + drift puanı birikir
@@ -278,7 +328,9 @@ export function stepCar(
       s.velAngle = wrapAngle(tangentDir + wrapAngle(s.velAngle - tangentDir) * 0.2);
       s.heading = wrapAngle(tangentDir + wrapAngle(s.heading - tangentDir) * 0.6);
     }
-    s.speed *= 1 - 0.9 * dt;
+    // duvar sürtünmesi — yetişme yardımı varken daha az hız yer (duvara sürten acemi
+    // oyuncu her temasta iyice geriye düşüyordu; yardım bunu da telafi eder)
+    s.speed *= 1 - 0.9 * (1 - 0.4 * asi) * dt;
     if (!wasWallContact && opts.running) {
       // temasın İLK anı (kenar tespiti — süren temasta her karede sayılmaz)
       s.wallHits += 1;

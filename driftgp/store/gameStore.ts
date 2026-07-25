@@ -55,6 +55,8 @@ interface GameStore {
   racerCount: number;
   /** nitro aktif — hız çizgileri/boost efekti için */
   boosting: boolean;
+  /** yetişme yardımı şiddeti 0..1 (geride kalan araç) — HUD rozeti + nitro barı parıltısı */
+  assist: number;
   /** birikimli gövde hasarı 0..1 (HUD hasar göstergesi) */
   damage: number;
   /** çarpışma efekt sayacı (her çarpışmada artar → ekran sarsıntısı/flaş) */
@@ -80,7 +82,7 @@ interface GameStore {
   setAfterCalibration: (s: Screen) => void;
   configureRace: (cfg: { trackId?: string; totalLaps?: number; mode?: 'solo' | 'multi' }) => void;
   setLights: (n: number, out?: boolean) => void;
-  setHud: (h: Partial<Pick<GameStore, 'speedKmh' | 'gear' | 'lap' | 'raceTime' | 'nitroEnergy' | 'drifting' | 'position' | 'racerCount' | 'boosting' | 'damage'>>) => void;
+  setHud: (h: Partial<Pick<GameStore, 'speedKmh' | 'gear' | 'lap' | 'raceTime' | 'nitroEnergy' | 'drifting' | 'position' | 'racerCount' | 'boosting' | 'damage' | 'assist'>>) => void;
   triggerCrash: () => void;
   finishRace: (lapTimes: number[], results: RacerResult[]) => void;
   setGyroActive: (v: boolean) => void;
@@ -113,6 +115,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
   position: 1,
   racerCount: 1,
   boosting: false,
+  assist: 0,
   damage: 0,
   crashFx: 0,
   lapTimes: [],
@@ -161,6 +164,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
       nitroEnergy: 0,
       drifting: false,
       position: 1,
+      assist: 0,
       damage: 0,
       lapTimes: [],
       results: [],
