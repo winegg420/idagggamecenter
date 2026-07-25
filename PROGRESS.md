@@ -589,3 +589,53 @@ otomasyonu yapılamadı.
 budur; CLI push'a güvenme.
 
 **Kullanıcıda kalan:** Gerçek kamera testi — iz görünüyor mu, kesim hissi, ağızla yutma isabeti, kasma.
+
+## 2026-07-25 — DidaGP yetişme sistemi, Meyve Kes worker çıkarımı, tüm oyunlarda senkron/kasma denetimi
+
+Kullanıcı talebi: (1) DidaGP'de birinci fark atıyor, arkadakiler yetişemiyor — arkadakinin nitrosu
+hızlı dolsun, arabası hızlansın, birinci fark atamasın; (2) hiçbir oyunda kasma/donma/senkron
+bozulması olmasın, maçlar aynı anda başlasın; (3) Meyve Kes'te kol kadrajdan çıkıp hızlıca girince
+oyun tanımıyor.
+
+### 1) DidaGP — YETİŞME SİSTEMİ 2.0 (`driftgp/`)
+Yardım artık sadece nitro deposunu doldurmuyor, **fiziğe** işliyor: geride kalan aracın üst hızı,
+ivmesi, viraj tutunması artıyor; duvar/kayma cezaları azalıyor (acemi sürücü farkı virajda
+kaybettiği için sadece hız yardımı yetmiyordu). Eşikler daraltıldı: yardım ~0.5 sn geride başlıyor,
+**~4 sn geride tavana** oturuyor → denge noktası 11 sn'den 4 sn'ye indi. Ek olarak **lider tasması**
+(1. sıradaki araç, takipçiye fark attıkça hafifçe kısılır) ve **slipstream** (öndeki aracın hava
+boşluğunda ek güç) eklendi. Son turda yardım tamamen kesilmiyor, yarıya iniyor.
+Başsız doğrulama (`driftgp/_test/yetisme-test.mts`): usta vs acemi sürücü bitiş farkı
+**9.68 sn → 2.63 sn**, maks fark **0.188 → 0.071 tur**, liderin süresi yalnız %1.6 bozuluyor ve
+usta sürücü yine kazanıyor (yardım hile değil). Ayrıntı: `driftgp/PROGRESS.md`.
+
+### 2) Meyve Kes — çıkarım Web Worker'a taşındı (`meyvekes/`)
+`detectForVideo` ana thread'de senkron çalıştığı için algılama kendini kısmak zorundaydı (zayıf
+cihazda ~7 algılama/sn, 130 ms'ye kadar kör pencere) — "kol geri girince tanımıyor" ve "kasma"
+şikâyetlerinin kök nedeni buydu. Yeni `engine/takip-worker.js` + `engine/takip-cekirdek.js` ile
+çıkarım ayrı thread'de koşuyor, **kısma kaldırıldı** (30-60 algılama/sn) ve render 60 fps kalıyor.
+Aynı worker el (HandLandmarker) ve yüz (FaceLandmarker) modellerini kuruyor → Meyve Ye modu da
+faydalanıyor. Üç kademeli emniyet: worker yoksa/kurulamazsa eski ana-thread yolu, kurulup sonuç
+üretmezse çalışma anında geri düşüş, GPU olmazsa worker içinde CPU.
+Motor tarafında **kadraj dışı köprüsü**: el kaybolunca kimliği 0.4 sn saklanıyor, geri girdiğinde
+aynı kimliğe bağlanıyor → dönüş savurması İLK karede kesiyor (istismar önlemi: köprü segment
+tavanı köşegenin %50'si). Test: **36/36 ✓**. Ayrıntı: `meyvekes/PROGRESS.md`.
+
+### 3) Tüm oyunlarda senkron/kasma denetimi
+- **PatiRun (gerçek hata bulundu):** host, her dolgu botu için ayrı 10 Hz pozisyon akışı
+  gönderiyordu → 4 koşucuyla 40 msg/sn, Supabase istemci sınırı 20/sn → mesajlar düşüyor, uzak
+  koşucular ışınlanıyordu. Pozisyonlar artık kare sonunda **tek toplu mesajda** (`posc`) gidiyor.
+- **Kafa Topu:** yayın hızı 20/sn ile sınırla TAM örtüşüyordu (jitter'da mesaj düşme riski) →
+  ~18/sn'ye çekilip pay bırakıldı. Host-otoriter model gereği başlangıç zaten senkron.
+- **DidaGP:** senkron start yoklaması 50 ms → 20 ms (yeşil ışık sapması azaldı).
+- **Aynı anda başlama durumu:** DidaGP ve PatiRun'da `ready` + NTP saat-offset + `go` el sıkışması
+  mevcut ve doğrulandı; Kafa Topu host-otoriter olduğu için geri sayım host simülasyonundan gelir
+  (misafir kendi saatiyle başlangıç hesaplamaz). Meyve Kes/RUN/Gladius tek-oyunculu.
+- **dt koruması:** dört motorda da kare sıçraması sınırlı (DidaGP 1/20 sn, Kafa Topu 250 ms +
+  sabit 60 Hz alt adım, PatiRun 0.05 sn, Meyve Kes 0.05 sn) → sekme arka plana alınınca fizik
+  patlaması yok. Dördünde de FPS'e göre otomatik çözünürlük düşürme mevcut.
+
+### Doğrulama
+`npm run build` temiz. Başsız testler: Meyve Kes 36/36, Kafa Topu 27/27, DidaGP yetişme 7/7.
+**Kullanıcıda kalan (otomasyonda yapılamaz):** gerçek kamera + iPhone ile Meyve Kes testi;
+2 cihazla DidaGP/PatiRun/Kafa Topu online maç testi. `patirun/game/__tests__` vitest gerektiriyor,
+hub'da vitest kurulu değil.

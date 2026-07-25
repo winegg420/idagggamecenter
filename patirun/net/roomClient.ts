@@ -1,7 +1,7 @@
 // Oda istemcisi: Supabase Realtime kanal yönetimi (presence + broadcast).
 import type { RealtimeChannel } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabase';
-import type { ChatMsg, FinishMsg, GoMsg, PosMsg, ReadyMsg, SkillMsg, StartMsg } from './protocol';
+import type { ChatMsg, FinishMsg, GoMsg, PosBatchMsg, PosMsg, ReadyMsg, SkillMsg, StartMsg } from './protocol';
 import { NETWORK } from '../config/constants';
 
 export interface RoomPlayer {
@@ -54,6 +54,8 @@ export class RoomClient {
   private cb: RoomCallbacks = {};
   /** Gönderen (oyuncu/bot) başına son pozisyon gönderim zamanı */
   private lastPosSent = new Map<string, number>();
+  /** Bu karede toplanan pozisyonlar — posGonder() tek mesajda yayınlar */
+  private posKuyruk: PosMsg[] = [];
   /** host saati − kendi saatim (ms). NTP tarzı ping/pong ile ölçülür; host'ta 0. */
   private clockOffset = 0;
   private clockBestRtt = Infinity;
@@ -150,6 +152,12 @@ export class RoomClient {
         }
       })
       .on('broadcast', { event: 'pos' }, ({ payload }) => client.cb.onPos?.(payload as PosMsg))
+      // toplu pozisyon paketi (host + botlar tek mesajda)
+      .on('broadcast', { event: 'posc' }, ({ payload }) => {
+        const liste = (payload as PosBatchMsg)?.p;
+        if (!Array.isArray(liste)) return;
+        for (const m of liste) client.cb.onPos?.(m);
+      })
       .on('broadcast', { event: 'skill' }, ({ payload }) =>
         client.cb.onSkill?.(payload as SkillMsg),
       )
@@ -272,13 +280,28 @@ export class RoomClient {
     }
   }
 
-  /** Pozisyon: gönderen başına saniyede en fazla POSITION_SEND_RATE mesaj. */
+  /**
+   * Pozisyon: gönderen başına saniyede en fazla POSITION_SEND_RATE örnek.
+   *
+   * Mesajlar ANINDA gönderilmez; bir kuyruğa yazılır ve `posGonder()` ile
+   * kare sonunda TEK toplu mesaj olarak çıkar. Böylece host botları da
+   * yayınlarken toplam gönderim hızı 10 msg/sn'de kalır (Supabase istemci
+   * sınırı 20/sn — eskiden 4 koşucuyla 40/sn'ye çıkıp mesaj düşüyordu).
+   */
   sendPos(msg: PosMsg): void {
     const now = Date.now();
     const last = this.lastPosSent.get(msg.u) ?? 0;
     if (now - last < 1000 / NETWORK.POSITION_SEND_RATE) return;
     this.lastPosSent.set(msg.u, now);
-    this.send('pos', msg);
+    this.posKuyruk.push(msg);
+  }
+
+  /** Kuyruktaki pozisyonları tek toplu mesaj olarak yayınlar (kare sonunda). */
+  posGonder(): void {
+    if (this.posKuyruk.length === 0) return;
+    const p = this.posKuyruk;
+    this.posKuyruk = [];
+    this.send('posc', { p } satisfies PosBatchMsg);
   }
 
   sendSkill(msg: SkillMsg): void {

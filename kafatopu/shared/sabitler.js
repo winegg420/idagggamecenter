@@ -78,9 +78,14 @@ export const YETENEK = {
 };
 
 // Ağ (host-otoriter model)
+// Not: Supabase istemci hız sınırı eventsPerSecond=20 (src/lib/supabase.js).
+// 50 ms (=20/sn) TAM sınırda kalıyordu; kare jitter'ı iki gönderimi aynı saniye
+// penceresine sıkıştırdığında sunucu mesajı DÜŞÜRÜYOR (misafirin girdisi ya da
+// bir durum karesi kayboluyor → "senkron bozulması"). 56 ms ≈ 17.8/sn ile
+// %11 pay bırakıldı; interpolasyon gecikmesi (120 ms) bu aralığı zaten yutar.
 export const AG = {
-  DURUM_HZ_MS: 50,              // host durum yayını 20Hz
-  GIRDI_HZ_MS: 50,              // misafir girdi yayını 20Hz
+  DURUM_HZ_MS: 56,              // host durum yayını ~18Hz (hız sınırına pay)
+  GIRDI_HZ_MS: 56,              // misafir girdi yayını ~18Hz
   INTERP_GECIKME_MS: 120,       // misafir render gecikmesi (mobil ağ jitter'ı 100ms'i deliyordu)
   BAGLANTI_BEKLE_SN: 25,        // lobi: herkes bu sürede gelmezse iptal hakkı
 };

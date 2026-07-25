@@ -319,6 +319,10 @@ export function MpRaceScreen() {
         client.sendFinish({ u: selfId, time: me.finishTime ?? e.time });
       }
     }
+    // 3) Bu karede biriken tüm pozisyonları TEK mesajda yayınla (hız sınırı
+    //    koşucu sayısıyla çarpılmasın — bkz. protocol.ts PosBatchMsg)
+    client.posGonder();
+
     // Yerel oyuncu bitti/diskalifiye: en fazla 6 sn stragglerları bekle,
     // sonra ZORLA sonuç ekranına geç (kayıp 'finish' mesajı yüzünden
     // engine.phase 'racing' asılı kalsa bile "maç sonuna geçemedi" olmasın)

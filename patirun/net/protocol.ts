@@ -30,6 +30,20 @@ export interface PosMsg {
   t: number;
 }
 
+/**
+ * TOPLU pozisyon güncellemesi (broadcast: 'posc').
+ *
+ * Neden: host kendi konumunun yanında dolgu botlarının konumlarını da yayınlar.
+ * Her koşucu için ayrı mesaj atıldığında (10 Hz × 1 oyuncu + 3 bot = 40 msg/sn)
+ * Supabase istemci hız sınırı (eventsPerSecond: 20) AŞILIYOR ve mesajlar
+ * düşüyordu → uzak koşucular ışınlanıyor/donuyordu. Artık bir karede üretilen
+ * tüm pozisyonlar TEK mesajda gider: gönderim hızı koşucu sayısından bağımsız
+ * 10 msg/sn'de sabit kalır.
+ */
+export interface PosBatchMsg {
+  p: PosMsg[];
+}
+
 export interface SkillMsg {
   u: string;
   skill: SkillId;

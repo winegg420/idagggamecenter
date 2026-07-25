@@ -166,3 +166,22 @@ PatiRun, idaGG Game Center hub'ına `patirun/` modülü olarak entegre edildi. K
 ## 24 Temmuz 2026 — Senkron start düzeltmesi (NTP saat-offset)
 
 DidaGP ile aynı senkron-start bug'ı PatiRun'da da vardı: `onGo` geri sayımı mesajın ALIM anına göre hizalıyor, tek yönlü ağ gecikmesini yok sayıyordu (kötü ağda ~1 sn kayma). `RoomClient`'a NTP tarzı saat senkronu eklendi: `syncClock()` (bekleme fazında ping/pong ile host−self offset), `hostToLocal()`, `clockSynced`. `MpRaceScreen.onGo` artık kalibre edildiyse `hostToLocal(goAt) − now` ile hizalar, aksi halde eski göreli yönteme düşer. Değişen: `net/roomClient.ts`, `screens/MpRaceScreen.tsx`. Build temiz.
+
+---
+
+## 25 Temmuz 2026 — Pozisyon mesajları toplu gönderime çevrildi (senkron bozulması)
+
+**Bulunan hata:** host, kendi konumunun YANINDA her dolgu botu için ayrı 10 Hz pozisyon akışı
+gönderiyordu (1 oyuncu + 3 bot = **40 msg/sn**). Supabase istemci hız sınırı ise
+`eventsPerSecond: 20` (`src/lib/supabase.js`) → sınır aşılınca mesajlar düşüyor, uzak koşucular
+ışınlanıyor/donuyordu (hızlı maçta "senkron bozuk" şikâyetinin kaynağı).
+
+**Çözüm:** `sendPos` artık anında yayınlamıyor, kuyruğa yazıyor; `posGonder()` kare sonunda
+kuyruğu **tek `posc` mesajında** yayınlıyor. Gönderim hızı koşucu sayısından bağımsız olarak
+10 msg/sn'de sabit. Alıcı tarafta `posc` paketi açılıp aynı `onPos` akışına veriliyor (eski `pos`
+olayı da dinlenmeye devam ediyor). Değişen: `net/protocol.ts` (`PosBatchMsg`), `net/roomClient.ts`,
+`screens/MpRaceScreen.tsx`. Build temiz.
+
+**Not:** `patirun/game/__tests__/*` vitest gerektiriyor; hub'da vitest kurulu değil (bağımsız
+repodan geldi) → bu oturumda çalıştırılamadı. Değişiklik ağ katmanında, fizik/skill mantığına
+dokunulmadı.

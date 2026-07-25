@@ -44,3 +44,16 @@ idaGG Game Center'a entegre; ELO puanı birleşik sıralamaya (`birlesik_siralam
 ## 24 Temmuz 2026 — 2 yeni foto kafa + görsel kasma düzeltmesi
 
 `emirali` (Emir Ali) ve `bedo` (Bedo) `public/heads/manifest.json`'a eklendi. Görseller 2250×3000 / ~3 MB idi (yavaş operatörde kasma) → 825×1100 JPEG, ~120 KB (~25× küçük). Tam foto oldukları (şeffaflık yok, daireye kırpılıyor) için JPEG güvenli; manifest `.jpg`'ye güncellendi. Host-otoriter senkron modeli değişmedi (erken başlama sorunu bu oyunda yok).
+
+---
+
+## 25 Temmuz 2026 — Ağ hız sınırına pay bırakıldı
+
+`AG.DURUM_HZ_MS` / `AG.GIRDI_HZ_MS` 50 ms (=20 msg/sn) idi; Supabase istemci sınırı
+`eventsPerSecond: 20` ile TAM örtüşüyordu. Kare jitter'ı iki gönderimi aynı saniye penceresine
+sıkıştırdığında sunucu mesajı düşürüyor (misafirin girdisi ya da bir durum karesi kayboluyor →
+seyrek "senkron bozulması"). 56 ms'e (~17.8/sn) çekildi, %11 pay bırakıldı; misafir
+interpolasyon gecikmesi (120 ms) bu aralığı zaten yutuyor. Motor testleri 27/27 ✓.
+
+Host-otoriter model gereği maç başlangıcı zaten senkron: geri sayım host simülasyonundan gelir,
+misafir kendi saatiyle başlangıç hesaplamaz (bu oyunda "erken başlama" bug'ı yok).
