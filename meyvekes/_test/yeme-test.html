@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8" />
+<title>Meyve Kes — Meyve Ye (ağız) görsel testi</title>
+<style>
+  html, body { margin: 0; background: #101018; color: #eee; font: 14px system-ui; }
+  canvas { display: block; width: 100vw; height: 78vh; }
+  #bilgi { padding: 8px 12px; font-variant-numeric: tabular-nums; }
+</style>
+</head>
+<body>
+<canvas id="tuval"></canvas>
+<div id="bilgi">yükleniyor…</div>
+<script type="module">
+// Kamera/oturum gerektirmeyen görsel test: sentetik bir ağız ekranın üst
+// ortasında ritmik olarak açılıp kapanır, meyveler ağza nişan alarak fırlar.
+// Nişan alma + yutma + yutma animasyonu + ağız halkası doğrulanır.
+import { Oyun } from "../engine/oyun.js";
+import { ciz } from "../engine/render.js";
+
+const tuval = document.getElementById("tuval");
+const ctx = tuval.getContext("2d", { alpha: false });
+const bilgi = document.getElementById("bilgi");
+const oyun = new Oyun("yeme");
+oyun.faz = "oyun"; // geri sayımı atla
+const harita = (nx, ny) => ({ x: nx * tuval.width, y: ny * tuval.height });
+
+// Ağız landmark'ları (normalize): merkez + açıklık + genişlik (px cinsinden verilir)
+function agizUret(pxX, pxY, acikPx, genPx) {
+  const W = tuval.width, H = tuval.height;
+  return {
+    ust: { x: pxX / W, y: (pxY - acikPx / 2) / H },
+    alt: { x: pxX / W, y: (pxY + acikPx / 2) / H },
+    sol: { x: (pxX - genPx / 2) / W, y: pxY / H },
+    sag: { x: (pxX + genPx / 2) / W, y: pxY / H },
+  };
+}
+
+let damga = 0;
+let sonAlgilama = 0;
+
+function dongu() {
+  const simdi = performance.now();
+  const dt = 1 / 60;
+  const dpr = Math.min(devicePixelRatio || 1, 1.5);
+  const w = Math.round(tuval.clientWidth * dpr);
+  const h = Math.round(tuval.clientHeight * dpr);
+  if (tuval.width !== w || tuval.height !== h) {
+    tuval.width = w;
+    tuval.height = h;
+  }
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+
+  if (simdi - sonAlgilama > 40) {
+    sonAlgilama = simdi;
+    damga++;
+  }
+  const t = simdi / 1000;
+  // ağız ekranın üst ortasında hafif salınır; ~1.3 sn'de bir açılır
+  const mx = tuval.width / 2 + Math.sin(t * 0.8) * tuval.width * 0.12;
+  const my = tuval.height * 0.3;
+  const gen = Math.max(60, tuval.width * 0.09);
+  const acik = Math.sin(t * 4.8) > 0.2 ? gen * 0.55 : gen * 0.05;
+
+  oyun.guncelle(dt, [], damga, harita, tuval.width, tuval.height, 0.04, agizUret(mx, my, acik, gen));
+  ciz(ctx, oyun, null, { esle: harita }, tuval.width, tuval.height);
+
+  bilgi.textContent =
+    `faz: ${oyun.faz} | sure: ${Math.round(oyun.sure)} | ` +
+    `yutulan: ${oyun.kesimSayisi} | puan: ${oyun.puan} | combo: ${oyun.combo} | ` +
+    `havada meyve: ${oyun.meyveler.length} | ağız: ${oyun.agiz ? (oyun.agiz.acik ? "AÇIK" : "kapalı") : "yok"} | ` +
+    `oran: ${oyun.agiz ? oyun.agiz.oran.toFixed(2) : "-"}`;
+  window.__test = { yutulan: oyun.kesimSayisi, agiz: !!oyun.agiz };
+  window.__oyun = oyun;
+}
+setInterval(dongu, 16);
+</script>
+</body>
+</html>

@@ -9,14 +9,17 @@ import { useEffect, useRef, useState, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "../../../src/lib/supabase.js";
 import { ElTakip } from "../../engine/eltakip.js";
+import { YuzTakip } from "../../engine/yuztakip.js";
 import { Oyun } from "../../engine/oyun.js";
 import { manifestYukle } from "../../engine/meyveler.js";
 import { ciz, koordinatHesap } from "../../engine/render.js";
+import { sesBaslat, sesCal, sesAcKapa, sesDurdur } from "../../engine/ses.js";
 
 export default function OyunPage() {
   const { mod } = useParams();
   const git = useNavigate();
-  const modAd = mod === "arkadas" ? "Arkadaşla" : "Tekli";
+  const yeme = mod === "yeme"; // MEYVE YE: el yerine ağızla oynanır
+  const modAd = yeme ? "Meyve Ye" : mod === "arkadas" ? "Arkadaşla" : "Tekli";
 
   const canvasRef = useRef(null);
   const takipRef = useRef(null);
@@ -31,7 +34,10 @@ export default function OyunPage() {
 
   const [durum, setDurum] = useState("hazir"); // hazir | baslatiliyor | oynaniyor | hata
   const [hata, setHata] = useState("");
-  const [hud, setHud] = useState({ faz: "geri", geri: 3, sure: 60, puan: 0, combo: 0, sol: 0, sag: 0, el: 0 });
+  const [sesAcik, setSesAcik] = useState(true);
+  const [hud, setHud] = useState({
+    faz: "geri", geri: 3, sure: 60, puan: 0, combo: 0, sol: 0, sag: 0, el: 0, agizVar: false, agizAcik: false,
+  });
   const [sonuc, setSonuc] = useState(null); // { puan, kesim, sol, sag }
   const [kayitDurum, setKayitDurum] = useState(""); // '', 'kaydediliyor', 'kaydedildi', 'hata'
   const hudRef = useRef(0);
@@ -42,7 +48,7 @@ export default function OyunPage() {
       setKayitDurum("kaydediliyor");
       try {
         const { error } = await supabase.rpc("meyvekes_skor_kaydet", {
-          p_mod: mod === "arkadas" ? "arkadas" : "tekli",
+          p_mod: mod === "arkadas" || mod === "yeme" ? mod : "tekli",
           p_skor: puan,
           p_kesim: kesim,
         });
@@ -99,8 +105,30 @@ export default function OyunPage() {
     ctx.setTransform(sc, 0, 0, sc, 0, 0);
 
     const k = koordinatHesap(takip.video, W, H);
-    oyun.guncelle(dt, takip.eller, takip.damga, (nx, ny) => k.esle(nx, ny), W, H, takip.gecikmeSn);
+    oyun.guncelle(
+      dt,
+      takip.eller || [],
+      takip.damga,
+      (nx, ny) => k.esle(nx, ny),
+      W,
+      H,
+      takip.gecikmeSn,
+      takip.agiz || null
+    );
     ciz(ctx, oyun, takip.video, k, W, H);
+
+    // ses olayları (motor DOM'a dokunmaz; kuyruğu burada tüketiriz)
+    if (oyun.sesler.length) {
+      for (const s of oyun.sesler) sesCal(s);
+      if (oyun.sesler.some((s) => s !== "combo")) {
+        try {
+          navigator.vibrate?.(12);
+        } catch {
+          /* titreşim desteklenmiyor */
+        }
+      }
+      oyun.sesler.length = 0;
+    }
 
     // HUD'u ~12fps ile güncelle (React churn azalt)
     if (simdi - hudRef.current > 80) {
@@ -114,6 +142,8 @@ export default function OyunPage() {
         sol: oyun.puanSol,
         sag: oyun.puanSag,
         el: takip.elSayisi || 0,
+        agizVar: !!oyun.agiz,
+        agizAcik: !!oyun.agiz?.acik,
       });
     }
 
@@ -149,10 +179,19 @@ export default function OyunPage() {
       }
 
       manifestYukle().catch(() => {});
+      // ses motoru kullanıcı jestiyle açılmalı (autoplay politikası)
+      sesBaslat();
+      sesAcKapa(sesAcik);
 
-      const maxEl = mod === "arkadas" ? 4 : 2;
-      const takip = new ElTakip();
-      await takip.baslat(maxEl);
+      // Meyve Ye: yüz/ağız takibi; diğer modlar: el takibi
+      let takip;
+      if (yeme) {
+        takip = new YuzTakip();
+        await takip.baslat();
+      } else {
+        takip = new ElTakip();
+        await takip.baslat(mod === "arkadas" ? 4 : 2);
+      }
       takipRef.current = takip;
       oyunRef.current = new Oyun(mod);
       bittiRef.current = false;
@@ -168,7 +207,7 @@ export default function OyunPage() {
       takipRef.current?.durdur();
       takipRef.current = null;
     }
-  }, [mod, dongu]);
+  }, [mod, yeme, sesAcik, dongu]);
 
   // tekrar oyna
   const tekrar = useCallback(() => {
@@ -185,6 +224,7 @@ export default function OyunPage() {
       cancelAnimationFrame(rafRef.current);
       takipRef.current?.durdur();
       takipRef.current = null;
+      sesDurdur();
       try {
         wakeRef.current?.release?.();
       } catch {
@@ -227,9 +267,14 @@ export default function OyunPage() {
         <div className="mk-katman mk-hazir">
           <button className="mk-x" onClick={() => git("/meyvekes")}>✕</button>
           <div className="mk-hazir-kart">
-            <span className="mk-logo-emoji">🍉</span>
+            <span className="mk-logo-emoji">{yeme ? "😋" : "🍉"}</span>
             <h2>{modAd} Mod</h2>
-            <p>Kamera açılacak ve kendini ekranda göreceksin. Ellerini havada sallayarak meyveleri kes!</p>
+            {yeme ? (
+              <p>Kamera açılacak, telefonu tek elinle tut. Meyveler ağzına doğru gelecek — <b>tam zamanında ağzını aç ve yut!</b></p>
+            ) : (
+              <p>Kamera açılacak ve kendini ekranda göreceksin. Ellerini havada sallayarak meyveleri kes!</p>
+            )}
+            {yeme && <p className="mk-ipucu">😮 Ağzın açıkken çevresinde yeşil halka görünür — meyveyi o halkaya sok.</p>}
             {mod === "arkadas" && <p className="mk-ipucu">👥 İki kişi aynı ekranda oynayabilir — sol/sağ skorlar ayrı sayılır.</p>}
             <button className="mk-baslat-btn" onClick={baslat}>📷 Kamerayı Aç ve Başla</button>
           </div>
@@ -258,6 +303,13 @@ export default function OyunPage() {
       {durum === "oynaniyor" && (
         <>
           <button className="mk-x" onClick={cik}>✕</button>
+          <button
+            className="mk-ses"
+            onClick={() => setSesAcik(sesAcKapa(!sesAcik))}
+            aria-label={sesAcik ? "Sesi kapat" : "Sesi aç"}
+          >
+            {sesAcik ? "🔊" : "🔇"}
+          </button>
           <div className="mk-hud-ust">
             <div className="mk-sure">⏱️ {hud.sure}</div>
             {mod === "arkadas" ? (
@@ -272,10 +324,15 @@ export default function OyunPage() {
           </div>
           {hud.combo >= 3 && hud.faz === "oyun" && <div className="mk-combo">🔥 COMBO x{hud.combo}</div>}
 
-          {/* el takibi teşhisi: kamera açık ama el görülmüyorsa uyarır */}
-          {hud.faz === "oyun" && (
+          {/* takip teşhisi: kamera açık ama el/yüz görülmüyorsa uyarır */}
+          {hud.faz === "oyun" && !yeme && (
             <div className={"mk-el-durum " + (hud.el > 0 ? "mk-el-var" : "mk-el-yok")}>
               {hud.el > 0 ? `🖐 ${hud.el}` : "🖐 el görünmüyor"}
+            </div>
+          )}
+          {hud.faz === "oyun" && yeme && (
+            <div className={"mk-el-durum " + (hud.agizVar ? "mk-el-var" : "mk-el-yok")}>
+              {hud.agizVar ? (hud.agizAcik ? "😋 ağız açık" : "🙂 hazır") : "😐 yüz görünmüyor"}
             </div>
           )}
 
@@ -291,7 +348,7 @@ export default function OyunPage() {
               <div className="mk-sonuc-kart">
                 <h2>Süre Doldu! 🎉</h2>
                 <div className="mk-sonuc-puan">{sonuc.puan}</div>
-                <p className="mk-sonuc-alt">{sonuc.kesim} meyve kesildi</p>
+                <p className="mk-sonuc-alt">{sonuc.kesim} meyve {yeme ? "yutuldu" : "kesildi"}</p>
                 {mod === "arkadas" && (
                   <p className="mk-sonuc-ikili">👈 {sonuc.sol} &nbsp;•&nbsp; {sonuc.sag} 👉</p>
                 )}

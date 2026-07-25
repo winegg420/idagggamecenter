@@ -18,10 +18,23 @@ const MAX_ORAN = 1.05; // kesim segmenti köşegenin bu oranını aşarsa sayma 
 // zaten MAX_ORAN kesim segmentinde eler (uzun segment kesmez).
 const ESLESME_ORAN = 0.9;
 const COMBO_PENCERE = 0.55; // sn
-const IZ_OMUR = 0.18; // bıçak izi ömrü (sn) — kısa & keskin (Fruit Ninja hissi)
-// Bıçak izi YALNIZ hareket varken çizilir: son iz noktasından bu kadar (px)
-// uzaklaşılmadıysa yeni nokta eklenmez → el dururken ekranda hiçbir iz belirmez.
-const IZ_MIN_HAREKET = 5;
+const IZ_OMUR = 0.3; // bıçak izi ömrü (sn) — Fruit Ninja hissi
+// Bıçak izi YALNIZ el hareket ederken üretilir. Nokta ekleme kararı HIZA bakar
+// (kareler arası mesafeye değil): el bu hızın üstündeyse her ÇİZİM karesinde
+// (60 fps) nokta eklenir → algılama 12 fps'e düşse bile iz akıcı ve kesintisiz
+// görünür. El dururken hiç nokta eklenmez → ekranda iz kalmaz.
+const IZ_HIZ_ESIK = 90; // px/s
+const IZ_MIN_ARALIK = 1.2; // px — aynı noktayı üst üste eklemeyi engeller
+const IZ_MAKS_NOKTA = 26;
+
+// ---- MEYVE YE modu (ağızla yutma) ----
+// Ağız açıklığı = dikey iç dudak açıklığı / ağız genişliği (yüz uzaklığından
+// bağımsız oran). Histerezis: bir kez açıldıktan sonra daha düşük eşikte kapanır
+// (titreme olmasın, yutma anı kaçmasın).
+const AGIZ_AC = 0.3;
+const AGIZ_KAPA = 0.2;
+const AGIZ_YUT_ORAN = 0.85; // yutma yarıçapı = ağız genişliği × bu (cömert)
+const AGIZ_CEKIM = 0.22; // yutulan meyvenin ağza akma süresi (sn)
 
 // ---- KILIÇ: el + kol tek parça dev bıçak ----
 // MediaPipe yalnız eli verir; kolu bilek→avuç ekseninin TERSİNE uzatarak
@@ -106,11 +119,17 @@ function oteleEl(g, kx, ky) {
 
 export class Oyun {
   constructor(mod) {
-    this.mod = mod === "arkadas" ? "arkadas" : "tekli";
+    this.mod = mod === "arkadas" || mod === "yeme" ? mod : "tekli";
     this.meyveler = [];
     this.yarilar = []; // kesilmiş yarımlar
     this.parcaciklar = [];
     this.popuplar = []; // uçan puan metinleri
+    this.slashlar = []; // kesim anı beyaz flaş çizgisi
+    this.dalgalar = []; // kesim anı halka dalgası
+    this.yutulanlar = []; // MEYVE YE: ağza doğru akan meyve
+    this.sarsinti = 0; // ekran titremesi (px) — kesimde yükselir, hızla söner
+    this.sesler = []; // çalınacak ses olayları (OyunPage boşaltır; motor DOM'suz)
+    this.agiz = null; // MEYVE YE: ekran uzayında ağız { x, y, r, acik, oran }
     this.izler = []; // render için: her takip edilen el için [{x,y,t}] bıçak izi
     this.eller = []; // render için: ekran uzayında el+kılıç geometrisi
     this._takip = []; // kimlik eşleştirmeli el takibi
@@ -140,6 +159,8 @@ export class Oyun {
     const zorluk = Math.min(1, gecen / 45); // ilk 45 sn'de artan tempo
     // Agresif savurma oynanışı için yoğun akış (boşta kalan kılıç sıkıcı).
     if (this.mod === "arkadas") return 0.52 - 0.20 * zorluk; // 0.52 → 0.32
+    // Yeme modunda meyve ağza doğru gelir; yutmaya vakit kalsın diye biraz seyrek.
+    if (this.mod === "yeme") return 0.95 - 0.35 * zorluk; // 0.95 → 0.60
     return 0.80 - 0.30 * zorluk; // 0.80 → 0.50
   }
 
@@ -148,6 +169,29 @@ export class Oyun {
     const r = m.r;
     const kenar = 60;
     const x = kenar + Math.random() * (W - 2 * kenar);
+
+    // ---- MEYVE YE: meyve ağza NİŞAN ALARAK fırlatılır ----
+    // Balistik çözüm: T sn sonra tam hedefte olacak hız. Böylece meyve ağzın
+    // hizasından geçer; oyuncunun tek işi doğru anda ağzını açmak.
+    if (this.mod === "yeme") {
+      const hx = (this.agiz ? this.agiz.x : W / 2) + (Math.random() - 0.5) * W * 0.34;
+      const hy = (this.agiz ? this.agiz.y : H * 0.38) + (Math.random() - 0.5) * 40;
+      const T = 1.05 + Math.random() * 0.45;
+      const x0 = Math.max(kenar, Math.min(W - kenar, hx + (Math.random() - 0.5) * W * 0.5));
+      const y0 = H + r;
+      this.meyveler.push({
+        meyve: m,
+        x: x0,
+        y: y0,
+        vx: (hx - x0) / T,
+        vy: (hy - y0 - 0.5 * YERCEKIMI * T * T) / T,
+        r,
+        aci: Math.random() * Math.PI * 2,
+        donHiz: (Math.random() - 0.5) * 4,
+      });
+      return;
+    }
+
     // Tepeye yakın çıkacak kadar yukarı hız.
     const hedef = H * (0.62 + Math.random() * 0.28);
     const vy = -Math.sqrt(2 * YERCEKIMI * hedef);
@@ -166,11 +210,8 @@ export class Oyun {
     });
   }
 
-  _kes(f, taraf, W) {
-    f.kesildi = true;
-    this.kesimSayisi++;
-
-    // combo
+  // Ortak puanlama + combo + uçan metin (kesme ve yeme aynı kuralı paylaşır).
+  _puanla(f, taraf, W) {
     if (this._t - this._comboZaman < COMBO_PENCERE) this.combo++;
     else this.combo = 1;
     this._comboZaman = this._t;
@@ -183,7 +224,6 @@ export class Oyun {
     if (kesenTaraf === "sol") this.puanSol += kazanc;
     else this.puanSag += kazanc;
 
-    // uçan puan metni
     this.popuplar.push({
       metin: bonus > 0 ? `COMBO x${this.combo}  +${kazanc}` : `+${kazanc}`,
       x: f.x,
@@ -193,8 +233,71 @@ export class Oyun {
       t: 0,
       buyuk: bonus > 0 || f.meyve.altin,
     });
+    if (bonus > 0) this.sesler.push("combo");
+    return kazanc;
+  }
 
-    // iki yarım
+  // MEYVE YE: ağız açıkken temas eden meyve yutulur.
+  _ye(f, W) {
+    f.kesildi = true;
+    this.kesimSayisi++;
+    this._puanla(f, f.x < W / 2 ? "sol" : "sag", W);
+    this.sesler.push(f.meyve.altin ? "altin" : "yut");
+    this.sarsinti = Math.min(12, this.sarsinti + (f.meyve.altin ? 7 : 3.5));
+
+    // meyve ağza doğru büzülerek akar
+    this.yutulanlar.push({
+      meyve: f.meyve,
+      x: f.x,
+      y: f.y,
+      hx: this.agiz ? this.agiz.x : f.x,
+      hy: this.agiz ? this.agiz.y : f.y,
+      r: f.r,
+      t: 0,
+      omur: AGIZ_CEKIM,
+    });
+
+    // ağız çevresinde küçük şıpırtı
+    const adet = f.meyve.altin ? 16 : 9;
+    for (let i = 0; i < adet; i++) {
+      const a = Math.random() * Math.PI * 2;
+      const h = 80 + Math.random() * 200;
+      this.parcaciklar.push({
+        x: f.x,
+        y: f.y,
+        vx: Math.cos(a) * h,
+        vy: Math.sin(a) * h - 60,
+        r: 2 + Math.random() * 4,
+        renk: f.meyve.renk,
+        omur: 0.35 + Math.random() * 0.3,
+        t: 0,
+      });
+    }
+    this.dalgalar.push({ x: f.x, y: f.y, r0: f.r * 0.7, t: 0, omur: 0.28, altin: !!f.meyve.altin });
+  }
+
+  _kes(f, taraf, W, yonX = 1, yonY = 0) {
+    f.kesildi = true;
+    this.kesimSayisi++;
+    this._puanla(f, taraf, W);
+    this.sesler.push(f.meyve.altin ? "altin" : "kes");
+    // kesim geri bildirimi: ekran sarsıntısı + kesim yönünde flaş + halka dalga
+    this.sarsinti = Math.min(16, this.sarsinti + (f.meyve.altin ? 8 : 4));
+    this.slashlar.push({
+      x: f.x,
+      y: f.y,
+      aci: Math.atan2(yonY, yonX),
+      uz: f.r * 3.6,
+      t: 0,
+      omur: 0.2,
+      altin: !!f.meyve.altin,
+    });
+    this.dalgalar.push({ x: f.x, y: f.y, r0: f.r * 0.8, t: 0, omur: 0.3, altin: !!f.meyve.altin });
+
+    // iki yarım — kesim çizgisine DİK yönde ayrılır (bıçak nereden geçtiyse oradan)
+    const kesimAci = Math.atan2(yonY, yonX);
+    const nx = -Math.sin(kesimAci);
+    const ny = Math.cos(kesimAci);
     const ayr = 130;
     for (const yon of [-1, 1]) {
       this.yarilar.push({
@@ -202,10 +305,11 @@ export class Oyun {
         yari: yon < 0 ? "ust" : "alt",
         x: f.x,
         y: f.y,
-        vx: f.vx + yon * ayr,
-        vy: f.vy - 60,
+        vx: f.vx + nx * yon * ayr,
+        vy: f.vy + ny * yon * ayr - 60,
         r: f.r,
         aci: f.aci,
+        kesimAci,
         donHiz: yon * 3,
         alfa: 1,
       });
@@ -293,7 +397,7 @@ export class Oyun {
             for (const f of this.meyveler) {
               if (f.kesildi) continue;
               if (segMesafe(f.x, f.y, a.x, a.y, b.x, b.y) < f.r + KILIC_KALINLIK) {
-                this._kes(f, g.taraf, W);
+                this._kes(f, g.taraf, W, b.x - a.x, b.y - a.y);
               }
             }
           }
@@ -304,7 +408,7 @@ export class Oyun {
             for (const f of this.meyveler) {
               if (f.kesildi) continue;
               if (segMesafe(f.x, f.y, kuyruk.x, kuyruk.y, uc.x, uc.y) < f.r + KILIC_KALINLIK) {
-                this._kes(f, g.taraf, W);
+                this._kes(f, g.taraf, W, hx, hy);
               }
             }
           }
@@ -316,15 +420,8 @@ export class Oyun {
         onc.taraf = g.taraf;
         onc.hiz.x = hx;
         onc.hiz.y = hy;
-        // Bıçak izi ucu = orta parmak ucu (elin doğal öncü noktası). Yalnız yeterince
-        // hareket varsa nokta ekle → el dururken iz büyümez, kısa sürede söner ve kaybolur.
-        {
-          const ucN = g.tum[12] || g.palm;
-          const sonIz = onc.iz.length ? onc.iz[onc.iz.length - 1] : null;
-          if (!sonIz || Math.hypot(ucN.x - sonIz.x, ucN.y - sonIz.y) > IZ_MIN_HAREKET) {
-            onc.iz.push({ x: ucN.x, y: ucN.y, t: this._t });
-          }
-        }
+        // Bıçak izi noktaları burada DEĞİL, her çizim karesinde üretilir
+        // (bkz. guncelle → iz üretimi): algılama seyrek olsa da iz akıcı kalsın.
         onc.gorulen = this._t;
         yeni.push(onc);
       } else {
@@ -336,7 +433,7 @@ export class Oyun {
           taraf: g.taraf,
           hiz: { x: 0, y: 0 },
           kayma: { x: 0, y: 0 },
-          iz: [{ x: (g.tum[12] || g.palm).x, y: (g.tum[12] || g.palm).y, t: this._t }],
+          iz: [], // ilk nokta, el hareket etmeye başlayınca çizim karesinde eklenir
           gorulen: this._t,
         });
       }
@@ -353,9 +450,47 @@ export class Oyun {
     this._takip = yeni;
   }
 
+  // MEYVE YE: ham ağız landmark'larını ekran uzayına taşır, açıklık oranını
+  // hesaplar (histerezisli) ve açık ağza değen meyveleri yutar.
+  _agizIsle(ham, harita, W) {
+    if (!ham || !ham.ust || !ham.alt || !ham.sol || !ham.sag) {
+      this.agiz = null;
+      return;
+    }
+    const ust = harita(ham.ust.x, ham.ust.y);
+    const alt = harita(ham.alt.x, ham.alt.y);
+    const sol = harita(ham.sol.x, ham.sol.y);
+    const sag = harita(ham.sag.x, ham.sag.y);
+    const gen = Math.hypot(sag.x - sol.x, sag.y - sol.y) || 40;
+    const oran = Math.hypot(alt.x - ust.x, alt.y - ust.y) / gen;
+    const oncekiAcik = this.agiz ? this.agiz.acik : false;
+    const acik = oncekiAcik ? oran > AGIZ_KAPA : oran > AGIZ_AC;
+    this.agiz = {
+      x: (ust.x + alt.x + sol.x + sag.x) / 4,
+      y: (ust.y + alt.y + sol.y + sag.y) / 4,
+      r: gen * AGIZ_YUT_ORAN,
+      gen,
+      oran,
+      acik,
+    };
+
+    this._yutmaKontrol(W);
+  }
+
+  // Yutma testi HER çizim karesinde yapılır (algılama ~20 fps olsa da hızlı geçen
+  // meyve ağzın içinden kaçmasın).
+  _yutmaKontrol(W) {
+    const a = this.agiz;
+    if (!a || !a.acik || this.faz !== "oyun") return;
+    for (const f of this.meyveler) {
+      if (f.kesildi) continue;
+      if (Math.hypot(f.x - a.x, f.y - a.y) < a.r + f.r * 0.6) this._ye(f, W);
+    }
+  }
+
   // eller: ElTakip.eller (ham landmark) ; damga: algılama kare no (yeni veri işareti)
-  // harita: (nx,ny)->{x,y} ekran px
-  guncelle(dt, eller, damga, harita, W, H, gecikmeSn = 0) {
+  // harita: (nx,ny)->{x,y} ekran px ; agiz: YuzTakip.agiz (yalnız 'yeme' modunda)
+  guncelle(dt, eller, damga, harita, W, H, gecikmeSn = 0, agiz = null) {
     dt = Math.min(dt, 0.05); // büyük sıçramaları sınırla (sekme arası)
     this._t += dt;
 
@@ -377,6 +512,7 @@ export class Oyun {
       if (this.sure <= 0) {
         this.sure = 0;
         this.faz = "bitti";
+        this.sesler.push("bitti");
       }
     }
 
@@ -385,9 +521,10 @@ export class Oyun {
     // işlemek anlamsız ve yanlış (segment ~0). damga değişince bir kez işle.
     if (damga !== this._sonDamga) {
       this._sonDamga = damga;
-      this._elleriIsle(eller, harita, W, H, Math.min(Math.max(gecikmeSn, 0), 0.18));
+      if (this.mod === "yeme") this._agizIsle(agiz, harita, W);
+      else this._elleriIsle(eller, harita, W, H, Math.min(Math.max(gecikmeSn, 0), 0.18));
     }
-    // izleri her karede (zamanla) süz
+    // izleri her karede süz + hareket varken YENİ nokta üret (çizim hızında)
     for (const h of this._takip) {
       while (h.iz.length && this._t - h.iz[0].t > IZ_OMUR) h.iz.shift();
       // Çizim ekstrapolasyonu: algılama ~20-30 fps, çizim 60 fps. Son bilinen hızla
@@ -396,6 +533,21 @@ export class Oyun {
       if (!h.kayma) h.kayma = { x: 0, y: 0 };
       h.kayma.x = h.hiz.x * ileri;
       h.kayma.y = h.hiz.y * ileri;
+
+      // İz ucu = orta parmak ucu (elin doğal öncü noktası), ileri sarılmış konumda.
+      // Yalnız el yeterince HIZLIYSA ve el hâlâ görülüyorsa nokta eklenir → el
+      // dururken hiç iz oluşmaz, savururken 60 fps yoğunlukta akıcı şerit çıkar.
+      const taze = this._t - h.gorulen < 0.12;
+      if (taze && Math.hypot(h.hiz.x, h.hiz.y) > IZ_HIZ_ESIK) {
+        const uc = h.tum[12] || h.palm;
+        const px = uc.x + h.kayma.x;
+        const py = uc.y + h.kayma.y;
+        const son = h.iz.length ? h.iz[h.iz.length - 1] : null;
+        if (!son || Math.hypot(px - son.x, py - son.y) > IZ_MIN_ARALIK) {
+          h.iz.push({ x: px, y: py, t: this._t });
+          if (h.iz.length > IZ_MAKS_NOKTA) h.iz.shift();
+        }
+      }
     }
     this.izler = this._takip.map((h) => h.iz);
     // render için: ekran uzayında el/kılıç geometrisi (+ kayma ile ileri sarım)
@@ -408,6 +560,8 @@ export class Oyun {
       f.y += f.vy * dt;
       f.aci += f.donHiz * dt;
     }
+    // MEYVE YE: meyveler yeni konumlarına taşındıktan sonra ağız teması sınanır
+    if (this.mod === "yeme") this._yutmaKontrol(W);
     this.meyveler = this.meyveler.filter((f) => !f.kesildi && f.y < H + f.r * 2.5);
 
     // ---- fizik: yarımlar ----
@@ -435,5 +589,22 @@ export class Oyun {
       pp.y -= 60 * dt;
     }
     this.popuplar = this.popuplar.filter((pp) => pp.t < pp.omur);
+
+    // ---- kesim efektleri: flaş, halka, yutulan meyve, ekran sarsıntısı ----
+    for (const s of this.slashlar) s.t += dt;
+    this.slashlar = this.slashlar.filter((s) => s.t < s.omur);
+    for (const d of this.dalgalar) d.t += dt;
+    this.dalgalar = this.dalgalar.filter((d) => d.t < d.omur);
+    for (const y of this.yutulanlar) {
+      y.t += dt;
+      const p = Math.min(1, y.t / y.omur);
+      y.cx = y.x + (y.hx - y.x) * p;
+      y.cy = y.y + (y.hy - y.y) * p;
+      y.olcek = 1 - 0.85 * p;
+    }
+    this.yutulanlar = this.yutulanlar.filter((y) => y.t < y.omur);
+    this.sarsinti = Math.max(0, this.sarsinti - dt * 46);
+    // ses kuyruğu tüketilmezse (başsız test) sonsuz büyümesin
+    if (this.sesler.length > 24) this.sesler.splice(0, this.sesler.length - 24);
   }
 }

@@ -38,6 +38,7 @@ export default function SiralamaPage() {
       <div className="mk-mod-sekme">
         <button className={mod === "tekli" ? "aktif" : ""} onClick={() => setMod("tekli")}>Tekli</button>
         <button className={mod === "arkadas" ? "aktif" : ""} onClick={() => setMod("arkadas")}>Arkadaşla</button>
+        <button className={mod === "yeme" ? "aktif" : ""} onClick={() => setMod("yeme")}>Meyve Ye</button>
       </div>
 
       {durum === "yukleniyor" && <div className="mk-bilgi">Yükleniyor…</div>}

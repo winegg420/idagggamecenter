@@ -59,3 +59,52 @@ Kullanıcı geri bildirimi: (1) el dururken bıçak görünmemeli, (2) bıçak e
 - **Kasma:** `eltakip.js` throttle'ı çıkarım süresinin ~1.8 katına çıkarıldı (eski: 1×, tavan 110ms → yeni: 1.8×, tavan 150ms). detectForVideo ana thread'de senkron olduğundan yavaş/CPU cihazda süresi boyunca render donuyordu; artık daha seyrek işlenip ana thread'e nefes bırakılıyor (kasma yerine akıcı render).
 
 **Test:** motor-test 16/16 ✓ (kesim/kol bıçağı/statik el/gecikme telafisi regresyonsuz). `npm run build` temiz (bundle 24.5→23.8 KB).
+
+---
+
+## 25 Temmuz 2026 (2. oturum) — Efektler geri geldi + "Meyve Ye" modu
+
+Kullanıcı: "efektler silinmiş, elimi hareket ettirdiğimde ekranda hiçbir şey olmuyor; meyve kesmeyi
+en iyi haline getir; ayrıca tekli bir mod daha ekle: Meyve Ye — telefonu tek elle tut, meyveler aynı
+şekilde gelsin, ağzımızı açıp yutalım."
+
+### 1) Kök neden: iz noktaları algılama hızında üretiliyordu
+Önceki oturumda iz noktası YALNIZ yeni algılama karesinde ve "son noktadan >5 px hareket" koşuluyla
+ekleniyordu. Aynı oturumda throttle 1.8×/150 ms'e çıkarılınca algılama 8-12 fps'e düşebiliyor; 0.18 sn
+iz ömrüne 1-2 nokta sığıyor, `izCiz` ise `n < 2` ise hiç çizmiyordu → **ekranda hiçbir efekt yok**.
+Ek olarak eski taper formülünde son noktanın kalınlığı tam 0 oluyordu (2 noktalı izde görünmez şerit).
+
+- **Çözüm:** iz noktaları artık **her çizim karesinde (60 fps)**, gecikme telafili konumdan üretilir.
+  Ölçüt mesafe değil **el hızı** (`IZ_HIZ_ESIK = 90 px/s`); el görülmeyeli 0.12 sn'den fazla olduysa
+  üretim durur. Ömür 0.18 → 0.30 sn, tavan 26 nokta. Duran elde hâlâ hiç iz yok.
+- `render.js izCiz` yeniden yazıldı: Catmull-Rom yumuşatma + 3 katman (geniş mavi hale, iç parıltı,
+  beyaz pala gövdesi), kuyrukta sivri/uçta dolgun profil, `IZ_MAKS_EN` 16 → 22.
+- `eltakip.js` throttle 1.8×/150 ms → **1.5×/130 ms** (iz artık algılama fps'ine bağlı olmadığı için
+  kasma riski yaratmadan kesim isabeti arttı).
+
+### 2) Kesim "juice"i (istenen: en iyi hâli)
+- Kesim anında: **bıçak yönünde beyaz flaş** (`slashlar`), **halka dalgası** (`dalgalar`),
+  **ekran sarsıntısı** (`sarsinti`, hızla söner), **titreşim** (`navigator.vibrate`).
+- Yarımlar artık kesim çizgisine **dik** ayrılıyor ve kesik yüzeyi bıçağın geçtiği açıda duruyor
+  (`kesimAci`; render'da clip kesim açısıyla, sprite meyvenin kendi açısıyla çizilir).
+- **Ses:** `engine/ses.js` — WebAudio ile sentezlenen kes/altın/combo/yut/bitti efektleri (dosya yok).
+  Motor DOM'a dokunmaz: `oyun.sesler` kuyruğunu OyunPage tüketir. HUD'da 🔊/🔇 düğmesi.
+
+### 3) Yeni mod: MEYVE YE (`/meyvekes/oyun/yeme`)
+- `engine/yuztakip.js` (yeni): MediaPipe **FaceLandmarker**, yalnız 4 ağız noktası (13/14/61/291).
+  El takibi bu modda hiç yüklenmez → daha hafif.
+- Ağız açıklığı = dikey açıklık / ağız genişliği (yüz uzaklığından bağımsız), **histerezisli**
+  (aç 0.30 / kapa 0.20) → titreme yok, yutma anı kaçmaz. Yutma yarıçapı = ağız genişliği × 0.85.
+- Meyveler **ağza nişan alarak balistik** fırlatılır (T sn sonra hedefte olacak hız) → meyve ağız
+  hizasından geçer; oyuncunun tek işi doğru anda ağzını açmak. Spawn temposu 0.95 → 0.60 sn.
+- Görsel: ağız açıkken nabız atan yeşil halka, kapalıyken kesikli sönük halka; yutulan meyve ağza
+  doğru büzülerek akar (`yutulanlar`). Rozet: "😋 ağız açık / 🙂 hazır / 😐 yüz görünmüyor".
+- DB: `20260612000043_meyvekes_yeme_modu.sql` — mod check + iki RPC'ye `'yeme'` eklendi.
+  Menü ve Sıralama'ya "Meyve Ye" eklendi (birleşik sıralamaya toplam olarak katılır).
+
+### Test
+- `node meyvekes/_test/motor-test.mjs` → **31/31 ✓** (yeni: iz üretimi hareket/durgunluk, 60 fps iz
+  akışı, ağızla yutma + histerezis + uzaklık, ağza nişan, kesim efektleri ve sönümü).
+- `npm run build` temiz (MeyveKesApp 23.8 → 35.9 KB; yüz takibi + ses + efektler dahil).
+- `_test/yeme-test.html` (yeni): kamerasız görsel test — sentetik ağız açılıp kapanır, meyveler nişan alır.
+- **Kalan:** gerçek kamera testi kullanıcıda (iz görünürlüğü, yutma isabeti, kasma).

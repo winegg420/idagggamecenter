@@ -24,6 +24,11 @@ export default function MenuPage() {
           <b>Arkadaşla</b>
           <small>Aynı ekranda 2 kişi — daha hızlı, daha eğlenceli!</small>
         </button>
+        <button className="mk-mod-kart yeme mk-genis" onClick={() => git("/meyvekes/oyun/yeme")}>
+          <span className="mk-mod-emoji">😋</span>
+          <b>Meyve Ye</b>
+          <small>Tek elinle telefonu tut — meyveler ağzına gelir, ağzını açıp yut!</small>
+        </button>
       </div>
 
       <Link to="/meyvekes/siralama" className="mk-siralama-btn">🏆 Sıralamayı Gör</Link>
@@ -33,6 +38,7 @@ export default function MenuPage() {
         <ul>
           <li>📷 Kamera iznini ver, kendini ekranda göreceksin.</li>
           <li>✋ Ellerini havada hızlıca sallayarak meyveleri kes.</li>
+          <li>😋 <b>Meyve Ye</b> modunda el yok: meyve ağzına gelince ağzını aç, yut!</li>
           <li>⚡ Art arda kesersen <b>combo</b> puanı kazanırsın.</li>
           <li>⏱️ 60 saniye — en yüksek skoru yap!</li>
         </ul>

@@ -81,6 +81,8 @@
 .mk-mod-kart:active { transform: scale(0.96); }
 .mk-mod-kart.tekli { background: linear-gradient(135deg, #ff5f6d, #ffc371); }
 .mk-mod-kart.arkadas { background: linear-gradient(135deg, #7b2ff7, #06d6a0); }
+.mk-mod-kart.yeme { background: linear-gradient(135deg, #f7971e, #ff4e50); }
+.mk-genis { grid-column: 1 / -1; }
 .mk-mod-emoji { font-size: 2.4rem; }
 .mk-mod-kart b { font-size: 1.1rem; }
 .mk-mod-kart small { font-size: 0.74rem; opacity: 0.92; text-align: center; line-height: 1.3; }
@@ -196,6 +198,20 @@
   background: rgba(0, 0, 0, 0.5);
   color: #fff;
   font-size: 1.2rem;
+  cursor: pointer;
+}
+.mk-ses {
+  position: absolute;
+  top: calc(10px + env(safe-area-inset-top));
+  left: calc(10px + env(safe-area-inset-left));
+  z-index: 10;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(0, 0, 0, 0.5);
+  color: #fff;
+  font-size: 1.1rem;
   cursor: pointer;
 }
 .mk-hud-ust {
@@ -318,6 +334,7 @@
   background: rgba(255, 255, 255, 0.06);
   color: #cdd9f0;
   font-weight: 800;
+  font-size: 0.88rem;
   cursor: pointer;
 }
 .mk-mod-sekme button.aktif { background: linear-gradient(135deg, #ff5f6d, #ffc371); color: #241100; border-color: transparent; }

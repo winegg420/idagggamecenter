@@ -552,3 +552,37 @@ takılma/gecikme olmasın.
 **Test:** `npm run build` temiz (EXIT=0, DidaGP + PatiRun dahil tüm modüller derlendi).
 
 **Kullanıcıda kalan test:** İki gerçek cihazla (özellikle farklı operatör/telefon) DidaGP ve PatiRun'da eşzamanlı start doğrulaması — bu ortamda 2 fiziksel cihaz yok. Yeni kafaların oyun içi görünümü (Kafa Topu karakter seçimi).
+
+---
+
+## 12. Oturum — 25 Temmuz 2026: Meyve Kes efekt onarımı + "Meyve Ye" modu
+
+**Sorun (kullanıcı):** "Meyve kesme oyununda efektler silinmiş, elimi hareket ettirdiğimde ekranda
+hiçbir şey olmuyor." Ayrıca yeni tek-oyunculu mod isteği: **Meyve Ye** (telefonu tek elle tut,
+meyveler aynı şekilde gelir, ağzını açıp yutarsın).
+
+**Kök neden:** Aynı gün yapılan "boşta bıçak yok" düzenlemesinde iz noktaları yalnız ALGILAMA
+karesinde (+5 px hareket koşuluyla) ekleniyordu; aynı düzenlemede kasma için throttle 1.8×/150 ms'e
+çıkarılmıştı. Yavaş cihazda algılama 8-12 fps'e düşünce 0.18 sn'lik iz ömrüne 1-2 nokta sığıyor,
+çizim fonksiyonu `n < 2` iken hiçbir şey çizmiyordu → efektler tamamen kayboldu.
+
+**Yapılanlar (hepsi `meyvekes/`):**
+- **İz üretimi çizim hızına taşındı (60 fps):** ölçüt mesafe yerine **el hızı**; el görülmeyeli
+  0.12 sn'den fazlaysa durur. Ömür 0.30 sn. Duran elde hâlâ iz yok (istenen davranış korundu).
+- **`izCiz` yeniden yazıldı:** Catmull-Rom yumuşatma + 3 katman additif pala (mavi hale, iç parıltı,
+  beyaz gövde); eski formülde iz ucunun kalınlığı 0'a düşüyordu, düzeltildi.
+- **Kesim efektleri:** yön flaşı, halka dalgası, ekran sarsıntısı, titreşim; yarımlar kesim
+  çizgisine dik ayrılıyor ve kesik yüzeyi bıçağın açısında duruyor.
+- **Ses:** `engine/ses.js` (WebAudio sentezi, dosya yok) + HUD'da 🔊/🔇. Motor DOM'suz kalsın diye
+  `oyun.sesler` olay kuyruğu OyunPage'de tüketilir.
+- **Yeni mod Meyve Ye:** `engine/yuztakip.js` (FaceLandmarker, 4 ağız noktası), histerezisli ağız
+  açıklığı, ağza **balistik nişan** alan meyve fırlatma, ağız halkası + yutma animasyonu.
+  Migration `20260612000043_meyvekes_yeme_modu.sql` (mod check + RPC'lere `'yeme'`).
+- `eltakip.js` throttle 1.5×/130 ms (iz artık algılamaya bağlı olmadığı için kesim isabeti arttı).
+
+**Test:** Meyve Kes motor testi **31/31 ✓**, `npm run build` temiz. Kamerasız görsel test sayfası
+eklendi (`meyvekes/_test/yeme-test.html`). Chrome eklentisi bu oturumda bağlı olmadığından tarayıcı
+otomasyonu yapılamadı.
+
+**Kullanıcıda kalan:** Gerçek kamera testi — iz görünüyor mu, kesim hissi, ağızla yutma isabeti,
+kasma. Ayrıca `npx supabase db push` (yeni migration) onayı: yapılmadan "Meyve Ye" skorları kaydedilmez.

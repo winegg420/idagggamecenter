@@ -4,19 +4,21 @@ Bu dosya, `meyvekes/` modülü için rehberdir. **idaGG Game Center** hub'ının
 
 ## Modül Özeti
 
-**Meyve Kes** — Fruit Ninja mantığı ama kontrol **gerçek el hareketi**: ön kamera açılır, MediaPipe el takibiyle elin "bıçak" olur, havadaki meyveleri keser. Tekli ve Arkadaşla (yerel, aynı ekran/kamera, 4 el) modu.
+**Meyve Kes** — Fruit Ninja mantığı ama kontrol **gerçek el hareketi**: ön kamera açılır, MediaPipe el takibiyle elin "bıçak" olur, havadaki meyveleri keser. Modlar: **Tekli** (2 el), **Arkadaşla** (yerel, aynı ekran/kamera, 4 el), **Meyve Ye** (el yok — meyveler ağza nişan alarak gelir, ağzını açıp yutarsın).
 
 ## Teknoloji
 
 - React 19 + Vite (hub kabuğu), izole modül
 - **El takibi:** MediaPipe **Tasks Vision `HandLandmarker`** (GPU delegesi), CDN'den ESM olarak yüklenir — npm bağımlılığı yok, bundle küçük. (Eski `@mediapipe/hands` legacy'den geçildi: kasma + koordinat kayması kök-neden çözümü.)
-- Render: HTML5 Canvas (kamera cover + aynalı, üstünde meyveler/kesim/iz/el iskeleti)
+- **Ağız takibi (Meyve Ye):** aynı CDN'den **`FaceLandmarker`** — yalnız 4 ağız noktası kullanılır (iç dudak üst/alt + iki köşe); açıklık = dikey açıklık / ağız genişliği (yüz uzaklığından bağımsız), histerezisli.
+- Render: HTML5 Canvas (kamera cover + aynalı, üstünde meyveler/kesim/iz/efektler)
+- Ses: `engine/ses.js` — WebAudio ile sentezlenir (dosya yok); motor DOM'a dokunmaz, `oyun.sesler` kuyruğunu OyunPage tüketir.
 
 ## Dizin Yapısı (`meyvekes/`)
 
-- `engine/` — eltakip.js (kamera + HandLandmarker, video karesini doğrudan işler → aspect kayması yok), oyun.js (faz makinesi + fizik + kesim algılama; kimlik eşleştirmeli el takibi, 7 anahtar nokta segmenti), meyveler.js (sprite/emoji önbellek + foto manifest), render.js (kamera + meyve + **el iskeleti** çizimi)
-- `app/` — pages (MenuPage, OyunPage [kamera+canvas+HUD+teşhis rozeti], SiralamaPage), styles
-- `_test/` — motor-test.mjs (Node başsız, 11 test: faz, kesim, statik el kesmez, hızlı savurma, combo, 60sn tam oyun)
+- `engine/` — eltakip.js (kamera + HandLandmarker, video karesini doğrudan işler → aspect kayması yok), yuztakip.js (kamera + FaceLandmarker → ağız noktaları), oyun.js (faz makinesi + fizik + kesim/yutma algılama; kimlik eşleştirmeli el takibi, kol bıçağı), meyveler.js (sprite/emoji önbellek + foto manifest), render.js (kamera + meyve + iz + kesim efektleri + ağız halkası), ses.js (WebAudio efektleri)
+- `app/` — pages (MenuPage, OyunPage [kamera+canvas+HUD+teşhis rozeti+ses düğmesi], SiralamaPage), styles
+- `_test/` — motor-test.mjs (Node başsız, 31 doğrulama: faz, kesim, statik el, hızlı savurma, combo, gecikme telafisi, iz üretimi, meyve ye, efektler), kilic-test.html + yeme-test.html (kamerasız görsel testler)
 
 ## Kabuğa Bağlantı (paylaşılan `src/`)
 
@@ -27,14 +29,15 @@ TEK bağlantı noktaları:
 
 ## Veritabanı
 
-Tablolar **`meyvekes_` önekli**: `meyvekes_skorlar` (user_id+mod pk, en_iyi, toplam_kesim, oyun_sayisi). Migration: `supabase/migrations/20260612000038_meyvekes_temel.sql`. RLS select-only; yazım `security definer` RPC (`meyvekes_skor_kaydet`, `meyvekes_siralama`). `en_iyi` birleşik sıralamaya katılır.
+Tablolar **`meyvekes_` önekli**: `meyvekes_skorlar` (user_id+mod pk, en_iyi, toplam_kesim, oyun_sayisi). Migration: `supabase/migrations/20260612000038_meyvekes_temel.sql` + `20260612000043_meyvekes_yeme_modu.sql` (mod check'e `'yeme'` eklendi). RLS select-only; yazım `security definer` RPC (`meyvekes_skor_kaydet`, `meyvekes_siralama`). `en_iyi` birleşik sıralamaya katılır (tüm modların toplamı).
 
 ## Kritik Notlar (kök-neden dersleri)
 
 - **Kasma:** legacy MediaPipe ana thread'i WASM ile bloklardı → Tasks Vision GPU + senkron `detectForVideo` + setTimeout self-throttle.
 - **Kesememe:** landmark'lar sabit 320x240 kareye normalize edilince 16:9 kamerada aspect bozulup **kayıyordu** → artık video karesi doğrudan işlenir.
-- **Görsel teşhis:** el iskeleti çizimi + "🖐 el görünmüyor" rozeti — kamera/el sorunları anında görünür.
+- **Görsel teşhis:** "🖐 el görünmüyor" / "😐 yüz görünmüyor" rozeti — kamera/takip sorunları anında görünür.
 - GPU başarısızsa CPU delegesine otomatik düşüş.
+- **İz görünmemesi:** Bıçak izi noktaları bir zamanlar yalnız ALGILAMA karesinde ekleniyordu; algılama 10-12 fps'e düşünce 0.18 sn'lik iz ömrüne 1 nokta sığıyor ve ekranda hiçbir efekt görünmüyordu. Artık noktalar **çizim karesinde (60 fps)** üretilir; ölçüt mesafe değil **el hızı** (`IZ_HIZ_ESIK`) → duran elde iz yok, savururken kesintisiz şerit.
 
 ## Kurallar
 
