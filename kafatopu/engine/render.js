@@ -337,9 +337,36 @@ function prosedurelKatmanlar() {
 // yüzlerce path/gradient komutu kare süresinin çoğunu yiyordu.)
 let pisirik = null; // { key, katmanlar: [{ c, hiz, marj }], kaplama }
 
+// Zayıf cihazda (düşük FPS) parallax kapatılır: 3 katman + kaplama yerine
+// TEK opak tuval basılır → kare başına tam ekran çizim 4'ten 1'e iner.
+let duzArkaplan = false;
+export function duzArkaplanAyarla(acik) {
+  if (duzArkaplan === !!acik) return;
+  duzArkaplan = !!acik;
+  pisirikBosalt();
+}
+
+// Pişirilmiş tuvalleri hemen serbest bırak (iOS'ta bellek baskısı = kasma).
+export function pisirikBosalt() {
+  if (!pisirik) return;
+  try {
+    for (const k of pisirik.katmanlar) k.c.width = k.c.height = 0;
+    pisirik.kaplama.width = pisirik.kaplama.height = 0;
+  } catch { /* tuval zaten serbest */ }
+  pisirik = null;
+}
+
+// Bir arka plan katmanını, verilen alanı tam kaplayacak şekilde bas.
+function katmanBas(t, k, solX, genis, boyH, altY) {
+  const iw = k.img.width || SAHA.W + 160;
+  const ih = k.img.height || SAHA.H;
+  const olcek = Math.max((genis + 160) / iw, boyH / ih);
+  t.drawImage(k.img, solX - 80, altY - ih * olcek, iw * olcek, ih * olcek);
+}
+
 function statikleriPisir(ctx, liste, pay, sc, ofX, ofY) {
   const W = ctx.canvas.width, H = ctx.canvas.height;
-  const key = `${W}|${H}|${sc.toFixed(4)}|${Math.round(ofX)}|${Math.round(ofY)}|${pay.sol}|${pay.ust}|${pay.alt}`;
+  const key = `${W}|${H}|${sc.toFixed(4)}|${Math.round(ofX)}|${Math.round(ofY)}|${pay.sol}|${pay.ust}|${pay.alt}|d${duzArkaplan ? 1 : 0}`;
   if (pisirik?.key === key) return pisirik;
 
   // Foto katman henüz yüklenmediyse pişirme (yüklenince pişer; o ana dek
@@ -348,30 +375,45 @@ function statikleriPisir(ctx, liste, pay, sc, ofX, ofY) {
     if (k.img && k.img.tagName === "IMG" && !(k.img.complete && k.img.width)) return null;
   }
 
+  pisirikBosalt(); // eski tuvalleri yenileri ayrılmadan önce bırak
+
   const solX = -pay.sol;
   const genis = SAHA.W + pay.sol + pay.sag;
   const boyH = SAHA.H + pay.ust + pay.alt;
+  const altY = SAHA.H + pay.alt;
 
-  // Parallax katmanları: son ölçekte, kayma marjıyla ayrı tuvallere
-  const katmanC = liste.map((k) => {
-    const marj = Math.ceil(k.hiz * (SAHA.W / 2 + 80) * sc) + 2;
-    const c = document.createElement("canvas");
-    c.width = W + marj * 2;
-    c.height = H;
-    const t = c.getContext("2d");
-    t.setTransform(sc, 0, 0, sc, ofX + marj, ofY);
-    const iw = k.img.width || SAHA.W + 160;
-    const ih = k.img.height || SAHA.H;
-    const olcek = Math.max((genis + 160) / iw, boyH / ih);
-    t.drawImage(k.img, solX - 80, (SAHA.H + pay.alt) - ih * olcek, iw * olcek, ih * olcek);
-    return { c, hiz: k.hiz, marj };
-  });
+  // Parallax katmanları: son ölçekte, kayma marjıyla ayrı tuvallere.
+  // Düz arka plan modunda hiç katman tuvali üretilmez; hepsi kaplamaya pişer.
+  const katmanC = duzArkaplan
+    ? []
+    : liste.map((k, i) => {
+        const marj = Math.ceil(k.hiz * (SAHA.W / 2 + 80) * sc) + 2;
+        const c = document.createElement("canvas");
+        c.width = W + marj * 2;
+        c.height = H;
+        const t = c.getContext("2d");
+        // En arka katman opak taban alır: her karede clearRect gerekmesin.
+        if (i === 0) {
+          t.fillStyle = "#06121f";
+          t.fillRect(0, 0, c.width, c.height);
+        }
+        t.setTransform(sc, 0, 0, sc, ofX + marj, ofY);
+        katmanBas(t, k, solX, genis, boyH, altY);
+        return { c, hiz: k.hiz, marj };
+      });
 
-  // Kaplama: karartma + zemin + kum + çizgiler + kaleler (hepsi statik)
+  // Kaplama: karartma + zemin + kum + çizgiler + kaleler (hepsi statik).
+  // Düz modda arka plan katmanları da (kaymasız) buraya pişirilir.
   const kap = document.createElement("canvas");
   kap.width = W;
   kap.height = H;
   const t = kap.getContext("2d");
+  if (duzArkaplan) {
+    t.fillStyle = "#06121f";
+    t.fillRect(0, 0, W, H);
+    t.setTransform(sc, 0, 0, sc, ofX, ofY);
+    for (const k of liste) katmanBas(t, k, solX, genis, boyH, altY);
+  }
   t.setTransform(sc, 0, 0, sc, ofX, ofY);
   t.fillStyle = "rgba(8, 20, 34, 0.16)";
   t.fillRect(solX, -pay.ust, genis, boyH);
@@ -410,6 +452,10 @@ function dogrudanArkaplanCiz(ctx, liste, pay, parallaxKaynak) {
   const solX = -pay.sol;
   const genis = SAHA.W + pay.sol + pay.sag;
   const boyH = SAHA.H + pay.ust + pay.alt;
+  // Opak taban: arka plan her koşulda ekranı tam kaplar, böylece kare başına
+  // ayrı bir clearRect gerekmez (bir tam ekran işlemi eksilir).
+  ctx.fillStyle = "#06121f";
+  ctx.fillRect(solX, -pay.ust, genis, boyH);
   for (const k of liste) {
     if (k.img && (k.img.width || k.img.complete !== false)) {
       try {
@@ -501,7 +547,7 @@ export function sahneCiz(ctx, snap, meta, simMs, pay = { sol: 0, sag: 0, ust: 0,
     ctx.beginPath();
     ctx.ellipse(oy.x, SAHA.ZEMIN_Y - 4, r * 0.9 * golgeOlcek, 8 * golgeOlcek, 0, 0, Math.PI * 2);
     ctx.fill();
-    oyuncuCiz(ctx, oy, meta[i], simMs);
+    oyuncuCiz(ctx, oy, meta[i], simMs, m.a);
   });
 
   // Top (plaj topu stili)

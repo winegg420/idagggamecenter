@@ -14,12 +14,12 @@ import { useKT } from "../KafaTopuApp.jsx";
 import { macKur, macTick, girdiAyarla, anlikDurum } from "../../engine/oyun.js";
 import { botDurumKur, botGirdiHesapla } from "../../engine/bot.js";
 import { girdiKur, dokunmatikVarMi } from "../../engine/girdi.js";
-import { sahneCiz } from "../../engine/render.js";
+import { sahneCiz, duzArkaplanAyarla, pisirikBosalt } from "../../engine/render.js";
 import { macKanaliKur } from "../../net/kanal.js";
 import { interpKur } from "../../net/interpolasyon.js";
 import { kafaBul, KURGUSAL_KAFALAR, fotoKafalariYukle } from "../../shared/karakterler.js";
 import { SAHA, AG, MAC, OYUNCU } from "../../shared/sabitler.js";
-import { TAKIM_RENK } from "../../engine/kafaCizim.js";
+import { TAKIM_RENK, kafaOnbellegiBosalt } from "../../engine/kafaCizim.js";
 
 // Geliştirici hesabı (migration'lardaki sabit UUID ile aynı) — maç içi
 // admin gücü (yetenek soğuması ~0) host simülasyonunda buna göre açılır.
@@ -185,10 +185,28 @@ export default function MacPage() {
     // tam sahne çizmek GPU'yu ikiye katlayıp ısınma/kısılma (kasma) yapıyordu.
     // 12ms eşiği: 120Hz'de her 2. kare çizilir, 60Hz'de her kare geçer.
     let sonCizim = 0;
-    // FPS'e göre otomatik çözünürlük: zayıf cihazda kasma yerine netlikten ver.
+    // ---- Uyarlanabilir kalite merdiveni (iPhone kasma düzeltmesi) ----
+    // Ölçüt yalnız rAF hızı değil, ÇİZİM süresinin kendisi: 120Hz ProMotion
+    // cihazlarda rAF 120'de kalıp çizim 16 ms'i aşabiliyor (rAF hızına bakan
+    // eski ölçüt bunu göremiyordu). Adımlar en az görünür kayıptan başlar:
+    //   1 → parallax kapalı (arka plan tek opak blit; 4 tam ekran işlem → 1)
+    //   2,3 → çözünürlük %85 / %70
+    const KALITE_ADIMI = [1, 1, 0.85, 0.7];
+    let kaliteAdim = 0;
     let kalite = 1;
-    let fpsKare = 0, fpsSure = 0;
+    let fpsKare = 0, fpsSure = 0, cizSure = 0, cizSayi = 0, kotuPencere = 0;
     let ctx = null;
+
+    const kaliteDusur = () => {
+      if (kaliteAdim >= KALITE_ADIMI.length - 1) return;
+      kaliteAdim += 1;
+      if (kaliteAdim >= 1) duzArkaplanAyarla(true);
+      const yeni = KALITE_ADIMI[kaliteAdim];
+      if (yeni !== kalite) {
+        kalite = yeni;
+        boyutlandir();
+      }
+    };
 
     const ciz = (view) => {
       const canvas = canvasRef.current;
@@ -196,16 +214,21 @@ export default function MacPage() {
       // Opak canvas: Safari/iOS'ta kompozit maliyetini ciddi düşürür.
       // Context bir kez alınıp saklanır (her karede getContext çağrılmaz).
       if (!ctx || ctx.canvas !== canvas) ctx = canvas.getContext("2d", { alpha: false });
+      const t0 = performance.now();
       // Kaleler ekranın EN KENARINDA dursun: saha genişliğe tam oturtulur,
       // zemin alta sabitlenir. Ekran sahadan basıksa üstteki gökyüzü kırpılır
       // (fizik değişmez; top nadiren üstte kısa süre ekran dışına çıkabilir).
       const sc = canvas.width / SAHA.W;
       const ofY = canvas.height - SAHA.H * sc;
       ctx.setTransform(sc, 0, 0, sc, 0, ofY);
-      ctx.clearRect(0, -ofY / sc, canvas.width / sc, canvas.height / sc);
+      // clearRect YOK: arka plan (pişirilmiş ya da doğrudan) her koşulda opak
+      // olarak tüm ekranı kaplıyor — ayrı bir tam ekran temizleme işlemi
+      // kare başına boşa gidiyordu.
       sahneCiz(ctx, view, metaRef.current || [], view.t || performance.now(), {
         sol: 0, sag: 0, ust: Math.max(0, ofY / sc), alt: 0,
       });
+      cizSure += performance.now() - t0;
+      cizSayi += 1;
     };
 
     // --- Misafir girdi gecikmesi maskeleme ---
@@ -230,17 +253,27 @@ export default function MacPage() {
       const dt = simdi - sonZaman;
       sonZaman = simdi;
 
-      // FPS ölçümü (arka plan duraklamaları hariç) → gerekirse çözünürlük düşür
+      // Performans ölçümü (arka plan duraklamaları hariç): kare hızı + çizim
+      // süresi. Tek kötü pencere (sekmeye dönüş vb.) kaliteyi düşürmesin diye
+      // üst üste İKİ kötü pencere beklenir.
       if (dt > 0 && dt < 250) {
         fpsKare += 1;
         fpsSure += dt;
-        if (fpsSure >= 2500) {
+        if (fpsSure >= 1200) { // kısa pencere: kasma en fazla ~2.5 sn sürer
           const fps = (fpsKare * 1000) / fpsSure;
-          fpsKare = 0;
-          fpsSure = 0;
-          if (fps < 45 && kalite > 0.5) {
-            kalite = Math.max(0.5, kalite - 0.15);
-            boyutlandir();
+          const cizOrt = cizSayi ? cizSure / cizSayi : 0;
+          fpsKare = 0; fpsSure = 0; cizSure = 0; cizSayi = 0;
+          // 60 fps bütçesi 16.7 ms; çizim 11 ms'i aşarsa yer kalmıyor.
+          // Kare hızı düşükken de ancak çizim payı anlamlıysa kalite verilir:
+          // Düşük Güç Modu rAF'i 30Hz'e kilitler, orada kalite düşürmek boşa gider.
+          if (cizOrt > 11 || (fps < 50 && cizOrt > 6)) {
+            kotuPencere += 1;
+            if (kotuPencere >= 2) {
+              kotuPencere = 0;
+              kaliteDusur();
+            }
+          } else {
+            kotuPencere = 0;
           }
         }
       }
@@ -311,10 +344,18 @@ export default function MacPage() {
       const TAVAN_PIKSEL = 1500000;
       if (vw * vh * dpr * dpr > TAVAN_PIKSEL) dpr = Math.sqrt(TAVAN_PIKSEL / (vw * vh));
       dpr = Math.max(0.85, dpr);
+      const gw = Math.round(vw * dpr), gh = Math.round(vh * dpr);
+      // iOS Safari, adres çubuğu/ekran klavyesi hareketinde visualViewport
+      // resize'ı sürekli tetikler. canvas.width'e AYNI değeri atamak bile
+      // arka tampon tahsisini sıfırlar (kare kaybı) — ölçü değişmediyse çık.
+      if (
+        canvas.width === gw && canvas.height === gh &&
+        canvas.style.width === vw + "px" && canvas.style.height === vh + "px"
+      ) return;
       canvas.style.width = vw + "px";
       canvas.style.height = vh + "px";
-      canvas.width = Math.round(vw * dpr);
-      canvas.height = Math.round(vh * dpr);
+      canvas.width = gw;
+      canvas.height = gh;
     };
     // Döndürme anında tarayıcılar bir süre ESKİ ölçüleri bildirir;
     // hemen + 300ms + 800ms sonra tekrar ölçülür.
@@ -335,16 +376,20 @@ export default function MacPage() {
     // bu yüzden maç ekranına İLK dokunuşta istenir, başarılınca yatay
     // kilit denenir (Android'de çalışır; iPhone Safari desteklemez —
     // orada tek yol uygulamayı ana ekrana eklemek).
+    // iPhone Safari tam ekran API'sini (video dışında) HİÇ desteklemez.
+    // Destek yoksa dinleyici bile bağlanmaz; yoksa her dokunuşta boşa
+    // promise + orientation.lock denemesi yapılıyordu (oyun içi mikro takılma).
+    const kokEl = document.documentElement;
+    const tamEkranDestek = !!(kokEl.requestFullscreen || kokEl.webkitRequestFullscreen);
     const tamEkranIste = () => {
       // Safari webkit önekli fullscreenElement kullanır; kontrol edilmezse
       // HER dokunuşta yeniden tam ekran istenir (iPad/iPhone'da takılma +
       // yutulan tuş basışları). İki alanı da kontrol et.
       if (!dokunmatikVarMi() || document.fullscreenElement || document.webkitFullscreenElement) return;
       try {
-        const el = document.documentElement;
-        const istek = el.requestFullscreen
-          ? el.requestFullscreen({ navigationUI: "hide" })
-          : el.webkitRequestFullscreen?.();
+        const istek = kokEl.requestFullscreen
+          ? kokEl.requestFullscreen({ navigationUI: "hide" })
+          : kokEl.webkitRequestFullscreen?.();
         Promise.resolve(istek)
           .then(() => {
             try { screen.orientation?.lock?.("landscape").catch(() => {}); } catch { /* desteklenmiyor */ }
@@ -352,8 +397,10 @@ export default function MacPage() {
           .catch(() => {});
       } catch { /* desteklenmiyor — normal görünümde devam */ }
     };
-    window.addEventListener("pointerdown", tamEkranIste);
-    window.addEventListener("touchstart", tamEkranIste, { passive: true });
+    if (tamEkranDestek) {
+      window.addEventListener("pointerdown", tamEkranIste);
+      window.addEventListener("touchstart", tamEkranIste, { passive: true });
+    }
 
     // --- Bot maçı kurulumu ---
     // Context'teki profil henüz yüklenmemiş olabilir (sayfa yenileme ile
@@ -613,6 +660,12 @@ export default function MacPage() {
       macRef.current = null;
       interpRef.current = null;
       kopmaBaslangicRef.current = 0;
+      // Cihaz çözünürlüğündeki pişirilmiş tuvaller ~25 MB tutabiliyor;
+      // maçtan çıkışta hemen bırak (iOS'ta bellek baskısı sekmeyi kastırıyor).
+      // Sonraki maçta geri sayım sırasında yeniden pişer.
+      pisirikBosalt();
+      kafaOnbellegiBosalt();
+      duzArkaplanAyarla(false); // kalite merdiveni her maçta baştan ölçülür
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id, tekrarAnahtari, user?.id]);

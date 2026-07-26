@@ -46,9 +46,91 @@ function gradyanAl(key, uret) {
   return g;
 }
 
+// ---------- Kafa sprite önbelleği (iPhone kasma düzeltmesi) ----------
+// Kafa (foto daire-kırpması ya da prosedürel yüz) her karede yeniden
+// çizilmek yerine cihaz pikselinde küçük bir tuvale BİR KEZ pişirilir.
+// Böylece kare başına şunlar ortadan kalkar:
+//  - daire clip() → Safari'de maske katmanı + GPU komut kuyruğu boşaltması,
+//  - 1100 px kaynaktan ~150 px'e drawImage (büyük doku örnekleme),
+//  - prosedürel yüzün ~80 path komutu.
+// Yerine tek küçük drawImage kalır.
+const spriteOnbellek = new Map(); // key → { c, he }
+const SPRITE_PAY = 1.45;         // saç/sakal kafa dairesinin dışına taşar
+
+// Sprite'ları serbest bırak (maçtan çıkışta — iOS'ta bellek baskısı = kasma).
+export function kafaOnbellegiBosalt() {
+  for (const s of spriteOnbellek.values()) s.c.width = s.c.height = 0;
+  spriteOnbellek.clear();
+}
+
+// sc: mantıksal birim → cihaz pikseli ölçeği (sprite netliği için).
+// Foto kafa görseli henüz yüklenmediyse null döner (o kare canlı çizilir).
+function kafaSpriteAl(m, r, sc, bakis) {
+  const kk = m.kafaKaydi;
+  if (kk?.foto && !fotoKafaImg(kk.id)) return null;
+  const key = `${kk?.id ?? "yok"}|${m.takim}|${bakis}|${r.toFixed(1)}|${sc.toFixed(2)}`;
+  let s = spriteOnbellek.get(key);
+  if (s) return s;
+  try {
+    const he = r * SPRITE_PAY;                       // mantıksal yarı-kenar
+    const px = Math.max(8, Math.ceil(he * 2 * sc));  // sprite piksel boyu
+    const c = document.createElement("canvas");
+    c.width = c.height = px;
+    const t = c.getContext("2d");
+    const olcek = px / (he * 2);
+    t.setTransform(olcek, 0, 0, olcek, px / 2, px / 2);
+    kafaGovdesiCiz(t, r, bakis, m, TAKIM_RENK[m.takim]);
+    if (spriteOnbellek.size > 48) kafaOnbellegiBosalt(); // sınırsız büyümesin
+    s = { c, he };
+    spriteOnbellek.set(key, s);
+    return s;
+  } catch (e) {
+    console.error("KafaTopu kafa sprite hatası:", e);
+    return null;
+  }
+}
+
+// Kafanın kendisi (foto kırpma ya da prosedürel yüz). Hem sprite pişirmede
+// hem de foto yüklenene dek canlı çizimde kullanılır.
+function kafaGovdesiCiz(ctx, r, bakis, m, renk) {
+  const img = m.kafaKaydi?.foto ? fotoKafaImg(m.kafaKaydi.id) : null;
+  if (!img) {
+    kurgusalYuzCiz(ctx, r, bakis, m.kafaKaydi?.cizim, renk);
+    return;
+  }
+  // Foto kafa: daire kırpma + takım rengi çerçeve.
+  // Manifest'teki odak/yarıçap ile yüz, görselin neresindeyse oradan kesilir.
+  ctx.save();
+  ctx.beginPath();
+  ctx.arc(0, 0, r, 0, Math.PI * 2);
+  ctx.clip();
+  // Zemin dolgusu: şeffaf PNG'lerde daire içi boş kalmasın
+  ctx.fillStyle = renk.koyu;
+  ctx.fill();
+  // Yüz rakibe baksın: takım 2 için aynala
+  ctx.scale(bakis, 1);
+  const kk = m.kafaKaydi;
+  // Kırpma penceresi görselin dışına taşarsa daire içinde boşluk kalır;
+  // yarıçapı sığdır ve pencereyi görüntü sınırları içine kaydır.
+  let sr = (kk.yaricap ?? 0.5) * Math.min(img.width, img.height);
+  sr = Math.min(sr, img.width / 2, img.height / 2);
+  let sx = (kk.odakX ?? 0.5) * img.width - sr;
+  let sy = (kk.odakY ?? 0.5) * img.height - sr;
+  sx = Math.max(0, Math.min(sx, img.width - sr * 2));
+  sy = Math.max(0, Math.min(sy, img.height - sr * 2));
+  ctx.drawImage(img, sx, sy, sr * 2, sr * 2, -r, -r, r * 2, r * 2);
+  ctx.restore();
+  ctx.strokeStyle = renk.forma;
+  ctx.lineWidth = Math.max(3, r * 0.09);
+  ctx.beginPath();
+  ctx.arc(0, 0, r - ctx.lineWidth / 2 + 1, 0, Math.PI * 2);
+  ctx.stroke();
+}
+
 // oy: { x, y, vx, vy, va, ol, ef } — anlikDurum paketindeki oyuncu kaydı
 // m: meta { takim, kafaKaydi (kafaBul sonucu), ad }
-export function oyuncuCiz(ctx, oy, m, simMs) {
+// sc: mantıksal → cihaz pikseli ölçeği (kafa sprite'ının netliği için)
+export function oyuncuCiz(ctx, oy, m, simMs, sc = 1) {
   const r = OYUNCU.KAFA_R * (oy.ol || 1);
   const bakis = m.takim === 1 ? 1 : -1; // takım 1 sağa, takım 2 sola bakar
   const renk = TAKIM_RENK[m.takim];
@@ -125,45 +207,18 @@ export function oyuncuCiz(ctx, oy, m, simMs) {
   ctx.rotate(egilme);
   ctx.scale(1 - gerilme * 0.6, 1 + gerilme);
 
-  // Efekt auraları
+  // Efekt auraları (nabız attıkları için pişirilemez — canlı çizilir)
   const ef = oy.ef || 0;
   if (ef & EFEKT_BAYRAK.ates) aura(ctx, r, "rgba(255,120,20,0.5)", simMs);
   if (ef & EFEKT_BAYRAK.buz) aura(ctx, r, "rgba(110,210,255,0.5)", simMs);
   if (ef & EFEKT_BAYRAK.hiz) aura(ctx, r, "rgba(180,255,120,0.4)", simMs);
   if (ef & EFEKT_BAYRAK.dev_sut) aura(ctx, r, "rgba(255,220,60,0.45)", simMs);
 
-  const img = m.kafaKaydi?.foto ? fotoKafaImg(m.kafaKaydi.id) : null;
-  if (img) {
-    // Foto kafa: daire kırpma + takım rengi çerçeve.
-    // Manifest'teki odak/yarıçap ile yüz, görselin neresindeyse oradan kesilir.
-    ctx.save();
-    ctx.beginPath();
-    ctx.arc(0, 0, r, 0, Math.PI * 2);
-    ctx.clip();
-    // Zemin dolgusu: şeffaf PNG'lerde daire içi boş kalmasın
-    ctx.fillStyle = renk.koyu;
-    ctx.fill();
-    // Yüz rakibe baksın: takım 2 için aynala
-    ctx.scale(bakis, 1);
-    const kk = m.kafaKaydi;
-    // Kırpma penceresi görselin dışına taşarsa daire içinde boşluk kalır;
-    // yarıçapı sığdır ve pencereyi görüntü sınırları içine kaydır.
-    let sr = (kk.yaricap ?? 0.5) * Math.min(img.width, img.height);
-    sr = Math.min(sr, img.width / 2, img.height / 2);
-    let sx = (kk.odakX ?? 0.5) * img.width - sr;
-    let sy = (kk.odakY ?? 0.5) * img.height - sr;
-    sx = Math.max(0, Math.min(sx, img.width - sr * 2));
-    sy = Math.max(0, Math.min(sy, img.height - sr * 2));
-    ctx.drawImage(img, sx, sy, sr * 2, sr * 2, -r, -r, r * 2, r * 2);
-    ctx.restore();
-    ctx.strokeStyle = renk.forma;
-    ctx.lineWidth = Math.max(3, r * 0.09);
-    ctx.beginPath();
-    ctx.arc(0, 0, r - ctx.lineWidth / 2 + 1, 0, Math.PI * 2);
-    ctx.stroke();
-  } else {
-    kurgusalYuzCiz(ctx, r, bakis, m.kafaKaydi?.cizim, renk);
-  }
+  // Kafa: bir kez pişirilmiş sprite tek drawImage ile basılır. Foto görseli
+  // henüz yüklenmediyse o kare canlı çizilir (yüklenince sprite pişer).
+  const sp = kafaSpriteAl(m, r, sc, bakis);
+  if (sp) ctx.drawImage(sp.c, -sp.he, -sp.he, sp.he * 2, sp.he * 2);
+  else kafaGovdesiCiz(ctx, r, bakis, m, renk);
 
   ctx.restore(); // kafa dönüşümü
 

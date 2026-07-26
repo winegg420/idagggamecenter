@@ -649,3 +649,35 @@ pencerede biriken NET (yönlü) yer değiştirmeye bakıyor; eşikler ekran kö�
 dolmadan anlık hıza güvenilmiyor. Kapı kapalıyken kesim + gecikme telafisi + bıçak izi birlikte
 kapanıyor. Test 39/39 (yeni: ±4 px titreyen duran el, hem masaüstü hem telefon çözünürlüğünde,
 meyve kılıcın tam üstünde dururken 1 sn boyunca kesmiyor). Ayrıntı: `meyvekes/PROGRESS.md`.
+
+---
+
+## 26 Temmuz 2026 — Kafa Topu: iPhone kasmasının kalan kök nedenleri
+
+24 Temmuz'daki statik sahne pişirmesi arka planı çözmüştü, ama **kare başına kalan iş** hâlâ
+iOS Safari'nin iki en pahalı canvas yolundan geçiyordu. Kök nedenler ve ölçüm (yeni
+`kafatopu/_test/cizim-test.mjs`, canvas komutlarını sayan mock):
+
+| kare başına | eski | yeni |
+|---|---|---|
+| `clip()` (daire kırpma) | 2 (1v1) / 4 (2v2) | **0** |
+| büyük ölçek-küçültmeli `drawImage` | 2 / 4 | **0** |
+| canvas komutu (foto kafa) | 132 | 112 |
+| canvas komutu (kurgusal kafa) | 178 | 125 |
+| tam ekran blit | 5 | 4 (zayıf cihazda 1) |
+
+**Asıl kalem — kafa sprite pişirmesi:** kafa her karede daire `clip()` içine alınıp 1100 px
+PNG'den ~150 px'e ölçekleniyordu (kurgusal kafalarda ~80 path komutu). Safari'de non-rect clip
+maske katmanı ayırıp GPU komut kuyruğunu boşaltıyor — **oyuncu başına, kare başına**. Artık kafa
+küçük bir tuvale bir kez pişiriliyor, kare başına tek `drawImage` kalıyor.
+
+Diğerleri: düz arka plan modu (parallax kapalı → 4 tam ekran blit 1'e iner), çizim süresini
+ölçen uyarlanabilir kalite merdiveni (eski ölçüt yalnız rAF hızına bakıyordu, 120Hz ProMotion'da
+zayıf durumu hiç görmüyordu), iOS `visualViewport resize` fırtınasında canvas'ın gereksiz yeniden
+tahsisi, kare başına gereksiz `clearRect`, iPhone'da desteklenmeyen fullscreen API'sinin her
+dokunuşta boşa denenmesi, ve maçtan çıkışta ~25 MB pişirik belleğinin hemen bırakılması.
+
+Fizik/skor/ELO/ağ mantığına dokunulmadı: `motor-test.mjs` 27/27 ✓, `cizim-test.mjs` 13/13 ✓,
+build ✓. Ayrıntı: `kafatopu/PROGRESS.md`.
+
+**Kullanıcıda kalan:** gerçek iPhone'da maç testi (antrenman botu + online 1v1).

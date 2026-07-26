@@ -8,7 +8,7 @@
 - **Fizik:** Matter.js, saha 1000x560, Head Ball hissi (yerçekimi 2.0, zıplama tepe ~140px). Zıplama/uçma bug'ları kök-nedenden çözüldü (deterministik yerdeMi()).
 - **Multiplayer:** host-otoriter, 20Hz durum yayını, interpolasyon, kopma telafisi (hükmen). Skor: iki-taraflı onay + `FOR UPDATE` (sahtecilik kapalı, migration `20260612000037`).
 - **Foto kafalar:** İda + Baran + Aykut + Emirhan + Adenis — arka plan silme + karikatürize (v1: posterize+kontur) araç zinciri (`scripts/kafatopu-karikatur.mjs`). manifest odak/yarıçap ile daire kırpma.
-- **Mobil/iOS:** native touch (çoklu parmak), webkit fullscreen, wake lock, alpha:false, statik sahne bake (kök-neden kasma düzeltmesi), fit-to-viewport/tam ekran, dokunmatik tuş ergonomisi (kullanıcı onaylı düzen).
+- **Mobil/iOS:** native touch (çoklu parmak), webkit fullscreen (yalnız destekleyen cihazda), wake lock, alpha:false, statik sahne bake + **kafa sprite bake** (kök-neden kasma düzeltmeleri), uyarlanabilir kalite merdiveni (çizim süresine göre), fit-to-viewport/tam ekran, dokunmatik tuş ergonomisi (kullanıcı onaylı düzen).
 
 ## Migration'lar (repo kökü)
 
@@ -19,6 +19,8 @@
 ## Test
 
 `node kafatopu/_test/motor-test.mjs` → 27 test (son çalıştırma: 27/27 ✓). ELO JS eşleniği SQL ile senkron tutulur.
+`node kafatopu/_test/cizim-test.mjs` → 13 iddia (13/13 ✓). Çizim yolunun iPhone performans
+kök nedenlerini kilitler: kare başına clip() / büyük ölçek-küçültme / canvas tahsisi sıfır olmalı.
 
 ## Hub taşıması (2026-07-22)
 
@@ -57,3 +59,62 @@ interpolasyon gecikmesi (120 ms) bu aralığı zaten yutuyor. Motor testleri 27/
 
 Host-otoriter model gereği maç başlangıcı zaten senkron: geri sayım host simülasyonundan gelir,
 misafir kendi saatiyle başlangıç hesaplamaz (bu oyunda "erken başlama" bug'ı yok).
+
+---
+
+## 26 Temmuz 2026 — iPhone kasması: kalan kök nedenler kapatıldı
+
+Statik sahne pişirmesi (24 Tem) arka planı çözmüştü ama **kare başına kalan iş** hâlâ
+Safari'nin iki en pahalı yolundan geçiyordu. Ölçüm (`_test/cizim-test.mjs`, canvas mock'u):
+
+| | eski | yeni |
+|---|---|---|
+| kare başına `clip()` | 2 (1v1) / 4 (2v2) | **0** |
+| kare başına büyük ölçek-küçültmeli `drawImage` | 2 / 4 | **0** |
+| kare başına canvas komutu (foto kafa) | 132 | 112 |
+| kare başına canvas komutu (kurgusal kafa) | 178 | 125 |
+
+**1. Kafa sprite pişirmesi** (`engine/kafaCizim.js`) — asıl kalem.
+Kafa her karede daire `clip()` + 1100 px PNG'den ~150 px'e `drawImage` ile çiziliyordu
+(kurgusal kafalarda bunun yerine ~80 path komutu). Safari'de non-rect clip maske katmanı
+ayırıp GPU komut kuyruğunu boşaltıyor — oyuncu başına, kare başına. Artık kafa
+`(kafaId, takım, bakış, yarıçap, cihaz ölçeği)` anahtarıyla küçük bir tuvale **bir kez**
+pişiriliyor; kare başına tek `drawImage` kalıyor. Aura'lar nabız attığı için canlı çiziliyor.
+`SPRITE_PAY = 1.45` — saç/sakal kafa dairesinin dışına taştığı için pay bırakıldı.
+
+**2. Düz arka plan modu** (`engine/render.js`) — `duzArkaplanAyarla(true)` ile 3 parallax
+katmanı + kaplama tek opak tuvale pişer: kare başına tam ekran blit **4 → 1**.
+
+**3. Uyarlanabilir kalite merdiveni** (`app/pages/MacPage.jsx`) — eski ölçüt yalnız rAF
+hızına bakıyordu; 120Hz ProMotion'da rAF 120'de kalıp çizim 16 ms'i aşabiliyordu, yani
+zayıf durum hiç görülmüyordu. Artık **çizim süresinin kendisi** ölçülüyor. Adımlar:
+1 → parallax kapalı, 2/3 → çözünürlük %85 / %70. 1200 ms'lik pencere, üst üste **iki** kötü
+pencere şartı (sekmeye dönüş gibi tek hıçkırık kaliteyi düşürmesin). Düşük Güç Modu rAF'i
+30Hz'e kilitlediği için kare hızı düşükken de yalnız çizim payı anlamlıysa (>6 ms) adım iner.
+
+**4. Gereksiz canvas yeniden tahsisi** — iOS Safari adres çubuğu/klavye hareketinde
+`visualViewport resize`'ı sürekli tetikliyor; `boyutlandir()` her seferinde `canvas.width`'e
+**aynı** değeri atıyordu. Aynı değeri atamak bile arka tamponu sıfırlıyor (kare kaybı).
+Ölçü değişmediyse artık çıkılıyor.
+
+**5. Kare başına `clearRect` kaldırıldı** — arka plan (pişirilmiş ya da doğrudan yol) her
+koşulda opak olarak tüm ekranı kaplıyor; kanıtlanabilir kaplama için en arka katmana ve
+doğrudan çizim yoluna opak taban eklendi. Bir tam ekran işlemi eksildi.
+
+**6. iPhone'da boşa tam ekran denemesi** — iPhone Safari (video dışı) fullscreen API'sini
+desteklemez; `requestFullscreen`/`webkitRequestFullscreen` yokken **her dokunuşta** boşa
+promise + `orientation.lock` denemesi yapılıyordu. Destek yoksa dinleyici artık bağlanmıyor.
+
+**7. Bellek** — cihaz çözünürlüğündeki pişirikler ~25 MB tutabiliyor (iOS'ta bellek
+baskısı = sekme kasması/yeniden yüklenmesi). Maçtan çıkışta `pisirikBosalt()` +
+`kafaOnbellegiBosalt()` ile hemen bırakılıyor; sonraki maçta geri sayım sırasında pişiyor.
+Yeniden pişirmede de eski tuvaller `width/height = 0` ile serbest bırakılıyor.
+
+**Test:** yeni `_test/cizim-test.mjs` (13 iddia) kök nedenleri kilitliyor — kare başına
+clip/büyük-ölçek/canvas-tahsisi sıfır olmalı. `_test/motor-test.mjs` 27/27 ✓, build ✓.
+Fizik, skor, ELO ve ağ mantığına dokunulmadı.
+
+**Günlük düzeltmesi (24 Tem kaydı):** `emirali`/`bedo` görselleri JPEG'e çevrilmemiş, PNG
+kalmış (570×760, 255-325 KB); manifest de `.png` gösteriyor. Küçültme yapılmış, format
+değişikliği yapılmamış. Kafa sprite bake'i geldiği için kaynak boyutu artık kare başına
+maliyete girmiyor (yalnız ilk pişirmede okunuyor), o yüzden dosyalara dokunulmadı.
