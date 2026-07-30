@@ -137,3 +137,7 @@ DALGINLIK_MS 380` (kısa süre hiç girdi üretmez). Tüm zorluk tek blokta — 
 seçici eklenecekse buradan parametrelenir.
 
 **Ölçüm:** eski bot vs yeni bot 20 maç 1v1 → **20.4 - 8.3**. `motor-test.mjs` 27/27 ✓, build ✓.
+
+**Düzeltme (aynı gün):** `ege` dairesinde tişört görünüyordu. Izgara overlay ile kafa sınırları
+ölçülüp (saç üstü y≈133, çene y≈490 @570×760) manifest **`0.49 / 0.42 / 0.355`** yapıldı —
+sadece kafa. Ders: odak değerlerini gözle tahmin etme, `daire-onizle.py` + ızgara ile ölç.

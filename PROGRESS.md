@@ -713,3 +713,8 @@ build ✓. Ayrıntı: `kafatopu/PROGRESS.md`.
 **Test:** `motor-test.mjs` 27/27 ✓, `npm run build` temiz ✓.
 **Kullanıcıda kalan:** Karakter ekranında Ege kafasının görünümü + antrenman maçında botun
 yeni zorluk hissi (çok kolaylaştıysa `BOT` bloğundaki değerler tek yerden ayarlanabilir).
+
+**Düzeltme (aynı gün):** Ege kadrajında tişört görünüyordu (`yaricap 0.46` gövdeyi de alıyordu).
+Izgara overlay ile kafa sınırları ölçüldü (570×760 görselde: saç üstü y≈133, çene y≈490,
+kulaklar x≈150-405) → **`odakX 0.49, odakY 0.42, yaricap 0.355`**. Daire artık saç üstünden
+çeneye sadece kafayı alıyor, omuz/tişört kadraj dışında.
