@@ -118,3 +118,22 @@ Fizik, skor, ELO ve ağ mantığına dokunulmadı.
 kalmış (570×760, 255-325 KB); manifest de `.png` gösteriyor. Küçültme yapılmış, format
 değişikliği yapılmamış. Kafa sprite bake'i geldiği için kaynak boyutu artık kare başına
 maliyete girmiyor (yalnız ilk pişirmede okunuyor), o yüzden dosyalara dokunulmadı.
+
+---
+
+## 30 Temmuz 2026 — Yeni kafa "ege" + bot zorluk dengesi
+
+**Yeni foto kafa `ege`:** ham 2250×3000 / 4.4 MB fotoğraf, emirali/bedo hattından geçirildi
+(rembg `u2net_human_seg` + alpha matting → en büyük bağlı bileşen → alfa sertleştirme →
+760 px, PNG optimize) → **282 KB**. Manifest odak değerleri ölçülerek belirlendi:
+`odakX 0.48 / odakY 0.42 / yaricap 0.46`. (İlk verilen `0.50/0.36/0.34` daire içinde çeneyi
+kesiyordu — `kafaCizim.js` kırpma matematiği simüle edilerek doğrulandı.)
+
+**Bot zayıflatması (`engine/bot.js`):** bot pratikte yenilmiyordu; kök neden insanüstü tepki
+(120 ms) + kale ağzında **koşulsuz** temizleme vuruşu. Yeni `BOT` bloğu: `TEPKI_MS 205`,
+`HATA 44`, `VURUS_MESAFE ×0.84`, `TAHMIN_KATSAYI 1.8`, `VURUS_SANS 0.45`, `ACIL_SANS 0.82`,
+`ZIPLA_SANS 0.72` (karar anında kilitlenir), `GUC_SANS 0.008`, ve yeni `DALGINLIK_SANS 0.08 /
+DALGINLIK_MS 380` (kısa süre hiç girdi üretmez). Tüm zorluk tek blokta — ileride zorluk
+seçici eklenecekse buradan parametrelenir.
+
+**Ölçüm:** eski bot vs yeni bot 20 maç 1v1 → **20.4 - 8.3**. `motor-test.mjs` 27/27 ✓, build ✓.

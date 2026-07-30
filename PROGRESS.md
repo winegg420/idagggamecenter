@@ -681,3 +681,35 @@ Fizik/skor/ELO/ağ mantığına dokunulmadı: `motor-test.mjs` 27/27 ✓, `cizim
 build ✓. Ayrıntı: `kafatopu/PROGRESS.md`.
 
 **Kullanıcıda kalan:** gerçek iPhone'da maç testi (antrenman botu + online 1v1).
+
+---
+
+## 30 Temmuz 2026 — Kafa Topu: yeni kafa "ege" + bot zorluk dengesi
+
+**1) Yeni foto kafa (`ege`):**
+- İda ham fotoğrafı bıraktı (`public/heads/ege.png`, 2250×3000, 4.4 MB, arka plan dolu).
+- emirali/bedo ile aynı hattan geçirildi: rembg (`u2net_human_seg` + alpha matting) ile arka
+  plan şeffaf → bağlı-bileşen temizliği (40 adacıktan en büyüğü kaldı) → yarı saydam saçak
+  bandı sertleştirildi → 760 px uzun kenar, PNG optimize. **4.4 MB → 282 KB.**
+- Manifest odak değerleri: İda'nın verdiği `0.50 / 0.36 / 0.34` daire önizlemesinde ağzı ve
+  çeneyi kesiyordu (fotoğrafta kafa kadraja göre büyük). `kafaCizim.js`'in daire kırpma
+  matematiğini birebir simüle eden önizleme scripti ile ölçülüp **`odakX 0.48, odakY 0.42,
+  yaricap 0.46`** yapıldı — saç üstünden çeneye tam kafa, bedo/emirali ile aynı çerçeveleme.
+- Araç kalıcı değil (scratchpad): `ege-kes.py` (arka plan hattı) + `daire-onizle.py` (görsel
+  doğrulama). Yeni kafa eklerken aynı iki adım tekrarlanmalı: kes → daire önizle → odak ayarla.
+
+**2) Bot fazla güçlüydü ("kimse yenemiyor"):**
+- Kök neden: 120 ms tepki (insanüstü), küçük hata payı (26), menzilde %60 vuruş **ve** kale
+  ağzında koşulsuz temizleme (`g.vur = true`) — yani asla açık vermiyordu.
+- `engine/bot.js` tek dosyada zayıflatıldı (fizik/skor/ağ mantığına dokunulmadı):
+  tepki 120→205 ms, hata 26→44, vuruş menzili ×0.9→×0.84, balistik tahmin katsayısı
+  2.2→1.8, menzilde vuruş %60→%45, acil temizleme koşulsuz→%82, zıplama fırsat başına %72
+  (karar anında kilitlenir, tick başına titremez), yetenek kullanımı %2→%0.8, ve yeni
+  **dalgınlık** mekaniği (karar başına %8 ihtimalle 380 ms hiç girdi üretmez → oyuncuya
+  gerçek boşluk açılır).
+- Ölçüm (eski bot vs yeni bot, 20 maç, 1v1): **eski 20.4 — yeni 8.3** (maç başı ortalama).
+  Önceki simetrik eşleşme ~19-19 idi; bot artık belirgin şekilde yenilebilir ama pasif değil.
+
+**Test:** `motor-test.mjs` 27/27 ✓, `npm run build` temiz ✓.
+**Kullanıcıda kalan:** Karakter ekranında Ege kafasının görünümü + antrenman maçında botun
+yeni zorluk hissi (çok kolaylaştıysa `BOT` bloğundaki değerler tek yerden ayarlanabilir).

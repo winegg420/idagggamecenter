@@ -55,6 +55,14 @@
       "odakX": 0.44,
       "odakY": 0.32,
       "yaricap": 0.32
+    },
+    {
+      "id": "ege",
+      "ad": "Ege",
+      "dosya": "ege.png",
+      "odakX": 0.48,
+      "odakY": 0.42,
+      "yaricap": 0.46
     }
   ]
 }
