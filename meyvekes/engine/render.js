@@ -42,18 +42,26 @@ function videoCiz(ctx, video, k, W) {
   ctx.restore();
 }
 
-function meyveCiz(ctx, f) {
+function meyveCiz(ctx, f, kalite) {
   const boyut = Math.round(f.r * 2.4);
   const sprite = meyveSprite(f.meyve, boyut);
+  const cizB = f.r * 2.1;
+  // Altın parıltısı: eskiden shadowBlur idi — mobil GPU'da kare başına ölçülebilir
+  // maliyet (her meyve için ayrı blur geçişi). Yerine tek additif halka: aynı his,
+  // ihmal edilebilir maliyet. Kalite düşürüldüyse (zayıf cihaz) tamamen atlanır.
+  if (f.meyve.altin && kalite > 0.7) {
+    ctx.globalCompositeOperation = "lighter";
+    ctx.fillStyle = "rgba(255,210,31,0.20)";
+    ctx.beginPath();
+    ctx.arc(f.x, f.y, f.r * 1.2, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.globalCompositeOperation = "source-over";
+  }
+  if (!sprite) return;
   ctx.save();
   ctx.translate(f.x, f.y);
   ctx.rotate(f.aci);
-  if (f.meyve.altin) {
-    ctx.shadowColor = "rgba(255,210,31,0.9)";
-    ctx.shadowBlur = 22;
-  }
-  const cizB = f.r * 2.1;
-  if (sprite) ctx.drawImage(sprite, -cizB / 2, -cizB / 2, cizB, cizB);
+  ctx.drawImage(sprite, -cizB / 2, -cizB / 2, cizB, cizB);
   ctx.restore();
 }
 
@@ -120,7 +128,7 @@ function izYumusat(pts) {
   return cikti;
 }
 
-function izCiz(ctx, iz, t) {
+function izCiz(ctx, iz, t, kalite) {
   if (!iz || iz.length < 2) return;
   // yalnız taze noktalar (eskiler motorda süzülür ama garanti)
   const ham = [];
@@ -165,11 +173,14 @@ function izCiz(ctx, iz, t) {
     for (let i = 1; i < n; i++) ctx.lineTo(pts[i].x, pts[i].y);
   };
 
-  // 1) geniş dış parıltı (mavimsi hale)
-  ctx.strokeStyle = "rgba(90,170,255,0.22)";
-  ctx.lineWidth = IZ_MAKS_EN * 2.6;
-  merkezYol();
-  ctx.stroke();
+  // 1) geniş dış parıltı (mavimsi hale) — en pahalı katman (57 px genişlikte
+  // additif stroke). Zayıf cihazda (kalite düşürülmüşse) atlanır; iz yine görünür.
+  if (kalite > 0.7) {
+    ctx.strokeStyle = "rgba(90,170,255,0.22)";
+    ctx.lineWidth = IZ_MAKS_EN * 2.6;
+    merkezYol();
+    ctx.stroke();
+  }
 
   // 2) iç parıltı (beyaza yakın)
   ctx.strokeStyle = "rgba(180,225,255,0.4)";
@@ -266,15 +277,18 @@ function agizCiz(ctx, a, t) {
   ctx.restore();
 }
 
-function parcacikCiz(ctx, p) {
-  const alfa = Math.max(0, 1 - p.t / p.omur);
-  ctx.save();
-  ctx.globalAlpha = alfa;
-  ctx.fillStyle = p.renk;
-  ctx.beginPath();
-  ctx.arc(p.x, p.y, p.r * (1 - p.t / p.omur * 0.4), 0, Math.PI * 2);
-  ctx.fill();
-  ctx.restore();
+// Parçacıklar tek geçişte: her parçacık için save/restore yapmak (combo'da 200+
+// parçacık olabiliyor) kare başına ciddi yük getiriyordu.
+function parcaciklarCiz(ctx, liste) {
+  for (const p of liste) {
+    const k = p.t / p.omur;
+    ctx.globalAlpha = Math.max(0, 1 - k);
+    ctx.fillStyle = p.renk;
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, p.r * (1 - k * 0.4), 0, Math.PI * 2);
+    ctx.fill();
+  }
+  ctx.globalAlpha = 1;
 }
 
 function popupCiz(ctx, pp) {
@@ -294,7 +308,9 @@ function popupCiz(ctx, pp) {
 
 // Ana çizim. Kamera + meyveler + (yalnız hareket varken) Fruit Ninja pala izi.
 // El hareketsizken hiçbir bıçak/iz çizilmez — gerçek kol zaten kamerada görünür.
-export function ciz(ctx, oyun, video, k, W, H) {
+// kalite: OyunPage'in adaptif çözünürlük katsayısı (1 = tam). 0.7'nin altında
+// pahalı efekt katmanları (geniş additif hale, altın parıltı) kapatılır.
+export function ciz(ctx, oyun, video, k, W, H, kalite = 1) {
   ctx.clearRect(0, 0, W, H);
 
   // kesim sarsıntısı: tüm sahne birkaç piksel kayar (vuruş hissi)
@@ -314,15 +330,15 @@ export function ciz(ctx, oyun, video, k, W, H) {
   // MEYVE YE: ağız nişangâhı meyvelerin ALTINDA (meyve halkanın içine girsin)
   if (oyun.agiz) agizCiz(ctx, oyun.agiz, oyun._t);
 
-  for (const f of oyun.meyveler) meyveCiz(ctx, f);
+  for (const f of oyun.meyveler) meyveCiz(ctx, f, kalite);
   for (const y of oyun.yarilar) yarimCiz(ctx, y);
   for (const y of oyun.yutulanlar) yutulanCiz(ctx, y);
-  for (const p of oyun.parcaciklar) parcacikCiz(ctx, p);
+  parcaciklarCiz(ctx, oyun.parcaciklar);
 
   // kesim anı efektleri + bıçak izi (meyvelerin üstünde parlar)
   for (const d of oyun.dalgalar) dalgaCiz(ctx, d);
   for (const s of oyun.slashlar) slashCiz(ctx, s);
-  for (const iz of oyun.izler) izCiz(ctx, iz, oyun._t);
+  for (const iz of oyun.izler) izCiz(ctx, iz, oyun._t, kalite);
   for (const pp of oyun.popuplar) popupCiz(ctx, pp);
 
   if (kaydi) ctx.restore();

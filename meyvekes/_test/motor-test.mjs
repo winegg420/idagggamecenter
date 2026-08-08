@@ -177,7 +177,7 @@ function elYapYonlu(bilekX, bilekY, mcpX, mcpY) {
   const o = new Oyun("tekli");
   while (o.faz !== "oyun") o.guncelle(0.05, [], 0, harita, W, H);
   o.guncelle(0.03, [elYap(250, 300)], 1, harita, W, H);
-  // el 0.4 sn kaybolur (kadraj dışı) — eski takip kaydı düşer
+  // el 0.42 sn kaybolur (kadraj dışı) — kimlik köprüde saklanır ama ekranda iz yok
   for (let i = 0; i < 14; i++) o.guncelle(0.03, [], 2 + i, harita, W, H);
   ok("kayıp elin izi temizlendi", o.izler.length === 0);
   // geri girer ve savurur: ilk kare referans, ikinci karede kesim olmalı
@@ -307,14 +307,16 @@ function agizYap(pxX, pxY, acikPx, genPx = 80) {
   o.guncelle(0.03, [elYap(430, 300)], 3, harita, W, H);
   ok("kısa kayıp sonrası İLK karede kesti", o.kesimSayisi === 1);
 
-  // Uzun kayıp (KAYIP_SURE üstü) köprü kurmaz — kimlik gerçekten düşer
+  // Uzun kayıpta (KOPRU_SEGMENT_SURE üstü) el nereden geçtiği bilinmediği için
+  // "ışınlanma segmenti" kesim yapmaz: eski konumdaki meyve dokunulmadan kalır.
+  // (Kimlik korunur — dönüş savurması sonraki karede normal keser, bkz. Test 18.)
   const u = new Oyun("tekli");
   while (u.faz !== "oyun") u.guncelle(0.05, [], 0, harita, W, H);
   u.guncelle(0.03, [elYap(250, 300)], 1, harita, W, H);
   for (let i = 0; i < 20; i++) u.guncelle(0.03, [], 2, harita, W, H); // 0.6 sn
-  u.meyveler = [{ meyve: { r: 40, renk: "#f00", altin: false }, x: 360, y: 300, vx: 0, vy: 0, r: 40, aci: 0, donHiz: 0 }];
-  u.guncelle(0.03, [elYap(430, 300)], 3, harita, W, H);
-  ok("uzun kayıpta köprü kurulmadı", u.kesimSayisi === 0);
+  u.meyveler = [{ meyve: { r: 40, renk: "#f00", altin: false }, x: 250, y: 300, vx: 0, vy: 0, r: 40, aci: 0, donHiz: 0 }];
+  u.guncelle(0.03, [elYap(560, 300)], 3, harita, W, H);
+  ok("uzun kayıpta ışınlanma segmenti kesmedi", u.kesimSayisi === 0);
 
   // Ekranın bir ucundan diğerine köprü "bedava kesim" vermez (segment tavanı)
   const b = new Oyun("tekli");
@@ -407,6 +409,74 @@ function agizYap(pxX, pxY, acikPx, genPx = 80) {
     o.guncelle(1 / 60, [el2(190, y)], 2 + i, harita2, W2, H2);
   }
   ok("telefonda gerçek savurma kesti", o.kesimSayisi === 1);
+}
+
+// ---- Test 17: SALINIMLI agresif hareket (yumruk / dans) keser ----
+// Kullanıcı şikâyeti: "yumruk atar gibi, dans eder gibi kollarımı sallıyorum ama
+// kesmiyor". Eski kapı NET (yönlü) yer değiştirmeye bakıyordu; el ileri-geri
+// gidince pencere içindeki net yol ~0 çıkıp kapı KAPALI kalıyordu. Yeni kapı
+// pencere içindeki YAYILIM'a bakar → salınım da savurma sayılır.
+{
+  console.log("Test 17: salınımlı (yumruk) hareket keser");
+  const o = new Oyun("tekli");
+  while (o.faz !== "oyun") o.guncelle(0.05, [], 0, harita, W, H);
+  o.meyveler = [{ meyve: { r: 36, renk: "#f00", altin: false }, x: 470, y: 300, vx: 0, vy: 0, r: 36, aci: 0, donHiz: 0 }];
+  let t = 0;
+  let damga = 1;
+  // 7 Hz'lik hızlı ileri-geri savurma (bir pencereye tam periyot sığar → net yol ~0)
+  for (let i = 0; i < 60 && o.kesimSayisi === 0; i++) {
+    const x = 400 + 110 * Math.sin(2 * Math.PI * 7 * t);
+    o.guncelle(1 / 60, [elYap(x, 300)], damga++, harita, W, H);
+    t += 1 / 60;
+  }
+  ok("yumruk/salınım hareketi kesti", o.kesimSayisi === 1);
+}
+
+// ---- Test 18: UZUN kadraj dışı kalıştan dönüş (agresif oynanış) ----
+// Kol saniyelerce kadraj dışında kalabiliyor (KAYIP_SURE cömert). Dönüşte el
+// hemen "bıçak" olmalı: ışınlanma segmenti kullanılmaz ama kılıç GÖVDESİ keser.
+{
+  console.log("Test 18: uzun kadraj dışı kalıştan dönüş");
+  const o = new Oyun("tekli");
+  while (o.faz !== "oyun") o.guncelle(0.05, [], 0, harita, W, H);
+  o.guncelle(0.03, [elYap(250, 300)], 1, harita, W, H);
+  o.guncelle(0.03, [elYap(300, 300)], 2, harita, W, H);
+  for (let i = 0; i < 30; i++) o.guncelle(0.03, [], 3, harita, W, H); // 0.9 sn kadraj dışı
+  o.meyveler = [{ meyve: { r: 36, renk: "#f00", altin: false }, x: 600, y: 300, vx: 0, vy: 0, r: 36, aci: 0, donHiz: 0 }];
+  o.guncelle(0.03, [elYap(600, 300)], 4, harita, W, H);
+  ok("dönüş karesinde kılıç gövdesi kesti", o.kesimSayisi === 1);
+
+  // Aynı yerden geri gelen DURAN el kesmemeli: köprü referansı sahte hız üretmemeli.
+  const d = new Oyun("tekli");
+  while (d.faz !== "oyun") d.guncelle(0.05, [], 0, harita, W, H);
+  d.guncelle(0.03, [elYap(400, 300)], 1, harita, W, H);
+  for (let i = 0; i < 20; i++) d.guncelle(0.03, [], 2, harita, W, H); // 0.6 sn
+  d.meyveler = [{ meyve: { r: 36, renk: "#f00", altin: false }, x: 400, y: 300, vx: 0, vy: 0, r: 36, aci: 0, donHiz: 0 }];
+  for (let i = 0; i < 5; i++) d.guncelle(0.03, [elYap(400, 300)], 3 + i, harita, W, H);
+  ok("aynı yerden dönen duran el kesmedi", d.kesimSayisi === 0);
+}
+
+// ---- Test 19: tekrar tekrar kadrajdan çıkıp girme (çılgın tempo) ----
+// Her giriş bir kesim üretebilmeli — "geri girince bıçak çalışmıyor" sıfırlanmalı.
+{
+  console.log("Test 19: art arda çıkış/giriş");
+  const o = new Oyun("tekli");
+  while (o.faz !== "oyun") o.guncelle(0.05, [], 0, harita, W, H);
+  let damga = 1;
+  let basarili = 0;
+  for (let tur = 0; tur < 5; tur++) {
+    // kadraj dışı (0.5 sn)
+    for (let i = 0; i < 17; i++) o.guncelle(0.03, [], damga++, harita, W, H);
+    const onceki = o.kesimSayisi;
+    o.meyveler = [{ meyve: { r: 36, renk: "#f00", altin: false }, x: 500, y: 300, vx: 0, vy: 0, r: 36, aci: 0, donHiz: 0 }];
+    // içeri gir ve savur (3 kare)
+    o.guncelle(1 / 60, [elYap(360, 300)], damga++, harita, W, H);
+    o.guncelle(1 / 60, [elYap(430, 300)], damga++, harita, W, H);
+    o.guncelle(1 / 60, [elYap(500, 300)], damga++, harita, W, H);
+    if (o.kesimSayisi > onceki) basarili++;
+    o.meyveler = [];
+  }
+  ok("5 girişin hepsinde kesti", basarili === 5);
 }
 
 console.log(`\nSonuç: ${gecti} geçti, ${kaldi} kaldı`);

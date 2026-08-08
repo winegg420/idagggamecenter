@@ -1,8 +1,35 @@
 // MEYVE KES — ana menü: mod seçimi + sıralama + nasıl oynanır.
+import { useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
+
+// Takip modeli + wasm CDN'den iner (~10 MB). Menüde düşük öncelikli ön-yükleme
+// başlatılırsa "Kamera ve el takibi hazırlanıyor…" beklemesi belirgin kısalır.
+// Desteklemeyen tarayıcıda link etkisizdir (zararsız).
+const ONYUKLE = [
+  "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/vision_bundle.mjs",
+  "https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task",
+];
 
 export default function MenuPage() {
   const git = useNavigate();
+
+  useEffect(() => {
+    const linkler = [];
+    try {
+      for (const href of ONYUKLE) {
+        const l = document.createElement("link");
+        l.rel = "prefetch";
+        l.href = href;
+        l.crossOrigin = "anonymous";
+        document.head.appendChild(l);
+        linkler.push(l);
+      }
+    } catch {
+      /* ön-yükleme başarısız olsa da oyun normal açılır */
+    }
+    return () => linkler.forEach((l) => l.remove());
+  }, []);
+
   return (
     <div className="mk-menu">
       <Link to="/" className="mk-geri">← Oyun Merkezi</Link>

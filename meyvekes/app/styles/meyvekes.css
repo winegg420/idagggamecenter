@@ -273,6 +273,13 @@
   pointer-events: none;
   transition: background 0.2s, opacity 0.2s;
 }
+/* Takip teşhisi: algılama frekansı (Hz) + worker yerine ana thread yolu uyarısı */
+.mk-takip-bilgi {
+  margin-left: 8px;
+  font-size: 0.78em;
+  font-weight: 700;
+  opacity: 0.75;
+}
 .mk-el-var { background: rgba(46, 160, 110, 0.55); }
 .mk-el-yok { background: rgba(200, 60, 60, 0.6); animation: mk-nabiz-yok 0.8s ease-in-out infinite alternate; }
 @keyframes mk-nabiz-yok { to { opacity: 0.55; } }

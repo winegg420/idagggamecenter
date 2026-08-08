@@ -37,6 +37,7 @@ export class YuzTakip {
     this.damga = 0;
     this.yuzSayisi = 0;
     this.gecikmeSn = 0.04;
+    this.yol = "kuruluyor"; // teşhis: 'worker' | 'ana' (bkz. eltakip.js)
     this._dongu = null;
     this._sonTs = -1;
     this._sonInference = 30;
@@ -70,6 +71,7 @@ export class YuzTakip {
     } catch {
       this.landmarker = await olustur("CPU");
     }
+    this.yol = "ana";
   }
 
   /** Worker çıkarımı sonuç üretemezse canlı canlı ana-thread yoluna geç. */
@@ -101,6 +103,7 @@ export class YuzTakip {
     });
     if (!(await cekirdek.kur())) return false;
     this._cekirdek = cekirdek;
+    this.yol = "worker";
     return true;
   }
 

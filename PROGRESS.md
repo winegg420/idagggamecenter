@@ -718,3 +718,70 @@ yeni zorluk hissi (çok kolaylaştıysa `BOT` bloğundaki değerler tek yerden a
 Izgara overlay ile kafa sınırları ölçüldü (570×760 görselde: saç üstü y≈133, çene y≈490,
 kulaklar x≈150-405) → **`odakX 0.49, odakY 0.42, yaricap 0.355`**. Daire artık saç üstünden
 çeneye sadece kafayı alıyor, omuz/tişört kadraj dışında.
+
+---
+
+## 8 Ağustos 2026 — Meyve Kes: agresif oynanış (kasma + salınımlı hareket + kadraj dışı)
+
+Kullanıcı: *"oyun her aşamada kasıyor; ellerim kamera görüşünden çıkıp geri girdiğinde bıçak
+olarak kullanamıyorum. İstediğim konsept: insanlar kalori yaksın — çılgınca dans eder gibi,
+yumruk atar gibi kollarını sallasın ve oyun bunların hepsini algılasın, kasma olmasın."*
+
+### Kök neden 1 — SALINIMLI hareket kapıyı hiç açmıyordu (asıl "algılamıyor" nedeni)
+
+Hareket kapısı `HAREKET_PENCERE` (0.12 sn) boyunca biriken **NET (yönlü)** yer değiştirmeye
+bakıyordu. Yumruk/dans hareketinde el ileri-geri gider: pencereye tam bir salınım periyodu
+sığdığında net yol **≈ 0** çıkar → kapı KAPALI → kesim de, gecikme telafisi de, bıçak izi de
+üretilmez. Yani oyuncu ne kadar hızlı sallarsa o kadar az kesiyordu.
+
+- **Çözüm:** kapı ölçütü artık pencere içindeki konum **YAYILIMI** (bbox köşegeni):
+  `YAYILIM_ORAN = 0.035 × ekran köşegeni`, pencere 0.14 sn. Yayılım yön bağımsızdır → tek
+  yönlü savurma da salınım da geçer; ±4 px landmark titremesi ≈ 11 px yayılım üretir, eşiğin
+  (telefonda ~32 px) çok altında kalır → **duran el hâlâ kesmiyor**.
+- Yön/hız (telafi + iz + gövde süpürmesi) ayrı ve **kısa** pencereden okunur (`HIZ_PENCERE`
+  0.04 sn): uzun pencere ortalaması salınımda yönü sıfırlıyordu.
+- `SUPURME_ORAN` 0.36 → 0.28, `KILIC_KALINLIK` 34 → 38 (agresif tempoda isabet payı).
+
+### Kök neden 2 — kadraj dışına çıkan kol geri gelince "bıçak olmuyordu"
+
+Üç katman vardı: (a) `KAYIP_SURE` 0.4 sn çok kısaydı — çılgın tempoda kol saniyelerce dışarıda
+kalıyor, kimlik düşüyor, dönen el hızsız/segmentsiz yeni kimlik doğuyordu; (b) köprü kurulsa
+bile dönüş karesinde hareket penceresinde tek örnek kalıyordu → kapı kapalı; (c) eşleştirme ham
+konuma bakıyordu → hızlı savurmada iki el kimlik takası yapabiliyordu.
+
+- `KAYIP_SURE` 0.4 → **1.2 sn**.
+- Dönüşte kayıp-öncesi konum `KOPRU_REF_DT` (0.05 sn) yaşında bir örnek olarak geçmişe konur →
+  kapı **ilk karede** açılır, yön = kadraja giriş yönü.
+- Kayıp `KOPRU_SEGMENT_SURE`'yi (0.25 sn) aşarsa iki konum arası "ışınlanma segmenti" kesim
+  yapmaz (el arada nereden geçti bilinmiyor); kesimi yalnız kılıcın **o anki gövdesi** yapar →
+  dönüş karesinde kolun üstündeki meyve kesilir, uzaktaki meyve kesilmez.
+- Eşleştirme **hız-tahminlidir** (son hızla ileri sarılmış konuma en yakın kimlik); kayıp elde
+  tahmin yapılmaz (kadraj dışında yön değişmiş olabilir).
+- Meyve fırlatma kenar payı ekrana oranlı (`max(60, W×0.1)`) — meyve en dış şeride düşünce
+  oyuncu kolunu kadrajın dışına uzatmak zorunda kalıyordu.
+
+### Kök neden 3 — kasma (ana thread bütçesi)
+
+- **Kare kopyalama:** worker'a giden `createImageBitmap` kamera çözünürlüğündeydi. Artık uzun
+  kenar 480'e, **en-boy oranı korunarak** küçültülür (`HEDEF_UZUN_KENAR`, `resizeQuality:'low'`;
+  desteklemeyen tarayıcıda otomatik tam kareye döner). Model girdiyi zaten ~200 px'e indirdiği
+  için doğruluk değişmez, ana thread kopyası ve GPU yüklemesi belirgin ucuzlar.
+- **Çizim:** altın meyvenin `shadowBlur`'ü (meyve başına ayrı blur geçişi) → tek additif halka;
+  parçacıklar tek geçişte çizilir (parçacık başına `save/restore` yok) + `MAX_PARCACIK` 260
+  tavanı; bıçak izinin geniş additif hale katmanı düşük kalitede kapanır.
+- **Canvas/HUD:** `desynchronized: true`; piksel bütçesi 1.3M → 1.1M; adaptif kalite ölçümü
+  2 sn → 1 sn (alt sınır 0.55 → 0.5); HUD state'i yalnız **değer değiştiğinde** yazılır
+  (eskiden 12 fps'te her seferinde yeni obje → gereksiz React ağacı yeniden çizimi).
+- **Ses:** aynı karede aynı türden en fazla 2 efekt (combo'da 4 kesim = 4 WebAudio zinciri).
+- **Teşhis:** rozette artık **algılama frekansı (Hz)** ve `⚠` (worker kurulamadı, ana-thread
+  yedeğine düşüldü) görünüyor. Kasma şikâyetinde ilk bakılacak yer burası: `⚠` varsa o cihazda
+  çıkarım ana thread'de koşuyor demektir.
+- Menüde model + wasm için düşük öncelikli `prefetch` (açılış beklemesi kısalır).
+
+**Test:** `node meyvekes/_test/motor-test.mjs` → **43/43 ✓** (yeni: 7 Hz salınımlı yumruk
+hareketi kesiyor, 0.9 sn kadraj dışı kalıştan dönüşte gövde kesiyor, aynı yerden dönen duran el
+kesmiyor, art arda 5 çıkış/girişin hepsinde kesim). `npm run build` temiz.
+
+**Kullanıcıda kalan:** gerçek kamera testi — (1) rozetteki Hz değeri (30-60 iyi, 10-15 düşük)
+ve `⚠` var mı, (2) kolları çılgınca sallarken kesim isabeti, (3) kol çıkıp girince ilk
+savurmanın kesmesi, (4) duran elin hâlâ kesmediği.

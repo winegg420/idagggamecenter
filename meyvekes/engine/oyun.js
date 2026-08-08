@@ -10,45 +10,55 @@ import { rastgeleMeyve } from "./meyveler.js";
 
 const YERCEKIMI = 1500; // px/s²
 const MAC_SURESI = 60;
-const KILIC_KALINLIK = 34; // hitbox toleransı (px) — cömert: kesmek kolay olsun
+const KILIC_KALINLIK = 38; // hitbox toleransı (px) — cömert: kesmek kolay olsun
 const MIN_SEGMENT = 6; // bu hareketin altındaki el kesmez (statik el sayılmaz)
 
-// ---- HAREKET KAPISI (duran el kesmez) ----
-// MediaPipe landmark'ları el SABİT dururken de 2-5 px titrer. Kare başına mesafe
-// eşiği, algılama 15 Hz iken bu titremeyi eliyordu; worker'lı çıkarımda algılama
-// 60 Hz'e çıkınca aynı titreme "kare başına 4 px = 250 px/s" gibi göründü ve duran
-// elin kılıcı önünden geçen meyveleri kesmeye başladı (gecikme telafisi de titremeyi
-// büyütüyor). Çözüm: kesim izni ANLIK mesafeye değil, HAREKET_PENCERE boyunca
-// biriken NET (yönlü) yer değiştirmeye bakar. Titreme sıfır ortalamalı olduğu için
-// net yolu birkaç px'te kalır; gerçek savurma aynı pencerede 100+ px yol alır.
-// Aynı yönlü hız hem gecikme telafisinde hem bıçak izinde kullanılır → duran elde
-// ne kesim olur ne iz, savururken ikisi de tam çalışır.
+// ---- HAREKET KAPISI (duran el kesmez, agresif/salınımlı hareket keser) ----
+// MediaPipe landmark'ları el SABİT dururken de 2-5 px titrer; kare-başı mesafe
+// eşiği 60 Hz algılamada bu titremeyi "gerçek hareket" sanıp duran elde kesim
+// yapıyordu. İlk çözüm NET (yönlü) yer değiştirmeydi — ama net yol SALINIMLI
+// hareketi de eliyor: yumruk atar/dans eder gibi el ileri-geri gidince pencere
+// içindeki net yol ~0 çıkıyor ve kapı KAPALI kalıyordu ("hızlı hareket ediyorum
+// ama kesmiyor" şikâyetinin kök nedeni buydu).
+//
+// Nihai ölçüt: pencere içindeki konum YAYILIMI (bbox köşegeni). Yayılım yön
+// bağımsızdır → tek yönlü savurmayı da salınımı da yakalar; titreme ise yayılımı
+// asla eşiğe çıkaramaz (±4 px titreme ≈ 11 px yayılım, eşik ~35 px).
 //
 // Eşikler EKRAN KÖŞEGENİNE ORANLI: landmark titremesi normalize uzayda sabittir,
 // px'e çevrilince ekran büyüdükçe büyür. Sabit px eşiği telefonda katı, masaüstü
 // geniş ekranda gevşek kalıyordu; oran ile her cihazda aynı davranış elde edilir.
-const HAREKET_PENCERE = 0.12; // sn
-const SAVURMA_ORAN = 0.3; // × köşegen/sn — net hız bunun altındaysa el "duruyor"
-// Pencere henüz dolmadan (el yeni yakalandı/köprüden döndü) anlık hıza GÜVENİLMEZ:
-// tek karelik titreme "480 px/s" gibi görünüp kesim açabiliyordu. Bu yüzden kapı,
-// ya en az SAVURMA_MIN_PENCERE kadar örnek birikmesini ya da titremenin asla
-// üretemeyeceği kadar NET yol (SAVURMA_NET_ORAN × köşegen) katedilmesini ister.
-const SAVURMA_MIN_PENCERE = 0.05; // sn
-const SAVURMA_NET_ORAN = 0.05; // × köşegen
+const HAREKET_PENCERE = 0.14; // sn — konum geçmişi penceresi
+const YAYILIM_ORAN = 0.035; // × köşegen — kapı eşiği (yayılım bunun altındaysa el "duruyor")
+// Telafi/iz/süpürme için yön ve hız KISA pencereden okunur: salınımlı harekette
+// uzun pencere ortalaması yönü yanlış (hatta sıfır) gösterir.
+const HIZ_PENCERE = 0.04; // sn
 const MAX_ORAN = 1.05; // kesim segmenti köşegenin bu oranını aşarsa sayma (sahte/geçiş)
-// Eşleştirme cömert: hızlı savurmada avuç uzağa sıçrar ama yine aynı el sayılmalı.
-// Gerçekte iki farklı el birbirine bu kadar yaklaşıp uzaklaşmaz; absürt bağlantıları
-// zaten MAX_ORAN kesim segmentinde eler (uzun segment kesmez).
-const ESLESME_ORAN = 0.9;
+// ---- Kimlik eşleştirme ----
+// Eşleştirme, elin son bilinen hızıyla TAHMİN edilen konumuna göre yapılır: hızlı
+// savurmada avuç uzağa sıçrar ama tahmin onu takip eder → iki el yan yana geçerken
+// kimlik takası olasılığı düşer. Tavan cömert kalır (tek elin çok hızlı savurması
+// reddedilmesin); absürt bağlantıları kesim segmenti tavanı (MAX_ORAN) zaten eler.
+const ESLESME_CANLI_ORAN = 0.9; // × köşegen — canlı elde tahmin sapması tavanı
+const ESLESME_KAYIP_ORAN = 0.95; // × köşegen — kadraj dışından dönen el başka yerden girebilir
+const ESLESME_ILERI_MAX = 0.12; // sn — tahminde ileri sarılacak azami süre
 // ---- Kadraj dışına çıkıp geri girme (köprü) ----
 // El kadrajdan çıkınca kimliği HEMEN silinmez; bu süre kadar "kayıp" olarak
-// saklanır. Geri girdiğinde aynı kimliğe bağlanır → dönüş savurması ilk karede
-// keser ("oyun kolumu tanımıyor" hissinin motor tarafındaki nedeni buydu:
-// yeni kimlik hızsız/segmentsiz doğduğu için ilk savurma boşa gidiyordu).
-const KAYIP_SURE = 0.4; // sn
+// saklanır. Geri girdiğinde aynı kimliğe bağlanır → dönüş savurması hemen keser.
+// Süre CÖMERT: agresif oynanışta (dans/yumruk) kol saniyelerce kadraj dışında
+// kalabiliyor; 0.4 sn'lik eski pencere dönüşte hızsız/segmentsiz yeni kimlik
+// doğurduğu için ilk savurmalar boşa gidiyordu.
+const KAYIP_SURE = 1.2; // sn
 // Köprüyle bağlanan elin kesim segmenti bu orandan uzun olamaz (ekran köşegeni
 // çarpanı) — kadrajın bir ucundan diğerine "bedava kesim" olmasın.
 const KOPRU_MAX_ORAN = 0.5;
+// Kayıp bu süreden UZUNSA iki konum arasındaki çizgi gerçek bir savurma değildir
+// (el arada nereden geçtiği bilinmiyor) → o karede segment kesimi yapılmaz;
+// kesimi yalnız kılıcın O ANKİ gövdesi yapabilir (aşağıdaki süpürme).
+const KOPRU_SEGMENT_SURE = 0.25; // sn
+// Köprüden dönen ele, kayıp öncesi konumu "az önceki örnek" olarak eklenir →
+// kadraja giren el İLK karede hareketli sayılır (kapı açılır, yön giriş yönüdür).
+const KOPRU_REF_DT = 0.05; // sn
 // Köprü atlaması bu orandan büyükse bıçak izi sıfırlanır (ekranı kesen şerit çizmesin).
 const KOPRU_IZ_SIFIR = 0.25;
 const COMBO_PENCERE = 0.55; // sn
@@ -57,7 +67,7 @@ const IZ_OMUR = 0.3; // bıçak izi ömrü (sn) — Fruit Ninja hissi
 // (kareler arası mesafeye değil): el bu hızın üstündeyse her ÇİZİM karesinde
 // (60 fps) nokta eklenir → algılama 12 fps'e düşse bile iz akıcı ve kesintisiz
 // görünür. El dururken hiç nokta eklenmez → ekranda iz kalmaz.
-const IZ_HIZ_ORAN = 0.09; // × köşegen/sn (bkz. SAVURMA_ORAN — ekrana oranlı)
+const IZ_HIZ_ORAN = 0.09; // × köşegen/sn (bkz. YAYILIM_ORAN — ekrana oranlı)
 const IZ_MIN_ARALIK = 1.2; // px — aynı noktayı üst üste eklemeyi engeller
 const IZ_MAKS_NOKTA = 26;
 
@@ -80,7 +90,9 @@ const KILIC_ORNEK = 9; // kılıç gövdesinde kesim için örneklenen nokta say
 const PARMAK_UC = [4, 8, 12, 16, 20];
 // Bu hızın üstünde savururken kılıç GÖVDESİ de keser (agresif savurmada
 // kareler arası boşluğa düşen meyve kaçmasın — "hızlı kesemiyorum" düzeltmesi).
-const SUPURME_ORAN = 0.36; // × köşegen/sn (bkz. SAVURMA_ORAN — ekrana oranlı)
+// Kapı zaten duran eli elediği için eşik cömert tutulabilir.
+const SUPURME_ORAN = 0.28; // × köşegen/sn (ekrana oranlı)
+const MAX_PARCACIK = 260; // ekrandaki parçacık tavanı (mobilde çizim maliyeti)
 const TELAFI_MAX_PX = 100; // gecikme telafisinin tavanı (px)
 const RENDER_ILERI_MAX = 0.05; // sn — çizimde ileri sarma tavanı
 
@@ -201,8 +213,10 @@ export class Oyun {
   _meyveFirlat(W, H) {
     const m = rastgeleMeyve();
     const r = m.r;
-    const kenar = 60;
-    const x = kenar + Math.random() * (W - 2 * kenar);
+    // Kenar payı ekrana oranlı: meyve ekranın en dış şeridine düşerse oyuncu kolunu
+    // kadrajın dışına kadar uzatmak zorunda kalıyor (el orada kayboluyor).
+    const kenar = Math.max(60, W * 0.1);
+    const x = kenar + Math.random() * Math.max(1, W - 2 * kenar);
 
     // ---- MEYVE YE: meyve ağza NİŞAN ALARAK fırlatılır ----
     // Balistik çözüm: T sn sonra tam hedefte olacak hız. Böylece meyve ağzın
@@ -373,7 +387,8 @@ export class Oyun {
   _elleriIsle(eller, harita, W, H, telafiSn) {
     const diag = Math.hypot(W, H);
     const maxSeg = diag * MAX_ORAN;
-    const eslesmeMax = diag * ESLESME_ORAN;
+    const eslesmeCanli = diag * ESLESME_CANLI_ORAN;
+    const eslesmeKayip = diag * ESLESME_KAYIP_ORAN;
 
     const guncel = eller.map((e) => {
       const n = e.noktalar;
@@ -397,7 +412,7 @@ export class Oyun {
         if (eslesme[gi] >= 0) continue;
         const g = guncel[gi];
         let enIyi = -1;
-        let enMesafe = eslesmeMax;
+        let enMesafe = Infinity;
         for (let j = 0; j < this._takip.length; j++) {
           if (kullanildi[j]) continue;
           const h = this._takip[j];
@@ -405,8 +420,15 @@ export class Oyun {
           // Kayıp el köprüsü yalnız KAYIP_SURE içinde geçerli. (Algılama karesi
           // gelmediği sürece kayıt düşürülmez; tazeliği burada da denetle.)
           if (h.kayip && this._t - h.gorulen > KAYIP_SURE) continue;
-          const d = Math.hypot(h.palm.x - g.palm.x, h.palm.y - g.palm.y);
-          if (d < enMesafe) {
+          // Tahmin: el son bilinen hızıyla nereye gitmiş olmalı? Hızlı savurmada
+          // ham konum farkı büyür, tahminli fark küçük kalır → kimlik korunur.
+          // Kayıp elde tahmin YAPILMAZ: el kadraj dışında yön değiştirmiş olabilir,
+          // eski hızla ileri sarmak referansı yanlış yere taşır (tavan zaten geniş).
+          const ileri = h.kayip ? 0 : Math.min(Math.max(0, this._t - h.gorulen), ESLESME_ILERI_MAX);
+          const bx = h.palm.x + (h.hiz ? h.hiz.x : 0) * ileri;
+          const by = h.palm.y + (h.hiz ? h.hiz.y : 0) * ileri;
+          const d = Math.hypot(bx - g.palm.x, by - g.palm.y);
+          if (d < (h.kayip ? eslesmeKayip : eslesmeCanli) && d < enMesafe) {
             enMesafe = d;
             enIyi = j;
           }
@@ -424,35 +446,55 @@ export class Oyun {
       if (enIyi >= 0) {
         const onc = this._takip[enIyi];
         const kopru = !!onc.kayip; // kadraj dışından dönen el
+        const kayipSure = this._t - onc.gorulen;
         onc.kayip = false;
+        if (!onc.gecmis) onc.gecmis = [];
         if (kopru) {
           // Uzun atlamada eski iz noktalarını at: ekranı boydan boya kesen
           // yapay şerit oluşmasın (dönüş savurmasının izi yeniden başlar).
           const atlama = Math.hypot(g.palm.x - onc.palm.x, g.palm.y - onc.palm.y);
           if (atlama > diag * KOPRU_IZ_SIFIR) onc.iz.length = 0;
+          // Kadraja yeniden giren el İLK karede "hareketli" sayılmalı: kayıp
+          // öncesi konumu az önceki örnek gibi geçmişe koy. Aksi hâlde pencerede
+          // tek örnek kalır, kapı kapalı olur ve dönüş savurması boşa giderdi.
+          onc.gecmis = [{ t: this._t - KOPRU_REF_DT, x: onc.palm.x, y: onc.palm.y }];
+          // Kayıp uzunsa iki konum arası çizgi gerçek bir savurma değil → segment
+          // kesimi kapalı; kesimi yalnız kılıcın O ANKİ gövdesi yapabilir.
+          if (kayipSure > KOPRU_SEGMENT_SURE) onc.pts = null;
         }
 
-        const dtA = Math.max(0.008, this._t - onc.gorulen);
+        const dtA = Math.max(0.008, kayipSure);
 
-        // ---- yönlü (jitter'a dayanıklı) hız ----
-        // HAREKET_PENCERE boyunca ham avuç konumu saklanır; hız, pencerenin en eski
-        // örneğinden bugüne NET yer değiştirmeden hesaplanır. Titreme zıt yönlü
-        // olduğu için birbirini götürür; gerçek savurma birikir.
-        if (!onc.gecmis) onc.gecmis = [];
+        // ---- hareket kapısı: pencere içindeki konum YAYILIMI ----
+        // Yayılım yön bağımsızdır: tek yönlü savurma da, yumruk gibi salınımlı
+        // hareket de eşiği aşar; landmark titremesi (birkaç px) asla aşamaz.
         onc.gecmis.push({ t: this._t, x: g.palm.x, y: g.palm.y });
         while (onc.gecmis.length > 1 && this._t - onc.gecmis[0].t > HAREKET_PENCERE) onc.gecmis.shift();
-        // referans: pencerenin en eski örneği (yoksa bir önceki kare)
-        const ref = onc.gecmis.length >= 2 ? onc.gecmis[0] : { t: this._t - dtA, x: onc.palm.x, y: onc.palm.y };
+        let minX = Infinity;
+        let maxX = -Infinity;
+        let minY = Infinity;
+        let maxY = -Infinity;
+        for (let s = 0; s < onc.gecmis.length; s++) {
+          const p = onc.gecmis[s];
+          if (p.x < minX) minX = p.x;
+          if (p.x > maxX) maxX = p.x;
+          if (p.y < minY) minY = p.y;
+          if (p.y > maxY) maxY = p.y;
+        }
+        const yayilim = onc.gecmis.length >= 2 ? Math.hypot(maxX - minX, maxY - minY) : 0;
+        const hareketVar = yayilim > diag * YAYILIM_ORAN;
+
+        // ---- yön ve hız: KISA pencere (tepkisel) ----
+        // Salınımlı harekette uzun pencere ortalaması yönü sıfırlar; kısa pencere
+        // elin o anki gidiş yönünü verir (telafi, iz ve gövde süpürmesi bunu kullanır).
+        let ref = onc.gecmis[0];
+        for (let s = onc.gecmis.length - 1; s >= 0; s--) {
+          ref = onc.gecmis[s];
+          if (this._t - ref.t >= HIZ_PENCERE) break;
+        }
         const pdt = Math.max(0.008, this._t - ref.t);
-        const netX = g.palm.x - ref.x;
-        const netY = g.palm.y - ref.y;
-        const net = Math.hypot(netX, netY);
-        let hx = netX / pdt;
-        let hy = netY / pdt;
-        // HAREKET KAPISI — el gerçekten savruluyor mu?
-        const hareketVar =
-          net / pdt > diag * SAVURMA_ORAN &&
-          (pdt >= SAVURMA_MIN_PENCERE || net >= diag * SAVURMA_NET_ORAN);
+        let hx = (g.palm.x - ref.x) / pdt;
+        let hy = (g.palm.y - ref.y) / pdt;
         if (!hareketVar) {
           // El duruyor sayılır: kesim yok, gecikme telafisi yok, bıçak izi yok.
           // (Titremeyi telafiyle büyütmek hem sahte kesim hem titreyen bıçak yapıyordu.)
@@ -481,8 +523,9 @@ export class Oyun {
           const segTavan = kopru ? diag * KOPRU_MAX_ORAN : maxSeg;
           // mesafe tabanı algılama aralığıyla ölçeklenir (60 Hz'de ~3 px, 30 Hz'de 6 px)
           const mesafeTaban = MIN_SEGMENT * Math.min(1, dtA / 0.033);
-          for (let k = 0; k < g.pts.length; k++) {
-            const a = onc.pts[k];
+          const oncekiPts = onc.pts; // uzun kayıptan dönüşte null (bkz. köprü)
+          for (let k = 0; oncekiPts && k < g.pts.length; k++) {
+            const a = oncekiPts[k];
             const b = g.pts[k];
             if (!a) continue;
             const uz = Math.hypot(b.x - a.x, b.y - a.y);
@@ -526,7 +569,9 @@ export class Oyun {
           taraf: g.taraf,
           hiz: { x: 0, y: 0 },
           kayma: { x: 0, y: 0 },
-          gecmis: [], // ham avuç konumu penceresi (yönlü hız → hareket kapısı)
+          // Ham avuç konumu penceresi (yayılım → hareket kapısı). İlk örnek HEMEN
+          // konur ki elin ikinci karesinde kapı değerlendirilebilsin.
+          gecmis: [{ t: this._t, x: g.palm.x, y: g.palm.y }],
           iz: [], // ilk nokta, el hareket etmeye başlayınca çizim karesinde eklenir
           gorulen: this._t,
           kayip: false,
@@ -649,7 +694,9 @@ export class Oyun {
         }
       }
     }
-    this.izler = this._takip.map((h) => h.iz);
+    // Render/teşhis: yalnız CANLI ellerin izi (kayıp el kaydı köprü için tutulur
+    // ama ekranda ne izi ne bıçağı olmalı).
+    this.izler = this._takip.filter((h) => !h.kayip).map((h) => h.iz);
     // render için: ekran uzayında el/kılıç geometrisi (+ kayma ile ileri sarım)
     this.eller = this._takip;
 
@@ -682,6 +729,11 @@ export class Oyun {
       p.y += p.vy * dt;
     }
     this.parcaciklar = this.parcaciklar.filter((p) => p.t < p.omur);
+    // Yoğun combo'da parçacık sayısı patlayıp çizimi (mobilde) yavaşlatabiliyor:
+    // en eskileri at, tavanı aşma.
+    if (this.parcaciklar.length > MAX_PARCACIK) {
+      this.parcaciklar.splice(0, this.parcaciklar.length - MAX_PARCACIK);
+    }
 
     // ---- popuplar ----
     for (const pp of this.popuplar) {

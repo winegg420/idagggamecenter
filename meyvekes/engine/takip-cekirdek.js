@@ -11,6 +11,15 @@
 // hiç sonuç üretmezse `onYedek` çağrılır (canlı yedeğe geçiş).
 // ============================================================
 
+// Worker'a gönderilen karenin azami uzun kenarı (px). Kamera 640x480'den büyük
+// kare üretirse (bazı cihazlar "ideal"i aşar) her karede o boyutta bir RGBA kopya
+// çıkarmak ana thread'de ölçülebilir yük ve GC baskısı yaratır; GPU'ya yükleme de
+// aynı oranda pahalılaşır. Model girdiyi zaten ~200 px'e küçülttüğü için bu
+// ölçekte algılama doğruluğu değişmez.
+// KRİTİK: küçültme EN-BOY ORANINI KORUR — sabit ölçüye (ör. 320x240) sıkıştırmak
+// landmark'ları kaydırır (bu hatanın kök-neden dersi CLAUDE.md'de).
+const HEDEF_UZUN_KENAR = 480;
+
 export class WorkerCikarim {
   /**
    * @param {object} p
@@ -35,6 +44,27 @@ export class WorkerCikarim {
     this._kapandi = false;
     this._basarisizArtarda = 0;
     this._hicSonucVar = false;
+    this._olcekleyemiyor = false; // createImageBitmap resize seçeneklerini desteklemeyen tarayıcı
+  }
+
+  /** Kamera karesinden çıkarım için (gerekiyorsa küçültülmüş) bitmap üretir. */
+  async _bitmapUret(v) {
+    const vw = v.videoWidth;
+    const vh = v.videoHeight;
+    const uzun = Math.max(vw, vh);
+    if (this._olcekleyemiyor || !uzun || uzun <= HEDEF_UZUN_KENAR) return createImageBitmap(v);
+    const k = HEDEF_UZUN_KENAR / uzun;
+    try {
+      return await createImageBitmap(v, {
+        resizeWidth: Math.max(1, Math.round(vw * k)),
+        resizeHeight: Math.max(1, Math.round(vh * k)),
+        resizeQuality: "low",
+      });
+    } catch {
+      // Eski tarayıcı: seçenekler desteklenmiyor → bir daha deneme, tam kare gönder.
+      this._olcekleyemiyor = true;
+      return createImageBitmap(v);
+    }
   }
 
   get aktif() {
@@ -121,7 +151,7 @@ export class WorkerCikarim {
     this.mesgul = true;
     let kare = null;
     try {
-      kare = await createImageBitmap(v);
+      kare = await this._bitmapUret(v);
     } catch {
       this.mesgul = false;
       return;

@@ -37,6 +37,9 @@ export class ElTakip {
     this.durduruldu = false;
     this.damga = 0; // yeni algılama karesi işareti (kesim işleme için)
     this.elSayisi = 0; // teşhis: o an algılanan el sayısı
+    // Teşhis: çıkarım hangi yolda koşuyor? 'worker' (hızlı, ana thread serbest)
+    // ya da 'ana' (yedek; render'ı bloklar, kasma bu yolda beklenir).
+    this.yol = "kuruluyor";
     // Algılama gecikmesi (sn): kamera karesi ile sonucun ekrana yansıması arasındaki
     // gerçek gecikme. Oyun bunu el konumunu ileri sarmak için kullanır (senkron hissi).
     this.gecikmeSn = 0.04;
@@ -80,6 +83,7 @@ export class ElTakip {
     } catch {
       this.landmarker = await olustur("CPU");
     }
+    this.yol = "ana";
   }
 
   /** Worker yolu çalışma anında sonuç üretemiyorsa (ör. bu tarayıcıda çıkarım
@@ -113,6 +117,7 @@ export class ElTakip {
     });
     if (!(await cekirdek.kur())) return false;
     this._cekirdek = cekirdek;
+    this.yol = "worker";
     return true;
   }
 

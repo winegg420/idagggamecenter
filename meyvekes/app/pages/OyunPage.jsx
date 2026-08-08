@@ -31,12 +31,15 @@ export default function OyunPage() {
   const ctxRef = useRef(null);
   const kaliteRef = useRef(1);
   const fpsRef = useRef({ ema: 16, olcum: 0 });
+  // Teşhis: algılama (çıkarım) frekansı — düşükse hızlı savurmalar ıskalanır.
+  const algilamaRef = useRef({ damga: -1, t: 0, fps: 0 });
 
   const [durum, setDurum] = useState("hazir"); // hazir | baslatiliyor | oynaniyor | hata
   const [hata, setHata] = useState("");
   const [sesAcik, setSesAcik] = useState(true);
   const [hud, setHud] = useState({
-    faz: "geri", geri: 3, sure: 60, puan: 0, combo: 0, sol: 0, sag: 0, el: 0, agizVar: false, agizAcik: false,
+    faz: "geri", geri: 3, sure: 60, puan: 0, combo: 0, sol: 0, sag: 0, el: 0,
+    agizVar: false, agizAcik: false, afps: 0, yol: "",
   });
   const [sonuc, setSonuc] = useState(null); // { puan, kesim, sol, sag }
   const [kayitDurum, setKayitDurum] = useState(""); // '', 'kaydediliyor', 'kaydedildi', 'hata'
@@ -75,20 +78,29 @@ export default function OyunPage() {
     sonZamanRef.current = simdi;
 
     // adaptif çözünürlük: FPS düşükse kaliteyi kademeli düşür (netlik ↓, akıcılık ↑)
+    // Ölçüm penceresi 2 sn → 1 sn: kasma başladığında tepki iki kat hızlı.
     const ft = fpsRef.current;
     ft.ema = ft.ema * 0.9 + Math.min(dt * 1000, 100) * 0.1;
     ft.olcum += dt;
-    if (ft.olcum > 2) {
+    if (ft.olcum > 1) {
       ft.olcum = 0;
-      if (ft.ema > 26 && kaliteRef.current > 0.55) kaliteRef.current = Math.max(0.55, kaliteRef.current - 0.15);
-      else if (ft.ema < 19 && kaliteRef.current < 1) kaliteRef.current = Math.min(1, kaliteRef.current + 0.1);
+      if (ft.ema > 24 && kaliteRef.current > 0.5) kaliteRef.current = Math.max(0.5, kaliteRef.current - 0.15);
+      else if (ft.ema < 18.5 && kaliteRef.current < 1) kaliteRef.current = Math.min(1, kaliteRef.current + 0.1);
+    }
+
+    // algılama frekansı ölçümü (saniyede kaç çıkarım sonucu geldi)
+    const ar = algilamaRef.current;
+    if (simdi - ar.t > 1000) {
+      if (ar.damga >= 0) ar.fps = Math.round(((takip.damga - ar.damga) * 1000) / (simdi - ar.t));
+      ar.damga = takip.damga;
+      ar.t = simdi;
     }
 
     // boyut senkronu (viewport'u doldur) — dpr tavanı + piksel bütçesi
     const W = canvas.clientWidth;
     const H = canvas.clientHeight;
     let olcek = Math.min(window.devicePixelRatio || 1, 1.5) * kaliteRef.current;
-    const butce = 1300000; // ~1.3M piksel tavanı (büyük ekran/tabletlerde ısınma kontrolü)
+    const butce = 1100000; // ~1.1M piksel tavanı (büyük ekran/tabletlerde ısınma kontrolü)
     if (W * H * olcek * olcek > butce) olcek = Math.sqrt(butce / (W * H));
     const bw = Math.max(1, Math.round(W * olcek));
     const bh = Math.max(1, Math.round(H * olcek));
@@ -98,7 +110,9 @@ export default function OyunPage() {
     }
     let ctx = ctxRef.current;
     if (!ctx) {
-      ctx = canvas.getContext("2d", { alpha: false });
+      // desynchronized: tarayıcı çizimi kompozitörle senkron beklemeden gönderir
+      // (kamera üstü canvas'ta gözle görülür gecikme/kasma azalması).
+      ctx = canvas.getContext("2d", { alpha: false, desynchronized: true });
       ctxRef.current = ctx;
     }
     const sc = bw / W; // mantıksal (CSS px) → tampon ölçeği
@@ -109,17 +123,23 @@ export default function OyunPage() {
       dt,
       takip.eller || [],
       takip.damga,
-      (nx, ny) => k.esle(nx, ny),
+      k.esle,
       W,
       H,
       takip.gecikmeSn,
       takip.agiz || null
     );
-    ciz(ctx, oyun, takip.video, k, W, H);
+    ciz(ctx, oyun, takip.video, k, W, H, kaliteRef.current);
 
     // ses olayları (motor DOM'a dokunmaz; kuyruğu burada tüketiriz)
+    // Tek karede 4 meyve birden kesilince 4 ayrı efekt çalmak hem ses patlaması
+    // hem gereksiz WebAudio düğümü demek → aynı türden en fazla 2 çal.
     if (oyun.sesler.length) {
-      for (const s of oyun.sesler) sesCal(s);
+      const sayac = {};
+      for (const s of oyun.sesler) {
+        sayac[s] = (sayac[s] || 0) + 1;
+        if (sayac[s] <= 2) sesCal(s);
+      }
       if (oyun.sesler.some((s) => s !== "combo")) {
         try {
           navigator.vibrate?.(12);
@@ -130,10 +150,11 @@ export default function OyunPage() {
       oyun.sesler.length = 0;
     }
 
-    // HUD'u ~12fps ile güncelle (React churn azalt)
-    if (simdi - hudRef.current > 80) {
+    // HUD'u en fazla ~7 fps ile ve YALNIZ değer değiştiyse güncelle: her karede
+    // yeni state objesi göndermek React ağacını boşuna yeniden çizdiriyordu.
+    if (simdi - hudRef.current > 140) {
       hudRef.current = simdi;
-      setHud({
+      const y = {
         faz: oyun.faz,
         geri: Math.ceil(oyun.geriSayim),
         sure: Math.ceil(oyun.sure),
@@ -144,6 +165,12 @@ export default function OyunPage() {
         el: takip.elSayisi || 0,
         agizVar: !!oyun.agiz,
         agizAcik: !!oyun.agiz?.acik,
+        afps: ar.fps,
+        yol: takip.yol || "",
+      };
+      setHud((e) => {
+        for (const anahtar in y) if (e[anahtar] !== y[anahtar]) return y;
+        return e;
       });
     }
 
@@ -328,11 +355,17 @@ export default function OyunPage() {
           {hud.faz === "oyun" && !yeme && (
             <div className={"mk-el-durum " + (hud.el > 0 ? "mk-el-var" : "mk-el-yok")}>
               {hud.el > 0 ? `🖐 ${hud.el}` : "🖐 el görünmüyor"}
+              <span className="mk-takip-bilgi">
+                {hud.afps} Hz{hud.yol === "ana" ? " ⚠" : ""}
+              </span>
             </div>
           )}
           {hud.faz === "oyun" && yeme && (
             <div className={"mk-el-durum " + (hud.agizVar ? "mk-el-var" : "mk-el-yok")}>
               {hud.agizVar ? (hud.agizAcik ? "😋 ağız açık" : "🙂 hazır") : "😐 yüz görünmüyor"}
+              <span className="mk-takip-bilgi">
+                {hud.afps} Hz{hud.yol === "ana" ? " ⚠" : ""}
+              </span>
             </div>
           )}
 

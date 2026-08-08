@@ -190,3 +190,34 @@ hızlı savurmalar kesmeye devam ediyor; 60 sn tam maç simülasyonunda 103 kesi
 **Ders (kritik):** algılama frekansını değiştirmek, kare-başı mesafe/hız eşiklerinin anlamını
 değiştirir. Bu tür eşikler ya zaman penceresine ya ekran boyuna oranlı olmalı — sabit px/kare
 eşikleri frekans veya çözünürlük değişince sessizce bozulur.
+
+---
+
+## 8 Ağustos 2026 — Agresif oynanış: salınımlı hareket, kadraj dışı dönüş, kasma
+
+Kullanıcı: *"her aşamada kasıyor; ellerim kadrajdan çıkıp girince bıçak olmuyor; çılgınca dans
+eder / yumruk atar gibi sallayacağız, oyun hepsini algılamalı."*
+
+**1) Hareket kapısı NET yol → YAYILIM.** Net (yönlü) yer değiştirme, ileri-geri salınımı
+eliyordu (pencereye tam periyot sığınca net yol ≈ 0 → kapı kapalı → ne kesim ne iz). Kapı artık
+`HAREKET_PENCERE` (0.14 sn) içindeki konum yayılımına bakar (`YAYILIM_ORAN 0.035 × köşegen`):
+yön bağımsız olduğu için savurma da salınım da geçer, titreme (±4 px ≈ 11 px yayılım) geçmez.
+Yön/hız ayrı ve kısa pencereden (`HIZ_PENCERE 0.04`) okunur. `SUPURME_ORAN` 0.36→0.28,
+`KILIC_KALINLIK` 34→38.
+
+**2) Kadraj dışı köprüsü güçlendirildi.** `KAYIP_SURE` 0.4→**1.2 sn**; dönüşte kayıp-öncesi
+konum `KOPRU_REF_DT` yaşında örnek olarak geçmişe konur (kapı ilk karede açılır);
+`KOPRU_SEGMENT_SURE` (0.25 sn) üstü kayıpta ışınlanma segmenti kesmez, kesimi yalnız kılıcın o
+anki gövdesi yapar. Eşleştirme hız-tahminli (kayıp elde tahmin yok). Meyve kenar payı
+`max(60, W×0.1)`.
+
+**3) Kasma.** Worker'a giden kare `HEDEF_UZUN_KENAR 480`'e (oran korunarak) küçültülür;
+`shadowBlur` → additif halka; parçacıklar tek geçiş + `MAX_PARCACIK 260`; iz hale katmanı düşük
+kalitede kapalı; canvas `desynchronized`; piksel bütçesi 1.1M; kalite tepkisi 1 sn; HUD state
+yalnız değişimde; aynı karede aynı sesten en fazla 2; menüde model prefetch.
+
+**4) Teşhis.** Rozette algılama frekansı (Hz) + `⚠` (ana-thread yedeğine düşüldü) gösterimi;
+`ElTakip.yol` / `YuzTakip.yol` alanı eklendi.
+
+**Test:** motor-test **43/43 ✓** (yeni Test 17 salınımlı yumruk, 18 uzun kayıptan dönüş +
+aynı yerden dönen duran el, 19 art arda 5 çıkış/giriş). Build temiz.
