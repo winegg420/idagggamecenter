@@ -74,6 +74,16 @@ const OYUNLAR = [
     yeni: false,
     demo: true, // Faz 0 iskelet — DEMO
   },
+  {
+    ad: "Gölge Boks",
+    aciklama: "Kameranı aç, gerçek gölge boksu yap — antrenör seni analiz etsin!",
+    ikon: "🥊",
+    yol: "/boks",
+    etiket: "Kamera · Antrenman",
+    // "Gece Antrenmanı" kimliği: hub'ın mor paletinden bilinçli ayrışma.
+    grad: "linear-gradient(135deg, #14100f 0%, #ff4d3d 130%)",
+    yeni: true,
+  },
 ];
 
 export default function GameCenter() {

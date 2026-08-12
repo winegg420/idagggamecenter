@@ -28,6 +28,9 @@ const PatiRunApp = lazy(() => import("../patirun/app/PatiRunApp.jsx"));
 // DRIFTGP (DidaGP): 3D araba yarışı (three.js/R3F), /driftgp altında lazy yüklenir.
 // Bildim oturumunu kullanır (tek kimlik); tüm kodu driftgp/ klasöründe izoledir.
 const DriftGpApp = lazy(() => import("../driftgp/app/DriftGpApp.jsx"));
+// GÖLGE BOKS: kamera + el/vücut takibi (MediaPipe) gölge boksu antrenmanı,
+// /boks altında lazy yüklenir. Hub oturumunu kullanır; kodu boks/ içinde izoledir.
+const BoksApp = lazy(() => import("../boks/app/BoksApp.jsx"));
 import Login from "./pages/Login.jsx";
 import GameCenter from "./pages/GameCenter.jsx";
 import BirlesikSiralama from "./pages/BirlesikSiralama.jsx";
@@ -114,6 +117,14 @@ export default function App() {
         element={
           <Suspense fallback={<div className="yukleniyor">DidaGP yükleniyor…</div>}>
             <DriftGpApp />
+          </Suspense>
+        }
+      />
+      <Route
+        path="/boks/*"
+        element={
+          <Suspense fallback={<div className="yukleniyor">Gölge Boks yükleniyor…</div>}>
+            <BoksApp />
           </Suspense>
         }
       />

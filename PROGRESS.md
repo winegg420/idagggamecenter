@@ -785,3 +785,32 @@ kesmiyor, art arda 5 çıkış/girişin hepsinde kesim). `npm run build` temiz.
 **Kullanıcıda kalan:** gerçek kamera testi — (1) rozetteki Hz değeri (30-60 iyi, 10-15 düşük)
 ve `⚠` var mı, (2) kolları çılgınca sallarken kesim isabeti, (3) kol çıkıp girince ilk
 savurmanın kesmesi, (4) duran elin hâlâ kesmediği.
+
+## 2026-08-12 — Gölge Boks (yeni oyun, 8. modül)
+
+- Yeni izole modül `boks/` — kamera + **el (HandLandmarker) ve vücut (PoseLandmarker)** takibiyle
+  gölge boksu antrenmanı. Hem oyun hem antrenman/analiz aracı; prototip değil, ticari sürüm hedefi.
+- **Mimari:** tek kamera akışı → iki ayrı worker (el tam hızda / poz ~30 Hz kısılmış) → ana thread
+  yalnız kare kopyalar. Meyve Kes'in worker altyapısı **izole kopyalandı** (meyvekes/ değişmedi).
+- **Yumruk tanıma:** kol başına durum makinesi (bekle→itme→darbe→toparla), 6 boks numarası;
+  kameraya doğru düz yumruk için el ölçeğinin büyüme hızı "etkin hız"a katılır (jab/cross bu
+  olmadan ıskalanıyordu). Solak duruşta numaralandırma aynalanır.
+- **Modlar:** Serbest · Koç (kombinasyon dizisi + TTS sesli koç) · Savunma (kaçış/blok) · Ritim.
+  Zorluk: kolay 2×90 sn → pro 5×45 sn, mola 12-15 sn, ısınma fazı.
+- **Antrenör Modu:** 8 boyutlu stil vektörü, 8 arketip, 12 maddelik zayıflık kataloğu (teknik
+  tavsiyeli), round/oturum/kariyer raporu, koçluk geri bildirim döngüsü (zayıflık düzelince fark
+  eder), **248 profesyonel dövüşçüyle** stil eşleştirmesi (yalnız kamuya açık stil özellikleri).
+- **Adaptif kapsam ilkesi:** analiz yalnız kameranın gördüğü bölgelere dayanır; kalça/bacak
+  kadrajda değilse duruş-denge analizi hiç üretilmez (varsayım yok).
+- **Dürüstlük ilkesi:** vuruş "şiddeti" kişinin kendi ortalamasına normalize edilmiş görece skor
+  (Newton iddiası yok); kalori MET tabanlı, kilo yoksa "tahmini" etiketli.
+- **DB:** `20260612000044_boks_temel.sql` — 8 tablo (`boks_` önekli), RLS, 5 security-definer RPC.
+  `boks_oturum_kaydet` oturum+round+kariyer+streak+skor+sezon+zayıflık+rozeti atomik yazar.
+- **Büyüme:** Story paylaşım kartı + combo klibi (MediaRecorder), streak, 18 rozet, 3 kürasyonlu
+  program, aylık sezon ligi, seviye testi (otomatik zorluk kalibrasyonu), teknik rehberi,
+  çevrimdışı kuyruk, alan-güvenliği kontrolü, sağlık/postür uyarıları.
+- **Hub:** `src/App.jsx`'e lazy `/boks/*` rotası, `GameCenter.jsx`'e 8. kart ("Gece Antrenmanı"
+  paleti — hub'ın mor kimliğinden bilinçli ayrışma).
+- **Doğrulama:** `node boks/_test/motor-test.mjs` 72/72 geçti; `npm run build` başarılı
+  (BoksApp ayrı chunk, 140 kB / 48 kB gzip).
+- Ayrıntı ve kararlar: **`boks/PROGRESS.md`** + `boks/CLAUDE.md`.
