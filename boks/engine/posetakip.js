@@ -1,16 +1,17 @@
 // ============================================================
 // GÖLGE BOKS — poz takibi (MediaPipe Tasks Vision · PoseLandmarker)
 //
-// El takibi tek başına gölge boksu ÇÖZMEZ: yumruk türü (jab/cross/hook/uppercut)
-// omuz-dirsek-bilek zincirinin geometrisinden okunur, gard yüksekliği yumruğun
-// KAFAYA göre konumudur, savunma modu ise kafa/gövde kaçışını ölçer. Bu yüzden
-// el modeliyle BİRLİKTE, aynı kamera akışı üzerinde poz modeli koşar.
+// TEK MODEL: yumruk türü (jab/cross/hook/uppercut) omuz-dirsek-bilek zincirinin
+// geometrisinden okunur, gard yüksekliği yumruğun KAFAYA göre konumudur,
+// savunma modu kafa/gövde kaçışını ölçer — hepsi poz modelinde vardır.
 //
-// PERFORMANS: iki model aynı anda çalışır. El tam hızda (her kare), poz
-// `POZ_ASGARI_ARALIK` ile kısılır — poz verisi gövde hareketidir, 25-30 Hz
-// fazlasıyla yeter ve boşta kalan bütçe el takibine + render'a gider.
-// Poz karesi de daha küçük gönderilir (uzun kenar 384): gövde landmark'ları
-// bu ölçekte aynı doğrulukta çıkar.
+// PERFORMANS KARARI (2026-08-12): eskiden HandLandmarker da aynı anda koşuyordu
+// (el ölçeği = derinlik proxy'si için). İki model = iki çıkarım + iki bitmap
+// kopyası; mobilde oyun akmıyordu. El modeli KALDIRILDI: poz zaten bileğin yanı
+// sıra serçe (17/18) ve işaret (19/20) köklerini veriyor — bilek↔parmak kökü
+// mesafesi el ölçeğinin ta kendisidir. Böylece CPU yükü ~yarıya indi ve poz
+// artık kısılmadan (asgariAralik 0) her kamera karesinde koşabiliyor; yumruk
+// tespiti de eskisinden HIZLI oldu.
 //
 // ADAPTİF KAPSAM: her noktanın görünürlük (`g`) değeri taşınır. Analiz SADECE
 // kameranın gerçekten gördüğü bölgelere dayanır; eksik veri asla varsayılmaz.
@@ -18,8 +19,9 @@
 // ============================================================
 
 import { WorkerCikarim } from "./takip-cekirdek.js";
-import { CDN_KOK } from "./eltakip.js";
 
+const TASKS_SURUM = "0.10.14";
+export const CDN_KOK = `https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@${TASKS_SURUM}`;
 export const POZ_MODEL_URL =
   "https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_lite/float16/1/pose_landmarker_lite.task";
 
@@ -34,6 +36,8 @@ export const P = {
   SAG_DIRSEK: 14,
   SOL_BILEK: 15,
   SAG_BILEK: 16,
+  SOL_SERCE: 17,
+  SAG_SERCE: 18,
   SOL_ISARET: 19,
   SAG_ISARET: 20,
   SOL_KALCA: 23,
@@ -46,8 +50,10 @@ export const P = {
 
 // Bu değerin altındaki görünürlük "kamera bu noktayı görmüyor" sayılır.
 export const GORUNUR_ESIK = 0.55;
-const POZ_ASGARI_ARALIK = 33; // ms — ~30 Hz tavan (worker yolunda)
-const POZ_ASGARI_ARALIK_ANA = 110; // ms — ana-thread yedeğinde çok daha seyrek
+// Tek model koştuğu için worker yolunda kısma YOK: uçuştaki tek kare kuralı
+// zaten doğal tavanı koyar (çıkarım bitmeden yeni kare gönderilmez).
+const POZ_ASGARI_ARALIK = 0;
+const POZ_ASGARI_ARALIK_ANA = 70; // ms — ana-thread yedeğinde tavan
 
 export class PozTakip {
   constructor() {
@@ -104,10 +110,9 @@ export class PozTakip {
 
   async _workerBaslat() {
     const cekirdek = new WorkerCikarim({
-      model: "poz",
       cdnKok: CDN_KOK,
       modelUrl: POZ_MODEL_URL,
-      hedefUzunKenar: 384,
+      hedefUzunKenar: 320,
       asgariAralik: POZ_ASGARI_ARALIK,
       onSonuc: (veri, gecikmeSn) => {
         if (this.durduruldu) return;
@@ -147,9 +152,9 @@ export class PozTakip {
   _isleyebilir(v, simdi) {
     if (!this._landmarker || !v || v.readyState < 2 || v.videoWidth === 0) return false;
     if (v.currentTime === this._sonVideoZaman) return false;
-    // Ana thread'de poz çıkarımı el çıkarımıyla SIRAYA girer; ikisi birden
-    // render'ı bloklamasın diye poz burada çok daha seyrek koşar.
-    const hedefAralik = Math.min(Math.max(this._sonInference * 2, POZ_ASGARI_ARALIK_ANA), 260);
+    // Ana thread'de `detectForVideo` SENKRON: süresi boyunca render donar.
+    // Bu yüzden çıkarım ne kadar yavaşsa o kadar seyrek işlenir.
+    const hedefAralik = Math.min(Math.max(this._sonInference * 1.6, POZ_ASGARI_ARALIK_ANA), 220);
     return simdi - this._sonIsleme >= hedefAralik;
   }
 

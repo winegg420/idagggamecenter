@@ -39,17 +39,23 @@ export class Kamera {
           facingMode: "user",
           // Boksta oyuncu kameradan 1.5-2.5 m uzakta durur: gövdenin tamamının
           // sığması için 4:3 yerine geniş kare (16:9) tercih edilir.
-          width: { ideal: 960 },
-          height: { ideal: 540 },
-          // Yüksek kamera fps = daha taze kare = yumruk anını daha iyi yakalama.
-          frameRate: { ideal: 60, min: 24 },
+          //
+          // PERFORMANS: eskiden 960×540 istenirdi. Poz modeli kareyi zaten
+          // 320 px'e küçültüyor; büyük kare yalnız kod çözme + bitmap kopyalama
+          // maliyeti demekti (piksel başına, her karede). 640×360 hem takip
+          // doğruluğunu bozmuyor hem de mobilde kayda değer bütçe açıyor.
+          width: { ideal: 640 },
+          height: { ideal: 360 },
+          // 30 fps yumruk anını yakalamaya yeter (bir yumruk ~4-5 kare sürer) ve
+          // kamera kod çözme yükünü yarıya indirir.
+          frameRate: { ideal: 30, min: 20 },
         },
         audio: false,
       });
       this.video.srcObject = this.stream;
       await this.video.play();
-      this.genislik = this.video.videoWidth || 960;
-      this.yukseklik = this.video.videoHeight || 540;
+      this.genislik = this.video.videoWidth || 640;
+      this.yukseklik = this.video.videoHeight || 360;
     } catch (e) {
       this.durdur();
       if (e && (e.name === "NotAllowedError" || e.name === "SecurityError")) {

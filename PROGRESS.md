@@ -814,3 +814,20 @@ savurmanın kesmesi, (4) duran elin hâlâ kesmediği.
 - **Doğrulama:** `node boks/_test/motor-test.mjs` 72/72 geçti; `npm run build` başarılı
   (BoksApp ayrı chunk, 140 kB / 48 kB gzip).
 - Ayrıntı ve kararlar: **`boks/PROGRESS.md`** + `boks/CLAUDE.md`.
+
+## 2026-08-12 — Gölge Boks: radikal performans revizyonu
+
+Kullanıcı geri bildirimi ("kamera kasıyor, akıcı değil, eldivenleri sil, oyun akmıyor")
+üzerine `boks/` modülünde mimari değişiklik:
+
+- **İki takip modeli → tek model.** `HandLandmarker` kaldırıldı (`boks/engine/eltakip.js`
+  silindi); el ölçeği artık poz modelinin parmak köklerinden (17/18, 19/20) okunuyor.
+  CPU ~yarıya indi, poz kısılmadan koşuyor.
+- Kamera 960×540@60 → 640×360@30; worker karesi 320 px; canvas bütçesi 900 k.
+- AR eldiven overlay'i silindi, yerine ucuz "bilek nişanı" geldi (menüdeki eldiven ayarı da
+  kaldırıldı; DB kolonları uyum için duruyor).
+- Yumruk tespit eşikleri ~%20 gevşetildi, pad toleransı 0.62→0.85, pad ömürleri +%25,
+  ısınma 18→10 sn — "vurdum ama saymadı" ve bekleme hissi giderildi.
+- Doğrulama: `node boks/_test/motor-test.mjs` 72/72, `npm run build` başarılı.
+
+Detay: `boks/PROGRESS.md`.

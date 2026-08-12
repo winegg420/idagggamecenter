@@ -234,16 +234,6 @@
 }
 .bx-secim button.aktif { border-color: var(--bx-darbe); background: rgba(255, 77, 61, 0.12); }
 
-.bx-renk-satir { display: flex; gap: 8px; margin-top: 10px; }
-.bx-renk {
-  width: 34px;
-  height: 34px;
-  border-radius: 50%;
-  border: 2px solid transparent;
-  cursor: pointer;
-}
-.bx-renk.aktif { border-color: var(--bx-metin); transform: scale(1.1); }
-
 .bx-kilo { display: flex; gap: 8px; }
 .bx-kilo input {
   flex: 1;

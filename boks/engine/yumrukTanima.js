@@ -2,8 +2,14 @@
 // GÖLGE BOKS — yumruk sınıflandırma (6 standart boks numarası)
 //
 // GİRDİ: her karede EKRAN uzayına eşlenmiş poz noktaları (omuz/dirsek/bilek/
-// kafa/kalça) + varsa el landmark'ları. ÇIKTI: darbe anında üretilen yumruk
-// olayları + sürekli izlenen gard/postür/kafa durumu.
+// parmak kökleri/kafa/kalça). ÇIKTI: darbe anında üretilen yumruk olayları +
+// sürekli izlenen gard/postür/kafa durumu.
+//
+// TEK MODEL: ayrı bir el (HandLandmarker) modeli YOKTUR. El ölçeği — düz
+// yumrukta derinlik ilerlemesinin tek güvenilir işareti — bileğin kendi parmak
+// köklerine (serçe 17/18, işaret 19/20) olan mesafesinden okunur. Bu ölçü zaten
+// doğru kola aittir; eski "el landmark'ını en yakın bileğe ata" adımı ve onun
+// ürettiği sahte yumruk riski tümüyle ortadan kalkmıştır.
 //
 // ---- Ölçü birimi ----
 // Tüm mesafeler `birim` (px) ile normalize edilir; birim = oyuncunun gövde
@@ -56,16 +62,26 @@ const KAFA_ORAN = 2.55; // kulaklar arası × bu ≈ omuz genişliği
 const BIRIM_EMA = 0.12; // birim yumuşatma katsayısı
 const BIRIM_MIN = 24; // px — absürt küçük ölçek koruması
 
-const ITME_UZANMA_HIZ = 1.35; // birim/sn — uzanma bu hızla artıyorsa yumruk başladı
-const ITME_BILEK_HIZ = 1.9; // birim/sn — ya da etkin hız bu eşiği aşıyorsa
+// EŞİK KALİBRASYONU: ilk sürümde eşikler o kadar sıkıydı ki gerçek yumrukların
+// bir kısmı hiç sayılmıyordu ("vurdum ama saymadı" hissi). Poz takibi ~30 Hz
+// örneklediği için hızlı bir yumruk yalnız 4-5 kare sürer ve tepe hız kolayca
+// ıskalanır. Eşikler ~%20 gevşetildi; durgun vücutta sahte yumruk üretmediği
+// _test/motor-test.mjs ile doğrulanıyor.
+const ITME_UZANMA_HIZ = 1.1; // birim/sn — uzanma bu hızla artıyorsa yumruk başladı
+const ITME_BILEK_HIZ = 1.55; // birim/sn — ya da etkin hız bu eşiği aşıyorsa
 // DERİNLİK EKSENİ: kameraya doğru atılan DÜZ yumrukta bilek ekranda neredeyse
 // hiç yer değiştirmez — 2D hız ölçütü tek başına jab/cross'u ıskalar. El ölçeği
 // (bilek→orta parmak kökü) kameraya yaklaşınca büyür; bu büyümenin GÖRECELİ
 // hızı, ekran düzlemindeki hıza eklenerek "etkin hız" elde edilir.
 const OLCEK_HIZ_KATKI = 0.55; // ölçek büyüme hızının etkin hıza katkısı
 const OLCEK_TABAN_PX = 6; // çok küçük el ölçeğinde oranın patlamasını engeller
-const MIN_UZANMA_ARTIS = 0.16; // birim — bundan az açılan kol yumruk sayılmaz
-const MIN_TEPE_HIZ = 2.1; // birim/sn — darbe için gereken asgari tepe hızı
+// Parmak kökleri poz modelinde bilekten daha gürültülüdür: ölçek için ayrı
+// (gevşek) görünürlük eşiği ve hafif EMA kullanılır. Ölçek okunamazsa 0 döner
+// ve sistem sessizce 2D ölçüme düşer — uydurma derinlik üretilmez.
+const PARMAK_ESIK = 0.35;
+const OLCEK_EMA = 0.5;
+const MIN_UZANMA_ARTIS = 0.13; // birim — bundan az açılan kol yumruk sayılmaz
+const MIN_TEPE_HIZ = 1.7; // birim/sn — darbe için gereken asgari tepe hızı
 const DARBE_YAVASLAMA = 0.55; // tepe hızın bu oranına düşünce darbe anı
 const ITME_MAX_SURE = 0.55; // sn — bundan uzun süren hareket yumruk değil (itiş/uzanma)
 const TOPARLA_SURE = 0.12; // sn — darbeden sonra yeni yumruk için asgari bekleme
@@ -128,6 +144,7 @@ class Kol {
     this._sonBilek = null;
     this._sonUzanma = null;
     this._sonOlcek = 0;
+    this._olcekEma = 0;
     this._sonT = 0;
     this._sonGardOlay = -10;
     this._sonDarbe = -10;
@@ -190,10 +207,9 @@ export class YumrukTanima {
    * @param {number} dt saniye
    * @param {object} veri
    * @param {object|null} veri.poz  ekran uzayında { n: {idx:{x,y,z,g}} }
-   * @param {Array} veri.eller      ekran uzayında [{ bilek:{x,y}, olcek:number }]
    * @param {object} veri.kapsam    posetakip.kapsamHesap çıktısı
    */
-  guncelle(dt, { poz, eller = [], kapsam }) {
+  guncelle(dt, { poz, kapsam }) {
     this._t += dt;
     this.kapsam = kapsam || this.kapsam;
     if (!poz || !poz.n) {
@@ -255,33 +271,31 @@ export class YumrukTanima {
 
     // ---- kollar ----
     const tanim = [
-      { taraf: "sol", omuz: P.SOL_OMUZ, dirsek: P.SOL_DIRSEK, bilek: P.SOL_BILEK },
-      { taraf: "sag", omuz: P.SAG_OMUZ, dirsek: P.SAG_DIRSEK, bilek: P.SAG_BILEK },
+      {
+        taraf: "sol",
+        omuz: P.SOL_OMUZ,
+        dirsek: P.SOL_DIRSEK,
+        bilek: P.SOL_BILEK,
+        serce: P.SOL_SERCE,
+        isaret: P.SOL_ISARET,
+      },
+      {
+        taraf: "sag",
+        omuz: P.SAG_OMUZ,
+        dirsek: P.SAG_DIRSEK,
+        bilek: P.SAG_BILEK,
+        serce: P.SAG_SERCE,
+        isaret: P.SAG_ISARET,
+      },
     ];
     let gardOlculdu = false;
     let gardDusukVar = false;
 
-    // ---- el → kol ataması ----
-    // Her el landmark'ı YALNIZ BİR kola bağlanır (en yakın bileğe). Gard
-    // pozisyonunda iki bilek birbirine yaklaşır; tek yönlü "yakınsa al" kuralı
-    // aynı eli iki kola birden verip sahte yumruk üretiyordu.
-    const elAtama = { [P.SOL_BILEK]: 0, [P.SAG_BILEK]: 0 };
-    for (const e of eller) {
-      let enIyi = null;
-      let enMesafe = birim * 0.5;
-      for (const idx of [P.SOL_BILEK, P.SAG_BILEK]) {
-        const b = gor(idx);
-        if (!b) continue;
-        const d = uzaklik(e.bilek, b);
-        if (d < enMesafe) {
-          enMesafe = d;
-          enIyi = idx;
-        }
-      }
-      // Aynı kola birden fazla el düşerse en büyük ölçekli (kameraya en yakın)
-      // olanı kalır — yumruk atan el odur.
-      if (enIyi != null && e.olcek > elAtama[enIyi]) elAtama[enIyi] = e.olcek;
-    }
+    // Parmak kökü ölçüsü (gevşek eşik — yalnız EL ÖLÇEĞİ için kullanılır).
+    const parmak = (idx) => {
+      const p = n[idx];
+      return p && p.g >= PARMAK_ESIK ? p : null;
+    };
 
     for (const t of tanim) {
       const kol = this.kollar[t.taraf];
@@ -294,12 +308,27 @@ export class YumrukTanima {
         kol._sonBilek = null;
         kol._sonUzanma = null;
         kol._sonOlcek = 0;
+        kol._olcekEma = 0;
         continue;
       }
       kol.gorunur = true;
 
-      // Bu kola atanmış el ölçeği (derinlik proxy'si); el görünmüyorsa 0.
-      const elOlcek = elAtama[t.bilek] || 0;
+      // ---- el ölçeği (derinlik proxy'si) ----
+      // bilek → parmak kökü mesafesi: el kameraya yaklaştıkça büyür. İki kök de
+      // görünüyorsa ortalaması alınır (tek noktanın seğirmesi sönümlenir).
+      const pSerce = parmak(t.serce);
+      const pIsaret = parmak(t.isaret);
+      let hamOlcek = 0;
+      if (pSerce && pIsaret) hamOlcek = (uzaklik(bilek, pSerce) + uzaklik(bilek, pIsaret)) / 2;
+      else if (pIsaret) hamOlcek = uzaklik(bilek, pIsaret);
+      else if (pSerce) hamOlcek = uzaklik(bilek, pSerce);
+      if (hamOlcek > 0) {
+        kol._olcekEma =
+          kol._olcekEma > 0 ? kol._olcekEma + (hamOlcek - kol._olcekEma) * OLCEK_EMA : hamOlcek;
+      } else {
+        kol._olcekEma = 0;
+      }
+      const elOlcek = kol._olcekEma;
 
       // Uzanma: 2D kol açılımı + (yalnız itme fazında) derinlik ilerlemesi.
       // Bekle fazında ölçek referansı sürekli tazelenir; böylece oyuncu kameraya

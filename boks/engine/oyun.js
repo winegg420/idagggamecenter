@@ -25,20 +25,27 @@ export const MODLAR = {
 };
 
 // ---- Zorluk tablosu ----
-// Round süresi zorlukla kısalır, tempo artar. Mola sabit kısa (10-15 sn).
+// Round süresi zorlukla kısalır, tempo artar. Mola kısa tutulur.
+// `padOmur` ~%25 uzatıldı: oyuncunun pedi GÖRÜP doğru yumruğu seçmesi gerekiyor;
+// eski değerlerde pad, yumruk yola çıkmadan sönüyordu.
 export const ZORLUKLAR = {
-  kolay: { ad: "Kolay", round: 2, sure: 90, mola: 15, padOmur: 2.3, aralik: 1.45, esZaman: 1, bpm: 88 },
-  orta: { ad: "Orta", round: 3, sure: 75, mola: 14, padOmur: 1.85, aralik: 1.15, esZaman: 1, bpm: 100 },
-  zor: { ad: "Zor", round: 4, sure: 60, mola: 12, padOmur: 1.45, aralik: 0.9, esZaman: 2, bpm: 118 },
-  pro: { ad: "Pro", round: 5, sure: 45, mola: 12, padOmur: 1.1, aralik: 0.58, esZaman: 2, bpm: 138 },
+  kolay: { ad: "Kolay", round: 2, sure: 90, mola: 12, padOmur: 2.9, aralik: 1.45, esZaman: 1, bpm: 88 },
+  orta: { ad: "Orta", round: 3, sure: 75, mola: 11, padOmur: 2.3, aralik: 1.15, esZaman: 1, bpm: 100 },
+  zor: { ad: "Zor", round: 4, sure: 60, mola: 10, padOmur: 1.8, aralik: 0.9, esZaman: 2, bpm: 118 },
+  pro: { ad: "Pro", round: 5, sure: 45, mola: 9, padOmur: 1.4, aralik: 0.58, esZaman: 2, bpm: 138 },
   // Otomatik zorluk kalibrasyonu için kısa test round'u (sıralamaya yazılmaz).
-  test: { ad: "Seviye Testi", round: 1, sure: 30, mola: 0, padOmur: 1.8, aralik: 1.1, esZaman: 1, bpm: 100 },
+  test: { ad: "Seviye Testi", round: 1, sure: 30, mola: 0, padOmur: 2.2, aralik: 1.1, esZaman: 1, bpm: 100 },
 };
 
-const ISINMA_ILK = 18; // sn — ilk round öncesi tam ısınma
-const ISINMA_ARA = 8; // sn — sonraki roundlarda kısa hazırlık (mola zaten dinlendirir)
+// AKIŞ: ilk sürümde ısınma 18 sn / ara 8 sn idi; oyuncu ekranın başında bekliyor
+// ve antrenman "başlamıyor" hissi veriyordu. Kısaltıldı — mola zaten dinlendirir.
+const ISINMA_ILK = 10; // sn — ilk round öncesi ısınma
+const ISINMA_ARA = 5; // sn — sonraki roundlarda kısa hazırlık
 const COMBO_PENCERE = 2.4; // sn — ardışık isabet arası azami süre
-const PAD_TOLERANS = 0.62; // birim — pad merkezine kabul yarıçapı katsayısı
+// Pad kabul yarıçapı: kamerada bilek konumu ±birim*0.2 salınır ve oyuncu pede
+// "denk getirdim" dediğinde gerçekte merkezden yarım gövde ölçüsü uzakta olur.
+// 0.62 çok cimriydi (isabet ıskalanıyordu) — 0.85'e açıldı.
+const PAD_TOLERANS = 0.85; // birim — pad merkezine kabul yarıçapı katsayısı
 const TEHDIT_TELEGRAPH = 0.95; // sn — savunmada yumruğun gelme süresi (zorlukla kısalır)
 const KACIS_MESAFE = 0.5; // birim — kafa bu kadar kaydıysa kaçış başarılı
 const NEFES_HZ = 0.22; // nefes/tempo göstergesi frekansı (yavaş, sakin ritim)
@@ -143,7 +150,6 @@ export class Oyun {
     this._tempoDilimT = 0;
     this._sonPozDamga = -1;
     this._tanimaDt = 0;
-    this.eller = [];
     this.poz = null;
 
     // ---- görsel/veri kuyrukları ----
@@ -559,14 +565,16 @@ export class Oyun {
    * @param {number} dt saniye
    * @param {object} veri
    * @param {object|null} veri.pozHam  posetakip.poz (ham normalize)
-   * @param {Array}  veri.ellerHam     eltakip.eller (ham normalize)
    * @param {number} veri.damga        poz algılama kare numarası (yeni veri işareti)
    * @param {(nx:number,ny:number)=>{x:number,y:number}} veri.harita ekran eşleyici
    * @param {number} veri.W
    * @param {number} veri.H
    */
-  guncelle(dt, { pozHam, ellerHam = [], damga = 0, harita, W, H }) {
-    dt = Math.min(Math.max(dt, 0), 0.05);
+  guncelle(dt, { pozHam, damga = 0, harita, W, H }) {
+    // Tavan 0.1 sn: kare atlandığında (sekme arka planda, GC duraklaması) oyun
+    // ağır çekime düşmesin — 0.05 tavanı 20 fps altında görünür yavaşlama
+    // yapıyordu ve "akmıyor" hissinin bir kısmı buradan geliyordu.
+    dt = Math.min(Math.max(dt, 0), 0.1);
     this._t += dt;
     this.nefes = 0.5 + 0.5 * Math.sin(this._t * Math.PI * 2 * NEFES_HZ);
 
@@ -581,27 +589,6 @@ export class Oyun {
       }
       poz = { n, dunya: pozHam.dunya || null };
     }
-    const eller = [];
-    for (const e of ellerHam) {
-      const nk = e.noktalar;
-      if (!nk || !nk.length) continue;
-      const noktalar = new Array(21);
-      for (let i = 0; i < 21; i++) {
-        const p = nk[i] || nk[0];
-        noktalar[i] = harita(p.x, p.y);
-      }
-      const bilek = noktalar[0];
-      const mcp = noktalar[9] || noktalar[0];
-      eller.push({
-        noktalar,
-        bilek,
-        // El ölçeği = bilek→orta parmak kökü mesafesi: kameraya yaklaşınca büyür
-        // (düz yumrukta derinlik ilerlemesinin en güvenilir işareti).
-        olcek: Math.hypot(mcp.x - bilek.x, mcp.y - bilek.y),
-        etiket: e.etiket || null,
-      });
-    }
-    this.eller = eller;
     this.poz = poz;
     // Tanıma YALNIZ yeni bir poz algılama karesinde çalışır: aynı landmark'la
     // tekrar hesaplamak hızı sıfıra çeker (yumruk tepe/yavaşlama ölçümü bozulur).
@@ -610,7 +597,7 @@ export class Oyun {
     if (damga !== this._sonPozDamga) {
       this._sonPozDamga = damga;
       const kapsam = pozHam ? kapsamHesap(pozHam) : kapsamHesap(null);
-      this.tanima.guncelle(Math.min(0.2, this._tanimaDt), { poz, eller, kapsam });
+      this.tanima.guncelle(Math.min(0.2, this._tanimaDt), { poz, kapsam });
       this._tanimaDt = 0;
       this.ist.kapsam = { ...kapsam };
     }

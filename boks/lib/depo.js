@@ -18,6 +18,8 @@ const ANAHTAR_KARIYER = "boks_kariyer_onbellek";
 
 export const VARSAYILAN_TERCIH = {
   durus: "ortodoks",
+  // eldiven_* artık kullanılmıyor (AR eldiven overlay'i kaldırıldı). Alanlar DB
+  // kolonlarıyla birebir kaldığı için burada duruyor — RPC şeması bozulmasın.
   eldiven_turu: "boks",
   eldiven_renk: "#ff4d3d",
   koc_kisilik: "agresif",

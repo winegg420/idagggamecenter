@@ -1,6 +1,6 @@
 // ============================================================
 // GÖLGE BOKS — ana menü
-// Mod + zorluk seçimi, kişiselleştirme (duruş / eldiven / koç kişiliği / kilo),
+// Mod + zorluk seçimi, kişiselleştirme (duruş / koç kişiliği / kilo),
 // kürasyonlu programlar, seviye testi ve sayfa geçişleri.
 // ============================================================
 
@@ -12,15 +12,13 @@ import { PROGRAMLAR, programSonrakiGun } from "../../engine/ilerleme.js";
 import { programDurum, programSec, programBirak, bekleyenSayisi } from "../../lib/depo.js";
 import { DOVUSCU_SAYISI } from "../../engine/dovusculKutuphanesi.js";
 
-// Takip modelleri + wasm CDN'den iner. Menüde düşük öncelikli ön-yükleme
+// Takip modeli + wasm CDN'den iner. Menüde düşük öncelikli ön-yükleme
 // başlatılırsa "hazırlanıyor" beklemesi belirgin kısalır.
+// (El modeli kaldırıldı — tek model koşuyor, bkz. engine/posetakip.js.)
 const ONYUKLE = [
   "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/vision_bundle.mjs",
-  "https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task",
   "https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_lite/float16/1/pose_landmarker_lite.task",
 ];
-
-const ELDIVEN_RENKLER = ["#ff4d3d", "#2dd4ff", "#d9a441", "#f5efe8", "#7a4bd8", "#16a06a"];
 
 export default function MenuPage() {
   const git = useNavigate();
@@ -183,35 +181,6 @@ export default function MenuPage() {
               <small className="bx-not">
                 Pad numaralandırması ve analiz duruşuna göre aynalanır — solak boksörlerde yanlış "açık" tespiti yapılmaz.
               </small>
-            </div>
-
-            <div className="bx-ayar">
-              <label>Eldiven</label>
-              <div className="bx-secim">
-                <button
-                  className={tercih.eldiven_turu === "boks" ? "aktif" : ""}
-                  onClick={() => tercihGuncelle({ eldiven_turu: "boks" })}
-                >
-                  🥊 Klasik Boks
-                </button>
-                <button
-                  className={tercih.eldiven_turu === "mma" ? "aktif" : ""}
-                  onClick={() => tercihGuncelle({ eldiven_turu: "mma" })}
-                >
-                  🤜 MMA (parmaksız)
-                </button>
-              </div>
-              <div className="bx-renk-satir">
-                {ELDIVEN_RENKLER.map((r) => (
-                  <button
-                    key={r}
-                    className={"bx-renk" + (tercih.eldiven_renk === r ? " aktif" : "")}
-                    style={{ background: r }}
-                    onClick={() => tercihGuncelle({ eldiven_renk: r })}
-                    aria-label={"Eldiven rengi " + r}
-                  />
-                ))}
-              </div>
             </div>
 
             <div className="bx-ayar">

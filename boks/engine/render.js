@@ -3,7 +3,7 @@
 //
 // Alt katman: canlı ön kamera (aynalı, cover) + sıcak is-siyahı tonlama ve
 // vinyet → spor salonu gece seansı hissi. Üstünde: sanal antrenör pedleri,
-// AR eldiven overlay'i, darbe halkası, savunma tehditleri, gard göstergesi,
+// bilek nişanı, darbe halkası, savunma tehditleri, gard göstergesi,
 // nefes ritmi ve tempo karşılaştırma şeridi.
 //
 // PERFORMANS (Meyve Kes'te bedeli ödenmiş dersler):
@@ -26,8 +26,8 @@ export const RENK = {
 // Ön kamera görüntüsünü cover + ayna ile ekrana taşıyan koordinat eşleyici.
 // (Meyve Kes'teki eşleyicinin izole kopyası — modüller birbirinden import etmez.)
 export function koordinatHesap(video, W, H) {
-  const vw = video?.videoWidth || 960;
-  const vh = video?.videoHeight || 540;
+  const vw = video?.videoWidth || 640;
+  const vh = video?.videoHeight || 360;
   const s = Math.max(W / vw, H / vh);
   const dw = vw * s;
   const dh = vh * s;
@@ -60,13 +60,16 @@ function videoCiz(ctx, video, k, W) {
 
 // Gece antrenmanı atmosferi: sıcak koyu tonlama + köşe vinyeti.
 // Vinyet gradyanı her karede yeniden üretilmez (ölçü değişmedikçe önbellekte).
+// PERFORMANS: tam ekran gradyan dolgusu mobilde ölçülebilir yük — vinyet ancak
+// cihaz hiç zorlanmıyorsa (kalite ~1) çizilir. Karartma da hafifletildi:
+// oyuncunun kendini net görmesi, atmosferden daha önemli.
 let _vinyet = null;
 let _vinyetW = 0;
 let _vinyetH = 0;
 function atmosferCiz(ctx, W, H, kalite) {
-  ctx.fillStyle = "rgba(20,16,15,0.42)";
+  ctx.fillStyle = "rgba(20,16,15,0.3)";
   ctx.fillRect(0, 0, W, H);
-  if (kalite < 0.7) return;
+  if (kalite < 0.95) return;
   if (!_vinyet || _vinyetW !== W || _vinyetH !== H) {
     const g = ctx.createRadialGradient(W / 2, H / 2, Math.min(W, H) * 0.32, W / 2, H / 2, Math.max(W, H) * 0.72);
     g.addColorStop(0, "rgba(0,0,0,0)");
@@ -77,78 +80,6 @@ function atmosferCiz(ctx, W, H, kalite) {
   }
   ctx.fillStyle = _vinyet;
   ctx.fillRect(0, 0, W, H);
-}
-
-// ---------------- AR eldiven overlay ----------------
-// Gerçek eli TAM kaplamaya çalışmaz (performans/karmaşıklık riski): bilek ve
-// parmak köklerine oturan, elin hareketini gerçek zamanlı takip eden stilize
-// bir eldiven silüeti çizer. Tür: 'boks' (büyük klasik) | 'mma' (küçük, açık).
-function eldivenCiz(ctx, el, tur, renk, kalite) {
-  const n = el.noktalar;
-  if (!n || n.length < 21) return;
-  const bilek = n[0];
-  const mcp = n[9];
-  const dx = mcp.x - bilek.x;
-  const dy = mcp.y - bilek.y;
-  const boy = Math.hypot(dx, dy) || 24;
-  const aci = Math.atan2(dy, dx);
-  const buyuk = tur !== "mma";
-  const r = boy * (buyuk ? 1.15 : 0.92);
-  const cx = bilek.x + dx * (buyuk ? 0.95 : 0.85);
-  const cy = bilek.y + dy * (buyuk ? 0.95 : 0.85);
-
-  ctx.save();
-  ctx.translate(cx, cy);
-  ctx.rotate(aci);
-
-  // gövde (yarı saydam dolgu + parlak kenar)
-  ctx.globalAlpha = 0.72;
-  ctx.fillStyle = renk;
-  ctx.beginPath();
-  if (buyuk) {
-    // klasik boks eldiveni: yuvarlak yumruk + başparmak çıkıntısı
-    ctx.ellipse(0, 0, r * 1.05, r * 0.92, 0, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.beginPath();
-    ctx.ellipse(-r * 0.35, r * 0.72, r * 0.42, r * 0.3, 0.4, 0, Math.PI * 2);
-    ctx.fill();
-  } else {
-    // MMA eldiveni: avuç bandı + açık parmaklar (daha ince silüet)
-    ctx.ellipse(0, 0, r * 0.85, r * 0.72, 0, 0, Math.PI * 2);
-    ctx.fill();
-  }
-  // bilek bandı
-  ctx.globalAlpha = 0.85;
-  ctx.beginPath();
-  ctx.ellipse(-r * (buyuk ? 1.0 : 0.85), 0, r * 0.34, r * (buyuk ? 0.62 : 0.5), 0, 0, Math.PI * 2);
-  ctx.fill();
-
-  // parlak kenar (hacim hissi) — blur yok, tek stroke
-  if (kalite > 0.6) {
-    ctx.globalAlpha = 0.55;
-    ctx.strokeStyle = "rgba(255,255,255,0.75)";
-    ctx.lineWidth = Math.max(1.5, r * 0.09);
-    ctx.beginPath();
-    ctx.ellipse(0, 0, r * (buyuk ? 1.05 : 0.85), r * (buyuk ? 0.92 : 0.72), 0, Math.PI * 0.9, Math.PI * 1.75);
-    ctx.stroke();
-  }
-  ctx.restore();
-
-  // MMA: açık parmak uçları (gerçek parmakların üstünde küçük işaretler)
-  if (!buyuk && kalite > 0.6) {
-    ctx.save();
-    ctx.globalAlpha = 0.6;
-    ctx.fillStyle = renk;
-    for (const idx of [8, 12, 16, 20]) {
-      const p = n[idx];
-      if (!p) continue;
-      ctx.beginPath();
-      ctx.arc(p.x, p.y, boy * 0.16, 0, Math.PI * 2);
-      ctx.fill();
-    }
-    ctx.restore();
-  }
-  ctx.globalAlpha = 1;
 }
 
 // ---------------- pedler ----------------
@@ -342,29 +273,51 @@ function gardCiz(ctx, tanima, kalite) {
   ctx.restore();
 }
 
-// Kol zinciri (omuz-dirsek-bilek) — ince "analiz" çizgisi; oyuncuya sistemin
-// vücudu gördüğünü gösterir ve teknik geri bildirimi görselleştirir.
-function iskeletCiz(ctx, poz) {
+// Kol zinciri (omuz-dirsek-bilek) + BİLEK NİŞANI.
+//
+// Eski AR eldiven overlay'i kaldırıldı (oyuncuyu boğuyordu ve kare başına
+// onlarca ellipse/stroke yükü getiriyordu). Yerine gelen nişan: her bileğin
+// üzerinde ince bir halka; kol "itme" fazındayken (yumruk yolda) halka dolar ve
+// darbe rengine döner. Oyuncu sistemin elini gördüğünü ve yumruğun sayıldığını
+// anında okur — toplam maliyet kare başına 4 arc.
+const ISKELET_CIFT = [
+  [11, 13],
+  [13, 15],
+  [12, 14],
+  [14, 16],
+  [11, 12],
+];
+
+function iskeletCiz(ctx, poz, tanima) {
   if (!poz || !poz.n) return;
   const n = poz.n;
-  const cift = [
-    [11, 13],
-    [13, 15],
-    [12, 14],
-    [14, 16],
-    [11, 12],
-  ];
   ctx.save();
   ctx.strokeStyle = "rgba(45,212,255,0.22)";
   ctx.lineWidth = 2;
-  for (const [a, b] of cift) {
+  ctx.beginPath();
+  for (const [a, b] of ISKELET_CIFT) {
     const p1 = n[a];
     const p2 = n[b];
     if (!p1 || !p2 || p1.g < 0.55 || p2.g < 0.55) continue;
-    ctx.beginPath();
     ctx.moveTo(p1.x, p1.y);
     ctx.lineTo(p2.x, p2.y);
-    ctx.stroke();
+  }
+  ctx.stroke(); // tek geçiş: kol zincirinin tamamı
+
+  const birim = tanima?.birim || 0;
+  if (birim > 0) {
+    const r = birim * 0.17;
+    for (const [idx, taraf] of [[15, "sol"], [16, "sag"]]) {
+      const p = n[idx];
+      if (!p || p.g < 0.55) continue;
+      const kol = tanima.kollar?.[taraf];
+      const atiyor = kol && (kol.faz === "itme" || kol.faz === "toparla");
+      ctx.strokeStyle = atiyor ? "rgba(255,77,61,0.9)" : "rgba(245,239,232,0.4)";
+      ctx.lineWidth = atiyor ? 4 : 2;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, atiyor ? r * 1.25 : r, 0, Math.PI * 2);
+      ctx.stroke();
+    }
   }
   ctx.restore();
 }
@@ -431,7 +384,7 @@ function popupCiz(ctx, pp) {
  * @param {import('./oyun.js').Oyun} oyun
  * @param {HTMLVideoElement} video
  * @param {object} k koordinatHesap çıktısı
- * @param {object} ayar { eldivenTur, eldivenRenk, kalite, iskelet }
+ * @param {object} ayar { kalite, iskelet }
  */
 export function ciz(ctx, oyun, video, k, W, H, ayar = {}) {
   const kalite = ayar.kalite == null ? 1 : ayar.kalite;
@@ -447,17 +400,12 @@ export function ciz(ctx, oyun, video, k, W, H, ayar = {}) {
   videoCiz(ctx, video, k, W);
   atmosferCiz(ctx, W, H, kalite);
 
-  if (ayar.iskelet !== false) iskeletCiz(ctx, oyun.poz);
+  if (ayar.iskelet !== false) iskeletCiz(ctx, oyun.poz, oyun.tanima);
   gardCiz(ctx, oyun.tanima, kalite);
 
   // savunma tehditleri pedlerin altında (pedler savunmada zaten yok)
   for (const th of oyun.tehditler) tehditCiz(ctx, th, oyun._t);
   for (const pad of oyun.padler) padCiz(ctx, pad, oyun._t, kalite);
-
-  // AR eldivenler (elin üstünde)
-  const eldivenTur = ayar.eldivenTur || "boks";
-  const eldivenRenk = ayar.eldivenRenk || RENK.darbe;
-  for (const el of oyun.eller || []) eldivenCiz(ctx, el, eldivenTur, eldivenRenk, kalite);
 
   // efektler
   for (const e of oyun.efektler) {

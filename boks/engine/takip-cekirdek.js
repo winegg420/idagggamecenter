@@ -1,5 +1,5 @@
 // ============================================================
-// GÖLGE BOKS — worker çıkarım çekirdeği (el + poz takibinin ortak altyapısı)
+// GÖLGE BOKS — worker çıkarım çekirdeği (poz takibinin altyapısı)
 //
 // Görevi: `takip-worker.js`'i kurmak, kamera karelerini kopyalayıp worker'a
 // TRANSFER etmek ve sonuçları geri vermek. Uçuşta yalnız TEK kare tutulur:
@@ -8,10 +8,11 @@
 //
 // Meyve Kes'teki çekirdeğin izole kopyasıdır (modüller birbirinden import
 // etmez). Gölge Boks'a özel iki ekleme var:
-//   1) `hedefUzunKenar` parametresi — poz modeli daha küçük kareyle de aynı
-//      doğrulukta çalışır; iki model aynı anda koştuğu için bu ölçü CPU/GPU
-//      bütçesinde ölçülebilir fark yaratır.
-//   2) `asgariAralik` — poz çıkarımını kısmak için (el tam hızda kalır).
+//   1) `hedefUzunKenar` — worker'a giden karenin uzun kenarı; poz modeli küçük
+//      kareyle de aynı doğrulukta çalışır, kopyalama maliyeti ise doğrudan
+//      piksel sayısıyla orantılıdır.
+//   2) `asgariAralik` — çıkarım tavanı (ms). Tek model koştuğu için normalde 0
+//      bırakılır; zayıf cihazda kısmak için vardır.
 //
 // Worker kurulamazsa (eski tarayıcı / OffscreenCanvas yok / CDN engeli) `kur()`
 // false döner; çağıran modül ana-thread yoluna düşer. Kurulup da çıkarım hiç
@@ -21,29 +22,24 @@
 export class WorkerCikarim {
   /**
    * @param {object} p
-   * @param {'el'|'poz'} p.model  hangi landmarker
    * @param {string} p.cdnKok     tasks-vision CDN kökü
    * @param {string} p.modelUrl   .task model dosyası
-   * @param {number} [p.maxEl]    el modelinde azami el sayısı
    * @param {number} [p.hedefUzunKenar] worker'a gönderilecek karenin uzun kenarı (px)
    * @param {number} [p.asgariAralik]   iki kare arası asgari süre (ms) — kısma
    * @param {(veri:object, gecikmeSn:number)=>void} p.onSonuc
    * @param {()=>void} p.onYedek  worker hiç sonuç üretemedi → ana thread'e geç
    */
   constructor({
-    model,
     cdnKok,
     modelUrl,
-    maxEl = 2,
-    hedefUzunKenar = 480,
+    hedefUzunKenar = 320,
     asgariAralik = 0,
     onSonuc,
     onYedek,
   }) {
-    this.model = model;
+    this.model = "poz";
     this.cdnKok = cdnKok;
     this.modelUrl = modelUrl;
-    this.maxEl = maxEl;
     this.hedefUzunKenar = hedefUzunKenar;
     this.asgariAralik = asgariAralik;
     this.onSonuc = onSonuc;
@@ -114,10 +110,8 @@ export class WorkerCikarim {
       };
       w.postMessage({
         tip: "kur",
-        model: this.model,
         cdnKok: this.cdnKok,
         modelUrl: this.modelUrl,
-        maxEl: this.maxEl,
       });
     });
     if (!kuruldu) {

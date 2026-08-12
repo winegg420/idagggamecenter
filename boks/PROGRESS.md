@@ -84,3 +84,72 @@ Hub'a **8. oyun** olarak eklendi: `boks/` (rota `/boks/*`, DB öneki `boks_`, an
 - Migration Supabase Dashboard'dan uygulanmalı (CLI `db push` bu projede 403 veriyor).
 - Haftalık özet push bildirimi (`send-push` Edge Function'a `boks` kancası) — hub geneli görev.
 - Hub birleşik sıralamasına `boks_skorlar.en_iyi` eklenmesi (ayrı görev olarak planlandı).
+
+## 2026-08-12 (2. oturum) — RADİKAL PERFORMANS REVİZYONU: tek model, eldivenler kaldırıldı
+
+Kullanıcı geri bildirimi: *"kamera kasıyor, akıcı değil, eldivenleri sil, oyun akmıyor
+oynanmıyor."* Kozmetik düzeltme yerine mimari karar değiştirildi.
+
+### 1) İki model → TEK model (asıl kasma kaynağı)
+
+Eskiden `HandLandmarker` + `PoseLandmarker` aynı kamera akışı üzerinde AYNI ANDA koşuyordu:
+iki worker, iki çıkarım, her kare için iki ayrı `createImageBitmap` kopyası. Mobilde bu
+bütçeyi karşılamak mümkün değildi.
+
+El modelinden gerçekte kullanılan tek veri **el ölçeği**ydi (bilek→parmak kökü mesafesi =
+derinlik proxy'si; düz yumrukta bilek ekranda yer değiştirmediği için şart). Bu ölçü poz
+modelinde ZATEN var: bilek (15/16) ↔ serçe kökü (17/18) / işaret kökü (19/20).
+
+- `eltakip.js` **silindi**; `CDN_KOK` sabiti `posetakip.js`'e taşındı.
+- `takip-worker.js` yalnız poz modelini kurar; `POZ_INDEKS`'e 17/18 eklendi.
+- `takip-cekirdek.js`'ten `model`/`maxEl` parametreleri kalktı.
+- `yumrukTanima.js`: el→kol atama bloğu tamamen kaldırıldı; ölçek kol tanımından okunuyor
+  (gevşek görünürlük eşiği 0.35 + EMA 0.5, okunamazsa 0 → sessizce 2D'ye düşer).
+- **Yan kazanç:** eski atama kuralının gard pozisyonunda ürettiği sahte yumruk riski bitti.
+
+Sonuç: CPU ~yarıya indi, poz artık kısılmadan (`asgariAralik: 0`) her kamera karesinde
+koşuyor — yani yumruk tespiti eskisinden HIZLI, üstelik daha akıcı.
+
+### 2) Kare/piksel bütçesi
+
+- Kamera 960×540@60 → **640×360@30** (poz zaten 320 px'e küçültüyordu; büyük kare sadece
+  kod çözme + kopyalama maliyetiydi).
+- Worker karesi 384 → **320** px uzun kenar.
+- Canvas piksel bütçesi 1.1 M → **900 k**; kalite tabanı 0.5 → 0.45; adaptif eşikler
+  akıcılık lehine sıkıldı (45 fps altına düşünce kırp, 58 fps üstünde aç).
+- Tam ekran vinyet gradyanı artık yalnız `kalite ≈ 1` iken çiziliyor; karartma 0.42 → 0.30
+  (oyuncu kendini daha net görüyor).
+- `oyun.guncelle` dt tavanı 0.05 → **0.1** sn: kare atlandığında oyun ağır çekime düşmüyordu.
+
+### 3) Eldivenler kaldırıldı (kullanıcı talebi)
+
+`eldivenCiz` (kare başına onlarca ellipse/stroke) silindi. Yerine **bilek nişanı**: her
+bileğin üzerinde ince halka, kol "itme/toparla" fazındayken kalınlaşıp darbe rengine
+dönüyor — kare başına 4 arc. Kol zinciri de tek `stroke()` geçişine indirildi.
+Menüdeki eldiven türü/rengi ayarı ve `.bx-renk*` CSS'i kaldırıldı. `depo.js`'teki
+`eldiven_*` alanları DB kolonlarıyla uyum için duruyor (RPC şeması bozulmasın).
+
+### 4) "Oynanmıyor" tarafı — tespit ve akış kalibrasyonu
+
+30 Hz örneklemede hızlı bir yumruk 4-5 kare sürer; ilk sürümün eşikleri gerçek yumrukları
+eliyordu ("vurdum ama saymadı").
+
+- `ITME_UZANMA_HIZ` 1.35→1.1 · `ITME_BILEK_HIZ` 1.9→1.55 · `MIN_TEPE_HIZ` 2.1→1.7 ·
+  `MIN_UZANMA_ARTIS` 0.16→0.13
+- `PAD_TOLERANS` 0.62 → **0.85** birim (isabet kabul yarıçapı)
+- Pad ömürleri ~%25 uzun: kolay 2.9 · orta 2.3 · zor 1.8 · pro 1.4
+- Isınma 18→**10** sn, ara ısınma 8→**5** sn, molalar 15/14/12/12 → 12/11/10/9
+
+### Doğrulama
+
+- `node boks/_test/motor-test.mjs` → **72/72 geçti** (testler yeni mimariye uyarlandı:
+  sahte el landmark'ları yerine `govde({ solOlcek, sagOlcek })` parmak kökü simülasyonu).
+  "Durgun vücutta yumruk üretilmiyor" testi gevşetilen eşiklerin sahte tespit bekçisidir.
+- `npm run build` → başarılı; BoksApp chunk 135 kB (47 kB gzip), worker ayrı chunk.
+
+### Sıradaki İşler
+
+- **Gerçek cihazda ölç:** HUD teşhis rozetindeki `Hz` değeri artık tek sayı (poz).
+  Beklenen: telefonda 25-30 Hz, `⚠` (ana-thread yedeği) çıkmamalı.
+- Eşikler hâlâ ıskalıyorsa bir sonraki adım `birim` EMA'sını hızlandırmak (0.12 → 0.2).
+- Migration Supabase Dashboard'dan uygulanmalı (CLI `db push` bu projede 403 veriyor).

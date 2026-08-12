@@ -4,7 +4,7 @@
 // kullanır; tüm oyun kodu bu klasörde izoledir ve yalnızca boks_ tablolarına
 // yazar.
 //
-// Tercihler (duruş, eldiven, koç kişiliği, kilo) burada tek noktada yüklenir
+// Tercihler (duruş, koç kişiliği, kilo) burada tek noktada yüklenir
 // ve context ile tüm sayfalara dağıtılır — her sayfa ayrı ayrı sorgulamaz.
 // Çevrimdışı kuyruk da burada, açılışta ve `online` olayında boşaltılır.
 // ============================================================

@@ -1,6 +1,6 @@
 // ============================================================
 // GÖLGE BOKS — oyun ekranı
-// Kamera (tek akış) + el takibi + poz takibi + canvas render döngüsü + HUD +
+// Kamera (tek akış) + poz takibi (TEK model) + canvas render döngüsü + HUD +
 // mola arası round analizi + sonuç/kayıt akışı.
 //
 // Kamera/model getUserMedia jesti gerektirdiği için "Başla" butonuyla başlatılır
@@ -11,7 +11,6 @@ import { useEffect, useRef, useState, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useBoks } from "../BoksApp.jsx";
 import { Kamera } from "../../engine/kamera.js";
-import { ElTakip } from "../../engine/eltakip.js";
 import { PozTakip } from "../../engine/posetakip.js";
 import { Oyun, MODLAR, ZORLUKLAR } from "../../engine/oyun.js";
 import { ciz, koordinatHesap } from "../../engine/render.js";
@@ -45,7 +44,6 @@ export default function OyunPage() {
 
   const canvasRef = useRef(null);
   const kameraRef = useRef(null);
-  const elRef = useRef(null);
   const pozRef = useRef(null);
   const oyunRef = useRef(null);
   const rafRef = useRef(0);
@@ -55,7 +53,7 @@ export default function OyunPage() {
   const ctxRef = useRef(null);
   const kaliteRef = useRef(1);
   const fpsRef = useRef({ ema: 16, olcum: 0 });
-  const algilamaRef = useRef({ el: -1, poz: -1, t: 0, elHz: 0, pozHz: 0 });
+  const algilamaRef = useRef({ poz: -1, t: 0, pozHz: 0 });
   const klipRef = useRef(null);
   const hudRef = useRef(0);
   const molaRaporRef = useRef(0);
@@ -71,8 +69,8 @@ export default function OyunPage() {
   // Klip kaydı MediaRecorder ile asenkron biter; blob hazır olunca butonu göster.
   const [klipVar, setKlipVar] = useState(false);
   const [hud, setHud] = useState({
-    faz: "isinma", fazSure: 18, round: 1, puan: 0, combo: 0, tempo: 0,
-    elVar: 0, pozVar: false, elHz: 0, pozHz: 0, yol: "", kalibre: true,
+    faz: "isinma", fazSure: 10, round: 1, puan: 0, combo: 0, tempo: 0,
+    pozVar: false, pozHz: 0, yol: "", kalibre: true,
     komut: null, komutIdx: 0, kapsam: "",
   });
 
@@ -170,32 +168,31 @@ export default function OyunPage() {
   const dongu = useCallback(() => {
     const canvas = canvasRef.current;
     const oyun = oyunRef.current;
-    const el = elRef.current;
     const poz = pozRef.current;
     const kamera = kameraRef.current;
-    if (!canvas || !oyun || !kamera) return;
+    if (!canvas || !oyun || !kamera || !poz) return;
 
     const simdi = performance.now();
     let dt = (simdi - sonZamanRef.current) / 1000;
     if (!Number.isFinite(dt) || dt < 0) dt = 0;
     sonZamanRef.current = simdi;
 
-    // adaptif çözünürlük (zayıf cihazda netlik ↓, akıcılık ↑)
+    // Adaptif çözünürlük (zayıf cihazda netlik ↓, akıcılık ↑). Eşikler akıcılık
+    // lehine sıkılaştırıldı: 45 fps'in altına düşen her saniye çözünürlüğü
+    // kırpar, 58 fps'i geçince kademeli geri açar.
     const ft = fpsRef.current;
     ft.ema = ft.ema * 0.9 + Math.min(dt * 1000, 100) * 0.1;
     ft.olcum += dt;
     if (ft.olcum > 1) {
       ft.olcum = 0;
-      if (ft.ema > 24 && kaliteRef.current > 0.5) kaliteRef.current = Math.max(0.5, kaliteRef.current - 0.15);
-      else if (ft.ema < 18.5 && kaliteRef.current < 1) kaliteRef.current = Math.min(1, kaliteRef.current + 0.1);
+      if (ft.ema > 22 && kaliteRef.current > 0.45) kaliteRef.current = Math.max(0.45, kaliteRef.current - 0.15);
+      else if (ft.ema < 17.2 && kaliteRef.current < 1) kaliteRef.current = Math.min(1, kaliteRef.current + 0.1);
     }
 
     // algılama frekansı teşhisi
     const ar = algilamaRef.current;
     if (simdi - ar.t > 1000) {
-      if (ar.el >= 0) ar.elHz = Math.round(((el.damga - ar.el) * 1000) / (simdi - ar.t));
       if (ar.poz >= 0) ar.pozHz = Math.round(((poz.damga - ar.poz) * 1000) / (simdi - ar.t));
-      ar.el = el.damga;
       ar.poz = poz.damga;
       ar.t = simdi;
     }
@@ -204,7 +201,7 @@ export default function OyunPage() {
     const W = canvas.clientWidth;
     const H = canvas.clientHeight;
     let olcek = Math.min(window.devicePixelRatio || 1, 1.5) * kaliteRef.current;
-    const butce = 1100000;
+    const butce = 900000;
     if (W * H * olcek * olcek > butce) olcek = Math.sqrt(butce / (W * H));
     const bw = Math.max(1, Math.round(W * olcek));
     const bh = Math.max(1, Math.round(H * olcek));
@@ -222,17 +219,12 @@ export default function OyunPage() {
     const k = koordinatHesap(kamera.video, W, H);
     oyun.guncelle(dt, {
       pozHam: poz.poz,
-      ellerHam: el.eller || [],
       damga: poz.damga,
       harita: k.esle,
       W,
       H,
     });
-    ciz(ctx, oyun, kamera.video, k, W, H, {
-      kalite: kaliteRef.current,
-      eldivenTur: tercih.eldiven_turu,
-      eldivenRenk: tercih.eldiven_renk,
-    });
+    ciz(ctx, oyun, kamera.video, k, W, H, { kalite: kaliteRef.current });
 
     // ---- ses olayları ----
     if (oyun.sesler.length) {
@@ -280,11 +272,9 @@ export default function OyunPage() {
         puan: oyun.puan,
         combo: oyun.combo,
         tempo: oyun.tempoAnlik,
-        elVar: el.elSayisi || 0,
         pozVar: !!oyun.poz,
-        elHz: ar.elHz,
         pozHz: ar.pozHz,
-        yol: poz.yol === "ana" || el.yol === "ana" ? "ana" : "worker",
+        yol: poz.yol,
         kalibre: oyun.tanima.kalibreEdiliyor,
         komut: oyun.komut ? oyun.komut.dizi.join("-") : null,
         komutIdx: oyun.komut ? oyun.komut.indeks : 0,
@@ -354,11 +344,10 @@ export default function OyunPage() {
       await kamera.baslat();
       kameraRef.current = kamera;
 
-      const el = new ElTakip();
+      // TEK model: yalnız poz takibi kurulur (el modeli kaldırıldı — el ölçeği
+      // poz landmark'larından okunuyor). Hem açılış hem çalışma yükü yarı yarıya.
       const poz = new PozTakip();
-      // İki model paralel kurulur (ikisi de CDN'den iner) — bekleme yarıya iner.
-      await Promise.all([el.baslat(kamera, 2), poz.baslat(kamera)]);
-      elRef.current = el;
+      await poz.baslat(kamera);
       pozRef.current = poz;
 
       const kariyer = kariyerOnbellek()?.kariyer || null;
@@ -387,10 +376,8 @@ export default function OyunPage() {
       console.error("[Boks] Başlatma hatası:", e);
       setHata(e?.message || "Antrenman başlatılamadı.");
       setDurum("hata");
-      elRef.current?.durdur();
       pozRef.current?.durdur();
       kameraRef.current?.durdur();
-      elRef.current = null;
       pozRef.current = null;
       kameraRef.current = null;
     }
@@ -400,10 +387,8 @@ export default function OyunPage() {
     cancelAnimationFrame(rafRef.current);
     klipRef.current?.durdur();
     kocSustur();
-    elRef.current?.durdur();
     pozRef.current?.durdur();
     kameraRef.current?.durdur();
-    elRef.current = null;
     pozRef.current = null;
     kameraRef.current = null;
     sesDurdur();
@@ -493,8 +478,8 @@ export default function OyunPage() {
       {durum === "baslatiliyor" && (
         <div className="bx-katman bx-yukleniyor">
           <div className="bx-spinner" />
-          <p>Kamera, el ve vücut takibi hazırlanıyor…</p>
-          <small>İlk açılışta modeller indirilir (yaklaşık 10-15 MB), sonraki açılışlar hızlıdır.</small>
+          <p>Kamera ve vücut takibi hazırlanıyor…</p>
+          <small>İlk açılışta model indirilir (yaklaşık 6 MB), sonraki açılışlar hızlıdır.</small>
         </div>
       )}
 
@@ -545,9 +530,9 @@ export default function OyunPage() {
 
           {/* takip teşhisi — ıskalama/kasma şikâyetinde ilk bakılacak yer */}
           <div className={"bx-takip " + (hud.pozVar ? "var" : "yok")}>
-            {hud.pozVar ? `🧍 ${hud.elVar} el` : "🧍 vücut görünmüyor"}
+            {hud.pozVar ? "🧍 takip aktif" : "🧍 vücut görünmüyor"}
             <span className="bx-takip-bilgi">
-              {hud.pozHz}/{hud.elHz} Hz{hud.yol === "ana" ? " ⚠" : ""}
+              {hud.pozHz} Hz{hud.yol === "ana" ? " ⚠" : ""}
               {hud.kapsam === "tam" ? " · tam kadraj" : hud.kapsam === "ust" ? " · üst gövde" : ""}
             </span>
           </div>

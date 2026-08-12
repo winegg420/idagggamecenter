@@ -12,21 +12,21 @@ Zorluk: kolay(2 round/90 sn) · orta(3/75) · zor(4/60) · pro(5/45) + `test` (3
 ## Teknoloji
 
 - React 19 + Vite (hub kabuğu), izole modül; DB öneki `boks_`
-- **Takip:** MediaPipe **Tasks Vision** — `HandLandmarker` (el, 21 nokta) + `PoseLandmarker lite` (vücut, 33 nokta), CDN'den ESM. npm bağımlılığı yok.
-- **Mimari:** TEK kamera akışı (`kamera.js`) → iki ayrı **worker** (el + poz) → ana thread yalnız kare kopyalar. Her modelin kendi thread'i vardır; ana thread 60 fps render'da kalır.
-- Render: HTML5 Canvas (kamera cover + aynalı; üstünde pedler, AR eldiven, darbe halkası, gard göstergesi)
+- **Takip:** MediaPipe **Tasks Vision** — yalnız `PoseLandmarker lite` (vücut, 33 nokta), CDN'den ESM. npm bağımlılığı yok. **El modeli (HandLandmarker) YOKTUR** — bkz. Kritik Tasarım Kararları.
+- **Mimari:** TEK kamera akışı (`kamera.js`, 640×360@30) → TEK **worker** (poz) → ana thread yalnız kare kopyalar ve 60 fps render'da kalır.
+- Render: HTML5 Canvas (kamera cover + aynalı; üstünde pedler, bilek nişanı, darbe halkası, gard göstergesi)
 - Ses: WebAudio ile sentezlenir (dosya yok) + **sesli koç** `speechSynthesis` (tr-TR), iki kişilik (agresif / sakin)
 
 ## Dizin Yapısı (`boks/`)
 
 - `engine/`
-  - `kamera.js` — tek kamera akışı + kare dağıtımı (rVFC); iki takip modülü buna abone olur
-  - `takip-worker.js` — el + poz çıkarım worker'ı (model'e göre paketleme)
+  - `kamera.js` — tek kamera akışı + kare dağıtımı (rVFC); takip modülü buna abone olur
+  - `takip-worker.js` — poz çıkarım worker'ı (yalnız gerekli landmark indeksleri paketlenir)
   - `takip-cekirdek.js` — worker yaşam döngüsü, kare transferi, kısma (`asgariAralik`), ana-thread yedeği
-  - `eltakip.js` / `posetakip.js` — model sarmalayıcıları; poz ayrıca **kapsam** (görünürlük) üretir
-  - `yumrukTanima.js` — kol başına durum makinesi (bekle→itme→darbe→toparla), 6 numara sınıflandırma, gard/postür izleme, görece şiddet
+  - `posetakip.js` — model sarmalayıcısı + CDN sabitleri; ayrıca **kapsam** (görünürlük) üretir
+  - `yumrukTanima.js` — kol başına durum makinesi (bekle→itme→darbe→toparla), 6 numara sınıflandırma, el ölçeği (derinlik proxy'si), gard/postür izleme, görece şiddet
   - `oyun.js` — faz makinesi, 4 mod, pad/tehdit üretimi, puanlama/combo, ham olay sayaçları, MET kalori, sağlık gözetimi
-  - `render.js` — "Gece Antrenmanı" görsel kimliği, pedler, **darbe halkası** (imza efekt), AR eldiven, nefes/tempo göstergeleri
+  - `render.js` — "Gece Antrenmanı" görsel kimliği, pedler, **darbe halkası** (imza efekt), bilek nişanı, nefes/tempo göstergeleri
   - `ses.js` — WebAudio efektleri + TTS koç replikleri
   - `antrenorAnalizi.js` — stil vektörü (8 boyut), arketip, round/oturum/kariyer raporu, zayıflık kataloğu, zorluk önerisi
   - `dovusculKutuphanesi.js` — **248 profesyonel dövüşçü** (122 boks · 101 MMA · 25 kickboks/muaythai) stil vektörleriyle
@@ -47,11 +47,13 @@ Migration: `supabase/migrations/20260612000044_boks_temel.sql`. Tablolar: `boks_
 ## Kritik Tasarım Kararları
 
 - **Adaptif kapsam:** analiz SADECE kameranın gördüğü bölgelere dayanır. `posetakip.kapsamHesap` üst gövde/kollar/kalça/bacak görünürlüğünü ayrı ayrı verir; kalça görünmüyorsa duruş-denge analizi **hiç üretilmez** (varsayım yok). Rapor bunu kullanıcıya açıkça söyler.
-- **Derinlik ekseni:** kameraya doğru atılan düz yumrukta bilek ekranda neredeyse hiç yer değiştirmez. Bu yüzden **el ölçeğinin göreli büyüme hızı** (bilek→orta parmak kökü) ekran hızına eklenip "etkin hız" elde edilir; jab/cross bu olmadan ıskalanır (test 1'de doğrulanır).
-- **El → kol ataması:** her el landmark'ı yalnız BİR kola bağlanır (en yakın bilek, `birim*0.5` yarıçap). Tek yönlü "yakınsa al" kuralı gard pozisyonunda aynı eli iki kola verip **sahte yumruk** üretiyordu.
+- **TEK MODEL (2026-08-12 radikal değişiklik):** `HandLandmarker` kaldırıldı. İki model aynı anda koşarken (iki çıkarım + iki bitmap kopyası) oyun mobilde akmıyordu. El modelinden gereken tek şey **el ölçeği**ydi; o da poz modelinin kendi noktalarından okunuyor: bilek (15/16) ↔ serçe kökü (17/18) / işaret kökü (19/20). CPU ~yarıya indi, poz kısılmadan (asgariAralik 0) koşuyor, yumruk tespiti ESKİSİNDEN hızlı. Yeni bir el modeli eklemeden önce bu kararı oku.
+- **Derinlik ekseni:** kameraya doğru atılan düz yumrukta bilek ekranda neredeyse hiç yer değiştirmez. Bu yüzden **el ölçeğinin göreli büyüme hızı** ekran hızına eklenip "etkin hız" elde edilir; jab/cross bu olmadan ıskalanır (test 1'de doğrulanır). Ölçek parmak köklerinden gelir, hafif EMA ile yumuşatılır (poz modelinde parmaklar bilekten gürültülüdür) ve okunamazsa 0 döner — uydurma derinlik üretilmez.
+- **El → kol ataması yok:** ölçü zaten doğru kola aittir (aynı landmark ailesi). Eski "el landmark'ını en yakın bileğe ata" adımı ve onun gard pozisyonunda ürettiği **sahte yumruk** riski tümüyle ortadan kalktı.
 - **Ölçü birimi:** `birim = max(omuz genişliği, kulaklar arası × 2.55)`, EMA ile yumuşatılmış. Boks duruşunda gövde yana döner ve 2D omuz genişliği %40'a kadar küçülür — tek başına omuz genişliği tüm eşikleri kaydırırdı.
 - **Tanıma yalnız yeni poz karesinde:** `oyun.guncelle` her karede çağrılır ama `tanima.guncelle` yalnız `damga` değişince, biriken `dt` ile. Aynı landmark'la tekrar hesaplamak hızı sıfıra çeker ve darbe tespitini bozar.
-- **Poz kısılır, el kısılmaz:** poz worker'ı `asgariAralik: 33 ms` (~30 Hz) ile çalışır, karesi 384 px'e küçültülür; el tam hızda ve 480 px. İki model aynı anda koşarken bütçe böyle dengelenir. Ana-thread yedeğinde poz çok daha seyrek (110 ms).
+- **Kare bütçesi:** kamera 640×360@30, worker'a giden kare 320 px uzun kenar, `asgariAralik: 0` (uçuştaki tek kare kuralı doğal tavanı koyar). Ana-thread yedeğinde tavan 70 ms. Canvas piksel bütçesi 900 k, dpr tavanı 1.5, kalite tabanı 0.45.
+- **Tespit eşikleri oynanabilirlik için kalibre edildi:** 30 Hz örneklemede hızlı yumruk 4-5 kare sürer; ilk sürümün sıkı eşikleri gerçek yumrukları eliyordu. Eşikler ~%20 gevşetildi, pad kabul yarıçapı 0.62→0.85 birim, pad ömürleri ~%25 uzatıldı, ısınma 18→10 sn. Değiştirirsen `_test/motor-test.mjs`'teki "durgun vücutta yumruk üretilmiyor" testi sahte tespit bekçisidir.
 - **Ceza yok:** yanlış tür pedi titretir, puan vermez; savunmada "kaçamadın" yalnız geri bildirimdir. Can/ceza sistemi yoktur (Meyve Kes ile tutarlı).
 - **Dürüstlük:** kamerada Newton ölçülemez → şiddet, kişinin KENDİ ortalamasına normalize edilmiş 0-100 **görece** skordur (ilk 4 yumruk kalibrasyon). Kalori MET tabanlıdır; kilo girilmezse "tahmini" etiketiyle sunulur.
 - **Dövüşçü eşleştirmesi:** yalnız kamuya açık, bilinen stil özellikleri. Sahte alıntı/kurgu diyalog/uydurma biyografik iddia **üretilmez**; sonuç yetenek değil **tarz** benzerliğidir.
