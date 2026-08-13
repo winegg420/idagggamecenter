@@ -91,6 +91,19 @@ const OLCEK_TABAN_PX = 6; // çok küçük el ölçeğinde oranın patlamasını
 // ve sistem sessizce 2D ölçüme düşer — uydurma derinlik üretilmez.
 const PARMAK_ESIK = 0.35;
 const OLCEK_EMA = 0.5;
+// KOL DÜZLÜĞÜ — parmak köklerinden BAĞIMSIZ ikinci derinlik kanıtı.
+//   duzluk = |bilek−omuz| / (|bilek−dirsek| + |dirsek−omuz|)  ∈ [0,1]
+// Bu oran İZDÜŞÜMDEN BAĞIMSIZDIR: kol kameraya doğru uzandığında iki segment de
+// kısalır ama noktalar aynı hizaya geldiği için oran 1'e yaklaşır. Poz modeli
+// parmak köklerini okuyamadığında (lite modelde sık) el ölçeği 0 dönüyordu ve
+// düz yumruk ne ekranda yer değiştirdiği ne de derinlik ürettiği için
+// MIN_UZANMA_ARTIS eşiğini geçemiyordu — "denk geldi ama vurulmadı" hissinin
+// kalan kaynağı buydu. Düzlük her koşulda ölçülebilir.
+const DUZLUK_KATKI = 0.75; // düzlüğün uzanmaya katkısı (birim)
+const DUZLUK_EMA = 0.7; // dirsek gürültüsünü sönümler (hızlı, gecikme yapmaz)
+// Düzleşme HIZI de ileri gitme hızıdır: kameraya doğru atılan yumrukta bilek
+// ekranda durur ve el ölçeği okunamıyorsa etkin hız eşiği asla aşılmazdı.
+const DUZLUK_HIZ_KATKI = 0.5;
 const MIN_UZANMA_ARTIS = 0.1; // birim — bundan az açılan kol yumruk sayılmaz
 const MIN_TEPE_HIZ = 1.35; // birim/sn — darbe için gereken asgari tepe hızı
 const DARBE_YAVASLAMA = 0.55; // tepe hızın bu oranına düşünce darbe anı
@@ -163,6 +176,7 @@ class Kol {
     this.faz = "bekle";
     this.uzanma = 0;
     this.uzanmaHiz = 0;
+    this.duzluk = 0; // kol düzlüğü 0-1 (izdüşümden bağımsız uzanma ölçüsü)
     this.hiz = 0; // bilek hızı (birim/sn)
     this.gorunur = false;
     this.gardDusuk = false;
@@ -381,7 +395,17 @@ export class YumrukTanima {
       const zProxy =
         kol.faz === "itme" && elOlcek > 0 && kol._olcek0 > 0 ? elOlcek / kol._olcek0 - 1 : 0;
       const ham2D = uzaklik(bilek, omuz) / birim;
-      const uzanma = ham2D + Math.max(0, zProxy) * 0.9;
+
+      // Kol düzlüğü (izdüşümden bağımsız uzanma kanıtı) — bkz. DUZLUK_KATKI.
+      const onceDuzluk = kol.duzluk;
+      if (dirsek) {
+        const zincir = uzaklik(bilek, dirsek) + uzaklik(dirsek, omuz);
+        if (zincir > birim * 0.2) {
+          const ham = Math.min(1, uzaklik(bilek, omuz) / zincir);
+          kol.duzluk = kol.duzluk > 0 ? kol.duzluk + (ham - kol.duzluk) * DUZLUK_EMA : ham;
+        }
+      }
+      const uzanma = ham2D + Math.max(0, zProxy) * 0.9 + kol.duzluk * DUZLUK_KATKI;
 
       const bilekHiz = kol._sonBilek ? uzaklik(bilek, kol._sonBilek) / dtG / birim : 0;
       // El ölçeğinin göreli büyüme hızı (1/sn) → derinlikte ilerleme hızı.
@@ -389,7 +413,12 @@ export class YumrukTanima {
         elOlcek > 0 && kol._sonOlcek > 0
           ? (elOlcek - kol._sonOlcek) / dtG / Math.max(OLCEK_TABAN_PX, kol._sonOlcek)
           : 0;
-      const etkinHiz = bilekHiz + Math.max(0, olcekHiz) * OLCEK_HIZ_KATKI;
+      // Düzleşme hızı (1/sn) → kameraya doğru ilerleme hızı.
+      const duzlukHiz = onceDuzluk > 0 ? (kol.duzluk - onceDuzluk) / dtG : 0;
+      const etkinHiz =
+        bilekHiz +
+        Math.max(0, olcekHiz) * OLCEK_HIZ_KATKI +
+        Math.max(0, duzlukHiz) * DUZLUK_HIZ_KATKI;
       const uzanmaHiz = kol._sonUzanma != null ? (uzanma - kol._sonUzanma) / dtG : 0;
       kol.uzanma = uzanma;
       kol.hiz = etkinHiz;

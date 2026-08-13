@@ -46,17 +46,30 @@ const COMBO_PENCERE = 2.4; // sn — ardışık isabet arası azami süre
 // "denk getirdim" dediğinde gerçekte merkezden yarım gövde ölçüsü uzakta olur.
 // 0.62 → 0.85 → 1.05: hâlâ "denk getiremiyorum" geri bildirimi geliyordu.
 const PAD_TOLERANS = 1.05; // birim — YANLIŞ türde pad'e temas yarıçapı
-// DOĞRU numaralı pad için çok daha cömert yarıçap. Bu oyunun ölçtüğü beceri
-// "doğru yumruğu doğru elle atmak"tır; kamerada 2D bilek konumu (özellikle düz
-// yumrukta) piksel hassasiyetinde bir nişan aracı değildir. Doğru yumruk
-// atıldıysa ve pad kabaca o bölgedeyse isabet sayılır.
-const PAD_DOGRU_TOLERANS = 2.6; // birim — doğru numaralı pad için kabul yarıçapı
+// DOĞRU numaralı pad için mesafe koşulu YOKTUR (birden fazlaysa en yakını
+// seçilir). Ölçülen beceri "doğru yumruğu doğru elle, süresi içinde atmak"tır;
+// kamerada 2D bilek konumu — özellikle kameraya doğru atılan düz yumrukta —
+// piksel hassasiyetinde bir nişan aracı değildir. Mesafe kapısı yalnızca
+// "denk getirdim ama saymadı" hissi üretiyordu.
+// Pad boyutu: min(W,H) oranı tabanı + oyuncunun gövde ölçeğine göre büyüme.
+// Telefon kadrajında min(W,H) küçüktür; sabit oran pedleri "ufak" bırakıyordu.
+const PAD_R_ORAN = 0.115; // taban yarıçap (min(W,H) çarpanı)
+const PAD_R_TAVAN = 0.2; // azami yarıçap (min(W,H) çarpanı)
+const PAD_R_BIRIM = 0.55; // gövde ölçeğine göre yarıçap
+// Tespit payı: darbe olayı gerçek temastan ~100 ms sonra üretilir. Pad tam o
+// anda sönerse "vurdum ama kaçtı" olur — ömre sabit pay eklenir.
+const PAD_TESPIT_PAYI = 0.3; // sn
 const TEHDIT_TELEGRAPH = 0.95; // sn — savunmada yumruğun gelme süresi (zorlukla kısalır)
 const KACIS_MESAFE = 0.5; // birim — kafa bu kadar kaydıysa kaçış başarılı
-const EKSTRA_TAVAN = 0.11; // sn — azami gecikme telafisi (aşırı ileri sarma titreşim yapar)
+// Gecikme telafisi ölçülü tutulur: fazla ileri sarma, yön değiştiren yumrukta
+// aşırı atış yapar ve yeni paket gelince geri sıçrar — ekranda "senkron hatası"
+// olarak görünen titreme budur. Tavan 0.11 → 0.09 sn, paket yaşı katkısı 0.03 sn
+// ile sınırlı (yalnız 30 Hz akışı 60 fps'te yumuşatmak için).
+const EKSTRA_TAVAN = 0.09; // sn — azami gecikme telafisi
+const EKSTRA_YAS_PAYI = 0.03; // sn — paket yaşından gelen azami katkı
 // Azami ileri sarma yer değiştirmesi (normalize). Hızlı bir yumruk 50 ms'de
-// ~1/3 gövde ölçüsü ilerler; bunun ötesi telafi değil, gürültü demektir.
-const EKSTRA_MAX_YER = 0.07;
+// ~1/4 gövde ölçüsü ilerler; bunun ötesi telafi değil, gürültü demektir.
+const EKSTRA_MAX_YER = 0.05;
 const NEFES_HZ = 0.22; // nefes/tempo göstergesi frekansı (yavaş, sakin ritim)
 
 // Combo çarpan eğrisi (madde 12).
@@ -343,18 +356,21 @@ export class Oyun {
 
   _padEkle(no, W, H, ekstra = {}) {
     const k = padKonum(no, this.durus, W, H, this._ankor());
+    const kucuk = Math.min(W, H);
+    // Pad yarıçapı: taban oran + oyuncunun gövde ölçeği (yakınsa büyük hedef).
+    const r = Math.max(kucuk * PAD_R_ORAN, Math.min(kucuk * PAD_R_TAVAN, (this.tanima.birim || 0) * PAD_R_BIRIM));
     // Aynı yere üst üste pad koyma (okunabilirlik).
-    const cakisma = this.padler.some((p) => Math.hypot(p.x - k.x, p.y - k.y) < Math.min(W, H) * 0.14);
-    const kayma = cakisma ? (Math.random() - 0.5) * Math.min(W, H) * 0.16 : 0;
+    const cakisma = this.padler.some((p) => Math.hypot(p.x - k.x, p.y - k.y) < r * 1.9);
+    const kayma = cakisma ? (Math.random() - 0.5) * kucuk * 0.18 : 0;
     this.padler.push({
       no,
       x: k.x + kayma,
       y: k.y + kayma * 0.5,
       el: k.el,
       tur: k.tur,
-      r: Math.min(W, H) * 0.085,
+      r,
       t: 0,
-      omur: this.z.padOmur,
+      omur: this.z.padOmur + PAD_TESPIT_PAYI,
       titre: 0,
       vuruldu: false,
       ...ekstra,
@@ -521,14 +537,12 @@ export class Oyun {
 
     const birim = this.tanima.birim || Math.min(W, H) * 0.18;
     const tolerans = birim * PAD_TOLERANS;
-    const dogruTolerans = birim * PAD_DOGRU_TOLERANS;
     // Nişan noktası (derinlik telafili) — yoksa ham bilek konumu.
     const hx = olay.nx != null ? olay.nx : olay.x;
     const hy = olay.ny != null ? olay.ny : olay.y;
 
     // İki aşamalı eşleştirme:
-    //  1) DOĞRU numaralı pad cömert yarıçapla aranır — "doğru yumruğu attım ama
-    //     saymadı" hissini bitiren asıl kural.
+    //  1) DOĞRU numaralı pad — mesafeden bağımsız, birden fazlaysa en yakını.
     //  2) Doğru numara yoksa, yakındaki YANLIŞ numaralı pad geri bildirim için
     //     dar yarıçapla aranır (titrer, puan yok, ceza yok).
     let dogru = null;
@@ -541,7 +555,7 @@ export class Oyun {
       if (this.mod === "koc" && this.komut && !pad.sirali) continue;
       const d = Math.hypot(pad.x - hx, pad.y - hy);
       if (pad.no === olay.no) {
-        if (d < pad.r + dogruTolerans && d < dogruD) {
+        if (d < dogruD) {
           dogruD = d;
           dogru = pad;
         }
@@ -641,7 +655,7 @@ export class Oyun {
     // ~30 Hz'lik poz akışı 60 fps çizimde kesintisiz akar (görsel akıcılık).
     // Nokta nesneleri KALICI: kare başına 18 nesne ayırmak GC baskısı yaratıyordu.
     if (damga !== this._sonPozDamga) this._pozYas = 0;
-    else this._pozYas = Math.min(EKSTRA_TAVAN, (this._pozYas || 0) + dt);
+    else this._pozYas = Math.min(EKSTRA_YAS_PAYI, (this._pozYas || 0) + dt);
     const ileri = Math.min(EKSTRA_TAVAN, (gecikme || 0) + (this._pozYas || 0));
 
     let poz = null;

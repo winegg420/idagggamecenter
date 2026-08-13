@@ -239,3 +239,73 @@ ama **hiç kullanılmıyordu**.
 - Tür öncelikli isabet fazla kolay gelirse `PAD_DOGRU_TOLERANS` 2.6 → 1.8 aralığında kısılabilir
   (tek sabit, tek yerde).
 - Migration Supabase Dashboard'dan uygulanmalı (CLI `db push` bu projede 403 veriyor).
+
+## 2026-08-13 (2. oturum) — "denk gelse de vurulmuyor" + hedef boyutu + senkron titremesi
+
+Kullanıcı: *"yumruğum denk gelse de hedefe bazen vurulmuyor. hedefler çok ufak, büyült.
+senkron hataları var."* Önceki turda pad tarafı/konumu düzeltilmişti; kalan boşluk **tespit**
+tarafındaydı.
+
+### 1) Kalan tespit boşluğu: KOL DÜZLÜĞÜ (üçüncü derinlik kanıtı)
+
+Kök neden: düz yumrukta sistemin elinde iki sinyal vardı — 2D bilek hızı (kameraya doğru
+yumrukta ~sıfır) ve **el ölçeği** (bilek↔parmak kökü). Poz *lite* modeli parmak köklerini sık
+kaybeder (`PARMAK_ESIK` altına düşer) → `elOlcek = 0` → `zProxy = 0`. O anda uzanma artışı
+`MIN_UZANMA_ARTIS`'ı geçemiyor ve **hiç yumruk olayı üretilmiyordu**. Ped konumu ne kadar doğru
+olursa olsun olay yoksa isabet de yoktu.
+
+Çözüm — izdüşümden bağımsız üçüncü ölçüt:
+
+    duzluk = |bilek−omuz| / (|bilek−dirsek| + |dirsek−omuz|)   ∈ [0,1]
+
+Kol kameraya doğru uzanınca iki segment de kısalır, ama üç nokta aynı hizaya geldiği için oran
+1'e yaklaşır. Yani **kamera açısından bağımsız** olarak "kol açıldı mı" sorusunu yanıtlar.
+İki yere bağlandı:
+- `uzanma`ya sabit katkı (`DUZLUK_KATKI` 0.75) → `artis` gerçek değer üretiyor.
+- `etkinHiz`e düzleşme HIZI (`DUZLUK_HIZ_KATKI` 0.5) → tepe hız eşiği aşılabiliyor.
+Dirsek gürültüsü için hızlı EMA (0.7) — gecikme yaratmadan sönümler.
+
+*Neden bu kadar güvenli:* düzlük ne kameraya uzaklığa ne gövde dönüşüne ne de parmak
+görünürlüğüne bağlıdır; el ölçeği ve 2D hızdan tamamen bağımsız bir kanaldır.
+
+### 2) Hedefler büyütüldü
+
+- Pad yarıçapı `min(W,H)×0.085` → `max(min(W,H)×0.115, birim×0.55)`, tavan `min(W,H)×0.2`.
+  Telefon kadrajında `min(W,H)` küçük olduğu için sabit oran hedefleri "ufak" bırakıyordu;
+  ayrıca oyuncu kameraya yaklaştıkça hedef de büyüyor.
+- Çakışma mesafesi pad yarıçapına bağlandı (`r × 1.9`) — büyük pedler üst üste binmiyor.
+- **Ped ömrüne tespit payı** (`PAD_TESPIT_PAYI` 0.3 sn): darbe olayı gerçek temastan ~100 ms
+  sonra üretiliyor; ped tam o anda sönerse "vurdum ama kaçtı" oluyordu.
+
+### 3) Doğru numaralı pedde mesafe koşulu kaldırıldı
+
+Önceki turda 2.6 birim yarıçap konmuştu; hâlâ sınırda kalan vuruşlar eleniyordu. Artık doğru
+numaralı ped **mesafeden bağımsız** eşleşiyor (birden fazlaysa en yakını). Yanlış numaralı ped
+dar yarıçapta (1.05 birim) yalnız geri bildirim (titreme) için eşleşiyor.
+*Karar gerekçesi:* ölçülen beceri "doğru yumruğu doğru elle, süresi içinde atmak"tır; ped zaten
+doğru elin tarafında ve gövdeye göre konumlanıyor, dolayısıyla yönlendirme görsel olarak
+korunuyor. 2D bilek konumu piksel hassasiyetinde bir nişan aracı değil.
+
+### 4) Senkron titremesi
+
+Fazla ileri sarma, yön değiştiren yumrukta (darbe → geri çekiş) aşırı atıp yeni paket gelince
+geri sıçrıyordu; ekranda "senkron hatası" olarak görünen buydu.
+- İleri sarma tavanı 0.11 → **0.09 sn**, paket yaşı katkısı **0.03 sn** ile sınırlandı.
+- Azami yer değiştirme 0.07 → **0.05** normalize.
+- Hız EMA'sı 0.5 → **0.62** (daha çevik; yön değişiminde daha az gecikme).
+
+### Doğrulama
+
+- `node boks/_test/motor-test.mjs` → **88/88 geçti**. Yeni testler:
+  - *"El ölçeği okunamasa da düz yumruk tespit ediliyor"* — parmak kökleri `g=0.1`, bilek
+    ekranda 2 px kayıyor, yalnız dirsek hizaya giriyor → jab üretiliyor.
+  - *"Gardda salınan eller yumruk üretmiyor"* — 1.5 Hz ±0.02 salınım, 100 kare, 0 olay.
+    **Eşikler iki kez gevşetildi ve yeni bir sinyal eklendi; bu test sahte tespit bekçisidir.**
+  - Pad yarıçapı tabanı/tavanı ve ömür payı.
+- `npm run build` → başarılı; BoksApp chunk 138 kB (48 kB gzip).
+
+### Not
+
+`boks/CLAUDE.md` bir ara PowerShell `Get-Content | Set-Content -Encoding utf8` ile bozuldu
+(ANSI olarak okundu → mojibake). `git checkout` ile geri alındı. **Bu depodaki Türkçe dosyalarda
+PowerShell metin boru hattı kullanma**, düzenleme aracıyla değiştir.

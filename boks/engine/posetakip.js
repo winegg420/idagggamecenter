@@ -55,7 +55,9 @@ export const GORUNUR_ESIK = 0.55;
 // nişan ve isabet noktası geride kalır ("senkron iyi değil"). Her nokta için
 // hız (normalize birim/sn) taşınır; `oyun.js` bunu gecikme kadar ileri sararak
 // hem çizimi hem isabet noktasını GERÇEK ana hizalar.
-const HIZ_EMA = 0.5; // hız yumuşatma (gürültü ekstrapolasyonu patlatmasın)
+// Hız EMA'sı çevik tutulur: yavaş EMA yön değiştiren yumrukta gecikip ileri
+// sarmayı ters yöne taşır (paket gelince geri sıçrama = görünür senkron hatası).
+const HIZ_EMA = 0.62; // hız yumuşatma (gürültü ekstrapolasyonu patlatmasın)
 const HIZ_TAVAN = 4; // normalize birim/sn — absürt sıçrama kırpması
 const GECIKME_EMA = 0.25; // ölçülen gecikmenin yumuşatılması
 // Tek model koştuğu için worker yolunda kısma YOK: uçuştaki tek kare kuralı

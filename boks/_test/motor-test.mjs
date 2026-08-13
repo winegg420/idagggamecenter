@@ -623,6 +623,66 @@ console.log("\n— 12) Oynanabilirlik optimizasyonları —");
     sina("Bilek bir kare kaybolsa da yumruk üretiliyor", t.olaylar.length === 1, `${t.olaylar.length} olay`);
   }
 
+  // (g) PARMAK KÖKÜ OKUNAMADIĞINDA düz yumruk: bilek ekranda neredeyse durur,
+  //     el ölçeği yoktur — tespit yalnız KOL DÜZLÜĞÜNE dayanmalıdır.
+  {
+    const t = new YumrukTanima({ durus: ORTODOKS });
+    // omuz (0.4,0.36) ile bilek (0.45,0.30) arasının ortası → tam düz kol
+    const dirsekBukuk = { x: 0.38, y: 0.46 };
+    const dirsekDuz = { x: 0.425, y: 0.33 };
+    const kareUret = (k, bilekKay) => {
+      const g = govde({ solBilek: { x: 0.45 - bilekKay, y: 0.3 } });
+      // Parmak kökleri modelce okunamıyor → el ölçeği (derinlik proxy'si) YOK
+      g.noktalar[P.SOL_SERCE].g = 0.1;
+      g.noktalar[P.SOL_ISARET].g = 0.1;
+      g.noktalar[P.SOL_DIRSEK] = {
+        x: dirsekBukuk.x + (dirsekDuz.x - dirsekBukuk.x) * k,
+        y: dirsekBukuk.y + (dirsekDuz.y - dirsekBukuk.y) * k,
+        z: 0,
+        g: 1,
+      };
+      return g;
+    };
+    for (let i = 0; i < 6; i++) t.guncelle(DT, { poz: pozEkran(kareUret(0, 0)), kapsam });
+    for (let i = 1; i <= 3; i++) {
+      // bilek ekranda yalnız 2 piksel kayıyor (kameraya doğru gidiyor)
+      t.guncelle(DT, { poz: pozEkran(kareUret(i / 3, 0.002 * i)), kapsam });
+    }
+    for (let i = 0; i < 3; i++) t.guncelle(DT, { poz: pozEkran(kareUret(1, 0.006)), kapsam });
+    const o = t.olaylar[0];
+    sina("El ölçeği okunamasa da düz yumruk tespit ediliyor", t.olaylar.length === 1 && o?.no === 1, `${t.olaylar.length} olay, no=${o?.no}`);
+  }
+
+  // (g2) SAHTE TESPİT BEKÇİSİ: gard pozisyonunda salınan eller yumruk değildir.
+  //      (Eşikler iki kez gevşetildi + düzlük sinyali eklendi — bu testin
+  //       kalması gerekiyor, aksi hâlde her gard sallanışı puan üretir.)
+  {
+    const t = new YumrukTanima({ durus: ORTODOKS });
+    for (let i = 0; i < 100; i++) {
+      const s = Math.sin((i / 30) * Math.PI * 2 * 1.5) * 0.02; // 1.5 Hz, ±0.02
+      t.guncelle(DT, {
+        poz: pozEkran(govde({ solBilek: { x: 0.45, y: 0.3 + s }, sagBilek: { x: 0.55, y: 0.3 - s } })),
+        kapsam,
+      });
+    }
+    sina("Gardda salınan eller yumruk üretmiyor", t.olaylar.length === 0, `${t.olaylar.length} olay`);
+  }
+
+  // (h) PAD BOYUTU ve ömür payı: hedefler görünür büyüklükte, tespit gecikmesine pay var.
+  {
+    const o = new Oyun({ mod: "serbest", zorluk: "orta" });
+    o._padEkle(1, W, H);
+    const kucukKadraj = o.padler[0];
+    sina("Pad yarıçapı kadrajın en az %11'i", kucukKadraj.r >= Math.min(W, H) * 0.11, `r=${Math.round(kucukKadraj.r)}`);
+    sina("Pad ömründe tespit gecikmesi payı var", kucukKadraj.omur > ZORLUKLAR.orta.padOmur, `${kucukKadraj.omur.toFixed(2)} sn`);
+    // Oyuncu kameraya yakınsa (birim büyük) hedef de büyür — tavanla sınırlı
+    const o2 = new Oyun({ mod: "serbest", zorluk: "orta" });
+    o2.tanima.birim = 400;
+    o2.tanima.kafa = { x: W / 2, y: H / 2, hiz: 0 };
+    o2._padEkle(1, W, H);
+    sina("Yakın oyuncuda hedef büyüyor ama tavanı aşmıyor", o2.padler[0].r > kucukKadraj.r && o2.padler[0].r <= Math.min(W, H) * 0.2, `r=${Math.round(o2.padler[0].r)}`);
+  }
+
   // (f) GECİKME TELAFİSİ: nokta hızlarıyla ileri sarma çizimi/nişanı kaydırır.
   {
     const o = new Oyun({ mod: "serbest", zorluk: "orta" });
