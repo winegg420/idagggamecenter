@@ -73,49 +73,82 @@ const BIRIM_MIN = 24; // px — absürt küçük ölçek koruması
 const KOL_ESIK = 0.3; // kol noktaları için gevşek görünürlük eşiği
 const KOL_HAFIZA = 0.22; // sn — nokta kaybolduğunda son konumun geçerlilik süresi
 
-// EŞİK KALİBRASYONU: ilk sürümde eşikler o kadar sıkıydı ki gerçek yumrukların
-// bir kısmı hiç sayılmıyordu ("vurdum ama saymadı" hissi). Poz takibi ~30 Hz
-// örneklediği için hızlı bir yumruk yalnız 4-5 kare sürer ve tepe hız kolayca
-// ıskalanır. Eşikler ~%20 gevşetildi; durgun vücutta sahte yumruk üretmediği
-// _test/motor-test.mjs ile doğrulanıyor.
-const ITME_UZANMA_HIZ = 0.85; // birim/sn — uzanma bu hızla artıyorsa yumruk başladı
-const ITME_BILEK_HIZ = 1.25; // birim/sn — ya da etkin hız bu eşiği aşıyorsa
-// DERİNLİK EKSENİ: kameraya doğru atılan DÜZ yumrukta bilek ekranda neredeyse
-// hiç yer değiştirmez — 2D hız ölçütü tek başına jab/cross'u ıskalar. El ölçeği
-// (bilek→orta parmak kökü) kameraya yaklaşınca büyür; bu büyümenin GÖRECELİ
-// hızı, ekran düzlemindeki hıza eklenerek "etkin hız" elde edilir.
-const OLCEK_HIZ_KATKI = 0.55; // ölçek büyüme hızının etkin hıza katkısı
-const OLCEK_TABAN_PX = 6; // çok küçük el ölçeğinde oranın patlamasını engeller
+// ============================================================
+// TESPİT ÇEKİRDEĞİ (2026-08-13 RADİKAL REVİZYON)
+//
+// ESKİ YAKLAŞIM ve neden bırakıldı: hız kapılı bir durum makinesi vardı —
+// yumruğun sayılması için AYNI ANDA (a) uzanma hızı eşiği, (b) bilek/etkin hız
+// eşiği, (c) tepe ya da yavaşlama karesinin yakalanması, (d) asgari uzanma
+// artışı gerekiyordu. 30 Hz'de bir yumruk 3-4 kare sürer; her kapı ayrı ayrı
+// ıskalanabildiği için gerçek yumrukların bir kısmı sistematik olarak
+// kayboluyordu. Eşikleri gevşetmek yalnız sahte tespit riskini büyüttü.
+//
+// YENİ YAKLAŞIM: kol başına TEK BİR ÖLÇEK — `uzanim` — üretilir ve yumruk, bu
+// sinyalin bir TEPESİ olarak yakalanır. Hiçbir hız eşiği yoktur: yavaş da atsan
+// hızlı da atsan, kol açılıp geri döndüyse yumruktur. Kare atlanması sonucu
+// değiştirmez (tepe, örneklenen en yüksek değerdir).
+//
+//   uzanim = 0.45×(2D omuz→bilek / birim)      ← ekranda görünen açılım
+//          + 0.85×duzluk                        ← izdüşümden BAĞIMSIZ açılım
+//          + 0.50×el ölçeği büyümesi            ← derinlik (varsa)
+//
+//   duzluk = |bilek−omuz| / (|bilek−dirsek| + |dirsek−omuz|) ∈ [0,1]
+//   Kol kameraya doğru uzanınca iki segment de kısalır ama üç nokta hizaya
+//   girdiği için oran 1'e yaklaşır → kamera açısından bağımsız "kol açıldı mı".
+//
+// Üç kanal birbirinden BAĞIMSIZDIR: biri okunamazsa (parmak kökleri kayıp,
+// dirsek görünmüyor, yumruk kameraya dik) diğerleri sinyali taşımaya devam eder.
+//
+// Tipik değerler (birim ölçeğinde): gard ≈ 0.45 · jab ≈ 1.25 · hook ≈ 1.10 ·
+// uppercut ≈ 0.90. Gard salınımı ≈ ±0.07. Eşik 0.28 → her yumruk türü rahat
+// geçer, gard gürültüsü 4 kat altında kalır.
+// ============================================================
+
+// ---- uzanim bileşen ağırlıkları ----
+const UZATMA_AGIRLIK = 0.45;
+const DUZLUK_AGIRLIK = 0.85;
+const OLCEK_AGIRLIK = 0.5;
+const DUZLUK_EMA = 0.7; // dirsek gürültüsünü sönümler (hızlı, gecikme yapmaz)
 // Parmak kökleri poz modelinde bilekten daha gürültülüdür: ölçek için ayrı
 // (gevşek) görünürlük eşiği ve hafif EMA kullanılır. Ölçek okunamazsa 0 döner
-// ve sistem sessizce 2D ölçüme düşer — uydurma derinlik üretilmez.
+// ve sistem sessizce diğer iki kanala düşer — uydurma derinlik üretilmez.
 const PARMAK_ESIK = 0.35;
 const OLCEK_EMA = 0.5;
-// KOL DÜZLÜĞÜ — parmak köklerinden BAĞIMSIZ ikinci derinlik kanıtı.
-//   duzluk = |bilek−omuz| / (|bilek−dirsek| + |dirsek−omuz|)  ∈ [0,1]
-// Bu oran İZDÜŞÜMDEN BAĞIMSIZDIR: kol kameraya doğru uzandığında iki segment de
-// kısalır ama noktalar aynı hizaya geldiği için oran 1'e yaklaşır. Poz modeli
-// parmak köklerini okuyamadığında (lite modelde sık) el ölçeği 0 dönüyordu ve
-// düz yumruk ne ekranda yer değiştirdiği ne de derinlik ürettiği için
-// MIN_UZANMA_ARTIS eşiğini geçemiyordu — "denk geldi ama vurulmadı" hissinin
-// kalan kaynağı buydu. Düzlük her koşulda ölçülebilir.
-const DUZLUK_KATKI = 0.75; // düzlüğün uzanmaya katkısı (birim)
-const DUZLUK_EMA = 0.7; // dirsek gürültüsünü sönümler (hızlı, gecikme yapmaz)
-// Düzleşme HIZI de ileri gitme hızıdır: kameraya doğru atılan yumrukta bilek
-// ekranda durur ve el ölçeği okunamıyorsa etkin hız eşiği asla aşılmazdı.
-const DUZLUK_HIZ_KATKI = 0.5;
-const MIN_UZANMA_ARTIS = 0.1; // birim — bundan az açılan kol yumruk sayılmaz
-const MIN_TEPE_HIZ = 1.35; // birim/sn — darbe için gereken asgari tepe hızı
-const DARBE_YAVASLAMA = 0.55; // tepe hızın bu oranına düşünce darbe anı
-// 30 Hz örneklemede tepe/yavaşlama karesi tamamen atlanabilir (yumruk 3-4 kare
-// sürer). İkinci bir darbe kapısı: kol geri dönmeye BAŞLADIYSA darbe olmuştur.
-const GERI_BASLADI = 0.05; // birim — uzanma tepeden bu kadar geri düştüyse
-const ITME_MAX_SURE = 0.6; // sn — bundan uzun süren hareket yumruk değil (itiş/uzanma)
-const TOPARLA_SURE = 0.1; // sn — darbeden sonra yeni yumruk için asgari bekleme
-// Hızlı çift jab'da kol tam geri çekilmez; eski 0.1/0.5 sn değerleri ikinci
-// yumruğu yutuyordu.
-const GERI_CEKME = 0.06; // birim — kol bu kadar geri çekilince tekrar hazır
-const TOPARLA_TAVAN = 0.28; // sn — geri çekiş okunamasa bile bu süre sonunda hazır
+const OLCEK_TABAN_PX = 6; // çok küçük el ölçeğinde oranın patlamasını engeller
+
+// ---- tepe yakalama ----
+const YUKSELIS_ESIK = 0.28; // taban→tepe farkı bunu aşarsa yumruk adayı
+const YUKSELIS_MAX_SURE = 0.7; // sn — daha yavaş açılan kol yumruk değil (uzanma/işaret)
+const GERI_ESIK = 0.05; // tepeden bu kadar düşünce darbe kesinleşir (~1 kare)
+// Geri çekiş beklemek gecikme demektir; ayrıca yumruk tepede DURABİLİR (temas
+// anı). Tepe bu süre boyunca BELİRGİN biçimde artmadıysa darbe olmuştur.
+// "Belirgin" şart: EMA'lı sinyaller tepede milimetrik sürünmeye devam eder ve
+// saf "tepe artmadı" kuralı hiç tetiklenmezdi.
+const TEPE_BEKLEME = 0.06; // sn — ~2 kare @30 Hz
+const TEPE_ARTIS_MIN = 0.03; // bu kadar artmayan tepe "duruyor" sayılır
+// GARDI İNDİRME REDDİ: kol yana sarktığında da DÜZLEŞİR ve uzanım büyür —
+// yani düzlük kanıtı bu hareketi yumruktan ayırt edemez. Ayırt eden tek şey
+// gerçek derinlik (elin kameraya YAKLAŞMASI) ve hareketin yönüdür: baskın
+// biçimde aşağı inen, kameraya yaklaşmayan kol yumruk değildir.
+const DUSUS_RED_Y = 0.5; // birim — bu kadar aşağı inen
+const DUSUS_RED_YANAL = 1.5; // ve yanal yoldan bu kat fazla aşağı giden
+const DUSUS_RED_OLCEK = 0.12; // ve el ölçeği bu kadar büyümeyen hareket reddedilir
+const ATIS_ARALIK = 0.16; // sn — iki yumruk arası asgari süre
+const TABAN_TAKIP = 0.02; // bu farkın altındaki değerler yeni taban sayılır
+// TABAN SIKIŞMASI: sinyal tabanın biraz üstünde takılıp kalabilir (ör. yumruk
+// sonrası el ölçeği referansı sıfırlandığı için uzanim bir kademe düşer, sonra
+// gard değerine döner). O zaman "yükseliş" saatlerce sürüyormuş gibi görünür ve
+// bir sonraki GERÇEK yumruk `YUKSELIS_MAX_SURE` kapısına takılıp elenir.
+// Çözüm: sinyal DURGUNSA ve yükseliş yumruk eşiğine ulaşmadıysa taban bugüne
+// çekilir. Gerçek yumruk sırasında tetiklenmez (tepe sürekli ilerler).
+const TABAN_DURGUN = 0.2; // sn — tepe bu kadar süredir ilerlemiyorsa sinyal durgun
+const TABAN_ZAMAN_ASIMI = 1.2; // sn — sonuçsuz uzun yükselişte son çare
+const ITME_GORSEL_ESIK = 0.12; // render: "yumruk yolda" göstergesi eşiği
+const TOPARLA_GORSEL = 0.2; // sn — darbeden sonra nişan halkasının kalma süresi
+
+// Sınıflandırmada derinlik bileşeninin kaynakları (bkz. _darbe).
+const ILERI_OLCEK = 1.6;
+const ILERI_DUZLUK = 1.2;
 
 // NİŞAN NOKTASI: kameraya doğru atılan düz yumrukta bilek EKRANDA neredeyse hiç
 // yer değiştirmez — pedle karşılaştırılacak nokta olarak bilek kullanılırsa
@@ -170,35 +203,43 @@ export function noBilgi(no, durus) {
   return { no, tur, on, el, ad: YUMRUK_AD[no] };
 }
 
+/** Tepe/taban anındaki kol durumunun kopyası (sınıflandırma bunun üzerinden yapılır). */
+function anlikKayit(bilek, dirsek, olcek, duzluk) {
+  return {
+    x: bilek.x,
+    y: bilek.y,
+    dx: dirsek ? dirsek.x : null,
+    dy: dirsek ? dirsek.y : null,
+    olcek,
+    duzluk,
+  };
+}
+
 class Kol {
   constructor(taraf) {
     this.taraf = taraf; // 'sol' | 'sag' (anatomik)
-    this.faz = "bekle";
-    this.uzanma = 0;
-    this.uzanmaHiz = 0;
-    this.duzluk = 0; // kol düzlüğü 0-1 (izdüşümden bağımsız uzanma ölçüsü)
-    this.hiz = 0; // bilek hızı (birim/sn)
+    this.faz = "bekle"; // yalnız görsel: bekle | itme | toparla
+    this.uzanim = 0; // TEK tespit sinyali (bkz. tespit çekirdeği notu)
+    this.duzluk = 0; // kol düzlüğü 0-1 (izdüşümden bağımsız açılım)
+    this.uzanma = 0; // geriye dönük uyumluluk (= uzanim)
+    this.hiz = 0; // son yükseliş hızı (uzanim/sn) — göstergeler için
     this.gorunur = false;
     this.gardDusuk = false;
     this.gardYukseklik = 0; // birim — (+) düşük, (-) yüksek
-    this._sonBilek = null;
-    this._sonUzanma = null;
-    this._sonOlcek = 0;
     this._olcekEma = 0;
     // Kısa süreli landmark kaybında kullanılan son bilinen konumlar.
     this._hafiza = { omuz: null, dirsek: null, bilek: null };
-    this._sonT = 0;
     this._sonGardOlay = -10;
     this._sonDarbe = -10;
-    // itme fazı kaydı
-    this._t0 = 0;
-    this._u0 = 0;
-    this._p0 = null;
-    this._dirsek0 = null;
-    this._olcek0 = 1;
-    this._maxHiz = 0;
-    this._maxUzanma = 0;
-    this._zIlerleme = 0;
+    // ---- tepe yakalama durumu ----
+    this.taban = 0; // son yerel asgari uzanim
+    this.tabanT = 0;
+    this.tepe = 0; // taban'dan beri görülen azami uzanim
+    this.tepeT = 0; // tepenin BELİRGİN olarak son arttığı an
+    this._tepeIsaret = 0; // son belirgin artış değeri (EMA sürünmesi filtresi)
+    this._tabanKayit = null;
+    this._tepeKayit = null;
+    this._baslatildi = false;
   }
 }
 
@@ -362,10 +403,8 @@ export class YumrukTanima {
       if (!omuz || !bilek) {
         kol.gorunur = false;
         kol.faz = "bekle";
-        kol._sonBilek = null;
-        kol._sonUzanma = null;
-        kol._sonOlcek = 0;
         kol._olcekEma = 0;
+        kol._baslatildi = false; // yeniden görününce taban tazeden kurulur
         continue;
       }
       kol.gorunur = true;
@@ -387,17 +426,7 @@ export class YumrukTanima {
       }
       const elOlcek = kol._olcekEma;
 
-      // Uzanma: 2D kol açılımı + (yalnız itme fazında) derinlik ilerlemesi.
-      // Bekle fazında ölçek referansı sürekli tazelenir; böylece oyuncu kameraya
-      // yaklaşıp uzaklaştığında sahte "uzanma" üretilmez.
-      const dtG = Math.max(0.008, dt);
-      if (kol.faz !== "itme" && elOlcek > 0) kol._olcek0 = elOlcek;
-      const zProxy =
-        kol.faz === "itme" && elOlcek > 0 && kol._olcek0 > 0 ? elOlcek / kol._olcek0 - 1 : 0;
-      const ham2D = uzaklik(bilek, omuz) / birim;
-
-      // Kol düzlüğü (izdüşümden bağımsız uzanma kanıtı) — bkz. DUZLUK_KATKI.
-      const onceDuzluk = kol.duzluk;
+      // ---- kol düzlüğü (izdüşümden bağımsız açılım) ----
       if (dirsek) {
         const zincir = uzaklik(bilek, dirsek) + uzaklik(dirsek, omuz);
         if (zincir > birim * 0.2) {
@@ -405,24 +434,21 @@ export class YumrukTanima {
           kol.duzluk = kol.duzluk > 0 ? kol.duzluk + (ham - kol.duzluk) * DUZLUK_EMA : ham;
         }
       }
-      const uzanma = ham2D + Math.max(0, zProxy) * 0.9 + kol.duzluk * DUZLUK_KATKI;
 
-      const bilekHiz = kol._sonBilek ? uzaklik(bilek, kol._sonBilek) / dtG / birim : 0;
-      // El ölçeğinin göreli büyüme hızı (1/sn) → derinlikte ilerleme hızı.
-      const olcekHiz =
-        elOlcek > 0 && kol._sonOlcek > 0
-          ? (elOlcek - kol._sonOlcek) / dtG / Math.max(OLCEK_TABAN_PX, kol._sonOlcek)
+      // ---- TEK TESPİT SİNYALİ ----
+      // El ölçeği katkısı TABANDAKİ ölçeğe göredir: oyuncu kameraya yaklaşıp
+      // uzaklaştığında (taban da kaydığı için) sahte yükseliş üretmez.
+      const tabanOlcek = kol._tabanKayit?.olcek || 0;
+      const olcekArtis =
+        elOlcek > 0 && tabanOlcek > 0
+          ? Math.min(1, (elOlcek - tabanOlcek) / Math.max(OLCEK_TABAN_PX, tabanOlcek))
           : 0;
-      // Düzleşme hızı (1/sn) → kameraya doğru ilerleme hızı.
-      const duzlukHiz = onceDuzluk > 0 ? (kol.duzluk - onceDuzluk) / dtG : 0;
-      const etkinHiz =
-        bilekHiz +
-        Math.max(0, olcekHiz) * OLCEK_HIZ_KATKI +
-        Math.max(0, duzlukHiz) * DUZLUK_HIZ_KATKI;
-      const uzanmaHiz = kol._sonUzanma != null ? (uzanma - kol._sonUzanma) / dtG : 0;
-      kol.uzanma = uzanma;
-      kol.hiz = etkinHiz;
-      kol.uzanmaHiz = uzanmaHiz;
+      const uzanim =
+        (uzaklik(bilek, omuz) / birim) * UZATMA_AGIRLIK +
+        kol.duzluk * DUZLUK_AGIRLIK +
+        Math.max(0, olcekArtis) * OLCEK_AGIRLIK;
+      kol.uzanim = uzanim;
+      kol.uzanma = uzanim; // geriye dönük uyumluluk
 
       // ---- gard izleme (her karede, vuruş anından bağımsız) ----
       if (burun) {
@@ -436,55 +462,65 @@ export class YumrukTanima {
         if (kol.gardDusuk) gardDusukVar = true;
       }
 
-      // ---- durum makinesi ----
-      if (kol.faz === "bekle") {
+      // ---- TEPE YAKALAMA (hız eşiği YOK) ----
+      const kayit = anlikKayit(bilek, dirsek, elOlcek, kol.duzluk);
+      const tabanaAl = () => {
+        kol.taban = uzanim;
+        kol.tabanT = this._t;
+        kol.tepe = uzanim;
+        kol.tepeT = this._t;
+        kol._tepeIsaret = uzanim;
+        kol._tabanKayit = kayit;
+        kol._tepeKayit = kayit;
+      };
+
+      if (!kol._baslatildi) {
+        // Kol yeni göründü: taban buradan kurulur, ilk kareden yumruk üretilmez.
+        kol._baslatildi = true;
+        tabanaAl();
+      } else if (uzanim <= kol.taban + TABAN_TAKIP) {
+        // Kol dinlenmede / geri döndü → taban sürekli yerel asgariyi takip eder.
+        tabanaAl();
+      } else {
+        if (uzanim > kol.tepe) {
+          const belirgin = uzanim > kol._tepeIsaret + TEPE_ARTIS_MIN;
+          kol.tepe = uzanim;
+          kol._tepeKayit = kayit;
+          if (belirgin) {
+            kol.tepeT = this._t;
+            kol._tepeIsaret = uzanim;
+          }
+        }
+        const yukselis = kol.tepe - kol.taban;
+        const acilmaSuresi = kol.tepeT - kol.tabanT;
+        // Darbe anı: kol geri dönmeye başladı YA DA tepede durdu (temas).
+        const cozuldu = uzanim <= kol.tepe - GERI_ESIK || this._t - kol.tepeT >= TEPE_BEKLEME;
         if (
-          (uzanmaHiz > ITME_UZANMA_HIZ || etkinHiz > ITME_BILEK_HIZ) &&
-          this._t - kol._sonDarbe > TOPARLA_SURE
+          yukselis >= YUKSELIS_ESIK &&
+          acilmaSuresi <= YUKSELIS_MAX_SURE &&
+          cozuldu &&
+          this._t - kol._sonDarbe > ATIS_ARALIK
         ) {
-          kol.faz = "itme";
-          kol._t0 = this._t;
-          kol._u0 = uzanma;
-          kol._p0 = { x: bilek.x, y: bilek.y };
-          kol._dirsek0 = dirsek ? { x: dirsek.x, y: dirsek.y } : null;
-          kol._olcek0 = elOlcek > 0 ? elOlcek : kol._olcek0 || 1;
-          kol._maxHiz = etkinHiz;
-          kol._maxUzanma = uzanma;
-          kol._zIlerleme = 0;
-        }
-      } else if (kol.faz === "itme") {
-        kol._maxHiz = Math.max(kol._maxHiz, etkinHiz);
-        kol._maxUzanma = Math.max(kol._maxUzanma, uzanma);
-        if (elOlcek > 0 && kol._olcek0 > 0) {
-          kol._zIlerleme = Math.max(kol._zIlerleme, elOlcek / kol._olcek0 - 1);
-        }
-        const sure = this._t - kol._t0;
-        const artis = kol._maxUzanma - kol._u0;
-        const tepe = uzanmaHiz <= 0.15 || etkinHiz < kol._maxHiz * DARBE_YAVASLAMA;
-        // İkinci kapı: tepe karesi hiç örneklenmese bile kol geri dönmeye
-        // başladıysa darbe gerçekleşmiştir (30 Hz'de sık görülen durum).
-        const geriDonus = kol._maxUzanma - uzanma > GERI_BASLADI;
-        if (sure > ITME_MAX_SURE) {
-          // Uzun süren yavaş uzanma yumruk değil (ör. eli kaldırma) → iptal.
-          kol.faz = "toparla";
+          kol.hiz = yukselis / Math.max(0.03, acilmaSuresi);
+          if (this._darbe(kol, omuz, birim, yukselis, acilmaSuresi)) kol._sonDarbe = this._t;
+          tabanaAl();
         } else if (
-          (tepe && artis > MIN_UZANMA_ARTIS && kol._maxHiz > MIN_TEPE_HIZ) ||
-          (geriDonus && artis > MIN_UZANMA_ARTIS * 0.78 && kol._maxHiz > MIN_TEPE_HIZ * 0.72)
+          (this._t - kol.tepeT > TABAN_DURGUN && yukselis < YUKSELIS_ESIK) ||
+          this._t - kol.tabanT > TABAN_ZAMAN_ASIMI
         ) {
-          this._darbe(kol, { x: bilek.x, y: bilek.y }, dirsek, omuz, birim, artis);
-          kol.faz = "toparla";
-          kol._sonDarbe = this._t;
-        }
-      } else if (kol.faz === "toparla") {
-        if (uzanma < kol._maxUzanma - GERI_CEKME || this._t - kol._sonDarbe > TOPARLA_TAVAN) {
-          kol.faz = "bekle";
+          // Yükseliş yumruk olmadan durdu (ör. eli kaldırıp tutma, gard kayması):
+          // taban bugüne çekilir ki SONRAKİ gerçek yumruk baştan ölçülebilsin.
+          tabanaAl();
         }
       }
 
-      kol._sonBilek = { x: bilek.x, y: bilek.y };
-      kol._sonUzanma = uzanma;
-      kol._sonOlcek = elOlcek;
-      kol._sonT = this._t;
+      // Görsel faz (nişan halkası): yalnız render için türetilir.
+      kol.faz =
+        this._t - kol._sonDarbe < TOPARLA_GORSEL
+          ? "toparla"
+          : uzanim > kol.taban + ITME_GORSEL_ESIK
+            ? "itme"
+            : "bekle";
     }
 
     // ---- gard istatistiği (round analizinde "düşük gard oranı" olur) ----
@@ -501,19 +537,39 @@ export class YumrukTanima {
     }
   }
 
-  /** Darbe anı: olayı üretir, şiddeti kişinin kendi ortalamasına normalize eder. */
-  _darbe(kol, bilek, dirsek, omuz, birim, artis) {
-    const p0 = kol._p0 || bilek;
-    const dx = (bilek.x - p0.x) / birim;
-    const dy = (bilek.y - p0.y) / birim;
-    const ileri = Math.max(0, kol._zIlerleme) * 1.6 + Math.max(0, artis) * 0.6;
+  /**
+   * Darbe anı: olayı TABAN→TEPE kayıtlarından üretir.
+   * Sınıflandırma tepe karesinin ham konumuna değil, yumruğun kat ettiği YOLA
+   * bakar: yanal (|Δx|), yukarı (−Δy) ve derinlik (el ölçeği + düzlük artışı).
+   * @returns {boolean} olay üretildiyse true (reddedilirse false)
+   */
+  _darbe(kol, omuz, birim, yukselis, sure) {
+    const bas = kol._tabanKayit;
+    const tepe = kol._tepeKayit || bas;
+    const bilek = { x: tepe.x, y: tepe.y };
+    const dx = (tepe.x - bas.x) / birim;
+    const dy = (tepe.y - bas.y) / birim;
+
+    // Derinlik: iki bağımsız kanıtın toplamı (biri okunamazsa diğeri taşır).
+    const olcekArtis =
+      tepe.olcek > 0 && bas.olcek > 0
+        ? Math.max(0, (tepe.olcek - bas.olcek) / Math.max(OLCEK_TABAN_PX, bas.olcek))
+        : 0;
+    const duzlukArtis = Math.max(0, tepe.duzluk - bas.duzluk);
+    const ileri = olcekArtis * ILERI_OLCEK + duzlukArtis * ILERI_DUZLUK;
     const yanal = Math.abs(dx);
     const yukari = Math.max(0, -dy);
 
+    // Gardı indirme reddi (bkz. DUSUS_RED_*): düzlük bu hareketi ayırt edemez,
+    // yalnız gerçek derinlik (el ölçeği) ve yön ayırt eder.
+    if (dy > DUSUS_RED_Y && dy > yanal * DUSUS_RED_YANAL && olcekArtis < DUSUS_RED_OLCEK) {
+      return false;
+    }
+
     // Dirsek dışa açıldıysa hook lehine ek kanıt (hook'ta dirsek gövdeden ayrılır).
     let dirsekAcilma = 0;
-    if (dirsek && kol._dirsek0) {
-      dirsekAcilma = Math.abs(dirsek.x - kol._dirsek0.x) / birim;
+    if (tepe.dx != null && bas.dx != null) {
+      dirsekAcilma = Math.abs(tepe.dx - bas.dx) / birim;
     }
 
     const toplam = ileri + yanal + yukari || 1;
@@ -534,10 +590,11 @@ export class YumrukTanima {
     const no = yumrukNo(tur, on);
 
     // ---- görece şiddet (kuvvet DEĞİL) ----
-    // Bileşenler: tepe hız × uzanma tamlığı × ani yavaşlama sertliği.
-    const uzanmaOrani = Math.min(1.4, artis / 0.55);
-    const yavaslama = Math.min(1.5, kol._maxHiz / Math.max(0.4, kol.hiz + 0.4));
-    const ham = kol._maxHiz * (0.55 + 0.45 * uzanmaOrani) * (0.75 + 0.25 * yavaslama);
+    // Açılma hızı (uzanim/sn) × açılma tamlığı. Kamerada Newton ölçülemez;
+    // skor kişinin KENDİ ortalamasına normalize edilir.
+    const acilmaHizi = yukselis / Math.max(0.03, sure);
+    const tamlik = Math.min(1.4, yukselis / 0.55);
+    const ham = acilmaHizi * (0.6 + 0.4 * tamlik);
     this._siddetOrnek++;
     this._siddetOrt = this._siddetOrt > 0 ? this._siddetOrt + (ham - this._siddetOrt) * SIDDET_EMA : ham;
     // Kendi ortalamasına oran → 0-100 skor (100 = ortalamanın ~1.6 katı).
@@ -558,7 +615,7 @@ export class YumrukTanima {
       const oy = bilek.y - omuz.y;
       const boy = Math.hypot(ox, oy);
       if (boy > 1) {
-        const tasi = Math.min(NISAN_MAX, Math.max(0, kol._zIlerleme) * NISAN_ILERI) * birim;
+        const tasi = Math.min(NISAN_MAX, ileri * NISAN_ILERI) * birim;
         nx += (ox / boy) * tasi;
         ny += (oy / boy) * tasi;
       }
@@ -574,13 +631,14 @@ export class YumrukTanima {
       y: bilek.y,
       nx,
       ny,
-      hiz: kol._maxHiz,
+      hiz: acilmaHizi,
       siddet,
       kalibre: this._siddetOrnek < SIDDET_MIN_ORNEK,
-      uzanma: artis,
+      uzanma: yukselis,
       karsiGardDusuk,
       karsiEl: karsi.taraf,
       t: this._t,
     });
+    return true;
   }
 }

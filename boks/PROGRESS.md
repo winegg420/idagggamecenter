@@ -309,3 +309,80 @@ geri sıçrıyordu; ekranda "senkron hatası" olarak görünen buydu.
 `boks/CLAUDE.md` bir ara PowerShell `Get-Content | Set-Content -Encoding utf8` ile bozuldu
 (ANSI olarak okundu → mojibake). `git checkout` ile geri alındı. **Bu depodaki Türkçe dosyalarda
 PowerShell metin boru hattı kullanma**, düzenleme aracıyla değiştir.
+
+## 2026-08-13 (3. oturum) — RADİKAL: tespit çekirdeği değiştirildi (hız kapıları → tepe yakalama)
+
+Kullanıcı: *"olmuyor, yumruklarımı doğru algılayamıyor. radikal revizyon yap!"*
+Önceki iki turda eşikler gevşetildi, sinyal eklendi, ped konumu düzeltildi — ama **mimari aynı
+kaldığı için** sorun sürdü. Bu turda mimari değişti.
+
+### Neden eski yaklaşım kurtarılamazdı
+
+Yumruğun sayılması için AYNI ANDA dört kapının geçilmesi gerekiyordu:
+(a) uzanma hızı eşiği, (b) bilek/etkin hız eşiği, (c) tepe ya da yavaşlama karesinin
+yakalanması, (d) asgari uzanma artışı. 30 Hz'de bir yumruk 3-4 kare sürer; **her kapı ayrı
+ayrı ıskalanabiliyordu** ve dördünün birlikte tutma olasılığı gerçek koşullarda düşüktü.
+Eşikleri gevşetmek yalnız sahte tespit riskini büyütüyordu — problem eşiklerde değil,
+kapı sayısındaydı.
+
+### Yeni çekirdek: TEK SİNYAL + TEPE YAKALAMA
+
+Kol başına tek bir ölçek üretiliyor ve yumruk bu sinyalin bir TEPESİ olarak yakalanıyor.
+**Hiçbir hız eşiği yok:** yavaş da atsan hızlı da atsan, kol açılıp geri döndüyse yumruktur.
+Kare atlanması sonucu değiştirmez (tepe = örneklenen en yüksek değer).
+
+    uzanim = 0.45×(|bilek−omuz|/birim) + 0.85×duzluk + 0.50×(el ölçeği büyümesi)
+    duzluk = |bilek−omuz| / (|bilek−dirsek| + |dirsek−omuz|)   ∈ [0,1]
+
+Üç kanal birbirinden bağımsız: parmak kökleri kaybolsa, dirsek görünmese ya da yumruk
+kameraya dik gelse bile kalanlar sinyali taşır. Tipik değerler: gard ≈ 0.45 · jab ≈ 1.25 ·
+hook ≈ 1.10 · uppercut ≈ 0.90 · gard salınımı ≈ ±0.07. Eşik 0.28 → her yumruk türü rahat
+geçiyor, gürültü 4 kat altında kalıyor.
+
+Darbe anı iki kapıdan erken olanı: sinyal geri dönmeye başladı (`GERI_ESIK`) **ya da** tepede
+belirgin artmadan durdu (`TEPE_BEKLEME` — gerçek temas anı, gecikmeyi de kısaltır).
+Sınıflandırma artık tepe karesinin ham konumuna değil, **taban ve tepe kayıtları arasındaki
+yola** bakıyor (yanal / yukarı / derinlik).
+
+### Geliştirme sırasında çıkan iki tuzak (ikisi de teste bağlandı)
+
+1. **Taban sıkışması.** Yumruk sonrası el ölçeği referansı sıfırlandığı için `uzanim` bir
+   kademe düşüyor, sonra gard değerine dönüyor ve tabanın biraz üstünde takılı kalıyordu.
+   O zaman "yükseliş" saniyelerce sürmüş görünüyor ve bir sonraki GERÇEK yumruk
+   `YUKSELIS_MAX_SURE` kapısına takılıp eleniyordu (testte hook ve uppercut böyle kayboldu).
+   Çözüm: sinyal DURGUNSA (`TABAN_DURGUN` 0.2 sn tepe ilerlemiyor) ve yükseliş yumruk eşiğine
+   ulaşmadıysa taban bugüne çekiliyor. Gerçek yumrukta tetiklenmiyor (tepe sürekli ilerler).
+2. **Gardı indirme.** Kol yana sarkarken de DÜZLEŞİR ve uzanım büyür — düzlük kanıtı bu
+   hareketi yumruktan ayırt EDEMEZ. Ayırt eden tek şey gerçek derinlik (el ölçeği) ve yön:
+   baskın biçimde aşağı inen, kameraya yaklaşmayan kol reddediliyor (`DUSUS_RED_*`).
+
+### Eşleştirme: üç aşama + görünür tespit
+
+- Sınıflandırma kamerada asla %100 değildir. **Doğru elle atılan ama yanlış türe düşen yumruk**
+  eskiden HİÇ sayılmıyordu → "algılamıyor" hissinin büyük bölümü buradandı. Artık **kısmi
+  isabet**: ped düşer, azaltılmış puan verilir, ekranda "N İSTENDİ" yazar. Ceza yok ilkesiyle
+  tutarlı, üstelik öğretici.
+- **Her algılanan yumruk**, pede denk gelmese bile adıyla (JAB/CROSS/HOOK/UPPER) bilek
+  hizasında beliriyor. Oyuncu "sistem gördü mü?" sorusunu anında yanıtlıyor; ısınma artık bir
+  kalibrasyon/güven anı.
+
+### Çıkarım karesi çift yönlü adaptif
+
+Poz modeli kişiyi kırpıp 256×256'ya ölçekler → kaynak kare büyüdükçe bilek/dirsek keskinleşir.
+Cihaz rahatsa 384, normalde 320, zorlanıyorsa 256 px. (Tek yönlüydü, yalnız küçültüyordu.)
+
+### Doğrulama
+
+- `node boks/_test/motor-test.mjs` → **92/92 geçti**. Yeni kritik testler:
+  - "Tek karede tamamlanan hızlı yumruk yakalanıyor" ve "Yavaş atılan yumruk da yakalanıyor"
+    — eski mimarinin iki kör noktası, artık ikisi de kapalı.
+  - "Gardı indirmek yumruk sayılmıyor" (yeni sahte tespit bekçisi).
+  - "Aynı el + yanlış tür → kısmi isabet" / "Yanlış el pedi → titreme, puan yok".
+- `npm run build` → başarılı; BoksApp chunk 138 kB (49 kB gzip).
+
+### Sıradaki İşler
+
+- Gerçek cihazda: ısınmada 10 yumruk at, ekranda kaç tanesinin adı belirdiğini say. Hepsi
+  beliriyorsa tespit tamam; belirmiyorsa `HUD`'daki `Hz · ms` değerini not al.
+- Tespit hâlâ eksikse ayarlanacak TEK sabit `YUKSELIS_ESIK` (0.28). Düşürmek daha çok yumruk
+  yakalar; sahte tespit bekçisi üç test bunu sınırlar.

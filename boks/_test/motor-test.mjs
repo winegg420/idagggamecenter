@@ -262,16 +262,25 @@ console.log("\n— 4) Puanlama ve combo —");
   o.tanima.birim = 160;
   const olay = { no: 1, tur: "duz", on: true, el: "sol", x: 305, y: 205, hiz: 4, siddet: 70, uzanma: 0.4, karsiGardDusuk: false, karsiEl: "sag", t: 1 };
   o._yumrukIsle(olay, W, H);
+  const tamKazanc = o.puan;
   sina("Doğru pad + doğru yumruk → puan", o.puan > 0, `puan ${o.puan}`);
   sina("İsabet sayacı arttı", o.ist.isabet === 1);
 
-  // yanlış tür
+  // AYNI EL, yanlış tür → kısmi isabet (ped düşer, az puan, ceza yok)
   const pad2 = { ...pad, no: 3, vuruldu: false, t: 0 };
   o.padler = [pad2];
   const puanOnce = o.puan;
   o._yumrukIsle({ ...olay, no: 2, t: 2 }, W, H);
-  sina("Yanlış yumruk türü → puan yok, ceza yok", o.puan === puanOnce && o.ist.yanlisTur === 1);
-  sina("Yanlış türde pad titriyor (ceza değil)", pad2.titre > 0 && !pad2.vuruldu);
+  const kismiKazanc = o.puan - puanOnce;
+  sina("Aynı el + yanlış tür → kısmi isabet (ceza yok)", pad2.vuruldu === true && o.ist.yanlisTur === 1 && kismiKazanc > 0);
+  sina("Kısmi isabet tam isabetten az puan veriyor", kismiKazanc < tamKazanc, `${kismiKazanc} < ${tamKazanc}`);
+
+  // YANLIŞ EL pedine yakın vuruş → yalnız titreme
+  const pad3 = { ...pad, no: 4, el: "sag", vuruldu: false, t: 0, titre: 0 };
+  o.padler = [pad3];
+  const puanOnce2 = o.puan;
+  o._yumrukIsle({ ...olay, no: 2, t: 3 }, W, H);
+  sina("Yanlış el pedi → titreme, puan yok", pad3.titre > 0 && !pad3.vuruldu && o.puan === puanOnce2);
 
   // combo artışı
   const o2 = new Oyun({ mod: "serbest", zorluk: "orta" });
@@ -584,17 +593,17 @@ console.log("\n— 12) Oynanabilirlik optimizasyonları —");
     o.padler = [yeniPad(1)];
     o._yumrukIsle({ no: 1, tur: "duz", on: true, el: "sol", x: 300 + 320, y: 200, nx: 300 + 320, ny: 200, hiz: 4, siddet: 60, uzanma: 0.4, karsiGardDusuk: false, karsiEl: "sag", t: 1 }, W, H);
     sina("Doğru yumruk uzaktan da isabet sayılıyor", o.ist.isabet === 1, `isabet ${o.ist.isabet}`);
-    // Yanlış numara aynı uzaklıkta → hiç sayılmaz (titretmez bile)
-    const pad3 = yeniPad(3);
-    o.padler = [pad3];
+    // YANLIŞ EL pedi, aynı uzaklıkta → hiç eşleşmez (titretmez bile)
+    const padSag = { ...yeniPad(4), el: "sag" };
+    o.padler = [padSag];
     o._yumrukIsle({ no: 1, tur: "duz", on: true, el: "sol", x: 300 + 320, y: 200, nx: 300 + 320, ny: 200, hiz: 4, siddet: 60, uzanma: 0.4, karsiGardDusuk: false, karsiEl: "sag", t: 2 }, W, H);
-    sina("Yanlış numara uzaktayken hiç eşleşmiyor", o.ist.yanlisTur === 0 && pad3.titre === 0);
-    // Yanlış numara yakında → geri bildirim (titreme), puan yok
-    const pad3y = yeniPad(3);
-    o.padler = [pad3y];
+    sina("Yanlış el pedi uzaktayken hiç eşleşmiyor", padSag.titre === 0 && !padSag.vuruldu);
+    // AYNI EL, yanlış tür, uzakta → kısmi isabet (tür de mesafeden bağımsız)
+    const padSol3 = yeniPad(3);
+    o.padler = [padSol3];
     const puanOnce = o.puan;
     o._yumrukIsle({ no: 1, tur: "duz", on: true, el: "sol", x: 320, y: 210, nx: 320, ny: 210, hiz: 4, siddet: 60, uzanma: 0.4, karsiGardDusuk: false, karsiEl: "sag", t: 3 }, W, H);
-    sina("Yanlış numara yakında → titreme, puan yok", o.ist.yanlisTur === 1 && pad3y.titre > 0 && o.puan === puanOnce);
+    sina("Aynı el + yanlış tür → kısmi isabet", o.ist.yanlisTur === 1 && padSol3.vuruldu && o.puan > puanOnce);
   }
 
   // (d) NİŞAN NOKTASI: düz yumrukta bilek ekranda durur, nişan ileri taşınır.
@@ -653,6 +662,30 @@ console.log("\n— 12) Oynanabilirlik optimizasyonları —");
     sina("El ölçeği okunamasa da düz yumruk tespit ediliyor", t.olaylar.length === 1 && o?.no === 1, `${t.olaylar.length} olay, no=${o?.no}`);
   }
 
+  // (g1) HIZ EŞİĞİ YOK: tepe yakalama çok YAVAŞ ve çok HIZLI yumruğu da görür.
+  //      (Eski hız kapılı durum makinesinin sistematik kör noktası buydu.)
+  {
+    const bas = { x: 0.45, y: 0.3 };
+    const hedef = { x: 0.61, y: 0.29 }; // sol hook
+    const dizi = (kareSayisi) => {
+      const t = new YumrukTanima({ durus: ORTODOKS });
+      for (let i = 0; i < 8; i++) t.guncelle(DT, { poz: pozEkran(govde({ solBilek: bas })), kapsam });
+      for (let i = 1; i <= kareSayisi; i++) {
+        const k = i / kareSayisi;
+        t.guncelle(DT, {
+          poz: pozEkran(govde({ solBilek: { x: bas.x + (hedef.x - bas.x) * k, y: bas.y + (hedef.y - bas.y) * k } })),
+          kapsam,
+        });
+      }
+      for (let i = 0; i < 4; i++) t.guncelle(DT, { poz: pozEkran(govde({ solBilek: bas })), kapsam });
+      return t.olaylar.length;
+    };
+    // 1 kare = ~33 ms'de tamamlanan çok hızlı yumruk (eski motorun tepe karesi yok)
+    sina("Tek karede tamamlanan hızlı yumruk yakalanıyor", dizi(1) === 1, `${dizi(1)} olay`);
+    // 15 kare = 0.5 sn süren yavaş yumruk (eski motorda hız eşiğine takılırdı)
+    sina("Yavaş atılan yumruk da yakalanıyor", dizi(15) === 1, `${dizi(15)} olay`);
+  }
+
   // (g2) SAHTE TESPİT BEKÇİSİ: gard pozisyonunda salınan eller yumruk değildir.
   //      (Eşikler iki kez gevşetildi + düzlük sinyali eklendi — bu testin
   //       kalması gerekiyor, aksi hâlde her gard sallanışı puan üretir.)
@@ -666,6 +699,27 @@ console.log("\n— 12) Oynanabilirlik optimizasyonları —");
       });
     }
     sina("Gardda salınan eller yumruk üretmiyor", t.olaylar.length === 0, `${t.olaylar.length} olay`);
+  }
+
+  // (g3) GARDI İNDİRME sahte yumruk üretmemeli. Kol yana sarkarken DÜZLEŞİR ve
+  //      uzanım büyür; ayırt eden tek şey derinlik (el kameraya yaklaşmıyor) ve
+  //      yön (baskın biçimde aşağı).
+  {
+    const t = new YumrukTanima({ durus: ORTODOKS });
+    for (let i = 0; i < 8; i++) {
+      t.guncelle(DT, { poz: pozEkran(govde({ solBilek: { x: 0.45, y: 0.3 } })), kapsam });
+    }
+    for (let i = 1; i <= 6; i++) {
+      const k = i / 6;
+      t.guncelle(DT, {
+        poz: pozEkran(govde({ solBilek: { x: 0.45 - 0.03 * k, y: 0.3 + 0.32 * k } })),
+        kapsam,
+      });
+    }
+    for (let i = 0; i < 6; i++) {
+      t.guncelle(DT, { poz: pozEkran(govde({ solBilek: { x: 0.42, y: 0.62 } })), kapsam });
+    }
+    sina("Gardı indirmek yumruk sayılmıyor", t.olaylar.length === 0, `${t.olaylar.length} olay`);
   }
 
   // (h) PAD BOYUTU ve ömür payı: hedefler görünür büyüklükte, tespit gecikmesine pay var.

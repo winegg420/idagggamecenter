@@ -187,8 +187,8 @@ export default function OyunPage() {
       ft.olcum = 0;
       if (ft.ema > 22 && kaliteRef.current > 0.45) kaliteRef.current = Math.max(0.45, kaliteRef.current - 0.15);
       else if (ft.ema < 17.2 && kaliteRef.current < 1) kaliteRef.current = Math.min(1, kaliteRef.current + 0.1);
-      // Cihaz zorlanıyorsa çıkarım karesi de küçülür: worker hızlanır, gecikme
-      // düşer ve poz akışı seyrelmez (yumruk ıskalanmaz).
+      // Çıkarım karesi cihaza göre ayarlanır: rahatsa büyür (landmark daha
+      // hassas → yumruk tespiti daha doğru), zorlanıyorsa küçülür (akıcılık).
       poz.kaliteAyarla?.(kaliteRef.current);
     }
 

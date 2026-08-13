@@ -256,12 +256,17 @@ export class PozTakip {
   }
 
   /**
-   * Adaptif çıkarım kalitesi: cihaz zorlanıyorsa (render kalitesi düştüyse)
-   * worker'a giden kare küçültülür → çıkarım hızlanır, gecikme düşer, oyun akar.
+   * Adaptif çıkarım kalitesi — ÇİFT YÖNLÜ.
+   * Poz modeli kişiyi kırpıp 256×256'ya ölçekler; kaynak kare ne kadar büyükse
+   * bilek/dirsek o kadar hassas çıkar. Oyuncu kameradan 1.5-2.5 m uzakta durduğu
+   * için bu doğrudan yumruk tespitinin kalitesidir.
+   *   - cihaz rahatsa (kalite = 1)  → 384 px (daha keskin landmark)
+   *   - normal                      → 320 px
+   *   - zorlanıyorsa (kalite < 0.7) → 256 px (akıcılık öncelikli)
    */
   kaliteAyarla(kalite) {
     if (!this._cekirdek) return;
-    const hedef = kalite < 0.7 ? 256 : 320;
+    const hedef = kalite < 0.7 ? 256 : kalite >= 0.99 ? 384 : 320;
     if (this._cekirdek.hedefUzunKenar !== hedef) this._cekirdek.hedefUzunKenar = hedef;
   }
 

@@ -13,7 +13,7 @@
 // Antrenman hissi korunur (hub'daki Meyve Kes ile tutarlı).
 // ============================================================
 
-import { YumrukTanima, TUR, noBilgi, ORTODOKS } from "./yumrukTanima.js";
+import { YumrukTanima, TUR, noBilgi, ORTODOKS, YUMRUK_KISA } from "./yumrukTanima.js";
 import { kapsamHesap } from "./posetakip.js";
 
 // ---- Modlar ----
@@ -457,9 +457,16 @@ export class Oyun {
     this.popuplar.push({ metin, x, y, renk, t: 0, omur: 0.9, buyuk: temel >= 20 });
   }
 
-  _isabet(pad, olay) {
+  /**
+   * @param {boolean} tam doğru numara mı? (false = doğru el, yanlış tür — kısmi)
+   * KISMİ İSABET: sınıflandırma kamerada asla %100 değildir; doğru elle atılan
+   * yumruk yanlış türe düşerse eskiden HİÇ sayılmıyordu ve oyuncu "algılamıyor"
+   * diyordu. Artık pedi düşürür, daha az puan verir ve doğru numarayı söyler.
+   */
+  _isabet(pad, olay, tam = true) {
     pad.vuruldu = true;
     this.ist.isabet++;
+    if (!tam) this.ist.yanlisTur++;
     if (this._t - this._sonIsabet < COMBO_PENCERE) this.combo++;
     else this.combo = 1;
     this._sonIsabet = this._t;
@@ -480,23 +487,26 @@ export class Oyun {
         temel = 15;
       }
     }
+    if (!tam) temel = 6; // kısmi isabet: pedi düşürür ama tam puan vermez
     const kazanc = Math.round(temel * carpan * siddetCarpan);
     this.puan += kazanc;
     this.ist.puan += kazanc;
 
     const altin = this.combo >= 6;
     this.popuplar.push({
-      metin: mukemmel
-        ? `MÜKEMMEL +${kazanc}`
-        : this.combo >= 3
-          ? `x${this.combo}  +${kazanc}`
-          : `+${kazanc}`,
+      metin: !tam
+        ? `${pad.no} İSTENDİ  +${kazanc}`
+        : mukemmel
+          ? `MÜKEMMEL +${kazanc}`
+          : this.combo >= 3
+            ? `x${this.combo}  +${kazanc}`
+            : `+${kazanc}`,
       x: pad.x,
       y: pad.y,
-      renk: mukemmel ? "#2dd4ff" : altin ? "#d9a441" : "#ff4d3d",
+      renk: !tam ? "#d9a441" : mukemmel ? "#2dd4ff" : altin ? "#d9a441" : "#ff4d3d",
       t: 0,
       omur: 0.9,
-      buyuk: this.combo >= 3,
+      buyuk: tam && this.combo >= 3,
     });
     // İMZA EFEKT — darbe halkası: rengi/genişliği vuruş şiddetine göre kırmızıdan
     // camgöbeğine kayar (oyun tatmini + analiz verisi tek görselde).
@@ -533,6 +543,19 @@ export class Oyun {
     this._tempoPencere.push(this._t);
     this._sonYumrukT = this._t;
 
+    // GÖRÜNÜR TESPİT: her algılanan yumruk, pede denk gelmese bile ekranda
+    // adıyla belirir. Oyuncu "sistem yumruğumu gördü mü?" sorusunu anında
+    // yanıtlayabiliyor — ısınmada kalibrasyon, roundda güven sağlar.
+    this.popuplar.push({
+      metin: YUMRUK_KISA[olay.no] || "",
+      x: olay.nx != null ? olay.nx : olay.x,
+      y: olay.ny != null ? olay.ny : olay.y,
+      renk: "rgba(245,239,232,0.75)",
+      t: 0,
+      omur: 0.5,
+      buyuk: false,
+    });
+
     if (this.faz !== "round" || this.mod === "savunma") return;
 
     const birim = this.tanima.birim || Math.min(W, H) * 0.18;
@@ -541,12 +564,15 @@ export class Oyun {
     const hx = olay.nx != null ? olay.nx : olay.x;
     const hy = olay.ny != null ? olay.ny : olay.y;
 
-    // İki aşamalı eşleştirme:
-    //  1) DOĞRU numaralı pad — mesafeden bağımsız, birden fazlaysa en yakını.
-    //  2) Doğru numara yoksa, yakındaki YANLIŞ numaralı pad geri bildirim için
-    //     dar yarıçapla aranır (titrer, puan yok, ceza yok).
+    // ÜÇ AŞAMALI EŞLEŞTİRME (sınıflandırma kamerada asla %100 değildir):
+    //  1) DOĞRU numara — mesafeden bağımsız, birden fazlaysa en yakını. Tam puan.
+    //  2) DOĞRU EL, yanlış tür — kısmi isabet: ped düşer, az puan, doğru numara
+    //     ekranda söylenir. Oyuncu yumruk attığını GÖRÜR, ceza almaz.
+    //  3) Yanlış el — yakındaysa yalnız titreme (puan yok, ceza yok).
     let dogru = null;
     let dogruD = Infinity;
+    let ayniEl = null;
+    let ayniElD = Infinity;
     let yanlis = null;
     let yanlisD = Infinity;
     for (const pad of this.padler) {
@@ -559,16 +585,21 @@ export class Oyun {
           dogruD = d;
           dogru = pad;
         }
+      } else if (pad.el === olay.el) {
+        if (d < ayniElD) {
+          ayniElD = d;
+          ayniEl = pad;
+        }
       } else if (d < pad.r + tolerans && d < yanlisD) {
         yanlisD = d;
         yanlis = pad;
       }
     }
-    const hedef = dogru || yanlis;
+    const hedef = dogru || ayniEl || yanlis;
     if (!hedef) return; // boş yumruk — sayılır ama puan yok (ceza da yok)
 
-    if (hedef === dogru) {
-      this._isabet(hedef, olay);
+    if (hedef === dogru || hedef === ayniEl) {
+      this._isabet(hedef, olay, hedef === dogru);
       if (this.mod === "koc" && this.komut) {
         this.komut.indeks++;
         this.padler.length = 0;
