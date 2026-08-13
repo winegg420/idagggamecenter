@@ -105,10 +105,15 @@ const KOL_HAFIZA = 0.22; // sn — nokta kaybolduğunda son konumun geçerlilik 
 // ============================================================
 
 // ---- uzanim bileşen ağırlıkları ----
+// EL ÖLÇEĞİ SİNYALDEN ÇIKARILDI (2026-08-13, 4. tur): poz *lite* modelinde
+// parmak kökleri (17-20) en gürültülü noktalardır. Bilek↔kök mesafesi ekranda
+// ~20 px'tir ve ±%20 seğirme, taban/tepe farkına tek başına 0.2'ye varan sahte
+// yükseliş ekliyordu → GARD KAPALIYKEN yumruk üretiliyor, ped patlıyordu.
+// El ölçeği artık yalnız SINIFLANDIRMADA (derinlik kanıtı) ve gard-indirme
+// reddinde kullanılır; tespit kararına giremez.
 const UZATMA_AGIRLIK = 0.45;
 const DUZLUK_AGIRLIK = 0.85;
-const OLCEK_AGIRLIK = 0.5;
-const DUZLUK_EMA = 0.7; // dirsek gürültüsünü sönümler (hızlı, gecikme yapmaz)
+const DUZLUK_EMA = 0.55; // dirsek gürültüsünü sönümler (hız eşiği olmadığı için gecikme zararsız)
 // Parmak kökleri poz modelinde bilekten daha gürültülüdür: ölçek için ayrı
 // (gevşek) görünürlük eşiği ve hafif EMA kullanılır. Ölçek okunamazsa 0 döner
 // ve sistem sessizce diğer iki kanala düşer — uydurma derinlik üretilmez.
@@ -126,6 +131,15 @@ const GERI_ESIK = 0.05; // tepeden bu kadar düşünce darbe kesinleşir (~1 kar
 // saf "tepe artmadı" kuralı hiç tetiklenmezdi.
 const TEPE_BEKLEME = 0.06; // sn — ~2 kare @30 Hz
 const TEPE_ARTIS_MIN = 0.03; // bu kadar artmayan tepe "duruyor" sayılır
+
+// ---- FİZİKSEL DOĞRULAMA KAPISI ----
+// Yükseliş eşiğini geçmek TEK BAŞINA yetmez. Gerçek bir yumrukta ya kol belirgin
+// biçimde DÜZLEŞİR (kameraya doğru düz yumruk) ya da yumruk ekranda kayda değer
+// bir YOL kat eder (hook/uppercut). Gard içindeki seğirme ikisini de yapamaz:
+// tipik gürültü düzlükte ~0.06, yolda ~0.05 birimdir — kapı 3 kat üstünde.
+// Bu kapı, "gardım kapalıyken hedef patlıyor" şikâyetinin doğrudan panzehiridir.
+const DOGRULAMA_DUZLUK = 0.18; // kol düzlüğü bu kadar arttıysa
+const DOGRULAMA_YOL = 0.35; // ya da bilek bu kadar birim yol aldıysa → gerçek yumruk
 // GARDI İNDİRME REDDİ: kol yana sarktığında da DÜZLEŞİR ve uzanım büyür —
 // yani düzlük kanıtı bu hareketi yumruktan ayırt edemez. Ayırt eden tek şey
 // gerçek derinlik (elin kameraya YAKLAŞMASI) ve hareketin yönüdür: baskın
@@ -147,8 +161,11 @@ const ITME_GORSEL_ESIK = 0.12; // render: "yumruk yolda" göstergesi eşiği
 const TOPARLA_GORSEL = 0.2; // sn — darbeden sonra nişan halkasının kalma süresi
 
 // Sınıflandırmada derinlik bileşeninin kaynakları (bkz. _darbe).
+// El ölçeği büyümesi "kameraya YAKLAŞTI"nın doğrudan kanıtıdır; kol düzlüğü ise
+// zayıf kanıttır (uppercut ve hook'ta da kol bir miktar açılır). Düzlüğe yüksek
+// ağırlık verilince uppercut "düz yumruk" olarak sınıflanıyordu.
 const ILERI_OLCEK = 1.6;
-const ILERI_DUZLUK = 1.2;
+const ILERI_DUZLUK = 0.5;
 
 // NİŞAN NOKTASI: kameraya doğru atılan düz yumrukta bilek EKRANDA neredeyse hiç
 // yer değiştirmez — pedle karşılaştırılacak nokta olarak bilek kullanılırsa
@@ -436,17 +453,10 @@ export class YumrukTanima {
       }
 
       // ---- TEK TESPİT SİNYALİ ----
-      // El ölçeği katkısı TABANDAKİ ölçeğe göredir: oyuncu kameraya yaklaşıp
-      // uzaklaştığında (taban da kaydığı için) sahte yükseliş üretmez.
-      const tabanOlcek = kol._tabanKayit?.olcek || 0;
-      const olcekArtis =
-        elOlcek > 0 && tabanOlcek > 0
-          ? Math.min(1, (elOlcek - tabanOlcek) / Math.max(OLCEK_TABAN_PX, tabanOlcek))
-          : 0;
+      // Yalnız iki KARARLI kanal: 2D açılım + kol düzlüğü. El ölçeği bilerek
+      // dışarıdadır (bkz. UZATMA_AGIRLIK notu — gürültüsü sahte yumruk üretiyordu).
       const uzanim =
-        (uzaklik(bilek, omuz) / birim) * UZATMA_AGIRLIK +
-        kol.duzluk * DUZLUK_AGIRLIK +
-        Math.max(0, olcekArtis) * OLCEK_AGIRLIK;
+        (uzaklik(bilek, omuz) / birim) * UZATMA_AGIRLIK + kol.duzluk * DUZLUK_AGIRLIK;
       kol.uzanim = uzanim;
       kol.uzanma = uzanim; // geriye dönük uyumluluk
 
@@ -495,8 +505,15 @@ export class YumrukTanima {
         const acilmaSuresi = kol.tepeT - kol.tabanT;
         // Darbe anı: kol geri dönmeye başladı YA DA tepede durdu (temas).
         const cozuldu = uzanim <= kol.tepe - GERI_ESIK || this._t - kol.tepeT >= TEPE_BEKLEME;
+        // FİZİKSEL DOĞRULAMA: kol gerçekten düzleşti mi ya da yumruk yol aldı mı?
+        const bas = kol._tabanKayit;
+        const tepeK = kol._tepeKayit || bas;
+        const duzlukArtisi = bas ? tepeK.duzluk - bas.duzluk : 0;
+        const katEdilenYol = bas ? Math.hypot(tepeK.x - bas.x, tepeK.y - bas.y) / birim : 0;
+        const gercek = duzlukArtisi >= DOGRULAMA_DUZLUK || katEdilenYol >= DOGRULAMA_YOL;
         if (
           yukselis >= YUKSELIS_ESIK &&
+          gercek &&
           acilmaSuresi <= YUKSELIS_MAX_SURE &&
           cozuldu &&
           this._t - kol._sonDarbe > ATIS_ARALIK

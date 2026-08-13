@@ -499,7 +499,7 @@ export class Oyun {
         : mukemmel
           ? `MÜKEMMEL +${kazanc}`
           : this.combo >= 3
-            ? `x${this.combo}  +${kazanc}`
+            ? `×${this.combo}  +${kazanc}`
             : `+${kazanc}`,
       x: pad.x,
       y: pad.y,

@@ -386,3 +386,74 @@ Cihaz rahatsa 384, normalde 320, zorlanıyorsa 256 px. (Tek yönlüydü, yalnız
   beliriyorsa tespit tamam; belirmiyorsa `HUD`'daki `Hz · ms` değerini not al.
 - Tespit hâlâ eksikse ayarlanacak TEK sabit `YUKSELIS_ESIK` (0.28). Düşürmek daha çok yumruk
   yakalar; sahte tespit bekçisi üç test bunu sınırlar.
+
+## 2026-08-13 (4. oturum) — Sahte tespitin kökü + görsel katmanın tamamen kaldırılması
+
+Kullanıcı: *"ellerimdeki yuvarlak daireyi kaldır, hiç profesyonelce görünmüyor. profesyonelce
+görünmeyen her şeyi kaldır. bazı vuruşları algılayamıyor. GARDIM KAPALIYKEN BAZI HEDEFLER
+PATLIYOR."*
+
+Son cümle teşhisin kendisiydi: **gard kapalıyken hedef patlıyorsa sistem yumruk atmadığın anda
+yumruk üretiyor demektir.** Yani asıl sorun eksik tespit değil, SAHTE tespitti — ve önceki turda
+eşleştirmeyi gevşettiğim için (doğru numaralı ped mesafeden bağımsız eşleşiyor) her sahte tespit
+doğrudan bir pedi patlatıyordu.
+
+### 1) Sahte tespitin kökü: el ölçeği kanalı
+
+`uzanim` sinyalinin üçüncü kanalı bilek↔parmak kökü mesafesiydi. Poz **lite** modelinde parmak
+kökleri (17-20) en gürültülü noktalardır; bu mesafe ekranda ~20 px'tir ve ±%20 seğirme
+taban/tepe farkına **0.2'ye varan sahte yükseliş** ekliyordu — eşik 0.28'ken bu tek başına
+neredeyse yeterliydi. Gard içinde el kıpırdadıkça yumruk üretiliyordu.
+
+- **El ölçeği tespit sinyalinden çıkarıldı.** Artık yalnız iki KARARLI kanal var: 2D açılım
+  (0.45) + kol düzlüğü (0.85). El ölçeği yalnız sınıflandırmada (derinlik kanıtı) ve
+  gard-indirme reddinde kullanılıyor.
+- `DUZLUK_EMA` 0.7 → 0.55 (hız eşiği olmadığı için gecikme zararsız, gürültü azalıyor).
+
+### 2) Fiziksel doğrulama kapısı (ikinci kilit)
+
+Yükseliş eşiğini geçmek tek başına yetmiyor artık. Gerçek yumrukta ya kol **belirgin düzleşir**
+(`DOGRULAMA_DUZLUK` 0.18) ya da bilek **kayda değer yol alır** (`DOGRULAMA_YOL` 0.35 birim).
+Gard içindeki seğirme ikisini de yapamaz — tipik gürültü sırasıyla ~0.06 ve ~0.05, yani kapı
+3 kat üstünde.
+
+### 3) Test fikstürü fiziksel hale getirildi (önemli bulgu)
+
+Motor artık yumruğu kol düzlüğünden okuduğu için, **bileği oynatıp dirseği sabit tutan eski
+sahte gövde fiziksel olarak yumruk DEĞİLDİ** — yalnız el seğirmesiydi ve eski motorun onu
+"yumruk" sayması aslında bir kusurdu. Fikstür artık dirseği de hareket ettiriyor:
+düz yumrukta dirsek omuz-bilek hattına girer, hook ve uppercut'ta bükülü kalıp yumrukla
+savrulur (ikisi de bükülü kollu yumruklardır). Uppercut'ın "düz yumruk" olarak sınıflanması da
+buradan çözüldü: `ILERI_DUZLUK` 1.2 → 0.5, çünkü düzlük "kameraya yaklaştı"nın ZAYIF kanıtıdır
+(uppercut ve hook'ta da kol bir miktar açılır); güçlü kanıt el ölçeğidir.
+
+### 4) Görsel: oyuncunun üzerine hiçbir şey çizilmiyor
+
+Yeni kural — **kamera görüntüsünün üstüne yalnız oyunun kendi nesneleri çizilir.**
+- **Kaldırıldı:** bileklerdeki halkalar, kol iskeleti (omuz-dirsek-bilek çizgileri), kafanın
+  etrafındaki kesikli "gard bölgesi" çemberi, nefes al/ver şeridi, pedlerdeki "→ ↷ ↑" okları,
+  pedlerin parlayan hale katmanı, popup'lardaki kalın siyah kontur.
+- **Geldi:** ped = koyu disk + ince kalan-süre yayı + numara + **yumruğun adı** (JAB/CROSS/
+  HOOK/UPPER — hem net hem öğretici). Durum bilgisi (gard uyarısı, tempo) kadrajın altında tek
+  satırlık sakin bir şeritte. Popup'lar harf aralıklı, ince gölgeli.
+- Oyun ekranındaki **tüm emojiler kaldırıldı** (🔊/🗣️ → "SES"/"KOÇ" metin butonları, 🔥 SERİ →
+  "SERİ ×5", 🧍 → "TAKİP AKTİF", ⚠/💡/🎯/✅/🏅/🎬/🧠/🔄/🏠 → düz metin).
+
+### Doğrulama
+
+- `node boks/_test/motor-test.mjs` → **92/92 geçti**. Sahte tespit bekçileri artık üç tane:
+  durgun vücut, gardda salınan eller, gardı indirme.
+- `npm run build` → başarılı; BoksApp chunk 137 kB (48 kB gzip).
+
+### Bilinen sınır (dürüstlük notu)
+
+`duzluk` dirseği gerektirir. Dirsek hiç görünmezse yalnız 2D kanal kalır; hook/uppercut yine
+yakalanır ama kameraya dik jab yakalanamaz. Hazır ekranındaki kadraj uyarısı artık
+"dirseklerin görünsün" diyor.
+
+### Sıradaki İşler
+
+- Gerçek cihazda: gard kapalı dur ve 20 saniye hiç yumruk atma — **hiçbir ped patlamamalı**.
+  Sonra 10 yumruk at, kaç tanesinin adının ekranda belirdiğini say.
+- Hâlâ sahte tespit varsa `DOGRULAMA_DUZLUK`/`DOGRULAMA_YOL` yükseltilir; eksik tespit varsa
+  `YUKSELIS_ESIK` düşürülür. İkisi ayrı kilit olduğu için birbirini bozmadan ayarlanabilir.

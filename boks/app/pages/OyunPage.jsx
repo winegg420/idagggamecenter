@@ -469,16 +469,15 @@ export default function OyunPage() {
         <div className="bx-katman bx-hazir">
           <button className="bx-x" onClick={() => git("/boks")}>✕</button>
           <div className="bx-hazir-kart">
-            <span className="bx-logo">{MODLAR[gecerliMod].ikon}</span>
             <h2>{MODLAR[gecerliMod].ad} · {ZORLUKLAR[gecerliZorluk].ad}</h2>
             <p>{MODLAR[gecerliMod].aciklama}</p>
             <ul className="bx-kontrol-liste">
-              <li>🧯 <b>Alan kontrolü:</b> kolunun uzanacağı mesafede eşya veya insan olmasın.</li>
-              <li>🎥 <b>Kadraj:</b> 1,5-2 m geri git; kafan ve iki omzun görünsün.</li>
-              <li>🥊 <b>Duruş:</b> {tercih.durus === "guney_pence" ? "Güney pençe (sağ el önde)" : "Ortodoks (sol el önde)"} — menüden değiştirebilirsin.</li>
-              {test && <li>📏 <b>Seviye testi:</b> 30 saniye serbest çalış, sistem sana uygun zorluğu önersin.</li>}
+              <li><b>Alan kontrolü:</b> kolunun uzanacağı mesafede eşya veya insan olmasın.</li>
+              <li><b>Kadraj:</b> 1,5-2 m geri git; kafan, iki omzun ve dirseklerin görünsün.</li>
+              <li><b>Duruş:</b> {tercih.durus === "guney_pence" ? "Güney pençe (sağ el önde)" : "Ortodoks (sol el önde)"} — menüden değiştirebilirsin.</li>
+              {test && <li><b>Seviye testi:</b> 30 saniye serbest çalış, sistem sana uygun zorluğu önersin.</li>}
             </ul>
-            <button className="bx-btn bx-btn-ana bx-genis" onClick={baslat}>📷 Kamerayı Aç ve Başla</button>
+            <button className="bx-btn bx-btn-ana bx-genis" onClick={baslat}>Kamerayı Aç ve Başla</button>
           </div>
         </div>
       )}
@@ -493,7 +492,6 @@ export default function OyunPage() {
 
       {durum === "hata" && (
         <div className="bx-katman bx-hata">
-          <span className="bx-hata-emoji">📷</span>
           <p>{hata}</p>
           <div className="bx-hata-btnler">
             <button className="bx-btn bx-btn-ana" onClick={baslat}>Tekrar Dene</button>
@@ -506,11 +504,19 @@ export default function OyunPage() {
         <>
           <button className="bx-x" onClick={cik}>✕</button>
           <div className="bx-ust-btnler">
-            <button className="bx-mini" onClick={() => setSesAcik(sesAcKapa(!sesAcik))}>
-              {sesAcik ? "🔊" : "🔇"}
+            <button
+              className={"bx-mini" + (sesAcik ? "" : " kapali")}
+              onClick={() => setSesAcik(sesAcKapa(!sesAcik))}
+              title="Ses efektleri"
+            >
+              SES
             </button>
-            <button className="bx-mini" onClick={() => setKoc(kocAcKapa(!kocAcik))} title="Sesli koç">
-              {kocAcik ? "🗣️" : "🤐"}
+            <button
+              className={"bx-mini" + (kocAcik ? "" : " kapali")}
+              onClick={() => setKoc(kocAcKapa(!kocAcik))}
+              title="Sesli koç"
+            >
+              KOÇ
             </button>
           </div>
 
@@ -523,7 +529,7 @@ export default function OyunPage() {
           </div>
 
           {hud.combo >= 3 && hud.faz === "round" && (
-            <div className="bx-combo">🔥 SERİ x{hud.combo}</div>
+            <div className="bx-combo">SERİ ×{hud.combo}</div>
           )}
 
           {hud.komut && (
@@ -538,18 +544,18 @@ export default function OyunPage() {
 
           {/* takip teşhisi — ıskalama/kasma şikâyetinde ilk bakılacak yer */}
           <div className={"bx-takip " + (hud.pozVar ? "var" : "yok")}>
-            {hud.pozVar ? "🧍 takip aktif" : "🧍 vücut görünmüyor"}
+            {hud.pozVar ? "TAKİP AKTİF" : "VÜCUT GÖRÜNMÜYOR"}
             <span className="bx-takip-bilgi">
-              {hud.pozHz} Hz · {hud.gecikmeMs} ms{hud.yol === "ana" ? " ⚠" : ""}
+              {hud.pozHz} Hz · {hud.gecikmeMs} ms{hud.yol === "ana" ? " · yedek" : ""}
               {hud.kapsam === "tam" ? " · tam kadraj" : hud.kapsam === "ust" ? " · üst gövde" : ""}
             </span>
           </div>
 
           {hud.kalibre && hud.faz === "round" && (
-            <div className="bx-kalibre">Vuruş yoğunluğu kalibre ediliyor…</div>
+            <div className="bx-kalibre">Vuruş yoğunluğu kalibre ediliyor</div>
           )}
 
-          {uyari && <div className={"bx-uyari bx-uyari-" + uyari.tip}>💡 {uyari.metin}</div>}
+          {uyari && <div className={"bx-uyari bx-uyari-" + uyari.tip}>{uyari.metin}</div>}
 
           {hud.faz === "isinma" && !sonuc && (
             <div className="bx-katman bx-isinma">
@@ -570,9 +576,9 @@ export default function OyunPage() {
                   <span className="bx-mola-sure">{hud.fazSure} sn</span>
                 </div>
                 <p className="bx-mola-ozet">{molaRapor.rapor.ozet}</p>
-                <div className="bx-mola-ipucu">🎯 {molaRapor.rapor.ipucu}</div>
+                <div className="bx-mola-ipucu">{molaRapor.rapor.ipucu}</div>
                 {molaRapor.rapor.guclu.length > 0 && (
-                  <p className="bx-mola-guclu">✅ Güçlü: {molaRapor.rapor.guclu.join(", ")}</p>
+                  <p className="bx-mola-guclu">Güçlü: {molaRapor.rapor.guclu.join(", ")}</p>
                 )}
               </div>
             </div>
@@ -582,7 +588,7 @@ export default function OyunPage() {
           {sonuc && (
             <div className="bx-katman bx-sonuc">
               <div className="bx-sonuc-kart">
-                <h2>Antrenman Bitti 🔔</h2>
+                <h2>Antrenman Bitti</h2>
                 <div className="bx-sonuc-puan">{sonuc.toplam.puan}</div>
                 <div className="bx-sonuc-satir">
                   <span><b>{sonuc.toplam.toplamYumruk}</b> yumruk</span>
@@ -596,16 +602,16 @@ export default function OyunPage() {
                   <p className="bx-not">* Kilo girmediğin için kalori ortalama değerle tahmin edildi.</p>
                 )}
                 {sonuc.rapor.oneri && (
-                  <div className="bx-oneri">📏 {sonuc.rapor.oneri.metin}</div>
+                  <div className="bx-oneri">{sonuc.rapor.oneri.metin}</div>
                 )}
                 {sonuc.yeniRozetler?.length > 0 && (
-                  <div className="bx-rozet-serit">🏅 Yeni rozet: {sonuc.yeniRozetler.join(", ")}</div>
+                  <div className="bx-rozet-serit">Yeni rozet: {sonuc.yeniRozetler.join(", ")}</div>
                 )}
                 <div className="bx-kayit-durum">
                   {kayit === "kaydediliyor" && "Kaydediliyor…"}
-                  {kayit === "kaydedildi" && "✅ Kaydedildi"}
-                  {kayit === "kuyrukta" && "☁️ Çevrimdışı kaydedildi, internet gelince gönderilecek"}
-                  {kayit === "hata" && "⚠️ Kaydedilemedi"}
+                  {kayit === "kaydedildi" && "Kaydedildi"}
+                  {kayit === "kuyrukta" && "Çevrimdışı kaydedildi, internet gelince gönderilecek"}
+                  {kayit === "hata" && "Kaydedilemedi"}
                 </div>
                 {klipVar && (
                   <button
@@ -615,7 +621,7 @@ export default function OyunPage() {
                       if (!r.ok && !r.iptal) setKayit("hata");
                     }}
                   >
-                    🎬 En İyi Serinin Klibini Paylaş
+                    En İyi Serinin Klibini Paylaş
                   </button>
                 )}
                 <div className="bx-sonuc-btnler">
@@ -626,10 +632,10 @@ export default function OyunPage() {
                       git("/boks/antrenor");
                     }}
                   >
-                    🧠 Antrenör Raporu
+                    Antrenör Raporu
                   </button>
-                  <button className="bx-btn bx-btn-ikincil" onClick={tekrar}>🔄 Tekrar</button>
-                  <button className="bx-btn bx-btn-ikincil" onClick={cik}>🏠 Menü</button>
+                  <button className="bx-btn bx-btn-ikincil" onClick={tekrar}>Tekrar</button>
+                  <button className="bx-btn bx-btn-ikincil" onClick={cik}>Menü</button>
                 </div>
               </div>
             </div>

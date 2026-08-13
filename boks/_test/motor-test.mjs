@@ -48,9 +48,19 @@ const harita = (nx, ny) => ({ x: W - nx * W, y: ny * H });
 // ---------------------------------------------------------------
 // Sahte vücut: normalize koordinatlarda dik duran bir oyuncu
 // ---------------------------------------------------------------
+// DİRSEK GERÇEKÇİLİĞİ: motor artık yumruğu KOL DÜZLÜĞÜNDEN okuyor (el ölçeği
+// kanalı gürültüsü yüzünden tespitten çıkarıldı). Gerçek bir yumrukta dirsek
+// açılır; bileği oynatıp dirseği sabit tutan eski fikstür fiziksel olarak
+// yumruk DEĞİLDİ (yalnız el seğirmesi). Fikstür bu yüzden dirseği de hareket
+// ettiriyor — böylece test gerçek hareketi doğruluyor.
+const DIRSEK_BAS = { sol: { x: 0.38, y: 0.46 }, sag: { x: 0.62, y: 0.46 } };
+const OMUZ = { sol: { x: 0.4, y: 0.36 }, sag: { x: 0.6, y: 0.36 } };
+
 function govde({
   solBilek,
   sagBilek,
+  solDirsek,
+  sagDirsek,
   solOlcek = 0.03,
   sagOlcek = 0.03,
   kalca = true,
@@ -59,14 +69,16 @@ function govde({
   const n = (x, y, g = 1) => ({ x, y, z: 0, g });
   const sb = { x: solBilek?.x ?? 0.45, y: solBilek?.y ?? 0.3 };
   const gb = { x: sagBilek?.x ?? 0.55, y: sagBilek?.y ?? 0.3 };
+  const sd = solDirsek ?? DIRSEK_BAS.sol;
+  const gd = sagDirsek ?? DIRSEK_BAS.sag;
   const noktalar = {
     [P.BURUN]: n(0.5, 0.22),
     [P.SOL_KULAK]: n(0.47, 0.23),
     [P.SAG_KULAK]: n(0.53, 0.23),
-    [P.SOL_OMUZ]: n(0.4, 0.36),
-    [P.SAG_OMUZ]: n(0.6, 0.36),
-    [P.SOL_DIRSEK]: n(0.38, 0.46),
-    [P.SAG_DIRSEK]: n(0.62, 0.46),
+    [P.SOL_OMUZ]: n(OMUZ.sol.x, OMUZ.sol.y),
+    [P.SAG_OMUZ]: n(OMUZ.sag.x, OMUZ.sag.y),
+    [P.SOL_DIRSEK]: n(sd.x, sd.y),
+    [P.SAG_DIRSEK]: n(gd.x, gd.y),
     [P.SOL_BILEK]: n(sb.x, sb.y),
     [P.SAG_BILEK]: n(gb.x, gb.y),
     // Parmak kökleri: bileğin `olcek` kadar ötesinde → el ölçeği bu mesafedir.
@@ -93,6 +105,7 @@ function govde({
 // ---------------------------------------------------------------
 function yumrukAt(tanima, { taraf = "sol", tur = "duz" } = {}) {
   const bilekAd = taraf === "sol" ? "solBilek" : "sagBilek";
+  const dirsekAd = taraf === "sol" ? "solDirsek" : "sagDirsek";
   const olcekAd = taraf === "sol" ? "solOlcek" : "sagOlcek";
   const bas = { x: taraf === "sol" ? 0.45 : 0.55, y: 0.3 };
   // Hedef yer değiştirme (normalize): türe göre yön.
@@ -106,27 +119,41 @@ function yumrukAt(tanima, { taraf = "sol", tur = "duz" } = {}) {
         ? { x: bas.x, y: bas.y - 0.12 }
         : { x: bas.x + (taraf === "sol" ? -0.02 : 0.02), y: bas.y + 0.01 };
 
+  // Dirsek hedefi: düz yumrukta ve uppercut'ta kol DÜZLEŞİR (dirsek omuz-bilek
+  // hattına girer); hook'ta dirsek bükülü kalır ama yumrukla birlikte savrulur.
+  const omuz = OMUZ[taraf];
+  const dBas = DIRSEK_BAS[taraf];
+  // (Uppercut da bükülü kollu bir yumruktur — dirsek hatta girmez, yumrukla yükselir.)
+  const dHedef =
+    tur === "duz"
+      ? { x: omuz.x + (hedef.x - omuz.x) * 0.5, y: omuz.y + (hedef.y - omuz.y) * 0.5 }
+      : { x: dBas.x + (hedef.x - bas.x) * 0.55, y: dBas.y + (hedef.y - bas.y) * 0.55 };
+  const dirsekAra = (t) => ({
+    x: dBas.x + (dHedef.x - dBas.x) * t,
+    y: dBas.y + (dHedef.y - dBas.y) * t,
+  });
+
   const kapsam = { ustGovde: true, kollar: true, kalca: true, bacaklar: false };
-  // 1. faz: gard pozisyonunda birkaç kare (durum makinesi "bekle"ye otursun)
+  // 1. faz: gard pozisyonunda birkaç kare (taban otursun)
   for (let i = 0; i < 6; i++) {
     tanima.guncelle(DT, { poz: pozEkran(govde({ [bilekAd]: bas })), kapsam });
   }
-  // 2. faz: itme (3 kare, hızlı)
+  // 2. faz: itme (3 kare, hızlı) — bilek ve dirsek birlikte hareket eder
   for (let i = 1; i <= 3; i++) {
     const t = i / 3;
     const p = { x: bas.x + (hedef.x - bas.x) * t, y: bas.y + (hedef.y - bas.y) * t };
-    // Düz yumrukta el kameraya yaklaşır → ölçek büyür (derinlik ilerlemesi)
+    // Düz yumrukta el kameraya yaklaşır → ölçek büyür (sınıflandırmada derinlik)
     const olcek = tur === "duz" ? 0.03 + 0.04 * t : 0.03;
     tanima.guncelle(DT, {
-      poz: pozEkran(govde({ [bilekAd]: p, [olcekAd]: olcek })),
+      poz: pozEkran(govde({ [bilekAd]: p, [dirsekAd]: dirsekAra(t), [olcekAd]: olcek })),
       kapsam,
     });
   }
-  // 3. faz: darbe (hareket durur → uzanma tepe noktası)
+  // 3. faz: darbe (hareket durur → uzanım tepe noktası)
   for (let i = 0; i < 3; i++) {
     const olcek = tur === "duz" ? 0.07 : 0.03;
     tanima.guncelle(DT, {
-      poz: pozEkran(govde({ [bilekAd]: hedef, [olcekAd]: olcek })),
+      poz: pozEkran(govde({ [bilekAd]: hedef, [dirsekAd]: dHedef, [olcekAd]: olcek })),
       kapsam,
     });
   }
@@ -523,9 +550,16 @@ console.log("\n— 11) Uçtan uca akış —");
     const t = dongu < 6 ? dongu / 6 : dongu < 12 ? 1 - (dongu - 6) / 6 : 0;
     const solB = { x: bas.x - 0.02 * t, y: bas.y + 0.01 * t };
     const sagB = { x: 0.55 + 0.02 * t, y: bas.y + 0.01 * t };
+    // Gerçek jab-cross: dirsek de açılır (motor yumruğu kol düzlüğünden okur).
+    const dirsek = (taraf, b) => ({
+      x: DIRSEK_BAS[taraf].x + (OMUZ[taraf].x + (b.x - OMUZ[taraf].x) * 0.5 - DIRSEK_BAS[taraf].x) * t,
+      y: DIRSEK_BAS[taraf].y + (OMUZ[taraf].y + (b.y - OMUZ[taraf].y) * 0.5 - DIRSEK_BAS[taraf].y) * t,
+    });
     const poz = govde({
       solBilek: solB,
       sagBilek: sagB,
+      solDirsek: dirsek("sol", solB),
+      sagDirsek: dirsek("sag", sagB),
       solOlcek: 0.03 + 0.04 * t,
       sagOlcek: 0.03 + 0.04 * t,
       bacak: true,
@@ -618,17 +652,28 @@ console.log("\n— 12) Oynanabilirlik optimizasyonları —");
   {
     const t = new YumrukTanima({ durus: ORTODOKS });
     const bas = { x: 0.45, y: 0.3 };
+    const hedefB = { x: 0.43, y: 0.31 };
+    const dHedef = { x: OMUZ.sol.x + (hedefB.x - OMUZ.sol.x) * 0.5, y: OMUZ.sol.y + (hedefB.y - OMUZ.sol.y) * 0.5 };
+    const dAra = (k) => ({
+      x: DIRSEK_BAS.sol.x + (dHedef.x - DIRSEK_BAS.sol.x) * k,
+      y: DIRSEK_BAS.sol.y + (dHedef.y - DIRSEK_BAS.sol.y) * k,
+    });
     for (let i = 0; i < 6; i++) t.guncelle(DT, { poz: pozEkran(govde({ solBilek: bas })), kapsam });
     for (let i = 1; i <= 3; i++) {
       const tt = i / 3;
-      const g = govde({ solBilek: { x: bas.x - 0.02 * tt, y: bas.y + 0.01 * tt }, solOlcek: 0.03 + 0.04 * tt });
+      const g = govde({
+        solBilek: { x: bas.x - 0.02 * tt, y: bas.y + 0.01 * tt },
+        solDirsek: dAra(tt),
+        solOlcek: 0.03 + 0.04 * tt,
+      });
       // 2. karede model bileği kaybediyor (hareket bulanıklığı)
       if (i === 2) g.noktalar[P.SOL_BILEK].g = 0.12;
       t.guncelle(DT, { poz: pozEkran(g), kapsam });
     }
     for (let i = 0; i < 3; i++) {
-      t.guncelle(DT, { poz: pozEkran(govde({ solBilek: { x: 0.43, y: 0.31 }, solOlcek: 0.07 })), kapsam });
+      t.guncelle(DT, { poz: pozEkran(govde({ solBilek: hedefB, solDirsek: dHedef, solOlcek: 0.07 })), kapsam });
     }
+    for (let i = 0; i < 4; i++) t.guncelle(DT, { poz: pozEkran(govde({ solBilek: bas })), kapsam });
     sina("Bilek bir kare kaybolsa da yumruk üretiliyor", t.olaylar.length === 1, `${t.olaylar.length} olay`);
   }
 
@@ -658,6 +703,7 @@ console.log("\n— 12) Oynanabilirlik optimizasyonları —");
       t.guncelle(DT, { poz: pozEkran(kareUret(i / 3, 0.002 * i)), kapsam });
     }
     for (let i = 0; i < 3; i++) t.guncelle(DT, { poz: pozEkran(kareUret(1, 0.006)), kapsam });
+    for (let i = 0; i < 4; i++) t.guncelle(DT, { poz: pozEkran(kareUret(0, 0)), kapsam });
     const o = t.olaylar[0];
     sina("El ölçeği okunamasa da düz yumruk tespit ediliyor", t.olaylar.length === 1 && o?.no === 1, `${t.olaylar.length} olay, no=${o?.no}`);
   }

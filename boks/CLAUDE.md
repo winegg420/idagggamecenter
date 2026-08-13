@@ -14,7 +14,7 @@ Zorluk: kolay(2 round/90 sn) · orta(3/75) · zor(4/60) · pro(5/45) + `test` (3
 - React 19 + Vite (hub kabuğu), izole modül; DB öneki `boks_`
 - **Takip:** MediaPipe **Tasks Vision** — yalnız `PoseLandmarker lite` (vücut, 33 nokta), CDN'den ESM. npm bağımlılığı yok. **El modeli (HandLandmarker) YOKTUR** — bkz. Kritik Tasarım Kararları.
 - **Mimari:** TEK kamera akışı (`kamera.js`, 640×360@30) → TEK **worker** (poz) → ana thread yalnız kare kopyalar ve 60 fps render'da kalır.
-- Render: HTML5 Canvas (kamera cover + aynalı; üstünde pedler, bilek nişanı, darbe halkası, gard göstergesi)
+- Render: HTML5 Canvas (kamera cover + aynalı; üstünde yalnız pedler, darbe halkası, popup ve alt bilgi şeridi)
 - Ses: WebAudio ile sentezlenir (dosya yok) + **sesli koç** `speechSynthesis` (tr-TR), iki kişilik (agresif / sakin)
 
 ## Dizin Yapısı (`boks/`)
@@ -26,7 +26,7 @@ Zorluk: kolay(2 round/90 sn) · orta(3/75) · zor(4/60) · pro(5/45) + `test` (3
   - `posetakip.js` — model sarmalayıcısı + CDN sabitleri; ayrıca **kapsam** (görünürlük) üretir
   - `yumrukTanima.js` — **tek sinyalde tepe yakalama** (`uzanim`: 2D açılım + kol düzlüğü + el ölçeği), 6 numara sınıflandırma, gard/postür izleme, görece şiddet
   - `oyun.js` — faz makinesi, 4 mod, pad/tehdit üretimi, puanlama/combo, ham olay sayaçları, MET kalori, sağlık gözetimi
-  - `render.js` — "Gece Antrenmanı" görsel kimliği, pedler, **darbe halkası** (imza efekt), bilek nişanı, nefes/tempo göstergeleri
+  - `render.js` — "Gece Antrenmanı" görsel kimliği, pedler (numara + ad + kalan süre yayı), **darbe halkası** (imza efekt), alt bilgi şeridi
   - `ses.js` — WebAudio efektleri + TTS koç replikleri
   - `antrenorAnalizi.js` — stil vektörü (8 boyut), arketip, round/oturum/kariyer raporu, zayıflık kataloğu, zorluk önerisi
   - `dovusculKutuphanesi.js` — **248 profesyonel dövüşçü** (122 boks · 101 MMA · 25 kickboks/muaythai) stil vektörleriyle
@@ -50,10 +50,13 @@ Migration: `supabase/migrations/20260612000044_boks_temel.sql`. Tablolar: `boks_
 - **TEK MODEL (2026-08-12 radikal değişiklik):** `HandLandmarker` kaldırıldı. İki model aynı anda koşarken (iki çıkarım + iki bitmap kopyası) oyun mobilde akmıyordu. El modelinden gereken tek şey **el ölçeği**ydi; o da poz modelinin kendi noktalarından okunuyor: bilek (15/16) ↔ serçe kökü (17/18) / işaret kökü (19/20). CPU ~yarıya indi, poz kısılmadan (asgariAralik 0) koşuyor, yumruk tespiti ESKİSİNDEN hızlı. Yeni bir el modeli eklemeden önce bu kararı oku.
 - **TESPİT ÇEKİRDEĞİ = TEK SİNYALDE TEPE YAKALAMA (2026-08-13 radikal revizyon).** Eskiden hız kapılı bir durum makinesi vardı: yumruğun sayılması için AYNI ANDA uzanma hızı, bilek hızı, tepe/yavaşlama karesinin yakalanması ve asgari uzanma artışı gerekiyordu. 30 Hz'de bir yumruk 3-4 kare sürer; her kapı ayrı ıskalanabildiği için gerçek yumruklar sistematik olarak kayboluyordu, eşik gevşetmek ise yalnız sahte tespit üretiyordu. Artık kol başına **tek bir ölçek** üretilir ve yumruk bu sinyalin **tepesi** olarak yakalanır — **hiçbir hız eşiği yoktur**, kare atlanması sonucu değiştirmez.
   ```
-  uzanim = 0.45×(|bilek−omuz|/birim) + 0.85×duzluk + 0.50×(el ölçeği büyümesi)
+  uzanim = 0.45×(|bilek−omuz|/birim) + 0.85×duzluk
   duzluk = |bilek−omuz| / (|bilek−dirsek| + |dirsek−omuz|)   ∈ [0,1]
   ```
-  Üç kanal **birbirinden bağımsızdır**: parmak kökleri kaybolsa, dirsek görünmese ya da yumruk kameraya dik gelse bile kalanlar sinyali taşır. `duzluk` izdüşümden bağımsızdır (kol kameraya uzanınca segmentler kısalır ama noktalar hizaya girer → oran 1'e yaklaşır). Tipik: gard ≈ 0.45 · jab ≈ 1.25 · hook ≈ 1.10 · uppercut ≈ 0.90 · gard salınımı ≈ ±0.07 → eşik `YUKSELIS_ESIK` 0.28.
+  `duzluk` izdüşümden bağımsızdır (kol kameraya uzanınca segmentler kısalır ama noktalar hizaya girer → oran 1'e yaklaşır) — kameraya doğru atılan düz yumruğun tek güvenilir kanıtı budur. Tipik: gard ≈ 0.42 · jab ≈ 1.01 · hook ≈ 1.08 · uppercut ≈ 0.91 · gard gürültüsü ≈ ±0.08 → eşik `YUKSELIS_ESIK` 0.28.
+- **EL ÖLÇEĞİ TESPİT SİNYALİNDEN ÇIKARILDI (2026-08-13, 4. tur).** Poz *lite* modelinde parmak kökleri (17-20) en gürültülü noktalardır; bilek↔kök mesafesi ekranda ~20 px'tir ve ±%20 seğirme taban/tepe farkına 0.2'ye varan sahte yükseliş ekliyordu → **gard kapalıyken yumruk üretiliyor, ped patlıyordu.** El ölçeği artık yalnız sınıflandırmada (derinlik kanıtı) ve gard-indirme reddinde kullanılır, tespit kararına giremez. Geri eklemeden önce bunu oku.
+- **FİZİKSEL DOĞRULAMA KAPISI:** yükseliş eşiğini geçmek tek başına yetmez. Gerçek yumrukta ya kol belirgin düzleşir (`DOGRULAMA_DUZLUK` 0.18) ya da bilek kayda değer yol alır (`DOGRULAMA_YOL` 0.35 birim). Gard içindeki seğirme ikisini de yapamaz (gürültü sırasıyla ~0.06 ve ~0.05). Sahte tespitin ikinci kilididir.
+- **Dirsek kadrajda olmalı:** `duzluk` dirseği ister. Dirsek hiç görünmezse yalnız 2D kanal kalır; hook/uppercut yine yakalanır ama kameraya dik jab yakalanamaz. Hazır ekranındaki kadraj uyarısı bunu söyler.
   Darbe anı: taban→tepe farkı eşiği aştıysa ve sinyal ya geri dönmeye başladıysa (`GERI_ESIK`) **ya da tepede belirgin artmadan durduysa** (`TEPE_BEKLEME`, temas anı). Sınıflandırma **taban ve tepe karelerinin kayıtları** arasındaki yola bakar.
   İki tuzak ve çözümleri: (1) **taban sıkışması** — sinyal tabanın biraz üstünde takılırsa "yükseliş" saatlerce sürmüş görünür ve sonraki gerçek yumruk `YUKSELIS_MAX_SURE` kapısına takılır; sinyal durgunsa ve yükseliş eşiğe ulaşmadıysa taban bugüne çekilir (`TABAN_DURGUN`). (2) **gardı indirme** — kol yana sarkarken de düzleşir; düzlük bunu ayırt EDEMEZ, yalnız gerçek derinlik (el ölçeği) ve yön ayırt eder (`DUSUS_RED_*`).
 - **El → kol ataması yok:** ölçü zaten doğru kola aittir (aynı landmark ailesi). Eski "el landmark'ını en yakın bileğe ata" adımı ve onun gard pozisyonunda ürettiği **sahte yumruk** riski tümüyle ortadan kalktı.
@@ -74,6 +77,10 @@ Migration: `supabase/migrations/20260612000044_boks_temel.sql`. Tablolar: `boks_
 - **Dövüşçü eşleştirmesi:** yalnız kamuya açık, bilinen stil özellikleri. Sahte alıntı/kurgu diyalog/uydurma biyografik iddia **üretilmez**; sonuç yetenek değil **tarz** benzerliğidir.
 - **Çevrimdışı:** oyun internetsiz oynanır; oturum kaydı başarısızsa localStorage kuyruğuna alınır, `online` olayında/açılışta gönderilir.
 - **Solak:** duruş seçimi pad numaralandırmasını ve analizi aynalar (`onEl(durus)`); güney pençede yanlış "açık" tespiti yapılmaz.
+
+## Görsel İlke: oyuncunun üzerine hiçbir şey çizilmez
+
+Bilek halkaları, kol iskeleti ve kafanın etrafındaki kesikli "gard bölgesi" çemberi **kaldırıldı** — bir teşhis overlay'i gibi duruyor, ürünü amatör gösteriyordu. Kural: **kamera görüntüsünün üstüne yalnız oyunun kendi nesneleri çizilir** (pedler, darbe halkası, popup) ve durum bilgisi kadrajın altındaki tek satırlık sakin şeritte durur. Oyun ekranında **emoji kullanılmaz**; ok/ikon yerine metin (JAB · CROSS · HOOK · UPPER), kalın siyah kontur yerine ince gölge. Yeni bir gösterge eklemeden önce sor: *bu, oyuncunun görüntüsünü kirletiyor mu?*
 
 ## Performans Dersleri (Meyve Kes'ten devralınan)
 
