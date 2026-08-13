@@ -153,3 +153,89 @@ eliyordu ("vurdum ama saymadı").
   Beklenen: telefonda 25-30 Hz, `⚠` (ana-thread yedeği) çıkmamalı.
 - Eşikler hâlâ ıskalıyorsa bir sonraki adım `birim` EMA'sını hızlandırmak (0.12 → 0.2).
 - Migration Supabase Dashboard'dan uygulanmalı (CLI `db push` bu projede 403 veriyor).
+
+## 2026-08-13 — OYNANABİLİRLİK VE SENKRON REVİZYONU
+
+Kullanıcı geri bildirimi: *"hedeflere yumruk denk getirmek zor. bazı vuruşlarımı oyun kamera
+göremiyor. senkron yeterince iyi değil. kasma düzelmiş ama daha iyi olmalı, yeterli akıcılık yok."*
+Dört şikâyetin her biri ayrı bir kök nedene bağlandı.
+
+### 1) "Hedefe denk getirmek zor" — üç ayrı kök neden
+
+**(a) AYNA YÖNÜ HATASI (asıl sebep).** `padKonum` pad'i yanlış tarafa koyuyordu:
+`x = 0.5 + (sol el ? +1 : -1) * ...` → sol el pedi ekranın SAĞINDA beliriyordu. Oysa selfie
+görüntüsünde oyuncunun sol eli ekranın SOLUNDA görünür. Yani her pede vücudun karşısına
+uzanmak gerekiyordu. `kenar` işareti düzeltildi (`sol → -1`).
+
+**(b) Pad'ler ekranın sabit yüzdesindeydi.** Oyuncu kadrajda kenarda/yakında/uzakta durunca
+pedler kolunun ulaşamayacağı yerde çıkıyordu. Artık pedler **kafa + `birim`'e göre**
+konumlanıyor (`_ankor()`), kadraj dışına taşmayacak şekilde kırpılıyor. Vücut görünmüyorsa
+eski ekran-oranı yedeği kullanılıyor.
+
+**(c) Düz yumrukta bilek EKRANDA yer değiştirmiyor.** İsabet testi ham bilek konumunu
+kullandığı için jab/cross ped merkezine hiç yaklaşmıyordu. İki değişiklik:
+- **Nişan noktası (`nx/ny`):** darbe anında bilek, kol yönünde (omuz→bilek) derinlik
+  ilerlemesi kadar ileri taşınır — yumruğun gerçekte "vardığı" nokta.
+- **Tür öncelikli eşleştirme:** doğru numaralı pad cömert yarıçapla (2.6 birim) aranır;
+  doğru numara yoksa yakındaki yanlış numaralı pad dar yarıçapla (1.05 birim) sadece geri
+  bildirim (titreme) için eşleşir. *Karar gerekçesi:* bu oyunun ölçtüğü beceri "doğru
+  yumruğu doğru elle atmak"tır; kamerada 2D bilek konumu piksel hassasiyetinde bir nişan
+  aracı değildir. Ceza yok ilkesiyle de tutarlı.
+
+Pad yarıçapı da 0.075 → 0.085 (min(W,H) oranı) büyütüldü.
+
+### 2) "Bazı vuruşları göremiyor"
+
+- **Kol noktası hafızası (asıl sebep):** hızlı yumrukta bilek hareket bulanıklığına giriyor ve
+  modelin görünürlük skoru 1-2 kare 0.55'in altına düşüyor. Eski kod kolu "görünmüyor" sayıp
+  durum makinesini **tam darbe anında** sıfırlıyordu. Artık kol noktaları gevşek eşikle (0.3)
+  okunuyor ve kaybolduğunda son bilinen konum 0.22 sn geçerli sayılıyor; faz korunuyor.
+- **İkinci darbe kapısı:** 30 Hz'de tepe/yavaşlama karesi tamamen atlanabiliyor. "Kol geri
+  dönmeye başladı" (`GERI_BASLADI` 0.05 birim) da biraz düşük eşiklerle darbe sayılıyor.
+- **Eşikler ikinci turda gevşetildi:** `ITME_UZANMA_HIZ` 1.1→0.85 · `ITME_BILEK_HIZ` 1.55→1.25 ·
+  `MIN_TEPE_HIZ` 1.7→1.35 · `MIN_UZANMA_ARTIS` 0.13→0.1 · `ITME_MAX_SURE` 0.55→0.6.
+- **Hızlı çift jab:** `GERI_CEKME` 0.1→0.06 ve toparlanma tavanı 0.5→0.28 sn — ikinci yumruk
+  artık yutulmuyor.
+- **`BIRIM_EMA` 0.12 → 0.2** (bir önceki oturumda "sıradaki iş" olarak not edilmişti): gövde
+  dönerken ölçü birimi geç uyum sağladığı için tüm eşikler kayıyordu.
+
+### 3) "Senkron yeterince iyi değil" — gecikme telafisi
+
+Poz sonucu ait olduğu kameradan ~30-70 ms sonra geliyor (kare yaşı + çıkarım). Bu süre boyunca
+el ilerlemiş oluyor; hem çizim hem isabet noktası geride kalıyordu. `gecikmeSn` hesaplanıyordu
+ama **hiç kullanılmıyordu**.
+
+- `posetakip` artık her nokta için EMA'lı hız (`vx/vy`, normalize birim/sn) üretiyor.
+- `oyun.guncelle` noktaları `gecikme + paket yaşı` kadar ileri sarıyor (tavan 0.11 sn, azami
+  yer değiştirme 0.07 normalize — ötesi telafi değil gürültü).
+- Ölçülen gecikme EMA'lanıyor: sabit kayma tanımanın hız ölçümünü bozmaz, jitter bozar.
+- **Yan kazanç:** ~30 Hz'lik poz akışı 60 fps çizimde kesintisiz akıyor (algılanan akıcılık).
+
+### 4) Akıcılık
+
+- Karartma katmanı kaldırıldı: tuval `alpha:false` olduğundan video doğrudan alfayla çiziliyor →
+  **kare başına bir tam ekran geçişi eksildi**. Sıcak ton `RENK.arka` zemin dolgusuyla korunuyor
+  (clearRect ile aynı maliyet).
+- Piksel bütçesi 900 k → 820 k, dpr tavanı 1.5 → 1.4 (kaynak zaten 640×360; fazla piksel netlik
+  katmıyordu).
+- **Kalıcı nokta nesneleri:** ekran uzayı eşlemesi kare başına 18 yeni nesne ayırıyordu
+  (60 fps'te ~1100 nesne/sn GC baskısı). Artık aynı nesneler yerinde güncelleniyor.
+- **Adaptif çıkarım karesi:** render kalitesi 0.7'nin altına düşerse worker karesi 320 → 256 px
+  (`PozTakip.kaliteAyarla`) — çıkarım hızlanır, gecikme düşer, poz akışı seyrelmez.
+- `kamera.js`: `frameRate.min` kaldırıldı (zorunlu kısıt; bazı cihazlarda kamerayı hiç
+  açtırmıyordu).
+
+### Doğrulama
+
+- `node boks/_test/motor-test.mjs` → **83/83 geçti**. Yeni 11 test (bölüm 12): ayna yönü,
+  vücuda göre pad konumu + kadraj kırpması, doğru/yanlış numara toleransları, nişan noktası,
+  bir kare kaybolan bilekte yumruk üretimi, gecikme telafisi ve hız bilgisi yokken bozulmama.
+- `npm run build` → başarılı; BoksApp chunk 138 kB (48 kB gzip).
+
+### Sıradaki İşler
+
+- Gerçek cihazda ölç: HUD teşhis rozetinde artık **Hz ve ms** birlikte görünüyor
+  (`25 Hz · 60 ms`). Beklenen: telefonda 25-30 Hz, 40-80 ms, `⚠` (ana-thread yedeği) çıkmamalı.
+- Tür öncelikli isabet fazla kolay gelirse `PAD_DOGRU_TOLERANS` 2.6 → 1.8 aralığında kısılabilir
+  (tek sabit, tek yerde).
+- Migration Supabase Dashboard'dan uygulanmalı (CLI `db push` bu projede 403 veriyor).

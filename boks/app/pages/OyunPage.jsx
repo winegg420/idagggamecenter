@@ -70,7 +70,7 @@ export default function OyunPage() {
   const [klipVar, setKlipVar] = useState(false);
   const [hud, setHud] = useState({
     faz: "isinma", fazSure: 10, round: 1, puan: 0, combo: 0, tempo: 0,
-    pozVar: false, pozHz: 0, yol: "", kalibre: true,
+    pozVar: false, pozHz: 0, gecikmeMs: 0, yol: "", kalibre: true,
     komut: null, komutIdx: 0, kapsam: "",
   });
 
@@ -187,6 +187,9 @@ export default function OyunPage() {
       ft.olcum = 0;
       if (ft.ema > 22 && kaliteRef.current > 0.45) kaliteRef.current = Math.max(0.45, kaliteRef.current - 0.15);
       else if (ft.ema < 17.2 && kaliteRef.current < 1) kaliteRef.current = Math.min(1, kaliteRef.current + 0.1);
+      // Cihaz zorlanıyorsa çıkarım karesi de küçülür: worker hızlanır, gecikme
+      // düşer ve poz akışı seyrelmez (yumruk ıskalanmaz).
+      poz.kaliteAyarla?.(kaliteRef.current);
     }
 
     // algılama frekansı teşhisi
@@ -200,8 +203,10 @@ export default function OyunPage() {
     // tampon boyutu (dpr tavanı + piksel bütçesi)
     const W = canvas.clientWidth;
     const H = canvas.clientHeight;
-    let olcek = Math.min(window.devicePixelRatio || 1, 1.5) * kaliteRef.current;
-    const butce = 900000;
+    // dpr tavanı 1.5 → 1.4, bütçe 900k → 820k: kamera görüntüsü zaten 640×360
+    // kaynaktan geliyor, fazla piksel netlik katmıyor; akıcılığa katkısı ölçülür.
+    let olcek = Math.min(window.devicePixelRatio || 1, 1.4) * kaliteRef.current;
+    const butce = 820000;
     if (W * H * olcek * olcek > butce) olcek = Math.sqrt(butce / (W * H));
     const bw = Math.max(1, Math.round(W * olcek));
     const bh = Math.max(1, Math.round(H * olcek));
@@ -220,6 +225,8 @@ export default function OyunPage() {
     oyun.guncelle(dt, {
       pozHam: poz.poz,
       damga: poz.damga,
+      // Boru hattı gecikmesi motorda telafi edilir (nişan + çizim senkronu).
+      gecikme: poz.gecikmeSn,
       harita: k.esle,
       W,
       H,
@@ -274,6 +281,7 @@ export default function OyunPage() {
         tempo: oyun.tempoAnlik,
         pozVar: !!oyun.poz,
         pozHz: ar.pozHz,
+        gecikmeMs: Math.round((poz.gecikmeSn || 0) * 1000),
         yol: poz.yol,
         kalibre: oyun.tanima.kalibreEdiliyor,
         komut: oyun.komut ? oyun.komut.dizi.join("-") : null,
@@ -532,7 +540,7 @@ export default function OyunPage() {
           <div className={"bx-takip " + (hud.pozVar ? "var" : "yok")}>
             {hud.pozVar ? "🧍 takip aktif" : "🧍 vücut görünmüyor"}
             <span className="bx-takip-bilgi">
-              {hud.pozHz} Hz{hud.yol === "ana" ? " ⚠" : ""}
+              {hud.pozHz} Hz · {hud.gecikmeMs} ms{hud.yol === "ana" ? " ⚠" : ""}
               {hud.kapsam === "tam" ? " · tam kadraj" : hud.kapsam === "ust" ? " · üst gövde" : ""}
             </span>
           </div>

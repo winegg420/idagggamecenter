@@ -50,6 +50,14 @@ export const P = {
 
 // Bu değerin altındaki görünürlük "kamera bu noktayı görmüyor" sayılır.
 export const GORUNUR_ESIK = 0.55;
+// GECİKME TELAFİSİ: bir poz sonucu, ait olduğu kameradan ~30-70 ms sonra elde
+// edilir (kare yaşı + çıkarım). Bu süre boyunca gerçek el ilerlemiştir; ekrandaki
+// nişan ve isabet noktası geride kalır ("senkron iyi değil"). Her nokta için
+// hız (normalize birim/sn) taşınır; `oyun.js` bunu gecikme kadar ileri sararak
+// hem çizimi hem isabet noktasını GERÇEK ana hizalar.
+const HIZ_EMA = 0.5; // hız yumuşatma (gürültü ekstrapolasyonu patlatmasın)
+const HIZ_TAVAN = 4; // normalize birim/sn — absürt sıçrama kırpması
+const GECIKME_EMA = 0.25; // ölçülen gecikmenin yumuşatılması
 // Tek model koştuğu için worker yolunda kısma YOK: uçuştaki tek kare kuralı
 // zaten doğal tavanı koyar (çıkarım bitmeden yeni kare gönderilmez).
 const POZ_ASGARI_ARALIK = 0;
@@ -72,6 +80,8 @@ export class PozTakip {
     this._sonIsleme = 0;
     this._sonVideoZaman = -1;
     this._yedekGecis = false;
+    this._oncekiN = null; // gecikme telafisi için önceki paket
+    this._oncekiT = 0;
   }
 
   async _anaThreadBaslat() {
@@ -117,7 +127,7 @@ export class PozTakip {
       onSonuc: (veri, gecikmeSn) => {
         if (this.durduruldu) return;
         this._pozAyarla(veri.poz || null);
-        this.gecikmeSn = gecikmeSn;
+        this._gecikmeYaz(gecikmeSn);
       },
       onYedek: () => this._yedegeDus(),
     });
@@ -200,13 +210,57 @@ export class PozTakip {
       /* tek kare hatası — yut */
     }
     this._sonInference = performance.now() - t0;
-    this.gecikmeSn = Math.min(0.2, (kareYasi + this._sonInference + 8) / 1000);
+    this._gecikmeYaz(Math.min(0.2, (kareYasi + this._sonInference + 8) / 1000));
+  }
+
+  /** Nokta hızlarını (normalize birim/sn) bir önceki pakete göre hesaplar. */
+  _hizHesap(poz) {
+    const simdi = performance.now();
+    const onceki = this._oncekiN;
+    const dt = this._oncekiT ? (simdi - this._oncekiT) / 1000 : 0;
+    if (poz && poz.noktalar) {
+      const gecerli = dt > 0.004 && dt < 0.25 && onceki;
+      for (const idx in poz.noktalar) {
+        const p = poz.noktalar[idx];
+        const q = gecerli ? onceki[idx] : null;
+        if (!q) {
+          p.vx = 0;
+          p.vy = 0;
+          continue;
+        }
+        const hx = Math.max(-HIZ_TAVAN, Math.min(HIZ_TAVAN, (p.x - q.x) / dt));
+        const hy = Math.max(-HIZ_TAVAN, Math.min(HIZ_TAVAN, (p.y - q.y) / dt));
+        p.vx = (q.vx || 0) + (hx - (q.vx || 0)) * HIZ_EMA;
+        p.vy = (q.vy || 0) + (hy - (q.vy || 0)) * HIZ_EMA;
+      }
+      this._oncekiN = poz.noktalar;
+      this._oncekiT = simdi;
+    } else {
+      this._oncekiN = null;
+      this._oncekiT = 0;
+    }
   }
 
   _pozAyarla(poz) {
+    this._hizHesap(poz);
     this.poz = poz;
     this.kapsam = kapsamHesap(poz);
     this.damga++;
+  }
+
+  /** Ölçülen boru hattı gecikmesini yumuşatarak yazar (jitter ekstrapolasyonu bozar). */
+  _gecikmeYaz(sn) {
+    this.gecikmeSn += (sn - this.gecikmeSn) * GECIKME_EMA;
+  }
+
+  /**
+   * Adaptif çıkarım kalitesi: cihaz zorlanıyorsa (render kalitesi düştüyse)
+   * worker'a giden kare küçültülür → çıkarım hızlanır, gecikme düşer, oyun akar.
+   */
+  kaliteAyarla(kalite) {
+    if (!this._cekirdek) return;
+    const hedef = kalite < 0.7 ? 256 : 320;
+    if (this._cekirdek.hedefUzunKenar !== hedef) this._cekirdek.hedefUzunKenar = hedef;
   }
 
   durdur() {

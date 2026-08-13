@@ -537,5 +537,106 @@ console.log("\n— 11) Uçtan uca akış —");
   sina("Ses/koç kuyrukları sınırsız büyümedi", o.sesler.length <= 24 && o.konusmalar.length <= 12);
 }
 
+// ---------------------------------------------------------------
+// 12) Oynanabilirlik optimizasyonları (2026-08-13 revizyonu)
+//     "hedefe denk getiremiyorum / bazı vuruşları görmüyor / senkron kötü"
+// ---------------------------------------------------------------
+console.log("\n— 12) Oynanabilirlik optimizasyonları —");
+{
+  const kapsam = { ustGovde: true, kollar: true, kalca: true, bacaklar: false };
+
+  // (a) AYNA YÖNÜ: oyuncunun sol eli ekranın solunda görünür → pad de solda olmalı.
+  {
+    const o = new Oyun({ mod: "serbest", zorluk: "orta", durus: ORTODOKS });
+    o._padEkle(1, W, H); // jab → ön el = sol
+    const solPad = o.padler[0];
+    o.padler.length = 0;
+    o._padEkle(2, W, H); // cross → arka el = sağ
+    const sagPad = o.padler[0];
+    sina("Sol el pedi ekranın SOLUNDA (ayna yönü)", solPad.el === "sol" && solPad.x < W / 2, `x=${Math.round(solPad.x)}`);
+    sina("Sağ el pedi ekranın SAĞINDA", sagPad.el === "sag" && sagPad.x > W / 2, `x=${Math.round(sagPad.x)}`);
+  }
+
+  // (b) VÜCUDA GÖRE KONUM: oyuncu kadrajda nerede durursa pad kolunun yanına gelir.
+  {
+    const o = new Oyun({ mod: "serbest", zorluk: "orta", durus: ORTODOKS });
+    o.tanima.kafa = { x: 620, y: 150, hiz: 0 };
+    o.tanima.birim = 160;
+    o._padEkle(1, W, H);
+    const p = o.padler[0];
+    sina("Pad kafaya göre konumlanıyor (ekran ortasına değil)", Math.abs(p.x - (620 - 160 * 0.88)) < 1 && Math.abs(p.y - (150 + 160 * 0.12)) < 1, `x=${Math.round(p.x)} y=${Math.round(p.y)}`);
+    // Kadraj kenarına yakın oyuncuda pad ekran dışına taşmaz
+    o.padler.length = 0;
+    o.tanima.kafa = { x: 40, y: 60, hiz: 0 };
+    o._padEkle(1, W, H);
+    const q = o.padler[0];
+    sina("Kenardaki oyuncuda pad kadraj içinde kalıyor", q.x >= 0 && q.x <= W && q.y >= 0 && q.y <= H, `x=${Math.round(q.x)} y=${Math.round(q.y)}`);
+  }
+
+  // (c) DOĞRU NUMARA cömert, YANLIŞ NUMARA dar tolerans.
+  {
+    const o = new Oyun({ mod: "serbest", zorluk: "orta" });
+    o.faz = "round";
+    o.fazSure = 75;
+    o.tanima.birim = 160;
+    const yeniPad = (no) => ({ no, x: 300, y: 200, el: "sol", tur: "duz", r: 40, t: 0, omur: 2, titre: 0, vuruldu: false });
+    // Doğru numara, 2 birim uzakta → isabet (nişan 2D'de tam denk gelmez)
+    o.padler = [yeniPad(1)];
+    o._yumrukIsle({ no: 1, tur: "duz", on: true, el: "sol", x: 300 + 320, y: 200, nx: 300 + 320, ny: 200, hiz: 4, siddet: 60, uzanma: 0.4, karsiGardDusuk: false, karsiEl: "sag", t: 1 }, W, H);
+    sina("Doğru yumruk uzaktan da isabet sayılıyor", o.ist.isabet === 1, `isabet ${o.ist.isabet}`);
+    // Yanlış numara aynı uzaklıkta → hiç sayılmaz (titretmez bile)
+    const pad3 = yeniPad(3);
+    o.padler = [pad3];
+    o._yumrukIsle({ no: 1, tur: "duz", on: true, el: "sol", x: 300 + 320, y: 200, nx: 300 + 320, ny: 200, hiz: 4, siddet: 60, uzanma: 0.4, karsiGardDusuk: false, karsiEl: "sag", t: 2 }, W, H);
+    sina("Yanlış numara uzaktayken hiç eşleşmiyor", o.ist.yanlisTur === 0 && pad3.titre === 0);
+    // Yanlış numara yakında → geri bildirim (titreme), puan yok
+    const pad3y = yeniPad(3);
+    o.padler = [pad3y];
+    const puanOnce = o.puan;
+    o._yumrukIsle({ no: 1, tur: "duz", on: true, el: "sol", x: 320, y: 210, nx: 320, ny: 210, hiz: 4, siddet: 60, uzanma: 0.4, karsiGardDusuk: false, karsiEl: "sag", t: 3 }, W, H);
+    sina("Yanlış numara yakında → titreme, puan yok", o.ist.yanlisTur === 1 && pad3y.titre > 0 && o.puan === puanOnce);
+  }
+
+  // (d) NİŞAN NOKTASI: düz yumrukta bilek ekranda durur, nişan ileri taşınır.
+  {
+    const t = new YumrukTanima({ durus: ORTODOKS });
+    const jab = yumrukAt(t, { taraf: "sol", tur: "duz" });
+    const o = jab[0];
+    sina("Düz yumrukta nişan noktası bilekten ileri taşınıyor", !!o && Math.hypot(o.nx - o.x, o.ny - o.y) > 20, o ? `${Math.round(Math.hypot(o.nx - o.x, o.ny - o.y))} px` : "olay yok");
+  }
+
+  // (e) LANDMARK KAYBI: bilek bir kare görünmez olsa da yumruk sayılmalı.
+  {
+    const t = new YumrukTanima({ durus: ORTODOKS });
+    const bas = { x: 0.45, y: 0.3 };
+    for (let i = 0; i < 6; i++) t.guncelle(DT, { poz: pozEkran(govde({ solBilek: bas })), kapsam });
+    for (let i = 1; i <= 3; i++) {
+      const tt = i / 3;
+      const g = govde({ solBilek: { x: bas.x - 0.02 * tt, y: bas.y + 0.01 * tt }, solOlcek: 0.03 + 0.04 * tt });
+      // 2. karede model bileği kaybediyor (hareket bulanıklığı)
+      if (i === 2) g.noktalar[P.SOL_BILEK].g = 0.12;
+      t.guncelle(DT, { poz: pozEkran(g), kapsam });
+    }
+    for (let i = 0; i < 3; i++) {
+      t.guncelle(DT, { poz: pozEkran(govde({ solBilek: { x: 0.43, y: 0.31 }, solOlcek: 0.07 })), kapsam });
+    }
+    sina("Bilek bir kare kaybolsa da yumruk üretiliyor", t.olaylar.length === 1, `${t.olaylar.length} olay`);
+  }
+
+  // (f) GECİKME TELAFİSİ: nokta hızlarıyla ileri sarma çizimi/nişanı kaydırır.
+  {
+    const o = new Oyun({ mod: "serbest", zorluk: "orta" });
+    const poz = govde({ solBilek: { x: 0.45, y: 0.3 } });
+    poz.noktalar[P.SOL_BILEK].vx = -0.5; // sn başına 0.5 normalize birim
+    o.guncelle(1 / 60, { pozHam: poz, damga: 1, gecikme: 0.06, harita, W, H });
+    const beklenen = harita(0.45 + -0.5 * 0.06, 0.3).x;
+    sina("Gecikme telafisi noktayı ileri sarıyor", Math.abs(o.poz.n[P.SOL_BILEK].x - beklenen) < 1, `${Math.round(o.poz.n[P.SOL_BILEK].x)} vs ${Math.round(beklenen)}`);
+    // Hızsız akışta (test/ana thread yedeği) davranış değişmez
+    const o2 = new Oyun({ mod: "serbest", zorluk: "orta" });
+    o2.guncelle(1 / 60, { pozHam: govde(), damga: 1, harita, W, H });
+    sina("Hız bilgisi yoksa konum bozulmuyor", Math.abs(o2.poz.n[P.SOL_BILEK].x - harita(0.45, 0.3).x) < 0.001);
+  }
+}
+
 console.log(`\n=== ${gecti} geçti, ${kaldi} kaldı ===\n`);
 process.exit(kaldi > 0 ? 1 : 0);

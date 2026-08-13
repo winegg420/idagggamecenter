@@ -44,10 +44,19 @@ const ISINMA_ARA = 5; // sn — sonraki roundlarda kısa hazırlık
 const COMBO_PENCERE = 2.4; // sn — ardışık isabet arası azami süre
 // Pad kabul yarıçapı: kamerada bilek konumu ±birim*0.2 salınır ve oyuncu pede
 // "denk getirdim" dediğinde gerçekte merkezden yarım gövde ölçüsü uzakta olur.
-// 0.62 çok cimriydi (isabet ıskalanıyordu) — 0.85'e açıldı.
-const PAD_TOLERANS = 0.85; // birim — pad merkezine kabul yarıçapı katsayısı
+// 0.62 → 0.85 → 1.05: hâlâ "denk getiremiyorum" geri bildirimi geliyordu.
+const PAD_TOLERANS = 1.05; // birim — YANLIŞ türde pad'e temas yarıçapı
+// DOĞRU numaralı pad için çok daha cömert yarıçap. Bu oyunun ölçtüğü beceri
+// "doğru yumruğu doğru elle atmak"tır; kamerada 2D bilek konumu (özellikle düz
+// yumrukta) piksel hassasiyetinde bir nişan aracı değildir. Doğru yumruk
+// atıldıysa ve pad kabaca o bölgedeyse isabet sayılır.
+const PAD_DOGRU_TOLERANS = 2.6; // birim — doğru numaralı pad için kabul yarıçapı
 const TEHDIT_TELEGRAPH = 0.95; // sn — savunmada yumruğun gelme süresi (zorlukla kısalır)
 const KACIS_MESAFE = 0.5; // birim — kafa bu kadar kaydıysa kaçış başarılı
+const EKSTRA_TAVAN = 0.11; // sn — azami gecikme telafisi (aşırı ileri sarma titreşim yapar)
+// Azami ileri sarma yer değiştirmesi (normalize). Hızlı bir yumruk 50 ms'de
+// ~1/3 gövde ölçüsü ilerler; bunun ötesi telafi değil, gürültü demektir.
+const EKSTRA_MAX_YER = 0.07;
 const NEFES_HZ = 0.22; // nefes/tempo göstergesi frekansı (yavaş, sakin ritim)
 
 // Combo çarpan eğrisi (madde 12).
@@ -76,15 +85,36 @@ const KOMBOLAR = {
 };
 
 // Pad bölgeleri: yumruk numarasına göre anatomik olarak doğru hedef konumu.
-// x oranı ekranda: ayna görüntüsünde oyuncunun SOL eli ekranın SOLUNDA görünür.
-// tur/on bilgisinden hangi elin vuracağı bilinir → pad o tarafa yerleşir.
-function padKonum(no, durus, W, H) {
+//
+// AYNA YÖNÜ (düzeltildi): selfie görüntüsünde oyuncunun SOL eli ekranın
+// SOLUNDA görünür. Eski kod pad'i `0.5 + (sol ? +1 : -1) * ...` ile TERS tarafa
+// koyuyordu; oyuncu her pede vücudunun karşısına uzanarak vurmak zorunda
+// kalıyordu — "hedefe denk getirmek zor" şikâyetinin ana kaynağı buydu.
+//
+// VÜCUDA GÖRE KONUM: pad'ler ekranın sabit yüzdelerine değil, oyuncunun kafası
+// ve gövde ölçeğine (`birim`) göre yerleştirilir. Böylece oyuncu kadrajda
+// nerede durursa dursun (kenarda, yakın, uzak) pedler kolunun gerçekten
+// ulaşacağı yerde belirir. Vücut görünmüyorsa eski ekran-oranı yedeği kullanılır.
+function padKonum(no, durus, W, H, ankor) {
   const b = noBilgi(no, durus);
-  const solTaraf = b.el === "sol";
-  const kenar = solTaraf ? 1 : -1;
-  let x = 0.5 + kenar * (b.tur === TUR.HOOK ? 0.29 : b.tur === TUR.UPPERCUT ? 0.13 : 0.19);
-  let y = b.tur === TUR.UPPERCUT ? 0.63 : b.tur === TUR.HOOK ? 0.42 : 0.33;
-  return { x: x * W, y: y * H, el: b.el, tur: b.tur, on: b.on };
+  const kenar = b.el === "sol" ? -1 : 1; // sol el → ekranın solu
+  let x;
+  let y;
+  if (ankor && ankor.birim > 0) {
+    const u = ankor.birim;
+    const yan = b.tur === TUR.HOOK ? 1.3 : b.tur === TUR.UPPERCUT ? 0.5 : 0.88;
+    const dik = b.tur === TUR.UPPERCUT ? 0.62 : b.tur === TUR.HOOK ? 0.1 : 0.12;
+    x = ankor.x + kenar * u * yan;
+    y = ankor.y + u * dik;
+    // Kadraj dışına taşmasın (oyuncu kenarda duruyor olabilir).
+    const pay = Math.min(W, H) * 0.1;
+    x = Math.max(pay, Math.min(W - pay, x));
+    y = Math.max(pay, Math.min(H - pay, y));
+  } else {
+    x = (0.5 + kenar * (b.tur === TUR.HOOK ? 0.29 : b.tur === TUR.UPPERCUT ? 0.13 : 0.19)) * W;
+    y = (b.tur === TUR.UPPERCUT ? 0.63 : b.tur === TUR.HOOK ? 0.42 : 0.33) * H;
+  }
+  return { x, y, el: b.el, tur: b.tur, on: b.on };
 }
 
 /** Round başına biriken ham olay sayaçları (madde 6.2 — sayılabilir veri). */
@@ -150,6 +180,9 @@ export class Oyun {
     this._tempoDilimT = 0;
     this._sonPozDamga = -1;
     this._tanimaDt = 0;
+    this._pozYas = 0; // aktif poz paketinin yaşı (gecikme telafisi)
+    this._pozN = null; // kalıcı ekran-uzayı nokta nesneleri (GC baskısı yok)
+    this._pozPaket = null;
     this.poz = null;
 
     // ---- görsel/veri kuyrukları ----
@@ -300,8 +333,16 @@ export class Oyun {
     this._padEkle(no, W, H);
   }
 
+  /** Pad'lerin dayanacağı vücut çıpası (kafa + gövde ölçeği) — yoksa null. */
+  _ankor() {
+    const kafa = this.tanima.kafa;
+    const birim = this.tanima.birim;
+    if (!kafa || !(birim > 0)) return null;
+    return { x: kafa.x, y: kafa.y, birim };
+  }
+
   _padEkle(no, W, H, ekstra = {}) {
-    const k = padKonum(no, this.durus, W, H);
+    const k = padKonum(no, this.durus, W, H, this._ankor());
     // Aynı yere üst üste pad koyma (okunabilirlik).
     const cakisma = this.padler.some((p) => Math.hypot(p.x - k.x, p.y - k.y) < Math.min(W, H) * 0.14);
     const kayma = cakisma ? (Math.random() - 0.5) * Math.min(W, H) * 0.16 : 0;
@@ -311,7 +352,7 @@ export class Oyun {
       y: k.y + kayma * 0.5,
       el: k.el,
       tur: k.tur,
-      r: Math.min(W, H) * 0.075,
+      r: Math.min(W, H) * 0.085,
       t: 0,
       omur: this.z.padOmur,
       titre: 0,
@@ -480,24 +521,39 @@ export class Oyun {
 
     const birim = this.tanima.birim || Math.min(W, H) * 0.18;
     const tolerans = birim * PAD_TOLERANS;
+    const dogruTolerans = birim * PAD_DOGRU_TOLERANS;
+    // Nişan noktası (derinlik telafili) — yoksa ham bilek konumu.
+    const hx = olay.nx != null ? olay.nx : olay.x;
+    const hy = olay.ny != null ? olay.ny : olay.y;
 
-    // En yakın pad (vuruş noktasına göre)
-    let hedef = null;
-    let enYakin = Infinity;
+    // İki aşamalı eşleştirme:
+    //  1) DOĞRU numaralı pad cömert yarıçapla aranır — "doğru yumruğu attım ama
+    //     saymadı" hissini bitiren asıl kural.
+    //  2) Doğru numara yoksa, yakındaki YANLIŞ numaralı pad geri bildirim için
+    //     dar yarıçapla aranır (titrer, puan yok, ceza yok).
+    let dogru = null;
+    let dogruD = Infinity;
+    let yanlis = null;
+    let yanlisD = Infinity;
     for (const pad of this.padler) {
       if (pad.vuruldu) continue;
-      const d = Math.hypot(pad.x - olay.x, pad.y - olay.y);
-      if (d < pad.r + tolerans && d < enYakin) {
-        enYakin = d;
-        hedef = pad;
+      // Koç modunda SIRA önemlidir: sıradaki pad değilse hiç değerlendirilmez.
+      if (this.mod === "koc" && this.komut && !pad.sirali) continue;
+      const d = Math.hypot(pad.x - hx, pad.y - hy);
+      if (pad.no === olay.no) {
+        if (d < pad.r + dogruTolerans && d < dogruD) {
+          dogruD = d;
+          dogru = pad;
+        }
+      } else if (d < pad.r + tolerans && d < yanlisD) {
+        yanlisD = d;
+        yanlis = pad;
       }
     }
+    const hedef = dogru || yanlis;
     if (!hedef) return; // boş yumruk — sayılır ama puan yok (ceza da yok)
 
-    // Koç modunda SIRA önemlidir: sıradaki pad değilse sayılmaz.
-    if (this.mod === "koc" && this.komut && !hedef.sirali) return;
-
-    if (hedef.no === olay.no) {
+    if (hedef === dogru) {
       this._isabet(hedef, olay);
       if (this.mod === "koc" && this.komut) {
         this.komut.indeks++;
@@ -511,7 +567,7 @@ export class Oyun {
         }
       }
     } else {
-      // Doğru pad, yanlış yumruk türü → pad titrer, puan yok, ceza yok.
+      // Yakındaki pad başka bir numara istiyordu → pad titrer, puan yok, ceza yok.
       this.ist.yanlisTur++;
       hedef.titre = 0.35;
       this.sesler.push("yanlis");
@@ -566,11 +622,12 @@ export class Oyun {
    * @param {object} veri
    * @param {object|null} veri.pozHam  posetakip.poz (ham normalize)
    * @param {number} veri.damga        poz algılama kare numarası (yeni veri işareti)
+   * @param {number} [veri.gecikme]    boru hattı gecikmesi (sn) — telafi için
    * @param {(nx:number,ny:number)=>{x:number,y:number}} veri.harita ekran eşleyici
    * @param {number} veri.W
    * @param {number} veri.H
    */
-  guncelle(dt, { pozHam, damga = 0, harita, W, H }) {
+  guncelle(dt, { pozHam, damga = 0, gecikme = 0, harita, W, H }) {
     // Tavan 0.1 sn: kare atlandığında (sekme arka planda, GC duraklaması) oyun
     // ağır çekime düşmesin — 0.05 tavanı 20 fps altında görünür yavaşlama
     // yapıyordu ve "akmıyor" hissinin bir kısmı buradan geliyordu.
@@ -578,16 +635,33 @@ export class Oyun {
     this._t += dt;
     this.nefes = 0.5 + 0.5 * Math.sin(this._t * Math.PI * 2 * NEFES_HZ);
 
-    // ---- ham landmark → ekran uzayı ----
+    // ---- ham landmark → ekran uzayı (gecikme telafili) ----
+    // Poz sonucu ~30-70 ms geriden gelir. Nokta hızlarıyla bu süre kadar ileri
+    // sararak hem çizimi hem isabet noktasını gerçek ana hizalarız; ayrıca
+    // ~30 Hz'lik poz akışı 60 fps çizimde kesintisiz akar (görsel akıcılık).
+    // Nokta nesneleri KALICI: kare başına 18 nesne ayırmak GC baskısı yaratıyordu.
+    if (damga !== this._sonPozDamga) this._pozYas = 0;
+    else this._pozYas = Math.min(EKSTRA_TAVAN, (this._pozYas || 0) + dt);
+    const ileri = Math.min(EKSTRA_TAVAN, (gecikme || 0) + (this._pozYas || 0));
+
     let poz = null;
     if (pozHam && pozHam.noktalar) {
-      const n = {};
+      const n = this._pozN || (this._pozN = {});
+      // Bu karede gelmeyen nokta "görünmüyor" sayılmalı (bayat konum kalmasın).
+      for (const idx in n) n[idx].g = 0;
       for (const idx in pozHam.noktalar) {
         const p = pozHam.noktalar[idx];
-        const e = harita(p.x, p.y);
-        n[idx] = { x: e.x, y: e.y, z: p.z, g: p.g };
+        const sx = Math.max(-EKSTRA_MAX_YER, Math.min(EKSTRA_MAX_YER, (p.vx || 0) * ileri));
+        const sy = Math.max(-EKSTRA_MAX_YER, Math.min(EKSTRA_MAX_YER, (p.vy || 0) * ileri));
+        const e = harita(p.x + sx, p.y + sy);
+        const hedef = n[idx] || (n[idx] = { x: 0, y: 0, z: 0, g: 0 });
+        hedef.x = e.x;
+        hedef.y = e.y;
+        hedef.z = p.z;
+        hedef.g = p.g;
       }
-      poz = { n, dunya: pozHam.dunya || null };
+      poz = this._pozPaket || (this._pozPaket = { n, dunya: null });
+      poz.dunya = pozHam.dunya || null;
     }
     this.poz = poz;
     // Tanıma YALNIZ yeni bir poz algılama karesinde çalışır: aynı landmark'la

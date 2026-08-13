@@ -46,10 +46,17 @@ export function koordinatHesap(video, W, H) {
   };
 }
 
+// PERFORMANS: karartma eskiden ayrı bir tam ekran `fillRect` geçişiyle
+// yapılıyordu (kare başına iki tam ekran dolgusu). Tuval `alpha:false` +
+// `clearRect` sonrası SİYAH olduğundan, videoyu doğrudan alfa ile çizmek
+// aynı sonucu TEK geçişte verir.
+const KARARTMA = 0.3;
+
 function videoCiz(ctx, video, k, W) {
   ctx.save();
   ctx.translate(W, 0);
   ctx.scale(-1, 1);
+  ctx.globalAlpha = 1 - KARARTMA;
   try {
     ctx.drawImage(video, k.ox, k.oy, k.dw, k.dh);
   } catch {
@@ -67,8 +74,7 @@ let _vinyet = null;
 let _vinyetW = 0;
 let _vinyetH = 0;
 function atmosferCiz(ctx, W, H, kalite) {
-  ctx.fillStyle = "rgba(20,16,15,0.3)";
-  ctx.fillRect(0, 0, W, H);
+  // Karartma artık video çiziminde (tek geçiş) yapılıyor — burada yalnız vinyet.
   if (kalite < 0.95) return;
   if (!_vinyet || _vinyetW !== W || _vinyetH !== H) {
     const g = ctx.createRadialGradient(W / 2, H / 2, Math.min(W, H) * 0.32, W / 2, H / 2, Math.max(W, H) * 0.72);
@@ -388,7 +394,10 @@ function popupCiz(ctx, pp) {
  */
 export function ciz(ctx, oyun, video, k, W, H, ayar = {}) {
   const kalite = ayar.kalite == null ? 1 : ayar.kalite;
-  ctx.clearRect(0, 0, W, H);
+  // Temizleme yerine sıcak is-siyahı zemin: aynı tek geçiş maliyeti, ama video
+  // alfa ile üstüne çizilince "Gece Antrenmanı" tonu korunur.
+  ctx.fillStyle = RENK.arka;
+  ctx.fillRect(0, 0, W, H);
 
   const sar = oyun.sarsinti || 0;
   const kaydi = sar > 0.2;

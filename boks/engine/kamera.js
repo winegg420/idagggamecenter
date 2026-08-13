@@ -47,8 +47,10 @@ export class Kamera {
           width: { ideal: 640 },
           height: { ideal: 360 },
           // 30 fps yumruk anını yakalamaya yeter (bir yumruk ~4-5 kare sürer) ve
-          // kamera kod çözme yükünü yarıya indirir.
-          frameRate: { ideal: 30, min: 20 },
+          // kamera kod çözme yükünü yarıya indirir. `min` KULLANILMAZ: zorunlu
+          // kısıttır ve bazı cihazlarda OverconstrainedError ile kamerayı hiç
+          // açtırmaz.
+          frameRate: { ideal: 30 },
         },
         audio: false,
       });
