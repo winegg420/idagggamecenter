@@ -55,6 +55,10 @@ export class ElTakip {
     this._cekirdek = null;
     this._maxEl = 2;
     this._yedekGecis = false;
+    // Teşhis: çıkarım delegesi ("GPU"|"CPU") — worker ya da ana-thread, hangisi kurulduysa.
+    this.delege = "";
+    this.cikarimMs = 0; // teşhis: çıkarım süresi (ms, EMA) — rozette gösterilir
+    this._baslatiliyor = false; // baslat() yeniden girişe karşı (kamera iki kez açılmasın)
   }
 
   /** HandLandmarker'ı ANA THREAD'de kurar (yedek yol). */
@@ -80,8 +84,10 @@ export class ElTakip {
       });
     try {
       this.landmarker = await olustur("GPU");
+      this.delege = "GPU";
     } catch {
       this.landmarker = await olustur("CPU");
+      this.delege = "CPU";
     }
     this.yol = "ana";
   }
@@ -112,27 +118,49 @@ export class ElTakip {
         if (this.durduruldu) return;
         this._ellerAyarla(veri.eller || []);
         this.gecikmeSn = gecikmeSn;
+        this.cikarimMs = cekirdek.cikarimMs;
       },
       onYedek: () => this._yedegeDus(),
+      onDelege: (d) => {
+        this.delege = d;
+      },
     });
     if (!(await cekirdek.kur())) return false;
     this._cekirdek = cekirdek;
+    this.delege = cekirdek.delege;
     this.yol = "worker";
     return true;
   }
 
   // Kamera + HandLandmarker'ı başlatır. Hata durumunda anlamlı mesajla reddeder.
-  async baslat(maxEl) {
+  // kapsayici: verilirse video bu elemana GÖRÜNÜR olarak eklenir (canvas'ın
+  // altında CSS cover+ayna) — canvas'a her karede drawImage kopyası gerekmez.
+  async baslat(maxEl, kapsayici = null) {
+    if (this._baslatiliyor || this.hazir) return; // çift çağrı: kamera/worker iki kez açılmasın
+    this._baslatiliyor = true;
+    try {
+      await this._baslat(maxEl, kapsayici);
+    } finally {
+      this._baslatiliyor = false;
+    }
+  }
+
+  async _baslat(maxEl, kapsayici) {
     // 1) Kamera izni + akış
     try {
       this.video = document.createElement("video");
       this.video.playsInline = true;
       this.video.muted = true;
       this.video.setAttribute("playsinline", "");
-      // Bazı tarayıcılar DOM'a bağlı olmayan video'dan kare çözmez → gizli ekle.
-      this.video.style.cssText =
-        "position:fixed;width:1px;height:1px;opacity:0;pointer-events:none;left:-10px;top:-10px;";
-      document.body.appendChild(this.video);
+      if (kapsayici) {
+        this.video.className = "mk-video";
+        kapsayici.appendChild(this.video);
+      } else {
+        // Bazı tarayıcılar DOM'a bağlı olmayan video'dan kare çözmez → gizli ekle.
+        this.video.style.cssText =
+          "position:fixed;width:1px;height:1px;opacity:0;pointer-events:none;left:-10px;top:-10px;";
+        document.body.appendChild(this.video);
+      }
       this.stream = await navigator.mediaDevices.getUserMedia({
         video: {
           facingMode: "user",
@@ -149,6 +177,7 @@ export class ElTakip {
       this.videoGenislik = this.video.videoWidth || 640;
       this.videoYukseklik = this.video.videoHeight || 480;
     } catch (e) {
+      this._kamerayiKapat(); // yarım kalan video elemanı DOM'da (görünür) kalmasın
       if (e && (e.name === "NotAllowedError" || e.name === "SecurityError")) {
         throw new Error("Kamera izni reddedildi. Oynamak için kamera erişimine izin ver.");
       }
@@ -159,9 +188,15 @@ export class ElTakip {
     }
 
     // 2) Çıkarım motoru — ÖNCE worker (ana thread bloklanmaz, kısma gerekmez)
-    if (await this._workerBaslat(maxEl)) {
+    const workerVar = await this._workerBaslat(maxEl);
+    if (this.durduruldu) {
+      // Kurulum sürerken durdur() çağrıldı (sayfadan çıkıldı): worker sızmasın.
+      this._cekirdek?.kapat();
+      this._cekirdek = null;
+      return;
+    }
+    if (workerVar) {
       this.hazir = true;
-      this.durduruldu = false;
       this.damga = 0;
       this._sonTs = -1;
       this._sonIsleme = 0;
@@ -177,9 +212,17 @@ export class ElTakip {
       this._kamerayiKapat();
       throw new Error("El takip modeli yüklenemedi (internet gerekli): " + (e?.message || e));
     }
+    if (this.durduruldu) {
+      try {
+        this.landmarker?.close?.();
+      } catch {
+        /* yut */
+      }
+      this.landmarker = null;
+      return;
+    }
 
     this.hazir = true;
-    this.durduruldu = false;
     this.damga = 0;
     this._sonTs = -1;
     this._sonIsleme = 0;
@@ -244,6 +287,7 @@ export class ElTakip {
       /* tek kare hatası — yut, döngü devam */
     }
     this._sonInference = performance.now() - t0;
+    this.cikarimMs = this.cikarimMs ? this.cikarimMs * 0.9 + this._sonInference * 0.1 : this._sonInference;
     // Toplam gecikme = kare yaşı + çıkarım + bir sonraki çizime kadar geçecek
     // yarım kare. Oyun bu kadar ileri saracak (bkz. oyun.js telafi).
     this.gecikmeSn = Math.min(0.18, (kareYasi + this._sonInference + 8) / 1000);

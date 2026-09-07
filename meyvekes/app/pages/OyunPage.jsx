@@ -22,7 +22,10 @@ export default function OyunPage() {
   const modAd = yeme ? "Meyve Ye" : mod === "arkadas" ? "Arkadaşla" : "Tekli";
 
   const canvasRef = useRef(null);
+  const videoKapRef = useRef(null); // kamera <video> buraya, canvas'ın altına konur
   const takipRef = useRef(null);
+  const baslatiliyorRef = useRef(false); // "Başla" çift tetiklenmesin (kamera/worker iki kez açılmaz)
+  const sonTitresimRef = useRef(0); // navigator.vibrate en fazla 100 ms'de bir
   const oyunRef = useRef(null);
   const rafRef = useRef(0);
   const sonZamanRef = useRef(0);
@@ -39,7 +42,7 @@ export default function OyunPage() {
   const [sesAcik, setSesAcik] = useState(true);
   const [hud, setHud] = useState({
     faz: "geri", geri: 3, sure: 60, puan: 0, combo: 0, sol: 0, sag: 0, el: 0,
-    agizVar: false, agizAcik: false, afps: 0, yol: "",
+    agizVar: false, agizAcik: false, afps: 0, yol: "", delege: "", ms: 0,
   });
   const [sonuc, setSonuc] = useState(null); // { puan, kesim, sol, sag }
   const [kayitDurum, setKayitDurum] = useState(""); // '', 'kaydediliyor', 'kaydedildi', 'hata'
@@ -112,7 +115,9 @@ export default function OyunPage() {
     if (!ctx) {
       // desynchronized: tarayıcı çizimi kompozitörle senkron beklemeden gönderir
       // (kamera üstü canvas'ta gözle görülür gecikme/kasma azalması).
-      ctx = canvas.getContext("2d", { alpha: false, desynchronized: true });
+      // alpha: true — kamera artık canvas'ın ALTINDA ayrı <video> katmanı;
+      // canvas şeffaf, yalnız meyve/efekt çizer (kare başına 1.1 MP kopya yok).
+      ctx = canvas.getContext("2d", { alpha: true, desynchronized: true });
       ctxRef.current = ctx;
     }
     const sc = bw / W; // mantıksal (CSS px) → tampon ölçeği
@@ -129,7 +134,8 @@ export default function OyunPage() {
       takip.gecikmeSn,
       takip.agiz || null
     );
-    ciz(ctx, oyun, takip.video, k, W, H, kaliteRef.current);
+    // video null: kamera CSS katmanında (mk-video) gösteriliyor, canvas'a kopyalanmaz.
+    ciz(ctx, oyun, null, k, W, H, kaliteRef.current);
 
     // ses olayları (motor DOM'a dokunmaz; kuyruğu burada tüketiriz)
     // Tek karede 4 meyve birden kesilince 4 ayrı efekt çalmak hem ses patlaması
@@ -140,7 +146,9 @@ export default function OyunPage() {
         sayac[s] = (sayac[s] || 0) + 1;
         if (sayac[s] <= 2) sesCal(s);
       }
-      if (oyun.sesler.some((s) => s !== "combo")) {
+      // titreşim: kare döngüsünde her kesimde değil, en fazla 100 ms'de bir
+      if (simdi - sonTitresimRef.current > 100 && oyun.sesler.some((s) => s !== "combo")) {
+        sonTitresimRef.current = simdi;
         try {
           navigator.vibrate?.(12);
         } catch {
@@ -167,6 +175,8 @@ export default function OyunPage() {
         agizAcik: !!oyun.agiz?.acik,
         afps: ar.fps,
         yol: takip.yol || "",
+        delege: takip.delege || "",
+        ms: Math.round(takip.cikarimMs || 0),
       };
       setHud((e) => {
         for (const anahtar in y) if (e[anahtar] !== y[anahtar]) return y;
@@ -187,6 +197,8 @@ export default function OyunPage() {
 
   // -------- başlat --------
   const baslat = useCallback(async () => {
+    if (baslatiliyorRef.current || takipRef.current) return; // çift tetik: kamera/worker bir kez
+    baslatiliyorRef.current = true;
     setDurum("baslatiliyor");
     setHata("");
     try {
@@ -211,15 +223,18 @@ export default function OyunPage() {
       sesAcKapa(sesAcik);
 
       // Meyve Ye: yüz/ağız takibi; diğer modlar: el takibi
+      // Video, canvas'ın altındaki kapsayıcıya görünür eklenir (CSS cover + ayna).
       let takip;
       if (yeme) {
         takip = new YuzTakip();
-        await takip.baslat();
+        takipRef.current = takip; // sayfa kapanırsa yarım kurulum da durdurulsun
+        await takip.baslat(videoKapRef.current);
       } else {
         takip = new ElTakip();
-        await takip.baslat(mod === "arkadas" ? 4 : 2);
+        takipRef.current = takip;
+        await takip.baslat(mod === "arkadas" ? 4 : 2, videoKapRef.current);
       }
-      takipRef.current = takip;
+      if (takip.durduruldu) return; // kurulum sürerken çıkıldı
       oyunRef.current = new Oyun(mod);
       bittiRef.current = false;
       setSonuc(null);
@@ -233,6 +248,8 @@ export default function OyunPage() {
       setDurum("hata");
       takipRef.current?.durdur();
       takipRef.current = null;
+    } finally {
+      baslatiliyorRef.current = false;
     }
   }, [mod, yeme, sesAcik, dongu]);
 
@@ -277,6 +294,15 @@ export default function OyunPage() {
     return () => document.removeEventListener("visibilitychange", gorunur);
   }, [durum]);
 
+  // Teşhis rozeti: "48 Hz · worker/GPU · 14ms" — ana-thread yedeğine düşüldüyse
+  // "10 Hz · ana/CPU · 60ms ⚠" (kasma/ıskalama şikâyetinde ilk bakılacak yer;
+  // ms = tek kare çıkarım süresi: Hz'i sınırlayan şey bu mu, kamera fps'i mi?).
+  const takipBilgi =
+    `${hud.afps} Hz · ${hud.yol === "ana" ? "ana" : "worker"}` +
+    (hud.delege ? `/${hud.delege}` : "") +
+    (hud.ms ? ` · ${hud.ms}ms` : "") +
+    (hud.yol === "ana" ? " ⚠" : "");
+
   const cik = () => {
     cancelAnimationFrame(rafRef.current);
     takipRef.current?.durdur();
@@ -287,6 +313,9 @@ export default function OyunPage() {
 
   return (
     <div className="mk-oyun-root">
+      {/* kamera katmanı (canvas'ın altında) + hafif karartma; canvas şeffaf üstte */}
+      <div ref={videoKapRef} className="mk-video-kap" />
+      <div className="mk-video-karartma" />
       <canvas ref={canvasRef} className="mk-canvas" />
 
       {/* ---- Başlangıç ekranı ---- */}
@@ -355,17 +384,13 @@ export default function OyunPage() {
           {hud.faz === "oyun" && !yeme && (
             <div className={"mk-el-durum " + (hud.el > 0 ? "mk-el-var" : "mk-el-yok")}>
               {hud.el > 0 ? `🖐 ${hud.el}` : "🖐 el görünmüyor"}
-              <span className="mk-takip-bilgi">
-                {hud.afps} Hz{hud.yol === "ana" ? " ⚠" : ""}
-              </span>
+              <span className="mk-takip-bilgi">{takipBilgi}</span>
             </div>
           )}
           {hud.faz === "oyun" && yeme && (
             <div className={"mk-el-durum " + (hud.agizVar ? "mk-el-var" : "mk-el-yok")}>
               {hud.agizVar ? (hud.agizAcik ? "😋 ağız açık" : "🙂 hazır") : "😐 yüz görünmüyor"}
-              <span className="mk-takip-bilgi">
-                {hud.afps} Hz{hud.yol === "ana" ? " ⚠" : ""}
-              </span>
+              <span className="mk-takip-bilgi">{takipBilgi}</span>
             </div>
           )}
 

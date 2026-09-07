@@ -13,6 +13,10 @@
 //
 // Aynı worker iki modeli de kurar: `model: 'el'` → HandLandmarker (Meyve Kes),
 // `model: 'yuz'` → FaceLandmarker (Meyve Ye). Sonuç paketi modele göre değişir.
+//
+// DİKKAT: Bu dosya KLASİK worker olarak yüklenir (takip-cekirdek.js, `type`
+// seçeneği YOK). Buraya static `import`/`export` EKLEME — yalnız dinamik
+// `import()` kullanılabilir. Nedeni: kutuphaneYukle() açıklaması.
 // ============================================================
 
 // FaceLandmarker (478 nokta) ağız indeksleri — yuztakip.js ile birebir aynı
@@ -25,11 +29,121 @@ let landmarker = null;
 let model = "el";
 let hazir = false;
 let sonTs = 0;
+let delege = "GPU"; // teşhis: hangi delege kuruldu ("hazir" mesajıyla bildirilir)
+let olusturucu = null; // (delege) => landmarker sözü — delege yarışı için saklanır
 
-async function kur({ cdnKok, modelUrl, maxEl, model: istenen }) {
+// ---- Delege yarışı ----
+// Telefonlarda WebGL (GPU) delegesi bazen WASM-SIMD (CPU) delegesinden YAVAŞTIR
+// (özellikle iOS Safari / eski Android). Kurulumda GPU seçilir; ısınma sonrası
+// ortalama çıkarım YARIS_ESIK_MS'i aşarsa CPU delegesi de kurulup aynı sayıda
+// kareyle ölçülür, hızlı olan tutulur, öteki kapatılır. Ana thread'e "delege"
+// mesajıyla bildirilir (rozet dürüst kalır).
+const YARIS_ISINMA = 12; // ölçüme katılmayan ilk kare sayısı
+const YARIS_ORNEK = 24; // her delege için ölçülen kare sayısı
+let YARIS_ESIK_MS = 34; // bunun altındaysa (30 Hz sığar) yarış açılmaz ("kur" ile ezilebilir: test)
+let olcum = { sayi: 0, toplam: 0 };
+let yarisDurum = "bekliyor"; // bekliyor | cpuKuruluyor | cpuOlculuyor | bitti
+let gpuOrt = 0;
+let adayLandmarker = null;
+
+function olcumSifirla() {
+  olcum = { sayi: 0, toplam: 0 };
+}
+
+async function cpuAdayKur() {
+  yarisDurum = "cpuKuruluyor";
+  try {
+    adayLandmarker = await olusturucu("CPU");
+    if (!hazir) {
+      // bu arada kapatıldı
+      try {
+        adayLandmarker?.close?.();
+      } catch {
+        /* yut */
+      }
+      adayLandmarker = null;
+      yarisDurum = "bitti";
+      return;
+    }
+    olcumSifirla();
+    yarisDurum = "cpuOlculuyor";
+  } catch {
+    adayLandmarker = null;
+    yarisDurum = "bitti";
+  }
+}
+
+// Her sonuçtan sonra çağrılır: ölçüm biriktirir ve gerekirse delege değiştirir.
+function yarisAdim(sure) {
+  if (yarisDurum === "bitti" || yarisDurum === "cpuKuruluyor") return;
+  olcum.sayi++;
+  if (olcum.sayi <= YARIS_ISINMA) return;
+  olcum.toplam += sure;
+  const n = olcum.sayi - YARIS_ISINMA;
+  if (n < YARIS_ORNEK) return;
+  const ort = olcum.toplam / n;
+  if (yarisDurum === "bekliyor") {
+    if (delege !== "GPU" || ort <= YARIS_ESIK_MS) {
+      yarisDurum = "bitti";
+      return;
+    }
+    gpuOrt = ort;
+    cpuAdayKur(); // async — bu sırada GPU çalışmaya devam eder
+    return;
+  }
+  if (yarisDurum === "cpuOlculuyor") {
+    yarisDurum = "bitti";
+    const kazanan = ort < gpuOrt * 0.85 ? "CPU" : "GPU"; // belirgin fark yoksa GPU kalsın
+    const eski = kazanan === "CPU" ? landmarker : adayLandmarker;
+    if (kazanan === "CPU") landmarker = adayLandmarker;
+    adayLandmarker = null;
+    try {
+      eski?.close?.();
+    } catch {
+      /* yut */
+    }
+    const degisti = kazanan !== delege;
+    delege = kazanan;
+    // Yarış sonucu her durumda bildirilir (teşhis: konsolda iki delegenin ölçümü görünür).
+    self.postMessage({
+      tip: "delege",
+      delege,
+      degisti,
+      neden: `yarış: GPU ${gpuOrt.toFixed(0)} ms, CPU ${ort.toFixed(0)} ms`,
+    });
+  }
+}
+
+// Tasks Vision kütüphanesini yükler.
+// KRİTİK: bu worker KLASİK tiptedir (module DEĞİL). MediaPipe'ın wasm yükleyicisi
+// worker içinde `importScripts` kullanır; module worker'da bu çağrı yasaktır ve
+// kurulum "Module scripts don't support importScripts()" ile ölür (GPU ve CPU
+// denemesi ayrı ayrı — konsolda iki hata). Klasik worker'da dinamik `import()`
+// güncel Chrome/Safari/Firefox'ta çalışır; desteklemeyen çok eski tarayıcıda
+// CJS paketi `importScripts` ile alınır (self.exports üzerinden).
+async function kutuphaneYukle(cdnKok) {
+  try {
+    // CDN'den ESM (Vite bunu bundle etmeye çalışmasın)
+    return await import(/* @vite-ignore */ `${cdnKok}/vision_bundle.mjs`);
+  } catch (e) {
+    if (typeof importScripts !== "function") throw e;
+    try {
+      self.exports = {};
+      self.module = { exports: self.exports };
+      importScripts(`${cdnKok}/vision_bundle.cjs`);
+      const m = self.module.exports || self.exports;
+      if (!m || (!m.HandLandmarker && !m.FaceLandmarker)) throw new Error("CJS paketi boş döndü");
+      return m;
+    } catch (e2) {
+      throw new Error(`kütüphane yüklenemedi (import: ${e?.message || e}; importScripts: ${e2?.message || e2})`);
+    }
+  }
+}
+
+async function kur({ cdnKok, modelUrl, maxEl, model: istenen, yarisEsikMs }) {
   model = istenen === "yuz" ? "yuz" : "el";
-  // CDN'den ESM (Vite bunu bundle etmeye çalışmasın)
-  const vision = await import(/* @vite-ignore */ `${cdnKok}/vision_bundle.mjs`);
+  if (typeof yarisEsikMs === "number") YARIS_ESIK_MS = yarisEsikMs;
+  const vision = await kutuphaneYukle(cdnKok);
   const { HandLandmarker, FaceLandmarker, FilesetResolver } = vision;
   const Sinif = model === "yuz" ? FaceLandmarker : HandLandmarker;
   if (!Sinif || !FilesetResolver) throw new Error("Tasks Vision sınıfı bulunamadı");
@@ -57,11 +171,16 @@ async function kur({ cdnKok, modelUrl, maxEl, model: istenen }) {
         });
   // GPU (OffscreenCanvas/WebGL) → başarısızsa CPU. Worker'da CPU bile ana
   // thread'i bloklamadığı için CPU'ya düşmek artık kasma demek değil.
+  olusturucu = olustur;
   try {
     landmarker = await olustur("GPU");
+    delege = "GPU";
   } catch {
     landmarker = await olustur("CPU");
+    delege = "CPU";
   }
+  olcumSifirla();
+  yarisDurum = "bekliyor";
 }
 
 // MediaPipe sonucunu sade, klonlanabilir pakete çevirir.
@@ -97,7 +216,7 @@ self.onmessage = async (olay) => {
     try {
       await kur(m);
       hazir = true;
-      self.postMessage({ tip: "hazir" });
+      self.postMessage({ tip: "hazir", delege });
     } catch (e) {
       self.postMessage({ tip: "hata", mesaj: String(e?.message || e) });
     }
@@ -121,10 +240,12 @@ self.onmessage = async (olay) => {
     let ts = Math.round(m.ts || 0);
     if (ts <= sonTs) ts = sonTs + 1;
     sonTs = ts;
+    // Yarışta CPU adayı ölçülüyorsa kareyi ADAY işler (akış kesilmez, sonuç ondan gelir).
+    const motor = yarisDurum === "cpuOlculuyor" && adayLandmarker ? adayLandmarker : landmarker;
     const t0 = performance.now();
     let veri = null;
     try {
-      veri = paketle(landmarker.detectForVideo(kare, ts));
+      veri = paketle(motor.detectForVideo(kare, ts));
     } catch {
       /* tek kare hatası — yut, akış devam */
     }
@@ -133,18 +254,27 @@ self.onmessage = async (olay) => {
     } catch {
       /* yut */
     }
-    self.postMessage({ tip: "sonuc", veri, sure: performance.now() - t0, kareYasi: yas });
+    const sure = performance.now() - t0;
+    self.postMessage({ tip: "sonuc", veri, sure, kareYasi: yas });
+    if (veri) yarisAdim(sure);
     return;
   }
 
   if (m.tip === "kapat") {
     hazir = false;
+    yarisDurum = "bitti";
     try {
       landmarker?.close?.();
     } catch {
       /* yut */
     }
     landmarker = null;
+    try {
+      adayLandmarker?.close?.();
+    } catch {
+      /* yut */
+    }
+    adayLandmarker = null;
     self.close();
   }
 };

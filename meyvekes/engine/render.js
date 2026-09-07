@@ -30,6 +30,11 @@ export function koordinatHesap(video, W, H) {
   };
 }
 
+// Kamera görüntüsü artık canvas'a KOPYALANMAZ: <video> elemanı canvas'ın altında
+// CSS ile (object-fit: cover + scaleX(-1)) gösterilir — koordinatHesap ile birebir
+// aynı cover/ayna eşlemesi. Her karede 1.1 MP drawImage kopyası ortadan kalktı
+// (kare başına en büyük çizim maliyetiydi). Bu yol yalnız video canvas'ın
+// altına yerleştirilmemişse (eski çağıran) yedek olarak kullanılır.
 function videoCiz(ctx, video, k, W) {
   ctx.save();
   ctx.translate(W, 0);
@@ -173,17 +178,19 @@ function izCiz(ctx, iz, t, kalite) {
     for (let i = 1; i < n; i++) ctx.lineTo(pts[i].x, pts[i].y);
   };
 
-  // 1) geniş dış parıltı (mavimsi hale) — en pahalı katman (57 px genişlikte
-  // additif stroke). Zayıf cihazda (kalite düşürülmüşse) atlanır; iz yine görünür.
-  if (kalite > 0.7) {
+  // Additif katman sayısı 3→2: geniş dış hale (57 px additif stroke, en pahalı
+  // katman) yalnız TAM kalitede çizilir; kalite bir kez bile düşürüldüyse
+  // yalnız iç parıltı + gövde kalır (iz yine parlak ve görünür).
+  if (kalite === 1) {
+    // 1) geniş dış parıltı (mavimsi hale)
     ctx.strokeStyle = "rgba(90,170,255,0.22)";
     ctx.lineWidth = IZ_MAKS_EN * 2.6;
     merkezYol();
     ctx.stroke();
   }
 
-  // 2) iç parıltı (beyaza yakın)
-  ctx.strokeStyle = "rgba(180,225,255,0.4)";
+  // 2) iç parıltı (beyaza yakın) — tam kalitede dış haleyle birleşir
+  ctx.strokeStyle = kalite === 1 ? "rgba(180,225,255,0.4)" : "rgba(150,205,255,0.5)";
   ctx.lineWidth = IZ_MAKS_EN * 1.3;
   merkezYol();
   ctx.stroke();
@@ -306,14 +313,18 @@ function popupCiz(ctx, pp) {
   ctx.restore();
 }
 
-// Ana çizim. Kamera + meyveler + (yalnız hareket varken) Fruit Ninja pala izi.
+// Ana çizim. Meyveler + (yalnız hareket varken) Fruit Ninja pala izi.
 // El hareketsizken hiçbir bıçak/iz çizilmez — gerçek kol zaten kamerada görünür.
 // kalite: OyunPage'in adaptif çözünürlük katsayısı (1 = tam). 0.7'nin altında
 // pahalı efekt katmanları (geniş additif hale, altın parıltı) kapatılır.
+// video: canvas'ın altında CSS ile gösteriliyorsa (OyunPage, `mk-video`) null
+// geçilir → canvas şeffaf kalır, kopya yok. Bir eleman geçilirse eski yol
+// (canvas'a kopya + karartma) korunur.
 export function ciz(ctx, oyun, video, k, W, H, kalite = 1) {
   ctx.clearRect(0, 0, W, H);
 
-  // kesim sarsıntısı: tüm sahne birkaç piksel kayar (vuruş hissi)
+  // kesim sarsıntısı: yalnız OYUN/EFEKT katmanı (bu canvas) birkaç piksel kayar
+  // (vuruş hissi); kamera artık ayrı katmanda olduğundan yeniden çizilmez.
   const sar = oyun.sarsinti || 0;
   const kaydi = sar > 0.2;
   if (kaydi) {
@@ -321,11 +332,12 @@ export function ciz(ctx, oyun, video, k, W, H, kalite = 1) {
     ctx.translate((Math.random() - 0.5) * sar, (Math.random() - 0.5) * sar);
   }
 
-  videoCiz(ctx, video, k, W);
-
-  // hafif karartma (meyveler öne çıksın)
-  ctx.fillStyle = "rgba(0,0,0,0.12)";
-  ctx.fillRect(0, 0, W, H);
+  if (video) {
+    videoCiz(ctx, video, k, W);
+    // hafif karartma (meyveler öne çıksın)
+    ctx.fillStyle = "rgba(0,0,0,0.12)";
+    ctx.fillRect(0, 0, W, H);
+  }
 
   // MEYVE YE: ağız nişangâhı meyvelerin ALTINDA (meyve halkanın içine girsin)
   if (oyun.agiz) agizCiz(ctx, oyun.agiz, oyun._t);

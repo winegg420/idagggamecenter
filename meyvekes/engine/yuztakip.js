@@ -47,6 +47,10 @@ export class YuzTakip {
     // Worker çıkarımı (tercih edilen yol) — bkz. takip-cekirdek.js
     this._cekirdek = null;
     this._yedekGecis = false;
+    // Teşhis: çıkarım delegesi ("GPU"|"CPU") — worker ya da ana-thread, hangisi kurulduysa.
+    this.delege = "";
+    this.cikarimMs = 0; // teşhis: çıkarım süresi (ms, EMA) — rozette gösterilir
+    this._baslatiliyor = false; // baslat() yeniden girişe karşı (kamera iki kez açılmasın)
   }
 
   /** FaceLandmarker'ı ANA THREAD'de kurar (yedek yol). */
@@ -68,8 +72,10 @@ export class YuzTakip {
       });
     try {
       this.landmarker = await olustur("GPU");
+      this.delege = "GPU";
     } catch {
       this.landmarker = await olustur("CPU");
+      this.delege = "CPU";
     }
     this.yol = "ana";
   }
@@ -98,25 +104,46 @@ export class YuzTakip {
         this.yuzSayisi = veri.agiz ? 1 : 0;
         this.damga++;
         this.gecikmeSn = gecikmeSn;
+        this.cikarimMs = cekirdek.cikarimMs;
       },
       onYedek: () => this._yedegeDus(),
+      onDelege: (d) => {
+        this.delege = d;
+      },
     });
     if (!(await cekirdek.kur())) return false;
     this._cekirdek = cekirdek;
+    this.delege = cekirdek.delege;
     this.yol = "worker";
     return true;
   }
 
-  async baslat() {
+  // kapsayici: verilirse video bu elemana GÖRÜNÜR eklenir (eltakip.js ile aynı düzen).
+  async baslat(kapsayici = null) {
+    if (this._baslatiliyor || this.hazir) return; // çift çağrı: kamera/worker iki kez açılmasın
+    this._baslatiliyor = true;
+    try {
+      await this._baslat(kapsayici);
+    } finally {
+      this._baslatiliyor = false;
+    }
+  }
+
+  async _baslat(kapsayici) {
     // 1) Kamera
     try {
       this.video = document.createElement("video");
       this.video.playsInline = true;
       this.video.muted = true;
       this.video.setAttribute("playsinline", "");
-      this.video.style.cssText =
-        "position:fixed;width:1px;height:1px;opacity:0;pointer-events:none;left:-10px;top:-10px;";
-      document.body.appendChild(this.video);
+      if (kapsayici) {
+        this.video.className = "mk-video";
+        kapsayici.appendChild(this.video);
+      } else {
+        this.video.style.cssText =
+          "position:fixed;width:1px;height:1px;opacity:0;pointer-events:none;left:-10px;top:-10px;";
+        document.body.appendChild(this.video);
+      }
       this.stream = await navigator.mediaDevices.getUserMedia({
         video: {
           facingMode: "user",
@@ -129,6 +156,7 @@ export class YuzTakip {
       this.video.srcObject = this.stream;
       await this.video.play();
     } catch (e) {
+      this._kamerayiKapat(); // yarım kalan video elemanı DOM'da (görünür) kalmasın
       if (e && (e.name === "NotAllowedError" || e.name === "SecurityError")) {
         throw new Error("Kamera izni reddedildi. Oynamak için kamera erişimine izin ver.");
       }
@@ -139,9 +167,15 @@ export class YuzTakip {
     }
 
     // 2) Çıkarım motoru — ÖNCE worker (ana thread bloklanmaz, kısma gerekmez)
-    if (await this._workerBaslat()) {
+    const workerVar = await this._workerBaslat();
+    if (this.durduruldu) {
+      // Kurulum sürerken durdur() çağrıldı (sayfadan çıkıldı): worker sızmasın.
+      this._cekirdek?.kapat();
+      this._cekirdek = null;
+      return;
+    }
+    if (workerVar) {
       this.hazir = true;
-      this.durduruldu = false;
       this.damga = 0;
       this._sonTs = -1;
       this._sonIsleme = 0;
@@ -157,9 +191,17 @@ export class YuzTakip {
       this._kamerayiKapat();
       throw new Error("Yüz takip modeli yüklenemedi (internet gerekli): " + (e?.message || e));
     }
+    if (this.durduruldu) {
+      try {
+        this.landmarker?.close?.();
+      } catch {
+        /* yut */
+      }
+      this.landmarker = null;
+      return;
+    }
 
     this.hazir = true;
-    this.durduruldu = false;
     this.damga = 0;
     this._sonTs = -1;
     this._sonIsleme = 0;
@@ -211,6 +253,7 @@ export class YuzTakip {
       /* tek kare hatası — döngü devam */
     }
     this._sonInference = performance.now() - t0;
+    this.cikarimMs = this.cikarimMs ? this.cikarimMs * 0.9 + this._sonInference * 0.1 : this._sonInference;
     this.gecikmeSn = Math.min(0.18, (kareYasi + this._sonInference + 8) / 1000);
   }
 

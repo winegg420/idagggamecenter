@@ -831,3 +831,14 @@ Kullanıcı geri bildirimi ("kamera kasıyor, akıcı değil, eldivenleri sil, o
 - Doğrulama: `node boks/_test/motor-test.mjs` 72/72, `npm run build` başarılı.
 
 Detay: `boks/PROGRESS.md`.
+
+## 2026-09-08 — Meyve Kes: kasma/gecikme kök nedeni (module worker → klasik worker)
+
+Worker `{ type: "module" }` ile açıldığı için MediaPipe'ın `importScripts` çağrısı her cihazda
+patlıyor, oyun sessizce ~10 Hz ana-thread yedeğine düşüyordu. Worker klasik tipe çevrildi
+(ölçüm: worker/GPU 66 Hz), HUD rozeti "xx Hz · worker/GPU" oldu, kamera canvas'a kopyalanmak
+yerine CSS katmanında gösteriliyor, kesim efekt bütçesi kısıldı. Aynı hata `boks/` worker'ında da
+vardı, düzeltildi. motor-test 43/43 (boks 93/93), build temiz. Detay: `meyvekes/PROGRESS.md`.
+- 2. tur (aynı gün): telefonda 13-14 Hz → rVFC basamaklanması kırıldı ("boşalınca hemen gönder"
+  + bitmap ön hazırlığı), mobilde 352 px kare, worker'da GPU/CPU delege yarışı, rozete çıkarım ms.
+  Yeni `meyvekes/_test/cekirdek-test.mjs` 11/11 (sanal saat: 45 ms çıkarımda 14.9 → 22.1 Hz).

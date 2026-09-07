@@ -221,3 +221,101 @@ yalnız değişimde; aynı karede aynı sesten en fazla 2; menüde model prefetc
 
 **Test:** motor-test **43/43 ✓** (yeni Test 17 salınımlı yumruk, 18 uzun kayıptan dönüş +
 aynı yerden dönen duran el, 19 art arda 5 çıkış/giriş). Build temiz.
+
+---
+
+## 8 Eylül 2026 — Kasma + gecikme KÖK NEDEN: worker hiç kurulamıyordu (module worker)
+
+**Belirti (canlı ölçüm, Windows/Chrome 152, AMD GPU; tüm cihazlarda aynı):** HUD rozeti
+"10 Hz ⚠"; konsolda worker iki kez kurulmaya çalışıp ikisi de
+`Failed to execute 'importScripts' on 'WorkerGlobalScope': Module scripts don't support
+importScripts()` ile ölüyor. 400 karenin 80'i 35–60 ms takılıyor, bıçak ~100 ms geride, kadrajdan
+çıkan el kör pencerede kayboluyor.
+
+**Kök neden:** `takip-cekirdek.js` worker'ı `{ type: "module" }` ile açıyordu. MediaPipe Tasks
+Vision'ın wasm yükleyicisi worker içinde `importScripts` kullanır; module worker'da bu yasak.
+"İki kez kurulma" = worker'daki GPU → CPU denemesi (ikisi de aynı yerde patlıyor). Worker HER
+cihazda kurulamıyor, kod sessizce kısmalı ana-thread yedeğine düşüyordu (~10 Hz). Donanım
+sorunu değildi: aynı makinede saf ölçüm ana thread GPU 8.7 ms/kare, klasik Blob worker'da
+10.4 ms/kare, createImageBitmap 0.1 ms.
+
+**Yapılanlar:**
+1. **Worker klasik tipe çevrildi** (`takip-cekirdek.js`: `type` seçeneği kaldırıldı). Vite
+   build'de worker zaten IIFE çıkıyordu (`(function(){...})()`, `import()` korunur, static
+   import/export yok); dev'de `?worker_file&type=classic` + `importScripts("/@vite/env")` ile
+   servis ediliyor — ikisi de doğrulandı. `takip-worker.js`: dinamik `import()` başarısızsa
+   (çok eski tarayıcı) `self.exports` tanımlanıp `importScripts(cdnKok + "/vision_bundle.cjs")`
+   denenir; o da olmazsa mevcut "hata" mesajı (ana-thread yedeği aynen duruyor).
+   `kur()` yeniden girişe dayanıklı (`_kurSozu`); `ElTakip/YuzTakip.baslat()` ve
+   `OyunPage.baslat` çift tetiklenmeye karşı korumalı (kamera/worker bir kez açılır); kurulum
+   sürerken sayfadan çıkılırsa worker/landmarker sızmaz.
+2. **Teşhis dürüst:** worker "hazir" mesajı `delege: "GPU"|"CPU"` taşır; `ElTakip/YuzTakip.delege`
+   (ana-thread yolunda da dolar). HUD rozeti artık **"48 Hz · worker/GPU"**; ana-thread yedeğine
+   düşülmüşse **"10 Hz · ana/CPU ⚠"**. Worker kurulum hatası, zaman aşımı, sonuç üretememe ve
+   oluşturma hatası hepsi `console.warn` ile yazılır — sessiz düşüş yok.
+3. **Kesim anı efekt bütçesi:** parçacık 12→8, altın 20→12 (yeme: 9→6, 16→10);
+   `MAX_PARCACIK` 260→160; iz additif katmanı 3→2 (geniş dış hale yalnız `kalite === 1`);
+   sarsıntı artık yalnız oyun/efekt canvas'ını kaydırır (kamera ayrı katmanda, yeniden
+   çizilmez); `navigator.vibrate` en fazla 100 ms'de bir.
+4. **Kamera kopyası kaldırıldı:** `<video>` artık canvas'ın ALTINDA görünür katman
+   (`.mk-video`: `object-fit: cover; transform: scaleX(-1)` = `koordinatHesap` ile birebir aynı
+   cover/ayna eşlemesi); `%12` karartma CSS katmanı (`.mk-video-karartma`); canvas `alpha: true`,
+   `ciz(..., video = null)` → kopya ve fillRect yok. `ElTakip.baslat(maxEl, kapsayici)` /
+   `YuzTakip.baslat(kapsayici)`: kapsayıcı verilmezse eski gizli-video yolu aynen çalışır
+   (`ciz`'e video geçilirse eski kopya yolu da korunur — `_test/*.html` null geçer).
+5. **Aynı hata başka modülde:** `boks/engine/takip-cekirdek.js` de module worker açıyordu →
+   aynı tek satırlık düzeltme uygulandı (boks motor-test 93/93).
+
+**Ölçüm (Chrome, dev sunucusu, sentetik 480×360 kareler, worker klasik):** el modeli
+**worker/GPU 66 Hz** (ort. çıkarım 14.7 ms), yüz modeli **35 Hz**; kurulum 3.5 sn; her karede
+`veri` geliyor. Worker "hazir" mesajı `delege: "GPU"` ile döndü.
+
+**Test:** motor-test **43/43 ✓**, `npm run build` temiz (worker chunk 2.4 kB, IIFE).
+
+**Kalan (kullanıcıda, gerçek kamera):** rozetin **30+ Hz · worker/GPU** göstermesi ve `⚠`'ın
+kaybolması; meyvelerin elin üstüne denk gelmeye devam etmesi (CSS cover/ayna ↔ koordinatHesap);
+kesim anında takılma olmaması; Meyve Ye'de aynı video düzeni; iPhone Safari'de klasik
+worker + `import()` yolu. Deploy/push yapılmadı.
+
+### Aynı gün, 2. tur — telefonda 13-14 Hz: rVFC basamaklanması + kare boyutu + delege yarışı
+
+Kullanıcı: *"telefonda 13 14 hz. yetersiz."* (rozet yol/delege bilgisi iletilmedi.)
+
+**Analiz:** telefon kamerası 30 fps → rVFC 33 ms'de bir gelir. Tek kare uçuşta + "meşgulse
+atla" ile çevrim (bitmap + çıkarım) 33 ms'i aşınca her ikinci kare düşer ve Hz **30/15/10
+basamaklarına kilitlenir**: 13-14 Hz = çevrim 34-66 ms. Çıkarım ne kadar hızlansa da 33 ms
+altına inmeden 15'ten yukarı çıkılamıyordu.
+
+**Yapılanlar (`engine/takip-cekirdek.js`, `engine/takip-worker.js`):**
+1. **Boşalınca hemen gönder:** her rVFC karesi (meşgulken bile) kaydedilir; worker sonucu
+   döndürür döndürmez en taze kare gönderilir → Hz ≈ min(kamera fps, 1000/çıkarım).
+2. **Ön hazırlık:** worker meşgulken gelen taze karenin `createImageBitmap`'i önceden
+   çıkarılır (tek hazırlık uçuşta, yenisi gelince eskisi kapatılır); sonuçta sıfır beklemeyle
+   gider → çevrim = yalnız çıkarım süresi (bitmap 5-15 ms telefonda gizlenir). Aynı karenin
+   iki yoldan işlenmesine karşı `sonVideoZaman` eşitlik kilidi; bitmap sızıntısı yok.
+3. **Kare boyutu:** dokunmatik cihazda baştan **352 px** uzun kenar; masaüstü 480, ısınma
+   sonrası çıkarım EMA'sı 30 ms'i aşarsa 352'ye iner. Ölçüm (bu makine, GPU): 480 px 14.7 ms →
+   352 px **7.9 ms** (yaklaşık yarı).
+4. **Delege yarışı (worker):** GPU ile kurulur; ısınmadan sonra 24 karede ortalama > 34 ms
+   ise CPU delegesi de kurulup 24 kare ölçülür (bu sırada kareler adaydan işlenir, akış
+   kesilmez), belirgin (>%15) hızlıysa CPU'ya geçilir, yenilen kapatılır. Sonuç `tip:"delege"`
+   mesajıyla bildirilir (konsolda `yarış: GPU x ms, CPU y ms`), rozet güncellenir. Test kancası:
+   `kur` mesajında `yarisEsikMs`.
+5. **Rozet:** `"22 Hz · worker/GPU · 42ms"` — ms = tek kare çıkarım süresi (Hz'i sınırlayan
+   çıkarım mı, kamera fps'i mi görünür). `ElTakip/YuzTakip.cikarimMs`.
+
+**Doğrulama:**
+- Yeni **`_test/cekirdek-test.mjs`** (Node, sanal saat, sahte worker/kamera): 30 fps + 45 ms
+  çıkarımda eski 14.9 Hz → **22.1 Hz**; 36 ms: 14.9 → **27.6**; 70 ms: 9.9 → 14.2; 45 ms +
+  12 ms bitmap: 14.9 → 22.1 (ön hazırlık); masaüstü 30/60 fps kamerada aynı kare iki kez
+  işlenmiyor (29.9 / 59.8 Hz); bitmap sızıntısı yok. **11/11 ✓**
+- Chrome (gizli sekme, sıralı): worker el 352 px **96 Hz / 7.9 ms**, yüz 112 Hz; `yarisEsikMs:0`
+  ile yarış zorlandı → "GPU 8 ms, CPU 43 ms", GPU kaldı, 150/150 kare veri üretti.
+- motor-test 43/43, boks 93/93, build temiz.
+
+**Beklenti (telefon):** çıkarım 40-50 ms olan telefonda 13-14 → **20-25 Hz**; 352 px kare ile
+çıkarım düşerse daha yukarı. Rozet artık ms de gösterdiği için bir sonraki geri bildirimde
+**"xx Hz · worker/GPU · yy ms"** metnini olduğu gibi ilet: yol "ana" ise sorun worker
+kurulumu (konsol uyarısı), ms > 33 ise sorun cihazın çıkarım hızı (delege yarışı devreye girer).
+Kalan büyük kaldıraç: Tekli modda tek el görünürken `numHands=2` her karede avuç dedektörünü
+koşturur (~2× maliyet) — `numHands=1` seçeneği tasarım kararı gerektirir.

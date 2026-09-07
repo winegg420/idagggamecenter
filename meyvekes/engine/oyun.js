@@ -92,7 +92,9 @@ const PARMAK_UC = [4, 8, 12, 16, 20];
 // kareler arası boşluğa düşen meyve kaçmasın — "hızlı kesemiyorum" düzeltmesi).
 // Kapı zaten duran eli elediği için eşik cömert tutulabilir.
 const SUPURME_ORAN = 0.28; // × köşegen/sn (ekrana oranlı)
-const MAX_PARCACIK = 260; // ekrandaki parçacık tavanı (mobilde çizim maliyeti)
+// Ekrandaki parçacık tavanı (mobilde çizim maliyeti). 260→160: kesim anında
+// aynı karede parçacık+yarım+flaş+dalga+sarsıntı birlikte başlıyor (efekt bütçesi).
+const MAX_PARCACIK = 160;
 const TELAFI_MAX_PX = 100; // gecikme telafisinin tavanı (px)
 const RENDER_ILERI_MAX = 0.05; // sn — çizimde ileri sarma tavanı
 
@@ -305,8 +307,8 @@ export class Oyun {
       omur: AGIZ_CEKIM,
     });
 
-    // ağız çevresinde küçük şıpırtı
-    const adet = f.meyve.altin ? 16 : 9;
+    // ağız çevresinde küçük şıpırtı (16/9 → 10/6: efekt bütçesi)
+    const adet = f.meyve.altin ? 10 : 6;
     for (let i = 0; i < adet; i++) {
       const a = Math.random() * Math.PI * 2;
       const h = 80 + Math.random() * 200;
@@ -363,8 +365,8 @@ export class Oyun {
       });
     }
 
-    // splat parçacıkları
-    const adet = f.meyve.altin ? 20 : 12;
+    // splat parçacıkları (12/20 → 8/12: kesim anı kare bütçesi)
+    const adet = f.meyve.altin ? 12 : 8;
     for (let i = 0; i < adet; i++) {
       const a = Math.random() * Math.PI * 2;
       const h = 120 + Math.random() * 320;

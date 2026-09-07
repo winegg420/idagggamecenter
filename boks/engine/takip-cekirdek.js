@@ -86,7 +86,10 @@ export class WorkerCikarim {
     if (typeof Worker === "undefined" || typeof createImageBitmap !== "function") return false;
     let w;
     try {
-      w = new Worker(new URL("./takip-worker.js", import.meta.url), { type: "module" });
+      // KLASİK worker (`type: "module"` YOK): MediaPipe'ın wasm yükleyicisi worker'da
+      // `importScripts` kullanır; module worker'da bu yasak → kurulum her cihazda
+      // ölüyor ve sessizce ana-thread yedeğine düşülüyordu (Meyve Kes ile aynı kök neden).
+      w = new Worker(new URL("./takip-worker.js", import.meta.url));
     } catch {
       return false;
     }
