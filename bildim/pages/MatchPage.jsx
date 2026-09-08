@@ -42,6 +42,10 @@ export default function MatchPage() {
   const [kaliplarAcik, setKaliplarAcik] = useState(false);
   const [ilerleme, setIlerleme] = useState({ ben: 0, rakip: 0 });
   const [bilgiKapandi, setBilgiKapandi] = useState(false);
+  // Bilgi kartı yalnız maça ilk girişte gösterilir. Sonradan belirip soru
+  // ekranını aşağı itmesin diye ilk render'da sabitlenir (canlı testte
+  // düzen kayması yüzünden şıkka tıklanamıyordu).
+  const ilkGirisRef = useRef(null);
   const [yuklemeHatasi, setYuklemeHatasi] = useState(null);
   const advanceKilidi = useRef(false);
   const pollRef = useRef(null);
@@ -385,7 +389,11 @@ export default function MatchPage() {
   }
 
   // Aktif maç
-  const rakipOnde = ilerleme.rakip > ilerleme.ben;
+  // İlk render'da bir kez karar ver: rakip öndeyse bilgi kartını göster.
+  if (ilkGirisRef.current === null) {
+    ilkGirisRef.current = ilerleme.rakip > ilerleme.ben && benimSoru === 0;
+  }
+  const rakipOnde = ilkGirisRef.current;
 
   return (
     <div>
@@ -404,9 +412,9 @@ export default function MatchPage() {
             <Ikon ad="saat" boyut={18} />
           </span>
           <span style={{ flex: 1 }}>
-            <b>{rakipProfil?.gorunen_ad}</b> {ilerleme.rakip} soruyu tamamladı.
-            Bu maç sıra beklemeden oynanır — sen kendi hızında devam et,
-            rakibin de kendi zamanında oynar.
+            <b>{rakipProfil?.gorunen_ad}</b> senden önde. Bu maç sıra
+            beklemeden oynanır — sen kendi hızında devam et, rakibin de kendi
+            zamanında oynar.
           </span>
           <button
             className="btn kucuk ikincil"
