@@ -1001,3 +1001,33 @@ Ortusme orani parti ilerledikce dusuyor (ilk cografya partisinde 51/185,
 onuncuda 3/76) — havuz genisledikce **yeni konu alani acmak** gerekiyor;
 ayni konuyu farkli sorularla tekrar yazmak suzgecte eleniyor. Sonraki
 partilerde daha ozel alt basliklara inilmeli.
+
+### Oturum sonu durumu (dogrulanmis)
+| Kategori | Aktif soru |
+|---|---|
+| cografya | **2018** |
+| genel_kultur | 1450 |
+| bilim | 735 |
+| tarih | 648 |
+| edebiyat | 592 |
+| spor | 583 |
+| muzik | 567 |
+| sanat | 559 |
+| teknoloji | 539 |
+| sinema | 533 |
+| **TOPLAM** | **8224** |
+
+Canli veritabaninda dogrulanan kalite olcumleri:
+- Birebir tekrar eden soru: **0**
+- 4 sikki olmayan soru: **0**
+- Sikları benzersiz olmayan soru: **0**
+- Dogru sik araligi disinda kayit: **0**
+- Soru isaretiyle bitmeyen soru: **0**
+- Dogru sik dagilimi: 2059 / 2100 / 2029 / 2036 (dengeli)
+- 40+ karakter sikki olan soru: 26 (tamami eski havuzdan, en uzunu 51 karakter)
+
+**Kalan is:** cografya 2000 hedefi tamamlandi. Diger dokuz kategori icin
+"her biri 1000+" hedefine yaklasik 3.900 soru daha gerekiyor; sonraki
+oturumda ayni uretim hatti (`scratchpad/pgi/uret.mjs`) ile surdurulmeli.
+Ortusme suzgeci nedeniyle yeni partilerde **yeni alt konu alanlari** acmak
+sart (ayni konunun farkli anlatimi eleniyor).
