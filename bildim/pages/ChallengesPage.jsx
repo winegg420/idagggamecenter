@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../../src/lib/supabase.js";
 import { useAuth } from "../../src/context/AuthContext.jsx";
@@ -31,6 +31,8 @@ export default function ChallengesPage() {
   const navigate = useNavigate();
   const [maclar, setMaclar] = useState([]);
   const [hata, setHata] = useState(null);
+  const [toast, setToast] = useState(null);
+  const bekleyenlerRef = useRef(null);
   const [botlar, setBotlar] = useState([]);
   const [oyuncular, setOyuncular] = useState([]);
   const [kategoriler, setKategoriler] = useState([]);
@@ -144,13 +146,27 @@ export default function ChallengesPage() {
 
   const meydanOku = async (hedefId) => {
     setHata(null);
-    const { error } = await supabase.rpc("create_challenge", {
-      p_rakip: hedefId,
-      p_kategori: kategori,
-    });
-    if (error) setHata(error.message);
-    else {
-      yukle();
+    setToast(null);
+    try {
+      const { data, error } = await supabase.rpc("create_challenge", {
+        p_rakip: hedefId,
+        p_kategori: kategori,
+      });
+      if (error) throw error;
+      const botMu = botlar.some((b) => b.id === hedefId);
+      if (botMu && data) {
+        // Bot daveti saniyeler içinde kabul eder: oyuncuyu bekletmeden maça al.
+        navigate(`/bildim/mac/${data}`);
+        return;
+      }
+      setToast("Davet gönderildi — rakip kabul edince maç başlayacak.");
+      await yukle();
+      // Bekleyenler listesine kaydır
+      setTimeout(() => {
+        bekleyenlerRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+      }, 80);
+    } catch (e) {
+      setHata(e.message ?? "Meydan okuma başlatılamadı.");
     }
   };
 
@@ -272,6 +288,7 @@ export default function ChallengesPage() {
     <div>
       <div className="baslik">⚔️ Meydan Okuma</div>
       {hata && <div className="hata-kutu">{hata}</div>}
+      {toast && <div className="bd-toast">{toast}</div>}
 
       {/* Kategori seçimi 1v1, grup ve hızlı modun HEPSİ için geçerlidir. */}
       <div className="bd-kat-baslik">
@@ -300,7 +317,8 @@ export default function ChallengesPage() {
                 {kategoriEtiket(k.kategori)}
               </span>
               <span className="bd-kat-alt">
-                {toplam} soru · %{yuzde} çözüldü
+                {toplam} soru
+                <span className="bd-kat-yuzde"> · %{yuzde} çözüldü</span>
               </span>
               <span className="bd-kat-bar">
                 <span className="dolgu" style={{ width: `${yuzde}%` }} />

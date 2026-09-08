@@ -137,7 +137,10 @@ export default function LeaderboardPage() {
     };
   }, [kapsam, donem, konumVar, arkadasListesi]);
 
-  const benimSatirim = liste.find((s) => s.ben || s.user_id === user.id);
+  const benimSatirimHam = liste.find((s) => s.ben || s.user_id === user.id);
+  // Kendi satırın zaten ilk 100'de görünüyorsa altta İKİNCİ KEZ sabitleme.
+  const benimSatirim =
+    benimSatirimHam && benimSatirimHam.sira > 100 ? benimSatirimHam : null;
   const ilk100 = liste.filter((s) => s.sira <= 100);
   const podyum = ilk100.slice(0, 3);
   const kalanlar = ilk100.slice(3);

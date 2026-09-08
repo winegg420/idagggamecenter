@@ -1,4 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useOyunModu } from "../lib/oyunModu.js";
+import TurnuvaTanitim from "../components/TurnuvaTanitim.jsx";
 import { supabase } from "../../src/lib/supabase.js";
 import { useAuth } from "../../src/context/AuthContext.jsx";
 import Countdown from "../components/Countdown.jsx";
@@ -114,6 +116,8 @@ export default function TournamentPage() {
     turnuvaYukle();
   };
 
+  useOyunModu(Boolean(soru) && turnuva?.durum === "aktif");
+
   if (yukleniyor) return <div className="yukleniyor">Yükleniyor…</div>;
 
   // ---- Lobi yok / sıradaki turnuva ----
@@ -145,6 +149,8 @@ export default function TournamentPage() {
             🎟️ Lobiye Katıl
           </button>
         </div>
+
+        <TurnuvaTanitim />
       </div>
     );
   }

@@ -5,6 +5,7 @@ import { useAuth } from "../../src/context/AuthContext.jsx";
 import QuestionCard from "../components/QuestionCard.jsx";
 import BildirimIzniSor from "../components/BildirimIzniSor.jsx";
 import MacSonuEklentisi from "../components/MacSonuEklentisi.jsx";
+import { useOyunModu } from "../lib/oyunModu.js";
 
 const MAC_SECIMI = `*,
   p1:profiles!matches_oyuncu1_fkey(id, gorunen_ad, gorunen_avatar),
@@ -108,6 +109,8 @@ export default function MatchPage() {
         (payload) => balonGoster(payload.new.user_id, payload.new.mesaj)
       )
       .subscribe();
+    // Realtime kopsa bile skor akmaya devam etsin (rakip puanı canlı artar)
+    pollRef.current = setInterval(macYukle, 2000);
     return () => {
       supabase.removeChannel(kanal);
       if (pollRef.current) clearInterval(pollRef.current);
@@ -129,6 +132,8 @@ export default function MatchPage() {
         if (!error && data?.[0]) setSoru(data[0]);
       });
   }, [mac?.id, mac?.durum, mac?.aktif_soru, mac?.soru_baslangic]);
+
+  useOyunModu(Boolean(soru) && mac?.durum === "aktif");
 
   // Maç bitince puan tazele
   useEffect(() => {

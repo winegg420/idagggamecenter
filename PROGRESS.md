@@ -1514,3 +1514,68 @@ yok; Gladius DEMO ve backend kullanmadığı için bilerek bırakıldı.
 **Kalan manuel işler (kod/DB dışı):** Edge Function deploy + `PLAY_SERVICE_ACCOUNT` /
 `PLAY_PACKAGE_NAME` secret'ları, Play Console'da 4 tüketilebilir ürün,
 `VITE_H5_ADS_CLIENT`, Bubblewrap `--enablePlayBilling`.
+
+## 2026-09-08 — Bildim Görev 3 / Faz 1: Yayın öncesi hatalar
+
+**Migration numarası kararı:** prompt "055/056" diyordu ama **055 zaten
+`seri_hatirlatma` olarak kullanıldı ve canlıya uygulandı**. Bu yüzden bu görevin
+migration'ları **056** (kategori birleştirme), **057** (soru kalitesi) ve
+**058** (bot maçı düzeltmesi) numaralarını aldı.
+
+### 1) Lig — kendi satırı iki kez görünüyordu
+`lig_siralama` çağıranı hem ilk 100'e hem sona koyuyordu; arayüz sonuncuyu ayrıca
+sabitliyordu. Artık sabit satır **yalnız sıra > 100 ise** çiziliyor.
+
+### 2) Kategori karmaşası (migration 056)
+Seçicide "Karışık" + `karisik` (36 soru) + `genel` (221 soru) yan yana duruyordu.
+`genel` ve `karisik` kategorilerindeki sorular `genel_kultur`'a **taşındı**;
+`get_categories` bu iki anahtarı artık hiç döndürmüyor. Bağlı kayıtlar da taşındı:
+`matches`, `group_matches`, `hizli_maclar`, `hizli_mod_oturumlar/skorlar`,
+`matchmaking_queue`, `profiles.tercih_kategori` ve `kategori_dogru` sayaçları
+(birleştirilip eski satırlar silindi). `tercih_kategori_kaydet` eski anahtarları
+sessizce `genel_kultur`'a çeviriyor. Sonuç: **genel_kultur 1.154 soru**, listede ilk.
+
+### 3) Meydan okuma akışı
+Bota meydan okununca artık doğrudan `/bildim/mac/:id`'ye gidiliyor (bot daveti
+saniyeler içinde kabul ediyor, maç ekranı "bekliyor" durumunu zaten gösteriyor).
+İnsan rakipte **"Davet gönderildi" toast'ı** çıkıyor ve sayfa bekleyenler listesine kayıyor.
+
+### 4) Bot maçı — bot 20 soruyu bitirirken oyuncu 2. sorudaydı (migration 058)
+**Canlı veriyle doğrulandı:** aktif bir maçta bot 18. soruya kadar 19 cevap vermiş,
+oyuncu 1 cevap vermişti (skor 0-65). Kök neden: bot her soruyu 3 sn sonra
+cevaplıyordu ve **16 saniyelik otomatik ilerletme oyuncuyu beklemiyordu** — oyuncu
+düşünürken maç kendi kendine akıyordu.
+Düzeltme (`bot_oyna` 045'teki gövdeden alındı, yalnız 1v1 bölümleri değişti):
+- Bot yalnız **oyuncunun ulaştığı soruyu** cevaplar (oyuncunun en yüksek cevap
+  indeksi + 1) ve **2–6 sn rastgele** gecikmeyle yanıtlar.
+- Otomatik ilerletme, oyuncu o soruyu cevaplamadan 16 sn'de devreye girmiyor;
+  yalnız **90 sn'lik terk güvenlik ağı** kaldı (maç sonsuza kadar aktif kalmasın).
+Ayrıca MatchPage'e realtime'a **ek olarak 2 sn'lik yoklama** eklendi: bağlantı
+düşse bile rakip puanı canlı artmaya devam ediyor.
+
+### 5) Soru kalitesi taraması (migration 057)
+Tüm aktif havuz (3.201 soru) tarandı. **8 soru pasife alındı** (`aktif = false`;
+silinmedi ki eski maçlar bozulmasın — `soru_sec` zaten `aktif` filtreliyor):
+- `anlamsiz_degil_kalibi` **6** — eski üretimden kalma bozuk kalıp
+  (ör. *"'Kaç Para Kaç' değil, 'Vizontele' filminin yönetmenlerinden biri kimdir?"*)
+- `meta_sik` **2** — şıklardan biri "Hiçbiri"/"Hepsi" (belirsiz)
+
+**Bilerek dokunulmayanlar (tarama uyardı ama sorular sağlam):** "3 karakterden kısa
+şık" 265 soru — bunlar `Na`, `K`, `C`, `Ud`, `Ney`, `Su`, `At` gibi tamamen geçerli
+cevaplar ve sayısal şıklar; körlemesine silmek yüzlerce sağlam soruyu yok ederdi.
+Parantezli 37 şık meşru kullanım (`Boşluk (space)`), kapanmamış parantez hiç yok.
+Boş şık, tekrar eden şık, soru işareti eksiği, 4'ten farklı şık sayısı: **0**.
+Kalan aktif havuz: **3.193**.
+
+### 6) Soru ekranı düzeni
+`useOyunModu()` kancası eklendi: soru ekranı açıkken gövdeye `bd-oyun-modu` sınıfı
+konuyor. CSS bu sınıfla **alt sekme çubuğunu gizliyor** ve **joker çubuğunu ekranın
+altına sabitliyor**. Beş ekranda da aktif (1v1, grup, hızlı olan kazanır, turnuva,
+hızlı mod). Emoji baloncukları `position: absolute` yapıldı — artık skor tablosunu itmiyor.
+
+### 7) Turnuva sayfası
+Boş ekran doldu: `TurnuvaTanitim` bileşeni **"Nasıl oynanır" 3 maddesi**, **son
+turnuvanın ilk 3'ü** (madalya + avatar + doğru sayısı) ve **katılımcı sayısını**
+gösteriyor. Sayaç ve lobiye katıl butonu korundu.
+
+`npm run build` temiz.

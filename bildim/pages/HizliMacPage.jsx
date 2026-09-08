@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useOyunModu } from "../lib/oyunModu.js";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "../../src/lib/supabase.js";
 import { useAuth } from "../../src/context/AuthContext.jsx";
@@ -107,6 +108,8 @@ export default function HizliMacPage() {
     });
     if (!error) macYukle();
   };
+
+  useOyunModu(Boolean(soru) && mac?.durum === "aktif");
 
   if (!mac) return <div className="yukleniyor">Yükleniyor…</div>;
 

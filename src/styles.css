@@ -2042,3 +2042,85 @@ input:focus { border-color: var(--primary); }
   .bd-hizli-buyuk { font-size: 54px; }
   .bd-joker-ad { font-size: 11px; }
 }
+
+/* ============================================================
+   BİLDİM — Görev 3 / Faz 1: hata düzeltmeleri
+   ============================================================ */
+
+/* ---------- Oyun modu: soru ekranında alt sekme çubuğu gizlenir ---------- */
+body.bd-oyun-modu .tabbar { display: none; }
+body.bd-oyun-modu .app { padding-bottom: calc(120px + env(safe-area-inset-bottom)); }
+
+/* Joker çubuğu ekranın altına sabitlenir (dikkat soruda kalsın) */
+body.bd-oyun-modu .bd-joker-cubuk {
+  position: fixed;
+  left: 50%; bottom: 0; transform: translateX(-50%);
+  width: 100%; max-width: 540px; z-index: 40;
+  margin: 0;
+  padding: 10px 16px calc(10px + env(safe-area-inset-bottom));
+  background: linear-gradient(180deg, transparent, var(--bg) 30%);
+  backdrop-filter: blur(10px);
+}
+
+/* ---------- Emoji baloncukları layout'u itmesin ---------- */
+.balon-satir {
+  position: absolute;
+  left: 0; right: 0;
+  pointer-events: none;
+  z-index: 20;
+}
+.skor-tabela { position: relative; }
+
+/* ---------- Kategori kartı: çözülme yüzdesi silik ---------- */
+.bd-kat-yuzde { color: var(--text-dim); opacity: 0.7; font-size: 10px; }
+
+/* ---------- Toast (davet gönderildi) ---------- */
+.bd-toast {
+  display: flex; align-items: center; gap: 8px;
+  padding: 11px 14px; margin-bottom: var(--bd-bosluk-2);
+  font-size: 13px; line-height: 1.45;
+  color: #86efac;
+  background: rgba(34, 197, 94, 0.14);
+  border: 1px solid rgba(34, 197, 94, 0.42);
+  border-radius: var(--bd-yaricap-m);
+  animation: bd-toast-gir 0.28s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+@keyframes bd-toast-gir {
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: none; }
+}
+
+/* ---------- Turnuva tanıtımı ---------- */
+.bd-nasil-liste { list-style: none; display: flex; flex-direction: column; gap: 12px; }
+.bd-nasil-liste li {
+  display: flex; gap: 11px; align-items: flex-start;
+  font-size: 13.5px; line-height: 1.5; color: var(--text-dim);
+}
+.bd-nasil-liste b { color: var(--text); }
+.bd-nasil-no {
+  flex: 0 0 24px;
+  display: flex; align-items: center; justify-content: center;
+  width: 24px; height: 24px; border-radius: 50%;
+  font-size: 12px; font-weight: 900; color: #fff;
+  background: linear-gradient(135deg, var(--primary), var(--primary-2));
+}
+
+.bd-son-turnuva { display: flex; flex-direction: column; gap: var(--bd-bosluk-1); }
+.bd-son-satir {
+  display: flex; align-items: center; gap: var(--bd-bosluk-2);
+  padding: 8px 10px;
+  background: var(--bg-2);
+  border-radius: var(--bd-yaricap-s);
+}
+.bd-son-satir.birinci {
+  background: linear-gradient(120deg, rgba(251, 191, 36, 0.18), var(--bg-2) 70%);
+}
+.bd-son-madalya { font-size: 17px; }
+.bd-son-ad {
+  flex: 1; min-width: 0; font-size: 13.5px; font-weight: 700;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.bd-son-dogru {
+  display: inline-flex; align-items: center; gap: 4px;
+  font-size: 12.5px; font-weight: 800; color: var(--success);
+}
