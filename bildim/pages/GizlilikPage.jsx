@@ -68,8 +68,9 @@ export default function GizlilikPage() {
       <p>
         Verilerini üçüncü taraflara satmıyoruz. Yalnızca hizmeti çalıştırmak için kullandığımız
         altyapı sağlayıcıları verileri işler: <b>Supabase</b> (veritabanı, kimlik doğrulama) ve{" "}
-        <b>Vercel</b> (uygulama barındırma). Kullanıcı adın, profil görselin, puanın ve seçtiğin
-        şehir/ülke, oyunun doğası gereği diğer oyunculara görünür.
+        <b>Vercel</b> (uygulama barındırma). <b>Takma adın</b>, seçtiğin <b>avatar</b>, puanın
+        ve şehir/ülke bilgin, oyunun doğası gereği diğer oyunculara görünür. Gerçek adın ve
+        e-posta adresin <b>hiçbir zaman</b> başka oyunculara gösterilmez.
       </p>
 
       <h2>Saklama ve silme</h2>

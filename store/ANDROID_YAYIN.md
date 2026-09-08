@@ -125,7 +125,7 @@ bubblewrap update && bubblewrap build
 4. **Özellik grafiği** — `store/ozellik-grafigi.svg` (1024×500) PNG'ye çevrilip
    yüklenecek.
 5. **İçerik derecelendirme** — anket cevapları `store/ICERIK_DERECELENDIRME.md`.
-6. **Gizlilik politikası URL'si** — `https://idagg-game-center.vercel.app/bildim/gizlilik`
+6. **Gizlilik politikası URL'si** — `https://idagg-game-center.vercel.app/gizlilik`
 7. **Play Billing ürünleri** — `store/URUNLER.md` içindeki ürün kimliklerini
    Play Console → Monetize → In-app products altında birebir oluştur.
 8. **AdSense/H5 Games Ads** — `VITE_H5_ADS_CLIENT` ortam değişkenine AdSense

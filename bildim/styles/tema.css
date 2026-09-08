@@ -1819,3 +1819,69 @@ body::before {
 @media (prefers-reduced-motion: reduce) {
   .bd-kat-ipucu { animation: none; }
 }
+
+/* ============================================================
+   ORTAK LİNK STİLİ
+   Joker Dükkânı'ndaki "Gizlilik Politikası" linki koyu zeminde
+   neredeyse okunmuyordu (--primary #8b5cf6 → kontrast ~3.4).
+   Metin içi tüm linkler artık tek yerden okunur renk alıyor.
+   Navigasyon/kart/buton görünümlü linkler kendi stillerini korur.
+   ============================================================ */
+
+:root {
+  /* Koyu yüzeyde kontrastı >= 4.5 olan bağlantı rengi */
+  --bd-baglanti: #c9b8ff;
+  --bd-baglanti-vurgu: #ffd873;
+}
+
+.app a {
+  color: var(--bd-baglanti);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  text-decoration-thickness: 1px;
+  text-decoration-color: rgba(201, 184, 255, 0.5);
+  transition: color 0.15s, text-decoration-color 0.15s;
+}
+.app a:hover,
+.app a:active {
+  color: var(--bd-baglanti-vurgu);
+  text-decoration-color: currentColor;
+}
+
+/* Görünümü zaten kendi olan linkler ortak stilden muaf */
+.app .tabbar a,
+.app .btn,
+.app a.btn,
+.app .bd-mod,
+.app .bd-kat-kart,
+.app .bd-lig-tek-satir,
+.app .bd-lig-rozet,
+.app .paylas,
+.app .logo,
+.app .puan-chip,
+.app .bd-puan-link,
+.app .bd-zil-satir,
+.app .oyun-karti a,
+.app .gc-kart a {
+  text-decoration: none;
+}
+.app .tabbar a,
+.app .bd-lig-tek-satir,
+.app .bd-lig-rozet,
+.app .bd-puan-link,
+.app .paylas,
+.app .bd-mod,
+.app .bd-kat-kart {
+  color: inherit;
+}
+.app .tabbar a.aktif { color: #fff; }
+
+/* Küçük gri açıklama metinlerinin içindeki linkler de okunur olsun */
+.app .alt-yazi a,
+.app .bd-gizlilik-not a,
+.app .bd-joker-not a,
+.app .bd-metin-sayfa a {
+  color: var(--bd-baglanti);
+  font-weight: 700;
+  text-decoration: underline;
+}

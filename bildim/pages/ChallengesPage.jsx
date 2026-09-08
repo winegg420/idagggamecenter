@@ -728,13 +728,20 @@ export default function ChallengesPage() {
                 <div className="isim">
                   {hm.katilimcilar
                     ?.filter((k) => k.user_id !== user.id)
-                    .map((k) => k.profil?.gorunen_ad)
+                    .map((k) => oyuncuAdi(k.profil, k.user_id))
                     .join(", ")}
                 </div>
                 <div className="detay">Hızlı Olan Kazanır</div>
               </div>
               <button className="btn kucuk" onClick={() => navigate(`/bildim/hizli-mac/${hm.id}`)}>
                 Oyna →
+              </button>
+              <button
+                className="btn kucuk ikincil"
+                disabled={iptalEdilen === hm.id}
+                onClick={() => davetIptal("hizli", hm.id)}
+              >
+                {iptalEdilen === hm.id ? "…" : "İptal"}
               </button>
             </div>
           ))}
@@ -785,13 +792,21 @@ export default function ChallengesPage() {
                 <div className="isim">
                   {gm.katilimcilar
                     ?.filter((k) => k.user_id !== user.id)
-                    .map((k) => k.profil?.gorunen_ad)
+                    .map((k) => oyuncuAdi(k.profil, k.user_id))
                     .join(", ")}
                 </div>
                 <div className="detay">{gm.oyuncu_sayisi} kişilik grup maçı</div>
               </div>
               <button className="btn kucuk" onClick={() => navigate(`/bildim/grup-mac/${gm.id}`)}>
                 Oyna →
+              </button>
+              {/* Yarım kalmış maçları temizlemek için */}
+              <button
+                className="btn kucuk ikincil"
+                disabled={iptalEdilen === gm.id}
+                onClick={() => davetIptal("grup", gm.id)}
+              >
+                {iptalEdilen === gm.id ? "…" : "İptal"}
               </button>
             </div>
           ))}

@@ -81,4 +81,4 @@ türkçe quiz, meydan okuma, turnuva, lig
 - Geliştirici: IDA GG
 - E-posta: (Play Console'a girilecek)
 - Web sitesi: https://idagg-game-center.vercel.app
-- Gizlilik politikası: https://idagg-game-center.vercel.app/bildim/gizlilik
+- Gizlilik politikası: https://idagg-game-center.vercel.app/gizlilik

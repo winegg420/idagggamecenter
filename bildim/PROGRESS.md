@@ -447,3 +447,105 @@ Hata durumunda `hataMesaji()` ile Turkce mesaj gosteriliyor.
    — `joker_paketleri` tablosundaki `kod` ile birebir ayni olmali
    (`select kod, ad, adet from joker_paketleri order by adet;`).
 4. Magaza metinleri/gorseller: `store/` klasoru hazir.
+
+---
+
+## 2026-09-08 — Canli testte bulunan 5 hata
+
+### 1) Grup macinda botlar onden oynuyordu (oncelikli)
+Canli: 3 kisilik grup maci kuruldu, oyuncu hic cevap vermeden mac 8/20'ye
+ilerledi (BilgeBot 93, CaylakBot 38, oyuncu 0).
+
+**Kok neden — `bot_oyna()` icinde iki eksik:**
+1. Bot cevap kosulu insan oyuncunun ilerlemesine hic bakmiyordu. 1v1 icin
+   migration 058'de eklenen "bot oyuncunun onune gecemez" kilidi grup ve hizli
+   moda **uygulanmamisti**.
+2. Otomatik ilerletme kosulu `now() > soru_baslangic + 16 saniye` idi; oyuncu
+   ekrani hic acmasa bile mac 20 soruyu kendi kendine tuketiyordu.
+
+**Duzeltme (migration 066, her iki mod icin):**
+- Bot, insan oyuncularin ulastigi soru indeksini **gecemez**
+  (`aktif_soru <= 1 + max(insan cevap indeksi)`).
+- Bot cevap gecikmesi sabit degil, **2-6 sn rastgele**.
+- Otomatik ilerletme: herkes cevapladiysa **veya** sure doldu ve en az bir insan
+  bu soruyu fiilen oynadiysa **veya** mac terk edilmis (10 dk guvenlik agi).
+
+**SQL testi — 3 kisilik grup maci, insan hic cevap vermiyor, botlara 30 tur:**
+
+| | aktif_soru | durum | botun ulastigi en ileri soru | bot skoru |
+|---|---|---|---|---|
+| Once (canli hal) | **19** | **bitti** | 0 | 16 |
+| Sonra (066) | **0** | **aktif** | 0 | 16 |
+
+Yani duzeltmeden sonra mac ilk soruda bekliyor; oyuncu geldiginde oynayabiliyor.
+(Botun ilk soruyu cevaplamasi kural geregi: `0 <= 1 + (-1)`, 1v1'deki davranisin
+aynisi.)
+
+**Yarim kalan maclari temizleme:** `grup_mac_iptal` / `hizli_mac_iptal` artik
+aktif maclari da iptal edebiliyor (kurucu her zaman; katilimci yalniz mac
+baslamadan). Meydan Oku'da "Devam Eden Grup Maclari" ve "Devam Eden Hizli
+Yarislar" satirlarina **Iptal** butonu eklendi.
+
+### 2) Manifest linki yanlisti
+Bildim sayfalarinda `<link rel="manifest">` hala hub'in `/manifest.webmanifest`
+dosyasini gosteriyordu. `bildim/lib/manifest.js` + `useBildimManifest()` eklendi;
+Layout monte olunca manifest ve `theme-color` Bildim'e geciyor, hub'a donunce
+eski degerler geri yukleniyor.
+
+Tarayicida olculdu (hook gercek bir React bileseninde monte edilerek):
+
+| | link[rel=manifest] | theme-color |
+|---|---|---|
+| Hub | `/manifest.webmanifest` | `#0d0b1f` |
+| Bildim rotasi | **`/bildim.webmanifest`** | **`#7c4dff`** |
+| Hub'a donunce | `/manifest.webmanifest` | `#0d0b1f` |
+
+### 3) Bildirimde ham kategori anahtari
+"🎖️ genel_kultur kategorisinde Cirak oldun!" → **"Genel Kultur kategorisinde"**.
+Migration 067: SQL tarafinda `kategori_adi(text)` fonksiyonu (istemcideki
+`lib/kategoriler.js` ile ayni adlar) ve `kategori_dogru_arttir` bunu kullaniyor.
+Daha once yazilmis bildirimler de UPDATE ile duzeltildi.
+
+**Tum bildirim tipleri tarandi** — ham anahtar/ID sizan tek yer buydu; diger
+metinler `gorunen_ad`, sayi veya sabit metin kullaniyor, mac id / kullanici id
+hicbir bildirimde gecmiyor.
+
+### 4) Gizlilik metni
+"Paylasim" bolumundeki "Kullanici adin, profil gorselin..." ifadesi
+**"Takma adin, sectigin avatar, puanin ve sehir/ulke bilgin"** olarak duzeltildi;
+gercek ad ve e-postanin hicbir zaman gosterilmedigi eklendi. Metnin tamami
+tarandi, baska "kullanici adi" ifadesi kalmadi. Profil'deki silme onayinda
+"Kullanici adin" etiketi **"Hesap kimligin"** yapildi.
+
+Ayrica magaza belgelerindeki gizlilik URL'si `/bildim/gizlilik` → **`/gizlilik`**
+olarak duzeltildi (dogru rota bu; girissiz erisilebilir olmasi Play icin sart).
+
+### 5) Dusuk kontrastli link
+Joker Dukkani'ndaki "Gizlilik Politikasi" linki `--primary` (#8b5cf6) ile
+koyu kart uzerinde **3.76:1** kontrasta sahipti. `tema.css`'e ortak link stili
+eklendi: `--bd-baglanti: #c9b8ff`, alti cizili, hover'da altin.
+Olculen yeni kontrast: **8.93:1** (hedef >= 4.5). Navigasyon/kart/buton
+gorunumlu linkler (tabbar, mod kartlari, kategori plakalari, puan cipi, paylas
+butonlari) ortak stilden muaf tutuldu.
+
+### Migration'lar
+| No | Dosya | Durum |
+|---|---|---|
+| 066 | `grup_bot_ilerleme` | **canliya uygulandi** + gecmise kaydedildi |
+| 067 | `kategori_adi_bildirim` | **canliya uygulandi** + gecmise kaydedildi |
+
+> Gorev metninde "migration 065" deniyordu; 065 numarasi bir onceki oturumda
+> `davet_iptal` tarafindan kullanildigi icin bu is 066 + 067 olarak yazildi.
+> Studio'da elle calistirmaya gerek yok — kullanicinin kalici talimati geregi
+> migration'lar dogrudan uygulandi.
+
+### Degisen dosyalar
+- `supabase/migrations/20260612000066_grup_bot_ilerleme.sql` (yeni)
+- `supabase/migrations/20260612000067_kategori_adi_bildirim.sql` (yeni)
+- `bildim/lib/manifest.js` (yeni)
+- `bildim/components/Layout.jsx` — `useBildimManifest()`
+- `bildim/pages/ChallengesPage.jsx` — aktif maclara Iptal butonu, `oyuncuAdi()`
+- `bildim/pages/GizlilikPage.jsx` — paylasim metni
+- `bildim/pages/ProfilePage.jsx` — "Hesap kimligin" etiketi
+- `bildim/styles/tema.css` — ortak link stili
+- `store/ANDROID_YAYIN.md`, `store/MAGAZA_METINLERI.md` — gizlilik URL'si

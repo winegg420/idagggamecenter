@@ -8,12 +8,16 @@ import BildirimZili from "./BildirimZili.jsx";
 import KurulumSihirbazi from "./KurulumSihirbazi.jsx";
 import DavetBandi from "./DavetBandi.jsx";
 import Tanitim from "./Tanitim.jsx";
+import { useBildimManifest } from "../lib/manifest.js";
 import BildirimToast from "./BildirimToast.jsx";
 import Ikon from "./Ikon.jsx";
 
 export default function Layout() {
   const { profile, user } = useAuth();
   const [bekleyen, setBekleyen] = useState(0);
+
+  // Bildim rotalarında PWA kimliği Bildim'in kendi manifesti olsun
+  useBildimManifest();
   // Tanıtım yalnız ilk girişte, kurulumdan ÖNCE gösterilir
   const [tanitimGosterildi, setTanitimGosterildi] = useState(() => {
     try {

@@ -256,7 +256,7 @@ export default function ProfilePage() {
               <b>{profile.username}</b> yaz.
             </div>
             <label className="bd-alan">
-              <span>Kullanıcı adın</span>
+              <span>Hesap kimliğin</span>
               <input
                 type="text"
                 autoComplete="off"
