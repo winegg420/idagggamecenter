@@ -365,3 +365,85 @@ Bildim kapsami disinda, bilerek dokunulmadi.
 - **Ana sayfadaki "En Iyiler" listesi kaldirildi**, yerine tek satir lig ozeti
   (prompt'un istegi) — uzun liste ana sayfayi panel gibi gosteriyordu.
 - **Ham SQL hatasi kullaniciya asla gosterilmiyor** (`lib/hata.js`).
+
+---
+
+## 2026-09-08 — Yayin oncesi son rotus
+
+### 1) Meydan Oku sayfa duzeni
+Canlida sayfanin en ustunde "📤 Kurdugun Gruplar (yanit bekleniyor)" blogu
+duruyordu ve icerigi `"Oyuncu (bekliyor), Oyuncu (hazir)"` seklinde duz metindi.
+Sebep: Faz 1'de gelen davetler ust bloga tasinirken bu blok da sarmalayicinin
+icinde kalmisti.
+
+- Blok ust sarmalayicidan cikarildi, kurulum bolumlerinden **sonraya** alindi.
+  Sayfa sirasi: gelen davetler → kategori → botlar → arkadaslar → grup kurulumu
+  → hizli kurulum → **bekleyen davetlerin** → devam edenler → bitenler.
+  (Gelen davetler bilerek ustte birakildi: "meydan okuma en ustte gorunsun"
+  onceki acik istekti ve ust davet bandiyla tutarli.)
+- Duz metin yerine **kart listesi**: `BekleyenKurulum` bileseni — katilimci
+  avatarlari, yesil ✓ / gri … durum rozetleri, "1/2 hazir" sayaci ve
+  **"Iptal et"** butonu. Davet yoksa blok hic gorunmuyor.
+- **Iptal icin sunucu tarafi yoktu**: `migration 065` ile `grup_mac_iptal` ve
+  `hizli_mac_iptal` eklendi (yalniz kurucu, yalniz mac baslamadan). Canliya
+  uygulandi.
+- **`lib/oyuncu.js`**: takma ad secmemis herkes "Oyuncu" gorundugu ve ayni
+  ekranda karistigi icin `oyuncuAdi()` artik "Oyuncu #4f2a" (kimligin son 4
+  hanesi) uretiyor.
+
+### 2) Kategori seridi
+- Sagda **sonumlenen maske** (`mask-image`), serit sona gelince kayboluyor.
+- `scroll-snap-type: x mandatory` + plakalarda `scroll-snap-align: start`.
+- Sag kenarda hafif salinan **"›" ipucu** (sonda gizleniyor).
+- Secili kategori `scrollIntoView({inline:"center"})` ile gorunur alana kayiyor.
+
+### 3) Mobil dogrulama — 390x844 gercek viewport (iframe, `max-width:400px` aktif)
+
+| Ekran | Yatay tasma | Olculen | Sonuc |
+|---|---|---|---|
+| Mac ekrani | yok | 4 sik da tam genislikte; joker cubugu / sik kesisimi **yok**; "Bu soru adil miydi?" gorunur | ✅ |
+| Hizli Mod | yok | BASLA butonu gorunur, tabbar'in altinda kalmiyor (46px yukseklik) | ✅ |
+| Ana sayfa | yok | hero ve 6 mod karti viewport icinde | ✅ |
+| Lig | yok | podyum tasmiyor; kendi satirin gorunur ve tabbar ustunde | ✅ |
+| Meydan Oku | yok | kategori seridi tasmiyor (7 kart, kaydirilabilir); tum butonlar icerde | ✅ |
+| Joker Dukkani | yok | 4 buton icerde; en kucuk dokunma hedefi **46px** (>=44) | ✅ |
+| Profil | yok | 5 buton icerde; "Hesabimi Sil" kaydirma sonunda tabbar'in **37px** ustunde | ✅ |
+
+Bu turda yakalanip duzeltilen iki kusur: bekleyen davet kartinda oyuncu adlari
+kesiliyordu (genislik 62→78px, yazi 10px) ve "Kurdugun davetler (yanit
+bekleniyor)" basligi 390px'te iki satira tasiyordu → "Bekleyen davetlerin".
+
+### 4) Yayin paketi son kontrol (tarayicida dogrulandi)
+
+`/bildim.webmanifest` → HTTP 200, `application/manifest+json`, hatasiz JSON:
+
+| Alan | Deger |
+|---|---|
+| name / short_name | "Bildim! — Bilgi Yarismasi" / "Bildim!" |
+| start_url | `/bildim` |
+| display / orientation | `standalone` / `portrait` |
+| theme_color | `#7c4dff` (tema.css `--bd-vurgu` ile ayni) |
+| background_color | `#0b0918` (tema.css `--bd-zemin` ile ayni) |
+| ikonlar | 192 (26 kB), 512 (70 kB), maskable 512 (61 kB) — hepsi HTTP 200, gercek PNG |
+
+**`assetlinks.json`: parmak izi hala `BURAYA_IMZA_ANAHTARININ_SHA256_PARMAK_IZI_YAZILACAK`
+— imza anahtari uretildikten sonra doldurulacak.** (Paket adi `com.idagg.bildim` hazir.)
+
+**Gizlilik metni** zaten Faz 2'de takma ad duzenine gore guncellenmisti; "kullanici
+adi siralamalarda herkese gorunur" ifadesi kalmadi (grep ile dogrulandi).
+
+**Hesabimi Sil — ucdan uca test edildi** (rollback icinde sahte kullaniciyla):
+`hesabimi_sil()` → `'tam'`; hem `auth.users` hem `profiles` kaydi silindi (1→0).
+Arayuz akisi: onay modali → kullanici adini yazma → silme → `signOut()`.
+Hata durumunda `hataMesaji()` ile Turkce mesaj gosteriliyor.
+
+### Kalan manuel isler (kodda is yok)
+1. **Imza anahtari**: `keytool -genkeypair ... -keystore ~/bildim-release.keystore
+   -alias bildim` → SHA-256'yi `public/.well-known/assetlinks.json` icine yaz,
+   deploy et. Anahtari ve parolayi yedekle.
+2. **AdSense**: Vercel'de `VITE_H5_ADS_CLIENT` = `ca-pub-...`. Bos kaldigi surece
+   reklam gosterilmez, sahte odul verilmez.
+3. **Play Console urun kimlikleri**: `joker_kucuk`, `joker_orta`, `joker_buyuk`
+   — `joker_paketleri` tablosundaki `kod` ile birebir ayni olmali
+   (`select kod, ad, adet from joker_paketleri order by adet;`).
+4. Magaza metinleri/gorseller: `store/` klasoru hazir.

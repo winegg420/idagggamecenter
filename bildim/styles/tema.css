@@ -1734,3 +1734,88 @@ body::before {
   .bd-ana-eylem { animation: none; }
   body::before { transform: none; }
 }
+
+/* ============================================================
+   SON RÖTUŞ — kurduğun davet kartları + kategori şeridi
+   ============================================================ */
+
+/* ---------- Kurduğun davetler (yanıt bekleyen) ---------- */
+.bd-bekleyen-kurulum {
+  display: flex; flex-direction: column; gap: 10px;
+  padding: 14px;
+  margin-bottom: 10px;
+  border-radius: 20px;
+  background: linear-gradient(170deg, rgba(48, 38, 92, 0.72), rgba(26, 20, 54, 0.82));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05), 0 8px 20px rgba(6, 4, 18, 0.36);
+}
+.bd-bk-ust { display: flex; flex-direction: column; gap: 2px; }
+.bd-bk-baslik { font-size: 14.5px; font-weight: 800; }
+.bd-bk-alt { font-size: 12px; color: var(--bd-metin-3); }
+
+.bd-bk-oyuncular { display: flex; flex-wrap: wrap; gap: 10px; }
+.bd-bk-oyuncu {
+  position: relative;
+  display: flex; flex-direction: column; align-items: center; gap: 3px;
+  width: 78px;
+}
+.bd-bk-oyuncu .avatar { border-radius: 50%; }
+.bd-bk-oyuncu.bekliyor .avatar { opacity: 0.5; }
+.bd-bk-durum {
+  position: absolute; top: 20px; right: 10px;
+  width: 18px; height: 18px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 10px; font-weight: 800; line-height: 1;
+  color: #fff;
+  border-radius: 50%;
+  box-shadow: 0 0 0 2px rgba(20, 16, 45, 0.95);
+}
+.bd-bk-oyuncu.hazir .bd-bk-durum { background: var(--bd-basari); }
+.bd-bk-oyuncu.bekliyor .bd-bk-durum { background: var(--bd-metin-3); }
+.bd-bk-ad {
+  max-width: 100%;
+  font-size: 10px; font-weight: 700; color: var(--bd-metin-2);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.bd-bekleyen-kurulum .btn.kucuk { align-self: flex-start; }
+
+/* ---------- Kategori şeridi: sağda sönümleme + ipucu ---------- */
+.bd-kat-serit { position: relative; }
+
+.bd-kat-serit .bd-kat-grid {
+  scroll-snap-type: x mandatory;
+  /* Sağ kenarda yumuşak kesim: şeridin devam ettiği belli olsun */
+  mask-image: linear-gradient(90deg, #000 0, #000 82%, transparent 100%);
+  -webkit-mask-image: linear-gradient(90deg, #000 0, #000 82%, transparent 100%);
+  transition: mask-image 0.2s;
+}
+.bd-kat-serit.sonda .bd-kat-grid {
+  mask-image: none;
+  -webkit-mask-image: none;
+}
+
+.bd-kat-serit .bd-kat-kart { scroll-snap-align: start; }
+
+.bd-kat-ipucu {
+  position: absolute;
+  right: 2px; top: 50%; transform: translateY(-50%);
+  width: 26px; height: 26px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 19px; font-weight: 800; line-height: 1;
+  color: var(--bd-metin);
+  background: rgba(124, 77, 255, 0.55);
+  border-radius: 50%;
+  box-shadow: 0 2px 10px rgba(6, 4, 18, 0.5);
+  pointer-events: none;
+  opacity: 1;
+  transition: opacity 0.2s;
+  animation: bd-ipucu-kay 1.8s ease-in-out infinite;
+}
+.bd-kat-serit.sonda .bd-kat-ipucu { opacity: 0; }
+@keyframes bd-ipucu-kay {
+  0%, 100% { transform: translate(0, -50%); }
+  50% { transform: translate(3px, -50%); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bd-kat-ipucu { animation: none; }
+}

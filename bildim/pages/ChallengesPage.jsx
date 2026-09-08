@@ -5,6 +5,7 @@ import { supabase } from "../../src/lib/supabase.js";
 import { useAuth } from "../../src/context/AuthContext.jsx";
 import Avatar from "../../src/components/Avatar.jsx";
 import { kategoriAdi, kategoriEtiket, kategoriIkon, kategorileriSirala } from "../lib/kategoriler.js";
+import { oyuncuAdi } from "../lib/oyuncu.js";
 
 const MAC_SECIMI = `*,
   p1:profiles!matches_oyuncu1_fkey(id, gorunen_ad, gorunen_avatar, puan),
@@ -27,6 +28,54 @@ const botZorluk = (isabet) =>
 
 // Kategori etiketleri ortak dosyada (bildim/lib/kategoriler.js)
 
+/** Kurduğun ama henüz yanıtlanmamış grup/hızlı davet kartı. */
+function BekleyenKurulum({ baslik, kategori, katilimcilar, onIptal, iptalEdilen, id }) {
+  const hazir = katilimcilar.filter((k) => k.davet_durumu === "kabul").length;
+  return (
+    <div className="bd-bekleyen-kurulum">
+      <div className="bd-bk-ust">
+        <div className="bd-bk-baslik">{baslik}</div>
+        <div className="bd-bk-alt">
+          {kategori ? kategoriEtiket(kategori) : "🎲 Karışık"} · {hazir}/
+          {katilimcilar.length} hazır
+        </div>
+      </div>
+
+      <div className="bd-bk-oyuncular">
+        {katilimcilar.map((k) => (
+          <div
+            key={k.user_id}
+            className={`bd-bk-oyuncu ${k.davet_durumu === "kabul" ? "hazir" : "bekliyor"}`}
+            title={`${oyuncuAdi(k.profil, k.user_id)} — ${
+              k.davet_durumu === "kabul" ? "hazır" : "bekliyor"
+            }`}
+          >
+            <Avatar
+              profile={{
+                gorunen_ad: oyuncuAdi(k.profil, k.user_id),
+                gorunen_avatar: k.profil?.gorunen_avatar,
+              }}
+              boyut={34}
+            />
+            <span className="bd-bk-durum" aria-hidden="true">
+              {k.davet_durumu === "kabul" ? "✓" : "…"}
+            </span>
+            <span className="bd-bk-ad">{oyuncuAdi(k.profil, k.user_id)}</span>
+          </div>
+        ))}
+      </div>
+
+      <button
+        className="btn kucuk ikincil"
+        disabled={iptalEdilen === id}
+        onClick={onIptal}
+      >
+        {iptalEdilen === id ? "İptal ediliyor…" : "İptal et"}
+      </button>
+    </div>
+  );
+}
+
 export default function ChallengesPage() {
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -47,6 +96,49 @@ export default function ChallengesPage() {
   const [hizliHata, setHizliHata] = useState(null);
   const [grupAcik, setGrupAcik] = useState(false);
   const [hizliAcik, setHizliAcik] = useState(false);
+  const [iptalEdilen, setIptalEdilen] = useState(null);
+  const [iptalHata, setIptalHata] = useState(null);
+  const katSeritRef = useRef(null);
+  const [seritSonda, setSeritSonda] = useState(false);
+
+  // Şerit sona geldiğinde sağdaki sönümleme ve "›" ipucu kaybolur
+  const seritKaydi = useCallback(() => {
+    const e = katSeritRef.current;
+    if (!e) return;
+    setSeritSonda(e.scrollLeft + e.clientWidth >= e.scrollWidth - 8);
+  }, []);
+
+  // Seçili kategori her zaman görünür alanda kalsın
+  useEffect(() => {
+    const e = katSeritRef.current;
+    if (!e) return;
+    const secili = e.querySelector(".bd-kat-kart.aktif");
+    try {
+      secili?.scrollIntoView({ inline: "center", block: "nearest", behavior: "smooth" });
+    } catch {
+      /* eski tarayıcı — kaydırma olmadan da çalışır */
+    }
+    seritKaydi();
+  }, [kategori, kategoriler, seritKaydi]);
+
+  // Kurduğun grup/hızlı daveti geri al
+  const davetIptal = async (tur, id) => {
+    setIptalHata(null);
+    setIptalEdilen(id);
+    try {
+      const { error } = await supabase.rpc(
+        tur === "grup" ? "grup_mac_iptal" : "hizli_mac_iptal",
+        tur === "grup" ? { p_group_match_id: id } : { p_hizli_mac_id: id }
+      );
+      if (error) throw error;
+      if (tur === "grup") await grupYukle();
+      else await hizliYukle();
+    } catch (e) {
+      setIptalHata(hataMesaji(e, "Davet iptal edilemedi."));
+    } finally {
+      setIptalEdilen(null);
+    }
+  };
 
   useEffect(() => {
     supabase
@@ -366,23 +458,6 @@ export default function ChallengesPage() {
         </>
       )}
 
-      {grupBeklenen.length > 0 && (
-        <>
-          <div className="baslik">📤 Kurduğun Gruplar (yanıt bekleniyor)</div>
-          {grupBeklenen.map((gm) => (
-            <div key={gm.id} className="liste-satir">
-              <div className="bilgi">
-                <div className="isim">
-                  {gm.katilimcilar
-                    ?.filter((k) => k.user_id !== user.id)
-                    .map((k) => `${k.profil?.gorunen_ad} (${k.davet_durumu === "kabul" ? "hazır" : "bekliyor"})`)
-                    .join(", ")}
-                </div>
-              </div>
-            </div>
-          ))}
-        </>
-      )}
       </div>
 
 
@@ -391,7 +466,8 @@ export default function ChallengesPage() {
         <span>🎯 Kategori</span>
         <span className="alt-yazi">1v1 · grup · hızlı mod için</span>
       </div>
-      <div className="bd-kat-grid">
+      <div className={`bd-kat-serit ${seritSonda ? "sonda" : ""}`}>
+      <div className="bd-kat-grid" ref={katSeritRef} onScroll={seritKaydi}>
         <button
           className={`bd-kat-kart ${kategori === null ? "aktif" : ""}`}
           onClick={() => setKategori(null)}
@@ -422,6 +498,9 @@ export default function ChallengesPage() {
             </button>
           );
         })}
+      </div>
+        {/* Kaydırılabilir olduğunu belli eden ipucu; sona gelince kaybolur */}
+        <span className="bd-kat-ipucu" aria-hidden="true">›</span>
       </div>
 
       {botlar
@@ -608,21 +687,35 @@ export default function ChallengesPage() {
         </>
       )}
 
-      {hizliBeklenen.length > 0 && (
+      {/* Kurduğun ve yanıt bekleyen davetler — düz metin yerine kart listesi */}
+      {(grupBeklenen.length > 0 || hizliBeklenen.length > 0) && (
         <>
-          <div className="baslik">📤 Kurduğun Yarışlar (yanıt bekleniyor)</div>
-          {hizliBeklenen.map((hm) => (
-            <div key={hm.id} className="liste-satir">
-              <div className="bilgi">
-                <div className="isim">
-                  {hm.katilimcilar
-                    ?.filter((k) => k.user_id !== user.id)
-                    .map((k) => `${k.profil?.gorunen_ad} (${k.davet_durumu === "kabul" ? "hazır" : "bekliyor"})`)
-                    .join(", ")}
-                </div>
-              </div>
-            </div>
+          <div className="baslik">📤 Bekleyen davetlerin</div>
+          {grupBeklenen.map((gm) => (
+            <BekleyenKurulum
+              key={gm.id}
+              tur="grup"
+              baslik={`${gm.oyuncu_sayisi} kişilik grup maçı`}
+              kategori={gm.kategori}
+              katilimcilar={(gm.katilimcilar ?? []).filter((k) => k.user_id !== user.id)}
+              onIptal={() => davetIptal("grup", gm.id)}
+              iptalEdilen={iptalEdilen}
+              id={gm.id}
+            />
           ))}
+          {hizliBeklenen.map((hm) => (
+            <BekleyenKurulum
+              key={hm.id}
+              tur="hizli"
+              baslik="Hızlı Olan Kazanır"
+              kategori={hm.kategori}
+              katilimcilar={(hm.katilimcilar ?? []).filter((k) => k.user_id !== user.id)}
+              onIptal={() => davetIptal("hizli", hm.id)}
+              iptalEdilen={iptalEdilen}
+              id={hm.id}
+            />
+          ))}
+          {iptalHata && <div className="hata-kutu">{iptalHata}</div>}
         </>
       )}
 
