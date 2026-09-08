@@ -8,13 +8,12 @@ import { sonrakiTurnuvaSeans } from "../lib/zaman.js";
 import { rutbeBul, sonrakiRutbe } from "../lib/ranks.js";
 import { bayrak, haftaBitisi, sureMetni } from "../lib/konum.js";
 import RakipAra from "../components/RakipAra.jsx";
+import Ikon from "../components/Ikon.jsx";
+import RankBadge from "../components/RankBadge.jsx";
 
 export default function Home() {
   const { user, profile, refreshProfile } = useAuth();
   const navigate = useNavigate();
-  const [adDuzenle, setAdDuzenle] = useState(false);
-  const [yeniAd, setYeniAd] = useState("");
-  const [adHata, setAdHata] = useState(null);
   const [lobide, setLobide] = useState(false);
   const [lobiSayisi, setLobiSayisi] = useState(0);
   const [canliTurnuva, setCanliTurnuva] = useState(false);
@@ -142,25 +141,6 @@ export default function Home() {
     setRakipAra(true);
   };
 
-  const adKaydet = async () => {
-    setAdHata(null);
-    const ad = yeniAd.trim();
-    if (ad.length < 3) {
-      setAdHata("Kullanıcı adı en az 3 karakter olmalı.");
-      return;
-    }
-    const { error } = await supabase
-      .from("profiles")
-      .update({ username: ad })
-      .eq("id", user.id);
-    if (error) {
-      setAdHata(error.code === "23505" ? "Bu kullanıcı adı alınmış." : error.message);
-    } else {
-      setAdDuzenle(false);
-      refreshProfile(user.id);
-    }
-  };
-
   const puan = profile?.puan ?? 0;
   const rutbe = rutbeBul(puan);
   const sonraki = sonrakiRutbe(puan);
@@ -208,91 +188,54 @@ export default function Home() {
         </div>
       )}
 
-      {/* ---------- Oyuncu Paneli (Hero) ---------- */}
-      <div className="hero-panel">
-        <div className="hero-glow" />
-        <div className="hero-ust">
-          <div className={`hero-avatar rutbe-halka`} style={{ "--halka": rutbe.renk }}>
-            <Avatar profile={profile} boyut={64} />
-            <span className="hero-rutbe-ikon">{rutbe.ikon}</span>
+      {/* ---------- HERO: tek odak — rütbe, haftalık sıra, birincil eylem ---------- */}
+      <section className="bd-hero bd-giris-1">
+        <div className="bd-hero-isik" aria-hidden="true" />
+
+        <div className="bd-hero-kimlik">
+          <div className="bd-hero-halka" style={{ "--halka": rutbe.renk }}>
+            <Avatar profile={profile} boyut={62} />
           </div>
-          <div className="hero-bilgi">
-            {adDuzenle ? (
-              <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-                <div style={{ display: "flex", gap: 6 }}>
-                  <input
-                    type="text"
-                    value={yeniAd}
-                    maxLength={24}
-                    autoFocus
-                    onChange={(e) => setYeniAd(e.target.value)}
-                    onKeyDown={(e) => e.key === "Enter" && adKaydet()}
-                    style={{ padding: "8px 10px", fontSize: 15 }}
-                  />
-                  <button className="btn kucuk" onClick={adKaydet}>✓</button>
-                  <button
-                    className="btn kucuk ikincil"
-                    onClick={() => {
-                      setAdDuzenle(false);
-                      setAdHata(null);
-                    }}
-                  >
-                    ✕
-                  </button>
-                </div>
-                {adHata && <div className="alt-yazi" style={{ color: "var(--danger)" }}>{adHata}</div>}
-              </div>
-            ) : (
-              <>
-                <div className="hero-isim">
-                  <span className="ad">{profile?.username}</span>
-                  <button
-                    title="Adını değiştir"
-                    className="ad-duzenle"
-                    onClick={() => {
-                      setYeniAd(profile?.username ?? "");
-                      setAdDuzenle(true);
-                    }}
-                  >
-                    ✏️
-                  </button>
-                </div>
-                <div className="hero-rozetler">
-                  <span className="rutbe-chip" style={{ color: rutbe.renk }}>
-                    {rutbe.ikon} {rutbe.ad}
-                  </span>
-                  {(profile?.seri ?? 0) > 0 && (
-                    <span className="rutbe-chip seri">🔥 {profile.seri} gün</span>
-                  )}
-                </div>
-              </>
-            )}
-          </div>
-          <div className="hero-puan">
-            <div className="deger">⭐ {puan}</div>
-            <div className="etiket">puan</div>
+          <div className="bd-hero-ad-blok">
+            <div className="bd-hero-ad">{profile?.gorunen_ad ?? "Oyuncu"}</div>
+            <RankBadge puan={puan} />
           </div>
         </div>
-        {!adDuzenle && (
-          <div className="xp-alan">
-            <div className="xp-bar">
-              <div className="dolgu" style={{ width: `${ilerleme}%` }} />
-            </div>
-            <div className="xp-yazi">
-              {sonraki
-                ? <>Sonraki rütbe <b style={{ color: sonraki.renk }}>{sonraki.ikon} {sonraki.ad}</b> · {sonraki.min - puan} puan kaldı</>
-                : <>En yüksek rütbedesin! {rutbe.ikon} Efsane</>}
-            </div>
-          </div>
-        )}
 
-        {/* Lig özeti: rank kasma motivasyonu (şehir / ülke / dünya sırası) */}
-        {!adDuzenle && ligDurum && (
+        <div className="bd-hero-puan">
+          <span className="bd-hero-puan-sayi">{puan}</span>
+          <span className="bd-hero-puan-etiket">puan</span>
+        </div>
+
+        <div className="bd-hero-ilerleme">
+          <div className="bd-hero-bar">
+            <div className="dolgu" style={{ width: `${ilerleme}%` }} />
+          </div>
+          <div className="bd-hero-ilerleme-yazi">
+            {sonraki ? (
+              <>
+                <b style={{ color: sonraki.renk }}>{sonraki.ad}</b> rütbesine{" "}
+                {sonraki.min - puan} puan
+              </>
+            ) : (
+              <>En yüksek rütbedesin</>
+            )}
+          </div>
+        </div>
+
+        <button className="bd-ana-eylem" onClick={hemenOyna}>
+          <Ikon ad="hizli" boyut={22} />
+          <span>HEMEN OYNA</span>
+          <Ikon ad="ok" boyut={20} className="bd-ana-eylem-ok" />
+        </button>
+        {mesaj && <div className="hata-kutu" style={{ marginTop: 10 }}>{mesaj}</div>}
+
+        {ligDurum && (
           <div className="bd-hero-lig">
             {ligDurum.sehir && (
               <Link to="/bildim/siralama" className="bd-lig-rozet">
                 <span className="bd-lig-rozet-ust">
-                  {bayrak(ligDurum.ulke)} {ligDurum.sehir}
+                  <Ikon ad="sehir" boyut={13} /> {ligDurum.sehir}
                 </span>
                 <span className="bd-lig-rozet-deger">{ligDurum.sira_sehir}.</span>
                 <span className="bd-lig-rozet-alt">/ {ligDurum.sehir_oyuncu}</span>
@@ -300,34 +243,50 @@ export default function Home() {
             )}
             {ligDurum.ulke && (
               <Link to="/bildim/siralama" className="bd-lig-rozet">
-                <span className="bd-lig-rozet-ust">🏳️ Ülke</span>
+                <span className="bd-lig-rozet-ust">
+                  <Ikon ad="bayrak" boyut={13} /> Ülke
+                </span>
                 <span className="bd-lig-rozet-deger">{ligDurum.sira_ulke}.</span>
                 <span className="bd-lig-rozet-alt">/ {ligDurum.ulke_oyuncu}</span>
               </Link>
             )}
             <Link to="/bildim/siralama" className="bd-lig-rozet">
-              <span className="bd-lig-rozet-ust">🌍 Dünya</span>
+              <span className="bd-lig-rozet-ust">
+                <Ikon ad="dunya" boyut={13} /> Dünya
+              </span>
               <span className="bd-lig-rozet-deger">{ligDurum.sira_global}.</span>
               <span className="bd-lig-rozet-alt">/ {ligDurum.global_oyuncu}</span>
             </Link>
           </div>
         )}
 
-        {!adDuzenle && (
-          <div className="bd-hero-hafta">
-            ⏳ Haftalık lig bitimine <b>{sureMetni(haftaKalan)}</b>
-            {ligDurum?.sehrin_ulke_sirasi != null && ligDurum.sehir && (
-              <>
-                {" · "}
-                {ligDurum.sehir} ülkende <b>{ligDurum.sehrin_ulke_sirasi}.</b>
-              </>
-            )}
-          </div>
-        )}
+        <div className="bd-hero-hafta">
+          <Ikon ad="saat" boyut={13} /> Haftalık lig bitimine <b>{sureMetni(haftaKalan)}</b>
+        </div>
+      </section>
+
+      {/* ---------- Oyun modları: 2 sütun, ikon + iki kelime ---------- */}
+      <div className="bd-mod-grid bd-giris-2">
+        <button className="bd-mod" onClick={() => navigate("/bildim/meydan")}>
+          <span className="bd-mod-ikon meydan"><Ikon ad="kilic" boyut={24} /></span>
+          <span className="bd-mod-ad">Meydan Oku</span>
+        </button>
+        <button className="bd-mod" onClick={() => navigate("/bildim/meydan")}>
+          <span className="bd-mod-ikon hizli"><Ikon ad="hizli" boyut={24} /></span>
+          <span className="bd-mod-ad">Hızlı Mod</span>
+        </button>
+        <button className="bd-mod" onClick={() => navigate("/bildim/meydan")}>
+          <span className="bd-mod-ikon grup"><Ikon ad="kisiler" boyut={24} /></span>
+          <span className="bd-mod-ad">Grup Maçı</span>
+        </button>
+        <button className="bd-mod" onClick={() => navigate("/bildim/turnuva")}>
+          <span className="bd-mod-ikon turnuva"><Ikon ad="kupa" boyut={24} /></span>
+          <span className="bd-mod-ad">Turnuva</span>
+        </button>
       </div>
 
       {/* ---------- Turnuva Vitrini ---------- */}
-      <div className="geri-sayim-kart">
+      <div className="geri-sayim-kart bd-turnuva-bant bd-giris-3">
         <div className="turnuva-seans">
           {sonrakiTurnuvaSeans() === "sabah" ? "☀️ SABAH TURNUVASI" : "🌙 GECE TURNUVASI"}
         </div>
@@ -359,40 +318,6 @@ export default function Home() {
             )}
           </>
         )}
-      </div>
-
-      {/* ---------- Oyun Modları ---------- */}
-      <div className="bolum-baslik"><span>🎮 Oyun Modları</span></div>
-      <button className="mod-kart genis hemen" onClick={hemenOyna}>
-        <span className="mod-ikon">⚡</span>
-        <span className="mod-metin">
-          <span className="mod-ad">Hemen Oyna</span>
-          <span className="mod-alt">Rakip bul, 1v1 düelloya başla</span>
-        </span>
-        <span className="mod-ok">→</span>
-      </button>
-
-      <div className="mod-grid">
-        <button className="mod-kart meydan" onClick={() => navigate("/bildim/meydan")}>
-          <span className="mod-ikon">⚔️</span>
-          <span className="mod-ad">Meydan Oku</span>
-          <span className="mod-alt">Arkadaşına veya bota</span>
-        </button>
-        <button className="mod-kart hizli" onClick={() => navigate("/bildim/meydan")}>
-          <span className="mod-ikon">🏁</span>
-          <span className="mod-ad">Hızlı Olan Kazanır</span>
-          <span className="mod-alt">İlk bilen puanı kapar</span>
-        </button>
-        <button className="mod-kart grup" onClick={() => navigate("/bildim/meydan")}>
-          <span className="mod-ikon">👨‍👩‍👧‍👦</span>
-          <span className="mod-ad">Grup Maçı</span>
-          <span className="mod-alt">3-5 kişilik yarış</span>
-        </button>
-        <button className="mod-kart turnuva" onClick={() => navigate("/bildim/turnuva")}>
-          <span className="mod-ikon">🏆</span>
-          <span className="mod-ad">Turnuva</span>
-          <span className="mod-alt">Son kalan kazanır</span>
-        </button>
       </div>
 
       {/* ---------- Günlük Görevler ---------- */}
@@ -438,7 +363,7 @@ export default function Home() {
       )}
 
       {/* ---------- En İyiler ---------- */}
-      <div className="bolum-baslik"><span>🔥 En İyiler</span></div>
+      <div className="bolum-baslik bd-giris-4"><span>🔥 En İyiler</span></div>
       <div className="kart">
         {top5.map((p, i) => (
           <div key={p.id} className="lider-satir">

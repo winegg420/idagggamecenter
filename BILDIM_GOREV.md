@@ -65,16 +65,16 @@
 - [x] 4.10 `npm run build` temiz + PROGRESS eklendi + commit
 
 ## Faz 5 — Kozmetik: "oyun hissi"
-- [ ] 5.1 Tipografi: "Baloo 2" başlık + system-ui gövde
-- [ ] 5.2 Ana sayfa hiyerarşisi: tek büyük hero + 2 sütun mod kartları + turnuva bandı + küçük lig özeti
-- [ ] 5.3 Inline SVG ikon seti (bağımlılık yok), emoji ikonlar değişti
-- [ ] 5.4 Özel rütbe rozetleri
-- [ ] 5.5 Hareket: stagger giriş, puan sayacı, cevap kartı tepkisi, ligde kendi satırı
-- [ ] 5.6 `prefers-reduced-motion` saygısı
-- [ ] 5.7 Renk: koyu + mor vurgu + sıcak ikincil yalnız ödül/puan; kontrast ≥4.5; hedef ≥44px
-- [ ] 5.8 390px mobil gözden geçirme; alt sekme çubuğu net
-- [ ] 5.9 Eski CSS sınıfları silinmedi; yeni sınıflar eklendi
-- [ ] 5.10 `npm run build` temiz + PROGRESS eklendi + commit
+- [x] 5.1 Tipografi: "Baloo 2" başlık + system-ui gövde
+- [x] 5.2 Ana sayfa hiyerarşisi: tek büyük hero + 2 sütun mod kartları + turnuva bandı + küçük lig özeti
+- [x] 5.3 Inline SVG ikon seti (bağımlılık yok), emoji ikonlar değişti
+- [x] 5.4 Özel rütbe rozetleri
+- [x] 5.5 Hareket: stagger giriş, puan sayacı, cevap kartı tepkisi, ligde kendi satırı
+- [x] 5.6 `prefers-reduced-motion` saygısı
+- [x] 5.7 Renk: koyu + mor vurgu + sıcak ikincil yalnız ödül/puan; kontrast ≥4.5; hedef ≥44px
+- [x] 5.8 390px mobil gözden geçirme; alt sekme çubuğu net
+- [x] 5.9 Eski CSS sınıfları silinmedi; yeni sınıflar eklendi
+- [x] 5.10 `npm run build` temiz + PROGRESS eklendi + commit
 
 ## Faz 6 — Kapanış
 - [ ] 6.1 `npm run build` temiz

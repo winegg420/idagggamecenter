@@ -1619,3 +1619,205 @@ input:focus { border-color: var(--primary); }
 .bd-izin-baslik { font-size: 14px; font-weight: 800; margin-bottom: 3px; }
 .bd-izin-butonlar { display: flex; gap: var(--bd-bosluk-2); width: 100%; }
 .bd-izin-butonlar .btn { flex: 1; }
+
+/* ============================================================
+   BİLDİM — Faz 5: "yönetim paneli" değil "oyun"
+   Tipografi (Baloo 2 başlık), hero hiyerarşisi, SVG ikonlar,
+   stagger giriş animasyonları. Eski sınıflar korunur.
+   ============================================================ */
+
+:root {
+  --bd-baslik-font: "Baloo 2", "Segoe UI", system-ui, sans-serif;
+  /* Sıcak ikincil YALNIZCA ödül/puan için kullanılır */
+  --bd-odul: #fbbf24;
+  --bd-odul-koyu: #d97706;
+}
+
+/* ---------- Tipografi ---------- */
+.logo,
+.baslik,
+.bolum-baslik,
+.bd-hero-ad,
+.bd-hero-puan-sayi,
+.bd-mod-ad,
+.bd-konum-baslik,
+.bd-ana-eylem,
+.bd-soru-metin,
+.bd-podyum-kaide,
+.bd-metin-sayfa h2 {
+  font-family: var(--bd-baslik-font);
+  letter-spacing: 0.2px;
+}
+.bd-soru-metin { letter-spacing: 0; }
+
+/* ---------- SVG ikon ortak ---------- */
+.bd-ikon { flex: 0 0 auto; vertical-align: -0.15em; }
+
+/* Alt sekme çubuğu: ikonlar artık SVG, aktif sekme daha net */
+.tabbar a .ikon {
+  display: flex; align-items: center; justify-content: center;
+  height: 24px;
+}
+.tabbar a.aktif { color: var(--primary); }
+.tabbar a.aktif .ikon { transform: translateY(-1px); }
+.tabbar a.aktif::after {
+  content: ""; position: absolute; top: -2px; left: 50%;
+  width: 20px; height: 3px; border-radius: 999px;
+  background: var(--primary); transform: translateX(-50%);
+}
+
+/* ---------- HERO ---------- */
+.bd-hero {
+  position: relative; overflow: hidden;
+  padding: var(--bd-bosluk-4) var(--bd-bosluk-3) var(--bd-bosluk-3);
+  margin-bottom: var(--bd-bosluk-3);
+  border-radius: 24px;
+  background:
+    radial-gradient(120% 90% at 50% -10%, rgba(139, 92, 246, 0.35), transparent 60%),
+    linear-gradient(160deg, var(--bg-3), var(--card));
+  border: 1px solid var(--border);
+  box-shadow: var(--bd-golge-2);
+}
+.bd-hero-isik {
+  position: absolute; top: -70px; left: 50%; transform: translateX(-50%);
+  width: 260px; height: 160px; pointer-events: none;
+  background: radial-gradient(circle, rgba(251, 191, 36, 0.28), transparent 70%);
+  filter: blur(6px);
+}
+.bd-hero > *:not(.bd-hero-isik) { position: relative; z-index: 1; }
+
+.bd-hero-kimlik { display: flex; align-items: center; gap: var(--bd-bosluk-3); }
+.bd-hero-halka {
+  position: relative;
+  padding: 3px; border-radius: 50%;
+  background: conic-gradient(var(--halka), transparent 70%, var(--halka));
+}
+.bd-hero-halka .avatar { border: 2px solid var(--card); }
+.bd-hero-ad-blok { display: flex; flex-direction: column; gap: 5px; min-width: 0; }
+.bd-hero-ad {
+  font-size: 21px; font-weight: 800; line-height: 1.1;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.bd-rutbe-chip { display: inline-flex; align-items: center; gap: 5px; }
+.bd-rutbe-rozet { flex: 0 0 auto; }
+
+/* Puan: tek büyük odak, ödül rengiyle */
+.bd-hero-puan {
+  display: flex; align-items: baseline; justify-content: center; gap: 8px;
+  margin: var(--bd-bosluk-3) 0 var(--bd-bosluk-2);
+}
+.bd-hero-puan-sayi {
+  font-size: clamp(46px, 15vw, 62px); font-weight: 800; line-height: 0.95;
+  color: var(--bd-odul);
+  text-shadow: 0 4px 26px rgba(251, 191, 36, 0.35);
+  font-variant-numeric: tabular-nums;
+}
+.bd-hero-puan-etiket {
+  font-size: 13px; font-weight: 700; letter-spacing: 2px;
+  text-transform: uppercase; color: var(--text-dim);
+}
+
+.bd-hero-ilerleme { margin-bottom: var(--bd-bosluk-3); }
+.bd-hero-bar {
+  height: 8px; border-radius: 999px; overflow: hidden;
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid var(--border);
+}
+.bd-hero-bar .dolgu {
+  height: 100%;
+  background: linear-gradient(90deg, var(--primary), var(--bd-odul));
+  transition: width 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.bd-hero-ilerleme-yazi {
+  margin-top: 7px; text-align: center;
+  font-size: 12.5px; color: var(--text-dim);
+}
+
+/* Birincil eylem: sayfadaki en güçlü buton */
+.bd-ana-eylem {
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+  width: 100%; min-height: 58px;
+  padding: 16px 20px; cursor: pointer;
+  font-size: 17px; font-weight: 800; letter-spacing: 1.2px;
+  color: #1b1206;
+  background: linear-gradient(135deg, #fcd34d, var(--bd-odul) 45%, var(--bd-odul-koyu));
+  border: none; border-radius: 16px;
+  box-shadow: 0 8px 22px rgba(217, 119, 6, 0.4);
+  transition: transform 0.09s, box-shadow 0.2s;
+}
+.bd-ana-eylem:active {
+  transform: translateY(2px) scale(0.99);
+  box-shadow: 0 4px 12px rgba(217, 119, 6, 0.35);
+}
+.bd-ana-eylem-ok { transition: transform 0.2s; }
+.bd-ana-eylem:hover .bd-ana-eylem-ok { transform: translateX(3px); }
+
+.bd-hero .bd-hero-lig { margin-top: var(--bd-bosluk-3); }
+.bd-hero .bd-lig-rozet-ust { display: inline-flex; align-items: center; gap: 4px; }
+.bd-hero-hafta {
+  display: flex; align-items: center; justify-content: center; gap: 5px;
+  margin-top: var(--bd-bosluk-2);
+  font-size: 12px; color: var(--text-dim);
+}
+
+/* ---------- Mod kartları: 2 sütun, ikon + iki kelime ---------- */
+.bd-mod-grid {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: var(--bd-bosluk-2); margin-bottom: var(--bd-bosluk-4);
+}
+.bd-mod {
+  display: flex; flex-direction: column; align-items: center; gap: 9px;
+  min-height: 104px; padding: 16px 10px; cursor: pointer;
+  color: var(--text);
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  transition: transform 0.09s, border-color 0.18s, background 0.18s;
+}
+.bd-mod:active { transform: scale(0.97); }
+.bd-mod:hover { border-color: var(--primary); }
+.bd-mod-ikon {
+  display: flex; align-items: center; justify-content: center;
+  width: 46px; height: 46px; border-radius: 14px;
+  color: #fff;
+  background: linear-gradient(135deg, var(--primary), var(--primary-2));
+}
+.bd-mod-ikon.hizli { background: linear-gradient(135deg, #fbbf24, #d97706); color: #1b1206; }
+.bd-mod-ikon.grup { background: linear-gradient(135deg, #38bdf8, #0369a1); }
+.bd-mod-ikon.turnuva { background: linear-gradient(135deg, #f472b6, #9d174d); }
+.bd-mod-ad { font-size: 14.5px; font-weight: 800; text-align: center; }
+
+/* ---------- Turnuva bandı ---------- */
+.bd-turnuva-bant {
+  border-radius: 20px;
+  background: linear-gradient(135deg, rgba(56, 189, 248, 0.16), var(--card) 70%);
+  border: 1px solid rgba(56, 189, 248, 0.35);
+}
+
+/* ---------- Giriş animasyonu (stagger) ---------- */
+@keyframes bd-giris {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: none; }
+}
+.bd-giris-1, .bd-giris-2, .bd-giris-3, .bd-giris-4 {
+  animation: bd-giris 0.42s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+.bd-giris-1 { animation-delay: 0.02s; }
+.bd-giris-2 { animation-delay: 0.09s; }
+.bd-giris-3 { animation-delay: 0.16s; }
+.bd-giris-4 { animation-delay: 0.23s; }
+
+/* ---------- Mobil 390px gözden geçirme ---------- */
+@media (max-width: 400px) {
+  .bd-hero { padding: 18px 14px 14px; border-radius: 20px; }
+  .bd-hero-ad { font-size: 19px; }
+  .bd-ana-eylem { font-size: 16px; min-height: 54px; letter-spacing: 0.8px; }
+  .bd-mod { min-height: 96px; padding: 14px 8px; }
+  .bd-mod-ikon { width: 42px; height: 42px; }
+  .bd-mod-ad { font-size: 13.5px; }
+  .bd-lig-rozet-deger { font-size: 17px; }
+  .bd-sekme { font-size: 10.5px; gap: 3px; }
+  .tabbar a { font-size: 10px; }
+  .bd-avatar-grid { grid-template-columns: repeat(4, 1fr); gap: 8px; }
+  .bd-davet-kod { font-size: 22px; letter-spacing: 3px; }
+}

@@ -6,6 +6,7 @@ import RankUpOverlay from "./RankUpOverlay.jsx";
 import PuanSayaci from "./PuanSayaci.jsx";
 import BildirimZili from "./BildirimZili.jsx";
 import KurulumSihirbazi from "./KurulumSihirbazi.jsx";
+import Ikon from "./Ikon.jsx";
 
 export default function Layout() {
   const { profile, user } = useAuth();
@@ -83,23 +84,23 @@ export default function Layout() {
 
       <nav className="tabbar">
         <NavLink to="/bildim" end className={({ isActive }) => (isActive ? "aktif" : "")}>
-          <span className="ikon">🏠</span>Ana Sayfa
+          <span className="ikon"><Ikon ad="ev" boyut={22} /></span>Ana Sayfa
         </NavLink>
         <NavLink to="/bildim/turnuva" className={({ isActive }) => (isActive ? "aktif" : "")}>
-          <span className="ikon">🏆</span>Turnuva
+          <span className="ikon"><Ikon ad="kupa" boyut={22} /></span>Turnuva
         </NavLink>
         <NavLink to="/bildim/meydan" className={({ isActive }) => (isActive ? "aktif" : "")}>
-          <span className="ikon">⚔️</span>Meydan Oku
+          <span className="ikon"><Ikon ad="kilic" boyut={22} /></span>Meydan Oku
           {bekleyen > 0 && <span className="rozet">{bekleyen}</span>}
         </NavLink>
         <NavLink to="/" className={({ isActive }) => (isActive ? "aktif" : "")}>
-          <span className="ikon">🎮</span>Merkez
+          <span className="ikon"><Ikon ad="oyunKolu" boyut={22} /></span>Merkez
         </NavLink>
         <NavLink to="/bildim/siralama" className={({ isActive }) => (isActive ? "aktif" : "")}>
-          <span className="ikon">📊</span>Sıralama
+          <span className="ikon"><Ikon ad="grafik" boyut={22} /></span>Sıralama
         </NavLink>
         <NavLink to="/bildim/arkadaslar" className={({ isActive }) => (isActive ? "aktif" : "")}>
-          <span className="ikon">👥</span>Arkadaşlar
+          <span className="ikon"><Ikon ad="kisiler" boyut={22} /></span>Arkadaşlar
         </NavLink>
       </nav>
     </div>

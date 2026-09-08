@@ -1227,3 +1227,34 @@ Migration'lar **uygulanmadı**. `npm run build` temiz.
 - Home'daki konum modalı kaldırıldı (artık sihirbazın 3. adımı).
 
 `npm run build` temiz.
+
+## 2026-09-08 — Bildim Faz 5: kozmetik — "yönetim paneli" değil "oyun"
+
+**Sorun:** her şey aynı boyda mor karttı; hiyerarşi, hareket ve kimlik yoktu.
+
+- **Tipografi:** başlıklar **Baloo 2** (Google Fonts, `index.html`'e preconnect + link),
+  gövde system-ui. `--bd-baslik-font` değişkeniyle logo, başlıklar, hero, mod adları,
+  soru metni ve ana eylem butonu bu yazı tipini kullanıyor.
+- **Ana sayfa hiyerarşisi yeniden kuruldu:** tek büyük **hero** (rütbe halkası + avatar +
+  takma ad + rütbe rozeti, dev puan sayısı, rütbe ilerleme çubuğu, birincil "HEMEN OYNA"
+  butonu, altında küçük şehir/ülke/dünya lig rozetleri ve haftalık geri sayım).
+  Altında **2 sütun mod kartları** (ikon + iki kelime), sonra **ayrı turnuva bandı**,
+  sonra görevler ve En İyiler. Eski `hero-panel` / `mod-kart` bloklarının JSX'i yeni
+  sınıflara geçirildi; **eski CSS sınıfları silinmedi**.
+- **İkonlar:** `bildim/components/Ikon.jsx` — 20 parçalık **inline SVG** seti
+  (bağımlılık eklenmedi, `currentColor` devralır). Alt sekme çubuğu, bildirim zili ve
+  mod kartları emojiden SVG'ye geçti. Aktif sekmenin üstüne vurgu çizgisi eklendi.
+- **Rütbe rozetleri özelleştirildi:** `RankBadge` artık her rütbe için ayrı SVG biçim
+  çiziyor (Çaylak/Bilge/Üstat/Kahin/Efsane). Eski `puan` prop'u ve `.rutbe-chip`
+  görünümü korundu, `sadeceRozet` seçeneği eklendi.
+- **Renk disiplini:** koyu zemin + tek vurgu (mor) + **sıcak ikincil (altın) yalnızca
+  ödül/puan** için (`--bd-odul`). Hero puanı, ana eylem butonu ve ilerleme çubuğunun
+  ucu altın; gerisi mor/nötr.
+- **Hareket:** sayfa girişinde 4 kademeli **stagger** (`bd-giris-1..4`), puan sayacı
+  (Faz 3), cevap kartı tepkisi (Faz 3), ligde kendi satırı vurgusu (Faz 2).
+  `prefers-reduced-motion` kuralı tüm animasyonları kapatıyor.
+- **Erişilebilirlik/mobil:** dokunma hedefleri ≥44px (mod kartları 104px, ana eylem 58px),
+  `--text-dim` kontrastı 4.5:1 üzerinde, 400px altı için ayrı medya sorgusu ile hero,
+  mod kartları, sekmeler, davet kodu ve avatar ızgarası yeniden ölçeklendi.
+
+`npm run build` temiz.

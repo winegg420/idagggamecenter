@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../../src/lib/supabase.js";
 import { useAuth } from "../../src/context/AuthContext.jsx";
+import Ikon from "./Ikon.jsx";
 
 const TIP_IKON = {
   lige_girdin: "🏙️",
@@ -85,7 +86,7 @@ export default function BildirimZili() {
         onClick={ac}
         aria-label={`Bildirimler${okunmamis > 0 ? `, ${okunmamis} okunmamış` : ""}`}
       >
-        <span aria-hidden="true">🔔</span>
+        <Ikon ad="zil" boyut={19} />
         {okunmamis > 0 && <span className="bd-zil-rozet">{okunmamis > 9 ? "9+" : okunmamis}</span>}
       </button>
 
