@@ -1258,3 +1258,50 @@ Migration'lar **uygulanmadı**. `npm run build` temiz.
   mod kartları, sekmeler, davet kodu ve avatar ızgarası yeniden ölçeklendi.
 
 `npm run build` temiz.
+
+## 2026-09-08 — Bildim farklılaştırma paketi: KAPANIŞ
+
+Tek oturumda 6 faz tamamlandı. `BILDIM_GOREV.md` içindeki tüm kutular dolu.
+**Push, deploy ve `supabase db push` YAPILMADI** (istek gereği). Migration'lar canlıya
+uygulanmadı; her biri `begin; … rollback;` ile canlı veritabanında denendi.
+
+### Supabase'de ÇALIŞTIRMA SIRASI (bu sırayla, tek tek)
+
+| # | Dosya | Ne yapar |
+|---|-------|----------|
+| 1 | `20260612000047_takma_ad_gizlilik.sql` | Takma ad, görünen ad/avatar, davet kodu, bildirimler, toplam_mac, arkadaş kısıtı |
+| 2 | `20260612000048_genel_kultur_kategori.sql` | `genel_kultur` kategorisi + kategoriye göre eşleştirme kuyruğu |
+| 3 | `20260612000049_soru_parti10_genel_kultur.sql` | 500 genel kültür sorusu |
+| 4 | `20260612000050_soru_parti11_genel_kultur.sql` | 400 genel kültür + 100 karışık kategori |
+| 5 | `20260612000051_soru_parti12_kategoriler.sql` | 500 soru, 9 kategoriye eşit |
+
+Zincirin tamamı birlikte denendi: hatasız. Sonuç: soru havuzu **1.701 → 3.201**,
+`get_categories` ilk sırada `genel_kultur` (900 soru), `lig_siralama` 21 yerine
+**17 oyuncu** döndürüyor (hiç oynamamış 4 üye ligden çıktı).
+
+### Ana kararlar ve gerekçeleri (özet)
+
+1. **Gizlilik RLS ile değil, `gorunen_ad`/`gorunen_avatar` STORED GENERATED kolonlarıyla.**
+   Uygulama profilleri RPC'den, PostgREST gömülü join'lerinden ve realtime'dan okuyor;
+   kolon olarak tanımlayınca üç yol da tek noktadan güvenli hale geldi. `profiles_select`
+   politikasına dokunulmadı → diğer oyun modülleri etkilenmedi.
+2. **`toplam_mac` trigger ile artıyor**, büyük `advance_*` fonksiyonları yeniden yazılmadı.
+3. **`matchmaking_queue` ilk kez gerçekten kullanılıyor** — keşif: bugüne kadar hiçbir yer
+   kuyruğa satır eklemiyordu, "Hemen Oyna" hep bota düşüyordu.
+4. **Hazır avatarlar dosya yolu olarak** (`/avatars/av*.svg`); `avatar_onayla` `data:` URI
+   kabul etmiyor.
+5. **Soru üretiminde otomatik denetim zinciri** kuruldu; 1.500 sorunun 163'ü denetimde
+   elenip yenisiyle değiştirildi.
+6. **Bildirim izni ilk açılışta değil ilk maç sonunda** isteniyor.
+
+### Senin yapman gerekenler
+
+1. Yukarıdaki 5 migration'ı **sırayla** çalıştır (ya da bana söyle, ben uygularım —
+   `.env.local`'deki `SUPABASE_DB_PASSWORD` ile doğrudan bağlanabiliyorum).
+2. Uyguladıktan sonra siteye gir: **takma ad → avatar → şehir** sihirbazı çıkacak.
+   Mevcut hesabın için de çıkar; gerçek adın artık hiçbir yerde görünmeyecek.
+3. Arkadaş eklemek artık yalnız **davet kodu/linki** ile. Profil ya da Arkadaşlar
+   sekmesinden linkini paylaş.
+4. `boks/` klasöründeki 9 dosya hâlâ commit edilmemiş durumda — bu görevin kapsamı
+   dışındaydı, dokunulmadı.
+5. Push/deploy istersen söyle.

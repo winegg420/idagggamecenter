@@ -77,7 +77,12 @@
 - [x] 5.10 `npm run build` temiz + PROGRESS eklendi + commit
 
 ## Faz 6 — Kapanış
-- [ ] 6.1 `npm run build` temiz
-- [ ] 6.2 Bu dosyadaki tüm kutular dolu
-- [ ] 6.3 PROGRESS.md tarih başlıklı özet (kararlar + gerekçeler + değişen dosyalar + çalıştırma sırası 047→048→049→050→051 + manuel işler)
-- [ ] 6.4 Son commit
+- [x] 6.1 `npm run build` temiz
+- [x] 6.2 Bu dosyadaki tüm kutular dolu
+- [x] 6.3 PROGRESS.md tarih başlıklı özet (kararlar + gerekçeler + değişen dosyalar + çalıştırma sırası 047→048→049→050→051 + manuel işler)
+- [x] 6.4 Son commit
+
+---
+
+**Tamamlandı: 8 Eylül 2026.** Tüm fazlar bitti, `npm run build` temiz.
+Migration çalıştırma sırası: 047 → 048 → 049 → 050 → 051. Push/deploy YAPILMADI.
