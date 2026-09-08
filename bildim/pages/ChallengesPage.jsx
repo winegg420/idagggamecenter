@@ -19,12 +19,18 @@ const HIZLI_SECIMI = `*,
   katilimcilar:hizli_oyuncular(hizli_mac_id, user_id, davet_durumu, skor,
     profil:profiles(id, gorunen_ad, gorunen_avatar, puan))`;
 
+// Beş bot var (isabet 0.25 · 0.40 · 0.55 · 0.70 · 0.90); eşikler beşi de
+// ayrı gösterecek şekilde ayarlandı — önceden üçü aynı etikete düşüyordu.
 const botZorluk = (isabet) =>
-  isabet <= 0.45
-    ? { etiket: "Kolay", renk: "var(--success)" }
-    : isabet <= 0.75
-      ? { etiket: "Orta", renk: "var(--accent)" }
-      : { etiket: "Zor", renk: "var(--danger)" };
+  isabet <= 0.30
+    ? { etiket: "Çok kolay", renk: "var(--bd-basari)" }
+    : isabet <= 0.45
+      ? { etiket: "Kolay", renk: "var(--success)" }
+      : isabet <= 0.60
+        ? { etiket: "Orta", renk: "var(--accent)" }
+        : isabet <= 0.75
+          ? { etiket: "Zor", renk: "var(--bd-odul-2)" }
+          : { etiket: "Çok zor", renk: "var(--danger)" };
 
 // Kategori etiketleri ortak dosyada (bildim/lib/kategoriler.js)
 

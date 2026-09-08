@@ -865,3 +865,60 @@ sorulari kaciriyor, mac onsuz akip bitiyordu.
 |---|---|---|
 | 072 | `asenkron_1v1` | canliya uygulandi + gecmise kaydedildi |
 | 073 | `bildirim_push` | canliya uygulandi + gecmise kaydedildi |
+
+---
+
+## 2026-09-09 — CANLI TEST (yayin oncesi)
+
+Canli sitede idagg oturumuyla ucdan uca gezildi: ana sayfa, mac ekrani, Meydan
+Oku, bildirim zili, hizli mod kurulumu ve gercek mac oynandi.
+
+### Calistigi dogrulananlar
+| Ozellik | Kanit |
+|---|---|
+| Yarim kalan mac seridi | Ana sayfada "Yarim kalan macin var — sira sende!" cikti, tiklayinca maca girdi |
+| "SIRA SENDE" rozeti | Meydan Oku > Devam Eden: `sillaaa · SIRA SENDE · 12-85 · 6/20 soru · Devam et →` |
+| Asenkron ilerleme | Mac ekraninda kendi 7. sorumdaydim, rakip 1 soruda; kimse birbirini beklemiyor |
+| Sure dolunca kendi sirasi atlanir | Soru 1 → Soru 3'e gecti, ilerleme 2/20 oldu, mac bitmedi |
+| Son 5 saniye | Soru karti kizardi, sayac kirmizi nabiz, zaman cubugu kritik renkte |
+| Bes bot | AcemiBot · CaylakBot · KurtBot · BilgeBot · UstaBot listede |
+| **"Hizli Olan Kazanir" kurulabiliyor** | "4/4 rakip secildi", buton aktif, yaris kuruldu ve **acildi** (eskiden sonsuz "Yukleniyor"du) |
+| Hizli modda puanlama | BilgeBot ilk dogruyu verip **+10** aldi (ambiguous duzeltmesi calisiyor) |
+| Bildirim zili | "sillaaa sana meydan okudu! ⚔️" ve "🎖️ Genel Kultur kategorisinde Cirak oldun!" (ham anahtar yok) |
+| **"Sira sende" bildirimi** | "AcemiBot hamlesini yapti — sira sende! ⏳" zile dustu |
+| Bot davetleri | Hizli maca 4 bot kabul edip yaris basladi |
+
+### Canli testte BULUNAN ve duzeltilen hatalar
+
+**1. Mac ekraninda ilerleme gostergesi hic render edilmiyordu (KRITIK yarim is)**
+`bd-vs-ilerleme` yalniz sonuc ekraninda vardi; **aktif mac skor tabelasinda
+yoktu**. Asenkron macin en onemli bilgisi (kim nerede) ekranda gorunmuyordu.
+Onceki bir duzenlemede dusmus. → Skor tabelasina eklendi.
+
+**2. VS rozeti ORTAK sayaci gosteriyordu**
+Ben 7. sorumdayken rozet "9/20" yaziyordu (`aktif_soru`, yani en ileri oyuncu).
+Asenkronda yaniltici. → Artik **kendi siramizi** gosteriyor.
+
+**3. Rakip ilerlemesi hep 0 cikiyordu**
+`ilerleme` state'i `match_answers`'tan okunuyordu ama o tablonun RLS'i yalniz
+**kendi cevaplarini** gosteriyor (canli testte dogrulandi: 6 satirin hepsi
+bana ait). → Sayaclar artik `matches.oyuncu1_soru/oyuncu2_soru`'dan aliniyor;
+hem okunabilir hem kesin.
+
+**4. Asenkron bilgi karti oyunu bozuyordu (KRITIK kullanilabilirlik)**
+Kart, rakip HER hamle yaptiginda yeniden beliriyor/guncelleniyor ve soru
+ekranini asagi itiyordu. Sikka tiklarken duzen kaydigi icin **tiklama bosa
+gitti ve soru kacirildi** (canli testte bizzat yasandi). → Kart artik yalniz
+maca ILK giriste, henuz hic oynamamisken bir kez gosteriliyor; metni sabit.
+
+**5. "Yarim kalan macin var" seridi alti ciziliydi**
+Ortak `<a>` stilinin muafiyet listesinde degildi. → `.bd-devam-eden` eklendi.
+
+**6. Bes bot ucu ayni zorlukta gorunuyordu**
+Esikler uc seviyeliydi (Kolay/Orta/Zor), bes bot ucune sikisiyordu.
+→ Bes seviye: Cok kolay · Kolay · Orta · Zor · Cok zor.
+
+### Yayina hazir mi?
+Oyun akisi tarafinda bilinen acik kalmadi. Kalan tek engel **kod disinda**:
+imza anahtari SHA-256'sinin `assetlinks.json`'a yazilmasi, `VITE_H5_ADS_CLIENT`
+ve Play Console urun kimlikleri (`store/ANDROID_YAYIN.md`).
