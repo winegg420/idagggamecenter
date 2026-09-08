@@ -5,8 +5,8 @@ import { useAuth } from "../../src/context/AuthContext.jsx";
 import Avatar from "../../src/components/Avatar.jsx";
 
 const DOSTLUK_SECIMI = `id, requester, addressee, durum,
-  req:profiles!friendships_requester_fkey(id, username, avatar_url, puan),
-  add:profiles!friendships_addressee_fkey(id, username, avatar_url, puan)`;
+  req:profiles!friendships_requester_fkey(id, gorunen_ad, gorunen_avatar, puan),
+  add:profiles!friendships_addressee_fkey(id, gorunen_ad, gorunen_avatar, puan)`;
 
 export default function FriendsPage() {
   const { user } = useAuth();
@@ -116,7 +116,7 @@ export default function FriendsPage() {
         {sonuclar.map((p) => (
           <div key={p.id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 0" }}>
             <Avatar profile={p} boyut={34} />
-            <span style={{ flex: 1, fontWeight: 600 }}>{p.username}</span>
+            <span style={{ flex: 1, fontWeight: 600 }}>{p.gorunen_ad}</span>
             <button className="btn kucuk" onClick={() => istekGonder(p.id)}>
               ➕ Ekle
             </button>
@@ -131,7 +131,7 @@ export default function FriendsPage() {
             <div key={f.id} className="liste-satir">
               <Avatar profile={f.req} />
               <div className="bilgi">
-                <div className="isim">{f.req?.username}</div>
+                <div className="isim">{f.req?.gorunen_ad}</div>
                 <div className="detay">arkadaşlık isteği gönderdi</div>
               </div>
               <button className="btn kucuk" onClick={() => cevapla(f.id, true)}>
@@ -157,7 +157,7 @@ export default function FriendsPage() {
           <div key={f.id} className="liste-satir">
             <Avatar profile={p} />
             <div className="bilgi">
-              <div className="isim">{p?.username}</div>
+              <div className="isim">{p?.gorunen_ad}</div>
               <div className="detay">⭐ {p?.puan} puan</div>
             </div>
             <button className="btn kucuk" onClick={() => meydanOku(p.id)}>
@@ -179,7 +179,7 @@ export default function FriendsPage() {
             <div key={f.id} className="liste-satir">
               <Avatar profile={f.add} />
               <div className="bilgi">
-                <div className="isim">{f.add?.username}</div>
+                <div className="isim">{f.add?.gorunen_ad}</div>
                 <div className="detay">cevap bekleniyor…</div>
               </div>
             </div>

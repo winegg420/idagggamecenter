@@ -30,7 +30,7 @@ export default function TournamentPage() {
     if (secilen) {
       const { data: ply } = await supabase
         .from("tournament_players")
-        .select("*, profil:profiles(username, avatar_url, puan)")
+        .select("*, profil:profiles(gorunen_ad, gorunen_avatar, puan)")
         .eq("tournament_id", secilen.id)
         .order("joined_at");
       setOyuncular(ply ?? []);
@@ -131,7 +131,7 @@ export default function TournamentPage() {
               Son turnuvanın şampiyonu
             </div>
             <div style={{ fontSize: 20, fontWeight: 900, color: "var(--accent)" }}>
-              {kazanan.profil?.username}
+              {kazanan.profil?.gorunen_ad}
             </div>
           </div>
         )}
@@ -177,7 +177,7 @@ export default function TournamentPage() {
           {oyuncular.map((o) => (
             <div key={o.user_id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "6px 0" }}>
               <Avatar profile={o.profil} boyut={32} />
-              <span style={{ fontWeight: 600 }}>{o.profil?.username}</span>
+              <span style={{ fontWeight: 600 }}>{o.profil?.gorunen_ad}</span>
             </div>
           ))}
         </div>
@@ -227,7 +227,7 @@ export default function TournamentPage() {
         <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
           {hayatta.map((o) => (
             <span key={o.user_id} className="rutbe-chip" style={{ color: "var(--success)" }}>
-              {o.profil?.username} ({o.dogru_sayisi}✓)
+              {o.profil?.gorunen_ad} ({o.dogru_sayisi}✓)
             </span>
           ))}
         </div>

@@ -1056,3 +1056,66 @@ edebiyat 172, spor 161, sanat 136, sinema 55, teknoloji 54, muzik 54, karisik 36
 
 **Kalan tek manuel iş:** yok. Sadece siteyi aç, ilk girişte şehir modalı çıkacak.
 (Deploy/`git push` hâlâ YAPILMADI — istersen söyle.)
+
+## 2026-09-08 — Bildim Faz 1: Gizlilik + takma ad + davet + bildirim (`20260612000047`)
+
+**Kök sorun (canlıda doğrulandı):** `handle_new_user` kullanıcı adını Google `full_name`'den
+üretiyor ve Google fotoğrafını otomatik alıyordu → herkes gerçek adı ve yüzü görüyordu.
+Ayrıca hiç oynamamış üyeler ligde listeleniyordu (canlı sayım: 21 üyenin 4'ü hiç oynamamış).
+
+### Kararlar ve gerekçeleri
+
+- **`gorunen_ad` / `gorunen_avatar` STORED GENERATED kolon olarak eklendi** (RPC katmanı
+  yerine). Gerekçe: uygulama profilleri yalnız RPC'den değil, PostgREST **gömülü join**'leriyle
+  de okuyor (`p1:profiles!matches_oyuncu1_fkey(...)`, `profil:profiles(...)`) ve realtime
+  yayınları da var. Kolon olarak tanımlanınca üç yol da tek noktadan güvenli hale geliyor;
+  her RPC'yi ayrı ayrı sarmalamaya göre hem daha az kod hem sızdırma riski sıfır.
+  `gorunen_ad = case when takma_ad_secildi then takma_ad else 'Oyuncu' end`,
+  `gorunen_avatar = case when avatar_onayli then avatar_url else null end`.
+- **`profiles_select` politikasına DOKUNULMADI** (varsayılan karar gereği; diğer oyun
+  modülleri kırılmasın). Bunun yerine `revoke select (username, avatar_url) ... from anon`.
+  authenticated'a dokunulmadı.
+- **`toplam_mac` TRIGGER ile artıyor**, mevcut `advance_match` / `advance_group_match` /
+  `advance_hizli_mac` / `advance_tournament` fonksiyonları **yeniden yazılmadı**. Gerekçe:
+  bunlar puanlama ve rozet mantığını taşıyan büyük fonksiyonlar; `durum='bitti'` geçişini
+  trigger'la yakalamak çok daha az riskli. Geriye dönük doldurma tek `update` ile yapıldı
+  (kurucu hesapta 43 maç bulundu).
+- **`is_bot` kullanıldı, `provider='bot'` değil.** Gerekçe: şemadaki bot işareti `is_bot`;
+  mevcut kodun tamamı onu kullanıyor, `provider` bot satırlarında dolu değil.
+- **`gen_random_bytes` yerine `md5`**: pgcrypto Supabase'de `extensions` şemasında ve
+  fonksiyonlar `set search_path = public` ile çalışıyor → bağımlılık kaldırıldı.
+- **Davet kodu 8 karakter**, karışması kolay 0/O ve 1/I üretilmiyor (hex harfleri
+  `JKMNPR`'ye çevriliyor).
+
+### Görünen ada geçirilen okuma yolları (tarandı, tamamı)
+
+RPC'ler: `lig_siralama`, `sehir_lig_sirasi`, `benim_lig_durumum`, `birlesik_siralama`,
+`arkadas_davet_kodu_ile_ekle`, `profil_al` (yeni). `oyuncu_ara` **kapatıldı**
+(`revoke execute … from authenticated`) — kullanıcı adıyla arama gerçek ad sızdırıyordu.
+Gömülü join'ler: `matches` (p1/p2), `friendships` (req/add), `group_match_players.profil`,
+`hizli_oyuncular.profil`, `tournament_players.profil`, `profiles` doğrudan select'leri
+(Home top5, ChallengesPage bot/oyuncu listeleri, LeaderboardPage arkadaş sekmesi).
+Toplam 30 alan + 41 gösterim yeri çevrildi. `src/components/Avatar.jsx` her iki şekli de
+kabul edecek biçimde geriye uyumlu yapıldı (diğer oyunlar kırılmasın).
+
+### Yeni nesneler
+
+Kolonlar: `takma_ad`, `takma_ad_secildi`, `takma_ad_degisti_at`, `avatar_onayli`,
+`davet_kodu`, `toplam_mac`, `tercih_kategori`, `gorunen_ad`, `gorunen_avatar`.
+Tablolar: `yasakli_kelimeler`, `bildirimler`.
+Fonksiyonlar: `yeni_davet_kodu`, `takma_ad_sec`, `avatar_onayla`, `profil_al`,
+`tercih_kategori_kaydet`, `bildirim_yaz`, `bildirimleri_oku`, `mac_sayaci_arttir`,
+`oynanabilir_mi`, `arkadas_davet_kodu_ile_ekle` + 5 trigger fonksiyonu.
+Bildirim olayları: `lige_girdin` (ilk maç), `gecildin` (haftalık ligde geçilme, saatte ≤1,
+aynı ülke içinde), `arkadas_istek` / `arkadas_kabul`, `hafta_sonuc` (`haftayi_kapat` içinde).
+Meydan okuma push'u (`notify_new_challenge`) aynen korundu.
+
+### Doğrulama (canlıya UYGULANMADAN, geri alınan transaction içinde)
+
+`begin; <migration> … rollback;` ile denendi: hatasız. İşlevsel test: `takma_ad_sec('Bilgin_42')`
+→ `gorunen_ad` 'Oyuncu'dan 'Bilgin_42'ye döndü; `gorunen_avatar` null (Google fotoğrafı gizli);
+`davet_kodu` üretildi; `toplam_mac` geriye dönük doldu; `lig_siralama('global','tum_zamanlar')`
+**21 yerine 17 satır** döndü (hiç oynamamış 4 üye ligden çıktı — hedeflenen davranış);
+`profil_al` ve `birlesik_siralama` çalışıyor. Migration **uygulanmadı** (istek gereği).
+
+`npm run build` temiz.

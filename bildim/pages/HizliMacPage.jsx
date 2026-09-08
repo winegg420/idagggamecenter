@@ -7,7 +7,7 @@ import QuestionCard from "../components/QuestionCard.jsx";
 
 const HIZLI_SECIMI = `*,
   katilimcilar:hizli_oyuncular(hizli_mac_id, user_id, davet_durumu, skor, joined_at,
-    profil:profiles(id, username, avatar_url))`;
+    profil:profiles(id, gorunen_ad, gorunen_avatar))`;
 
 export default function HizliMacPage() {
   const { id } = useParams();
@@ -124,7 +124,7 @@ export default function HizliMacPage() {
         <h2>Hızlı yarış bekleniyor</h2>
         <p className="alt-yazi" style={{ marginBottom: 16 }}>
           {bekleyenler.length > 0
-            ? `${bekleyenler.map((b) => b.profil?.username).join(", ")} henüz kabul etmedi.`
+            ? `${bekleyenler.map((b) => b.profil?.gorunen_ad).join(", ")} henüz kabul etmedi.`
             : "Herkes hazır olunca yarış otomatik başlayacak."}
         </p>
         <div className="kart" style={{ maxWidth: 340, margin: "0 auto" }}>
@@ -132,7 +132,7 @@ export default function HizliMacPage() {
             <div key={k.user_id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "6px 0" }}>
               <Avatar profile={k.profil} boyut={34} />
               <span style={{ flex: 1, fontWeight: 600, textAlign: "left" }}>
-                {k.profil?.username} {k.user_id === user.id && "(sen)"}
+                {k.profil?.gorunen_ad} {k.user_id === user.id && "(sen)"}
               </span>
               <span
                 className="rutbe-chip"
@@ -195,7 +195,7 @@ export default function HizliMacPage() {
               <span className={`sira-no ${i < 1 ? "ilk3" : ""}`}>{i + 1}</span>
               <Avatar profile={k.profil} boyut={34} />
               <span style={{ flex: 1, fontWeight: 600, textAlign: "left" }}>
-                {k.profil?.username} {k.user_id === user.id && "(sen)"}
+                {k.profil?.gorunen_ad} {k.user_id === user.id && "(sen)"}
               </span>
               <span style={{ fontWeight: 800 }}>{k.skor}</span>
             </div>
@@ -225,7 +225,7 @@ export default function HizliMacPage() {
             className={`grup-skor-satir ${k.user_id === user.id ? "sen" : ""}`}
           >
             <Avatar profile={k.profil} boyut={30} />
-            <span className="isim">{k.profil?.username}{k.user_id === user.id && " (sen)"}</span>
+            <span className="isim">{k.profil?.gorunen_ad}{k.user_id === user.id && " (sen)"}</span>
             <span className="skor">{k.skor}</span>
           </div>
         ))}

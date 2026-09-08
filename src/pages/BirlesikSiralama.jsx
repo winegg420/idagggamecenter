@@ -95,8 +95,8 @@ export default function BirlesikSiralama() {
                     <td className="sr-sira">{i + 1}</td>
                     <td className="sr-oyuncu">
                       <div className="sr-oyuncu-hucre">
-                        <Avatar profile={{ username: r.username, avatar_url: r.avatar_url }} boyut={30} />
-                        <span className="sr-ad">{r.username}</span>
+                        <Avatar profile={{ gorunen_ad: r.gorunen_ad, gorunen_avatar: r.gorunen_avatar }} boyut={30} />
+                        <span className="sr-ad">{r.gorunen_ad}</span>
                       </div>
                     </td>
                     {SUTUNLAR.map((s) => (

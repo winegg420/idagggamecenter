@@ -5,8 +5,8 @@ import { useAuth } from "../../src/context/AuthContext.jsx";
 import QuestionCard from "../components/QuestionCard.jsx";
 
 const MAC_SECIMI = `*,
-  p1:profiles!matches_oyuncu1_fkey(id, username, avatar_url),
-  p2:profiles!matches_oyuncu2_fkey(id, username, avatar_url)`;
+  p1:profiles!matches_oyuncu1_fkey(id, gorunen_ad, gorunen_avatar),
+  p2:profiles!matches_oyuncu2_fkey(id, gorunen_ad, gorunen_avatar)`;
 
 const EMOJILER = ["👍", "😂", "😮", "😡", "🔥", "😎"];
 const KALIPLAR = [
@@ -172,7 +172,7 @@ export default function MatchPage() {
       <div className="buyuk-mesaj">
         <div className="emoji">⏳</div>
         <h2>Cevap bekleniyor</h2>
-        <p className="alt-yazi">{rakipProfil?.username} henüz kabul etmedi.</p>
+        <p className="alt-yazi">{rakipProfil?.gorunen_ad} henüz kabul etmedi.</p>
       </div>
     );
   }
@@ -200,12 +200,12 @@ export default function MatchPage() {
         </h2>
         <div className="skor-tabela" style={{ marginTop: 20 }}>
           <div className="taraf">
-            <div className="isim">{benimProfil?.username} (sen)</div>
+            <div className="isim">{benimProfil?.gorunen_ad} (sen)</div>
             <div className="skor">{benimSkor}</div>
           </div>
           <div className="vs">VS</div>
           <div className="taraf">
-            <div className="isim">{rakipProfil?.username}</div>
+            <div className="isim">{rakipProfil?.gorunen_ad}</div>
             <div className="skor">{rakipSkor}</div>
           </div>
         </div>
@@ -225,10 +225,10 @@ export default function MatchPage() {
           </button>
           {(() => {
             const sonucYazi = berabere
-              ? `${rakipProfil?.username} ile ${benimSkor}-${rakipSkor} berabere kaldım`
+              ? `${rakipProfil?.gorunen_ad} ile ${benimSkor}-${rakipSkor} berabere kaldım`
               : kazandim
-                ? `${rakipProfil?.username}'i ${benimSkor}-${rakipSkor} yendim! 🏆`
-                : `${rakipProfil?.username} karşısında kıl payı kaybettim`;
+                ? `${rakipProfil?.gorunen_ad}'i ${benimSkor}-${rakipSkor} yendim! 🏆`
+                : `${rakipProfil?.gorunen_ad} karşısında kıl payı kaybettim`;
             const mesaj = `🧠 Bildim!'de ${sonucYazi} Sen de gel, kapışalım: ${window.location.origin}/?davet=${user.id}`;
             const enc = encodeURIComponent(mesaj);
             return (
@@ -279,14 +279,14 @@ export default function MatchPage() {
     <div>
       <div className="skor-tabela">
         <div className="taraf">
-          <div className="isim">{benimProfil?.username} (sen)</div>
+          <div className="isim">{benimProfil?.gorunen_ad} (sen)</div>
           <div className="skor">{benimSkor}</div>
         </div>
         <div className="vs">
           {mac.aktif_soru + 1}/{mac.soru_ids?.length ?? 5}
         </div>
         <div className="taraf">
-          <div className="isim">{rakipProfil?.username}</div>
+          <div className="isim">{rakipProfil?.gorunen_ad}</div>
           <div className="skor">{rakipSkor}</div>
         </div>
       </div>

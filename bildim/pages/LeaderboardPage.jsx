@@ -70,8 +70,8 @@ export default function LeaderboardPage() {
     });
     const kolon =
       donem === "hafta"
-        ? "id, username, avatar_url, puan, puan_hafta, sampiyonluk, sehir, ulke"
-        : "id, username, avatar_url, puan, sampiyonluk, sehir, ulke";
+        ? "id, gorunen_ad, gorunen_avatar, puan, puan_hafta, sampiyonluk, sehir, ulke"
+        : "id, gorunen_ad, gorunen_avatar, puan, sampiyonluk, sehir, ulke";
     const { data, error: hata2 } = await supabase
       .from("profiles")
       .select(kolon)
@@ -81,8 +81,8 @@ export default function LeaderboardPage() {
     return (data ?? []).map((p, i) => ({
       sira: i + 1,
       user_id: p.id,
-      username: p.username,
-      avatar_url: p.avatar_url,
+      gorunen_ad: p.gorunen_ad,
+      gorunen_avatar: p.gorunen_avatar,
       puan: donem === "hafta" ? (p.puan_hafta ?? 0) : p.puan,
       sehir: p.sehir,
       ulke: p.ulke,
@@ -148,10 +148,10 @@ export default function LeaderboardPage() {
       className={`bd-lig-satir ${s.user_id === user.id ? "ben" : ""}`}
     >
       <span className="bd-sira">{s.sira}</span>
-      <Avatar profile={{ username: s.username, avatar_url: s.avatar_url }} boyut={38} />
+      <Avatar profile={{ gorunen_ad: s.gorunen_ad, gorunen_avatar: s.gorunen_avatar }} boyut={38} />
       <div className="bd-lig-bilgi">
         <div className="bd-lig-isim">
-          {s.username} {s.user_id === user.id && <span className="bd-sen">sen</span>}
+          {s.gorunen_ad} {s.user_id === user.id && <span className="bd-sen">sen</span>}
         </div>
         <div className="bd-lig-detay">
           <RankBadge puan={s.puan} />
@@ -167,7 +167,7 @@ export default function LeaderboardPage() {
         <button
           className="bd-ikon-btn"
           title="Meydan oku"
-          aria-label={`${s.username} oyuncusuna meydan oku`}
+          aria-label={`${s.gorunen_ad} oyuncusuna meydan oku`}
           onClick={() => meydanOku(s.user_id)}
         >
           ⚔️
@@ -258,10 +258,10 @@ export default function LeaderboardPage() {
                       {basamak === 1 ? "🥇" : basamak === 2 ? "🥈" : "🥉"}
                     </div>
                     <Avatar
-                      profile={{ username: p.username, avatar_url: p.avatar_url }}
+                      profile={{ gorunen_ad: p.gorunen_ad, gorunen_avatar: p.gorunen_avatar }}
                       boyut={basamak === 1 ? 62 : 50}
                     />
-                    <div className="bd-podyum-ad">{p.username}</div>
+                    <div className="bd-podyum-ad">{p.gorunen_ad}</div>
                     <div className="bd-podyum-puan">⭐ {p.puan}</div>
                     <div className="bd-podyum-kaide">{basamak}</div>
                   </div>

@@ -5,16 +5,16 @@ import { useAuth } from "../../src/context/AuthContext.jsx";
 import Avatar from "../../src/components/Avatar.jsx";
 
 const MAC_SECIMI = `*,
-  p1:profiles!matches_oyuncu1_fkey(id, username, avatar_url, puan),
-  p2:profiles!matches_oyuncu2_fkey(id, username, avatar_url, puan)`;
+  p1:profiles!matches_oyuncu1_fkey(id, gorunen_ad, gorunen_avatar, puan),
+  p2:profiles!matches_oyuncu2_fkey(id, gorunen_ad, gorunen_avatar, puan)`;
 
 const GRUP_SECIMI = `*,
   katilimcilar:group_match_players(group_match_id, user_id, davet_durumu, skor,
-    profil:profiles(id, username, avatar_url, puan))`;
+    profil:profiles(id, gorunen_ad, gorunen_avatar, puan))`;
 
 const HIZLI_SECIMI = `*,
   katilimcilar:hizli_oyuncular(hizli_mac_id, user_id, davet_durumu, skor,
-    profil:profiles(id, username, avatar_url, puan))`;
+    profil:profiles(id, gorunen_ad, gorunen_avatar, puan))`;
 
 const botZorluk = (isabet) =>
   isabet <= 0.45
@@ -55,13 +55,13 @@ export default function ChallengesPage() {
   useEffect(() => {
     supabase
       .from("profiles")
-      .select("id, username, avatar_url, puan, bot_isabet")
+      .select("id, gorunen_ad, gorunen_avatar, puan, bot_isabet")
       .eq("is_bot", true)
       .order("bot_isabet", { ascending: true })
       .then(({ data }) => setBotlar(data ?? []));
     supabase
       .from("profiles")
-      .select("id, username, avatar_url, puan")
+      .select("id, gorunen_ad, gorunen_avatar, puan")
       .eq("is_bot", false)
       .neq("id", user.id)
       .order("puan", { ascending: false })
@@ -139,7 +139,7 @@ export default function ChallengesPage() {
     }
     const { data } = await supabase
       .from("profiles")
-      .select("id, username, avatar_url, puan")
+      .select("id, gorunen_ad, gorunen_avatar, puan")
       .ilike("username", `%${q.trim()}%`)
       .neq("id", user.id)
       .limit(8);
@@ -332,7 +332,7 @@ export default function ChallengesPage() {
             <div key={b.id} className="liste-satir">
               <Avatar profile={b} />
               <div className="bilgi">
-                <div className="isim">{b.username} 🤖</div>
+                <div className="isim">{b.gorunen_ad} 🤖</div>
                 <div className="detay">
                   Zorluk: <span style={{ color: z.renk, fontWeight: 700 }}>{z.etiket}</span> · her zaman hazır
                 </div>
@@ -355,7 +355,7 @@ export default function ChallengesPage() {
         {sonuclar.map((p) => (
           <div key={p.id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 0" }}>
             <Avatar profile={p} boyut={34} />
-            <span style={{ flex: 1, fontWeight: 600 }}>{p.username}</span>
+            <span style={{ flex: 1, fontWeight: 600 }}>{p.gorunen_ad}</span>
             <button className="btn kucuk" onClick={() => meydanOku(p.id)}>
               ⚔️ Meydan Oku
             </button>
@@ -393,7 +393,7 @@ export default function ChallengesPage() {
                 disabled={dolu}
                 onClick={() => grupSecimToggle(p.id)}
               >
-                {p.username}
+                {p.gorunen_ad}
                 {p.bot_isabet != null && " 🤖"}
               </button>
             );
@@ -429,7 +429,7 @@ export default function ChallengesPage() {
                 disabled={dolu}
                 onClick={() => hizliSecimToggle(p.id)}
               >
-                {p.username}
+                {p.gorunen_ad}
                 {p.bot_isabet != null && " 🤖"}
               </button>
             );
@@ -459,7 +459,7 @@ export default function ChallengesPage() {
               <div key={p.id} className="liste-satir">
                 <Avatar profile={p} boyut={38} />
                 <div className="bilgi">
-                  <div className="isim">{p.username}</div>
+                  <div className="isim">{p.gorunen_ad}</div>
                   <div className="detay">⭐ {p.puan}</div>
                 </div>
                 {!mevcutMac && (
@@ -480,7 +480,7 @@ export default function ChallengesPage() {
             <div key={m.id} className="liste-satir">
               <Avatar profile={m.p1} />
               <div className="bilgi">
-                <div className="isim">{m.p1?.username}</div>
+                <div className="isim">{m.p1?.gorunen_ad}</div>
                 <div className="detay">sana meydan okudu!</div>
               </div>
               <button className="btn kucuk" onClick={() => cevapVer(m.id, true)}>
@@ -503,7 +503,7 @@ export default function ChallengesPage() {
                 <div className="isim">
                   {hm.katilimcilar
                     ?.filter((k) => k.user_id !== user.id)
-                    .map((k) => k.profil?.username)
+                    .map((k) => k.profil?.gorunen_ad)
                     .join(", ")}
                 </div>
                 <div className="detay">Hızlı Olan Kazanır — 5 kişilik yarış</div>
@@ -528,7 +528,7 @@ export default function ChallengesPage() {
                 <div className="isim">
                   {hm.katilimcilar
                     ?.filter((k) => k.user_id !== user.id)
-                    .map((k) => `${k.profil?.username} (${k.davet_durumu === "kabul" ? "hazır" : "bekliyor"})`)
+                    .map((k) => `${k.profil?.gorunen_ad} (${k.davet_durumu === "kabul" ? "hazır" : "bekliyor"})`)
                     .join(", ")}
                 </div>
               </div>
@@ -546,7 +546,7 @@ export default function ChallengesPage() {
                 <div className="isim">
                   {hm.katilimcilar
                     ?.filter((k) => k.user_id !== user.id)
-                    .map((k) => k.profil?.username)
+                    .map((k) => k.profil?.gorunen_ad)
                     .join(", ")}
                 </div>
                 <div className="detay">Hızlı Olan Kazanır</div>
@@ -571,7 +571,7 @@ export default function ChallengesPage() {
                   <div className="isim">
                     {hm.katilimcilar
                       ?.filter((k) => k.user_id !== user.id)
-                      .map((k) => `${k.profil?.username} (${k.skor})`)
+                      .map((k) => `${k.profil?.gorunen_ad} (${k.skor})`)
                       .join(", ")}
                   </div>
                   <div className="detay">senin skorun: {hizliBenimKaydim(hm)?.skor ?? 0}</div>
@@ -603,7 +603,7 @@ export default function ChallengesPage() {
                 <div className="isim">
                   {gm.katilimcilar
                     ?.filter((k) => k.user_id !== user.id)
-                    .map((k) => k.profil?.username)
+                    .map((k) => k.profil?.gorunen_ad)
                     .join(", ")}
                 </div>
                 <div className="detay">{gm.oyuncu_sayisi} kişilik gruba davet edildin</div>
@@ -628,7 +628,7 @@ export default function ChallengesPage() {
                 <div className="isim">
                   {gm.katilimcilar
                     ?.filter((k) => k.user_id !== user.id)
-                    .map((k) => `${k.profil?.username} (${k.davet_durumu === "kabul" ? "hazır" : "bekliyor"})`)
+                    .map((k) => `${k.profil?.gorunen_ad} (${k.davet_durumu === "kabul" ? "hazır" : "bekliyor"})`)
                     .join(", ")}
                 </div>
               </div>
@@ -646,7 +646,7 @@ export default function ChallengesPage() {
                 <div className="isim">
                   {gm.katilimcilar
                     ?.filter((k) => k.user_id !== user.id)
-                    .map((k) => k.profil?.username)
+                    .map((k) => k.profil?.gorunen_ad)
                     .join(", ")}
                 </div>
                 <div className="detay">{gm.oyuncu_sayisi} kişilik grup maçı</div>
@@ -666,7 +666,7 @@ export default function ChallengesPage() {
             <div key={m.id} className="liste-satir">
               <Avatar profile={rakip(m)} />
               <div className="bilgi">
-                <div className="isim">{rakip(m)?.username}</div>
+                <div className="isim">{rakip(m)?.gorunen_ad}</div>
                 <div className="detay">
                   {m.oyuncu1_skor} - {m.oyuncu2_skor}
                 </div>
@@ -686,7 +686,7 @@ export default function ChallengesPage() {
             <div key={m.id} className="liste-satir">
               <Avatar profile={m.p2} />
               <div className="bilgi">
-                <div className="isim">{m.p2?.username}</div>
+                <div className="isim">{m.p2?.gorunen_ad}</div>
                 <div className="detay">cevap bekleniyor…</div>
               </div>
             </div>
@@ -704,7 +704,7 @@ export default function ChallengesPage() {
               <div key={m.id} className="liste-satir">
                 <Avatar profile={rakip(m)} />
                 <div className="bilgi">
-                  <div className="isim">{rakip(m)?.username}</div>
+                  <div className="isim">{rakip(m)?.gorunen_ad}</div>
                   <div className="detay">
                     {m.oyuncu1_skor} - {m.oyuncu2_skor}
                   </div>
@@ -740,7 +740,7 @@ export default function ChallengesPage() {
                   <div className="isim">
                     {gm.katilimcilar
                       ?.filter((k) => k.user_id !== user.id)
-                      .map((k) => `${k.profil?.username} (${k.skor})`)
+                      .map((k) => `${k.profil?.gorunen_ad} (${k.skor})`)
                       .join(", ")}
                   </div>
                   <div className="detay">senin skorun: {grupBenimKaydim(gm)?.skor ?? 0}</div>

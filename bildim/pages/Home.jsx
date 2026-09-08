@@ -131,7 +131,7 @@ export default function Home() {
 
       const { data: liderler } = await supabase
         .from("profiles")
-        .select("id, username, avatar_url, puan")
+        .select("id, gorunen_ad, gorunen_avatar, puan")
         .order("puan", { ascending: false })
         .limit(5);
       setTop5(liderler ?? []);
@@ -477,7 +477,7 @@ export default function Home() {
           <div key={p.id} className="lider-satir">
             <span className={`sira-no ${i < 3 ? "ilk3" : ""}`}>{i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : i + 1}</span>
             <Avatar profile={p} boyut={32} />
-            <span style={{ flex: 1, fontWeight: 600, fontSize: 14, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{p.username}</span>
+            <span style={{ flex: 1, fontWeight: 600, fontSize: 14, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{p.gorunen_ad}</span>
             <span style={{ fontWeight: 800, fontSize: 14 }}>⭐ {p.puan}</span>
           </div>
         ))}
