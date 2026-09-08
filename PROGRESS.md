@@ -1622,3 +1622,26 @@ gösteriyor. Sayaç ve lobiye katıl butonu korundu.
 - **Eski CSS sınıflarının hiçbiri silinmedi** — tema dosyası üzerine yazıyor.
 
 `npm run build` temiz.
+
+## 2026-09-08 — Bildim Görev 3 / Faz 3: Kapanış + migration'lar uygulandı
+
+`BILDIM_GOREV3.md` tüm kutular dolu, `npm run build` temiz.
+
+**Uygulanan migration sırası: 056 → 057 → 058** (önce `rollback` provası, sonra tek
+transaction `commit`, ardından `migration repair` ile geçmişe kayıt).
+
+| Migration | Sonuç (canlı doğrulama) |
+|---|---|
+| 056 kategori birleştirme | `genel` + `karisik` → `genel_kultur`. Eski kategoride **0 soru**, eski `tercih_kategori` **0 kullanıcı**. `genel_kultur` **1.154 soru** ve `get_categories`'te ilk sırada. |
+| 057 soru kalitesi | **8 soru pasife alındı** (`aktif = false`, silinmedi). Aktif havuz **3.193**. |
+| 058 bot maçı | `bot_oyna` güncellendi: bot oyuncunun önüne geçmiyor, otomatik ilerletme oyuncuyu bekliyor. |
+
+Joker/seri/satın alma kural testleri yeniden çalıştırıldı: **14/14 geçti**
+(`npm run test:bildim`, canlı DB'de rollback ile).
+
+**Pasife alınan 8 sorunun dökümü:** 6 × bozuk "X değil, Y" kalıbı, 2 × belirsiz
+"Hiçbiri/Hepsi" şıkkı. Tarama ayrıca 265 "kısa şık" ve 37 "parantezli şık" işaretledi
+ama incelendiğinde hepsi geçerli çıktı (`Na`, `K`, `Ud`, `Boşluk (space)`), dokunulmadı.
+
+**Not:** Frontend değişiklikleri henüz **push edilmedi** — veritabanı yeni, site eski
+sürümde. Push istendiğinde deploy edilecek.

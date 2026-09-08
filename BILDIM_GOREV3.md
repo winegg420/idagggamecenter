@@ -45,7 +45,12 @@
 - [x] 2.16 `npm run build` temiz + PROGRESS + commit
 
 ## Faz 3 — Kapanış
-- [ ] 3.1 `npm run build` temiz
-- [ ] 3.2 Migration'lar uygulandı (056 → 057) ve doğrulandı
-- [ ] 3.3 PROGRESS.md: kararlar, migration sırası, pasife alınan soru sayısı
-- [ ] 3.4 Tüm kutular dolu + son commit
+- [x] 3.1 `npm run build` temiz
+- [x] 3.2 Migration'lar uygulandı (056 → 057) ve doğrulandı
+- [x] 3.3 PROGRESS.md: kararlar, migration sırası, pasife alınan soru sayısı
+- [x] 3.4 Tüm kutular dolu + son commit
+
+---
+
+**Tamamlandı: 8 Eylül 2026.** Tüm kutular dolu, build temiz,
+migration 056 → 057 → 058 canlıya uygulandı, kural testleri 14/14.
