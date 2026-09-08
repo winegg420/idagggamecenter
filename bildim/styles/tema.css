@@ -1182,3 +1182,555 @@ body.bd-oyun-modu .app { padding-bottom: calc(24px + env(safe-area-inset-bottom)
   font-size: 13.5px; line-height: 1.5; color: var(--bd-metin-2); max-width: 320px;
 }
 .bd-hata-kart .btn { width: auto; min-width: 160px; }
+
+/* ============================================================
+   FAZ 3 — "PANEL" DEĞİL "OYUN"
+   Teşhis: her ekran koyu mor zemin + aynı boyda çerçeveli kartlar =
+   yönetim paneli dili. Bu bölüm o dili değiştirir.
+   Eski sınıflar SİLİNMEDİ; görünüm katmanı üzerine yazılıyor.
+   ============================================================ */
+
+:root {
+  /* ---- 3.1 Yeni renk paleti ---- */
+  --bd-vurgu: #7c4dff;          /* elektrik moru */
+  --bd-vurgu-2: #5b21b6;
+  --bd-vurgu-acik: #b39dff;
+  --bd-odul: #ffc83d;           /* sıcak sarı — yalnız ödül/puan */
+  --bd-odul-2: #f59e0b;
+  --bd-basari: #2ecc71;
+  --bd-hata: #ff5a5f;           /* mercan */
+  --bd-bilgi: #22d3ee;          /* camgöbeği */
+
+  /* Chunky buton derinliği */
+  --bd-kalinlik: 5px;
+
+  /* Kategori renkleri — 10 sabit, canlı */
+  --kat-genel_kultur: #ffc83d;
+  --kat-bilim: #22d3ee;
+  --kat-tarih: #c08a3e;
+  --kat-cografya: #2ecc71;
+  --kat-spor: #ff8a3d;
+  --kat-sanat: #ff6fb5;
+  --kat-sinema: #ff5a5f;
+  --kat-muzik: #a78bfa;
+  --kat-teknoloji: #3b82f6;
+  --kat-edebiyat: #b03052;
+}
+
+/* ---------- Sahne: derinlikli zemin ---------- */
+body {
+  background:
+    radial-gradient(1100px 680px at 50% -240px, #3a2a7d 0%, transparent 60%),
+    radial-gradient(760px 540px at 108% 10%, rgba(34, 211, 238, 0.13) 0%, transparent 58%),
+    radial-gradient(820px 600px at -10% 76%, rgba(255, 200, 61, 0.1) 0%, transparent 60%),
+    linear-gradient(180deg, #141033 0%, #0a0818 62%);
+  background-attachment: fixed;
+}
+
+/* Yıldız/nokta dokusu + sayfa kaydıkça hafif kayma (parallax) */
+body::before {
+  background-image:
+    radial-gradient(rgba(255, 255, 255, 0.07) 1px, transparent 1px),
+    radial-gradient(rgba(179, 157, 255, 0.05) 1px, transparent 1px);
+  background-size: 26px 26px, 61px 61px;
+  background-position: 0 0, 12px 30px;
+  transform: translateY(calc(var(--bd-kaydir, 0) * -0.04px));
+  will-change: transform;
+}
+
+/* ============================================================
+   3.1 KART YOK, YÜZEY VAR — çerçeveler kalkıyor
+   ============================================================ */
+
+.app .kart,
+.bd-yuzey,
+.bd-mod,
+.bd-hero,
+.bd-lig-satir,
+.bd-podyum-yer,
+.bd-soru-metin,
+.bd-secenek,
+.geri-sayim-kart {
+  border: none !important;
+}
+
+.app .kart {
+  background: linear-gradient(168deg, rgba(48, 38, 92, 0.72), rgba(28, 22, 58, 0.72));
+  border-radius: 22px;
+  box-shadow: 0 10px 30px rgba(6, 4, 18, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  padding: 18px;
+}
+.app .kart::before { display: none; }  /* Faz 1'deki ince çizgi artık gereksiz */
+
+/* ============================================================
+   3.1 CHUNKY BUTONLAR — alt kenarda gölge, basınca aşağı iner
+   ============================================================ */
+
+.app .btn,
+.bd-ana-eylem,
+.bd-secenek,
+.bd-joker,
+.bd-davet-btn.kabul {
+  position: relative;
+  border: none;
+  transition: transform 0.09s ease, box-shadow 0.09s ease, filter 0.15s;
+}
+
+.app .btn {
+  border-radius: 16px;
+  background: linear-gradient(180deg, #9270ff, var(--bd-vurgu));
+  box-shadow: 0 var(--bd-kalinlik) 0 #46179c, 0 8px 18px rgba(70, 23, 156, 0.42);
+}
+.app .btn:active:not(:disabled) {
+  transform: translateY(3px);
+  box-shadow: 0 2px 0 #46179c, 0 4px 10px rgba(70, 23, 156, 0.4);
+}
+.app .btn.ikincil {
+  background: linear-gradient(180deg, #3b3070, #2a2154);
+  box-shadow: 0 var(--bd-kalinlik) 0 #1b1540, 0 8px 18px rgba(6, 4, 18, 0.4);
+}
+.app .btn.ikincil:active:not(:disabled) {
+  transform: translateY(3px);
+  box-shadow: 0 2px 0 #1b1540;
+}
+.app .btn.tehlike {
+  background: linear-gradient(180deg, #ff7b7f, var(--bd-hata));
+  box-shadow: 0 var(--bd-kalinlik) 0 #a32328, 0 8px 18px rgba(163, 35, 40, 0.4);
+}
+.app .btn.tehlike:active:not(:disabled) { transform: translateY(3px); box-shadow: 0 2px 0 #a32328; }
+.app .btn::after { display: none; }
+
+/* HEMEN OYNA — sayfadaki tek birincil eylem */
+.bd-ana-eylem {
+  border-radius: 18px;
+  font-size: 19px;
+  letter-spacing: 0.4px;
+  background: linear-gradient(180deg, #ffd873, var(--bd-odul));
+  color: #3a2400;
+  box-shadow: 0 6px 0 #b97e07, 0 12px 26px rgba(217, 119, 6, 0.45);
+  animation: bd-nabiz-chunky 2.8s ease-in-out infinite;
+}
+@keyframes bd-nabiz-chunky {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.02); }
+}
+.bd-ana-eylem:active {
+  animation: none;
+  transform: translateY(4px);
+  box-shadow: 0 2px 0 #b97e07;
+}
+
+/* ============================================================
+   3.1 TİPOGRAFİ
+   ============================================================ */
+
+.bd-hero-puan-sayi,
+.bd-vs-taraf .skor,
+.bd-sure-sayi,
+.bd-sonuc-skor {
+  font-family: var(--bd-f-baslik);
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+.bd-hero-puan-sayi { font-size: clamp(44px, 14vw, 64px); line-height: 1; }
+
+/* Büyük harf + geniş aralık YALNIZ küçük etiketlerde */
+.bd-hero-selam,
+.bd-soru-no,
+.bd-toast-baslik,
+.bd-mod-slogan {
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  font-size: var(--bd-t-mini);
+  font-weight: 800;
+}
+.bd-mod-slogan { text-transform: none; letter-spacing: 0.2px; }
+
+/* ============================================================
+   3.2a ANA SAYFA
+   ============================================================ */
+
+.bd-hero {
+  background:
+    radial-gradient(120% 95% at 50% -15%, rgba(124, 77, 255, 0.5), transparent 60%),
+    linear-gradient(168deg, #2c2260, #1a1440);
+  border-radius: 26px;
+  box-shadow: 0 16px 40px rgba(6, 4, 18, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.07);
+}
+.bd-hero-maskot { filter: drop-shadow(0 8px 18px rgba(124, 77, 255, 0.45)); }
+
+/* Rütbe ilerleme halkası hero'da */
+.bd-hero-bar {
+  height: 9px;
+  border-radius: var(--bd-r-tam);
+  background: rgba(0, 0, 0, 0.36);
+  overflow: hidden;
+}
+.bd-hero-bar .dolgu {
+  background: linear-gradient(90deg, var(--bd-vurgu-acik), var(--bd-odul));
+  box-shadow: 0 0 12px rgba(255, 200, 61, 0.5);
+}
+
+/* Mod kartları: kendi renk plakası, büyük ikon */
+.bd-mod {
+  border-radius: 22px;
+  padding: 16px 10px 14px;
+  background: linear-gradient(170deg, rgba(56, 44, 104, 0.85), rgba(26, 20, 54, 0.9));
+  box-shadow: 0 6px 0 rgba(0, 0, 0, 0.28), 0 12px 26px rgba(6, 4, 18, 0.42);
+}
+.bd-mod:active {
+  transform: translateY(4px);
+  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.28);
+}
+.bd-mod-ikon {
+  width: 54px; height: 54px;
+  border-radius: 18px;
+  color: #fff;
+}
+.bd-mod-ad { font-size: 14.5px; font-weight: 800; }
+
+/* Turnuva bandı: kart değil, dar şerit */
+.bd-turnuva-bant {
+  border: none !important;
+  border-radius: 20px;
+  padding: 14px 16px;
+  background: linear-gradient(120deg, rgba(255, 200, 61, 0.16), rgba(26, 20, 54, 0.9));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 10px 24px rgba(6, 4, 18, 0.4);
+}
+
+/* Tek satır lig özeti */
+.bd-lig-tek-satir {
+  display: flex; align-items: center; gap: 10px;
+  margin: 0 0 14px;
+  padding: 13px 15px;
+  text-decoration: none;
+  color: var(--bd-metin);
+  font-size: 14px; font-weight: 700;
+  border-radius: 18px;
+  background: linear-gradient(120deg, rgba(45, 212, 191, 0.16), rgba(26, 20, 54, 0.86));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+.bd-lig-tek-satir .sira { color: var(--bd-odul); font-weight: 800; }
+.bd-lig-tek-satir .ok { margin-left: auto; color: var(--bd-metin-3); }
+
+/* Günlük görevler: açılır tek satır */
+.bd-gorev-acilir { margin-bottom: 14px; }
+.bd-gorev-basi {
+  width: 100%;
+  display: flex; align-items: center; gap: 10px;
+  padding: 13px 15px;
+  font-family: inherit; font-size: 14px; font-weight: 700; color: var(--bd-metin);
+  border: none; border-radius: 18px; cursor: pointer;
+  background: linear-gradient(120deg, rgba(124, 77, 255, 0.18), rgba(26, 20, 54, 0.86));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+.bd-gorev-basi .sayac {
+  margin-left: auto;
+  font-size: 12px; font-weight: 800;
+  color: var(--bd-odul);
+}
+.bd-gorev-basi .ok { transition: transform 0.2s; color: var(--bd-metin-3); }
+.bd-gorev-basi.acik .ok { transform: rotate(90deg); }
+.bd-gorev-govde { padding-top: 10px; }
+
+/* ============================================================
+   3.2b MAÇ EKRANI
+   ============================================================ */
+
+.bd-vs {
+  border-radius: 22px;
+  padding: 12px 14px;
+  background: linear-gradient(168deg, rgba(48, 38, 92, 0.8), rgba(24, 19, 52, 0.86));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 10px 24px rgba(6, 4, 18, 0.4);
+}
+.bd-vs-rozet {
+  width: 46px; height: 46px;
+  font-size: 13px;
+  background: linear-gradient(180deg, #ff7b7f, #c9282d);
+  box-shadow: 0 4px 0 #8e1b1f;
+}
+.bd-vs-taraf .skor { font-size: 30px; }
+
+/* Zaman çubuğu: yeşil → sarı → kırmızı */
+.bd-soru-bar { height: 8px; border-radius: var(--bd-r-tam); overflow: hidden; }
+.bd-soru-bar .dolgu { transition: width 0.25s linear, background 0.4s; }
+.bd-soru-bar .dolgu.iyi { background: linear-gradient(90deg, #2ecc71, #7ee7a8); }
+.bd-soru-bar .dolgu.orta { background: linear-gradient(90deg, #ffc83d, #ffe08a); }
+.bd-soru-bar .dolgu.kritik { background: linear-gradient(90deg, #ff5a5f, #ff9195); }
+
+.bd-soru-metin {
+  border-radius: 24px;
+  padding: 28px 20px;
+  font-size: 18.5px; line-height: 1.45; font-weight: 700;
+  background: linear-gradient(165deg, #35286f, #1e1748);
+  box-shadow: 0 14px 34px rgba(6, 4, 18, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+/* Şıklar: tam genişlik chunky buton, renkli harf plakası */
+.bd-secenek {
+  min-height: 64px;
+  border-radius: 18px;
+  padding: 12px 14px;
+  background: linear-gradient(180deg, #3a2f72, #2a2156);
+  box-shadow: 0 var(--bd-kalinlik) 0 #17123a, 0 8px 18px rgba(6, 4, 18, 0.34);
+}
+.bd-secenek:active:not(:disabled) {
+  transform: translateY(3px);
+  box-shadow: 0 2px 0 #17123a;
+}
+.bd-harf {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 30px; height: 30px;
+  margin-right: 10px;
+  font-family: var(--bd-f-baslik); font-size: 14px; font-weight: 800;
+  color: #fff;
+  border-radius: 10px;
+  background: linear-gradient(180deg, #7c4dff, #4c1d95);
+  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.3);
+}
+.bd-secenek.secili {
+  background: linear-gradient(180deg, #8b62ff, #5a30c4);
+  box-shadow: 0 var(--bd-kalinlik) 0 #2f1670;
+}
+.bd-secenek.dogru {
+  background: linear-gradient(180deg, #34d97b, #17924c);
+  box-shadow: 0 var(--bd-kalinlik) 0 #0c6132, 0 0 22px rgba(46, 204, 113, 0.5);
+}
+.bd-secenek.dogru .bd-harf { background: #0c6132; }
+.bd-secenek.yanlis {
+  background: linear-gradient(180deg, #ff6e73, #c9282d);
+  box-shadow: 0 var(--bd-kalinlik) 0 #8e1b1f;
+}
+.bd-secenek.yanlis .bd-harf { background: #8e1b1f; }
+
+/* Joker: 3 yuvarlak buton, şıkların altında */
+.bd-joker-cubuk { gap: 10px; margin-top: 14px; }
+.bd-joker {
+  border: none;
+  border-radius: 18px;
+  padding: 11px 6px;
+  background: linear-gradient(180deg, #3b3070, #2a2154);
+  box-shadow: 0 4px 0 #1b1540;
+}
+.bd-joker:active:not(:disabled) { transform: translateY(2px); box-shadow: 0 2px 0 #1b1540; }
+.bd-joker.ucretsiz:not(:disabled) {
+  background: linear-gradient(180deg, #ffd873, var(--bd-odul));
+  box-shadow: 0 4px 0 #b97e07;
+  color: #3a2400;
+}
+.bd-joker.ucretsiz:not(:disabled) .bd-joker-adet { color: #3a2400; background: rgba(0,0,0,0.14); }
+.bd-joker-ikon { font-size: 20px; }
+
+/* ============================================================
+   3.2c SONUÇ EKRANI
+   ============================================================ */
+
+.bd-sonuc-baslik {
+  font-family: var(--bd-f-baslik);
+  font-size: clamp(28px, 9vw, 40px); font-weight: 800;
+  text-align: center; line-height: 1.1;
+  margin-bottom: 4px;
+}
+.bd-sonuc-baslik.kazandi {
+  background: linear-gradient(120deg, #ffe08a, var(--bd-odul), #ff9f43);
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+  filter: drop-shadow(0 4px 14px rgba(217, 119, 6, 0.45));
+}
+.bd-sonuc-baslik.kaybetti { color: var(--bd-metin-2); }
+.bd-sonuc-kazanc {
+  display: block; text-align: center;
+  font-family: var(--bd-f-baslik);
+  font-size: 30px; font-weight: 800; color: var(--bd-odul);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ============================================================
+   3.2d LİG
+   ============================================================ */
+
+.bd-podyum-yer {
+  background: linear-gradient(175deg, rgba(56, 44, 104, 0.9), rgba(24, 19, 52, 0.92));
+  border-radius: 20px;
+  box-shadow: 0 8px 22px rgba(6, 4, 18, 0.45);
+}
+.bd-podyum-yer.yer-1 {
+  box-shadow: 0 0 0 2px rgba(255, 200, 61, 0.55), 0 14px 32px rgba(217, 119, 6, 0.35);
+}
+.bd-podyum-yer.yer-1::before {
+  content: "👑";
+  position: absolute; top: -18px; left: 50%; transform: translateX(-50%);
+  font-size: 24px;
+}
+.bd-podyum-yer { position: relative; }
+
+/* Lig satırları: yüzeysiz, ince ayırıcı */
+.bd-lig-satir {
+  background: none !important;
+  box-shadow: none !important;
+  border-radius: 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06) !important;
+  padding: 11px 6px;
+}
+.bd-lig-satir.ben {
+  background: linear-gradient(90deg, rgba(124, 77, 255, 0.22), transparent 70%) !important;
+  border-radius: 14px;
+  border-bottom-color: transparent !important;
+}
+.bd-benim-satir {
+  position: sticky; bottom: calc(84px + env(safe-area-inset-bottom));
+  z-index: 20;
+  margin-top: 10px;
+  padding: 4px 8px;
+  border-radius: 18px;
+  background: linear-gradient(180deg, rgba(20, 16, 45, 0.92), rgba(10, 8, 24, 0.97));
+  backdrop-filter: blur(10px);
+  box-shadow: 0 -6px 20px rgba(6, 4, 18, 0.5);
+}
+
+/* Segment kontrol */
+.bd-sekme-ust { border-radius: var(--bd-r-tam); background: rgba(0, 0, 0, 0.34); }
+.bd-sekme { border-radius: var(--bd-r-tam); font-weight: 700; }
+.bd-sekme.aktif {
+  background: linear-gradient(180deg, #9270ff, var(--bd-vurgu));
+  box-shadow: 0 3px 0 #46179c;
+}
+
+/* ============================================================
+   3.2e MEYDAN OKU — kategori plakaları yatay kaydırmalı
+   ============================================================ */
+
+.bd-kat-grid {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  padding: 2px 2px 10px;
+  scrollbar-width: none;
+  scroll-snap-type: x proximity;
+}
+.bd-kat-grid::-webkit-scrollbar { display: none; }
+.bd-kat-kart {
+  flex: 0 0 auto;
+  width: 108px;
+  scroll-snap-align: start;
+  border: none !important;
+  border-radius: 18px;
+  padding: 12px 8px;
+  background: linear-gradient(170deg, color-mix(in srgb, var(--kat, #7c4dff) 38%, #241c52), #1c1642);
+  box-shadow: 0 5px 0 rgba(0, 0, 0, 0.3), 0 10px 22px rgba(6, 4, 18, 0.4);
+}
+.bd-kat-kart:active { transform: translateY(3px); box-shadow: 0 2px 0 rgba(0, 0, 0, 0.3); }
+.bd-kat-kart.aktif {
+  box-shadow: 0 0 0 2px var(--kat, #7c4dff), 0 5px 0 rgba(0, 0, 0, 0.3),
+              0 10px 24px color-mix(in srgb, var(--kat, #7c4dff) 45%, transparent);
+}
+.bd-kat-ikon { font-size: 26px; }
+.bd-kat-ad { font-size: 12.5px; font-weight: 800; }
+
+.bd-kat-kart.kat-genel_kultur { --kat: var(--kat-genel_kultur); }
+.bd-kat-kart.kat-bilim { --kat: var(--kat-bilim); }
+.bd-kat-kart.kat-tarih { --kat: var(--kat-tarih); }
+.bd-kat-kart.kat-cografya { --kat: var(--kat-cografya); }
+.bd-kat-kart.kat-spor { --kat: var(--kat-spor); }
+.bd-kat-kart.kat-sanat { --kat: var(--kat-sanat); }
+.bd-kat-kart.kat-sinema { --kat: var(--kat-sinema); }
+.bd-kat-kart.kat-muzik { --kat: var(--kat-muzik); }
+.bd-kat-kart.kat-teknoloji { --kat: var(--kat-teknoloji); }
+.bd-kat-kart.kat-edebiyat { --kat: var(--kat-edebiyat); }
+
+/* Açılır paneller (grup / hızlı) */
+.bd-panel { margin-bottom: 14px; }
+.bd-panel-basi {
+  width: 100%;
+  display: flex; align-items: center; gap: 10px;
+  padding: 14px 15px;
+  font-family: inherit; font-size: 15px; font-weight: 800; color: var(--bd-metin);
+  border: none; border-radius: 18px; cursor: pointer;
+  background: linear-gradient(120deg, rgba(124, 77, 255, 0.2), rgba(26, 20, 54, 0.88));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+.bd-panel-basi .ok { margin-left: auto; transition: transform 0.2s; color: var(--bd-metin-3); }
+.bd-panel-basi.acik .ok { transform: rotate(90deg); }
+.bd-panel-govde { padding: 12px 2px 0; }
+
+/* Rakip satırı */
+.app .liste-satir {
+  border: none !important;
+  border-radius: 18px;
+  padding: 12px 14px;
+  margin-bottom: 8px;
+  background: linear-gradient(170deg, rgba(48, 38, 92, 0.68), rgba(26, 20, 54, 0.78));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+/* ============================================================
+   3.2f PROFİL
+   ============================================================ */
+
+.bd-profil-ust {
+  display: flex; flex-direction: column; align-items: center; gap: 8px;
+  padding: 24px 16px 20px;
+  margin-bottom: 16px;
+  border-radius: 26px;
+  background:
+    radial-gradient(120% 90% at 50% -10%, rgba(124, 77, 255, 0.45), transparent 62%),
+    linear-gradient(168deg, #2c2260, #1a1440);
+  box-shadow: 0 16px 40px rgba(6, 4, 18, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.07);
+}
+.bd-profil-ad { font-family: var(--bd-f-baslik); font-size: 22px; font-weight: 800; }
+.bd-istatistik-3 {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 16px;
+}
+.bd-istatistik {
+  display: flex; flex-direction: column; align-items: center; gap: 3px;
+  padding: 13px 6px;
+  border-radius: 18px;
+  background: linear-gradient(170deg, rgba(48, 38, 92, 0.7), rgba(26, 20, 54, 0.8));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+.bd-istatistik .deger {
+  font-family: var(--bd-f-baslik); font-size: 22px; font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+.bd-istatistik .etiket {
+  font-size: 10.5px; font-weight: 800; letter-spacing: 0.8px;
+  text-transform: uppercase; color: var(--bd-metin-3);
+}
+
+/* ============================================================
+   3.2g ALT SEKME ÇUBUĞU — aktif öğe renkli plaka
+   ============================================================ */
+
+.tabbar a.aktif::before {
+  inset: 2px 4px;
+  border-radius: 16px;
+  background: linear-gradient(180deg, rgba(124, 77, 255, 0.34), rgba(124, 77, 255, 0.14));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12);
+}
+.tabbar a.aktif::after { display: none; }
+.tabbar a.aktif { color: #fff; }
+.tabbar a.aktif .ikon { transform: translateY(-2px) scale(1.06); }
+
+/* ============================================================
+   3.3 MOBİL + ERİŞİLEBİLİRLİK
+   ============================================================ */
+
+@media (max-width: 400px) {
+  .bd-soru-metin { font-size: 16.5px; padding: 22px 16px; }
+  .bd-secenek { min-height: 58px; font-size: 15px; }
+  .bd-harf { width: 26px; height: 26px; margin-right: 8px; font-size: 13px; }
+  .bd-mod-ikon { width: 46px; height: 46px; border-radius: 15px; }
+  .bd-kat-kart { width: 96px; }
+  .bd-vs-taraf .skor { font-size: 26px; }
+  .bd-ana-eylem { font-size: 17px; }
+}
+
+/* Dokunma hedefi ≥ 44px */
+.tabbar a, .bd-sekme, .bd-kat-kart, .bd-joker, .bd-secenek,
+.app .btn, .bd-ana-eylem, .bd-panel-basi, .bd-gorev-basi {
+  min-height: 44px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bd-ana-eylem { animation: none; }
+  body::before { transform: none; }
+}

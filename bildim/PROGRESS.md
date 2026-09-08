@@ -269,3 +269,45 @@ asimi icin ozel metinler var.
 
 **Gizlilik metni** takma ad duzenine gore duzeltildi (kullanici adi degil takma ad
 gorunur; Google fotografi otomatik alinmaz) ve reklam maddesi eklendi.
+
+## Gorev 4 / Faz 3: "panel" degil "oyun" — radikal kozmetik
+
+**Teshis:** her ekran ayni koyu mor zemin + ayni boyda cerceveli kartlar =
+yonetim paneli dili.
+
+**Yeni gorsel dil** (`bildim/styles/tema.css`, eski siniflar silinmedi):
+- **Renk:** elektrik moru `#7C4DFF`, odul sarisi `#FFC83D`, basari `#2ECC71`,
+  hata mercan `#FF5A5F`, ikincil camgobegi `#22D3EE`. On kategoriye sabit renk.
+- **Zemin:** gece-mavisinden mora gradyan + isik lekeleri + iki katmanli
+  yildiz/nokta dokusu.
+- **Kart yok, yuzey var:** cerceveler kaldirildi; bolumler zeminden 2 ton acik
+  yuzey ve yumusak golgeyle ayriliyor.
+- **Chunky butonlar:** alt kenarda 4-6px koyu golge, basinca 3px asagi iner
+  (`.btn`, `.bd-ana-eylem`, `.bd-secenek`, `.bd-joker`, `.bd-mod`, kategori plakalari).
+- **Tipografi:** basliklar Baloo 2 800; buyuk sayilar 44-64px; buyuk harf +
+  genis aralik yalniz kucuk etiketlerde.
+
+**Ekran ekran**
+- *Ana sayfa:* hero (maskot + rutbe + dev puan + ilerleme cubugu), sari chunky
+  HEMEN OYNA, 2x3 renkli mod kartlari, turnuva dar bant, gunluk gorevler
+  **acilir tek satir** ("1 odul hazir!" rozetiyle), uzun "En Iyiler" listesi
+  yerine **tek satir lig ozeti** ("Bu hafta Kirklareli liginde 1. siradasin →").
+- *Mac ekrani:* VS skor tablosu + iki tarafin ilerlemesi, zaman cubugu
+  yesil→sari→kirmizi, buyuk soru karti, tam genislik chunky siklar (A/B/C/D
+  renkli harf plakasi), dogruda yesil parlama, joker siklarin altinda 3 buton.
+- *Sonuc:* buyuk gradyanli "Kazandin!" basligi + "+20 ⭐" kazanc satiri.
+- *Lig:* podyum 1.'de tac, satirlar yuzeysiz ince ayirici, kendi satirin altta
+  yapiskan serit, sekmeler segment kontrol.
+- *Meydan Oku:* kategoriler **yatay kaydirmali renkli plakalar** (ikon + ad +
+  soru sayisi), grup ve hizli mod kurulumu **acilir panellerde**.
+- *Profil:* buyuk avatar + takma ad + rutbe ust blok, istatistikler 3'lu plaka.
+- *Alt menu:* aktif ogede renkli plaka.
+
+**Mobil / erisilebilirlik**
+390px viewport'ta (iframe ile gercek media query) dogrulandi: yatay tasma yok
+(`scrollWidth` 380), dokunma hedefleri >= 44px. Kontrast olculdu:
+`--bd-metin-3` 5.01:1, `--bd-metin-2` 7.91:1, ana metin 15.37:1 — hepsi >= 4.5.
+
+**Yol boyunca yakalanan hata:** sonuc ekraninda `toplamSoru` tanimsiz kaliyordu
+(degisken yalniz aktif mac blogunda tanimliydi) — calisma aninda ReferenceError
+verirdi; degisken yukari tasindi.

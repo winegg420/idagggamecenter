@@ -44,16 +44,16 @@
 - [x] 2.9 Build temiz + commit
 
 ## Faz 3 — Radikal kozmetik ("panel" değil "oyun")
-- [ ] 3.1 Yeni görsel dil: zemin, renk, yüzey (kart yok), tipografi, ikon, maskot
-- [ ] 3.2a Ana sayfa
-- [ ] 3.2b Maç ekranı
-- [ ] 3.2c Sonuç ekranı
-- [ ] 3.2d Lig
-- [ ] 3.2e Meydan Oku
-- [ ] 3.2f Profil
-- [ ] 3.2g Alt sekme çubuğu + mikro etkileşim
-- [ ] 3.3 Mobil 390px gözden geçirme, dokunma hedefi ≥44px, kontrast ≥4.5
-- [ ] 3.4 Build temiz + commit
+- [x] 3.1 Yeni görsel dil: zemin, renk, yüzey (kart yok), tipografi, ikon, maskot
+- [x] 3.2a Ana sayfa
+- [x] 3.2b Maç ekranı
+- [x] 3.2c Sonuç ekranı
+- [x] 3.2d Lig
+- [x] 3.2e Meydan Oku
+- [x] 3.2f Profil
+- [x] 3.2g Alt sekme çubuğu + mikro etkileşim
+- [x] 3.3 Mobil 390px gözden geçirme, dokunma hedefi ≥44px, kontrast ≥4.5
+- [x] 3.4 Build temiz + commit
 
 ## Faz 4 — Kapanış
 - [ ] 4.1 Build temiz, bu dosya dolu

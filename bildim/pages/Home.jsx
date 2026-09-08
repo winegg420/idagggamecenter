@@ -21,12 +21,14 @@ export default function Home() {
   const [lobide, setLobide] = useState(false);
   const [lobiSayisi, setLobiSayisi] = useState(0);
   const [canliTurnuva, setCanliTurnuva] = useState(false);
-  const [top5, setTop5] = useState([]);
   const [mesaj, setMesaj] = useState(null);
   const [gorevler, setGorevler] = useState([]);
   const [ligDurum, setLigDurum] = useState(null);
   const [gecenHafta, setGecenHafta] = useState(null);
   const [rakipAra, setRakipAra] = useState(false);
+  const [gorevlerAcik, setGorevlerAcik] = useState(false);
+  // Ödülü alınmayı bekleyen görev sayısı (kapalıyken de görünür)
+  const hazirOdul = gorevler.filter((g) => g.ilerleme >= g.hedef && !g.alindi).length;
   const [haftaKalan, setHaftaKalan] = useState(
     () => haftaBitisi().getTime() - Date.now()
   );
@@ -118,27 +120,8 @@ export default function Home() {
         setLobide((oyuncular ?? []).some((o) => o.user_id === user.id));
       }
 
-      // Lig sayfasıyla aynı kaynak: iki liste birbirini tutmalı
-      try {
-        const { data: liderler, error } = await supabase.rpc("lig_siralama", {
-          p_kapsam: "global",
-          p_donem: "hafta",
-        });
-        if (error) throw error;
-        setTop5(
-          (liderler ?? [])
-            .filter((s) => s.sira <= 5)
-            .map((s) => ({
-              id: s.user_id,
-              gorunen_ad: s.gorunen_ad,
-              gorunen_avatar: s.gorunen_avatar,
-              puan: s.puan,
-              bot: s.bot,
-            }))
-        );
-      } catch {
-        setTop5([]);
-      }
+      // Ana sayfada uzun lider listesi yok (Faz 3): lig özeti tek satırda,
+      // tam sıralama Lig sayfasında.
     };
     yukle();
   }, [user]);
@@ -361,9 +344,23 @@ export default function Home() {
 
       {/* ---------- Günlük Görevler ---------- */}
       {gorevler.length > 0 && (
-        <>
-          <div className="bolum-baslik"><span>📋 Günlük Görevler</span></div>
-          <div className="kart">
+        <div className="bd-gorev-acilir bd-giris-3">
+          <button
+            className={`bd-gorev-basi ${gorevlerAcik ? "acik" : ""}`}
+            onClick={() => setGorevlerAcik((a) => !a)}
+            aria-expanded={gorevlerAcik}
+          >
+            <span aria-hidden="true">📋</span>
+            <span>Günlük Görevler</span>
+            <span className="sayac">
+              {hazirOdul > 0
+                ? `${hazirOdul} ödül hazır!`
+                : `${gorevler.filter((g) => g.alindi).length}/${gorevler.length}`}
+            </span>
+            <span className="ok" aria-hidden="true">›</span>
+          </button>
+          {gorevlerAcik && (
+          <div className="bd-gorev-govde">
             {gorevler.map((g) => {
               const tamam = g.ilerleme >= g.hedef;
               return (
@@ -398,33 +395,30 @@ export default function Home() {
               );
             })}
           </div>
-        </>
+          )}
+        </div>
       )}
 
-      {/* ---------- En İyiler ---------- */}
-      <div className="bolum-baslik bd-giris-4"><span>🔥 En İyiler</span></div>
-      <div className="kart">
-        {top5.length === 0 && (
-          <div className="bd-bos-durum">
-            <Maskot poz="dusunuyor" boyut={84} />
-            <p>Henüz sıralama oluşmadı — ilk maçı sen yap!</p>
-          </div>
-        )}
-        {top5.map((p, i) => (
-          <div key={p.id} className="lider-satir">
-            <span className={`sira-no ${i < 3 ? "ilk3" : ""}`}>{i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : i + 1}</span>
-            <Avatar profile={p} boyut={32} />
-            <span style={{ flex: 1, fontWeight: 600, fontSize: 14, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-              {p.gorunen_ad}
-              {p.bot && <span className="bd-bot-rozet" title="Yapay rakip">🤖</span>}
-            </span>
-            <span style={{ fontWeight: 800, fontSize: 14 }}>⭐ {p.puan}</span>
-          </div>
-        ))}
-        <Link to="/bildim/siralama" className="alt-yazi" style={{ display: "block", textAlign: "center", marginTop: 8 }}>
-          Tüm sıralamayı gör →
-        </Link>
-      </div>
+      {/* ---------- Lig özeti: uzun liste yerine tek satır ---------- */}
+      <Link to="/bildim/siralama" className="bd-lig-tek-satir bd-giris-4">
+        <span aria-hidden="true">🏙️</span>
+        <span>
+          {ligDurum?.sehir && ligDurum?.sira_sehir ? (
+            <>
+              Bu hafta <b>{ligDurum.sehir}</b> liginde{" "}
+              <span className="sira">{ligDurum.sira_sehir}.</span> sıradasın
+            </>
+          ) : ligDurum?.sira_global ? (
+            <>
+              Bu hafta dünya liginde{" "}
+              <span className="sira">{ligDurum.sira_global}.</span> sıradasın
+            </>
+          ) : (
+            <>Ligdeki yerini gör</>
+          )}
+        </span>
+        <span className="ok" aria-hidden="true">›</span>
+      </Link>
     </div>
   );
 }

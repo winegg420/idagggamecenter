@@ -200,6 +200,7 @@ export default function MatchPage() {
   if (!mac) return <div className="yukleniyor">Yükleniyor…</div>;
 
   const benP1 = mac.oyuncu1 === user.id;
+  const toplamSoru = mac.soru_ids?.length ?? 5;
   const benimSkor = benP1 ? mac.oyuncu1_skor : mac.oyuncu2_skor;
   const rakipSkor = benP1 ? mac.oyuncu2_skor : mac.oyuncu1_skor;
   const rakipProfil = benP1 ? mac.p2 : mac.p1;
@@ -237,9 +238,10 @@ export default function MatchPage() {
           boyut={110}
           className="bd-sonuc-maskot"
         />
-        <h2>
-          {berabere ? "Berabere!" : kazandim ? "Kazandın! +20 puan" : "Kaybettin"}
+        <h2 className={`bd-sonuc-baslik ${kazandim ? "kazandi" : berabere ? "" : "kaybetti"}`}>
+          {berabere ? "Berabere!" : kazandim ? "Kazandın!" : "Kaybettin"}
         </h2>
+        {kazandim && <span className="bd-sonuc-kazanc">+20 ⭐</span>}
         <div className="skor-tabela" style={{ marginTop: 20 }}>
           <div className="taraf">
             <div className="isim">{benimProfil?.gorunen_ad} (sen)</div>
@@ -323,7 +325,6 @@ export default function MatchPage() {
   }
 
   // Aktif maç
-  const toplamSoru = mac.soru_ids?.length ?? 5;
   const rakipOnde = ilerleme.rakip > ilerleme.ben;
 
   return (

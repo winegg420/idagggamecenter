@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "../../src/lib/supabase.js";
 import { useAuth } from "../../src/context/AuthContext.jsx";
 import Avatar from "../../src/components/Avatar.jsx";
-import { kategoriEtiket, kategorileriSirala } from "../lib/kategoriler.js";
+import { kategoriAdi, kategoriEtiket, kategoriIkon, kategorileriSirala } from "../lib/kategoriler.js";
 
 const MAC_SECIMI = `*,
   p1:profiles!matches_oyuncu1_fkey(id, gorunen_ad, gorunen_avatar, puan),
@@ -45,6 +45,8 @@ export default function ChallengesPage() {
   const [hizliMaclar, setHizliMaclar] = useState([]);
   const [hizliSecili, setHizliSecili] = useState([]);
   const [hizliHata, setHizliHata] = useState(null);
+  const [grupAcik, setGrupAcik] = useState(false);
+  const [hizliAcik, setHizliAcik] = useState(false);
 
   useEffect(() => {
     supabase
@@ -394,7 +396,8 @@ export default function ChallengesPage() {
           className={`bd-kat-kart ${kategori === null ? "aktif" : ""}`}
           onClick={() => setKategori(null)}
         >
-          <span className="bd-kat-ad">🎲 Karışık</span>
+          <span className="bd-kat-ikon">🎲</span>
+          <span className="bd-kat-ad">Karışık</span>
           <span className="bd-kat-alt">Tüm kategoriler</span>
         </button>
         {kategorileriSirala(kategoriler).map((k) => {
@@ -404,12 +407,11 @@ export default function ChallengesPage() {
           return (
             <button
               key={k.kategori}
-              className={`bd-kat-kart ${kategori === k.kategori ? "aktif" : ""}`}
+              className={`bd-kat-kart kat-${k.kategori} ${kategori === k.kategori ? "aktif" : ""}`}
               onClick={() => setKategori(k.kategori)}
             >
-              <span className="bd-kat-ad">
-                {kategoriEtiket(k.kategori)}
-              </span>
+              <span className="bd-kat-ikon">{kategoriIkon(k.kategori)}</span>
+              <span className="bd-kat-ad">{kategoriAdi(k.kategori)}</span>
               <span className="bd-kat-alt">
                 {toplam} soru
                 <span className="bd-kat-yuzde"> · %{yuzde} çözüldü</span>
@@ -471,8 +473,19 @@ export default function ChallengesPage() {
         )}
       </div>
 
-      <div className="kart">
-        <div style={{ fontWeight: 700, marginBottom: 10 }}>👨‍👩‍👧‍👦 Grup Meydan Okuma (3-5 kişi)</div>
+      {/* Grup ve hızlı mod kurulumu açılır panelde: sayfa uzayıp dağılmasın */}
+      <div className="bd-panel">
+        <button
+          className={`bd-panel-basi ${grupAcik ? "acik" : ""}`}
+          onClick={() => setGrupAcik((a) => !a)}
+          aria-expanded={grupAcik}
+        >
+          <span aria-hidden="true">👥</span>
+          <span>Grup Maçı Kur (3-5 kişi)</span>
+          <span className="ok" aria-hidden="true">›</span>
+        </button>
+        {grupAcik && (
+        <div className="bd-panel-govde">
         <div style={{ display: "flex", gap: 8, marginBottom: 10 }}>
           {[3, 4, 5].map((n) => (
             <button
@@ -516,10 +529,22 @@ export default function ChallengesPage() {
         >
           🚀 Grubu Kur ve Davet Et
         </button>
+        </div>
+        )}
       </div>
 
-      <div className="kart">
-        <div style={{ fontWeight: 700, marginBottom: 4 }}>⚡ Hızlı Olan Kazanır (5 kişi)</div>
+      <div className="bd-panel">
+        <button
+          className={`bd-panel-basi ${hizliAcik ? "acik" : ""}`}
+          onClick={() => setHizliAcik((a) => !a)}
+          aria-expanded={hizliAcik}
+        >
+          <span aria-hidden="true">⚡</span>
+          <span>Hızlı Olan Kazanır (5 kişi)</span>
+          <span className="ok" aria-hidden="true">›</span>
+        </button>
+        {hizliAcik && (
+        <div className="bd-panel-govde">
         <div className="alt-yazi" style={{ marginBottom: 10 }}>
           Herkese aynı soru aynı anda. Sadece <b>ilk doğru cevabı</b> veren puan alır. Joker yok!
         </div>
@@ -552,6 +577,8 @@ export default function ChallengesPage() {
         >
           ⚡ Yarışı Kur ve Davet Et
         </button>
+        </div>
+        )}
       </div>
 
       {oyuncular.length > 0 && (

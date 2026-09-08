@@ -144,9 +144,10 @@ export default function QuestionCard({
         </div>
       </div>
       <div className="bd-soru-bar">
+        {/* Renk yeşil → sarı → kırmızı; süre azaldıkça sınıf değişir */}
         <div
-          className="dolgu"
-          style={{ width: `${oran * 100}%`, background: halkaRenk }}
+          className={`dolgu ${oran > 0.5 ? "iyi" : oran > 0.25 ? "orta" : "kritik"}`}
+          style={{ width: `${oran * 100}%` }}
         />
       </div>
 

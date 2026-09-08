@@ -54,14 +54,12 @@ export default function ProfilePage() {
 
   return (
     <div>
-      <div className="kart" style={{ textAlign: "center" }}>
-        <div style={{ display: "flex", justifyContent: "center", marginBottom: 12 }}>
-          <Avatar profile={profile} boyut={84} />
-        </div>
+      <div className="bd-profil-ust">
+        <Avatar profile={profile} boyut={92} />
 
         {/* Görünen ad artık takma addır; gerçek kullanıcı adı gösterilmez.
             Takma ad düzenlemesi aşağıdaki ProfilAyarlari kartındadır. */}
-        <div style={{ fontSize: 22, fontWeight: 900 }}>{profile.gorunen_ad}</div>
+        <div className="bd-profil-ad">{profile.gorunen_ad}</div>
         <div className="alt-yazi" style={{ marginTop: 4 }}>
           Hesap kimliğin: <code>{profile.username}</code> (yalnızca sana görünür)
         </div>
@@ -69,20 +67,21 @@ export default function ProfilePage() {
         <div style={{ marginTop: 12 }}>
           <RankBadge puan={profile.puan} />
         </div>
+      </div>
 
-        <div style={{ display: "flex", justifyContent: "center", gap: 28, marginTop: 18 }}>
-          <div>
-            <div style={{ fontSize: 26, fontWeight: 900 }}>⭐ {profile.puan}</div>
-            <div className="alt-yazi">Puan</div>
-          </div>
-          <div>
-            <div style={{ fontSize: 26, fontWeight: 900 }}>🏆 {profile.sampiyonluk}</div>
-            <div className="alt-yazi">Şampiyonluk</div>
-          </div>
-          <div>
-            <div style={{ fontSize: 26, fontWeight: 900 }}>🔥 {profile.seri ?? 0}</div>
-            <div className="alt-yazi">Günlük Seri</div>
-          </div>
+      {/* İstatistikler: 3'lü plaka */}
+      <div className="bd-istatistik-3">
+        <div className="bd-istatistik">
+          <span className="deger" style={{ color: "var(--bd-odul)" }}>{profile.puan}</span>
+          <span className="etiket">Puan</span>
+        </div>
+        <div className="bd-istatistik">
+          <span className="deger">{profile.sampiyonluk}</span>
+          <span className="etiket">Şampiyonluk</span>
+        </div>
+        <div className="bd-istatistik">
+          <span className="deger">{profile.seri ?? 0}</span>
+          <span className="etiket">Günlük Seri</span>
         </div>
       </div>
 
