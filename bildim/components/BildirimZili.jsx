@@ -111,7 +111,10 @@ export default function BildirimZili() {
           <div className="bd-zil-liste" role="dialog" aria-label="Bildirimler">
             <div className="bd-zil-baslik">Bildirimler</div>
             {liste.length === 0 ? (
-              <div className="bd-zil-bos">Henüz bildirim yok.</div>
+              <div className="bd-zil-bos">
+                Henüz bildirim yok.<br />
+                Maç davetleri, lig hareketleri ve arkadaşlık istekleri burada görünür.
+              </div>
             ) : (
               liste.map((b) => (
                 <button

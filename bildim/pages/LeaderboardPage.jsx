@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import { hataMesaji } from "../lib/hata.js";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../../src/lib/supabase.js";
 import { useAuth } from "../../src/context/AuthContext.jsx";
@@ -52,7 +53,7 @@ export default function LeaderboardPage() {
       if (error) throw error;
       if (data) navigate(`/bildim/mac/${data}`);
     } catch (e) {
-      setHata(e.message ?? "Meydan okuma başlatılamadı.");
+      setHata(hataMesaji(e, "Meydan okuma başlatılamadı."));
     }
   };
 
@@ -126,7 +127,7 @@ export default function LeaderboardPage() {
       } catch (e) {
         if (aktif) {
           setListe([]);
-          setHata(e.message ?? "Sıralama yüklenemedi.");
+          setHata(hataMesaji(e, "Sıralama yüklenemedi."));
         }
       } finally {
         if (aktif) setYukleniyor(false);

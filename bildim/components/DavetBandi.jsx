@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import { hataMesaji } from "../lib/hata.js";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../../src/lib/supabase.js";
 import { useAuth } from "../../src/context/AuthContext.jsx";
@@ -69,7 +70,7 @@ export default function DavetBandi() {
       setDavetler((l) => l.filter((x) => x.kayit_id !== d.kayit_id));
       if (kabul) navigate(`/bildim/${bilgi.yol}/${d.kayit_id}`);
     } catch (e) {
-      setHata(e.message ?? "İşlem başarısız");
+      setHata(hataMesaji(e, "İşlem başarısız"));
     } finally {
       setIslemde(false);
     }

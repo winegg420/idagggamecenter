@@ -1,0 +1,92 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="500" viewBox="0 0 1024 500" role="img" aria-label="Bildim! özellik grafiği">
+  <defs>
+    <linearGradient id="zm" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#2f1f6b"/>
+      <stop offset="55%" stop-color="#160f33"/>
+      <stop offset="100%" stop-color="#0b0918"/>
+    </linearGradient>
+    <radialGradient id="isk" cx="22%" cy="30%" r="55%">
+      <stop offset="0%" stop-color="#7c4dff" stop-opacity="0.5"/>
+      <stop offset="100%" stop-color="#7c4dff" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="isk2" cx="82%" cy="78%" r="50%">
+      <stop offset="0%" stop-color="#ffc83d" stop-opacity="0.22"/>
+      <stop offset="100%" stop-color="#ffc83d" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="yazi" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#c4b5fd"/>
+      <stop offset="55%" stop-color="#f0abfc"/>
+      <stop offset="100%" stop-color="#ffc83d"/>
+    </linearGradient>
+    <linearGradient id="tuy" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#a78bfa"/>
+      <stop offset="100%" stop-color="#6d28d9"/>
+    </linearGradient>
+    <linearGradient id="gvd" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#c4b5fd"/>
+      <stop offset="100%" stop-color="#8b5cf6"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1024" height="500" fill="url(#zm)"/>
+  <rect width="1024" height="500" fill="url(#isk)"/>
+  <rect width="1024" height="500" fill="url(#isk2)"/>
+
+  <!-- nokta dokusu -->
+  <g fill="#ffffff" opacity="0.05">
+    <circle cx="120" cy="60" r="2"/><circle cx="300" cy="120" r="2"/>
+    <circle cx="520" cy="70" r="2"/><circle cx="760" cy="140" r="2"/>
+    <circle cx="900" cy="60" r="2"/><circle cx="180" cy="330" r="2"/>
+    <circle cx="420" cy="420" r="2"/><circle cx="660" cy="360" r="2"/>
+    <circle cx="960" cy="300" r="2"/><circle cx="60" cy="200" r="2"/>
+  </g>
+
+  <!-- Maskot -->
+  <g transform="translate(690 96) scale(2.75)">
+    <ellipse cx="50" cy="62" rx="30" ry="32" fill="url(#gvd)"/>
+    <ellipse cx="50" cy="70" rx="19" ry="21" fill="#ede9fe" opacity="0.92"/>
+    <path d="M26 58c-8-4-15-1-17 6 5 5 13 5 18 0" stroke="#5b21b6" stroke-width="7" stroke-linecap="round" fill="none"/>
+    <path d="M74 58c8-4 15-1 17 6-5 5-13 5-18 0" stroke="#5b21b6" stroke-width="7" stroke-linecap="round" fill="none"/>
+    <ellipse cx="50" cy="38" rx="31" ry="27" fill="url(#tuy)"/>
+    <path d="M24 20c2 6 6 10 11 12-4-7-6-11-11-12z" fill="#6d28d9"/>
+    <path d="M76 20c-2 6-6 10-11 12 4-7 6-11 11-12z" fill="#6d28d9"/>
+    <circle cx="38" cy="37" r="13" fill="#faf5ff"/>
+    <circle cx="62" cy="37" r="13" fill="#faf5ff"/>
+    <path d="M32 38c3-5 9-5 12 0" stroke="#1f1147" stroke-width="3.4" stroke-linecap="round" fill="none"/>
+    <path d="M56 38c3-5 9-5 12 0" stroke="#1f1147" stroke-width="3.4" stroke-linecap="round" fill="none"/>
+    <path d="M50 44l-5 7h10l-5-7z" fill="#ffc83d"/>
+    <path d="M42 92v5M46 92v5M54 92v5M58 92v5" stroke="#ffc83d" stroke-width="3" stroke-linecap="round"/>
+    <path d="M14 22l2.6 6.4L23 31l-6.4 2.6L14 40l-2.6-6.4L5 31l6.4-2.6z" fill="#ffc83d"/>
+  </g>
+
+  <!-- Başlık -->
+  <text x="72" y="196" font-family="Baloo 2, Segoe UI, system-ui, sans-serif"
+        font-size="104" font-weight="800" fill="url(#yazi)">Bildim!</text>
+
+  <text x="76" y="252" font-family="Segoe UI, system-ui, sans-serif"
+        font-size="30" font-weight="600" fill="#e9e4ff">Bilgini kanıtla, şehrini zirveye taşı</text>
+
+  <!-- Özellik rozetleri -->
+  <g font-family="Segoe UI, system-ui, sans-serif" font-size="21" font-weight="700">
+    <g transform="translate(76 300)">
+      <rect width="228" height="52" rx="26" fill="#ffffff" opacity="0.09"/>
+      <rect width="228" height="52" rx="26" fill="none" stroke="#a78bfa" stroke-opacity="0.45"/>
+      <text x="26" y="33" fill="#f3f0ff">⚔️  1v1 Meydan Okuma</text>
+    </g>
+    <g transform="translate(320 300)">
+      <rect width="196" height="52" rx="26" fill="#ffffff" opacity="0.09"/>
+      <rect width="196" height="52" rx="26" fill="none" stroke="#a78bfa" stroke-opacity="0.45"/>
+      <text x="26" y="33" fill="#f3f0ff">🏆  Günlük Turnuva</text>
+    </g>
+    <g transform="translate(76 368)">
+      <rect width="168" height="52" rx="26" fill="#ffffff" opacity="0.09"/>
+      <rect width="168" height="52" rx="26" fill="none" stroke="#a78bfa" stroke-opacity="0.45"/>
+      <text x="26" y="33" fill="#f3f0ff">🏙️  Şehir Ligi</text>
+    </g>
+    <g transform="translate(260 368)">
+      <rect width="256" height="52" rx="26" fill="#ffc83d" opacity="0.16"/>
+      <rect width="256" height="52" rx="26" fill="none" stroke="#ffc83d" stroke-opacity="0.6"/>
+      <text x="26" y="33" fill="#ffe6a3">🎯  5.000+ Türkçe soru</text>
+    </g>
+  </g>
+</svg>

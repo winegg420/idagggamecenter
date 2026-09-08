@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { hataMesaji } from "../lib/hata.js";
 import { supabase } from "../../src/lib/supabase.js";
 import { useAuth } from "../../src/context/AuthContext.jsx";
 import Avatar from "../../src/components/Avatar.jsx";
@@ -62,7 +63,7 @@ export default function KurulumSihirbazi({ onTamam }) {
         if (error) throw error;
         if (aktif) setUlkeler(data ?? []);
       } catch (e) {
-        if (aktif) setHata(e.message ?? "Ülke listesi yüklenemedi.");
+        if (aktif) setHata(hataMesaji(e, "Ülke listesi yüklenemedi."));
       }
     })();
     return () => {
@@ -83,7 +84,7 @@ export default function KurulumSihirbazi({ onTamam }) {
         if (error) throw error;
         if (aktif) setSehirler(data ?? []);
       } catch (e) {
-        if (aktif) setHata(e.message ?? "Şehir listesi yüklenemedi.");
+        if (aktif) setHata(hataMesaji(e, "Şehir listesi yüklenemedi."));
       }
     })();
     return () => {
@@ -100,7 +101,7 @@ export default function KurulumSihirbazi({ onTamam }) {
       await refreshProfile(user.id);
       setAdim(2);
     } catch (e) {
-      setHata(e.message ?? "Takma ad kaydedilemedi.");
+      setHata(hataMesaji(e, "Takma ad kaydedilemedi."));
     } finally {
       setCalisiyor(false);
     }
@@ -115,7 +116,7 @@ export default function KurulumSihirbazi({ onTamam }) {
       await refreshProfile(user.id);
       setAdim(3);
     } catch (e) {
-      setHata(e.message ?? "Avatar kaydedilemedi.");
+      setHata(hataMesaji(e, "Avatar kaydedilemedi."));
     } finally {
       setCalisiyor(false);
     }
@@ -137,7 +138,7 @@ export default function KurulumSihirbazi({ onTamam }) {
       await refreshProfile(user.id);
       onTamam?.();
     } catch (e) {
-      setHata(e.message ?? "Konum kaydedilemedi.");
+      setHata(hataMesaji(e, "Konum kaydedilemedi."));
     } finally {
       setCalisiyor(false);
     }

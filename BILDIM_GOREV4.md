@@ -33,15 +33,15 @@
 - [x] 1.13 Build temiz + commit
 
 ## Faz 2 — Yayın için eksikler
-- [ ] 2.1 TWA/Bubblewrap: manifest, assetlinks, imza talimatı, ikon/splash
-- [ ] 2.2 `store/` mağaza varlıkları (metinler, ekran görüntüsü listesi, özellik grafiği)
-- [ ] 2.3 Reklam: 3 maçta bir geçiş, ilk 3 maç reklamsız, günde en fazla 10
-- [ ] 2.4 Onboarding: 3 kartlık tanıtım → takma ad → avatar → şehir
-- [ ] 2.5 Boş durumlar tamamlansın
-- [ ] 2.6 Hata durumları: Türkçe mesaj + "Tekrar dene", ham SQL asla görünmesin
-- [ ] 2.7 Performans: font display=swap, büyük chunk'lar lazy
-- [ ] 2.8 Gizlilik metni takma ad düzenine göre düzeltilsin
-- [ ] 2.9 Build temiz + commit
+- [x] 2.1 TWA/Bubblewrap: manifest, assetlinks, imza talimatı, ikon/splash
+- [x] 2.2 `store/` mağaza varlıkları (metinler, ekran görüntüsü listesi, özellik grafiği)
+- [x] 2.3 Reklam: 3 maçta bir geçiş, ilk 3 maç reklamsız, günde en fazla 10
+- [x] 2.4 Onboarding: 3 kartlık tanıtım → takma ad → avatar → şehir
+- [x] 2.5 Boş durumlar tamamlansın
+- [x] 2.6 Hata durumları: Türkçe mesaj + "Tekrar dene", ham SQL asla görünmesin
+- [x] 2.7 Performans: font display=swap, büyük chunk'lar lazy
+- [x] 2.8 Gizlilik metni takma ad düzenine göre düzeltilsin
+- [x] 2.9 Build temiz + commit
 
 ## Faz 3 — Radikal kozmetik ("panel" değil "oyun")
 - [ ] 3.1 Yeni görsel dil: zemin, renk, yüzey (kart yok), tipografi, ikon, maskot

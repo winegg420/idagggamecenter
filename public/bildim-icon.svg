@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" role="img" aria-label="Bildim! — Bilge baykuş">
+  <defs>
+    <linearGradient id="zemin" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#221a44"/>
+      <stop offset="100%" stop-color="#0b0918"/>
+    </linearGradient>
+    <radialGradient id="isik" cx="50%" cy="30%" r="70%">
+      <stop offset="0%" stop-color="#7c4dff" stop-opacity="0.55"/>
+      <stop offset="100%" stop-color="#7c4dff" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="tuy" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#a78bfa"/>
+      <stop offset="100%" stop-color="#6d28d9"/>
+    </linearGradient>
+    <linearGradient id="govde" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#c4b5fd"/>
+      <stop offset="100%" stop-color="#8b5cf6"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="512" height="512" rx="112" fill="url(#zemin)"/>
+  <rect width="512" height="512" rx="112" fill="url(#isik)"/>
+
+  <!-- Maskot, 100x110 kutusundan 512'ye ölçeklenip ortalandı -->
+  <g transform="translate(76 46) scale(3.6)">
+    <path d="M42 92c3 8 13 8 16 0-3 4-13 4-16 0z" fill="#5b21b6"/>
+    <ellipse cx="50" cy="62" rx="30" ry="32" fill="url(#govde)"/>
+    <ellipse cx="50" cy="70" rx="19" ry="21" fill="#ede9fe" opacity="0.92"/>
+    <path d="M26 62c-7 2-12 8-11 15 6 2 12-2 15-8" stroke="#5b21b6" stroke-width="7" stroke-linecap="round" fill="none"/>
+    <path d="M74 62c7 2 12 8 11 15-6 2-12-2-15-8" stroke="#5b21b6" stroke-width="7" stroke-linecap="round" fill="none"/>
+    <ellipse cx="50" cy="38" rx="31" ry="27" fill="url(#tuy)"/>
+    <path d="M24 20c2 6 6 10 11 12-4-7-6-11-11-12z" fill="#6d28d9"/>
+    <path d="M76 20c-2 6-6 10-11 12 4-7 6-11 11-12z" fill="#6d28d9"/>
+    <circle cx="38" cy="37" r="13" fill="#faf5ff"/>
+    <circle cx="62" cy="37" r="13" fill="#faf5ff"/>
+    <circle cx="38" cy="37" r="6" fill="#1f1147"/>
+    <circle cx="62" cy="37" r="6" fill="#1f1147"/>
+    <circle cx="40" cy="35" r="2.1" fill="#fff"/>
+    <circle cx="64" cy="35" r="2.1" fill="#fff"/>
+    <path d="M50 44l-5 7h10l-5-7z" fill="#fbbf24"/>
+    <path d="M42 92v5M46 92v5M54 92v5M58 92v5" stroke="#fbbf24" stroke-width="3" stroke-linecap="round"/>
+  </g>
+</svg>

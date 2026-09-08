@@ -1,4 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { hataMesaji } from "../lib/hata.js";
+import { macBittiReklam } from "../lib/reklam.js";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../../src/lib/supabase.js";
 import Avatar from "../../src/components/Avatar.jsx";
@@ -54,10 +56,10 @@ export default function HizliModPage() {
       setKalanToplam(s.kalan_toplam_sn ?? 0);
       soruBaslangicRef.current = Date.now();
     } catch (e) {
-      if (/Süre doldu/i.test(e.message ?? "")) {
+      if (/Süre doldu/i.test(e?.message ?? "")) {
         bitir(oturumId);
       } else {
-        setHata(e.message ?? "Soru alınamadı.");
+        setHata(hataMesaji(e, "Soru alınamadı."));
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -80,7 +82,7 @@ export default function HizliModPage() {
       setAsama("oyun");
       await soruGetir(o.oturum_id);
     } catch (e) {
-      setHata(e.message ?? "Hızlı mod başlatılamadı.");
+      setHata(hataMesaji(e, "Hızlı mod başlatılamadı."));
     }
   };
 
@@ -96,9 +98,10 @@ export default function HizliModPage() {
         if (error) throw error;
         setSonuc(Array.isArray(data) ? data[0] : data);
       } catch (e) {
-        setHata(e.message ?? "Oturum kapatılamadı.");
+        setHata(hataMesaji(e, "Oturum kapatılamadı."));
       }
       setAsama("sonuc");
+      macBittiReklam().catch(() => {}); // sıklık kuralı reklam.js'te
       try {
         const { data } = await supabase.rpc("hizli_mod_siralama", { p_kapsam: kapsam });
         setSiralama(data ?? []);
@@ -133,7 +136,7 @@ export default function HizliModPage() {
         else soruGetir(oturum.oturum_id);
       }, 450);
     } catch (e) {
-      setHata(e.message ?? "Cevap gönderilemedi.");
+      setHata(hataMesaji(e, "Cevap gönderilemedi."));
     }
   };
 

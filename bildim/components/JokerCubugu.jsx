@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import { hataMesaji } from "../lib/hata.js";
 import { Link } from "react-router-dom";
 import { supabase } from "../../src/lib/supabase.js";
 import { MAC_ICI_JOKERLER, JOKER_BILGI, envanterNesne } from "../lib/jokerler.js";
@@ -55,7 +56,7 @@ export default function JokerCubugu({ macTur, macId, soruIndex, onEtki, kilit })
       onEtki?.(data);
       await yukle();
     } catch (e) {
-      setHata(e.message ?? "Joker kullanılamadı.");
+      setHata(hataMesaji(e, "Joker kullanılamadı."));
     } finally {
       setCalisan(null);
     }

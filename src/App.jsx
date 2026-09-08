@@ -35,19 +35,19 @@ import Login from "./pages/Login.jsx";
 import GameCenter from "./pages/GameCenter.jsx";
 import BirlesikSiralama from "./pages/BirlesikSiralama.jsx";
 import Home from "../bildim/pages/Home.jsx";
-import TournamentPage from "../bildim/pages/TournamentPage.jsx";
+const TournamentPage = lazy(() => import("../bildim/pages/TournamentPage.jsx"));
 import ChallengesPage from "../bildim/pages/ChallengesPage.jsx";
 import MatchPage from "../bildim/pages/MatchPage.jsx";
 import GroupMatchPage from "../bildim/pages/GroupMatchPage.jsx";
 import HizliMacPage from "../bildim/pages/HizliMacPage.jsx";
-import LeaderboardPage from "../bildim/pages/LeaderboardPage.jsx";
-import FriendsPage from "../bildim/pages/FriendsPage.jsx";
-import ProfilePage from "../bildim/pages/ProfilePage.jsx";
+const LeaderboardPage = lazy(() => import("../bildim/pages/LeaderboardPage.jsx"));
+const FriendsPage = lazy(() => import("../bildim/pages/FriendsPage.jsx"));
+const ProfilePage = lazy(() => import("../bildim/pages/ProfilePage.jsx"));
 // Gizlilik politikası: Google Play kaydı için giriş duvarının ÖNÜNDE erişilebilir olmalı.
-import GizlilikPage from "../bildim/pages/GizlilikPage.jsx";
-import DavetPage from "../bildim/pages/DavetPage.jsx";
-import JokerDukkani from "../bildim/pages/JokerDukkani.jsx";
-import HizliModPage from "../bildim/pages/HizliModPage.jsx";
+const GizlilikPage = lazy(() => import("../bildim/pages/GizlilikPage.jsx"));
+const DavetPage = lazy(() => import("../bildim/pages/DavetPage.jsx"));
+const JokerDukkani = lazy(() => import("../bildim/pages/JokerDukkani.jsx"));
+const HizliModPage = lazy(() => import("../bildim/pages/HizliModPage.jsx"));
 
 export default function App() {
   const { session, loading } = useAuth();

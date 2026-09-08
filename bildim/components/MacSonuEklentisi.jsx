@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { hataMesaji } from "../lib/hata.js";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../../src/lib/supabase.js";
 import { JOKER_BILGI } from "../lib/jokerler.js";
@@ -51,7 +52,7 @@ export default function MacSonuEklentisi({ macTur, macId, kaybettim }) {
       if (data) navigate(`/bildim/mac/${data}`);
       else navigate("/bildim/meydan");
     } catch (e) {
-      setHata(e.message ?? "Rövanş istenemedi.");
+      setHata(hataMesaji(e, "Rövanş istenemedi."));
     } finally {
       setCalisiyor(false);
     }

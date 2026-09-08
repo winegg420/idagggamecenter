@@ -7,12 +7,21 @@ import PuanSayaci from "./PuanSayaci.jsx";
 import BildirimZili from "./BildirimZili.jsx";
 import KurulumSihirbazi from "./KurulumSihirbazi.jsx";
 import DavetBandi from "./DavetBandi.jsx";
+import Tanitim from "./Tanitim.jsx";
 import BildirimToast from "./BildirimToast.jsx";
 import Ikon from "./Ikon.jsx";
 
 export default function Layout() {
   const { profile, user } = useAuth();
   const [bekleyen, setBekleyen] = useState(0);
+  // Tanıtım yalnız ilk girişte, kurulumdan ÖNCE gösterilir
+  const [tanitimGosterildi, setTanitimGosterildi] = useState(() => {
+    try {
+      return localStorage.getItem("bildim_tanitim") === "1";
+    } catch {
+      return true; // özel mod: tanıtımı zorlamayalım
+    }
+  });
 
   useEffect(() => {
     if (!user) return;
@@ -63,7 +72,18 @@ export default function Layout() {
   return (
     <div className="app">
       <RankUpOverlay />
-      {kurulumEksik && <KurulumSihirbazi />}
+      {kurulumEksik && !tanitimGosterildi ? (
+        <Tanitim
+          onBitti={() => {
+            try {
+              localStorage.setItem("bildim_tanitim", "1");
+            } catch { /* özel mod */ }
+            setTanitimGosterildi(true);
+          }}
+        />
+      ) : (
+        kurulumEksik && <KurulumSihirbazi />
+      )}
       <div className="bd-ust-blok">
         <header className="topbar">
           <Link to="/bildim" style={{ textDecoration: "none" }}>

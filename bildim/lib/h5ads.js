@@ -107,3 +107,37 @@ export function odulluVideoGoster() {
       })
   );
 }
+
+/**
+ * Maç arası geçiş reklamı (H5 Games Ads `next` yerleşimi).
+ * Ödüle bağlı DEĞİLDİR: gösterilse de gösterilmese de oyun akışı sürer.
+ * Hiçbir durumda hata fırlatmaz — reklam yoksa sessizce geçilir.
+ */
+export function gecisReklamiGoster() {
+  if (!ISTEMCI) return Promise.resolve({ gosterildi: false });
+
+  return h5AdsYukle()
+    .then(
+      () =>
+        new Promise((coz) => {
+          let bitti = false;
+          const kapat = (gosterildi) => {
+            if (bitti) return;
+            bitti = true;
+            coz({ gosterildi });
+          };
+          try {
+            window.adBreak({
+              type: "next",
+              name: "mac-arasi",
+              adBreakDone: (yer) => kapat(yer?.breakStatus === "viewed"),
+            });
+          } catch {
+            kapat(false);
+          }
+          // Reklam açılmazsa oyunu bekletme
+          setTimeout(() => kapat(false), 8000);
+        })
+    )
+    .catch(() => ({ gosterildi: false }));
+}

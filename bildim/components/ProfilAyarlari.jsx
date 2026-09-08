@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { hataMesaji } from "../lib/hata.js";
 import { supabase } from "../../src/lib/supabase.js";
 import { useAuth } from "../../src/context/AuthContext.jsx";
 import { kategoriEtiket, kategorileriSirala } from "../lib/kategoriler.js";
@@ -58,7 +59,7 @@ export default function ProfilAyarlari() {
       await refreshProfile(user.id);
       setAdDuzenle(false);
     } catch (e) {
-      setAdHata(e.message ?? "Takma ad kaydedilemedi.");
+      setAdHata(hataMesaji(e, "Takma ad kaydedilemedi."));
     } finally {
       setCalisiyor(false);
     }
@@ -73,7 +74,7 @@ export default function ProfilAyarlari() {
       await refreshProfile(user.id);
       setAvatarDuzenle(false);
     } catch (e) {
-      setAvatarHata(e.message ?? "Avatar kaydedilemedi.");
+      setAvatarHata(hataMesaji(e, "Avatar kaydedilemedi."));
     } finally {
       setCalisiyor(false);
     }
@@ -88,7 +89,7 @@ export default function ProfilAyarlari() {
       if (error) throw error;
       await refreshProfile(user.id);
     } catch (e) {
-      setKategoriHata(e.message ?? "Kategori kaydedilemedi.");
+      setKategoriHata(hataMesaji(e, "Kategori kaydedilemedi."));
     }
   };
 

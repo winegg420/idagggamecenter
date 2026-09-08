@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { hataMesaji } from "../lib/hata.js";
 import { useOyunModu } from "../lib/oyunModu.js";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "../../src/lib/supabase.js";
@@ -75,7 +76,7 @@ export default function GroupMatchPage() {
       p_tip: tip,
     });
     if (error) {
-      setJokerHata(error.message);
+      setJokerHata(hataMesaji(error));
       return null;
     }
     setJokerKullanildi((k) => ({ ...k, [tip]: true }));

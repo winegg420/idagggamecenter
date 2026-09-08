@@ -1,4 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import Maskot from "../components/Maskot.jsx";
+import { hataMesaji } from "../lib/hata.js";
 import { useOyunModu } from "../lib/oyunModu.js";
 import TurnuvaTanitim from "../components/TurnuvaTanitim.jsx";
 import { supabase } from "../../src/lib/supabase.js";
@@ -107,7 +109,7 @@ export default function TournamentPage() {
   const lobiyeKatil = async () => {
     setHata(null);
     const { error } = await supabase.rpc("join_tournament_lobby");
-    if (error) setHata(error.message);
+    if (error) setHata(hataMesaji(error));
     else turnuvaYukle();
   };
 
@@ -178,7 +180,10 @@ export default function TournamentPage() {
         <div className="kart">
           <div className="baslik">Lobideki Oyuncular ({oyuncular.length})</div>
           {oyuncular.length === 0 && (
-            <div className="alt-yazi">Henüz kimse yok. İlk sen ol!</div>
+            <div className="bd-bos-durum">
+              <Maskot poz="dusunuyor" boyut={78} />
+              <p>Lobi henüz boş — ilk katılan sen ol, turnuva başlayınca haber veririz.</p>
+            </div>
           )}
           {oyuncular.map((o) => (
             <div key={o.user_id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "6px 0" }}>

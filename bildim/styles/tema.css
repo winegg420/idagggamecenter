@@ -1093,3 +1093,92 @@ body.bd-oyun-modu .app { padding-bottom: calc(24px + env(safe-area-inset-bottom)
   cursor: pointer;
 }
 .bd-mac-cikis:active { transform: scale(0.94); }
+
+/* ============================================================
+   FAZ 2 — Tanıtım (onboarding) ve hata durumları
+   ============================================================ */
+
+.bd-tanitim-katman {
+  position: fixed; inset: 0; z-index: 210;
+  display: flex; align-items: center; justify-content: center;
+  padding: 20px;
+  background: radial-gradient(120% 90% at 50% 0%, #2f1f6b, #08061299 70%, #080612);
+  animation: bd-arama-gir 0.2s ease-out both;
+}
+
+.bd-tanitim {
+  position: relative;
+  width: min(420px, 100%);
+  display: flex; flex-direction: column; align-items: center;
+  gap: 14px; padding: 26px 22px 22px;
+  text-align: center;
+  border-radius: var(--bd-r-l);
+  background: linear-gradient(165deg, var(--bd-yuzey-2), var(--bd-yuzey-1));
+  box-shadow: var(--bd-golge-derin), var(--bd-ic-parlaklik);
+  overflow: hidden;
+}
+.bd-tanitim::after {
+  content: "";
+  position: absolute; inset: 0;
+  border-radius: inherit;
+  background: radial-gradient(95% 60% at 50% -8%, var(--tema, rgba(167,139,250,0.5)), transparent 62%);
+  opacity: 0.35;
+  pointer-events: none;
+}
+.bd-tanitim > * { position: relative; z-index: 1; }
+
+.bd-tanitim-atla {
+  position: absolute; top: 12px; right: 14px; z-index: 2;
+  padding: 6px 12px;
+  font-size: 12.5px; font-weight: 700;
+  color: var(--bd-metin-3);
+  background: rgba(255, 255, 255, 0.07);
+  border: none; border-radius: var(--bd-r-tam);
+  cursor: pointer;
+}
+
+.bd-tanitim-gorsel { position: relative; }
+.bd-tanitim-ikon {
+  position: absolute; right: -6px; bottom: 4px;
+  width: 42px; height: 42px;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 14px;
+  color: #fff;
+  background: var(--tema-ikon, linear-gradient(135deg, var(--bd-vurgu), var(--bd-vurgu-2)));
+  box-shadow: 0 6px 16px var(--tema-golge, rgba(109, 40, 217, 0.45));
+}
+
+.bd-tanitim-baslik {
+  font-family: var(--bd-f-baslik);
+  font-size: 22px; font-weight: 800;
+}
+.bd-tanitim-metin {
+  font-size: 14.5px; line-height: 1.55; color: var(--bd-metin-2);
+  max-width: 330px;
+}
+
+.bd-tanitim-noktalar { display: flex; gap: 7px; margin: 2px 0 4px; }
+.bd-tanitim-noktalar .nokta {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: rgba(255, 255, 255, 0.22);
+  transition: width 0.2s, background 0.2s;
+}
+.bd-tanitim-noktalar .nokta.aktif {
+  width: 20px; border-radius: var(--bd-r-tam);
+  background: var(--bd-vurgu-acik);
+}
+
+/* ---------- Hata kutusu: Türkçe mesaj + tekrar dene ---------- */
+.bd-hata-kart {
+  display: flex; flex-direction: column; align-items: center; gap: 10px;
+  padding: 20px 16px; margin: 10px 0;
+  text-align: center;
+  border-radius: var(--bd-r-m);
+  background: linear-gradient(160deg, rgba(239, 68, 68, 0.14), var(--bd-yuzey-1));
+  box-shadow: 0 0 0 1px rgba(239, 68, 68, 0.28), var(--bd-ic-parlaklik);
+}
+.bd-hata-kart .bd-hata-baslik { font-weight: 800; font-size: 15px; }
+.bd-hata-kart .bd-hata-metin {
+  font-size: 13.5px; line-height: 1.5; color: var(--bd-metin-2); max-width: 320px;
+}
+.bd-hata-kart .btn { width: auto; min-width: 160px; }

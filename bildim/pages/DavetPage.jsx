@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { hataMesaji } from "../lib/hata.js";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "../../src/lib/supabase.js";
 import { useAuth } from "../../src/context/AuthContext.jsx";
@@ -76,7 +77,7 @@ export default function DavetPage() {
         setTimeout(() => navigate("/bildim/arkadaslar"), 1800);
       } catch (e) {
         setDurum("hata");
-        setMesaj(e.message ?? "Davet uygulanamadı.");
+        setMesaj(hataMesaji(e, "Davet uygulanamadı."));
       }
     })();
   }, [kod, user, profile, navigate]);

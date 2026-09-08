@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { hataMesaji } from "../lib/hata.js";
 import { supabase } from "../../src/lib/supabase.js";
 import { useAuth } from "../../src/context/AuthContext.jsx";
 import { bayrak, konumKilidiKalan, sureMetni } from "../lib/konum.js";
@@ -32,7 +33,7 @@ export default function KonumSecici({ mod = "kart", onKapat, onKaydedildi }) {
         if (error) throw error;
         if (aktif) setUlkeler(data ?? []);
       } catch (e) {
-        if (aktif) setHata(e.message ?? "Ülke listesi yüklenemedi.");
+        if (aktif) setHata(hataMesaji(e, "Ülke listesi yüklenemedi."));
       }
     };
     yukle();
@@ -54,7 +55,7 @@ export default function KonumSecici({ mod = "kart", onKapat, onKaydedildi }) {
         if (error) throw error;
         if (aktif) setSehirler(data ?? []);
       } catch (e) {
-        if (aktif) setHata(e.message ?? "Şehir listesi yüklenemedi.");
+        if (aktif) setHata(hataMesaji(e, "Şehir listesi yüklenemedi."));
       }
     };
     yukle();
@@ -86,7 +87,7 @@ export default function KonumSecici({ mod = "kart", onKapat, onKaydedildi }) {
       onKaydedildi?.();
       onKapat?.();
     } catch (e) {
-      setHata(e.message ?? "Kaydedilemedi.");
+      setHata(hataMesaji(e, "Kaydedilemedi."));
     } finally {
       setKaydediyor(false);
     }

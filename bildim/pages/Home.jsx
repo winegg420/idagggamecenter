@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import { hataMesaji } from "../lib/hata.js";
 import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "../../src/lib/supabase.js";
 import { useAuth } from "../../src/context/AuthContext.jsx";
@@ -145,7 +146,7 @@ export default function Home() {
   const lobiyeKatil = async () => {
     setMesaj(null);
     const { error } = await supabase.rpc("join_tournament_lobby");
-    if (error) setMesaj(error.message);
+    if (error) setMesaj(hataMesaji(error));
     else {
       setLobide(true);
       setLobiSayisi((n) => n + 1);

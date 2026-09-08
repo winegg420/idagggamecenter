@@ -17,7 +17,7 @@ export default function GizlilikPage() {
       <h2>Kısaca</h2>
       <p>
         Bildim!, oyunu oynayabilmen için gereken en az veriyi toplar:{" "}
-        <b>e-posta adresin</b>, <b>kullanıcı adın</b> ve seçtiysen <b>profil görselin</b>,
+        <b>e-posta adresin</b>, <b>seçtiğin takma ad</b> ve <b>avatarın</b>,
         ayrıca oyun içi <b>puan, sıralama ve şehir/ülke</b> bilgin. Verilerini satmıyoruz,
         reklam ağlarıyla paylaşmıyoruz.
       </p>
@@ -25,11 +25,13 @@ export default function GizlilikPage() {
       <h2>Topladığımız veriler</h2>
       <ul>
         <li>
-          <b>Hesap bilgileri:</b> e-posta adresi (giriş için) ve kullanıcı adı
-          (sıralamalarda herkese görünür).
+          <b>Hesap bilgileri:</b> e-posta adresi (yalnız giriş için; hiçbir zaman
+          başka oyunculara gösterilmez) ve <b>senin seçtiğin takma ad</b>. Diğer
+          oyuncular yalnızca bu takma adı görür — gerçek adın ve e-postan gizlidir.
         </li>
         <li>
-          <b>Profil görseli:</b> yalnızca sen yüklersen. Diğer oyunculara görünür.
+          <b>Avatar:</b> hazır avatarlardan seçtiğin görsel. Google hesabının
+          fotoğrafı <b>otomatik olarak alınmaz</b>; yalnız sen onaylarsan kullanılır.
         </li>
         <li>
           <b>Oyun verileri:</b> puan, haftalık puan, rütbe, rozetler, maç sonuçları,
@@ -38,6 +40,11 @@ export default function GizlilikPage() {
         <li>
           <b>Konum bilgisi:</b> yalnızca kendi seçtiğin <b>şehir ve ülke</b>. Cihazının GPS
           konumunu <b>almıyoruz</b>. Bu bilgi şehir/ülke liglerinde herkese görünür.
+        </li>
+        <li>
+          <b>Reklam:</b> uygulamada Google H5 Games Ads (AdSense) üzerinden ödüllü
+          video ve maç arası geçiş reklamı gösterilir. Reklam ağı kendi çerez/reklam
+          kimliğini kullanır; biz kişisel verini reklam ağına <b>göndermiyoruz</b>.
         </li>
         <li>
           <b>Bildirim izni:</b> bildirimleri açarsan tarayıcının verdiği abonelik anahtarı.

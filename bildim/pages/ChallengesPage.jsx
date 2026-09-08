@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { hataMesaji } from "../lib/hata.js";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../../src/lib/supabase.js";
 import { useAuth } from "../../src/context/AuthContext.jsx";
@@ -166,7 +167,7 @@ export default function ChallengesPage() {
         bekleyenlerRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
       }, 80);
     } catch (e) {
-      setHata(e.message ?? "Meydan okuma başlatılamadı.");
+      setHata(hataMesaji(e, "Meydan okuma başlatılamadı."));
     }
   };
 
@@ -176,7 +177,7 @@ export default function ChallengesPage() {
       p_match_id: macId,
       p_kabul: kabul,
     });
-    if (error) setHata(error.message);
+    if (error) setHata(hataMesaji(error));
     else if (kabul) navigate(`/bildim/mac/${macId}`);
     else yukle();
   };
@@ -201,7 +202,7 @@ export default function ChallengesPage() {
       p_rakipler: grupSecili,
       p_kategori: kategori,
     });
-    if (error) setGrupHata(error.message);
+    if (error) setGrupHata(hataMesaji(error));
     else {
       setGrupSecili([]);
       navigate(`/bildim/grup-mac/${data}`);
@@ -214,7 +215,7 @@ export default function ChallengesPage() {
       p_group_match_id: grupMacId,
       p_kabul: kabul,
     });
-    if (error) setGrupHata(error.message);
+    if (error) setGrupHata(hataMesaji(error));
     else if (kabul) navigate(`/bildim/grup-mac/${grupMacId}`);
     else grupYukle();
   };
@@ -235,7 +236,7 @@ export default function ChallengesPage() {
       p_rakipler: hizliSecili,
       p_kategori: kategori,
     });
-    if (error) setHizliHata(error.message);
+    if (error) setHizliHata(hataMesaji(error));
     else {
       setHizliSecili([]);
       navigate(`/bildim/hizli-mac/${data}`);
@@ -248,7 +249,7 @@ export default function ChallengesPage() {
       p_hizli_mac_id: hizliMacId,
       p_kabul: kabul,
     });
-    if (error) setHizliHata(error.message);
+    if (error) setHizliHata(hataMesaji(error));
     else if (kabul) navigate(`/bildim/hizli-mac/${hizliMacId}`);
     else hizliYukle();
   };

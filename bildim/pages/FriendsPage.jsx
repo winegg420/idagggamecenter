@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import { hataMesaji } from "../lib/hata.js";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../../src/lib/supabase.js";
 import { useAuth } from "../../src/context/AuthContext.jsx";
@@ -28,7 +29,7 @@ export default function FriendsPage() {
       if (error) throw error;
       setDostluklar(data ?? []);
     } catch (e) {
-      setHata(e.message ?? "Arkadaş listesi yüklenemedi.");
+      setHata(hataMesaji(e, "Arkadaş listesi yüklenemedi."));
     }
   }, [user.id]);
 
@@ -68,7 +69,7 @@ export default function FriendsPage() {
       setKod("");
       yukle();
     } catch (e) {
-      setHata(e.message ?? "Davet kodu kullanılamadı.");
+      setHata(hataMesaji(e, "Davet kodu kullanılamadı."));
     } finally {
       setCalisiyor(false);
     }
@@ -103,7 +104,7 @@ export default function FriendsPage() {
       if (error) throw error;
       yukle();
     } catch (e) {
-      setHata(e.message ?? "İşlem yapılamadı.");
+      setHata(hataMesaji(e, "İşlem yapılamadı."));
     }
   };
 
@@ -113,7 +114,7 @@ export default function FriendsPage() {
       if (error) throw error;
       yukle();
     } catch (e) {
-      setHata(e.message ?? "Arkadaş çıkarılamadı.");
+      setHata(hataMesaji(e, "Arkadaş çıkarılamadı."));
     }
   };
 
@@ -124,7 +125,7 @@ export default function FriendsPage() {
       if (error) throw error;
       if (data) navigate("/bildim/meydan");
     } catch (e) {
-      setHata(e.message ?? "Meydan okuma başlatılamadı.");
+      setHata(hataMesaji(e, "Meydan okuma başlatılamadı."));
     }
   };
 

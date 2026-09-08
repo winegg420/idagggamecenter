@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { hataMesaji } from "../lib/hata.js";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../../src/lib/supabase.js";
 import Avatar from "../../src/components/Avatar.jsx";
@@ -40,7 +41,7 @@ export default function EzeliRakip() {
       if (error) throw error;
       if (data) navigate(`/bildim/mac/${data}`);
     } catch (e) {
-      setHata(e.message ?? "Meydan okuma başlatılamadı.");
+      setHata(hataMesaji(e, "Meydan okuma başlatılamadı."));
     } finally {
       setCalisiyor(false);
     }

@@ -219,3 +219,53 @@ gonderilmiyor — mevcut `send-push` akisina dokunulmadi. Istenirse ayri is.
 
 **Migration:** `20260612000064_yayin_oncesi_duzeltmeler.sql` — canliya uygulandi
 ve gecmise kaydedildi.
+
+## Gorev 4 / Faz 2: yayin icin eksikler
+
+**Android (TWA)** — `store/ANDROID_YAYIN.md` adim adim rehber.
+- `public/bildim.webmanifest`: Bildim'e ozel manifest (`start_url=/bildim`,
+  `display=standalone`, `orientation=portrait`, tema `#7c4dff`, kisayollar).
+  Hub'in kendi manifestine DOKUNULMADI, diger oyunlar etkilenmiyor.
+- Uygulama ikonu maskot baykustan uretildi: `bildim-icon.svg` kaynak,
+  `bildim-icon-{192,512}.png` ve maskeli `bildim-icon-maskable-512.png`
+  (sharp ile, gecici olarak scratchpad'e kuruldu — projeye bagimlilik eklenmedi).
+- `public/.well-known/assetlinks.json` hazir; **SHA-256 parmak izi bos**,
+  imza anahtari uretildikten sonra doldurulacak (rehberde komut var).
+
+**Magaza varliklari** — `store/`:
+`MAGAZA_METINLERI.md` (kisa aciklama 78/80 karakter, uzun aciklama ~1.550),
+`EKRAN_GORUNTULERI.md` (8 ekran + basliklar), `ICERIK_DERECELENDIRME.md`
+(IARC anketi cevaplari + veri guvenligi formu), `URUNLER.md` (Play Billing
+urun kimlikleri), `ozellik-grafigi.svg` + `.png` (1024x500, uretildi).
+
+**Reklam** — `lib/reklam.js` + `h5ads.js`'e `gecisReklamiGoster()` (`adBreak type:'next'`).
+Kural: ilk 3 macta reklam yok · sonra her 3 macta bir · gunde en fazla 10.
+Sayac localStorage'da; reklam akisi oyunu **asla bloklamaz**, hata yutulur.
+`VITE_H5_ADS_CLIENT` bos oldugu surece hicbir reklam gosterilmez.
+
+**Onboarding** — `components/Tanitim.jsx`: 3 kartlik tanitim (nasil oynanir /
+kategoriler / lig), kurulum sihirbazindan ONCE. localStorage ile bir kez gosterilir,
+"Atla" var.
+
+**Hata durumlari** — `lib/hata.js`. 18 dosyadaki 42 ham hata gosterimi bu
+yardimciya baglandi. Teknik kaliplar (`column`, `relation`, `permission denied`,
+`ambiguous`, `constraint`...) kullaniciya **asla gosterilmez**; konsola yazilip
+yerine anlasilir Turkce mesaj konur. Aginin kesilmesi, oturum dusmesi ve kota
+asimi icin ozel metinler var.
+
+**Bos durumlar** — turnuva lobisi ve bildirim zili tamamlandi; lig icin
+"bu ligde tek basinasin" durumu ayrica ele alindi (arkadas davet / dunya ligi).
+
+**Performans**
+- Font zaten `display=swap`.
+- `vite.config.js`'e `manualChunks`: react / router / supabase ayri parcalara
+  alindi; Bildim'in seyrek acilan 8 sayfasi lazy yapildi.
+- Ilk acilis paketi **607 kB → 112 kB** (uygulama kodu; gzip 32 kB). Vendor
+  parcalari ayri ve onbelleklenebilir.
+- **Onemli:** ilk denemede tum `node_modules` tek "vendor" parcasina toplaninca
+  DriftGP'nin three.js'i (1 MB) her sayfaya sizdi. `index.html` preload listesi
+  kontrol edilerek yakalandi ve geri alindi; agir bagimliliklar yine kendi lazy
+  parcalarinda.
+
+**Gizlilik metni** takma ad duzenine gore duzeltildi (kullanici adi degil takma ad
+gorunur; Google fotografi otomatik alinmaz) ve reklam maddesi eklendi.

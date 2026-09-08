@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { hataMesaji } from "../lib/hata.js";
 import { Link } from "react-router-dom";
 import { supabase } from "../../src/lib/supabase.js";
 import { useAuth } from "../../src/context/AuthContext.jsx";
@@ -163,7 +164,7 @@ export default function ProfilePage() {
                     setBildirim("acik");
                   }
                 } catch (e) {
-                  setBildirimHata(e.message);
+                  setBildirimHata(hataMesaji(e));
                   setBildirim(await pushDurumu());
                 }
               }}
@@ -278,7 +279,7 @@ export default function ProfilePage() {
                     if (error) throw error;
                     await signOut();
                   } catch (e) {
-                    setSilHata(e.message ?? "Hesap silinemedi.");
+                    setSilHata(hataMesaji(e, "Hesap silinemedi."));
                     setSiliniyor(false);
                   }
                 }}

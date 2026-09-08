@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { hataMesaji } from "../lib/hata.js";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "../../src/lib/supabase.js";
 import { useAuth } from "../../src/context/AuthContext.jsx";
@@ -9,6 +10,7 @@ import MacSonuEklentisi from "../components/MacSonuEklentisi.jsx";
 import Maskot from "../components/Maskot.jsx";
 import Ikon from "../components/Ikon.jsx";
 import { useOyunModu } from "../lib/oyunModu.js";
+import { macBittiReklam } from "../lib/reklam.js";
 
 const MAC_SECIMI = `*,
   p1:profiles!matches_oyuncu1_fkey(id, gorunen_ad, gorunen_avatar),
@@ -81,7 +83,7 @@ export default function MatchPage() {
       p_tip: tip,
     });
     if (error) {
-      setJokerHata(error.message);
+      setJokerHata(hataMesaji(error));
       return null;
     }
     setJokerKullanildi((k) => ({ ...k, [tip]: true }));
@@ -159,11 +161,16 @@ export default function MatchPage() {
 
   useOyunModu(Boolean(soru) && mac?.durum === "aktif");
 
-  // Maç bitince puan tazele
+  // Maç bitince puan tazele + (sıklık kuralı uygunsa) geçiş reklamı
+  const reklamGosterildiRef = useRef(false);
   useEffect(() => {
     if (mac?.durum === "bitti") {
       refreshProfile(user.id);
       if (pollRef.current) clearInterval(pollRef.current);
+      if (!reklamGosterildiRef.current) {
+        reklamGosterildiRef.current = true;
+        macBittiReklam().catch(() => {}); // reklam akışı oyunu asla bloklamaz
+      }
     }
   }, [mac?.durum, refreshProfile, user.id]);
 

@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import { hataMesaji } from "../lib/hata.js";
 import { Link } from "react-router-dom";
 import { supabase } from "../../src/lib/supabase.js";
 import { JOKER_BILGI, envanterNesne } from "../lib/jokerler.js";
@@ -32,7 +33,7 @@ export default function JokerDukkani() {
       }
       if (!pak.error) setPaketler(pak.data ?? []);
     } catch (e) {
-      setHata(e.message ?? "Dükkân yüklenemedi.");
+      setHata(hataMesaji(e, "Dükkân yüklenemedi."));
     }
   }, []);
 
@@ -67,7 +68,7 @@ export default function JokerDukkani() {
       setBilgi(`+1 50:50 jokeri kazandın! (bugün ${s?.bugun ?? "?"}/${s?.tavan ?? 5})`);
       await yukle();
     } catch (e) {
-      setHata(e.message ?? "Reklam gösterilemedi.");
+      setHata(hataMesaji(e, "Reklam gösterilemedi."));
     } finally {
       setVideoCalisiyor(false);
     }
@@ -99,7 +100,7 @@ export default function JokerDukkani() {
       setBilgi("Satın alman tamamlandı, jokerler hesabına eklendi 🎉");
       await yukle();
     } catch (e) {
-      setHata(e.message ?? "Satın alma tamamlanamadı.");
+      setHata(hataMesaji(e, "Satın alma tamamlanamadı."));
     } finally {
       setAlinan(null);
     }
