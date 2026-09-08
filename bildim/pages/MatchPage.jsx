@@ -110,23 +110,15 @@ export default function MatchPage() {
     }
     if (data) setMac(data);
 
-    // Asenkron maçta iki taraf farklı soruda olabilir; bunu ekranda göster
-    try {
-      const { data: cevaplar, error } = await supabase
-        .from("match_answers")
-        .select("user_id, soru_index")
-        .eq("match_id", id);
-      if (error) throw error;
-      const say = (uid) =>
-        (cevaplar ?? []).filter((c) => c.user_id === uid).length;
-      if (data) {
-        setIlerleme({
-          ben: say(user.id),
-          rakip: say(data.oyuncu1 === user.id ? data.oyuncu2 : data.oyuncu1),
-        });
-      }
-    } catch {
-      /* okuma izni yoksa ilerleme gösterilmez — maç akışını etkilemez */
+    // Asenkron maçta iki taraf farklı soruda olabilir.
+    // match_answers RLS'i yalnız KENDİ cevaplarını gösterdiği için rakip
+    // ilerlemesi hep 0 çıkıyordu; sayaçlar matches tablosunda tutuluyor.
+    if (data) {
+      const benP1x = data.oyuncu1 === user.id;
+      setIlerleme({
+        ben: benP1x ? (data.oyuncu1_soru ?? 0) : (data.oyuncu2_soru ?? 0),
+        rakip: benP1x ? (data.oyuncu2_soru ?? 0) : (data.oyuncu1_soru ?? 0),
+      });
     }
     return data;
   }, [id, user.id]);
@@ -431,14 +423,17 @@ export default function MatchPage() {
           <Avatar profile={benimProfil} boyut={44} />
           <div className="isim">{benimProfil?.gorunen_ad} (sen)</div>
           <div className="skor">{benimSkor}</div>
+          <div className="bd-vs-ilerleme">{ilerleme.ben}/{toplamSoru}</div>
         </div>
+        {/* Asenkron: rozet KENDİ sıramızı gösterir, ortak sayacı değil */}
         <div className="vs bd-vs-rozet">
-          {mac.aktif_soru + 1}/{mac.soru_ids?.length ?? 5}
+          {Math.min(benimSoru + 1, toplamSoru)}/{toplamSoru}
         </div>
         <div className="taraf bd-vs-taraf">
           <Avatar profile={rakipProfil} boyut={44} />
           <div className="isim">{rakipProfil?.gorunen_ad}</div>
           <div className="skor">{rakipSkor}</div>
+          <div className="bd-vs-ilerleme">{ilerleme.rakip}/{toplamSoru}</div>
         </div>
       </div>
 
