@@ -7,6 +7,7 @@ import QuestionCard from "../components/QuestionCard.jsx";
 import BildirimIzniSor from "../components/BildirimIzniSor.jsx";
 import MacSonuEklentisi from "../components/MacSonuEklentisi.jsx";
 import Maskot from "../components/Maskot.jsx";
+import Ikon from "../components/Ikon.jsx";
 import { useOyunModu } from "../lib/oyunModu.js";
 
 const MAC_SECIMI = `*,
@@ -36,6 +37,8 @@ export default function MatchPage() {
   const [jokerHata, setJokerHata] = useState(null);
   const [balonlar, setBalonlar] = useState({}); // { [user_id]: mesaj }
   const [kaliplarAcik, setKaliplarAcik] = useState(false);
+  const [ilerleme, setIlerleme] = useState({ ben: 0, rakip: 0 });
+  const [bilgiKapandi, setBilgiKapandi] = useState(false);
   const advanceKilidi = useRef(false);
   const pollRef = useRef(null);
   const balonTimer = useRef({});
@@ -93,8 +96,27 @@ export default function MatchPage() {
       .eq("id", id)
       .single();
     if (data) setMac(data);
+
+    // Asenkron maçta iki taraf farklı soruda olabilir; bunu ekranda göster
+    try {
+      const { data: cevaplar, error } = await supabase
+        .from("match_answers")
+        .select("user_id, soru_index")
+        .eq("match_id", id);
+      if (error) throw error;
+      const say = (uid) =>
+        (cevaplar ?? []).filter((c) => c.user_id === uid).length;
+      if (data) {
+        setIlerleme({
+          ben: say(user.id),
+          rakip: say(data.oyuncu1 === user.id ? data.oyuncu2 : data.oyuncu1),
+        });
+      }
+    } catch {
+      /* okuma izni yoksa ilerleme gösterilmez — maç akışını etkilemez */
+    }
     return data;
-  }, [id]);
+  }, [id, user.id]);
 
   useEffect(() => {
     macYukle();
@@ -215,11 +237,13 @@ export default function MatchPage() {
           <div className="taraf">
             <div className="isim">{benimProfil?.gorunen_ad} (sen)</div>
             <div className="skor">{benimSkor}</div>
+            <div className="bd-vs-ilerleme">{ilerleme.ben}/{toplamSoru}</div>
           </div>
           <div className="vs">VS</div>
           <div className="taraf">
             <div className="isim">{rakipProfil?.gorunen_ad}</div>
             <div className="skor">{rakipSkor}</div>
+            <div className="bd-vs-ilerleme">{ilerleme.rakip}/{toplamSoru}</div>
           </div>
         </div>
         <MacSonuEklentisi macTur="1v1" macId={id} kaybettim={!kazandim && !berabere} />
@@ -292,8 +316,39 @@ export default function MatchPage() {
   }
 
   // Aktif maç
+  const toplamSoru = mac.soru_ids?.length ?? 5;
+  const rakipOnde = ilerleme.rakip > ilerleme.ben;
+
   return (
     <div>
+      {/* Maç ekranında alt menü gizli; çıkış sol üstte */}
+      <button
+        className="bd-mac-cikis"
+        aria-label="Maçtan çık"
+        onClick={() => navigate("/bildim/meydan")}
+      >
+        <Ikon ad="carpi" boyut={18} />
+      </button>
+
+      {rakipOnde && !bilgiKapandi && (
+        <div className="bd-mac-bilgi">
+          <span className="ikon" aria-hidden="true">
+            <Ikon ad="saat" boyut={18} />
+          </span>
+          <span style={{ flex: 1 }}>
+            <b>{rakipProfil?.gorunen_ad}</b> {ilerleme.rakip} soruyu tamamladı — sıra sende.
+            Bu maç sıra beklemeden oynanır.
+          </span>
+          <button
+            className="btn kucuk ikincil"
+            aria-label="Kapat"
+            onClick={() => setBilgiKapandi(true)}
+          >
+            ✕
+          </button>
+        </div>
+      )}
+
       <div className="skor-tabela bd-vs">
         <div className="taraf bd-vs-taraf">
           <Avatar profile={benimProfil} boyut={44} />
@@ -323,6 +378,25 @@ export default function MatchPage() {
         </div>
       )}
 
+      {jokerHata && <div className="hata-kutu">{jokerHata}</div>}
+
+      {soru && (
+        <QuestionCard
+          key={`${mac.id}-${mac.aktif_soru}`}
+          soru={soru}
+          onCevapla={cevapla}
+          onSureDoldu={sureDoldu}
+          macTur={"1v1"}
+          macId={id}
+        />
+      )}
+
+      {cevapladim && (
+        <div className="alt-yazi" style={{ textAlign: "center", marginTop: 14 }}>
+          Rakibin cevaplaması bekleniyor…
+        </div>
+      )}
+
       <div className="sohbet-bar">
         {EMOJILER.map((e) => (
           <button key={e} onClick={() => mesajGonder(e)}>
@@ -346,24 +420,6 @@ export default function MatchPage() {
         </div>
       )}
 
-      {jokerHata && <div className="hata-kutu">{jokerHata}</div>}
-
-      {soru && (
-        <QuestionCard
-          key={`${mac.id}-${mac.aktif_soru}`}
-          soru={soru}
-          onCevapla={cevapla}
-          onSureDoldu={sureDoldu}
-          macTur={"1v1"}
-          macId={id}
-        />
-      )}
-
-      {cevapladim && (
-        <div className="alt-yazi" style={{ textAlign: "center", marginTop: 14 }}>
-          Rakibin cevaplaması bekleniyor…
-        </div>
-      )}
     </div>
   );
 }

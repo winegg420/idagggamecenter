@@ -117,12 +117,27 @@ export default function Home() {
         setLobide((oyuncular ?? []).some((o) => o.user_id === user.id));
       }
 
-      const { data: liderler } = await supabase
-        .from("profiles")
-        .select("id, gorunen_ad, gorunen_avatar, puan")
-        .order("puan", { ascending: false })
-        .limit(5);
-      setTop5(liderler ?? []);
+      // Lig sayfasıyla aynı kaynak: iki liste birbirini tutmalı
+      try {
+        const { data: liderler, error } = await supabase.rpc("lig_siralama", {
+          p_kapsam: "global",
+          p_donem: "hafta",
+        });
+        if (error) throw error;
+        setTop5(
+          (liderler ?? [])
+            .filter((s) => s.sira <= 5)
+            .map((s) => ({
+              id: s.user_id,
+              gorunen_ad: s.gorunen_ad,
+              gorunen_avatar: s.gorunen_avatar,
+              puan: s.puan,
+              bot: s.bot,
+            }))
+        );
+      } catch {
+        setTop5([]);
+      }
     };
     yukle();
   }, [user]);
@@ -398,7 +413,10 @@ export default function Home() {
           <div key={p.id} className="lider-satir">
             <span className={`sira-no ${i < 3 ? "ilk3" : ""}`}>{i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : i + 1}</span>
             <Avatar profile={p} boyut={32} />
-            <span style={{ flex: 1, fontWeight: 600, fontSize: 14, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{p.gorunen_ad}</span>
+            <span style={{ flex: 1, fontWeight: 600, fontSize: 14, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+              {p.gorunen_ad}
+              {p.bot && <span className="bd-bot-rozet" title="Yapay rakip">🤖</span>}
+            </span>
             <span style={{ fontWeight: 800, fontSize: 14 }}>⭐ {p.puan}</span>
           </div>
         ))}

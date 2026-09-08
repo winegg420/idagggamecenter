@@ -155,7 +155,9 @@ export default function LeaderboardPage() {
       <Avatar profile={{ gorunen_ad: s.gorunen_ad, gorunen_avatar: s.gorunen_avatar }} boyut={38} />
       <div className="bd-lig-bilgi">
         <div className="bd-lig-isim">
-          {s.gorunen_ad} {s.user_id === user.id && <span className="bd-sen">sen</span>}
+          {s.gorunen_ad}
+          {s.bot && <span className="bd-bot-rozet" title="Yapay rakip">🤖</span>}
+          {s.user_id === user.id && <span className="bd-sen">sen</span>}
         </div>
         <div className="bd-lig-detay">
           <RankBadge puan={s.puan} />
@@ -247,6 +249,21 @@ export default function LeaderboardPage() {
           <p>Bu ligde henüz kimse yarışmıyor — ilk sırayı sen kap.</p>
           <button className="btn" onClick={() => navigate("/bildim")}>
             Hemen oyna
+          </button>
+        </div>
+      ) : ilk100.length === 1 && ilk100[0].user_id === user.id ? (
+        <div className="bd-lig-bos">
+          <Maskot poz="selam" boyut={90} />
+          <p>
+            {kapsam === "sehir"
+              ? "Şehrinde ilk oyuncu sensin! Arkadaşlarını çağır, şehrini zirveye taşıyın."
+              : "Bu ligde şimdilik tek başınasın. Arkadaşlarını davet et."}
+          </p>
+          <button className="btn" onClick={() => navigate("/bildim/arkadaslar")}>
+            Arkadaş davet et
+          </button>
+          <button className="btn ikincil" onClick={() => setKapsam("global")}>
+            Dünya ligine bak
           </button>
         </div>
       ) : (

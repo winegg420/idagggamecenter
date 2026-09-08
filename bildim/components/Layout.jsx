@@ -72,7 +72,7 @@ export default function Layout() {
           {profile && (
             <div className="bd-topbar-sag">
               <BildirimZili />
-              <Link to="/bildim/profil" style={{ textDecoration: "none", color: "inherit" }}>
+              <Link to="/bildim/profil" className="bd-puan-link" aria-label="Profilim">
                 <span className="puan-chip">
                   ⭐ <PuanSayaci deger={profile.puan} />
                 </span>

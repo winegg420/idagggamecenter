@@ -1,54 +1,60 @@
-# BİLDİM — Görev 4: Soru kütüphanesini 2.000 soru zenginleştirme
+# BİLDİM — Yayın öncesi revize (Görev 4)
 
 > Bağlam sıkışırsa **önce bu dosyayı oku**, ilk işaretsiz maddeden devam et.
-> Hedef: **her kategoriye 200 soru → toplam 2.000**. Havuz 3.193 → ~5.193.
+> Kaynak: 8 Eylül 2026, canlı sitede Chrome ile sayfa sayfa test.
 >
-> **Kalite şartı (pazarlıksız):** tek ve tartışmasız doğru cevap; zamanla değişen
-> bilgi yok; yoruma açık ifade yok; mevcut havuzla tekrar yok; emin olmadığın
-> soruyu YAZMA. Her parti otomatik denetimden geçer.
+> **Not:** Kullanıcının kalıcı talimatı gereği migration'lar bana ait —
+> yazılır, provası alınır, canlıya uygulanır, geçmişe kaydedilir.
+> `git push` / deploy YAPILMAZ.
+>
+> (Soru kütüphanesi görevi `BILDIM_GOREV4_sorular_tamamlandi.md` dosyasında.)
 
-## Dağılım (her kategoriye 200)
-| Kategori | Mevcut | +Yeni | Sonuç |
-|---|---:|---:|---:|
-| genel_kultur | 1154 | 200 | 1354 |
-| bilim | 396 | 200 | 596 |
-| tarih | 334 | 200 | 534 |
-| cografya | 285 | 200 | 485 |
-| edebiyat | 237 | 200 | 437 |
-| spor | 226 | 200 | 426 |
-| sanat | 200 | 200 | 400 |
-| sinema | 120 | 200 | 320 |
-| teknoloji | 120 | 200 | 320 |
-| muzik | 120 | 200 | 320 |
+## Varsayılan kararlar
+- Botlar liglerde **görünür** (boş lig ölü duruyor), satırda küçük 🤖 rozeti.
+- Eşleştirme 8 sn'de rakip bulamazsa bota düşer ve bunu ekranda söyler.
+- Maç ekranında alt sekme çubuğu yok; çıkış sol üstte "✕".
+- Faz 3'teki görsel yön birebir uygulanır, alternatif üretilmez.
 
-## Faz 0 — Hazırlık
-- [x] `BILDIM_GOREV4.md` oluşturuldu
-- [x] Canlı DB'den güncel soru listesi çekildi (`mevcut-sorular.txt`)
-- [x] Denetim araçları hazır (denetle / temizle / birebir / tamamla / ekle-dengele)
+---
 
-## Faz 1 — Parti 13: `20260612000059_soru_parti13.sql` (500)
-- [x] 1.1 genel_kultur 200 + bilim 200 + tarih 100 yazıldı
-- [x] 1.2 Denetim temiz (çakışma 0, hata 0, doğru şık dengeli)
-- [x] 1.3 Canlı DB'de rollback provası: 500/500 eklendi
+## Faz 1 — Çalışmayan / hatalı şeyler
+- [x] 1.1 `hizli_mod_cevap` "column reference dogru is ambiguous" (migration 064)
+- [x] 1.2 Maç ekranında C/D şıkları joker çubuğunun altında kalıyor
+- [x] 1.3 Hızlı Mod "BAŞLA" butonu tabbar altında kalıyor (tüm sayfalarda alt boşluk)
+- [x] 1.4 "Hemen Oyna" modalı görünmüyor → portal + tam ekran + bota düşme mesajı
+- [x] 1.5 Devam eden maça girişte rakip ilerlemesi bilgisi + bot ilerleme kontrolü
+- [x] 1.6 Lig boş: `toplam_mac` geriye dönük hesap, botlar dahil, tek RPC
+- [x] 1.7 Puan çipi tıklanınca profile gitsin
+- [x] 1.8 Turnuva lobisinde botlar görünsün
+- [x] 1.9 Kategori kartlarındaki "%0 çözüldü" küçültülsün
+- [x] 1.10 Emoji baloncuğu skor tablosunu itmesin (absolute + pointer-events:none)
+- [x] 1.11 Sohbet/emoji satırı küçültülsün
+- [x] 1.12 Header tam genişlik + blur (sert kenar gitsin)
+- [x] 1.13 Build temiz + commit
 
-## Faz 2 — Parti 14: `20260612000060_soru_parti14.sql` (500)
-- [x] 2.1 tarih 100 + cografya 200 + edebiyat 200 yazıldı
-- [x] 2.2 Denetim temiz
-- [x] 2.3 Rollback provası: 500/500
+## Faz 2 — Yayın için eksikler
+- [ ] 2.1 TWA/Bubblewrap: manifest, assetlinks, imza talimatı, ikon/splash
+- [ ] 2.2 `store/` mağaza varlıkları (metinler, ekran görüntüsü listesi, özellik grafiği)
+- [ ] 2.3 Reklam: 3 maçta bir geçiş, ilk 3 maç reklamsız, günde en fazla 10
+- [ ] 2.4 Onboarding: 3 kartlık tanıtım → takma ad → avatar → şehir
+- [ ] 2.5 Boş durumlar tamamlansın
+- [ ] 2.6 Hata durumları: Türkçe mesaj + "Tekrar dene", ham SQL asla görünmesin
+- [ ] 2.7 Performans: font display=swap, büyük chunk'lar lazy
+- [ ] 2.8 Gizlilik metni takma ad düzenine göre düzeltilsin
+- [ ] 2.9 Build temiz + commit
 
-## Faz 3 — Parti 15: `20260612000061_soru_parti15.sql` (500)
-- [x] 3.1 spor 200 + sanat 200 + sinema 100 yazıldı
-- [x] 3.2 Denetim temiz
-- [x] 3.3 Rollback provası: 500/500
+## Faz 3 — Radikal kozmetik ("panel" değil "oyun")
+- [ ] 3.1 Yeni görsel dil: zemin, renk, yüzey (kart yok), tipografi, ikon, maskot
+- [ ] 3.2a Ana sayfa
+- [ ] 3.2b Maç ekranı
+- [ ] 3.2c Sonuç ekranı
+- [ ] 3.2d Lig
+- [ ] 3.2e Meydan Oku
+- [ ] 3.2f Profil
+- [ ] 3.2g Alt sekme çubuğu + mikro etkileşim
+- [ ] 3.3 Mobil 390px gözden geçirme, dokunma hedefi ≥44px, kontrast ≥4.5
+- [ ] 3.4 Build temiz + commit
 
-## Faz 4 — Parti 16: `20260612000062_soru_parti16.sql` (500)
-- [x] 4.1 sinema 100 + teknoloji 200 + muzik 200 yazıldı
-- [x] 4.2 Denetim temiz
-- [x] 4.3 Rollback provası: 500/500
-
-## Faz 5 — Kapanış
-- [x] 5.1 Dört parti birlikte prova: 2000/2000
-- [x] 5.2 Migration'lar canlıya uygulandı (059 → 060 → 061 → 062) ve geçmişe kaydedildi
-- [x] 5.3 Kategori dağılımı doğrulandı
-- [x] 5.4 `npm run build` temiz
-- [x] 5.5 PROGRESS.md raporu (üretilen/elenen, dağılım) + commit
+## Faz 4 — Kapanış
+- [ ] 4.1 Build temiz, bu dosya dolu
+- [ ] 4.2 PROGRESS.md: kararlar, migration sırası, Bubblewrap komutları, manuel işler

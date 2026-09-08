@@ -162,3 +162,60 @@ Yerel sunucuda gercek CSS ile olcuulup duzeltilen iki sorun:
 ### Kapsam disi birakildi
 Davet geldiginde **push bildirimi** (uygulama kapaliyken telefon bildirimi)
 gonderilmiyor — mevcut `send-push` akisina dokunulmadi. Istenirse ayri is.
+
+---
+
+## 2026-09-08 — Gorev 4 / Faz 1: canlida gorulen hatalar
+
+**Kok nedenler ve duzeltmeler**
+
+1. **Hizli Mod tamamen bozuktu** — `hizli_mod_cevap` RPC'si
+   `returns table (dogru boolean, ...)` out-parametresi tanimlarken govdede
+   `set dogru = dogru + ...` yaziyordu; out-parametre ile `hizli_mod_oturumlar.dogru`
+   kolonu cakisiyordu (`column reference "dogru" is ambiguous`).
+   Duzeltme (migration 064): `#variable_conflict use_column` + UPDATE'te tablo
+   takma adiyla nitelendirme. **12 soruluk tam oturum SQL'de simule edildi, temiz.**
+
+2. **Lig bostu.** Iki gercek sebep vardi (prompt'ta tahmin edilen `toplam_mac`
+   degil; o zaten doluydu):
+   - `lig_siralama` icinde `coalesce(is_bot,false) = false` → botlar ligde yok
+   - haftalikta `puan_hafta > 0` sarti → canlida bu sarta uyan tek gercek oyuncu var
+   Duzeltme: botlar ligde gorunur (satirda 🤖 rozeti), haftalik puan sarti kalkti
+   (sıralama yine `puan_hafta`'ya gore; esitlik toplam puanla kirilir). Lig artik
+   20 oyuncuyla dolu. Ana sayfadaki "En Iyiler" de ayni RPC'den besleniyor —
+   iki liste artik birbirini tutuyor.
+
+3. **Botlarin ulke/sehri yoktu** → sehir ve ulke liglerinde hic cikmiyorlardi.
+   BilgeBot Istanbul, CaylakBot Ankara, UstaBot Izmir olarak isaretlendi.
+
+4. **Turnuva lobisi tek kisilik goruyordu** — `bot_join_tournament` yalniz 1 bot
+   ekliyordu ve yalniz baska oyuncu varsa. Artik uc bot da giriyor, kosulsuz;
+   cron 5 dk once yerine **30 dk once** calisiyor.
+
+5. **Mac ekraninda C/D siklari gorunmuyordu** — joker cubugu `position: fixed`
+   ile ekranin altina yapisip siklarin ustune biniyordu. Artik akista, siklarin
+   hemen altinda. Tarayicida 1522x784'te dogrulandi: 4 sik + joker + emoji satiri
+   ayni ekranda.
+
+6. **Alt bosluk** — `.app` padding-bottom 78px'ti (tabbar tam bu yukseklikte),
+   Hizli Mod "BASLA" butonu menunun altinda kaliyordu. 94px yapildi; oyun modunda
+   menu gizli oldugu icin 24px.
+
+7. **"Hemen Oyna" modali gorunmuyordu** — `RakipAra` ana sayfanin icinde
+   konumlaniyordu. Artik `createPortal` ile dogrudan `document.body`'ye basilan
+   tam ekran katman. Bekleme 20 sn → **8 sn**, sonra bota dusuyor ve bunu ekranda
+   soyluyor ("uygun rakip bulunamadi — BilgeBot ile oynuyorsun"). "Bot ile hemen
+   oyna" butonu eklendi; rakip bulununca 1 sn "Rakip bulundu: X" gosteriliyor.
+
+8. **Asenkron mac bilgisi** — maca girildiginde rakip ilerideyse bilgi karti
+   ("BilgeBot 7 soruyu tamamladi — sira sende"), skor tabelasinda iki tarafin
+   ilerlemesi (2/20 · 7/20). Bot ilerleme kilidi (`bot_oyna`) kontrol edildi:
+   migration 058'deki "bot oyuncunun onune gecemez" kosulu yerinde ve dogru.
+
+9. Puan cipi profile gidiyor; emoji/kalip satiri kucultulup soru kartinin altina
+   alindi; emoji baloncugu `absolute` (duzeni itmiyor); kategori kartindaki
+   yuzde iyice kucultuldu; ust cubuk tam genislikte (sag/sol sert kenar gitti);
+   mac ekranina sol ustte "✕" cikis butonu eklendi.
+
+**Migration:** `20260612000064_yayin_oncesi_duzeltmeler.sql` — canliya uygulandi
+ve gecmise kaydedildi.
