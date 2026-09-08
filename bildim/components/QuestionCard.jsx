@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { supabase } from "../../src/lib/supabase.js";
 import { kalanSure, sunucuOffsetMs } from "../lib/zaman.js";
+import JokerCubugu from "./JokerCubugu.jsx";
 
 const HARFLER = ["A", "B", "C", "D"];
 const SURE = 15;
@@ -13,7 +14,16 @@ const SURE = 15;
  * onCevapla(cevapIndex) -> { dogru, dogru_cevap } döndüren async fonksiyon
  * onSureDoldu() -> süre bitince çağrılır (advance tetikler)
  */
-export default function QuestionCard({ soru, onCevapla, onSureDoldu, jokerler }) {
+export default function QuestionCard({
+  soru,
+  onCevapla,
+  onSureDoldu,
+  jokerler,
+  // Yeni joker ekonomisi: macTur + macId verilirse sunucu tabanlı çubuk çizilir.
+  macTur,
+  macId,
+  onPas,
+}) {
   const [kalan, setKalan] = useState(SURE);
   const [secim, setSecim] = useState(null);
   const [sonuc, setSonuc] = useState(null); // { dogru, dogru_cevap }
@@ -73,6 +83,20 @@ export default function QuestionCard({ soru, onCevapla, onSureDoldu, jokerler })
     basiliTutTimer.current = setTimeout(() => cevapla(soru.dogru_cevap), 3000);
   };
   const basiliTutmayiBirak = () => clearTimeout(basiliTutTimer.current);
+
+  // Sunucudan gelen joker etkisini uygula
+  const jokerEtkisi = (sonuc) => {
+    if (!sonuc) return;
+    if (sonuc.tur === "elli" && Array.isArray(sonuc.kapali)) {
+      setKapali(sonuc.kapali);
+    } else if (sonuc.tur === "pas") {
+      setSecim(-1);
+      setSonuc({ dogru: false, dogru_cevap: sonuc.dogru_cevap });
+      onPas?.(sonuc);
+    }
+    // 'sure' etkisi sunucuda soru_baslangic'ı uzatır; sayaç bir sonraki
+    // yoklamada kendiliğinden güncellenir.
+  };
 
   const oyVer = async (adil) => {
     setOy(adil);
@@ -156,7 +180,18 @@ export default function QuestionCard({ soru, onCevapla, onSureDoldu, jokerler })
         })}
       </div>
 
-      {jokerler && !sonuc && secim === null && kalan > 0 && (
+      {/* Yeni joker ekonomisi (sunucu tabanlı) */}
+      {macTur && macId && !sonuc && secim === null && kalan > 0 && (
+        <JokerCubugu
+          macTur={macTur}
+          macId={macId}
+          soruIndex={soru.soru_index}
+          onEtki={jokerEtkisi}
+        />
+      )}
+
+      {/* Eski joker çubuğu — yalnız macTur verilmeyen ekranlarda (geriye uyum) */}
+      {!macTur && jokerler && !sonuc && secim === null && kalan > 0 && (
         <div className="joker-bar">
           <button
             disabled={jokerler.kullanildi.elli || kapali.length > 0}

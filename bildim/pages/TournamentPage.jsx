@@ -212,6 +212,8 @@ export default function TournamentPage() {
           soru={soru}
           onCevapla={cevapla}
           onSureDoldu={sureDoldu}
+          macTur="turnuva"
+          macId={turnuva.id}
         />
       ) : (
         soru && (

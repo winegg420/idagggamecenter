@@ -327,7 +327,8 @@ export default function GroupMatchPage() {
           soru={soru}
           onCevapla={cevapla}
           onSureDoldu={sureDoldu}
-          jokerler={{ kullanildi: jokerKullanildi, onKullan: jokerKullan }}
+          macTur={"grup"}
+          macId={id}
         />
       )}
 

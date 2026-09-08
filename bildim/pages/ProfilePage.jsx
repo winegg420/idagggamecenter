@@ -6,6 +6,7 @@ import Avatar from "../../src/components/Avatar.jsx";
 import RankBadge from "../components/RankBadge.jsx";
 import KonumSecici from "../components/KonumSecici.jsx";
 import ProfilAyarlari from "../components/ProfilAyarlari.jsx";
+import UstalikIzgarasi from "../components/UstalikIzgarasi.jsx";
 import { bayrak, konumKilidiKalan, sureMetni } from "../lib/konum.js";
 import { rutbeBul, sonrakiRutbe } from "../lib/ranks.js";
 import {
@@ -85,6 +86,8 @@ export default function ProfilePage() {
       </div>
 
       <ProfilAyarlari />
+
+      <UstalikIzgarasi />
 
       {/* ---------- Konum (şehir/ülke ligi) ---------- */}
       {konumDuzenle ? (

@@ -4,6 +4,7 @@ import { supabase } from "../../src/lib/supabase.js";
 import { useAuth } from "../../src/context/AuthContext.jsx";
 import QuestionCard from "../components/QuestionCard.jsx";
 import BildirimIzniSor from "../components/BildirimIzniSor.jsx";
+import MacSonuEklentisi from "../components/MacSonuEklentisi.jsx";
 
 const MAC_SECIMI = `*,
   p1:profiles!matches_oyuncu1_fkey(id, gorunen_ad, gorunen_avatar),
@@ -210,6 +211,8 @@ export default function MatchPage() {
             <div className="skor">{rakipSkor}</div>
           </div>
         </div>
+        <MacSonuEklentisi macTur="1v1" macId={id} kaybettim={!kazandim && !berabere} />
+
         <div style={{ display: "flex", flexDirection: "column", gap: 10, maxWidth: 340, margin: "20px auto 0" }}>
           <button
             className="btn"
@@ -338,7 +341,8 @@ export default function MatchPage() {
           soru={soru}
           onCevapla={cevapla}
           onSureDoldu={sureDoldu}
-          jokerler={{ kullanildi: jokerKullanildi, onKullan: jokerKullan }}
+          macTur={"1v1"}
+          macId={id}
         />
       )}
 

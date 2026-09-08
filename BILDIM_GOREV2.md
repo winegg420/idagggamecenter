@@ -50,14 +50,14 @@
 - [x] 1.26 `npm run build` temiz + PROGRESS + commit
 
 ## Faz 2 — Arayüz
-- [ ] 2.1 Soru ekranı joker çubuğu (3 buton + adet rozeti, ücretsiz `elli` işaretli, animasyonlu şık silme, pasifse neden)
-- [ ] 2.2 Joker Dükkânı sayfası (envanter, video ödülü sayacı, Play paketleri, gizlilik/iade notu)
-- [ ] 2.3 Maç sonucu: kullanılan jokerler, kaybettiyse büyük Rövanş butonu, seri güncellemesi
-- [ ] 2.4 Ana sayfa hero: seri sayacı + koruma durumu; "Ezeli rakibin" kartı
-- [ ] 2.5 Profil: kategori ustalığı ızgarası, en uzun seri, joker istatistikleri
-- [ ] 2.6 Hızlı Mod: ana sayfa kartı + oyun ekranı (5 sn halka, 60 sn çubuk) + skor/sıralama + kategori seçici
-- [ ] 2.7 Bildirimler: seri uyarısı (20:00), ustalık atlama, rövanş isteği
-- [ ] 2.8 `npm run build` temiz + PROGRESS + commit
+- [x] 2.1 Soru ekranı joker çubuğu (3 buton + adet rozeti, ücretsiz `elli` işaretli, animasyonlu şık silme, pasifse neden)
+- [x] 2.2 Joker Dükkânı sayfası (envanter, video ödülü sayacı, Play paketleri, gizlilik/iade notu)
+- [x] 2.3 Maç sonucu: kullanılan jokerler, kaybettiyse büyük Rövanş butonu, seri güncellemesi
+- [x] 2.4 Ana sayfa hero: seri sayacı + koruma durumu; "Ezeli rakibin" kartı
+- [x] 2.5 Profil: kategori ustalığı ızgarası, en uzun seri, joker istatistikleri
+- [x] 2.6 Hızlı Mod: ana sayfa kartı + oyun ekranı (5 sn halka, 60 sn çubuk) + skor/sıralama + kategori seçici
+- [x] 2.7 Bildirimler: seri uyarısı (20:00), ustalık atlama, rövanş isteği
+- [x] 2.8 `npm run build` temiz + PROGRESS + commit
 
 ## Faz 3 — Test + kapanış
 - [ ] 3.1 Sunucu kuralı kanıtı: aynı maçta 3. joker reddedilir

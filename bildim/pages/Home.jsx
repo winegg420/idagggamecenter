@@ -10,6 +10,8 @@ import { bayrak, haftaBitisi, sureMetni } from "../lib/konum.js";
 import RakipAra from "../components/RakipAra.jsx";
 import Ikon from "../components/Ikon.jsx";
 import RankBadge from "../components/RankBadge.jsx";
+import SeriRozeti from "../components/SeriRozeti.jsx";
+import EzeliRakip from "../components/EzeliRakip.jsx";
 
 export default function Home() {
   const { user, profile, refreshProfile } = useAuth();
@@ -223,6 +225,8 @@ export default function Home() {
           </div>
         </div>
 
+        <SeriRozeti />
+
         <button className="bd-ana-eylem" onClick={hemenOyna}>
           <Ikon ad="hizli" boyut={22} />
           <span>HEMEN OYNA</span>
@@ -283,6 +287,14 @@ export default function Home() {
           <span className="bd-mod-ikon turnuva"><Ikon ad="kupa" boyut={24} /></span>
           <span className="bd-mod-ad">Turnuva</span>
         </button>
+        <button className="bd-mod" onClick={() => navigate("/bildim/hizli-mod")}>
+          <span className="bd-mod-ikon hizlimod"><Ikon ad="saat" boyut={24} /></span>
+          <span className="bd-mod-ad">Hızlı Mod</span>
+        </button>
+        <button className="bd-mod" onClick={() => navigate("/bildim/joker")}>
+          <span className="bd-mod-ikon joker"><Ikon ad="yildiz" boyut={24} /></span>
+          <span className="bd-mod-ad">Joker Dükkânı</span>
+        </button>
       </div>
 
       {/* ---------- Turnuva Vitrini ---------- */}
@@ -319,6 +331,8 @@ export default function Home() {
           </>
         )}
       </div>
+
+      <EzeliRakip />
 
       {/* ---------- Günlük Görevler ---------- */}
       {gorevler.length > 0 && (

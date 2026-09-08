@@ -237,6 +237,8 @@ export default function HizliMacPage() {
           soru={soru}
           onCevapla={cevapla}
           onSureDoldu={sureDoldu}
+          macTur="hizli"
+          macId={mac.id}
         />
       )}
 

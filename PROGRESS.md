@@ -1358,3 +1358,40 @@ sınırın 2 olması, turnuvada pas yasağı, envanter düşümünün denetim iz
 hızlı modun lig puanını değiştirmemesi.
 
 `npm run build` temiz. Migration'lar **uygulanmadı**.
+
+## 2026-09-08 — Bildim Görev 2 / Faz 2: Joker, seri, rövanş, ustalık, hızlı mod arayüzü
+
+**Yeni dosyalar:** `bildim/lib/jokerler.js`, `bildim/lib/h5ads.js`, `bildim/lib/playFatura.js`,
+`bildim/components/JokerCubugu.jsx`, `SeriRozeti.jsx`, `EzeliRakip.jsx`,
+`MacSonuEklentisi.jsx`, `UstalikIzgarasi.jsx`, `bildim/pages/JokerDukkani.jsx`,
+`bildim/pages/HizliModPage.jsx`, `supabase/migrations/20260612000055_seri_hatirlatma.sql`.
+
+- **Joker çubuğu** `QuestionCard`'a **eski çubuğu bozmadan** eklendi: `macTur`+`macId`
+  verilirse yeni sunucu tabanlı çubuk, verilmezse eski `jokerler` prop'u çalışır.
+  1v1 / grup / hızlı / turnuva sayfalarının dördü de yeni çubuğa bağlandı.
+  Adet rozeti, "ÜCRETSİZ" işareti ve pasiflik nedeni (sınır doldu / final / jokerin yok)
+  sunucudan gelen `joker_mac_durumu` + `envanterim` ile çiziliyor; 50:50'de silinecek
+  şıklar sunucudan gelir, istemci hesaplamaz.
+- **Joker Dükkânı** (`/bildim/joker`): envanter, ödüllü video (sayaç `bugün 3/5`),
+  Play paketleri, gizlilik/iade notu.
+  - **Reklam:** Google H5 Games Ads (`adBreak({type:'reward'})`). `VITE_H5_ADS_CLIENT`
+    boşsa buton **pasif** ve "test modu" notu; **sahte ödül verilmez**. Reklam
+    tamamlanmadan sunucuya hiç gidilmez; ödülü `reklam_odulu_al` verir.
+  - **Satın alma:** Digital Goods API + Payment Request. Tarayıcıda API yoksa buton
+    "Android uygulamasında satın alınabilir" der; **başka ödeme sağlayıcı eklenmedi**.
+    Fiyat koda yazılmadı, Play'den okunuyor. Doğrulama Edge Function'da.
+- **Maç sonucu** (`MacSonuEklentisi`): bu maçta kullanılan jokerler, güncel seri,
+  kaybedildiyse büyük **RÖVANŞ İSTE** butonu (`rovans_iste`, aynı kategori, 24 saat).
+- **Ana sayfa:** hero'da seri sayacı + koruma rozeti + rekor; mod ızgarasına
+  **Hızlı Mod** ve **Joker Dükkânı** kartları; turnuva bandının altında **Ezeli rakibin**
+  kartı (skor + tek tık meydan okuma).
+- **Profil:** güncel/en uzun seri, kullanılan joker ve izlenen video sayısı, envanter
+  çipleri ve **kategori ustalığı ızgarası** (seviye rengi + ilerleme çubuğu + kalan doğru).
+- **Hızlı Mod ekranı** (`/bildim/hizli-mod`): kategori seçimi → 60 sn çubuk + 5 sn halka →
+  skor + haftalık sıralama (şehir/ülke/dünya sekmeleri). Süre ve puan sunucuda.
+- **Bildirimler:** ustalık seviye atlama ve rövanş isteği 053'te; **akşam 20:00 seri
+  hatırlatması** yeni `055_seri_hatirlatma.sql` ile (pg_cron `0 17 * * *` = 20:00 TSİ,
+  uygulama içi bildirim + push aboneliği varsa push).
+
+`.env.example`'a `VITE_H5_ADS_CLIENT` eklendi. `npm run build` temiz; sunucu kuralı
+testleri yeniden çalıştırıldı: **14/14**.
