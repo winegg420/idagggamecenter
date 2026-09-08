@@ -42,11 +42,29 @@ export function AuthProvider({ children }) {
       }
     };
 
+    // Davet linkiyle gelindiyse (/bildim/davet/:kod) kod saklanır; giriş
+    // yapılınca arkadaşlık isteği otomatik gönderilir.
+    const davetKoduUygula = async (userId) => {
+      let kod = null;
+      try { kod = localStorage.getItem('bildim_davet_kodu'); } catch { return; }
+      if (!kod || kod.length !== 8) return;
+      try {
+        const { error } = await supabase.rpc('arkadas_davet_kodu_ile_ekle', { p_kod: kod });
+        if (!error) {
+          try { localStorage.removeItem('bildim_davet_kodu'); } catch { /* özel mod */ }
+          refreshProfile(userId);
+        }
+      } catch {
+        /* profil henüz tamamlanmamış olabilir — sonraki girişte tekrar denenir */
+      }
+    };
+
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       if (session) {
         refreshProfile(session.user.id);
         davetTalep(session.user.id);
+        davetKoduUygula(session.user.id);
       }
       setLoading(false);
     });
@@ -56,6 +74,7 @@ export function AuthProvider({ children }) {
         if (session) {
           refreshProfile(session.user.id);
           davetTalep(session.user.id);
+          davetKoduUygula(session.user.id);
         } else setProfile(null);
       }
     );

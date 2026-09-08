@@ -1194,3 +1194,36 @@ anlamındadır; cevaplar zamanla değişmez. Bir şık 40 karakteri aşıyordu, 
 genel_kultur 900, bilim 397, tarih 335, cografya 285, edebiyat 238, spor 227,
 genel 221, sanat 201, sinema 121, teknoloji 120, muzik 120, karisik 36.
 Migration'lar **uygulanmadı**. `npm run build` temiz.
+
+## 2026-09-08 — Bildim Faz 4: gizlilik akışı, davet ve bildirim arayüzü
+
+**Yeni dosyalar:** `bildim/components/KurulumSihirbazi.jsx` (3 adımlı zorunlu akış),
+`bildim/components/BildirimZili.jsx`, `bildim/components/BildirimIzniSor.jsx`,
+`bildim/components/ProfilAyarlari.jsx`, `bildim/pages/DavetPage.jsx`,
+`public/avatars/av1–av8.svg` (hazır anonim avatar seti).
+
+- **Zorunlu kurulum akışı** `Layout` içine alındı: `takma_ad_secildi`, `avatar_onayli` ya da
+  `ulke` eksikse sihirbaz açılıyor ve oyun ekranları açılmıyor. Sihirbaz profile bakıp
+  yarım kalan adımdan devam ediyor (mevcut üyeler için de çalışır). Google fotoğrafı
+  **yalnızca onay ekranında** gösteriliyor; onaylanmazsa DB'ye yazılmıyor.
+- **Hazır avatarlar** `public/avatars/` altına SVG olarak üretildi. Gerekçe: `avatar_onayla`
+  RPC'si adresi `^(/…|https://…)$` ile doğruluyor; `data:` URI kabul etmiyor. Dosya yolu
+  hem doğrulamadan geçiyor hem önbelleğe alınabiliyor.
+- **Arkadaş arama kaldırıldı.** FriendsPage artık davet kodu + davet linki üzerine kurulu.
+  `/bildim/davet/:kod` rotası eklendi; giriş yoksa kod `localStorage`'a yazılıyor ve
+  `AuthContext` oturum açılışında `arkadas_davet_kodu_ile_ekle` ile otomatik uyguluyor.
+- **ChallengesPage rakip listesi** artık `friendships` üzerinden yalnız arkadaşlar + botlar
+  (sunucu tarafı `oynanabilir_mi` zaten zorunlu kılıyor; arayüz de buna uyduruldu).
+  Kullanıcı adıyla arama kutusu ve `ara()` fonksiyonu silindi.
+- **Bildirim izni ana sayfadan kaldırıldı**, ilk maç sonucu ekranına taşındı
+  (`BildirimIzniSor`). Gerekçe: oyunu görmeden izin istemek reddedilme oranını artırıyor.
+  Reddedilirse bir daha gösterilmiyor.
+- **Üst çubuğa bildirim zili** eklendi: okunmamış sayısı, realtime INSERT aboneliği,
+  açılınca `bildirimleri_oku()` çağrısı, satıra tıklayınca ilgili sayfaya yönlendirme.
+- **Profil sayfası** yeniden düzenlendi: takma ad (30 gün kilidi ve kalan süre), avatar
+  seçimi/Google onayı/kaldırma, davet kodu + link kopyalama, varsayılan kategori seçimi
+  (Genel Kültür en üstte) ve "Gerçek adın hiçbir zaman gösterilmez" açıklaması.
+  Gerçek `username` yalnızca kendi profilinde "hesap kimliğin" olarak görünüyor.
+- Home'daki konum modalı kaldırıldı (artık sihirbazın 3. adımı).
+
+`npm run build` temiz.

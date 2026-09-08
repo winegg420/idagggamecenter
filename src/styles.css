@@ -1477,3 +1477,145 @@ input:focus { border-color: var(--primary); }
   background: linear-gradient(90deg, var(--primary), var(--accent));
   transition: width 1s linear;
 }
+
+/* ============================================================
+   BİLDİM — Faz 4: kurulum sihirbazı, bildirim zili, davet
+   ============================================================ */
+
+/* ---------- Üst çubuk sağ blok ---------- */
+.bd-topbar-sag { display: flex; align-items: center; gap: var(--bd-bosluk-2); }
+
+/* ---------- Bildirim zili ---------- */
+.bd-zil-sarmal { position: relative; }
+.bd-zil {
+  position: relative;
+  min-width: var(--bd-dokunma); min-height: var(--bd-dokunma);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 19px; cursor: pointer;
+  background: var(--bg-3);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  color: var(--text);
+}
+.bd-zil-rozet {
+  position: absolute; top: 4px; right: 2px;
+  min-width: 18px; height: 18px; padding: 0 5px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 10px; font-weight: 900; line-height: 1;
+  color: #fff; background: var(--danger);
+  border-radius: 999px;
+}
+.bd-zil-ortu { position: fixed; inset: 0; z-index: 60; }
+.bd-zil-liste {
+  position: absolute; top: calc(100% + 8px); right: 0; z-index: 61;
+  width: min(340px, calc(100vw - 32px));
+  max-height: 60dvh; overflow-y: auto;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--bd-yaricap-m);
+  box-shadow: var(--bd-golge-2);
+}
+.bd-zil-baslik {
+  padding: 12px 14px 8px;
+  font-size: 13px; font-weight: 800; color: var(--text-dim);
+  text-transform: uppercase; letter-spacing: 0.4px;
+}
+.bd-zil-bos { padding: 18px 14px; font-size: 13px; color: var(--text-dim); text-align: center; }
+.bd-zil-satir {
+  display: flex; gap: var(--bd-bosluk-2); width: 100%;
+  padding: 11px 14px; text-align: left; cursor: pointer;
+  background: none; border: none;
+  border-top: 1px solid var(--border);
+  color: var(--text);
+}
+.bd-zil-satir:active { background: var(--bg-2); }
+.bd-zil-satir .ikon { font-size: 18px; flex: 0 0 20px; }
+.bd-zil-satir .govde { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.bd-zil-satir .metin { font-size: 13px; line-height: 1.4; }
+.bd-zil-satir .zaman { font-size: 11px; color: var(--text-dim); }
+
+/* ---------- Kurulum sihirbazı ---------- */
+.bd-sihirbaz { text-align: left; }
+.bd-adim-cizgi {
+  display: flex; gap: 6px; justify-content: center;
+  margin-bottom: var(--bd-bosluk-3);
+}
+.bd-adim-nokta {
+  width: 34px; height: 4px; border-radius: 999px;
+  background: var(--bg-3);
+  transition: background 0.25s;
+}
+.bd-adim-nokta.aktif { background: var(--primary); }
+.bd-sihirbaz-onizleme {
+  display: flex; align-items: center; gap: 8px; justify-content: center;
+  margin-top: var(--bd-bosluk-3); padding-top: var(--bd-bosluk-3);
+  border-top: 1px solid var(--border);
+  font-size: 13px; font-weight: 700; color: var(--text-dim);
+}
+
+/* ---------- Avatar seçici ---------- */
+.bd-avatar-grid {
+  display: grid; grid-template-columns: repeat(4, 1fr);
+  gap: var(--bd-bosluk-2); margin-bottom: var(--bd-bosluk-3);
+}
+.bd-avatar-sec {
+  aspect-ratio: 1; padding: 4px; cursor: pointer;
+  background: var(--bg-2);
+  border: 2px solid var(--border);
+  border-radius: var(--bd-yaricap-m);
+  transition: transform 0.08s, border-color 0.15s;
+}
+.bd-avatar-sec img { width: 100%; height: 100%; border-radius: 10px; display: block; }
+.bd-avatar-sec:active { transform: scale(0.94); }
+.bd-avatar-sec.aktif { border-color: var(--primary); }
+
+/* ---------- Davet ---------- */
+.bd-davet-kart { text-align: center; }
+.bd-davet-kod {
+  font-size: 26px; font-weight: 900; letter-spacing: 4px;
+  padding: 12px; margin: 4px 0 8px;
+  border-radius: var(--bd-yaricap-m);
+  background: var(--bg-3);
+  border: 1px dashed var(--border);
+  user-select: all;
+}
+.bd-kod-satir { display: flex; gap: var(--bd-bosluk-2); align-items: stretch; }
+.bd-kod-giris {
+  flex: 1; min-height: var(--bd-dokunma);
+  padding: 11px 12px;
+  font-size: 16px; font-weight: 800; letter-spacing: 3px; text-align: center;
+  font-family: inherit;
+  color: var(--text);
+  background: var(--bg-3);
+  border: 1px solid var(--border);
+  border-radius: var(--bd-yaricap-s);
+}
+.bd-davet-sonuc { text-align: center; padding: 28px 18px; }
+.bd-bilgi-kutu {
+  padding: 10px 12px; margin-bottom: var(--bd-bosluk-2);
+  font-size: 13px; line-height: 1.5;
+  color: #86efac;
+  background: rgba(34, 197, 94, 0.12);
+  border: 1px solid rgba(34, 197, 94, 0.4);
+  border-radius: var(--bd-yaricap-s);
+}
+.bd-gizlilik-not {
+  font-size: 13px; line-height: 1.55; color: var(--text-dim);
+  background: linear-gradient(120deg, rgba(139, 92, 246, 0.14), var(--card) 70%);
+}
+.bd-gizlilik-not b { color: var(--text); }
+
+/* ---------- Bildirim izni kartı (maç sonu) ---------- */
+.bd-izin-kart {
+  display: flex; align-items: center; gap: var(--bd-bosluk-2); flex-wrap: wrap;
+  padding: 13px; margin-bottom: var(--bd-bosluk-3);
+  border-radius: var(--bd-yaricap-m);
+  background: linear-gradient(120deg, rgba(139, 92, 246, 0.18), rgba(245, 158, 11, 0.1));
+  border: 1px solid rgba(139, 92, 246, 0.4);
+  text-align: left;
+}
+.bd-izin-kart .ikon { font-size: 26px; }
+.bd-izin-kart .govde { flex: 1; min-width: 160px; }
+.bd-izin-baslik { font-size: 14px; font-weight: 800; margin-bottom: 3px; }
+.bd-izin-butonlar { display: flex; gap: var(--bd-bosluk-2); width: 100%; }
+.bd-izin-butonlar .btn { flex: 1; }

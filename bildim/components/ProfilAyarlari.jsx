@@ -1,0 +1,274 @@
+import { useEffect, useState } from "react";
+import { supabase } from "../../src/lib/supabase.js";
+import { useAuth } from "../../src/context/AuthContext.jsx";
+import { kategoriEtiket, kategorileriSirala } from "../lib/kategoriler.js";
+import { sureMetni } from "../lib/konum.js";
+
+const HAZIR_AVATARLAR = [
+  "/avatars/av1.svg",
+  "/avatars/av2.svg",
+  "/avatars/av3.svg",
+  "/avatars/av4.svg",
+  "/avatars/av5.svg",
+  "/avatars/av6.svg",
+  "/avatars/av7.svg",
+  "/avatars/av8.svg",
+];
+
+const TAKMA_AD_KILIT_MS = 30 * 24 * 60 * 60 * 1000;
+
+/** Profil sayfasındaki kimlik ayarları: takma ad, avatar, davet kodu, varsayılan kategori. */
+export default function ProfilAyarlari() {
+  const { user, profile, refreshProfile } = useAuth();
+  const [yeniAd, setYeniAd] = useState("");
+  const [adDuzenle, setAdDuzenle] = useState(false);
+  const [adHata, setAdHata] = useState(null);
+  const [avatarDuzenle, setAvatarDuzenle] = useState(false);
+  const [avatarHata, setAvatarHata] = useState(null);
+  const [kategoriler, setKategoriler] = useState([]);
+  const [kategoriHata, setKategoriHata] = useState(null);
+  const [kopyalandi, setKopyalandi] = useState(false);
+  const [calisiyor, setCalisiyor] = useState(false);
+
+  useEffect(() => {
+    supabase
+      .rpc("get_categories")
+      .then(({ data }) => setKategoriler(data ?? []))
+      .catch(() => setKategoriler([]));
+  }, []);
+
+  if (!profile) return null;
+
+  const kalanKilit = profile.takma_ad_degisti_at
+    ? Math.max(
+        0,
+        new Date(profile.takma_ad_degisti_at).getTime() + TAKMA_AD_KILIT_MS - Date.now()
+      )
+    : 0;
+
+  const googleFoto =
+    user?.user_metadata?.avatar_url ?? user?.user_metadata?.picture ?? null;
+
+  const adKaydet = async () => {
+    setAdHata(null);
+    setCalisiyor(true);
+    try {
+      const { error } = await supabase.rpc("takma_ad_sec", { p_ad: yeniAd.trim() });
+      if (error) throw error;
+      await refreshProfile(user.id);
+      setAdDuzenle(false);
+    } catch (e) {
+      setAdHata(e.message ?? "Takma ad kaydedilemedi.");
+    } finally {
+      setCalisiyor(false);
+    }
+  };
+
+  const avatarKaydet = async (url) => {
+    setAvatarHata(null);
+    setCalisiyor(true);
+    try {
+      const { error } = await supabase.rpc("avatar_onayla", { p_url: url });
+      if (error) throw error;
+      await refreshProfile(user.id);
+      setAvatarDuzenle(false);
+    } catch (e) {
+      setAvatarHata(e.message ?? "Avatar kaydedilemedi.");
+    } finally {
+      setCalisiyor(false);
+    }
+  };
+
+  const kategoriKaydet = async (kategori) => {
+    setKategoriHata(null);
+    try {
+      const { error } = await supabase.rpc("tercih_kategori_kaydet", {
+        p_kategori: kategori,
+      });
+      if (error) throw error;
+      await refreshProfile(user.id);
+    } catch (e) {
+      setKategoriHata(e.message ?? "Kategori kaydedilemedi.");
+    }
+  };
+
+  const davetLinki = profile.davet_kodu
+    ? `${window.location.origin}/bildim/davet/${profile.davet_kodu}`
+    : null;
+
+  return (
+    <>
+      {/* ---------- Gizlilik açıklaması ---------- */}
+      <div className="kart bd-gizlilik-not">
+        🔒 <b>Gerçek adın hiçbir zaman gösterilmez.</b> Diğer oyuncular yalnızca takma
+        adını ve seçtiğin avatarı görür.
+      </div>
+
+      {/* ---------- Takma ad ---------- */}
+      <div className="kart">
+        <div className="bd-kat-baslik">
+          <span>🏷️ Takma adın</span>
+          {kalanKilit > 0 && (
+            <span className="alt-yazi">🔒 {sureMetni(kalanKilit)}</span>
+          )}
+        </div>
+
+        {adDuzenle ? (
+          <>
+            <label className="bd-alan">
+              <span>Yeni takma ad (3-16)</span>
+              <input
+                type="text"
+                maxLength={16}
+                autoFocus
+                value={yeniAd}
+                onChange={(e) => setYeniAd(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && adKaydet()}
+              />
+            </label>
+            {adHata && <div className="hata-kutu">{adHata}</div>}
+            <div className="bd-konum-butonlar">
+              <button className="btn" disabled={calisiyor} onClick={adKaydet}>
+                Kaydet
+              </button>
+              <button className="btn ikincil" onClick={() => setAdDuzenle(false)}>
+                Vazgeç
+              </button>
+            </div>
+          </>
+        ) : (
+          <div className="bd-konum-ozet">
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontSize: 18, fontWeight: 900 }}>{profile.gorunen_ad}</div>
+              <div className="alt-yazi">
+                {kalanKilit > 0
+                  ? `Tekrar değiştirebilmen için ${sureMetni(kalanKilit)} kaldı.`
+                  : "30 günde bir değiştirebilirsin."}
+              </div>
+            </div>
+            <button
+              className="btn kucuk ikincil"
+              disabled={kalanKilit > 0}
+              onClick={() => {
+                setYeniAd(profile.takma_ad ?? "");
+                setAdDuzenle(true);
+              }}
+            >
+              Değiştir
+            </button>
+          </div>
+        )}
+      </div>
+
+      {/* ---------- Avatar ---------- */}
+      <div className="kart">
+        <div className="bd-kat-baslik">
+          <span>🎭 Avatarın</span>
+        </div>
+        {avatarDuzenle ? (
+          <>
+            <div className="bd-avatar-grid">
+              {HAZIR_AVATARLAR.map((u) => (
+                <button
+                  key={u}
+                  className={`bd-avatar-sec ${profile.avatar_url === u ? "aktif" : ""}`}
+                  aria-label="Avatar seç"
+                  disabled={calisiyor}
+                  onClick={() => avatarKaydet(u)}
+                >
+                  <img src={u} alt="" />
+                </button>
+              ))}
+            </div>
+            {avatarHata && <div className="hata-kutu">{avatarHata}</div>}
+            <div className="bd-konum-butonlar">
+              {googleFoto && (
+                <button
+                  className="btn ikincil"
+                  disabled={calisiyor}
+                  onClick={() => avatarKaydet(googleFoto)}
+                >
+                  Google fotoğrafım
+                </button>
+              )}
+              <button
+                className="btn ikincil"
+                disabled={calisiyor}
+                onClick={() => avatarKaydet(null)}
+              >
+                Kaldır
+              </button>
+              <button className="btn ikincil" onClick={() => setAvatarDuzenle(false)}>
+                Kapat
+              </button>
+            </div>
+          </>
+        ) : (
+          <div className="bd-konum-ozet">
+            <div style={{ flex: 1 }} className="alt-yazi">
+              {profile.avatar_onayli
+                ? "Avatarın diğer oyunculara görünüyor."
+                : "Avatar seçmedin; adının ilk harfi gösteriliyor."}
+            </div>
+            <button className="btn kucuk ikincil" onClick={() => setAvatarDuzenle(true)}>
+              Değiştir
+            </button>
+          </div>
+        )}
+      </div>
+
+      {/* ---------- Davet kodu ---------- */}
+      <div className="kart">
+        <div className="bd-kat-baslik">
+          <span>🎟️ Davet kodun</span>
+        </div>
+        <div className="bd-davet-kod">{profile.davet_kodu ?? "—"}</div>
+        <button
+          className="btn ikincil"
+          style={{ marginTop: 10 }}
+          disabled={!davetLinki}
+          onClick={async () => {
+            try {
+              await navigator.clipboard.writeText(davetLinki);
+              setKopyalandi(true);
+              setTimeout(() => setKopyalandi(false), 2500);
+            } catch {
+              /* pano izni yok */
+            }
+          }}
+        >
+          {kopyalandi ? "✅ Kopyalandı" : "🔗 Davet linkini kopyala"}
+        </button>
+      </div>
+
+      {/* ---------- Varsayılan kategori ---------- */}
+      <div className="kart">
+        <div className="bd-kat-baslik">
+          <span>🎯 Varsayılan kategorim</span>
+        </div>
+        <div className="alt-yazi" style={{ marginBottom: 10 }}>
+          "Hemen Oyna" önce bu kategoride rakip arar.
+        </div>
+        <div className="bd-kat-grid">
+          <button
+            className={`bd-kat-kart ${!profile.tercih_kategori ? "aktif" : ""}`}
+            onClick={() => kategoriKaydet(null)}
+          >
+            <span className="bd-kat-ad">🎲 Karışık</span>
+          </button>
+          {kategorileriSirala(kategoriler).map((k) => (
+            <button
+              key={k.kategori}
+              className={`bd-kat-kart ${profile.tercih_kategori === k.kategori ? "aktif" : ""}`}
+              onClick={() => kategoriKaydet(k.kategori)}
+            >
+              <span className="bd-kat-ad">{kategoriEtiket(k.kategori)}</span>
+              <span className="bd-kat-alt">{k.soru_sayisi} soru</span>
+            </button>
+          ))}
+        </div>
+        {kategoriHata && <div className="hata-kutu">{kategoriHata}</div>}
+      </div>
+    </>
+  );
+}

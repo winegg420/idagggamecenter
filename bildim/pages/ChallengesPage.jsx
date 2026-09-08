@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../../src/lib/supabase.js";
 import { useAuth } from "../../src/context/AuthContext.jsx";
@@ -30,8 +30,6 @@ export default function ChallengesPage() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [maclar, setMaclar] = useState([]);
-  const [arama, setArama] = useState("");
-  const [sonuclar, setSonuclar] = useState([]);
   const [hata, setHata] = useState(null);
   const [botlar, setBotlar] = useState([]);
   const [oyuncular, setOyuncular] = useState([]);
@@ -52,14 +50,35 @@ export default function ChallengesPage() {
       .eq("is_bot", true)
       .order("bot_isabet", { ascending: true })
       .then(({ data }) => setBotlar(data ?? []));
-    supabase
-      .from("profiles")
-      .select("id, gorunen_ad, gorunen_avatar, puan")
-      .eq("is_bot", false)
-      .neq("id", user.id)
-      .order("puan", { ascending: false })
-      .limit(20)
-      .then(({ data }) => setOyuncular(data ?? []));
+    // Rakip olabilecekler: YALNIZ arkadaşlar (sunucu da bunu zorunlu kılıyor).
+    (async () => {
+      try {
+        const { data: dostluklar, error } = await supabase
+          .from("friendships")
+          .select("requester, addressee")
+          .eq("durum", "arkadas")
+          .or(`requester.eq.${user.id},addressee.eq.${user.id}`);
+        if (error) throw error;
+        const idler = [
+          ...new Set(
+            (dostluklar ?? []).map((f) => (f.requester === user.id ? f.addressee : f.requester))
+          ),
+        ];
+        if (idler.length === 0) {
+          setOyuncular([]);
+          return;
+        }
+        const { data, error: hata2 } = await supabase
+          .from("profiles")
+          .select("id, gorunen_ad, gorunen_avatar, puan")
+          .in("id", idler)
+          .order("puan", { ascending: false });
+        if (hata2) throw hata2;
+        setOyuncular(data ?? []);
+      } catch {
+        setOyuncular([]);
+      }
+    })();
     supabase
       .rpc("get_categories")
       .then(({ data }) => setKategoriler(data ?? []));
@@ -122,23 +141,6 @@ export default function ChallengesPage() {
     return () => supabase.removeChannel(kanal);
   }, [hizliYukle]);
 
-  const aramaNo = useRef(0);
-  const ara = async (q) => {
-    setArama(q);
-    const istek = ++aramaNo.current;
-    if (q.trim().length < 2) {
-      setSonuclar([]);
-      return;
-    }
-    const { data } = await supabase
-      .from("profiles")
-      .select("id, gorunen_ad, gorunen_avatar, puan")
-      .ilike("username", `%${q.trim()}%`)
-      .neq("id", user.id)
-      .limit(8);
-    // Geciken eski istek, daha yeni sonuçların üzerine yazmasın
-    if (istek === aramaNo.current) setSonuclar(data ?? []);
-  };
 
   const meydanOku = async (hedefId) => {
     setHata(null);
@@ -148,8 +150,6 @@ export default function ChallengesPage() {
     });
     if (error) setHata(error.message);
     else {
-      setArama("");
-      setSonuclar([]);
       yukle();
     }
   };
@@ -338,22 +338,25 @@ export default function ChallengesPage() {
         })}
 
       <div className="kart">
-        <div style={{ fontWeight: 700, marginBottom: 10 }}>Rakip bul</div>
-        <input
-          type="text"
-          placeholder="Kullanıcı adı ara…"
-          value={arama}
-          onChange={(e) => ara(e.target.value)}
-        />
-        {sonuclar.map((p) => (
-          <div key={p.id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 0" }}>
-            <Avatar profile={p} boyut={34} />
-            <span style={{ flex: 1, fontWeight: 600 }}>{p.gorunen_ad}</span>
-            <button className="btn kucuk" onClick={() => meydanOku(p.id)}>
-              ⚔️ Meydan Oku
-            </button>
+        <div className="bd-kat-baslik">
+          <span>⚔️ Arkadaşlarına meydan oku</span>
+          <span className="alt-yazi">{oyuncular.length} arkadaş</span>
+        </div>
+        {oyuncular.length === 0 ? (
+          <div className="alt-yazi">
+            Henüz arkadaşın yok. <b>Arkadaşlar</b> sekmesinden davet linkini paylaş.
           </div>
-        ))}
+        ) : (
+          oyuncular.map((p) => (
+            <div key={p.id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 0" }}>
+              <Avatar profile={p} boyut={34} />
+              <span style={{ flex: 1, fontWeight: 600 }}>{p.gorunen_ad}</span>
+              <button className="btn kucuk" onClick={() => meydanOku(p.id)}>
+                ⚔️ Meydan Oku
+              </button>
+            </div>
+          ))
+        )}
       </div>
 
       <div className="kart">

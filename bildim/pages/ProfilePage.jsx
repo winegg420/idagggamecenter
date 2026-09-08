@@ -5,6 +5,7 @@ import { useAuth } from "../../src/context/AuthContext.jsx";
 import Avatar from "../../src/components/Avatar.jsx";
 import RankBadge from "../components/RankBadge.jsx";
 import KonumSecici from "../components/KonumSecici.jsx";
+import ProfilAyarlari from "../components/ProfilAyarlari.jsx";
 import { bayrak, konumKilidiKalan, sureMetni } from "../lib/konum.js";
 import { rutbeBul, sonrakiRutbe } from "../lib/ranks.js";
 import {
@@ -16,9 +17,6 @@ import {
 
 export default function ProfilePage() {
   const { user, profile, refreshProfile, signOut } = useAuth();
-  const [duzenle, setDuzenle] = useState(false);
-  const [yeniAd, setYeniAd] = useState("");
-  const [hata, setHata] = useState(null);
   const [rozetler, setRozetler] = useState([]);
   const [kazanilan, setKazanilan] = useState(new Set());
   const [kopyalandi, setKopyalandi] = useState(false);
@@ -51,26 +49,6 @@ export default function ProfilePage() {
     ? Math.min(100, ((profile.puan - r.min) / (sonraki.min - r.min)) * 100)
     : 100;
 
-  const kaydet = async () => {
-    setHata(null);
-    const ad = yeniAd.trim();
-    if (ad.length < 3) {
-      setHata("Kullanıcı adı en az 3 karakter olmalı.");
-      return;
-    }
-    const { error } = await supabase
-      .from("profiles")
-      .update({ username: ad })
-      .eq("id", user.id);
-    if (error) {
-      setHata(
-        error.code === "23505" ? "Bu kullanıcı adı alınmış." : error.message
-      );
-    } else {
-      setDuzenle(false);
-      refreshProfile(user.id);
-    }
-  };
 
   return (
     <div>
@@ -79,35 +57,12 @@ export default function ProfilePage() {
           <Avatar profile={profile} boyut={84} />
         </div>
 
-        {duzenle ? (
-          <div style={{ display: "flex", flexDirection: "column", gap: 8, maxWidth: 280, margin: "0 auto" }}>
-            <input
-              type="text"
-              placeholder="Yeni kullanıcı adı"
-              value={yeniAd}
-              onChange={(e) => setYeniAd(e.target.value)}
-            />
-            {hata && <div className="hata-kutu">{hata}</div>}
-            <div style={{ display: "flex", gap: 8 }}>
-              <button className="btn kucuk" onClick={kaydet}>Kaydet</button>
-              <button className="btn kucuk ikincil" onClick={() => setDuzenle(false)}>Vazgeç</button>
-            </div>
-          </div>
-        ) : (
-          <>
-            <div style={{ fontSize: 22, fontWeight: 900 }}>{profile.username}</div>
-            <button
-              className="btn kucuk ikincil"
-              style={{ marginTop: 10 }}
-              onClick={() => {
-                setYeniAd(profile.username);
-                setDuzenle(true);
-              }}
-            >
-              ✏️ Kullanıcı Adını Değiştir
-            </button>
-          </>
-        )}
+        {/* Görünen ad artık takma addır; gerçek kullanıcı adı gösterilmez.
+            Takma ad düzenlemesi aşağıdaki ProfilAyarlari kartındadır. */}
+        <div style={{ fontSize: 22, fontWeight: 900 }}>{profile.gorunen_ad}</div>
+        <div className="alt-yazi" style={{ marginTop: 4 }}>
+          Hesap kimliğin: <code>{profile.username}</code> (yalnızca sana görünür)
+        </div>
 
         <div style={{ marginTop: 12 }}>
           <RankBadge puan={profile.puan} />
@@ -128,6 +83,8 @@ export default function ProfilePage() {
           </div>
         </div>
       </div>
+
+      <ProfilAyarlari />
 
       {/* ---------- Konum (şehir/ülke ligi) ---------- */}
       {konumDuzenle ? (

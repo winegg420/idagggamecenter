@@ -4,6 +4,8 @@ import { useAuth } from "../../src/context/AuthContext.jsx";
 import { supabase } from "../../src/lib/supabase.js";
 import RankUpOverlay from "./RankUpOverlay.jsx";
 import PuanSayaci from "./PuanSayaci.jsx";
+import BildirimZili from "./BildirimZili.jsx";
+import KurulumSihirbazi from "./KurulumSihirbazi.jsx";
 
 export default function Layout() {
   const { profile, user } = useAuth();
@@ -50,19 +52,28 @@ export default function Layout() {
     };
   }, [user]);
 
+  // Zorunlu kurulum: takma ad → avatar → şehir tamamlanmadan oyun açılmaz.
+  const kurulumEksik =
+    Boolean(profile) &&
+    (!profile.takma_ad_secildi || !profile.avatar_onayli || !profile.ulke);
+
   return (
     <div className="app">
       <RankUpOverlay />
+      {kurulumEksik && <KurulumSihirbazi />}
       <header className="topbar">
         <Link to="/bildim" style={{ textDecoration: "none" }}>
           <span className="logo">Bildim!</span>
         </Link>
         {profile && (
-          <Link to="/bildim/profil" style={{ textDecoration: "none", color: "inherit" }}>
-            <span className="puan-chip">
-              ⭐ <PuanSayaci deger={profile.puan} />
-            </span>
-          </Link>
+          <div className="bd-topbar-sag">
+            <BildirimZili />
+            <Link to="/bildim/profil" style={{ textDecoration: "none", color: "inherit" }}>
+              <span className="puan-chip">
+                ⭐ <PuanSayaci deger={profile.puan} />
+              </span>
+            </Link>
+          </div>
         )}
       </header>
 

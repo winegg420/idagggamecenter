@@ -4,10 +4,8 @@ import { supabase } from "../../src/lib/supabase.js";
 import { useAuth } from "../../src/context/AuthContext.jsx";
 import Countdown from "../components/Countdown.jsx";
 import Avatar from "../../src/components/Avatar.jsx";
-import { pushDestekleniyor, bildirimleriAc } from "../lib/push.js";
 import { sonrakiTurnuvaSeans } from "../lib/zaman.js";
 import { rutbeBul, sonrakiRutbe } from "../lib/ranks.js";
-import KonumSecici from "../components/KonumSecici.jsx";
 import { bayrak, haftaBitisi, sureMetni } from "../lib/konum.js";
 import RakipAra from "../components/RakipAra.jsx";
 
@@ -22,7 +20,6 @@ export default function Home() {
   const [canliTurnuva, setCanliTurnuva] = useState(false);
   const [top5, setTop5] = useState([]);
   const [mesaj, setMesaj] = useState(null);
-  const [bildirimSor, setBildirimSor] = useState(false);
   const [gorevler, setGorevler] = useState([]);
   const [ligDurum, setLigDurum] = useState(null);
   const [gecenHafta, setGecenHafta] = useState(null);
@@ -30,9 +27,6 @@ export default function Home() {
   const [haftaKalan, setHaftaKalan] = useState(
     () => haftaBitisi().getTime() - Date.now()
   );
-
-  // İlk girişte konum sorulur; profil yüklenene kadar modal açılmaz.
-  const konumEksik = Boolean(profile) && !profile.ulke;
 
   const gorevleriYukle = useCallback(() => {
     supabase.rpc("get_daily_quests").then(({ data }) => setGorevler(data ?? []));
@@ -99,16 +93,6 @@ export default function Home() {
       aktif = false;
     };
   }, [user.id]);
-
-  useEffect(() => {
-    if (
-      pushDestekleniyor() &&
-      Notification.permission === "default" &&
-      !localStorage.getItem("bildim_bildirim_sorma")
-    ) {
-      setBildirimSor(true);
-    }
-  }, []);
 
   useEffect(() => {
     const yukle = async () => {
@@ -198,9 +182,6 @@ export default function Home() {
         />
       )}
 
-      {/* İlk girişte zorunlu: hangi şehir için yarışıyorsun? */}
-      {konumEksik && <KonumSecici mod="modal" onKaydedildi={ligYukle} />}
-
       {/* Haftalık sonuç bildirimi (push kapalıysa da görünür) */}
       {gecenHafta && (
         <div className="bd-hafta-sonuc">
@@ -223,33 +204,6 @@ export default function Home() {
             }}
           >
             ✕
-          </button>
-        </div>
-      )}
-
-      {bildirimSor && (
-        <div className="bildirim-serit">
-          <div className="ikon">🔔</div>
-          <div className="metin">Turnuva başlarken haber verelim mi?</div>
-          <button
-            className="btn kucuk"
-            onClick={async () => {
-              try {
-                await bildirimleriAc();
-              } catch { /* reddetti */ }
-              setBildirimSor(false);
-            }}
-          >
-            Aç
-          </button>
-          <button
-            className="btn kucuk ikincil"
-            onClick={() => {
-              localStorage.setItem("bildim_bildirim_sorma", "1");
-              setBildirimSor(false);
-            }}
-          >
-            Sonra
           </button>
         </div>
       )}

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../../src/lib/supabase.js";
 import { useAuth } from "../../src/context/AuthContext.jsx";
@@ -9,20 +9,26 @@ const DOSTLUK_SECIMI = `id, requester, addressee, durum,
   add:profiles!friendships_addressee_fkey(id, gorunen_ad, gorunen_avatar, puan)`;
 
 export default function FriendsPage() {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const navigate = useNavigate();
   const [dostluklar, setDostluklar] = useState([]);
-  const [arama, setArama] = useState("");
-  const [sonuclar, setSonuclar] = useState([]);
+  const [kod, setKod] = useState("");
   const [hata, setHata] = useState(null);
   const [bilgi, setBilgi] = useState(null);
+  const [kopyalandi, setKopyalandi] = useState(false);
+  const [calisiyor, setCalisiyor] = useState(false);
 
   const yukle = useCallback(async () => {
-    const { data } = await supabase
-      .from("friendships")
-      .select(DOSTLUK_SECIMI)
-      .or(`requester.eq.${user.id},addressee.eq.${user.id}`);
-    setDostluklar(data ?? []);
+    try {
+      const { data, error } = await supabase
+        .from("friendships")
+        .select(DOSTLUK_SECIMI)
+        .or(`requester.eq.${user.id},addressee.eq.${user.id}`);
+      if (error) throw error;
+      setDostluklar(data ?? []);
+    } catch (e) {
+      setHata(e.message ?? "Arkadaş listesi yüklenemedi.");
+    }
   }, [user.id]);
 
   useEffect(() => {
@@ -34,56 +40,91 @@ export default function FriendsPage() {
     return () => supabase.removeChannel(kanal);
   }, [yukle]);
 
-  const aramaNo = useRef(0);
-  const ara = async (q) => {
-    setArama(q);
-    const istek = ++aramaNo.current;
-    if (q.trim().length < 2) {
-      setSonuclar([]);
+  // Kullanıcı adıyla arama KALDIRILDI (gerçek ad sızdırıyordu).
+  // Arkadaş eklemenin tek yolu davet kodu / davet linki.
+  const kodlaEkle = async (girilen) => {
+    setHata(null);
+    setBilgi(null);
+    const temiz = (girilen ?? kod).trim().toUpperCase();
+    if (temiz.length !== 8) {
+      setHata("Davet kodu 8 karakter olmalı.");
       return;
     }
-    // Görünürlük kuralı (Faz 5): admin herkesi, normal oyuncu yalnız online
-    // olanları görür. Doğrudan profiles sorgusu yerine oyuncu_ara RPC'si.
-    let data = [];
+    setCalisiyor(true);
     try {
-      const sonuc = await supabase.rpc("oyuncu_ara", { p_arama: q.trim() });
-      if (sonuc.error) throw sonuc.error;
-      data = sonuc.data ?? [];
+      const { data, error } = await supabase.rpc("arkadas_davet_kodu_ile_ekle", {
+        p_kod: temiz,
+      });
+      if (error) throw error;
+      const sonuc = Array.isArray(data) ? data[0] : data;
+      const ad = sonuc?.gorunen_ad ?? "Oyuncu";
+      const mesajlar = {
+        istek_gonderildi: `${ad} kişisine arkadaşlık isteği gönderildi ✅`,
+        arkadas_oldu: `${ad} artık arkadaşın! 🎉`,
+        zaten_arkadas: `${ad} zaten arkadaşın.`,
+      };
+      setBilgi(mesajlar[sonuc?.durum] ?? "İstek gönderildi ✅");
+      setKod("");
+      yukle();
     } catch (e) {
-      console.error("Oyuncu arama hatası:", e);
-      data = [];
+      setHata(e.message ?? "Davet kodu kullanılamadı.");
+    } finally {
+      setCalisiyor(false);
     }
-    // Geciken eski istek, daha yeni sonuçların üzerine yazmasın
-    if (istek === aramaNo.current) setSonuclar(data);
   };
 
-  const istekGonder = async (hedefId) => {
-    setHata(null);
-    const { error } = await supabase.rpc("send_friend_request", { p_target: hedefId });
-    if (error) setHata(error.message);
-    else {
-      setBilgi("İstek gönderildi ✅");
-      setArama("");
-      setSonuclar([]);
-      yukle();
+  const davetLinki = profile?.davet_kodu
+    ? `${window.location.origin}/bildim/davet/${profile.davet_kodu}`
+    : null;
+
+  const linkPaylas = async () => {
+    if (!davetLinki) return;
+    const mesaj = `Bildim!'de benimle yarış — bu linkle beni arkadaş ekleyebilirsin: ${davetLinki}`;
+    try {
+      if (navigator.share) {
+        await navigator.share({ title: "Bildim!", text: mesaj });
+      } else {
+        await navigator.clipboard.writeText(mesaj);
+        setKopyalandi(true);
+        setTimeout(() => setKopyalandi(false), 2500);
+      }
+    } catch {
+      /* kullanıcı vazgeçti */
     }
   };
 
   const cevapla = async (fId, kabul) => {
-    await supabase.rpc("respond_friend_request", { p_id: fId, p_kabul: kabul });
-    yukle();
+    try {
+      const { error } = await supabase.rpc("respond_friend_request", {
+        p_id: fId,
+        p_kabul: kabul,
+      });
+      if (error) throw error;
+      yukle();
+    } catch (e) {
+      setHata(e.message ?? "İşlem yapılamadı.");
+    }
   };
 
   const cikar = async (fId) => {
-    await supabase.rpc("remove_friend", { p_id: fId });
-    yukle();
+    try {
+      const { error } = await supabase.rpc("remove_friend", { p_id: fId });
+      if (error) throw error;
+      yukle();
+    } catch (e) {
+      setHata(e.message ?? "Arkadaş çıkarılamadı.");
+    }
   };
 
   const meydanOku = async (hedefId) => {
     setHata(null);
-    const { error, data } = await supabase.rpc("create_challenge", { p_rakip: hedefId });
-    if (error) setHata(error.message);
-    else if (data) navigate("/bildim/meydan");
+    try {
+      const { error, data } = await supabase.rpc("create_challenge", { p_rakip: hedefId });
+      if (error) throw error;
+      if (data) navigate("/bildim/meydan");
+    } catch (e) {
+      setHata(e.message ?? "Meydan okuma başlatılamadı.");
+    }
   };
 
   const digerProfil = (f) => (f.requester === user.id ? f.add : f.req);
@@ -99,29 +140,46 @@ export default function FriendsPage() {
     <div>
       <div className="baslik">👥 Arkadaşlar</div>
       {hata && <div className="hata-kutu">{hata}</div>}
-      {bilgi && (
-        <div className="kart" style={{ padding: 10, fontSize: 13 }}>
-          {bilgi}
+      {bilgi && <div className="bd-bilgi-kutu">{bilgi}</div>}
+
+      {/* ---------- Davet ---------- */}
+      <div className="kart bd-davet-kart">
+        <div className="bd-kat-baslik">
+          <span>🎟️ Davet kodun</span>
         </div>
-      )}
+        <div className="bd-davet-kod" aria-label="Davet kodun">
+          {profile?.davet_kodu ?? "—"}
+        </div>
+        <div className="alt-yazi" style={{ marginBottom: 12 }}>
+          Bu kodu ya da linki arkadaşına gönder; seni eklesin. Gerçek adın görünmez.
+        </div>
+        <button className="btn" onClick={linkPaylas} disabled={!davetLinki}>
+          {kopyalandi ? "✅ Kopyalandı!" : "📤 Davet linkini paylaş"}
+        </button>
+      </div>
 
       <div className="kart">
-        <div style={{ fontWeight: 700, marginBottom: 10 }}>Oyuncu ara</div>
-        <input
-          type="text"
-          placeholder="Kullanıcı adı…"
-          value={arama}
-          onChange={(e) => ara(e.target.value)}
-        />
-        {sonuclar.map((p) => (
-          <div key={p.id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 0" }}>
-            <Avatar profile={p} boyut={34} />
-            <span style={{ flex: 1, fontWeight: 600 }}>{p.gorunen_ad}</span>
-            <button className="btn kucuk" onClick={() => istekGonder(p.id)}>
-              ➕ Ekle
-            </button>
-          </div>
-        ))}
+        <div className="bd-kat-baslik">
+          <span>➕ Davet koduyla ekle</span>
+        </div>
+        <div className="bd-kod-satir">
+          <input
+            type="text"
+            className="bd-kod-giris"
+            placeholder="8 haneli kod"
+            maxLength={8}
+            value={kod}
+            onChange={(e) => setKod(e.target.value.toUpperCase())}
+            onKeyDown={(e) => e.key === "Enter" && kodlaEkle()}
+          />
+          <button
+            className="btn kucuk"
+            disabled={calisiyor || kod.trim().length !== 8}
+            onClick={() => kodlaEkle()}
+          >
+            {calisiyor ? "…" : "Ekle"}
+          </button>
+        </div>
       </div>
 
       {gelenIstekler.length > 0 && (
@@ -148,7 +206,7 @@ export default function FriendsPage() {
       <div className="baslik">Arkadaşların ({arkadaslar.length})</div>
       {arkadaslar.length === 0 && (
         <div className="alt-yazi" style={{ textAlign: "center", padding: 16 }}>
-          Henüz arkadaşın yok. Yukarıdan oyuncu ara ve ekle!
+          Henüz arkadaşın yok. Davet linkini paylaş ya da bir davet kodu gir.
         </div>
       )}
       {arkadaslar.map((f) => {

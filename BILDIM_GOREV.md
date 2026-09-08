@@ -53,16 +53,16 @@
 - [x] 3.8 `npm run build` temiz + PROGRESS eklendi + commit
 
 ## Faz 4 — Arayüz (`bildim/`)
-- [ ] 4.1 Zorunlu akış: takma ad → avatar → şehir (tamamlanmadan oyun ekranı açılmaz)
-- [ ] 4.2 Her yerde `gorunen_ad`/`gorunen_avatar`; `username` yalnız kendi profilinde
-- [ ] 4.3 Arkadaşlar: arama kalktı; davet linki paylaş + davet kodu gir
-- [ ] 4.4 `/bildim/davet/:kod` rotası (giriş yoksa login → kod hatırlanır → otomatik istek)
-- [ ] 4.5 Meydan Oku/Grup/Hızlı: rakip yalnız arkadaş + bot
-- [ ] 4.6 Kategori seçicide Genel Kültür en üstte; profilde "varsayılan kategorim"
-- [ ] 4.7 Bildirim izni bandı ilk açılışta YOK; ilk maç sonucu ekranında sorulur
-- [ ] 4.8 Üst çubukta zil + okunmamış sayısı + bildirim listesi
-- [ ] 4.9 Profil: takma ad (30 gün kilidi), avatar onayı, davet kodu, varsayılan kategori, gizlilik açıklaması
-- [ ] 4.10 `npm run build` temiz + PROGRESS eklendi + commit
+- [x] 4.1 Zorunlu akış: takma ad → avatar → şehir (tamamlanmadan oyun ekranı açılmaz)
+- [x] 4.2 Her yerde `gorunen_ad`/`gorunen_avatar`; `username` yalnız kendi profilinde
+- [x] 4.3 Arkadaşlar: arama kalktı; davet linki paylaş + davet kodu gir
+- [x] 4.4 `/bildim/davet/:kod` rotası (giriş yoksa login → kod hatırlanır → otomatik istek)
+- [x] 4.5 Meydan Oku/Grup/Hızlı: rakip yalnız arkadaş + bot
+- [x] 4.6 Kategori seçicide Genel Kültür en üstte; profilde "varsayılan kategorim"
+- [x] 4.7 Bildirim izni bandı ilk açılışta YOK; ilk maç sonucu ekranında sorulur
+- [x] 4.8 Üst çubukta zil + okunmamış sayısı + bildirim listesi
+- [x] 4.9 Profil: takma ad (30 gün kilidi), avatar onayı, davet kodu, varsayılan kategori, gizlilik açıklaması
+- [x] 4.10 `npm run build` temiz + PROGRESS eklendi + commit
 
 ## Faz 5 — Kozmetik: "oyun hissi"
 - [ ] 5.1 Tipografi: "Baloo 2" başlık + system-ui gövde

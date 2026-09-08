@@ -45,6 +45,7 @@ import FriendsPage from "../bildim/pages/FriendsPage.jsx";
 import ProfilePage from "../bildim/pages/ProfilePage.jsx";
 // Gizlilik politikası: Google Play kaydı için giriş duvarının ÖNÜNDE erişilebilir olmalı.
 import GizlilikPage from "../bildim/pages/GizlilikPage.jsx";
+import DavetPage from "../bildim/pages/DavetPage.jsx";
 
 export default function App() {
   const { session, loading } = useAuth();
@@ -152,6 +153,7 @@ export default function App() {
         <Route path="hizli-mac/:id" element={<HizliMacPage />} />
         <Route path="siralama" element={<LeaderboardPage />} />
         <Route path="arkadaslar" element={<FriendsPage />} />
+        <Route path="davet/:kod" element={<DavetPage />} />
         <Route path="profil" element={<ProfilePage />} />
       </Route>
 

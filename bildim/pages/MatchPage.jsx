@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "../../src/lib/supabase.js";
 import { useAuth } from "../../src/context/AuthContext.jsx";
 import QuestionCard from "../components/QuestionCard.jsx";
+import BildirimIzniSor from "../components/BildirimIzniSor.jsx";
 
 const MAC_SECIMI = `*,
   p1:profiles!matches_oyuncu1_fkey(id, gorunen_ad, gorunen_avatar),
@@ -266,6 +267,8 @@ export default function MatchPage() {
               </div>
             );
           })()}
+          {/* Bildirim izni ilk açılışta değil, ilk maç sonucunda sorulur. */}
+          <BildirimIzniSor />
           <button className="btn ikincil" onClick={() => navigate("/bildim/meydan")}>
             ← Meydan okumalara dön
           </button>
