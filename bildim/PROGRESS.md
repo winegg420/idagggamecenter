@@ -95,3 +95,70 @@ ardından `supabase migration repair --status applied` ile geçmişe işlendi.
 `npm run build` temiz.
 
 **Not:** Pooler host adresi `aws-1-eu-central-1.pooler.supabase.com` (aws-0 değil).
+
+---
+
+## 2026-09-08 — Meydan okuma bildirimi en uste + oyun hissi revizyonu
+
+**Istek:** "birisine meydan okundugunda bunun bildirimi en ustte cikiyor olmali.
+gorunmuyor altta kaliyordu eskiden. ayrica gorsel olarak site hala kotu, panel gibi.
+daha canli oyun goruntusune kavusmali."
+
+### Kok neden (meydan okuma gorunmuyordu)
+Uc ayri katmanda birden kaybolmus durumdaydi:
+1. `matches` / `group_match_players` / `hizli_oyuncular` davet insert'lerinde
+   **hic bildirim yazilmiyordu** — `bildirimler` tablosunda davet tipi yoktu,
+   dolayisiyla bildirim zilinde de gorunmuyordu. (Yalniz `rovans_iste` elle
+   bildirim yaziyordu.)
+2. Tek uyari, alt menudeki "Meydan Oku" sekmesinin kosesindeki kucuk rozetti.
+3. Meydan Oku sayfasinda "Sana Gelen" bolumu, kategori secimi + bot listesi +
+   oyuncu listesinden SONRA, sayfanin cok asagisindaydi (satir ~490).
+
+### Yapilan
+
+**DB — `20260612000063_davet_bildirimleri.sql` (canliya uygulandi)**
+- `matches` / `group_match_players` / `hizli_oyuncular` uzerinde davet
+  tetikleyicileri: `mac_daveti`, `rovans`, `grup_daveti`, `hizli_daveti`.
+  Bota ve kisinin kendisine bildirim gitmez.
+- `matches.rovans` kolonu: rovans daveti ile normal meydan okumayi ayirir.
+  `rovans_iste` icindeki elle `bildirim_yaz` cagrisi kaldirildi — artik tek
+  kaynak tetikleyici, cift bildirim olmuyor.
+- `bekleyen_davetlerim()` RPC: 1v1 + grup + hizli davetleri davet edenin
+  adi/avatariyla tek cagrida dondurur (ust bandin veri kaynagi).
+
+**Arayuz**
+- `components/DavetBandi.jsx` (yeni) — ust cubugun hemen altinda, sayfa
+  kaydirilsa da ekranda kalan davet bandi: rakip avatari, "X sana meydan okudu",
+  **Kabul Et** ve reddet butonlari. Birden fazla davette "+N davet daha".
+- `components/BildirimToast.jsx` (yeni) — diger bildirimler (siran dustu,
+  arkadaslik istegi, hafta sonucu, seri) icin ustten inen serit.
+  **Davet tipleri toast'a girmez**: bandda zaten "Kabul Et" butonuyla duruyorlar,
+  ayni sey iki kez soylenmesin.
+- `Layout.jsx` — topbar + davet bandi + toast tek bir `.bd-ust-blok` icinde ve
+  bu blok yapiskan (sticky). Boylece ucu birbiriyle **hicbir zaman cakismiyor**
+  ve hepsi ekranin en ustunde kaliyor.
+- `BildirimZili.jsx` — davet tipleri icin ikonlar; okunmamis davetler listenin
+  en ustune cekiliyor.
+- `ChallengesPage.jsx` — "Sana Gelen / Hizli Yaris Davetlerin / Grup Davetlerin"
+  bloklari sayfanin **en ustune** tasindi, vurgulu bir kutu icinde.
+
+**Gorsel (oyun hissi)**
+- Ust cubuk: yapiskan cam serit, akan gradyanli logo, altin puan cipi.
+- Alt menu: aktif sekmede yumusak hale + renkli ust cizgi + ikon buyumesi,
+  cam zemin; davet rozeti nabiz atiyor.
+- Butonlar: gradyan + ust parlaklik + basinca yaylanma.
+- Bolum basliklari: sol tarafta mor-altin renk cubugu.
+- Kartlar: ust kenarda isik cizgisi; mod kartlari basinca yaylaniyor.
+- Hero: nefes alan isik, gradyanli puan sayisi.
+
+### Tarayicida dogrulandi
+Yerel sunucuda gercek CSS ile olcuulup duzeltilen iki sorun:
+1. Toast ilk halinde ust cubugun **uzerine biniyordu** (logo, zil, puan cipi
+   okunmuyordu) → toast yapiskan blogun icine, akisa alindi.
+2. Yeni toast sinifi `.bd-toast`, ChallengesPage'in mevcut yesil "Davet
+   gonderildi" kutusuyla **ayni isimdeydi** ve onu bozuyordu → `.bd-ust-toast`
+   olarak yeniden adlandirildi.
+
+### Kapsam disi birakildi
+Davet geldiginde **push bildirimi** (uygulama kapaliyken telefon bildirimi)
+gonderilmiyor — mevcut `send-push` akisina dokunulmadi. Istenirse ayri is.

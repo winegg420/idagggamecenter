@@ -290,6 +290,99 @@ export default function ChallengesPage() {
       {hata && <div className="hata-kutu">{hata}</div>}
       {toast && <div className="bd-toast">{toast}</div>}
 
+      {/* Sana gelen davetler EN ÜSTTE — aşağıda kalıp gözden kaçmasınlar */}
+      <div className="bd-gelen-davetler">
+      {gelen.length > 0 && (
+        <>
+          <div className="baslik">📥 Sana Gelen ({gelen.length})</div>
+          {gelen.map((m) => (
+            <div key={m.id} className="liste-satir">
+              <Avatar profile={m.p1} />
+              <div className="bilgi">
+                <div className="isim">{m.p1?.gorunen_ad}</div>
+                <div className="detay">sana meydan okudu!</div>
+              </div>
+              <button className="btn kucuk" onClick={() => cevapVer(m.id, true)}>
+                Kabul
+              </button>
+              <button className="btn kucuk tehlike" onClick={() => cevapVer(m.id, false)}>
+                Reddet
+              </button>
+            </div>
+          ))}
+        </>
+      )}
+
+      {hizliGelen.length > 0 && (
+        <>
+          <div className="baslik">⚡ Hızlı Yarış Davetlerin ({hizliGelen.length})</div>
+          {hizliGelen.map((hm) => (
+            <div key={hm.id} className="liste-satir">
+              <div className="bilgi">
+                <div className="isim">
+                  {hm.katilimcilar
+                    ?.filter((k) => k.user_id !== user.id)
+                    .map((k) => k.profil?.gorunen_ad)
+                    .join(", ")}
+                </div>
+                <div className="detay">Hızlı Olan Kazanır — 5 kişilik yarış</div>
+              </div>
+              <button className="btn kucuk" onClick={() => hizliCevapVer(hm.id, true)}>
+                Kabul
+              </button>
+              <button className="btn kucuk tehlike" onClick={() => hizliCevapVer(hm.id, false)}>
+                Reddet
+              </button>
+            </div>
+          ))}
+        </>
+      )}
+
+      {grupGelen.length > 0 && (
+        <>
+          <div className="baslik">📥 Grup Davetlerin ({grupGelen.length})</div>
+          {grupGelen.map((gm) => (
+            <div key={gm.id} className="liste-satir">
+              <div className="bilgi">
+                <div className="isim">
+                  {gm.katilimcilar
+                    ?.filter((k) => k.user_id !== user.id)
+                    .map((k) => k.profil?.gorunen_ad)
+                    .join(", ")}
+                </div>
+                <div className="detay">{gm.oyuncu_sayisi} kişilik gruba davet edildin</div>
+              </div>
+              <button className="btn kucuk" onClick={() => grupCevapVer(gm.id, true)}>
+                Kabul
+              </button>
+              <button className="btn kucuk tehlike" onClick={() => grupCevapVer(gm.id, false)}>
+                Reddet
+              </button>
+            </div>
+          ))}
+        </>
+      )}
+
+      {grupBeklenen.length > 0 && (
+        <>
+          <div className="baslik">📤 Kurduğun Gruplar (yanıt bekleniyor)</div>
+          {grupBeklenen.map((gm) => (
+            <div key={gm.id} className="liste-satir">
+              <div className="bilgi">
+                <div className="isim">
+                  {gm.katilimcilar
+                    ?.filter((k) => k.user_id !== user.id)
+                    .map((k) => `${k.profil?.gorunen_ad} (${k.davet_durumu === "kabul" ? "hazır" : "bekliyor"})`)
+                    .join(", ")}
+                </div>
+              </div>
+            </div>
+          ))}
+        </>
+      )}
+      </div>
+
+
       {/* Kategori seçimi 1v1, grup ve hızlı modun HEPSİ için geçerlidir. */}
       <div className="bd-kat-baslik">
         <span>🎯 Kategori</span>
@@ -487,52 +580,6 @@ export default function ChallengesPage() {
         </>
       )}
 
-      {gelen.length > 0 && (
-        <>
-          <div className="baslik">📥 Sana Gelen ({gelen.length})</div>
-          {gelen.map((m) => (
-            <div key={m.id} className="liste-satir">
-              <Avatar profile={m.p1} />
-              <div className="bilgi">
-                <div className="isim">{m.p1?.gorunen_ad}</div>
-                <div className="detay">sana meydan okudu!</div>
-              </div>
-              <button className="btn kucuk" onClick={() => cevapVer(m.id, true)}>
-                Kabul
-              </button>
-              <button className="btn kucuk tehlike" onClick={() => cevapVer(m.id, false)}>
-                Reddet
-              </button>
-            </div>
-          ))}
-        </>
-      )}
-
-      {hizliGelen.length > 0 && (
-        <>
-          <div className="baslik">⚡ Hızlı Yarış Davetlerin ({hizliGelen.length})</div>
-          {hizliGelen.map((hm) => (
-            <div key={hm.id} className="liste-satir">
-              <div className="bilgi">
-                <div className="isim">
-                  {hm.katilimcilar
-                    ?.filter((k) => k.user_id !== user.id)
-                    .map((k) => k.profil?.gorunen_ad)
-                    .join(", ")}
-                </div>
-                <div className="detay">Hızlı Olan Kazanır — 5 kişilik yarış</div>
-              </div>
-              <button className="btn kucuk" onClick={() => hizliCevapVer(hm.id, true)}>
-                Kabul
-              </button>
-              <button className="btn kucuk tehlike" onClick={() => hizliCevapVer(hm.id, false)}>
-                Reddet
-              </button>
-            </div>
-          ))}
-        </>
-      )}
-
       {hizliBeklenen.length > 0 && (
         <>
           <div className="baslik">📤 Kurduğun Yarışlar (yanıt bekleniyor)</div>
@@ -605,49 +652,6 @@ export default function ChallengesPage() {
               </div>
             );
           })}
-        </>
-      )}
-
-      {grupGelen.length > 0 && (
-        <>
-          <div className="baslik">📥 Grup Davetlerin ({grupGelen.length})</div>
-          {grupGelen.map((gm) => (
-            <div key={gm.id} className="liste-satir">
-              <div className="bilgi">
-                <div className="isim">
-                  {gm.katilimcilar
-                    ?.filter((k) => k.user_id !== user.id)
-                    .map((k) => k.profil?.gorunen_ad)
-                    .join(", ")}
-                </div>
-                <div className="detay">{gm.oyuncu_sayisi} kişilik gruba davet edildin</div>
-              </div>
-              <button className="btn kucuk" onClick={() => grupCevapVer(gm.id, true)}>
-                Kabul
-              </button>
-              <button className="btn kucuk tehlike" onClick={() => grupCevapVer(gm.id, false)}>
-                Reddet
-              </button>
-            </div>
-          ))}
-        </>
-      )}
-
-      {grupBeklenen.length > 0 && (
-        <>
-          <div className="baslik">📤 Kurduğun Gruplar (yanıt bekleniyor)</div>
-          {grupBeklenen.map((gm) => (
-            <div key={gm.id} className="liste-satir">
-              <div className="bilgi">
-                <div className="isim">
-                  {gm.katilimcilar
-                    ?.filter((k) => k.user_id !== user.id)
-                    .map((k) => `${k.profil?.gorunen_ad} (${k.davet_durumu === "kabul" ? "hazır" : "bekliyor"})`)
-                    .join(", ")}
-                </div>
-              </div>
-            </div>
-          ))}
         </>
       )}
 

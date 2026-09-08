@@ -5,12 +5,27 @@ import { useAuth } from "../../src/context/AuthContext.jsx";
 import Ikon from "./Ikon.jsx";
 
 const TIP_IKON = {
+  mac_daveti: "⚔️",
+  rovans: "⚔️",
+  grup_daveti: "👥",
+  hizli_daveti: "⚡",
   lige_girdin: "🏙️",
   gecildin: "⚡",
   hafta_sonuc: "🏆",
   arkadas_istek: "🤝",
   arkadas_kabul: "🎉",
+  seri_hatirlatma: "🔥",
 };
+
+// Davet bildirimleri listenin en üstüne çekilir.
+const ONCELIKLI = new Set(["mac_daveti", "rovans", "grup_daveti", "hizli_daveti"]);
+const oncelikSirala = (liste) =>
+  [...liste].sort((a, b) => {
+    const oa = ONCELIKLI.has(a.tip) && !a.okundu ? 0 : 1;
+    const ob = ONCELIKLI.has(b.tip) && !b.okundu ? 0 : 1;
+    if (oa !== ob) return oa - ob;
+    return new Date(b.created_at) - new Date(a.created_at);
+  });
 
 function zamanMetni(iso) {
   const fark = Date.now() - new Date(iso).getTime();
@@ -39,7 +54,7 @@ export default function BildirimZili() {
         .order("created_at", { ascending: false })
         .limit(30);
       if (error) throw error;
-      setListe(data ?? []);
+      setListe(oncelikSirala(data ?? []));
       setOkunmamis((data ?? []).filter((b) => !b.okundu).length);
     } catch {
       /* tablo henüz yok (migration bekliyor) veya ağ hatası — sessiz geç */

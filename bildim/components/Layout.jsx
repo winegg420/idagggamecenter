@@ -6,6 +6,8 @@ import RankUpOverlay from "./RankUpOverlay.jsx";
 import PuanSayaci from "./PuanSayaci.jsx";
 import BildirimZili from "./BildirimZili.jsx";
 import KurulumSihirbazi from "./KurulumSihirbazi.jsx";
+import DavetBandi from "./DavetBandi.jsx";
+import BildirimToast from "./BildirimToast.jsx";
 import Ikon from "./Ikon.jsx";
 
 export default function Layout() {
@@ -62,21 +64,26 @@ export default function Layout() {
     <div className="app">
       <RankUpOverlay />
       {kurulumEksik && <KurulumSihirbazi />}
-      <header className="topbar">
-        <Link to="/bildim" style={{ textDecoration: "none" }}>
-          <span className="logo">Bildim!</span>
-        </Link>
-        {profile && (
-          <div className="bd-topbar-sag">
-            <BildirimZili />
-            <Link to="/bildim/profil" style={{ textDecoration: "none", color: "inherit" }}>
-              <span className="puan-chip">
-                ⭐ <PuanSayaci deger={profile.puan} />
-              </span>
-            </Link>
-          </div>
-        )}
-      </header>
+      <div className="bd-ust-blok">
+        <header className="topbar">
+          <Link to="/bildim" style={{ textDecoration: "none" }}>
+            <span className="logo">Bildim!</span>
+          </Link>
+          {profile && (
+            <div className="bd-topbar-sag">
+              <BildirimZili />
+              <Link to="/bildim/profil" style={{ textDecoration: "none", color: "inherit" }}>
+                <span className="puan-chip">
+                  ⭐ <PuanSayaci deger={profile.puan} />
+                </span>
+              </Link>
+            </div>
+          )}
+        </header>
+
+        {profile && <DavetBandi />}
+        <BildirimToast />
+      </div>
 
       <main className="sayfa">
         <Outlet />
