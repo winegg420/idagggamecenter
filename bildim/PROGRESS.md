@@ -955,3 +955,49 @@ kelimelerle yeniden yazilinca catisma tetiklenmiyor.
 
 **Sonuc:** `genel_kultur` aktif 1.354 → 1.398; tum havuz 5.193 → 5.237.
 Dogru sik dagilimi dengeli (350/349/351/353).
+
+---
+
+## 9 Eylul 2026 (2. oturum) — Soru havuzu buyuk genisletme
+
+**Istek:** "butun sorular bini gecsin, cografya iki bine ciksin, hepsi kaliteli
+ve dogrulugu onaylanmis olsun."
+
+### Kurulan uretim hatti (`scratchpad/pgi/`)
+- `uret.mjs` — tek komutla: canli havuzu tazele → birebir + anahtar kelime
+  ortusme suzgeci → dogru sik indeksini kategori icinde dengele → kalite
+  denetimi → migration yaz → canliya uygula → `migration repair`.
+- `onkontrol.mjs` — uygulamadan once yerel denetim (40+ karakter sik,
+  zamana bagli kalip, soru isareti).
+- Parti dosyalari `{ s, d, y:[3 celdirici], k:"kategori" }` bicimindedir;
+  dogru sik indeksi kod tarafindan dagitilir (sunucu sik karistirmiyor,
+  bu yuzden elle "hep 0" yazmak oyunu bozardi).
+
+### Kalite guvencesi
+Her parti su suzgeclerden geciyor:
+1. **Birebir tekrar** — normalize edilmis metin havuzda var mi.
+2. **Anahtar kelime ortusmesi** — %80 kesisim + en az 3 ortak kelime ise elenir
+   (ayni soruyu farkli kelimelerle yeniden yazma riskini kapatir; `on conflict`
+   tek basina bunu yakalamaz).
+3. **Bicim** — 4 benzersiz sik, soru isareti, sik uzunlugu 40 karakter siniri
+   (mobil sik butonu tasmasin diye).
+4. **Zamana bagli/yoruma acik kalip yasagi** — "gunumuzde", "en iyi", "en unlu",
+   "guncel", "nufusu kactir" gibi ifadeler reddedilir.
+5. **Dogru sik dagilimi** — kategori icinde 0/1/2/3 esit dagitilir.
+
+### Yapilanlar
+- `076`: kalan 10 ilkokul seviyesi soru pasife alindi (renk karisimi, gun/saat,
+  gokkusagi rengi) + birebir tekrar eden bir tarih sorusu.
+- `077`-`080`, `083`, `087`, `090`, `092`, `094`, `096`: **cografya partileri**
+  (Turkiye fiziki cografyasi, jeomorfoloji, iklim, nufus, ekonomi cografyasi,
+  ulasim, enerji, cevre, dunya cografyasi, kartografya, meteoroloji, jeoloji,
+  denizcilik, kaynak cografyasi).
+- `081`, `082`: muzik ve sinema partileri.
+- `084`-`086`, `088`, `089`, `091`, `093`, `095`, `097`: **karma partiler**
+  (teknoloji, sanat, spor, edebiyat, tarih, bilim, genel kultur, muzik, sinema).
+
+### Cikarim
+Ortusme orani parti ilerledikce dusuyor (ilk cografya partisinde 51/185,
+onuncuda 3/76) — havuz genisledikce **yeni konu alani acmak** gerekiyor;
+ayni konuyu farkli sorularla tekrar yazmak suzgecte eleniyor. Sonraki
+partilerde daha ozel alt basliklara inilmeli.
