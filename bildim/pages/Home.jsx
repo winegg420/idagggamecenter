@@ -7,6 +7,8 @@ import Avatar from "../../src/components/Avatar.jsx";
 import { pushDestekleniyor, bildirimleriAc } from "../lib/push.js";
 import { sonrakiTurnuvaSeans } from "../lib/zaman.js";
 import { rutbeBul, sonrakiRutbe } from "../lib/ranks.js";
+import KonumSecici from "../components/KonumSecici.jsx";
+import { bayrak, haftaBitisi, sureMetni } from "../lib/konum.js";
 
 export default function Home() {
   const { user, profile, refreshProfile } = useAuth();
@@ -21,6 +23,14 @@ export default function Home() {
   const [mesaj, setMesaj] = useState(null);
   const [bildirimSor, setBildirimSor] = useState(false);
   const [gorevler, setGorevler] = useState([]);
+  const [ligDurum, setLigDurum] = useState(null);
+  const [gecenHafta, setGecenHafta] = useState(null);
+  const [haftaKalan, setHaftaKalan] = useState(
+    () => haftaBitisi().getTime() - Date.now()
+  );
+
+  // İlk girişte konum sorulur; profil yüklenene kadar modal açılmaz.
+  const konumEksik = Boolean(profile) && !profile.ulke;
 
   const gorevleriYukle = useCallback(() => {
     supabase.rpc("get_daily_quests").then(({ data }) => setGorevler(data ?? []));
@@ -37,6 +47,56 @@ export default function Home() {
       refreshProfile(user.id);
     }
   };
+
+  // Lig özeti (hero) + geçen haftanın sonucu (uygulama içi banner)
+  const ligYukle = useCallback(async () => {
+    try {
+      const { data, error } = await supabase.rpc("benim_lig_durumum", {
+        p_donem: "hafta",
+      });
+      if (error) throw error;
+      setLigDurum(Array.isArray(data) ? (data[0] ?? null) : (data ?? null));
+    } catch {
+      setLigDurum(null); // RPC henüz uygulanmamış olabilir — sessiz geç
+    }
+  }, []);
+
+  useEffect(() => {
+    ligYukle();
+  }, [ligYukle, profile?.puan_hafta, profile?.sehir]);
+
+  useEffect(() => {
+    const id = setInterval(
+      () => setHaftaKalan(haftaBitisi().getTime() - Date.now()),
+      60000
+    );
+    return () => clearInterval(id);
+  }, []);
+
+  useEffect(() => {
+    let aktif = true;
+    const yukle = async () => {
+      try {
+        const { data, error } = await supabase
+          .from("lig_arsiv")
+          .select("hafta, puan, sehir, ulke, sira_sehir, sira_ulke, sira_global")
+          .eq("user_id", user.id)
+          .order("hafta", { ascending: false })
+          .limit(1);
+        if (error) throw error;
+        const kayit = (data ?? [])[0];
+        if (!kayit || !aktif) return;
+        if (localStorage.getItem("bildim_hafta_okundu") === kayit.hafta) return;
+        setGecenHafta(kayit);
+      } catch {
+        /* tablo henüz yok veya ağ hatası — sessiz geç */
+      }
+    };
+    yukle();
+    return () => {
+      aktif = false;
+    };
+  }, [user.id]);
 
   useEffect(() => {
     if (
@@ -124,6 +184,35 @@ export default function Home() {
 
   return (
     <div className="anasayfa">
+
+      {/* İlk girişte zorunlu: hangi şehir için yarışıyorsun? */}
+      {konumEksik && <KonumSecici mod="modal" onKaydedildi={ligYukle} />}
+
+      {/* Haftalık sonuç bildirimi (push kapalıysa da görünür) */}
+      {gecenHafta && (
+        <div className="bd-hafta-sonuc">
+          <div className="ikon">🏆</div>
+          <div className="metin">
+            Geçen hafta{" "}
+            {gecenHafta.sira_sehir
+              ? <>{gecenHafta.sehir} liginde <b>{gecenHafta.sira_sehir}.</b></>
+              : <>dünya liginde <b>{gecenHafta.sira_global}.</b></>}{" "}
+            oldun ({gecenHafta.puan} puan). Yeni hafta başladı!
+          </div>
+          <button
+            className="btn kucuk ikincil"
+            aria-label="Kapat"
+            onClick={() => {
+              try {
+                localStorage.setItem("bildim_hafta_okundu", gecenHafta.hafta);
+              } catch { /* özel mod */ }
+              setGecenHafta(null);
+            }}
+          >
+            ✕
+          </button>
+        </div>
+      )}
 
       {bildirimSor && (
         <div className="bildirim-serit">
@@ -227,6 +316,45 @@ export default function Home() {
                 ? <>Sonraki rütbe <b style={{ color: sonraki.renk }}>{sonraki.ikon} {sonraki.ad}</b> · {sonraki.min - puan} puan kaldı</>
                 : <>En yüksek rütbedesin! {rutbe.ikon} Efsane</>}
             </div>
+          </div>
+        )}
+
+        {/* Lig özeti: rank kasma motivasyonu (şehir / ülke / dünya sırası) */}
+        {!adDuzenle && ligDurum && (
+          <div className="bd-hero-lig">
+            {ligDurum.sehir && (
+              <Link to="/bildim/siralama" className="bd-lig-rozet">
+                <span className="bd-lig-rozet-ust">
+                  {bayrak(ligDurum.ulke)} {ligDurum.sehir}
+                </span>
+                <span className="bd-lig-rozet-deger">{ligDurum.sira_sehir}.</span>
+                <span className="bd-lig-rozet-alt">/ {ligDurum.sehir_oyuncu}</span>
+              </Link>
+            )}
+            {ligDurum.ulke && (
+              <Link to="/bildim/siralama" className="bd-lig-rozet">
+                <span className="bd-lig-rozet-ust">🏳️ Ülke</span>
+                <span className="bd-lig-rozet-deger">{ligDurum.sira_ulke}.</span>
+                <span className="bd-lig-rozet-alt">/ {ligDurum.ulke_oyuncu}</span>
+              </Link>
+            )}
+            <Link to="/bildim/siralama" className="bd-lig-rozet">
+              <span className="bd-lig-rozet-ust">🌍 Dünya</span>
+              <span className="bd-lig-rozet-deger">{ligDurum.sira_global}.</span>
+              <span className="bd-lig-rozet-alt">/ {ligDurum.global_oyuncu}</span>
+            </Link>
+          </div>
+        )}
+
+        {!adDuzenle && (
+          <div className="bd-hero-hafta">
+            ⏳ Haftalık lig bitimine <b>{sureMetni(haftaKalan)}</b>
+            {ligDurum?.sehrin_ulke_sirasi != null && ligDurum.sehir && (
+              <>
+                {" · "}
+                {ligDurum.sehir} ülkende <b>{ligDurum.sehrin_ulke_sirasi}.</b>
+              </>
+            )}
           </div>
         )}
       </div>

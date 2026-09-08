@@ -86,22 +86,50 @@ export default function QuestionCard({ soru, onCevapla, onSureDoldu, jokerler })
     ? soru.secenekler
     : JSON.parse(soru.secenekler);
 
+  const oran = Math.max(0, Math.min(1, kalan / SURE));
+  const CEVRE = 2 * Math.PI * 20; // r=20 halka çevresi
+  const halkaRenk = kalan <= 5 ? "var(--danger)" : kalan <= 9 ? "var(--accent)" : "var(--primary)";
+
   return (
-    <div>
-      <div className="soru-sayac">
-        <div className="dolgu" style={{ width: `${Math.min(100, (kalan / SURE) * 100)}%` }} />
+    <div className="bd-soru">
+      {/* Üst şerit: soru numarası + kalan süre halkası + ilerleme çubuğu */}
+      <div className="bd-soru-ust">
+        <div className="bd-soru-no">Soru {soru.soru_index + 1}</div>
+        <div className="bd-sure-halka" aria-label={`${Math.ceil(kalan)} saniye kaldı`}>
+          <svg viewBox="0 0 48 48" aria-hidden="true">
+            <circle className="iz" cx="24" cy="24" r="20" />
+            <circle
+              className="dolgu"
+              cx="24"
+              cy="24"
+              r="20"
+              stroke={halkaRenk}
+              strokeDasharray={CEVRE}
+              strokeDashoffset={CEVRE * (1 - oran)}
+            />
+          </svg>
+          <span className={`bd-sure-sayi ${kalan <= 5 ? "kritik" : ""}`}>
+            {Math.ceil(kalan)}
+          </span>
+        </div>
       </div>
-      <div className="alt-yazi" style={{ marginBottom: 8 }}>
-        Soru {soru.soru_index + 1} · {Math.ceil(kalan)} sn
+      <div className="bd-soru-bar">
+        <div
+          className="dolgu"
+          style={{ width: `${oran * 100}%`, background: halkaRenk }}
+        />
       </div>
-      <div className="soru-metin">{soru.soru}</div>
-      <div className="secenekler">
+
+      <div className="bd-soru-metin">{soru.soru}</div>
+
+      <div className="bd-secenekler">
         {secenekler.map((s, i) => {
           const elendi = kapali.includes(i);
-          let sinif = "secenek";
+          let sinif = "bd-secenek";
           if (sonuc) {
             if (i === sonuc.dogru_cevap) sinif += " dogru";
             else if (i === secim) sinif += " yanlis";
+            else sinif += " solgun";
           } else if (i === secim) {
             sinif += " secili";
           }
@@ -117,8 +145,12 @@ export default function QuestionCard({ soru, onCevapla, onSureDoldu, jokerler })
               onPointerLeave={basiliTutmayiBirak}
               onPointerCancel={basiliTutmayiBirak}
             >
-              <span className="harf">{HARFLER[i]}</span>
-              {s}
+              <span className="bd-harf">{HARFLER[i]}</span>
+              <span className="bd-secenek-metin">{s}</span>
+              {sonuc && i === sonuc.dogru_cevap && <span className="bd-isaret">✓</span>}
+              {sonuc && i === secim && i !== sonuc.dogru_cevap && (
+                <span className="bd-isaret">✕</span>
+              )}
             </button>
           );
         })}

@@ -1,8 +1,11 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { supabase } from "../../src/lib/supabase.js";
 import { useAuth } from "../../src/context/AuthContext.jsx";
 import Avatar from "../../src/components/Avatar.jsx";
 import RankBadge from "../components/RankBadge.jsx";
+import KonumSecici from "../components/KonumSecici.jsx";
+import { bayrak, konumKilidiKalan, sureMetni } from "../lib/konum.js";
 import { rutbeBul, sonrakiRutbe } from "../lib/ranks.js";
 import {
   pushDestekleniyor,
@@ -21,6 +24,11 @@ export default function ProfilePage() {
   const [kopyalandi, setKopyalandi] = useState(false);
   const [bildirim, setBildirim] = useState("kapali");
   const [bildirimHata, setBildirimHata] = useState(null);
+  const [konumDuzenle, setKonumDuzenle] = useState(false);
+  const [silOnay, setSilOnay] = useState(false);
+  const [silMetin, setSilMetin] = useState("");
+  const [silHata, setSilHata] = useState(null);
+  const [siliniyor, setSiliniyor] = useState(false);
 
   useEffect(() => {
     pushDurumu().then(setBildirim);
@@ -120,6 +128,30 @@ export default function ProfilePage() {
           </div>
         </div>
       </div>
+
+      {/* ---------- Konum (şehir/ülke ligi) ---------- */}
+      {konumDuzenle ? (
+        <KonumSecici mod="kart" onKapat={() => setKonumDuzenle(false)} />
+      ) : (
+        <div className="kart bd-konum-ozet">
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontWeight: 700, fontSize: 14 }}>🏙️ Yarıştığın şehir</div>
+            <div className="alt-yazi">
+              {profile.ulke
+                ? `${bayrak(profile.ulke)} ${profile.sehir ?? "—"}`
+                : "Henüz seçmedin — şehir ve ülke liglerine giremezsin."}
+            </div>
+            {konumKilidiKalan(profile.konum_degisti_at) > 0 && (
+              <div className="alt-yazi">
+                🔒 Değiştirmek için {sureMetni(konumKilidiKalan(profile.konum_degisti_at))} kaldı.
+              </div>
+            )}
+          </div>
+          <button className="btn kucuk ikincil" onClick={() => setKonumDuzenle(true)}>
+            {profile.ulke ? "Değiştir" : "Seç"}
+          </button>
+        </div>
+      )}
 
       {sonraki && (
         <div className="kart">
@@ -228,9 +260,85 @@ export default function ProfilePage() {
         </div>
       </div>
 
+      {/* ---------- Yasal / hesap ---------- */}
+      <div className="kart">
+        <div className="baslik">⚙️ Hesap</div>
+        <Link to="/gizlilik" className="bd-metin-link">
+          🔒 Gizlilik Politikası
+        </Link>
+
+        <button
+          className="btn tehlike"
+          style={{ marginTop: 12 }}
+          onClick={() => {
+            setSilHata(null);
+            setSilOnay(true);
+          }}
+        >
+          🗑️ Hesabımı Sil
+        </button>
+        <div className="alt-yazi" style={{ marginTop: 8 }}>
+          Profilin, puanların, rozetlerin ve tüm oyun kayıtların kalıcı olarak silinir.
+          Bu işlem geri alınamaz.
+        </div>
+      </div>
+
       <button className="btn tehlike" onClick={signOut}>
         Çıkış Yap
       </button>
+
+      {silOnay && (
+        <div className="bd-modal-katman" role="dialog" aria-modal="true">
+          <div className="bd-modal">
+            <div className="bd-konum-baslik">🗑️ Hesabını silmek üzeresin</div>
+            <div className="bd-konum-aciklama">
+              Bu işlem <b>geri alınamaz</b>. Onaylamak için aşağıya{" "}
+              <b>{profile.username}</b> yaz.
+            </div>
+            <label className="bd-alan">
+              <span>Kullanıcı adın</span>
+              <input
+                type="text"
+                autoComplete="off"
+                value={silMetin}
+                onChange={(e) => setSilMetin(e.target.value)}
+                placeholder={profile.username}
+              />
+            </label>
+            {silHata && <div className="hata-kutu">{silHata}</div>}
+            <div className="bd-konum-butonlar">
+              <button
+                className="btn tehlike"
+                disabled={siliniyor || silMetin.trim() !== profile.username}
+                onClick={async () => {
+                  setSilHata(null);
+                  setSiliniyor(true);
+                  try {
+                    const { error } = await supabase.rpc("hesabimi_sil");
+                    if (error) throw error;
+                    await signOut();
+                  } catch (e) {
+                    setSilHata(e.message ?? "Hesap silinemedi.");
+                    setSiliniyor(false);
+                  }
+                }}
+              >
+                {siliniyor ? "Siliniyor…" : "Evet, hesabımı sil"}
+              </button>
+              <button
+                className="btn ikincil"
+                disabled={siliniyor}
+                onClick={() => {
+                  setSilOnay(false);
+                  setSilMetin("");
+                }}
+              >
+                Vazgeç
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

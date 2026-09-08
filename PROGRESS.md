@@ -842,3 +842,217 @@ vardı, düzeltildi. motor-test 43/43 (boks 93/93), build temiz. Detay: `meyveke
 - 2. tur (aynı gün): telefonda 13-14 Hz → rVFC basamaklanması kırıldı ("boşalınca hemen gönder"
   + bitmap ön hazırlığı), mobilde 352 px kare, worker'da GPU/CPU delege yarışı, rozete çıkarım ms.
   Yeni `meyvekes/_test/cekirdek-test.mjs` 11/11 (sanal saat: 45 ms çıkarımda 14.9 → 22.1 Hz).
+
+## 2026-09-08 — Bildim: Faz 1 — Lig + kategori veritabanı (`20260612000045_lig_ve_kategori.sql`)
+
+Google Play hedefiyle üç farklılaştırıcının DB tarafı kuruldu: **kategori seçmeli yarış**,
+**şehir/ülke ligi**, **küresel sıralama + rank kasma**. Tek migration, mevcut şema bozulmadı,
+puanlama mantığına dokunulmadı.
+
+**Mevcut durum tespiti (uydurma değil, migration'lardan okundu):**
+- pg_cron **var** ve kullanılıyor (`bildim-turnuva-baslat`, `bildim-bot-oyna`, …).
+- Haftalık sıfırlama **vardı**: `bildim-hafta-sifirla` (`0 21 * * 0` = Pazartesi 00:00 TSİ) ama
+  yalnızca `update profiles set puan_hafta = 0` yapıyordu → geçmiş kayboluyordu. Bu iş
+  **unschedule edilip** `haftayi_kapat()` ile değiştirildi (önce arşivle + rozet, sonra sıfırla).
+- `create_challenge`, `create_group_challenge`, `create_hizli_mac` zaten `p_kategori` alıyordu;
+  eksik olan, seçimin **soru havuzuna** yansımasıydı (görülmüş soru/dil filtresi yoktu).
+- `award_badge` var → haftalık rozetler onun üzerinden veriliyor.
+
+**Kararlar ve nedenleri:**
+- **Şehir/ülke listesi = tablo (`ulkeler`, `sehirler`), frontend sabiti değil.** Gerekçe: lig
+  sıralaması konuma dayanıyor ve konum haftada 1 kez değişebiliyor; doğrulama istemcide
+  yapılamaz. Tablo sayesinde `profil_konum_kaydet()` sunucuda doğruluyor ve yeni ülke eklemek
+  deploy gerektirmiyor. Bayrak emojisi ISO kodundan istemcide türetiliyor (kolon yok).
+  TR için 81 il yüklendi; şehir listesi olmayan ülkelerde serbest metin (2-40 karakter).
+- **Konum kilidi:** `profiles.konum_degisti_at` + 7 gün. Aynı değer tekrar gönderilirse kilit
+  harcanmıyor. `profiles` üzerinde authenticated'a sadece (username, avatar_url) update yetkisi
+  olduğu için `ulke/sehir` doğrudan yazılamaz — yalnızca RPC.
+- **Soru seçimi tek noktada: `soru_sec(kategori, adet, oyuncular[], dil)`.** Görülmemiş sorular
+  önce, bitince en eski görülenler (asla boş dönmez); yetersizse önce kategori, sonra dil
+  gevşetilir. 1v1'de iki oyuncunun ikisi de, grup/hızlıda tüm katılımcılar dizide.
+  Bağlandığı yerler: `respond_challenge`, `quick_match`, `respond_group_challenge`,
+  `respond_hizli_davet`, `start_tournament` (karışık kalır, sadece dil) ve **`bot_oyna`'nın 3
+  seçim noktası** (bot maçlarında da tekrar olmasın diye fonksiyon birebir kopyalanıp yalnızca
+  seçim satırları değiştirildi).
+- **`gorulen_sorular` kaydı soru gösterildiğinde** yazılıyor (maç bitince değil): 4 soru RPC'si
+  (`get_match_question`, `get_group_match_question`, `get_hizli_soru`, `get_tournament_question`)
+  `gorulen_kaydet()` çağırıyor, `on conflict do nothing` ile ilk gösterimde bir kez yazıyor.
+- **Kota:** `mac_kotasi_kontrol()` — saat başına 30 maç başlatma (matches/group/hızlı toplamı).
+  `hileli_mi()` olan hesap (kurucu/geliştirici) muaf. Puanlamaya dokunulmadı.
+- **`quick_match` artık `p_kategori` alıyor** (varsayılan null). Eski `quick_match()` imzası
+  drop edildi; istemci parametresiz çağırdığında varsayılan devreye giriyor.
+- **`get_categories` 3 kolon dönüyor:** `kategori, soru_sayisi, gorulen_sayisi` (kategori
+  kartlarındaki "çözdüğün %" için). Kullanıcının `profiles.dil` diline göre filtreliyor.
+- **Turnuva karışık kaldı** (istek gereği), yalnızca dil filtresi uygulanıyor.
+
+**Yeni nesneler:** `ulkeler`, `sehirler`, `gorulen_sorular`, `lig_arsiv` tabloları;
+`profil_konum_kaydet`, `gorulen_kaydet`, `soru_sec`, `mac_kotasi_kontrol`, `haftayi_kapat`,
+`haftalik_sonuc_bildir`, `lig_siralama(kapsam, donem)`, `sehir_lig_sirasi(donem)` fonksiyonları;
+`hafta_1/2/3`, `sehir_krali` rozetleri; konum/dil/kota indeksleri.
+Yeni cron: `bildim-hafta-kapat` (Pazar 21:00 UTC) ve `bildim-hafta-bildir` (Pazartesi 06:00 UTC).
+
+**Senin yapman gerekenler (Faz 1):**
+1. `supabase/migrations/20260612000045_lig_ve_kategori.sql` dosyasını Supabase Studio → SQL
+   Editor'de **tek parça** çalıştır (44'ten sonra, tek dosya, sıra önemli).
+2. Çalıştıktan sonra kontrol: `select jobname, schedule from cron.job order by jobname;`
+   → `bildim-hafta-sifirla` **gitmiş**, `bildim-hafta-kapat` + `bildim-hafta-bildir` **gelmiş**
+   olmalı. Gelmediyse pg_cron uzantısı kapalıdır, haber ver.
+3. Push bildirimi için `send-push` Edge Function ve `x-cron-secret` zaten mevcut; ek iş yok.
+
+`npm run build` temiz (Faz 1'de frontend değişmedi).
+
+## 2026-09-08 — Bildim: Faz 2 — Lig ve kategori arayüzü
+
+**Yeni dosyalar:** `bildim/lib/konum.js` (bayrak emojisi ISO kodundan, konum kilidi kalan
+süre, hafta bitişi = Pazar 21:00 UTC — sunucudaki cron ile aynı an, kısa süre metni),
+`bildim/components/KonumSecici.jsx` (mod="modal" zorunlu ilk giriş / mod="kart" profil).
+
+**Değişen dosyalar:**
+- `bildim/pages/Home.jsx` — ilk girişte `profile.ulke` boşsa kapatılamayan konum modalı;
+  hero altında şehir/ülke/dünya sıra rozetleri (`benim_lig_durumum` RPC, tek satır — 3 ayrı
+  sıralama çekmemek için); haftalık lig geri sayımı + şehrin ülke içi sırası; `lig_arsiv`ten
+  okunan "geçen hafta X. oldun" uygulama içi şeridi (localStorage ile bir kez gösterilir).
+- `bildim/pages/LeaderboardPage.jsx` — yeni sayfa açılmadı, mevcut sayfa genişletildi.
+  Üst sekmeler ŞEHİR / ÜLKE / DÜNYA / ARKADAŞ (arkadaş sekmesi eski davranışını korudu),
+  alt sekmeler BU HAFTA / TÜM ZAMANLAR. İlk 3 podyum, satırlarda avatar + rütbe rozeti +
+  ülke bayrağı + şehir, kendi satırı vurgulu ve **sticky olarak altta sabit**. Şehir
+  sekmesinde `sehir_lig_sirasi` ile "Balıkesir bu hafta ülkende 12." şeridi. Konumu olmayan
+  oyuncuya şehir/ülke sekmesinde seçim çağrısı gösteriliyor.
+- `bildim/pages/ChallengesPage.jsx` — kategori çipleri kategori **kartlarına** dönüştü:
+  kategorideki toplam soru sayısı + oyuncunun çözdüğü yüzde (ilerleme çubuğuyla).
+  Seçimin 1v1/grup/hızlı modun hepsinde geçerli olduğu başlıkta yazıyor (kod zaten aynı
+  `kategori` state'ini üçünde de kullanıyordu).
+- `bildim/pages/ProfilePage.jsx` — konum özeti kartı + değiştirme; haftalık kilit kalan süresi.
+- `src/styles.css` — sonuna `bd-*` katmanı eklendi (eski sınıflar silinmedi). CSS değişkenleri
+  (boşluk/yarıçap/gölge/dokunma hedefi) `:root` üzerine yazıldı.
+
+**Karar:** Ana sayfadaki lig özeti için 3 ayrı `lig_siralama` çağırmak yerine migration 45'e
+`benim_lig_durumum(p_donem)` eklendi — 100 satır yerine tek satır döner, mobilde ucuz.
+Bu RPC henüz uygulanmamışsa Home sessizce özeti gizler (try-catch), sayfa çalışmaya devam eder.
+
+**Test edilecek:** ilk girişte modalın çıkması, şehir seçince ligin dolması, ikinci kez
+değiştirmeye çalışınca 7 günlük kilidin hata vermesi. `npm run build` temiz.
+
+## 2026-09-08 — Bildim: Faz 3 — Kozmetik yenileme + Play Store gereklilikleri
+
+**Tasarım sistemi:** `src/styles.css` sonuna `bd-*` katmanı (Faz 2'de başladı, Faz 3'te
+tamamlandı). CSS değişkenleri (`--bd-bosluk-*`, `--bd-yaricap-*`, `--bd-golge-*`,
+`--bd-dokunma: 44px`) `:root` üzerine tanımlı. **Hiçbir eski sınıf silinmedi**; sayfalar
+JSX'te yeni sınıflara geçirildi, eski CSS geriye uyumlu duruyor (diğer sayfalar hâlâ
+`.kart`, `.btn`, `.soru-sayac` kullanıyor).
+
+- **Soru kartı (`QuestionCard`)** yenilendi: `clamp()` ile büyüyen okunaklı soru metni
+  (`text-wrap: balance`), SVG **kalan süre halkası** (son 9 sn turuncu, son 5 sn kırmızı +
+  nabız), üstte ilerleme çubuğu, şıklarda **anında yeşil/kırmızı geri bildirim** (doğru:
+  hafif büyüme; yanlış: sallanma), doğru/yanlış işaretleri (✓/✕), seçilmeyen şıklar solar.
+  Tüm mantık (joker, basılı tut, oy verme, süre) aynen korundu.
+- **Mikro etkileşim:** `bildim/components/PuanSayaci.jsx` — üst bardaki puan değişince
+  easeOutCubic ile sayıyor ve "+N" baloncuğu yükseliyor. `prefers-reduced-motion` tercihine
+  saygılı (hem bileşen içinde hem global CSS kuralıyla). Rütbe atlama zaten `RankUpOverlay`.
+- **Erişilebilirlik:** `--text-dim` #9b94c4 → **#a9a2d2** (koyu zeminde kontrast 4.5:1 eşiğini
+  geçsin diye), tüm dokunma hedefleri ≥ 44px (şıklar 56px), her etkileşimli öğede
+  `:focus-visible` çerçevesi, ikon butonlarda `aria-label`, modallarda `role="dialog"`.
+
+**Play Store gereklilikleri:**
+- **`/gizlilik`** statik sayfası (`bildim/pages/GizlilikPage.jsx`). Türkçe gizlilik politikası
+  **taslağı**: e-posta + kullanıcı adı toplandığı, şehir/ülkenin **kullanıcı beyanı** olduğu
+  (GPS alınmadığı), verilerin satılmadığı, Supabase/Vercel'in işleyici olduğu, silme hakkı.
+  İletişim: idagureli@gmail.com. **Rota giriş duvarının ÖNÜNDE** (`src/App.jsx` içindeki
+  `bagimsizModul` listesine eklendi) — mağaza kaydı oturum açmadan görebilsin diye.
+- **Hesap silme:** `supabase/migrations/20260612000046_hesap_silme.sql` → `hesabimi_sil()`.
+  Önce `delete from auth.users` denenir (cascade ile `public.profiles` ve ona bağlı **tüm**
+  oyun tabloları gider) → `'tam'` döner. Yetki yoksa yalnızca `public.profiles` silinir →
+  `'kismi'` döner. **Uydurma yok:** `'kismi'` durumunda auth.users kaydını temizlemek için
+  service_role ile çalışan bir Edge Function gerekir; bu dosyanın başına not düşüldü.
+  Profil sayfasında kullanıcı adını yazdırarak onaylatan modal + ardından `signOut()`.
+
+**Değişen/eklenen dosyalar (Faz 3):** `bildim/components/QuestionCard.jsx`,
+`bildim/components/PuanSayaci.jsx` (yeni), `bildim/components/Layout.jsx`,
+`bildim/pages/ProfilePage.jsx`, `bildim/pages/GizlilikPage.jsx` (yeni), `src/App.jsx`,
+`src/styles.css`, `supabase/migrations/20260612000046_hesap_silme.sql` (yeni).
+`npm run build` temiz.
+
+## 2026-09-08 — Bildim: Faz 4 — Soru havuzu planı (üretim YAPILMADI)
+
+`scripts/soru-parti-sablonu.md` yazıldı: tekrar kullanılabilir parti promptu + migration
+iskeleti + parti öncesi tekrar kontrolü + parti sonrası doğrulama sorguları + kayıt defteri.
+
+**Mevcut havuz (migration dosyalarındaki `insert` satırları sayılarak; DB'ye bağlanılamadı,
+`on conflict (soru) do nothing` nedeniyle gerçek sayı biraz düşük olabilir):**
+bilim 332, tarih 272, cografya 224, genel 189, edebiyat 175, spor 165, sanat 141,
+sinema 54, teknoloji 54, muzik 53, karisik 39 → **toplam ~1.700**.
+
+**Hedef:** 10 kategori × ~1.000 = 10.000. `karisik` ayrı kategori olarak büyütülmüyor
+(kullanıcı "karışık" modu kategori seçmeyerek zaten oynuyor); yeni sorular 10 gerçek
+kategoriye dağıtılıyor. Kalan ~8.300 soru → ~17 parti × 500.
+
+Kesin sayıyı Studio'da şununla al:
+`select kategori, count(*) from public.questions where aktif group by kategori order by 2 desc;`
+
+---
+
+### Bu paketin özeti — senin manuel yapman gerekenler
+
+1. **Migration'ları sırayla Supabase Studio → SQL Editor'de çalıştır:**
+   - `20260612000045_lig_ve_kategori.sql` (büyük dosya, tek parça)
+   - `20260612000046_hesap_silme.sql`
+2. **pg_cron kontrolü:** `select jobname, schedule from cron.job order by jobname;`
+   → `bildim-hafta-sifirla` gitmiş, `bildim-hafta-kapat` (0 21 * * 0) ve
+   `bildim-hafta-bildir` (0 6 * * 1) gelmiş olmalı.
+3. **Hesap silme davranışını doğrula:** test hesabıyla `select public.hesabimi_sil();`
+   → `'tam'` dönerse ek iş yok; `'kismi'` dönerse auth.users temizliği için Edge Function
+   gerekir, haber ver.
+4. **Kendi profilinde şehir/ülke seç** (ilk giriş modalı) — lig sekmeleri onsuz boş görünür.
+   Konum haftada 1 kez değişir, test ederken dikkat.
+5. **Bildirim izni** açıksa Pazartesi 09:00 TSİ haftalık sonuç push'u gelir.
+6. Deploy/push YAPILMADI (istendiği gibi).
+
+## 2026-09-08 — Migration'lar CANLIYA UYGULANDI + CLI 403'ün kök nedeni bulundu
+
+Kullanıcı "her şeyi sen yap, bana SQL Editor açtırma" dedi; migration'lar bu oturumda
+**doğrudan canlı veritabanına uygulandı**. Artık elle uygulama gerekmiyor.
+
+**CLI 403'ün kök nedeni (aylardır bilinmiyordu):** `npx supabase projects list` çalışıyor
+ama yalnızca `idafroditproject@gmail.com` hesabının 2 projesini listeliyor. Bildim'in
+projesi `zfpnxzybcpkxsotwdsey` o listede YOK → makinedeki CLI token **başka hesaba ait**.
+Yani yetki sorunu değil, hesap uyuşmazlığı. Çözüm: CLI hesabından bağımsız olarak
+**DB şifresiyle pooler üzerinden** bağlanmak.
+
+- `supabase db dump` Docker istiyor → kullanılamadı.
+- Bunun yerine scratchpad'e `pg` kurulup doğrudan Postgres bağlantısı kuruldu
+  (`postgres.zfpnxzybcpkxsotwdsey@aws-1-eu-central-1.pooler.supabase.com:5432`).
+- DB şifresi `.env.local` içine `SUPABASE_DB_PASSWORD` olarak yazıldı (gitignore'da).
+
+**Uygulama yöntemi:** 45 ve 46 önce `begin; … rollback;` ile **deneme çalıştırıldı**
+(hatasız), sonra `begin; … commit;` ile tek transaction'da uygulandı.
+
+**Doğrulanan sonuçlar (canlı DB):**
+- `cron.job`: `bildim-hafta-sifirla` **gitti**; `bildim-hafta-kapat` (`0 21 * * 0`) ve
+  `bildim-hafta-bildir` (`0 6 * * 1`) **aktif**.
+- `ulkeler` 85 satır, `sehirler` TR 81 il, `questions` 1.701 soru (hepsi `dil='tr'`),
+  `gorulen_sorular` / `lig_arsiv` boş (beklenen).
+- Uçtan uca RPC testi (gerçek kullanıcı kimliği taklit edilip **rollback** edildi):
+  `get_categories` 11 kategori / 1.701 soru, `profil_konum_kaydet('TR','Balıkesir')` ✓,
+  `lig_siralama('sehir'|'global')` ✓ (dünyada 21 bot-olmayan oyuncu),
+  `benim_lig_durumum` ✓, `sehir_lig_sirasi` ✓, `soru_sec('tarih',20)` → 20 soru ✓.
+  Şehir doğrulaması da çalışıyor: 'Balikesir' (Türkçe karaktersiz) **reddedildi**.
+  → Test rollback edildiği için kullanıcının konumu **değişmedi**, uygulama soracak.
+- **`hesabimi_sil()` → `'tam'` dönecek.** Fonksiyon `postgres` rolüne ait ve o rol
+  `auth.users` üzerinde DELETE yapabiliyor (rollback'li test edildi). **Edge Function
+  GEREKMİYOR.** Migration 46'nın başlığı bu doğrulamayla güncellendi.
+
+**Migration geçmişi onarıldı:** `supabase_migrations.schema_migrations` tablosu yalnızca
+000030'a kadar kayıtlıydı (31-44 SQL Editor'den elle uygulandığı için kaydedilmemiş).
+`supabase migration repair --status applied` ile 31,32,33,35-46 kaydedildi.
+**34 (Gladius `gl_temel`) bilerek kaydedilmedi: canlıda gerçekten YOK** — `gl_profiller`,
+`gl_odalar`, `gl_maclar` tabloları mevcut değil. Gladius zaten DEMO ve backend kullanmıyor
+(`App.jsx` içinde `bagimsizModul`), bu yüzden bir şey bozulmuyor; ama Gladius'a backend
+eklenecekse önce 034 uygulanmalı. Bundan sonra `npx supabase db push --db-url ...` sadece
+bekleyen migration'ları uygular.
+
+**Gerçek soru sayıları (tahmin değil):** bilim 329, tarih 266, genel 221, cografya 217,
+edebiyat 172, spor 161, sanat 136, sinema 55, teknoloji 54, muzik 54, karisik 36 →
+**toplam 1.701**. `scripts/soru-parti-sablonu.md` bu gerçek sayılarla güncellendi.
+
+**Kalan tek manuel iş:** yok. Sadece siteyi aç, ilk girişte şehir modalı çıkacak.
+(Deploy/`git push` hâlâ YAPILMADI — istersen söyle.)

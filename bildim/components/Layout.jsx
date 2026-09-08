@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { useAuth } from "../../src/context/AuthContext.jsx";
 import { supabase } from "../../src/lib/supabase.js";
 import RankUpOverlay from "./RankUpOverlay.jsx";
+import PuanSayaci from "./PuanSayaci.jsx";
 
 export default function Layout() {
   const { profile, user } = useAuth();
@@ -58,7 +59,9 @@ export default function Layout() {
         </Link>
         {profile && (
           <Link to="/bildim/profil" style={{ textDecoration: "none", color: "inherit" }}>
-            <span className="puan-chip">⭐ {profile.puan}</span>
+            <span className="puan-chip">
+              ⭐ <PuanSayaci deger={profile.puan} />
+            </span>
           </Link>
         )}
       </header>

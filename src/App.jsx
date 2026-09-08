@@ -43,6 +43,8 @@ import HizliMacPage from "../bildim/pages/HizliMacPage.jsx";
 import LeaderboardPage from "../bildim/pages/LeaderboardPage.jsx";
 import FriendsPage from "../bildim/pages/FriendsPage.jsx";
 import ProfilePage from "../bildim/pages/ProfilePage.jsx";
+// Gizlilik politikası: Google Play kaydı için giriş duvarının ÖNÜNDE erişilebilir olmalı.
+import GizlilikPage from "../bildim/pages/GizlilikPage.jsx";
 
 export default function App() {
   const { session, loading } = useAuth();
@@ -50,8 +52,12 @@ export default function App() {
 
   // Gladius ve RUN bağımsız modüllerdir: Supabase/oturum kullanmazlar,
   // bu yüzden giriş duvarının önünde açılabilirler.
+  // /gizlilik de giriş gerektirmez: Google Play mağaza kaydı bu adresi
+  // oturum açmadan görebilmelidir.
   const bagimsizModul =
-    pathname.startsWith("/gladius") || pathname.startsWith("/run");
+    pathname.startsWith("/gladius") ||
+    pathname.startsWith("/run") ||
+    pathname.startsWith("/gizlilik");
 
   if (!supabaseHazir && !bagimsizModul) {
     return (
@@ -128,6 +134,9 @@ export default function App() {
           </Suspense>
         }
       />
+      {/* Gizlilik politikası (statik, giriş gerektirmez) — Play Store için. */}
+      <Route path="/gizlilik" element={<GizlilikPage />} />
+
       {/* idaGG Game Center: sitenin ana giriş sayfası (oyun portalı). */}
       <Route path="/" element={<GameCenter />} />
       {/* Birleşik puan sıralaması (tüm oyunlar) — profil ikonundan açılır. */}

@@ -1,134 +1,291 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../../src/lib/supabase.js";
 import { useAuth } from "../../src/context/AuthContext.jsx";
 import Avatar from "../../src/components/Avatar.jsx";
 import RankBadge from "../components/RankBadge.jsx";
+import KonumSecici from "../components/KonumSecici.jsx";
+import { bayrak, haftaBitisi, sureMetni } from "../lib/konum.js";
+
+const KAPSAMLAR = [
+  { id: "sehir", etiket: "ŞEHİR", ikon: "🏙️" },
+  { id: "ulke", etiket: "ÜLKE", ikon: "🏳️" },
+  { id: "global", etiket: "DÜNYA", ikon: "🌍" },
+  { id: "arkadas", etiket: "ARKADAŞ", ikon: "👥" },
+];
+
+const DONEMLER = [
+  { id: "hafta", etiket: "BU HAFTA" },
+  { id: "tum_zamanlar", etiket: "TÜM ZAMANLAR" },
+];
 
 export default function LeaderboardPage() {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const navigate = useNavigate();
-  const [sekme, setSekme] = useState("genel");
+  const [kapsam, setKapsam] = useState("global");
+  const [donem, setDonem] = useState("hafta");
   const [liste, setListe] = useState([]);
+  const [sehirSirasi, setSehirSirasi] = useState(null);
   const [yukleniyor, setYukleniyor] = useState(true);
   const [hata, setHata] = useState(null);
+  const [konumAc, setKonumAc] = useState(false);
+  const [kalanHafta, setKalanHafta] = useState(() => haftaBitisi().getTime() - Date.now());
+
+  const konumVar = Boolean(profile?.ulke && profile?.sehir);
+
+  useEffect(() => {
+    const id = setInterval(
+      () => setKalanHafta(haftaBitisi().getTime() - Date.now()),
+      60000
+    );
+    return () => clearInterval(id);
+  }, []);
 
   const meydanOku = async (hedefId) => {
     setHata(null);
-    const { data, error } = await supabase.rpc("create_challenge", {
-      p_rakip: hedefId,
-      p_kategori: null,
-    });
-    if (error) setHata(error.message);
-    else if (data) navigate(`/bildim/mac/${data}`);
+    try {
+      const { data, error } = await supabase.rpc("create_challenge", {
+        p_rakip: hedefId,
+        p_kategori: null,
+      });
+      if (error) throw error;
+      if (data) navigate(`/bildim/mac/${data}`);
+    } catch (e) {
+      setHata(e.message ?? "Meydan okuma başlatılamadı.");
+    }
   };
 
+  // Arkadaş sekmesi eski davranışını korur (profiles üzerinden).
+  const arkadasListesi = useCallback(async () => {
+    const { data: dostluklar, error } = await supabase
+      .from("friendships")
+      .select("requester, addressee")
+      .eq("durum", "arkadas")
+      .or(`requester.eq.${user.id},addressee.eq.${user.id}`);
+    if (error) throw error;
+    const idler = new Set([user.id]);
+    (dostluklar ?? []).forEach((f) => {
+      idler.add(f.requester);
+      idler.add(f.addressee);
+    });
+    const kolon =
+      donem === "hafta"
+        ? "id, username, avatar_url, puan, puan_hafta, sampiyonluk, sehir, ulke"
+        : "id, username, avatar_url, puan, sampiyonluk, sehir, ulke";
+    const { data, error: hata2 } = await supabase
+      .from("profiles")
+      .select(kolon)
+      .in("id", [...idler])
+      .order(donem === "hafta" ? "puan_hafta" : "puan", { ascending: false });
+    if (hata2) throw hata2;
+    return (data ?? []).map((p, i) => ({
+      sira: i + 1,
+      user_id: p.id,
+      username: p.username,
+      avatar_url: p.avatar_url,
+      puan: donem === "hafta" ? (p.puan_hafta ?? 0) : p.puan,
+      sehir: p.sehir,
+      ulke: p.ulke,
+      ben: p.id === user.id,
+    }));
+  }, [user.id, donem]);
+
   useEffect(() => {
+    let aktif = true;
     const yukle = async () => {
       setYukleniyor(true);
-      if (sekme === "genel") {
-        const { data } = await supabase
-          .from("profiles")
-          .select("id, username, avatar_url, puan, sampiyonluk")
-          .order("puan", { ascending: false })
-          .limit(50);
-        setListe(data ?? []);
-      } else if (sekme === "hafta") {
-        const { data } = await supabase
-          .from("profiles")
-          .select("id, username, avatar_url, puan, puan_hafta, sampiyonluk")
-          .order("puan_hafta", { ascending: false })
-          .limit(50);
-        setListe(data ?? []);
-      } else {
-        const { data: dostluklar } = await supabase
-          .from("friendships")
-          .select("requester, addressee")
-          .eq("durum", "arkadas")
-          .or(`requester.eq.${user.id},addressee.eq.${user.id}`);
-        const idler = new Set([user.id]);
-        (dostluklar ?? []).forEach((f) => {
-          idler.add(f.requester);
-          idler.add(f.addressee);
-        });
-        const { data } = await supabase
-          .from("profiles")
-          .select("id, username, avatar_url, puan, sampiyonluk")
-          .in("id", [...idler])
-          .order("puan", { ascending: false });
-        setListe(data ?? []);
+      setHata(null);
+      setSehirSirasi(null);
+      try {
+        if (kapsam === "arkadas") {
+          const satirlar = await arkadasListesi();
+          if (aktif) setListe(satirlar);
+        } else {
+          if ((kapsam === "sehir" || kapsam === "ulke") && !konumVar) {
+            if (aktif) setListe([]);
+            return;
+          }
+          const { data, error } = await supabase.rpc("lig_siralama", {
+            p_kapsam: kapsam,
+            p_donem: donem,
+          });
+          if (error) throw error;
+          if (aktif) setListe(data ?? []);
+
+          if (kapsam === "sehir") {
+            const { data: sehirler, error: sHata } = await supabase.rpc(
+              "sehir_lig_sirasi",
+              { p_donem: donem }
+            );
+            if (!sHata && aktif) {
+              setSehirSirasi((sehirler ?? []).find((s) => s.benim_sehrim) ?? null);
+            }
+          }
+        }
+      } catch (e) {
+        if (aktif) {
+          setListe([]);
+          setHata(e.message ?? "Sıralama yüklenemedi.");
+        }
+      } finally {
+        if (aktif) setYukleniyor(false);
       }
-      setYukleniyor(false);
     };
     yukle();
-  }, [sekme, user.id]);
+    return () => {
+      aktif = false;
+    };
+  }, [kapsam, donem, konumVar, arkadasListesi]);
+
+  const benimSatirim = liste.find((s) => s.ben || s.user_id === user.id);
+  const ilk100 = liste.filter((s) => s.sira <= 100);
+  const podyum = ilk100.slice(0, 3);
+  const kalanlar = ilk100.slice(3);
+
+  const satir = (s, vurgu = false) => (
+    <div
+      key={`${s.user_id}-${vurgu ? "ben" : "liste"}`}
+      className={`bd-lig-satir ${s.user_id === user.id ? "ben" : ""}`}
+    >
+      <span className="bd-sira">{s.sira}</span>
+      <Avatar profile={{ username: s.username, avatar_url: s.avatar_url }} boyut={38} />
+      <div className="bd-lig-bilgi">
+        <div className="bd-lig-isim">
+          {s.username} {s.user_id === user.id && <span className="bd-sen">sen</span>}
+        </div>
+        <div className="bd-lig-detay">
+          <RankBadge puan={s.puan} />
+          {s.ulke && (
+            <span className="bd-konum-etiket">
+              {bayrak(s.ulke)} {s.sehir ?? ""}
+            </span>
+          )}
+        </div>
+      </div>
+      <span className="bd-lig-puan">⭐ {s.puan}</span>
+      {s.user_id !== user.id && (
+        <button
+          className="bd-ikon-btn"
+          title="Meydan oku"
+          aria-label={`${s.username} oyuncusuna meydan oku`}
+          onClick={() => meydanOku(s.user_id)}
+        >
+          ⚔️
+        </button>
+      )}
+    </div>
+  );
 
   return (
-    <div>
-      <div className="baslik">📊 Sıralama</div>
+    <div className="bd-lig">
+      <div className="baslik">📊 Lig</div>
+
       {hata && <div className="hata-kutu">{hata}</div>}
-      <div className="sekmeler">
-        <button
-          className={`sekme ${sekme === "genel" ? "aktif" : ""}`}
-          onClick={() => setSekme("genel")}
-        >
-          🌍 Genel
-        </button>
-        <button
-          className={`sekme ${sekme === "hafta" ? "aktif" : ""}`}
-          onClick={() => setSekme("hafta")}
-        >
-          📅 Bu Hafta
-        </button>
-        <button
-          className={`sekme ${sekme === "arkadas" ? "aktif" : ""}`}
-          onClick={() => setSekme("arkadas")}
-        >
-          👥 Arkadaşlar
-        </button>
+
+      <div className="bd-sekme-ust">
+        {KAPSAMLAR.map((k) => (
+          <button
+            key={k.id}
+            className={`bd-sekme ${kapsam === k.id ? "aktif" : ""}`}
+            onClick={() => setKapsam(k.id)}
+          >
+            <span aria-hidden="true">{k.ikon}</span>
+            {k.etiket}
+          </button>
+        ))}
       </div>
 
-      {yukleniyor ? (
+      <div className="bd-sekme-alt">
+        {DONEMLER.map((d) => (
+          <button
+            key={d.id}
+            className={`bd-alt-sekme ${donem === d.id ? "aktif" : ""}`}
+            onClick={() => setDonem(d.id)}
+          >
+            {d.etiket}
+          </button>
+        ))}
+      </div>
+
+      {donem === "hafta" && (
+        <div className="bd-hafta-serit">
+          ⏳ Hafta bitimine <b>{sureMetni(kalanHafta)}</b> kaldı — ilk 3 rozet kazanır.
+        </div>
+      )}
+
+      {kapsam === "sehir" && sehirSirasi && (
+        <div className="bd-sehir-serit">
+          {bayrak(sehirSirasi.ulke)} <b>{sehirSirasi.sehir}</b>{" "}
+          {donem === "hafta" ? "bu hafta" : "tüm zamanlarda"} ülkende{" "}
+          <b>{sehirSirasi.sira}.</b> sırada ({sehirSirasi.sehir_sayisi} şehir içinde) ·{" "}
+          {sehirSirasi.oyuncu_sayisi} oyuncu · ⭐ {sehirSirasi.toplam_puan}
+        </div>
+      )}
+
+      {(kapsam === "sehir" || kapsam === "ulke") && !konumVar ? (
+        <div className="kart bd-bos">
+          <div style={{ fontSize: 34, marginBottom: 8 }}>🏙️</div>
+          <div style={{ fontWeight: 700, marginBottom: 6 }}>
+            Şehir ve ülke ligleri için konumunu seç
+          </div>
+          <div className="alt-yazi" style={{ marginBottom: 12 }}>
+            Hangi şehir için yarıştığını söyle, şehrinin ve ülkenin sıralamasına gir.
+          </div>
+          <button className="btn" onClick={() => setKonumAc(true)}>
+            Şehrimi seç
+          </button>
+        </div>
+      ) : yukleniyor ? (
         <div className="yukleniyor">Yükleniyor…</div>
-      ) : liste.length === 0 ? (
+      ) : ilk100.length === 0 ? (
         <div className="alt-yazi" style={{ textAlign: "center", padding: 24 }}>
           Burada henüz kimse yok.
         </div>
       ) : (
-        liste.map((p, i) => (
-          <div
-            key={p.id}
-            className="liste-satir"
-            style={p.id === user.id ? { borderColor: "var(--primary)" } : {}}
-          >
-            <span className={`sira-no ${i < 3 ? "ilk3" : ""}`}>
-              {i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : i + 1}
-            </span>
-            <Avatar profile={p} boyut={38} />
-            <div className="bilgi">
-              <div className="isim">
-                {p.username} {p.id === user.id && "(sen)"}
-              </div>
-              <div className="detay">
-                <RankBadge puan={p.puan} />
-                {p.sampiyonluk > 0 && <span> · 🏆 {p.sampiyonluk}</span>}
-              </div>
+        <>
+          {podyum.length === 3 && (
+            <div className="bd-podyum">
+              {[podyum[1], podyum[0], podyum[2]].map((p, i) => {
+                const basamak = [2, 1, 3][i];
+                return (
+                  <div
+                    key={p.user_id}
+                    className={`bd-podyum-yer yer-${basamak} ${
+                      p.user_id === user.id ? "ben" : ""
+                    }`}
+                  >
+                    <div className="bd-podyum-madalya">
+                      {basamak === 1 ? "🥇" : basamak === 2 ? "🥈" : "🥉"}
+                    </div>
+                    <Avatar
+                      profile={{ username: p.username, avatar_url: p.avatar_url }}
+                      boyut={basamak === 1 ? 62 : 50}
+                    />
+                    <div className="bd-podyum-ad">{p.username}</div>
+                    <div className="bd-podyum-puan">⭐ {p.puan}</div>
+                    <div className="bd-podyum-kaide">{basamak}</div>
+                  </div>
+                );
+              })}
             </div>
-            <span style={{ fontWeight: 800 }}>
-              ⭐ {sekme === "hafta" ? (p.puan_hafta ?? 0) : p.puan}
-            </span>
-            {p.id !== user.id && (
-              <button
-                className="btn kucuk"
-                style={{ padding: "7px 10px" }}
-                title="Meydan oku"
-                onClick={() => meydanOku(p.id)}
-              >
-                ⚔️
-              </button>
-            )}
+          )}
+
+          <div className="bd-lig-liste">
+            {(podyum.length === 3 ? kalanlar : ilk100).map((s) => satir(s))}
           </div>
-        ))
+        </>
+      )}
+
+      {benimSatirim && !yukleniyor && (
+        <div className="bd-benim-satir">{satir(benimSatirim, true)}</div>
+      )}
+
+      {konumAc && (
+        <div className="bd-modal-katman" role="dialog" aria-modal="true">
+          <div className="bd-modal">
+            <KonumSecici mod="kart" onKapat={() => setKonumAc(false)} />
+          </div>
+        </div>
       )}
     </div>
   );

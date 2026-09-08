@@ -280,22 +280,41 @@ export default function ChallengesPage() {
       <div className="baslik">⚔️ Meydan Okuma</div>
       {hata && <div className="hata-kutu">{hata}</div>}
 
-      <div className="kategori-cips">
+      {/* Kategori seçimi 1v1, grup ve hızlı modun HEPSİ için geçerlidir. */}
+      <div className="bd-kat-baslik">
+        <span>🎯 Kategori</span>
+        <span className="alt-yazi">1v1 · grup · hızlı mod için</span>
+      </div>
+      <div className="bd-kat-grid">
         <button
-          className={`cip ${kategori === null ? "aktif" : ""}`}
+          className={`bd-kat-kart ${kategori === null ? "aktif" : ""}`}
           onClick={() => setKategori(null)}
         >
-          🎯 Karışık
+          <span className="bd-kat-ad">🎲 Karışık</span>
+          <span className="bd-kat-alt">Tüm kategoriler</span>
         </button>
-        {kategoriler.map((k) => (
-          <button
-            key={k.kategori}
-            className={`cip ${kategori === k.kategori ? "aktif" : ""}`}
-            onClick={() => setKategori(k.kategori)}
-          >
-            {KATEGORI_ETIKET[k.kategori] ?? k.kategori}
-          </button>
-        ))}
+        {kategoriler.map((k) => {
+          const toplam = Number(k.soru_sayisi ?? 0);
+          const gorulen = Number(k.gorulen_sayisi ?? 0);
+          const yuzde = toplam > 0 ? Math.round((gorulen / toplam) * 100) : 0;
+          return (
+            <button
+              key={k.kategori}
+              className={`bd-kat-kart ${kategori === k.kategori ? "aktif" : ""}`}
+              onClick={() => setKategori(k.kategori)}
+            >
+              <span className="bd-kat-ad">
+                {KATEGORI_ETIKET[k.kategori] ?? k.kategori}
+              </span>
+              <span className="bd-kat-alt">
+                {toplam} soru · %{yuzde} çözüldü
+              </span>
+              <span className="bd-kat-bar">
+                <span className="dolgu" style={{ width: `${yuzde}%` }} />
+              </span>
+            </button>
+          );
+        })}
       </div>
 
       {botlar
