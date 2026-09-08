@@ -549,3 +549,108 @@ butonlari) ortak stilden muaf tutuldu.
 - `bildim/pages/ProfilePage.jsx` — "Hesap kimligin" etiketi
 - `bildim/styles/tema.css` — ortak link stili
 - `store/ANDROID_YAYIN.md`, `store/MAGAZA_METINLERI.md` — gizlilik URL'si
+
+---
+
+## 2026-09-08 — Revize paketi #2
+
+### 1) KÖK NEDEN: `position: fixed` modaller ekran dışında açılıyordu (KRİTİK)
+
+Kullanıcının teşhisi doğruydu. `bildim/styles/tema.css`:
+
+```css
+@keyframes bd-sayfa-gir { from { opacity:0; transform: translateY(10px) } ... }
+.sayfa > * { animation: bd-sayfa-gir 0.15s ... both; }
+```
+
+`transform` içeren keyframe + `animation-fill-mode: both`, uygulandığı elemanı
+**containing block** yapıyor; içindeki `position: fixed` katman artık viewport'a
+değil o elemana göre konumlanıyordu. Ölçüm: modal `top: -916px`. Kullanıcı
+hesabını pratikte silemiyordu.
+
+**Düzeltme (iki katmanlı):**
+1. Giriş animasyonundan `transform` çıkarıldı — yalnız `opacity`
+   (`.sayfa > *` ve `.bd-giris-1..4`). Artık containing block oluşmuyor.
+2. `components/Modal.jsx` eklendi: **her modal `createPortal` ile
+   `document.body`'ye** basılıyor, Esc ile kapanıyor, açıkken arka plan
+   kaydırması kilitleniyor. Bu, aynı sınıf hatanın tekrarını kökten engelliyor.
+
+**Portala taşınan modaller** (tarandı, tamamı):
+
+| Modal | Dosya |
+|---|---|
+| Hesap silme onayı | `pages/ProfilePage.jsx` |
+| Şehir seçimi (lig) | `pages/LeaderboardPage.jsx` |
+| Şehir seçimi (bileşen) | `components/KonumSecici.jsx` |
+| Kurulum sihirbazı (takma ad / avatar / şehir) | `components/KurulumSihirbazi.jsx` |
+| Rakip arama | `components/RakipAra.jsx` (zaten portaldı) |
+| Tanıtım (onboarding) | `components/Tanitim.jsx` (kendi tam ekran katmanı) |
+
+**DOĞRULAMA — 390×844, gerçek viewport:**
+
+Önce kök neden testi: animasyonlu (`fill-mode: both`) bir kabın içindeki
+`position: fixed` katman, sayfa 900px kaydırılmışken:
+
+| | top | bottom | viewport'a göre mi? |
+|---|---|---|---|
+| Önce (bildirilen) | **-916** | — | hayır |
+| Sonra | **0** | **844** | **evet** |
+
+Sonra gerçek modal işaretlemesiyle dört senaryo:
+
+| Senaryo | Katman (top→bottom) | İçerik (top→bottom) | Ekran içinde |
+|---|---|---|---|
+| Animasyonlu kap içinde, sayfa üstünde | 0 → 844 | 343 → 501 | ✅ |
+| Animasyonlu kap içinde, 900px kaydırılmış | 0 → 844 | 343 → 501 | ✅ |
+| body'ye portal, 900px kaydırılmış | 0 → 844 | 343 → 501 | ✅ |
+| body'ye portal, sayfa sonunda (2500px) | 0 → 844 | 343 → 501 | ✅ |
+
+### 3) "Hızlı Olan Kazanır" hiç oynanamıyordu (KRİTİK)
+
+Doğrulandı: `hizli_maclar_oyuncu_sayisi_check` = **5 zorunlu** (4 rakip),
+sistemde yalnız **3 bot** vardı. Arkadaşı olmayan oyuncu modu kuramıyordu.
+Aynı sorun 5 kişilik grup maçında da vardı.
+
+**Seçenek (b) uygulandı — 2 yeni bot** (migration 068).
+GEREKÇE: (a) modu 3-5 esnek yapmak DB kısıtını, ilk-doğru puanlamasını ve
+"5 kişi" yazan tüm arayüz metinlerini değiştirmeyi gerektirirdi; (c) otomatik
+doldurma yeni bir arayüz akışı demekti. İki profil satırı eklemek **mevcut
+kısıtlara, akışa ve metinlere hiç dokunmadan** her iki modu da açıyor.
+
+Zorluk dağılımı artık: AcemiBot 0.25 · ÇaylakBot 0.40 · KurtBot 0.55 ·
+BilgeBot 0.70 · UstaBot 0.90 (her biri farklı şehir → şehir liglerine de katkı).
+
+**DOĞRULAMA** — arkadaşı olmayan hesapla, yalnız botlarla:
+
+| Mod | oyuncu_sayisi | durum | katılımcı |
+|---|---|---|---|
+| Hızlı Olan Kazanır | 5 | bekliyor | **5/5** |
+| Grup maçı (5 kişi) | 5 | bekliyor | **5/5** |
+
+### 4) Kaydırırken üstte beyaz flaş
+
+Sebep: zemin gradyanı yalnız `body`'de ve `background-attachment: fixed`;
+repaint sırasında altındaki **`html` elemanının varsayılan beyaz zemini**
+görünüyordu. Sabit üst bloğun `backdrop-filter`'ı repaint'i sıklaştırıyordu.
+
+Düzeltme: `html`'e `background-color: #0a0818` + `color-scheme: dark`;
+`.bd-ust-blok`'a `will-change: transform` + `translateZ(0)` (kendi kompozisyon
+katmanı). DOĞRULAMA: 6 kaydırma karesinde üst şeritteki eleman her seferinde
+`topbar`, zemin `rgb(10,8,24)`; ekran görüntüsünde beyaz alan yok.
+
+### 2, 5, 6, 7, 8 — önceki oturumda düzeltilmişti, canlı kodda doğrulandı
+
+Kullanıcının testi `e6d4aae` deploy'u yayılmadan yapılmış. Yeniden ölçüldü:
+
+| # | Konu | Doğrulama |
+|---|---|---|
+| 2 | Grup/hızlı maçta bot ilerleme kilidi | SQL testi: insan cevap vermezken maç **0. soruda `aktif`** kalıyor (önce 19. soruya gidip bitiyordu). Migration 066 canlıda. |
+| 5 | Manifest linki | `useBildimManifest()` Layout'ta; Bildim rotasında `/bildim.webmanifest` + `#7c4dff`, hub'a dönünce eski değerler |
+| 6 | Bildirimde ham anahtar | Canlı kayıt: **"🎖️ Genel Kültür kategorisinde Çırak oldun!"** (migration 067) |
+| 7 | Gizlilik metni | "Kullanıcı adın" ifadesi **0 kez** geçiyor; "Takma adın / avatar" düzeni yerinde |
+| 8 | Link kontrastı | `--bd-baglanti: #c9b8ff`, ortak `a` stili; ölçülen kontrast **8.93:1** |
+
+> **Migration numarası notu:** görev metni "migration 065" diyordu; 065
+> (`davet_iptal`) ve 066/067 önceki oturumlarda kullanıldığı için bu oturumun
+> yeni migration'ı **068** oldu. Studio'da elle çalıştırmaya gerek yok —
+> kalıcı talimat gereği doğrudan uygulandı ve geçmişe kaydedildi.

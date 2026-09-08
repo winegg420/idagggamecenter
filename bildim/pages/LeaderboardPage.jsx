@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import Modal from "../components/Modal.jsx";
 import { hataMesaji } from "../lib/hata.js";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../../src/lib/supabase.js";
@@ -307,11 +308,11 @@ export default function LeaderboardPage() {
       )}
 
       {konumAc && (
-        <div className="bd-modal-katman" role="dialog" aria-modal="true">
+        <Modal onKapat={() => setKonumAc(false)} etiket="Şehir seçimi">
           <div className="bd-modal">
             <KonumSecici mod="kart" onKapat={() => setKonumAc(false)} />
           </div>
-        </div>
+        </Modal>
       )}
     </div>
   );

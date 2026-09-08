@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import Modal from "./Modal.jsx";
 import { hataMesaji } from "../lib/hata.js";
 import { supabase } from "../../src/lib/supabase.js";
 import { useAuth } from "../../src/context/AuthContext.jsx";
@@ -172,9 +173,9 @@ export default function KonumSecici({ mod = "kart", onKapat, onKaydedildi }) {
 
   if (mod === "modal") {
     return (
-      <div className="bd-modal-katman" role="dialog" aria-modal="true">
+      <Modal onKapat={onKapat} etiket="Şehir seçimi">
         <div className="bd-modal">{govde}</div>
-      </div>
+      </Modal>
     );
   }
   return <div className="kart bd-konum-kart">{govde}</div>;

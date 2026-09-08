@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import Modal from "./Modal.jsx";
 import { hataMesaji } from "../lib/hata.js";
 import { supabase } from "../../src/lib/supabase.js";
 import { useAuth } from "../../src/context/AuthContext.jsx";
@@ -147,7 +148,7 @@ export default function KurulumSihirbazi({ onTamam }) {
   const serbestSehir = sehirler.length === 0;
 
   return (
-    <div className="bd-modal-katman" role="dialog" aria-modal="true">
+    <Modal etiket="Kurulum">
       <div className="bd-modal bd-sihirbaz">
         <div className="bd-adim-cizgi" aria-hidden="true">
           {[1, 2, 3].map((a) => (
@@ -314,6 +315,6 @@ export default function KurulumSihirbazi({ onTamam }) {
           </div>
         )}
       </div>
-    </div>
+    </Modal>
   );
 }

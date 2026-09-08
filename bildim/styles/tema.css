@@ -125,12 +125,18 @@ body::before {
    SAYFA GEÇİŞİ — fade + slide (150 ms)
    ============================================================ */
 
+/* DİKKAT — buradaki keyframe'de TRANSFORM KULLANILMAZ.
+   `transform` içeren bir animasyon + `animation-fill-mode`, uygulandığı
+   elemanı "containing block" yapar; içindeki `position: fixed` katmanlar
+   (modaller) artık viewport'a değil o elemana göre konumlanır. Bu yüzden
+   "Hesabımı Sil" modalı ekranın 916px yukarısında açılıyordu ve kullanıcı
+   hesabını silemiyordu. Giriş etkisi yalnız opacity ile veriliyor. */
 @keyframes bd-sayfa-gir {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: none; }
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 .sayfa > * {
-  animation: bd-sayfa-gir 0.15s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  animation: bd-sayfa-gir 0.18s ease-out both;
 }
 
 /* ============================================================
@@ -883,10 +889,10 @@ body.bd-oyun-modu .bd-toast-kat { display: none; }
 .app .lider-satir .sira-no.ilk3 { filter: drop-shadow(0 2px 6px rgba(251, 191, 36, 0.55)); }
 
 /* ---------- Girişte kademeli belirme ---------- */
-.bd-giris-1 { animation: bd-sayfa-gir 0.28s cubic-bezier(0.2, 0.8, 0.2, 1) 0s both; }
-.bd-giris-2 { animation: bd-sayfa-gir 0.28s cubic-bezier(0.2, 0.8, 0.2, 1) 0.05s both; }
-.bd-giris-3 { animation: bd-sayfa-gir 0.28s cubic-bezier(0.2, 0.8, 0.2, 1) 0.1s both; }
-.bd-giris-4 { animation: bd-sayfa-gir 0.28s cubic-bezier(0.2, 0.8, 0.2, 1) 0.15s both; }
+.bd-giris-1 { animation: bd-sayfa-gir 0.28s ease-out 0s both; }
+.bd-giris-2 { animation: bd-sayfa-gir 0.28s ease-out 0.05s both; }
+.bd-giris-3 { animation: bd-sayfa-gir 0.28s ease-out 0.1s both; }
+.bd-giris-4 { animation: bd-sayfa-gir 0.28s ease-out 0.15s both; }
 
 @media (prefers-reduced-motion: reduce) {
   .app .logo,
@@ -1884,4 +1890,33 @@ body::before {
   color: var(--bd-baglanti);
   font-weight: 700;
   text-decoration: underline;
+}
+
+/* ============================================================
+   KAYDIRIRKEN ÜSTTE BEYAZ FLAŞ
+   Hızlı kaydırmada ekranın üst yarısı bir kare boyunca beyaz kalıyordu.
+   Sebep: zemin gradyanı yalnız `body`'de ve `background-attachment: fixed`;
+   repaint sırasında altındaki `html` elemanının varsayılan BEYAZ zemini
+   görünüyordu. Sabit üst blok (backdrop-filter) repaint'i sıklaştırıyordu.
+   ============================================================ */
+
+html {
+  background-color: #0a0818;   /* --bd-zemin ile aynı; kök zemin asla beyaz olmasın */
+  color-scheme: dark;          /* tarayıcı varsayılanları da koyu */
+}
+body { background-color: #0a0818; }
+
+/* Sabit üst blok kendi kompozisyon katmanında kalsın: blur her karede
+   yeniden hesaplanmasın, altındaki içerik flaş yapmasın. */
+.bd-ust-blok {
+  will-change: transform;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+
+/* Nokta dokusu katmanı da sabit; kendi katmanında kalsın */
+body::before { will-change: opacity; }
+
+@media (prefers-reduced-motion: reduce) {
+  .bd-ust-blok { will-change: auto; }
 }

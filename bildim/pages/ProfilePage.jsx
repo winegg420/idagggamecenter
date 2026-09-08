@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import Modal from "../components/Modal.jsx";
 import { hataMesaji } from "../lib/hata.js";
 import { Link } from "react-router-dom";
 import { supabase } from "../../src/lib/supabase.js";
@@ -248,7 +249,7 @@ export default function ProfilePage() {
       </button>
 
       {silOnay && (
-        <div className="bd-modal-katman" role="dialog" aria-modal="true">
+        <Modal onKapat={siliniyor ? undefined : () => { setSilOnay(false); setSilMetin(""); }} etiket="Hesap silme onayı">
           <div className="bd-modal">
             <div className="bd-konum-baslik">🗑️ Hesabını silmek üzeresin</div>
             <div className="bd-konum-aciklama">
@@ -297,7 +298,7 @@ export default function ProfilePage() {
               </button>
             </div>
           </div>
-        </div>
+        </Modal>
       )}
     </div>
   );
