@@ -922,3 +922,36 @@ Esikler uc seviyeliydi (Kolay/Orta/Zor), bes bot ucune sikisiyordu.
 Oyun akisi tarafinda bilinen acik kalmadi. Kalan tek engel **kod disinda**:
 imza anahtari SHA-256'sinin `assetlinks.json`'a yazilmasi, `VITE_H5_ADS_CLIENT`
 ve Play Console urun kimlikleri (`store/ANDROID_YAYIN.md`).
+
+---
+
+## 9 Eylul 2026 — Genel kultur kategorisi kalite revizyonu
+
+**Sikayet (canli test):** "genel kultur kisminda asiri basit, kultur olmayan
+sorular var."
+
+**Dogrulama:** 1.354 aktif `genel_kultur` sorusu tarandi; ortalama uzunluk 40
+karakter, en kisasi 12. Ornekler: "Bir hafta kac gundur?", "At yavrusuna ne
+denir?", "Istanbul'un plaka kodu kactir?", "Batman hangi sehri korur?".
+
+**Yapilan:**
+- Kalip taramasiyla 78 asiri basit soru bulundu ve **pasife alindi** (silinmedi
+  — gecmis mac kayitlari `questions` satirina bagli).
+  - `20260612000074`: 73 soru (birim/sayma, hayvan yavrusu, gundelik esya,
+    plaka kodu, temel geometri, temel gida)
+  - `20260612000075`: 5 soru (son tarama: ev esyasi ve basit gozlem)
+- Yerine **122 orta zorlukta soru** eklendi: tarih, sanat, edebiyat, mitoloji,
+  uluslararasi kurumlar, uygarlik mirasi, bilim tarihi, hukuk/ekonomi kavramlari.
+
+**Karar — neden pasif, neden silme degil:** `match_answers` ve turnuva kayitlari
+`question_id` uzerinden `questions`'a bagli. Silmek gecmis mac gecmisini bozar;
+`aktif = false` soruyu havuzdan cikarir ama kaydi korur (057'deki uygulamayla ayni).
+
+**Cikarim — soru uretiminde tekrar riski:** ilk turda uretilen 185 sorunun 63'u
+mevcut havuzla ortusuyordu. Yeni parti uretirken **once havuzu tazele**
+(`cek.mjs`) ve hem birebir metin hem anahtar kelime ortusme suzgecinden gecir;
+sadece `on conflict (soru) do nothing`'e guvenmek yetmiyor cunku ayni soru farkli
+kelimelerle yeniden yazilinca catisma tetiklenmiyor.
+
+**Sonuc:** `genel_kultur` aktif 1.354 → 1.398; tum havuz 5.193 → 5.237.
+Dogru sik dagilimi dengeli (350/349/351/353).
