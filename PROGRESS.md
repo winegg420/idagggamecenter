@@ -1305,3 +1305,56 @@ Zincirin tamamı birlikte denendi: hatasız. Sonuç: soru havuzu **1.701 → 3.2
 4. `boks/` klasöründeki 9 dosya hâlâ commit edilmemiş durumda — bu görevin kapsamı
    dışındaydı, dokunulmadı.
 5. Push/deploy istersen söyle.
+
+## 2026-09-08 — Bildim Görev 2 / Faz 1: Joker ekonomisi, seri, rövanş, ustalık, hızlı mod (DB)
+
+Migration'lar: `20260612000052_joker_ekonomisi.sql`, `…053_seri_rovans_ustalik.sql`,
+`…054_hizli_mod.sql` + Edge Function `satin_alma_dogrula`.
+
+### Kararlar ve gerekçeleri
+
+- **Yeni `joker_kullanimlari` tablosu, eski `match_jokers` korunarak.** Mevcut
+  `match_jokers` / `group_match_jokers` birincil anahtarı `(mac_id, user_id, tip)` —
+  yani maç başına her türden 1. Bu, "arkadaş maçında sınırsız joker" kuralıyla
+  çelişiyordu. Eski tablolar ve `use_joker` / `use_group_joker` RPC'leri **silinmedi**
+  (geriye uyumluluk); yeni akış `joker_kullan()` + `joker_kullanimlari` üzerinden gider.
+- **Tek giriş noktası `joker_kullan(mac_tur, mac_id, soru_index, tur)`.** Maç doğrulama,
+  süre penceresi, "zaten cevapladın", maç sınırı, ücretsiz hak, envanter düşümü ve
+  **silinecek iki şıkkın seçimi** tamamen sunucuda. İstemci hiçbir şey hesaplamıyor.
+- **Maç sınırı `joker_mac_siniri()` ile tek yerden:** grup → sınırsız (null);
+  hızlı/turnuva → 2; 1v1 → rakip arkadaşsa sınırsız, bot/rastgele eşleşme ise 2 (lig maçı);
+  **turnuva finali (hayatta ≤2 oyuncu) → 0 (yasak)**.
+- **`pas` turnuvada yasak** — turnuvada yanlış cevap elenmek demek; pas jokeri oyuncuyu
+  eleyeceği için anlamsız olurdu. (Prompt'ta yoktu; en az yıkıcı seçim.)
+- **Doğru cevap sayımı ve seri, cevap RPC'leri yeniden yazılmadan trigger'la** bağlandı:
+  `match_answers` / `group_match_answers` / `hizli_cevaplar` / `tournament_answers`
+  üzerine AFTER INSERT trigger'ları kategori ustalığını işliyor; seri ise 047'de kurulan
+  `mac_sayaci_arttir()` genişletilerek (maç bitiş trigger'ları) güncelleniyor.
+- **Seri koruma yalnız 1 günü kapatır:** `seri_kontrol()` yalnızca `seri_son_gun = bugün-2`
+  (tam olarak bir gün kaçırılmış) durumunda koruma harcıyor; 2+ gün kaçıranda koruma varsa
+  bile seri sıfırlanıyor. Testle kanıtlandı.
+- **Eski `profiles.seri` / `son_seri_tarihi` bozulmadı**, yeni `seri_gun` / `seri_son_gun` /
+  `seri_en_uzun` ile senkron tutuluyor — mevcut arayüz çalışmaya devam ediyor.
+- **Hızlı Mod lig puanına dokunmuyor.** `profiles.puan` / `puan_hafta` hiç yazılmıyor;
+  skorlar `hizli_mod_skorlar` tablosunda haftalık tutuluyor, kendi sıralaması var.
+  Süre kontrolü sunucuda (`soru_baslangic + 6 sn` ağ payı, toplam 60 sn).
+- **Satın alma:** fiyat kodda YOK; `joker_paketleri` tablosu yalnız ürün kimliği ve içerik
+  tutuyor, fiyatı Play Console belirliyor. `joker_ekle` ve `satin_alma_isle`
+  `authenticated`'a **verilmedi**, yalnız `service_role` çağırabiliyor.
+- **Edge Function sahte onay vermiyor:** `PLAY_SERVICE_ACCOUNT` / `PLAY_PACKAGE_NAME`
+  secret'ları yoksa 503 ve açık hata döner. Makbuz Play Developer API
+  `purchases.products.get` ile doğrulanır, `purchaseState = 0` şartı aranır, token
+  tekrarı hem açık kontrol hem `unique` kısıtla reddedilir.
+
+### Doğrulama
+
+`bildim/_test/joker-kurallari-test.sql` + `…test.mjs` yazıldı ve canlı veritabanında
+**tek transaction içinde çalıştırılıp rollback edildi** (canlı veri değişmedi):
+**14/14 test geçti** — lig maçında 3. joker reddi, arkadaş maçında sınırsızlık, ücretsiz
+elli tükenmesi, günde 6. reklam ödülü reddi, aynı reklam referansının tekrarlanamaması,
+aynı Play token'ın iki kez kabul edilmemesi, seri korumanın yalnız 1 günü kapatması,
+2 günde sıfırlanma, turnuva finalinde sınırın 0 olması ve jokerin reddi, final dışında
+sınırın 2 olması, turnuvada pas yasağı, envanter düşümünün denetim izine yazılması,
+hızlı modun lig puanını değiştirmemesi.
+
+`npm run build` temiz. Migration'lar **uygulanmadı**.
