@@ -1920,3 +1920,119 @@ body::before { will-change: opacity; }
 @media (prefers-reduced-motion: reduce) {
   .bd-ust-blok { will-change: auto; }
 }
+
+/* ============================================================
+   SON 5 SANİYE — heyecan
+   Ekran kenarları kızarır, süre halkası kalp gibi atar, ortada büyük
+   geri sayım belirir. Cevap verildiyse tetiklenmez.
+   ============================================================ */
+
+.bd-son-saniyeler { position: relative; }
+
+/* Kızaran kenarlar — içeriği örtmez (pointer-events yok) */
+.bd-son-perde {
+  position: fixed;
+  inset: 0;
+  z-index: 5;
+  pointer-events: none;
+  background:
+    radial-gradient(120% 85% at 50% 50%, transparent 55%, rgba(255, 90, 95, 0.34) 100%);
+  animation: bd-kalp-atisi 1s ease-in-out infinite;
+}
+@keyframes bd-kalp-atisi {
+  0%, 100% { opacity: 0.35; }
+  14% { opacity: 0.9; }   /* birinci vuruş */
+  28% { opacity: 0.45; }
+  42% { opacity: 0.75; }  /* ikinci vuruş (lup-dup) */
+  60% { opacity: 0.35; }
+}
+
+/* Ortadaki büyük geri sayım rakamı — her saniye yeniden basar */
+.bd-geri-sayim {
+  position: absolute;
+  left: 50%; top: 42%;
+  transform: translate(-50%, -50%);
+  z-index: 6;
+  pointer-events: none;
+  font-family: var(--bd-f-baslik);
+  font-size: 132px;
+  font-weight: 800;
+  line-height: 1;
+  color: rgba(255, 255, 255, 0.14);
+  text-shadow: 0 0 40px rgba(255, 90, 95, 0.55);
+  animation: bd-sayim-vur 1s cubic-bezier(0.2, 0.9, 0.3, 1) both;
+}
+@keyframes bd-sayim-vur {
+  0% { opacity: 0; transform: translate(-50%, -50%) scale(1.5); }
+  18% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+  100% { opacity: 0; transform: translate(-50%, -50%) scale(0.86); }
+}
+
+/* Süre halkası ve sayı da nabız atsın */
+.bd-son-saniyeler .bd-sure-halka {
+  animation: bd-halka-nabiz 1s ease-in-out infinite;
+}
+@keyframes bd-halka-nabiz {
+  0%, 100% { transform: scale(1); }
+  14% { transform: scale(1.12); }
+  28% { transform: scale(1.02); }
+  42% { transform: scale(1.08); }
+}
+.bd-son-saniyeler .bd-sure-sayi.kritik {
+  color: var(--bd-hata);
+  text-shadow: 0 0 14px rgba(255, 90, 95, 0.8);
+}
+
+/* Soru kartı hafifçe kızarsın */
+.bd-son-saniyeler .bd-soru-metin {
+  box-shadow: 0 14px 34px rgba(6, 4, 18, 0.5),
+              inset 0 1px 0 rgba(255, 255, 255, 0.08),
+              0 0 0 2px rgba(255, 90, 95, 0.34);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bd-son-perde { animation: none; opacity: 0.5; }
+  .bd-geri-sayim { animation: none; opacity: 0.6; }
+  .bd-son-saniyeler .bd-sure-halka { animation: none; }
+}
+
+/* ============================================================
+   YARIM KALAN MAÇ — "sıra sende" vurgusu
+   ============================================================ */
+
+.bd-sira-sende {
+  display: inline-flex; align-items: center; gap: 4px;
+  margin-left: 6px; padding: 2px 8px;
+  font-size: 10.5px; font-weight: 800; letter-spacing: 0.2px;
+  color: #241606;
+  background: linear-gradient(135deg, #ffd873, var(--bd-odul));
+  border-radius: var(--bd-r-tam);
+  animation: bd-sira-nabiz 1.8s ease-in-out infinite;
+}
+@keyframes bd-sira-nabiz {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.06); }
+}
+
+.app .liste-satir.sirasende {
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06),
+              0 0 0 1.5px rgba(255, 200, 61, 0.5);
+}
+
+/* Ana sayfadaki "devam eden maçın var" şeridi */
+.bd-devam-eden {
+  display: flex; align-items: center; gap: 10px;
+  margin: 0 0 14px;
+  padding: 13px 15px;
+  text-decoration: none;
+  color: var(--bd-metin);
+  font-size: 14px; font-weight: 700;
+  border-radius: 18px;
+  background: linear-gradient(120deg, rgba(255, 200, 61, 0.2), rgba(26, 20, 54, 0.88));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+.bd-devam-eden .ok { margin-left: auto; color: var(--bd-metin-3); }
+
+@media (prefers-reduced-motion: reduce) {
+  .bd-sira-sende { animation: none; }
+}

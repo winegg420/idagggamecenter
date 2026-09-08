@@ -796,3 +796,72 @@ sayiliyordu).
 |---|---|---|
 | 070 | `hizli_mac_rls_ozyineleme` | canliya uygulandi + gecmise kaydedildi |
 | 071 | `hizli_cevap_ambiguous` | canliya uygulandi + gecmise kaydedildi |
+
+---
+
+## 2026-09-09 — Asenkron mac + son 5 saniye heyecani + telefon bildirimi
+
+**Istek:** "Oyuncular ayni anda oynayamiyor, gecikme/kopma oluyor. Mac tek taraf
+icin devam etsin, digeri sonradan oynasin. Yarim kalan musabaka gozuksun,
+tiklayip girilebilsin. Son 5 saniye sayi saysin, heyecan yaratsin. Bildirim
+telefona ve oyun ici zile muhakkak gelsin."
+
+### 1) 1v1 mac artik ASENKRON (migration 072)
+
+**Onceki durum:** `matches.aktif_soru` ve `soru_baslangic` iki oyuncu icin
+ORTAKTI, soru suresi 16 sn. Baglantisi kopan ya da o an oynamayan taraf
+sorulari kaciriyor, mac onsuz akip bitiyordu.
+
+**Yeni davranis:** her oyuncu KENDI hizinda oynar.
+- `oyuncu1_soru` / `oyuncu2_soru` — kendi sira indeksi
+- `oyuncu1_baslangic` / `oyuncu2_baslangic` — 16 sn, oyuncu soruyu **kendi
+  actigi andan** itibaren isler (kopan baglanti ceza olmuyor)
+- Mac, **iki taraf da** kendi sorularini bitirince biter
+- Bir taraf bitirip digeri 24 saat oynamazsa mac kapanir (terk)
+- `mac_soruyu_atla`: sure dolunca yalniz KENDI siran atlanir, rakip beklenmez
+- `aktif_soru` kolonu silinmedi; "en ileri oyuncu" gostergesi olarak kaldi
+- `bot_oyna` da asenkrona uyarlandi: bot kendi indeksiyle oynar ve **insan
+  oyuncunun sirasini gecemez**
+
+**DOGRULAMA — iki oyuncu farkli hizda:**
+
+| Adim | Beklenen | Sonuc |
+|---|---|---|
+| O1 bes soru oynadi | O2 etkilenmez | o1=5, o2=0, mac `aktif` ✅ |
+| O2 gecikmeli geldi, 3 soru oynadi | kendi sirasindan devam | **kendi 4. sorusu** (index 3) geldi, hicbir soru kacirilmadi ✅ |
+| Bagimsiz ilerleme | ayri cevap sayilari | o1=5 cevap, o2=3 cevap ✅ |
+| Iki taraf da bitirdi | mac biter | `bitti`, kazanan belirlendi ✅ |
+
+### 2) Yarim kalan musabakalar gorunuyor
+- **Meydan Oku > Devam Eden**: her satirda `6/20 soru` ilerlemesi, sira sende
+  ise altin **"SIRA SENDE"** rozeti ve "Devam et →" butonu; degilse
+  "rakip oynuyor" ve "Gor →".
+- **Ana sayfa**: hero'nun hemen altinda "Yarim kalan macin var — sira sende!"
+  seridi (birden fazlaysa sayiyi yazar), tiklayinca dogrudan maca girer.
+- **Mac ekrani**: kendi bolumun bitmisse "Senin bolumun bitti 🎉" ekrani —
+  skor tablosu ve "rakip kendi zamaninda oynayinca sonuclanacak" aciklamasi.
+
+### 3) Son 5 saniye heyecani
+- Ekran kenarlari **kalp atisi ritminde** kizarir (`lup-dup`: 1 sn'de iki vurus).
+- Ortada dev geri sayim rakami her saniye buyuyup soner.
+- Sure halkasi nabiz gibi atar, sayi kirmizi parlar, soru karti kirmizi cerceve alir.
+- Cevap verildikten sonra tetiklenmez; `prefers-reduced-motion` saygili.
+- Tarayicida dogrulandi: `bd-kalp-atisi` + `bd-halka-nabiz` animasyonlari aktif,
+  geri sayim 132px.
+
+### 4) Bildirim: telefon + oyun ici zil (migration 073)
+- `bildirim_yaz` artik **tek kaynak**: hem `bildirimler` tablosuna yazar hem
+  `send-push` Edge Function'ini `pg_net` ile cagirir (atesle-unut). Push
+  basarisiz olsa bile uygulama ici bildirim her halukarda duser.
+- Her bildirim tipine uygun baslik: "⚔️ Meydan okuma!", "⏳ Sira sende!",
+  "🤝 Arkadaslik istegi", "🏆 Hafta bitti" …
+- **Yeni: "sira sende" bildirimi** — asenkron macta rakip hamlesini yapinca
+  henuz oynamamis tarafa bildirim gider (ayni mac icin en fazla saatte bir,
+  spam olmasin). Tetikleyici testte doğrulandi:
+  `"idagg hamlesini yapti — sira sende! ⏳"` → `/bildim/mac/<id>`
+
+### Migration'lar
+| No | Dosya | Durum |
+|---|---|---|
+| 072 | `asenkron_1v1` | canliya uygulandi + gecmise kaydedildi |
+| 073 | `bildirim_push` | canliya uygulandi + gecmise kaydedildi |

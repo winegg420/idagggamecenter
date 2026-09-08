@@ -154,21 +154,31 @@ export default function MatchPage() {
     };
   }, [id, macYukle, balonGoster]);
 
-  // Soru değişince çek
+  // Soru değişince çek — ASENKRON: kendi sıra indeksimize bağlı
+  const kendiIndeks =
+    mac && mac.oyuncu1 === user.id ? (mac.oyuncu1_soru ?? 0) : (mac?.oyuncu2_soru ?? 0);
   useEffect(() => {
-    if (!mac || mac.durum !== "aktif" || mac.aktif_soru < 0) {
+    if (!mac || mac.durum !== "aktif") {
+      setSoru(null);
+      return;
+    }
+    // Kendi bölümümüz bittiyse soru çekme (sunucu da hata döndürür)
+    if (kendiIndeks >= (mac.soru_ids?.length ?? 0)) {
       setSoru(null);
       return;
     }
     advanceKilidi.current = false;
     setCevapladim(false);
-    if (pollRef.current) clearInterval(pollRef.current);
     supabase
       .rpc("get_match_question", { p_match_id: mac.id })
       .then(({ data, error }) => {
-        if (!error && data?.[0]) setSoru(data[0]);
+        if (error) {
+          console.error("[Bildim] soru alinamadi:", error);
+          return;
+        }
+        if (data?.[0]) setSoru(data[0]);
       });
-  }, [mac?.id, mac?.durum, mac?.aktif_soru, mac?.soru_baslangic]);
+  }, [mac?.id, mac?.durum, kendiIndeks, mac?.soru_ids?.length]);
 
   useOyunModu(Boolean(soru) && mac?.durum === "aktif");
 
@@ -185,8 +195,13 @@ export default function MatchPage() {
     }
   }, [mac?.durum, refreshProfile, user.id]);
 
+  // Asenkron akışta ortak ilerletme yok; advance_match yalnız BİTİŞ kontrolü
+  // yapıyor. Rakip kendi bölümünü bitirmiş olabilir diye ara ara yoklanır.
   const ilerletmeyiDene = useCallback(() => {
-    supabase.rpc("advance_match", { p_match_id: id }).then(() => macYukle());
+    supabase
+      .rpc("advance_match", { p_match_id: id })
+      .then(() => macYukle())
+      .catch(() => {});
   }, [id, macYukle]);
 
   const cevapla = async (i) => {
@@ -196,17 +211,20 @@ export default function MatchPage() {
     });
     if (error) throw error;
     setCevapladim(true);
-    // Rakip de cevapladıysa erken ilerlesin diye periyodik kontrol
-    if (pollRef.current) clearInterval(pollRef.current);
-    pollRef.current = setInterval(ilerletmeyiDene, 2500);
+    // Kendi sıramız sunucuda ilerledi; bir sonraki soruyu çekmek için tazele.
+    setTimeout(macYukle, 900);
     return data?.[0];
   };
 
+  // Asenkron maç: süre dolunca YALNIZ kendi sıramız atlanır, rakip beklenmez.
   const sureDoldu = useCallback(() => {
     if (advanceKilidi.current) return;
     advanceKilidi.current = true;
-    setTimeout(ilerletmeyiDene, Math.random() * 800 + 1000);
-  }, [ilerletmeyiDene]);
+    supabase
+      .rpc("mac_soruyu_atla", { p_match_id: id })
+      .then(() => macYukle())
+      .catch((e) => console.error("[Bildim] soru atlanamadi:", e));
+  }, [id, macYukle]);
 
   if (!mac) {
     return (
@@ -342,6 +360,38 @@ export default function MatchPage() {
     );
   }
 
+  // Asenkron maç: kendi bölümümüz bitti ama rakip henüz oynamadı.
+  // Maç burada kapanmaz — rakip kendi zamanında oynayınca sonuçlanır.
+  const benimSoru = benP1 ? (mac.oyuncu1_soru ?? 0) : (mac.oyuncu2_soru ?? 0);
+  if (mac.durum === "aktif" && benimSoru >= toplamSoru) {
+    return (
+      <div className="buyuk-mesaj">
+        <Maskot poz="selam" boyut={104} className="bd-sonuc-maskot" />
+        <h2>Senin bölümün bitti 🎉</h2>
+        <p className="alt-yazi" style={{ marginBottom: 14 }}>
+          {toplamSoru} sorunun tamamını oynadın. <b>{rakipProfil?.gorunen_ad}</b> kendi
+          zamanında oynayınca maç sonuçlanacak — bittiğinde sana haber vereceğiz.
+        </p>
+        <div className="skor-tabela bd-vs" style={{ maxWidth: 360, margin: "0 auto 16px" }}>
+          <div className="taraf bd-vs-taraf">
+            <div className="isim">{benimProfil?.gorunen_ad} (sen)</div>
+            <div className="skor">{benimSkor}</div>
+            <div className="bd-vs-ilerleme">{ilerleme.ben}/{toplamSoru}</div>
+          </div>
+          <div className="vs bd-vs-rozet">VS</div>
+          <div className="taraf bd-vs-taraf">
+            <div className="isim">{rakipProfil?.gorunen_ad}</div>
+            <div className="skor">{rakipSkor}</div>
+            <div className="bd-vs-ilerleme">{ilerleme.rakip}/{toplamSoru}</div>
+          </div>
+        </div>
+        <button className="btn" onClick={() => navigate("/bildim/meydan")}>
+          Yeni maça başla
+        </button>
+      </div>
+    );
+  }
+
   // Aktif maç
   const rakipOnde = ilerleme.rakip > ilerleme.ben;
 
@@ -362,8 +412,9 @@ export default function MatchPage() {
             <Ikon ad="saat" boyut={18} />
           </span>
           <span style={{ flex: 1 }}>
-            <b>{rakipProfil?.gorunen_ad}</b> {ilerleme.rakip} soruyu tamamladı — sıra sende.
-            Bu maç sıra beklemeden oynanır.
+            <b>{rakipProfil?.gorunen_ad}</b> {ilerleme.rakip} soruyu tamamladı.
+            Bu maç sıra beklemeden oynanır — sen kendi hızında devam et,
+            rakibin de kendi zamanında oynar.
           </span>
           <button
             className="btn kucuk ikincil"
@@ -419,7 +470,7 @@ export default function MatchPage() {
 
       {cevapladim && (
         <div className="alt-yazi" style={{ textAlign: "center", marginTop: 14 }}>
-          Rakibin cevaplaması bekleniyor…
+          Sıradaki soru geliyor…
         </div>
       )}
 

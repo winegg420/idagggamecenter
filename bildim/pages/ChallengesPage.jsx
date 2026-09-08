@@ -816,20 +816,32 @@ export default function ChallengesPage() {
       {aktif.length > 0 && (
         <>
           <div className="baslik">🎮 Devam Eden</div>
-          {aktif.map((m) => (
-            <div key={m.id} className="liste-satir">
-              <Avatar profile={rakip(m)} />
-              <div className="bilgi">
-                <div className="isim">{rakip(m)?.gorunen_ad}</div>
-                <div className="detay">
-                  {m.oyuncu1_skor} - {m.oyuncu2_skor}
+          {aktif.map((m) => {
+            // Asenkron maç: herkes kendi hızında oynar. Kendi sıramız bitmediyse
+            // "sıra sende" — yarım kalan müsabaka buradan sürdürülür.
+            const benP1 = m.oyuncu1 === user.id;
+            const benimSoru = benP1 ? (m.oyuncu1_soru ?? 0) : (m.oyuncu2_soru ?? 0);
+            const toplam = m.soru_ids?.length ?? 20;
+            const siraSende = benimSoru < toplam;
+            return (
+              <div key={m.id} className={`liste-satir ${siraSende ? "sirasende" : ""}`}>
+                <Avatar profile={rakip(m)} />
+                <div className="bilgi">
+                  <div className="isim">
+                    {oyuncuAdi(rakip(m), benP1 ? m.oyuncu2 : m.oyuncu1)}
+                    {siraSende && <span className="bd-sira-sende">SIRA SENDE</span>}
+                  </div>
+                  <div className="detay">
+                    {m.oyuncu1_skor} - {m.oyuncu2_skor} · {benimSoru}/{toplam} soru
+                    {!siraSende && " · rakip oynuyor"}
+                  </div>
                 </div>
+                <button className="btn kucuk" onClick={() => navigate(`/bildim/mac/${m.id}`)}>
+                  {siraSende ? "Devam et →" : "Gör →"}
+                </button>
               </div>
-              <button className="btn kucuk" onClick={() => navigate(`/bildim/mac/${m.id}`)}>
-                Oyna →
-              </button>
-            </div>
-          ))}
+            );
+          })}
         </>
       )}
 

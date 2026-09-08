@@ -26,6 +26,7 @@ export default function Home() {
   const [ligDurum, setLigDurum] = useState(null);
   const [gecenHafta, setGecenHafta] = useState(null);
   const [rakipAra, setRakipAra] = useState(false);
+  const [siraSendeMaclar, setSiraSendeMaclar] = useState([]);
   const [gorevlerAcik, setGorevlerAcik] = useState(false);
   // Ödülü alınmayı bekleyen görev sayısı (kapalıyken de görünür)
   const hazirOdul = gorevler.filter((g) => g.ilerleme >= g.hedef && !g.alindi).length;
@@ -40,6 +41,36 @@ export default function Home() {
   useEffect(() => {
     gorevleriYukle();
   }, [gorevleriYukle]);
+
+  // Asenkron maçlar: sırası BENDE olan yarım kalmış müsabakalar
+  const siraYukle = useCallback(async () => {
+    try {
+      const { data, error } = await supabase
+        .from("matches")
+        .select("id, oyuncu1, oyuncu2, oyuncu1_soru, oyuncu2_soru, soru_ids")
+        .eq("durum", "aktif")
+        .or("oyuncu1.eq." + user.id + ",oyuncu2.eq." + user.id)
+        .limit(10);
+      if (error) throw error;
+      const benim = (data ?? []).filter((m) => {
+        const benP1 = m.oyuncu1 === user.id;
+        const benimSoru = benP1 ? (m.oyuncu1_soru ?? 0) : (m.oyuncu2_soru ?? 0);
+        return benimSoru < (m.soru_ids?.length ?? 20);
+      });
+      setSiraSendeMaclar(benim);
+    } catch {
+      setSiraSendeMaclar([]); // sessiz geç — ana sayfa akışını bozmasın
+    }
+  }, [user.id]);
+
+  useEffect(() => {
+    siraYukle();
+    const kanal = supabase
+      .channel("sira-sende")
+      .on("postgres_changes", { event: "*", schema: "public", table: "matches" }, siraYukle)
+      .subscribe();
+    return () => supabase.removeChannel(kanal);
+  }, [siraYukle]);
 
   const odulAl = async (questId) => {
     const { error } = await supabase.rpc("claim_quest", { p_quest_id: questId });
@@ -270,6 +301,22 @@ export default function Home() {
           <Ikon ad="saat" boyut={13} /> Haftalık lig bitimine <b>{sureMetni(haftaKalan)}</b>
         </div>
       </section>
+
+      {/* Yarım kalan maçlar — sıra sendeyse en görünür yerde dursun */}
+      {siraSendeMaclar.length > 0 && (
+        <Link
+          to={"/bildim/mac/" + siraSendeMaclar[0].id}
+          className="bd-devam-eden bd-giris-2"
+        >
+          <span aria-hidden="true">⏳</span>
+          <span>
+            {siraSendeMaclar.length === 1
+              ? "Yarım kalan maçın var — sıra sende!"
+              : siraSendeMaclar.length + " maçta sıra sende!"}
+          </span>
+          <span className="ok" aria-hidden="true">›</span>
+        </Link>
+      )}
 
       {/* ---------- Oyun modları: 2 sütun, ikon + iki kelime ---------- */}
       <div className="bd-mod-grid bd-giris-2">

@@ -119,9 +119,27 @@ export default function QuestionCard({
   const dogruCevapVerdim = Boolean(sonuc) && secim === sonuc.dogru_cevap;
   const yanlisCevapVerdim = Boolean(sonuc) && secim !== null && secim !== sonuc.dogru_cevap;
 
+  // Son 5 saniye: ekran kenarları kızarır, sayaç kalp gibi atar, geri sayım büyür.
+  // Cevap verildikten sonra tetiklenmez (heyecan değil, rahatsızlık olurdu).
+  const sonDuzluk = kalan > 0 && kalan <= 5 && secim === null && !sonuc;
+  const geriSayim = Math.ceil(kalan);
+
   return (
-    <div className={`bd-soru ${dogruCevapVerdim ? "bd-dogru-cevap" : ""} ${yanlisCevapVerdim ? "bd-yanlis-cevap" : ""}`}>
+    <div
+      className={`bd-soru ${dogruCevapVerdim ? "bd-dogru-cevap" : ""} ${yanlisCevapVerdim ? "bd-yanlis-cevap" : ""} ${sonDuzluk ? "bd-son-saniyeler" : ""}`}
+    >
       <Konfeti aktif={dogruCevapVerdim} />
+
+      {/* Son 5 saniye: kızaran kenarlar + ortada büyük geri sayım */}
+      {sonDuzluk && (
+        <>
+          <div className="bd-son-perde" aria-hidden="true" />
+          <div className="bd-geri-sayim" key={geriSayim} aria-hidden="true">
+            {geriSayim}
+          </div>
+        </>
+      )}
+
       {/* Üst şerit: soru numarası + kalan süre halkası + ilerleme çubuğu */}
       <div className="bd-soru-ust">
         <div className="bd-soru-no">Soru {soru.soru_index + 1}</div>
