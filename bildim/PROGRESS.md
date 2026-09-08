@@ -311,3 +311,57 @@ yonetim paneli dili.
 **Yol boyunca yakalanan hata:** sonuc ekraninda `toplamSoru` tanimsiz kaliyordu
 (degisken yalniz aktif mac blogunda tanimliydi) — calisma aninda ReferenceError
 verirdi; degisken yukari tasindi.
+
+## Gorev 4 / Faz 4: kapanis
+
+**Build temiz.** Ilk acilis paketi 112 kB (uygulama) + onbelleklenebilir
+react/router/supabase parcalari.
+
+### Migration sirasi ve durumu
+| No | Dosya | Durum |
+|---|---|---|
+| 059-062 | `soru_parti13..16` | canliya uygulandi (onceki oturum) |
+| 063 | `davet_bildirimleri` | canliya uygulandi |
+| **064** | **`yayin_oncesi_duzeltmeler`** | **canliya uygulandi** |
+
+Hepsi `supabase migration repair --status applied` ile gecmise islendi.
+**Not:** `20260612000034` (Gladius `gl_temel`) hala uygulanmamis durumda —
+Bildim kapsami disinda, bilerek dokunulmadi.
+
+### Senin yapman gerekenler (kod tarafinda is kalmadi)
+
+**1. Android / Play Console** — adim adim: `store/ANDROID_YAYIN.md`
+- `npm i -g @bubblewrap/cli`
+- `bubblewrap init --manifest https://idagg-game-center.vercel.app/bildim.webmanifest`
+  (Play Billing icin `--enablePlayBilling`)
+- `keytool -genkeypair ... -keystore ~/bildim-release.keystore -alias bildim`
+  → **anahtari ve parolayi yedekle, kaybedersen uygulamayi guncelleyemezsin**
+- `keytool -list -v ... | grep SHA256` → cikan parmak izini
+  `public/.well-known/assetlinks.json` icindeki yer tutucuya yaz ve deploy et
+- `bubblewrap build` → `app-release-bundle.aab`
+
+**2. Play Console icerikleri**
+- Magaza metinleri: `store/MAGAZA_METINLERI.md` (kopyala-yapistir)
+- 8 ekran goruntusu: `store/EKRAN_GORUNTULERI.md` listesine gore
+- Ozellik grafigi: `store/ozellik-grafigi.png` (1024x500, hazir)
+- Icerik derecelendirme + veri guvenligi: `store/ICERIK_DERECELENDIRME.md`
+- Uygulama ici urunler: `store/URUNLER.md` — kimlikler `joker_paketleri`
+  tablosundaki `kod` ile **birebir** ayni olmali
+
+**3. Ortam degiskenleri (Vercel)**
+- `VITE_H5_ADS_CLIENT` = AdSense yayinci kimligi (`ca-pub-...`).
+  Bos kaldigi surece reklam gosterilmez, sahte odul verilmez.
+- Play Developer API servis hesabi anahtari → Supabase secrets (satin alma
+  dogrulamasi icin).
+
+### Bu oturumda alinan kararlar
+- **Botlar ligde gorunur.** Bos lig olu duruyordu; botlar 🤖 rozetiyle listede.
+- **Haftalik ligde `puan_hafta > 0` sarti kaldirildi.** Hafta basinda lig
+  bosaliyordu; siralama yine haftalik puana gore, esitlik toplam puanla kirilir.
+- **Eslestirme 20 sn degil 8 sn** bekliyor, sonra bota dusuyor ve bunu ekranda
+  soyluyor.
+- **Joker cubugu sabit degil akista.** Sabitken C/D siklarinin ustune biniyordu;
+  dikkat dagitmamasi icin sabitlenmisti ama siklari gizlemek daha kotu.
+- **Ana sayfadaki "En Iyiler" listesi kaldirildi**, yerine tek satir lig ozeti
+  (prompt'un istegi) — uzun liste ana sayfayi panel gibi gosteriyordu.
+- **Ham SQL hatasi kullaniciya asla gosterilmiyor** (`lib/hata.js`).

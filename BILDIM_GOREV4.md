@@ -56,5 +56,5 @@
 - [x] 3.4 Build temiz + commit
 
 ## Faz 4 — Kapanış
-- [ ] 4.1 Build temiz, bu dosya dolu
-- [ ] 4.2 PROGRESS.md: kararlar, migration sırası, Bubblewrap komutları, manuel işler
+- [x] 4.1 Build temiz, bu dosya dolu
+- [x] 4.2 PROGRESS.md: kararlar, migration sırası, Bubblewrap komutları, manuel işler
