@@ -1487,3 +1487,30 @@ bubblewrap build --enablePlayBilling
 4. AdSense for Games başvurusu onaylanınca `VITE_H5_ADS_CLIENT`'ı doldur.
 5. TWA paketini `--enablePlayBilling` ile yeniden üret.
 6. `npm run test:bildim` ile kuralları istediğin zaman yeniden doğrulayabilirsin.
+
+## 2026-09-08 — Migration'lar CANLIYA UYGULANDI (047–055)
+
+Kullanıcı: *"migrationları sen uygula her zaman oto"* → bundan sonra migration'lar
+onay beklemeden uygulanıyor (kalıcı tercih olarak kaydedildi).
+
+**Uygulanan 9 migration** (tek transaction, önce `rollback` provası sonra `commit`):
+047 takma_ad_gizlilik · 048 genel_kultur_kategori · 049/050/051 soru partileri 10-11-12 ·
+052 joker_ekonomisi · 053 seri_rovans_ustalik · 054 hizli_mod · 055 seri_hatirlatma.
+`supabase migration repair` ile geçmişe kaydedildi.
+
+**Canlı doğrulama:**
+- Soru havuzu **3.201** (genel_kultur 900, `get_categories`'te ilk sırada).
+- `ulkeler` 85, `sehirler` TR 81 il, `joker_paketleri` 4 paket.
+- `lig_siralama('global','tum_zamanlar')` → **17 satır** (hiç oynamamışlar ligde yok;
+  `toplam_mac >= 1` olan 20 profil var, 3'ü bot).
+- `envanterim`, `seri_durumum`, `ustalik_seviyelerim` (12 kategori), `hizli_mod_ozetim`
+  hepsi çalışıyor.
+- pg_cron'da yeni işler aktif: `bildim-seri-kontrol` (05 21 = 00:05 TSİ),
+  `bildim-seri-hatirlat` (0 17 = 20:00 TSİ), `bildim-hafta-kapat`, `bildim-hafta-bildir`.
+
+**Hâlâ uygulanmayan tek migration: 034 (`gl_temel`, Gladius).** Canlıda `gl_*` tabloları
+yok; Gladius DEMO ve backend kullanmadığı için bilerek bırakıldı.
+
+**Kalan manuel işler (kod/DB dışı):** Edge Function deploy + `PLAY_SERVICE_ACCOUNT` /
+`PLAY_PACKAGE_NAME` secret'ları, Play Console'da 4 tüketilebilir ürün,
+`VITE_H5_ADS_CLIENT`, Bubblewrap `--enablePlayBilling`.
