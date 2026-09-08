@@ -9,6 +9,7 @@ import { sonrakiTurnuvaSeans } from "../lib/zaman.js";
 import { rutbeBul, sonrakiRutbe } from "../lib/ranks.js";
 import KonumSecici from "../components/KonumSecici.jsx";
 import { bayrak, haftaBitisi, sureMetni } from "../lib/konum.js";
+import RakipAra from "../components/RakipAra.jsx";
 
 export default function Home() {
   const { user, profile, refreshProfile } = useAuth();
@@ -25,6 +26,7 @@ export default function Home() {
   const [gorevler, setGorevler] = useState([]);
   const [ligDurum, setLigDurum] = useState(null);
   const [gecenHafta, setGecenHafta] = useState(null);
+  const [rakipAra, setRakipAra] = useState(false);
   const [haftaKalan, setHaftaKalan] = useState(
     () => haftaBitisi().getTime() - Date.now()
   );
@@ -149,11 +151,11 @@ export default function Home() {
     }
   };
 
-  const hemenOyna = async () => {
+  // Hemen Oyna: önce tercih edilen kategoride insan rakip aranır (20 sn),
+  // bulunamazsa karışığa/bota düşülür. Akış RakipAra bileşeninde.
+  const hemenOyna = () => {
     setMesaj(null);
-    const { data, error } = await supabase.rpc("quick_match");
-    if (error) setMesaj(error.message);
-    else if (data) navigate(`/bildim/mac/${data}`);
+    setRakipAra(true);
   };
 
   const adKaydet = async () => {
@@ -184,6 +186,17 @@ export default function Home() {
 
   return (
     <div className="anasayfa">
+
+      {rakipAra && (
+        <RakipAra
+          kategori={profile?.tercih_kategori ?? null}
+          onBulundu={(macId) => {
+            setRakipAra(false);
+            navigate(`/bildim/mac/${macId}`);
+          }}
+          onIptal={() => setRakipAra(false)}
+        />
+      )}
 
       {/* İlk girişte zorunlu: hangi şehir için yarışıyorsun? */}
       {konumEksik && <KonumSecici mod="modal" onKaydedildi={ligYukle} />}

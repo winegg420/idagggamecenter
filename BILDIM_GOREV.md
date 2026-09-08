@@ -36,10 +36,10 @@
 - [x] 1.20 `npm run build` temiz + PROGRESS eklendi + commit
 
 ## Faz 2 — Genel Kültür kategorisi (`20260612000048_genel_kultur_kategori.sql`)
-- [ ] 2.1 `genel_kultur` `get_categories`'e eklendi, listede en üstte ('genel'e DOKUNULMADI)
-- [ ] 2.2 Kategori seçicilerde seçilebilir, etiket "Genel Kültür", ikon 🧠
-- [ ] 2.3 "Hemen Oyna" `tercih_kategori` ile eşleştirir; 20 sn'de eşleşme yoksa karışık
-- [ ] 2.4 `npm run build` temiz + PROGRESS eklendi + commit
+- [x] 2.1 `genel_kultur` `get_categories`'e eklendi, listede en üstte ('genel'e DOKUNULMADI)
+- [x] 2.2 Kategori seçicilerde seçilebilir, etiket "Genel Kültür", ikon 🧠
+- [x] 2.3 "Hemen Oyna" `tercih_kategori` ile eşleştirir; 20 sn'de eşleşme yoksa karışık
+- [x] 2.4 `npm run build` temiz + PROGRESS eklendi + commit
 
 ## Faz 3 — 1.500 doğrulanmış soru
 - [ ] 3.0 Mevcut tüm `insert into public.questions` taranıp konu listesi çıkarıldı

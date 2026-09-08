@@ -1119,3 +1119,24 @@ Meydan okuma push'u (`notify_new_challenge`) aynen korundu.
 `profil_al` ve `birlesik_siralama` çalışıyor. Migration **uygulanmadı** (istek gereği).
 
 `npm run build` temiz.
+
+## 2026-09-08 — Bildim Faz 2: Genel Kültür kategorisi + kategoriye göre eşleştirme (`20260612000048`)
+
+- `genel` kategorisine **dokunulmadı**. Yeni anahtar `genel_kultur`; `get_categories`
+  sıralaması `order by (kategori = 'genel_kultur') desc, count(*) desc` ile onu her zaman
+  başa alıyor. Soruları Faz 3'te geldiği için şu an listede görünmüyor (`having count >= 15`).
+- Etiketler tek dosyaya taşındı: `bildim/lib/kategoriler.js` (`kategoriEtiket`,
+  `kategorileriSirala`). ChallengesPage'deki yerel `KATEGORI_ETIKET` haritası buraya geçti;
+  eksik olan sinema/müzik/teknoloji/karışık etiketleri de eklendi.
+- **Keşif:** `matchmaking_queue` tablosuna bugüne kadar **hiçbir yer satır eklemiyordu** —
+  yani "Hemen Oyna" her seferinde doğrudan bota düşüyordu, insan eşleştirmesi hiç çalışmamış.
+  `kuyruga_gir(p_kategori)` / `kuyruktan_cik()` / `kuyruk_durumum()` ile kuyruk ilk kez
+  gerçekten kullanılıyor.
+- Eşleştirme kuralı: önce **aynı kategoride** bekleyen rakip; yoksa **20 saniyedir** bekleyen
+  herhangi bir rakip (karışığa düşer); o da yoksa kuyrukta kalınır. İstemci
+  (`bildim/components/RakipAra.jsx`) 2 saniyede bir yokluyor, 20 saniye dolunca
+  `quick_match` ile bota/karışığa düşüyor. Böylece oyun asla 20 saniyeden fazla bekletmiyor.
+- `quick_match` imzası korundu; `p_kategori` verilmezse `profiles.tercih_kategori` kullanılıyor.
+
+`npm run build` temiz. Migration **uygulanmadı**; 47+48 birlikte geri alınan transaction
+içinde denendi, hatasız.

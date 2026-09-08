@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "../../src/lib/supabase.js";
 import { useAuth } from "../../src/context/AuthContext.jsx";
 import Avatar from "../../src/components/Avatar.jsx";
+import { kategoriEtiket, kategorileriSirala } from "../lib/kategoriler.js";
 
 const MAC_SECIMI = `*,
   p1:profiles!matches_oyuncu1_fkey(id, gorunen_ad, gorunen_avatar, puan),
@@ -23,15 +24,7 @@ const botZorluk = (isabet) =>
       ? { etiket: "Orta", renk: "var(--accent)" }
       : { etiket: "Zor", renk: "var(--danger)" };
 
-const KATEGORI_ETIKET = {
-  genel: "🎲 Genel",
-  bilim: "🔬 Bilim",
-  cografya: "🌍 Coğrafya",
-  tarih: "🏛️ Tarih",
-  edebiyat: "📚 Edebiyat",
-  spor: "⚽ Spor",
-  sanat: "🎨 Sanat",
-};
+// Kategori etiketleri ortak dosyada (bildim/lib/kategoriler.js)
 
 export default function ChallengesPage() {
   const { user } = useAuth();
@@ -293,7 +286,7 @@ export default function ChallengesPage() {
           <span className="bd-kat-ad">🎲 Karışık</span>
           <span className="bd-kat-alt">Tüm kategoriler</span>
         </button>
-        {kategoriler.map((k) => {
+        {kategorileriSirala(kategoriler).map((k) => {
           const toplam = Number(k.soru_sayisi ?? 0);
           const gorulen = Number(k.gorulen_sayisi ?? 0);
           const yuzde = toplam > 0 ? Math.round((gorulen / toplam) * 100) : 0;
@@ -304,7 +297,7 @@ export default function ChallengesPage() {
               onClick={() => setKategori(k.kategori)}
             >
               <span className="bd-kat-ad">
-                {KATEGORI_ETIKET[k.kategori] ?? k.kategori}
+                {kategoriEtiket(k.kategori)}
               </span>
               <span className="bd-kat-alt">
                 {toplam} soru · %{yuzde} çözüldü
