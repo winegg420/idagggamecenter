@@ -60,12 +60,18 @@
 - [x] 2.8 `npm run build` temiz + PROGRESS + commit
 
 ## Faz 3 — Test + kapanış
-- [ ] 3.1 Sunucu kuralı kanıtı: aynı maçta 3. joker reddedilir
-- [ ] 3.2 Günde 6. reklam ödülü reddedilir
-- [ ] 3.3 Aynı Play token iki kez kabul edilmez
-- [ ] 3.4 Seri koruma yalnız 1 gün kapatır
-- [ ] 3.5 Turnuva finalinde joker reddedilir
-- [ ] 3.6 Testler dosya olarak repoda + çalıştırıldı
-- [ ] 3.7 `npm run build` temiz; bu dosyadaki tüm kutular dolu
-- [ ] 3.8 PROGRESS.md: kararlar, değişen dosyalar, çalıştırma sırası (052→053→054), Edge Function deploy + secret'lar, Play ürün kimlikleri, Bubblewrap Play Billing bayrağı
-- [ ] 3.9 Son commit
+- [x] 3.1 Sunucu kuralı kanıtı: aynı maçta 3. joker reddedilir
+- [x] 3.2 Günde 6. reklam ödülü reddedilir
+- [x] 3.3 Aynı Play token iki kez kabul edilmez
+- [x] 3.4 Seri koruma yalnız 1 gün kapatır
+- [x] 3.5 Turnuva finalinde joker reddedilir
+- [x] 3.6 Testler dosya olarak repoda + çalıştırıldı
+- [x] 3.7 `npm run build` temiz; bu dosyadaki tüm kutular dolu
+- [x] 3.8 PROGRESS.md: kararlar, değişen dosyalar, çalıştırma sırası (052→053→054), Edge Function deploy + secret'lar, Play ürün kimlikleri, Bubblewrap Play Billing bayrağı
+- [x] 3.9 Son commit
+
+---
+
+**Tamamlandı: 8 Eylül 2026.** Tüm kutular dolu, npm run build temiz,
+sunucu kuralı testleri 14/14 (npm run test:bildim).
+Çalıştırma sırası: 052 → 053 → 054 → 055. Push/deploy YAPILMADI.

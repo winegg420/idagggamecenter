@@ -1395,3 +1395,95 @@ hızlı modun lig puanını değiştirmemesi.
 
 `.env.example`'a `VITE_H5_ADS_CLIENT` eklendi. `npm run build` temiz; sunucu kuralı
 testleri yeniden çalıştırıldı: **14/14**.
+
+## 2026-09-08 — Bildim Görev 2 / Faz 3: Kapanış
+
+`BILDIM_GOREV2.md` içindeki tüm kutular dolu. `npm run build` temiz.
+**Push / deploy / `db push` YAPILMADI.**
+
+### Sunucu kuralı testleri — 14/14 GEÇTİ
+
+`npm run test:bildim` (→ `bildim/_test/joker-kurallari-test.mjs` + `…test.sql`).
+Test, migration'ları ve senaryoları **tek transaction içinde çalıştırıp ROLLBACK eder**;
+canlı veri değişmez. Kanıtlananlar:
+
+| # | Kural |
+|---|-------|
+| 1 | Lig maçında **3. joker reddedilir** (sınır 2) |
+| 2 | Arkadaş maçında sınır yok |
+| 3 | Ücretsiz 50:50 maç başına 1 kez, birikmez |
+| 4 | **Günde 6. reklam ödülü reddedilir** (tavan 5) |
+| 5 | Aynı reklam referansı iki kez ödüllendirilemez |
+| 6 | **Aynı Play token iki kez kabul edilmez** |
+| 7 | **Seri koruma tam olarak 1 günü kapatır** (seri sürer) |
+| 8 | 2 gün kaçırılmışsa koruma varken bile seri sıfırlanır |
+| 9-10 | **Turnuva finalinde sınır 0 ve joker reddedilir** |
+| 11 | Final dışında turnuva sınırı 2 |
+| 12 | Turnuvada `pas` jokeri yasak |
+| 13 | Kullanım envanterden düşer ve denetim izine yazılır |
+| 14 | **Hızlı mod lig puanını değiştirmez** |
+
+### Supabase'de ÇALIŞTIRMA SIRASI
+
+Önce önceki paketin migration'ları (047 → 048 → 049 → 050 → 051) uygulanmalı,
+sonra bu paket:
+
+| # | Dosya | Ne yapar |
+|---|-------|----------|
+| 1 | `20260612000052_joker_ekonomisi.sql` | Joker envanteri, denetim izi, reklam sayacı, satın almalar, `joker_kullan` ve maç kuralları |
+| 2 | `20260612000053_seri_rovans_ustalik.sql` | Seri (+pg_cron 00:05), rövanş, ezeli rakip, kategori ustalığı |
+| 3 | `20260612000054_hizli_mod.sql` | Hızlı Mod oturum/skor tabloları ve RPC'leri |
+| 4 | `20260612000055_seri_hatirlatma.sql` | Akşam 20:00 seri hatırlatma cron'u |
+
+### Edge Function deploy
+
+```bash
+npx supabase functions deploy satin_alma_dogrula
+npx supabase secrets set PLAY_SERVICE_ACCOUNT="$(cat play-service-account.json)"
+npx supabase secrets set PLAY_PACKAGE_NAME="com.idagg.bildim"   # gerçek paket adı
+```
+
+Secret'lar yoksa fonksiyon **503 + açık hata** döner; sahte onay vermez.
+
+### Frontend ortam değişkeni
+
+`.env` içine (bkz. `.env.example`):
+
+```
+VITE_H5_ADS_CLIENT=ca-pub-XXXXXXXXXXXXXXXX
+```
+
+Boş bırakılırsa ödüllü video butonu **pasif** kalır ve sahte ödül verilmez.
+
+### Google Play Console'da oluşturulacak ürünler (tüketilebilir)
+
+| Ürün kimliği | İçerik |
+|--------------|--------|
+| `joker_10` | 4 × 50:50, 3 × +10 sn, 3 × pas |
+| `joker_30` | 12 × 50:50, 9 × +10 sn, 9 × pas |
+| `joker_100` | 40 × 50:50, 30 × +10 sn, 30 × pas |
+| `seri_koruma_3` | 3 × seri koruma |
+
+Fiyatlar **Play Console'da** belirlenir; kodda fiyat yoktur (`joker_paketleri`
+tablosu yalnız kimlik ve içerik tutar, arayüz fiyatı Digital Goods API'den okur).
+
+### Bubblewrap / TWA
+
+Play Billing'in TWA içinde çalışması için paketlerken:
+
+```bash
+bubblewrap init --manifest https://idagg-game-center.vercel.app/manifest.webmanifest
+bubblewrap build --enablePlayBilling
+```
+
+`--enablePlayBilling` olmadan `getDigitalGoodsService` tanımsız kalır ve arayüz
+"Android uygulamasında satın alınabilir" der (beklenen davranış).
+
+### Benim yapmam gerekenler
+
+1. 052 → 053 → 054 → 055 migration'larını sırayla çalıştır (ya da bana söyle, uygularım).
+2. `satin_alma_dogrula` Edge Function'ını deploy et + iki secret'ı gir.
+3. Play Console'da 4 tüketilebilir ürünü oluştur ve fiyatla.
+4. AdSense for Games başvurusu onaylanınca `VITE_H5_ADS_CLIENT`'ı doldur.
+5. TWA paketini `--enablePlayBilling` ile yeniden üret.
+6. `npm run test:bildim` ile kuralları istediğin zaman yeniden doğrulayabilirsin.

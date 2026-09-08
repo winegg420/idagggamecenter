@@ -60,6 +60,7 @@ const MIGRATIONLAR = [
   "supabase/migrations/20260612000052_joker_ekonomisi.sql",
   "supabase/migrations/20260612000053_seri_rovans_ustalik.sql",
   "supabase/migrations/20260612000054_hizli_mod.sql",
+  "supabase/migrations/20260612000055_seri_hatirlatma.sql",
 ];
 
 const parcalar = ["begin;"];
