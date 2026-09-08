@@ -12,6 +12,7 @@ import Ikon from "../components/Ikon.jsx";
 import RankBadge from "../components/RankBadge.jsx";
 import SeriRozeti from "../components/SeriRozeti.jsx";
 import EzeliRakip from "../components/EzeliRakip.jsx";
+import Maskot from "../components/Maskot.jsx";
 
 export default function Home() {
   const { user, profile, refreshProfile } = useAuth();
@@ -195,12 +196,14 @@ export default function Home() {
         <div className="bd-hero-isik" aria-hidden="true" />
 
         <div className="bd-hero-kimlik">
-          <div className="bd-hero-halka" style={{ "--halka": rutbe.renk }}>
-            <Avatar profile={profile} boyut={62} />
-          </div>
+          <Maskot poz="selam" boyut={78} className="bd-hero-maskot" />
           <div className="bd-hero-ad-blok">
+            <div className="bd-hero-selam">Hoş geldin,</div>
             <div className="bd-hero-ad">{profile?.gorunen_ad ?? "Oyuncu"}</div>
             <RankBadge puan={puan} />
+          </div>
+          <div className="bd-hero-halka" style={{ "--halka": rutbe.renk }}>
+            <Avatar profile={profile} boyut={54} />
           </div>
         </div>
 
@@ -271,29 +274,35 @@ export default function Home() {
 
       {/* ---------- Oyun modları: 2 sütun, ikon + iki kelime ---------- */}
       <div className="bd-mod-grid bd-giris-2">
-        <button className="bd-mod" onClick={() => navigate("/bildim/meydan")}>
-          <span className="bd-mod-ikon meydan"><Ikon ad="kilic" boyut={24} /></span>
+        <button className="bd-mod tema-meydan" onClick={() => navigate("/bildim/meydan")}>
+          <span className="bd-mod-ikon"><Ikon ad="kilic" boyut={26} /></span>
           <span className="bd-mod-ad">Meydan Oku</span>
+          <span className="bd-mod-slogan">Arkadaşını yen</span>
         </button>
-        <button className="bd-mod" onClick={() => navigate("/bildim/meydan")}>
-          <span className="bd-mod-ikon hizli"><Ikon ad="hizli" boyut={24} /></span>
+        <button className="bd-mod tema-hizli" onClick={() => navigate("/bildim/hizli-mod")}>
+          <span className="bd-mod-ikon"><Ikon ad="saat" boyut={26} /></span>
           <span className="bd-mod-ad">Hızlı Mod</span>
+          <span className="bd-mod-slogan">60 saniye</span>
         </button>
-        <button className="bd-mod" onClick={() => navigate("/bildim/meydan")}>
-          <span className="bd-mod-ikon grup"><Ikon ad="kisiler" boyut={24} /></span>
+        <button className="bd-mod tema-grup" onClick={() => navigate("/bildim/meydan")}>
+          <span className="bd-mod-ikon"><Ikon ad="kisiler" boyut={26} /></span>
           <span className="bd-mod-ad">Grup Maçı</span>
+          <span className="bd-mod-slogan">3-5 kişi</span>
         </button>
-        <button className="bd-mod" onClick={() => navigate("/bildim/turnuva")}>
-          <span className="bd-mod-ikon turnuva"><Ikon ad="kupa" boyut={24} /></span>
+        <button className="bd-mod tema-turnuva" onClick={() => navigate("/bildim/turnuva")}>
+          <span className="bd-mod-ikon"><Ikon ad="kupa" boyut={26} /></span>
           <span className="bd-mod-ad">Turnuva</span>
+          <span className="bd-mod-slogan">Son kalan kazanır</span>
         </button>
-        <button className="bd-mod" onClick={() => navigate("/bildim/hizli-mod")}>
-          <span className="bd-mod-ikon hizlimod"><Ikon ad="saat" boyut={24} /></span>
-          <span className="bd-mod-ad">Hızlı Mod</span>
-        </button>
-        <button className="bd-mod" onClick={() => navigate("/bildim/joker")}>
-          <span className="bd-mod-ikon joker"><Ikon ad="yildiz" boyut={24} /></span>
+        <button className="bd-mod tema-joker" onClick={() => navigate("/bildim/joker")}>
+          <span className="bd-mod-ikon"><Ikon ad="yildiz" boyut={26} /></span>
           <span className="bd-mod-ad">Joker Dükkânı</span>
+          <span className="bd-mod-slogan">Güçlen</span>
+        </button>
+        <button className="bd-mod tema-lig" onClick={() => navigate("/bildim/siralama")}>
+          <span className="bd-mod-ikon"><Ikon ad="grafik" boyut={26} /></span>
+          <span className="bd-mod-ad">Lig</span>
+          <span className="bd-mod-slogan">Sıranı gör</span>
         </button>
       </div>
 
@@ -348,14 +357,14 @@ export default function Home() {
                       <span>{g.alindi ? "✅ " : ""}{g.ad}</span>
                       <span className="alt-yazi">{g.ilerleme}/{g.hedef}</span>
                     </div>
-                    <div className="soru-sayac" style={{ height: 6, marginBottom: 0 }}>
+                    <div className="bd-gorev-bar">
                       <div
                         className="dolgu"
                         style={{
                           width: `${Math.min(100, (g.ilerleme / g.hedef) * 100)}%`,
                           background: g.alindi
-                            ? "var(--success)"
-                            : "linear-gradient(90deg, var(--primary), var(--accent))",
+                            ? "var(--bd-basari)"
+                            : "linear-gradient(90deg, var(--bd-vurgu), var(--bd-odul))",
                         }}
                       />
                     </div>
@@ -379,6 +388,12 @@ export default function Home() {
       {/* ---------- En İyiler ---------- */}
       <div className="bolum-baslik bd-giris-4"><span>🔥 En İyiler</span></div>
       <div className="kart">
+        {top5.length === 0 && (
+          <div className="bd-bos-durum">
+            <Maskot poz="dusunuyor" boyut={84} />
+            <p>Henüz sıralama oluşmadı — ilk maçı sen yap!</p>
+          </div>
+        )}
         {top5.map((p, i) => (
           <div key={p.id} className="lider-satir">
             <span className={`sira-no ${i < 3 ? "ilk3" : ""}`}>{i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : i + 1}</span>

@@ -2,9 +2,11 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "../../src/lib/supabase.js";
 import { useAuth } from "../../src/context/AuthContext.jsx";
+import Avatar from "../../src/components/Avatar.jsx";
 import QuestionCard from "../components/QuestionCard.jsx";
 import BildirimIzniSor from "../components/BildirimIzniSor.jsx";
 import MacSonuEklentisi from "../components/MacSonuEklentisi.jsx";
+import Maskot from "../components/Maskot.jsx";
 import { useOyunModu } from "../lib/oyunModu.js";
 
 const MAC_SECIMI = `*,
@@ -201,7 +203,11 @@ export default function MatchPage() {
     const berabere = mac.kazanan === null;
     return (
       <div className="buyuk-mesaj">
-        <div className="emoji">{berabere ? "🤝" : kazandim ? "🎉" : "😢"}</div>
+        <Maskot
+          poz={kazandim ? "kutluyor" : berabere ? "selam" : "dusunuyor"}
+          boyut={110}
+          className="bd-sonuc-maskot"
+        />
         <h2>
           {berabere ? "Berabere!" : kazandim ? "Kazandın! +20 puan" : "Kaybettin"}
         </h2>
@@ -288,15 +294,17 @@ export default function MatchPage() {
   // Aktif maç
   return (
     <div>
-      <div className="skor-tabela">
-        <div className="taraf">
+      <div className="skor-tabela bd-vs">
+        <div className="taraf bd-vs-taraf">
+          <Avatar profile={benimProfil} boyut={44} />
           <div className="isim">{benimProfil?.gorunen_ad} (sen)</div>
           <div className="skor">{benimSkor}</div>
         </div>
-        <div className="vs">
+        <div className="vs bd-vs-rozet">
           {mac.aktif_soru + 1}/{mac.soru_ids?.length ?? 5}
         </div>
-        <div className="taraf">
+        <div className="taraf bd-vs-taraf">
+          <Avatar profile={rakipProfil} boyut={44} />
           <div className="isim">{rakipProfil?.gorunen_ad}</div>
           <div className="skor">{rakipSkor}</div>
         </div>

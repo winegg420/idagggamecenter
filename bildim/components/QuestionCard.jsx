@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { supabase } from "../../src/lib/supabase.js";
 import { kalanSure, sunucuOffsetMs } from "../lib/zaman.js";
 import JokerCubugu from "./JokerCubugu.jsx";
+import Konfeti from "./Konfeti.jsx";
 
 const HARFLER = ["A", "B", "C", "D"];
 const SURE = 15;
@@ -112,10 +113,15 @@ export default function QuestionCard({
 
   const oran = Math.max(0, Math.min(1, kalan / SURE));
   const CEVRE = 2 * Math.PI * 20; // r=20 halka çevresi
-  const halkaRenk = kalan <= 5 ? "var(--danger)" : kalan <= 9 ? "var(--accent)" : "var(--primary)";
+  const halkaRenk =
+    kalan <= 5 ? "var(--bd-hata)" : kalan <= 9 ? "var(--bd-odul)" : "var(--bd-basari)";
+
+  const dogruCevapVerdim = Boolean(sonuc) && secim === sonuc.dogru_cevap;
+  const yanlisCevapVerdim = Boolean(sonuc) && secim !== null && secim !== sonuc.dogru_cevap;
 
   return (
-    <div className="bd-soru">
+    <div className={`bd-soru ${dogruCevapVerdim ? "bd-dogru-cevap" : ""} ${yanlisCevapVerdim ? "bd-yanlis-cevap" : ""}`}>
+      <Konfeti aktif={dogruCevapVerdim} />
       {/* Üst şerit: soru numarası + kalan süre halkası + ilerleme çubuğu */}
       <div className="bd-soru-ust">
         <div className="bd-soru-no">Soru {soru.soru_index + 1}</div>

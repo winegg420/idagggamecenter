@@ -5,6 +5,7 @@ import { useAuth } from "../../src/context/AuthContext.jsx";
 import Avatar from "../../src/components/Avatar.jsx";
 import RankBadge from "../components/RankBadge.jsx";
 import KonumSecici from "../components/KonumSecici.jsx";
+import Maskot from "../components/Maskot.jsx";
 import { bayrak, haftaBitisi, sureMetni } from "../lib/konum.js";
 
 const KAPSAMLAR = [
@@ -227,7 +228,7 @@ export default function LeaderboardPage() {
 
       {(kapsam === "sehir" || kapsam === "ulke") && !konumVar ? (
         <div className="kart bd-bos">
-          <div style={{ fontSize: 34, marginBottom: 8 }}>🏙️</div>
+          <Maskot poz="dusunuyor" boyut={84} className="bd-orta-maskot" />
           <div style={{ fontWeight: 700, marginBottom: 6 }}>
             Şehir ve ülke ligleri için konumunu seç
           </div>
@@ -241,8 +242,12 @@ export default function LeaderboardPage() {
       ) : yukleniyor ? (
         <div className="yukleniyor">Yükleniyor…</div>
       ) : ilk100.length === 0 ? (
-        <div className="alt-yazi" style={{ textAlign: "center", padding: 24 }}>
-          Burada henüz kimse yok.
+        <div className="bd-bos-durum">
+          <Maskot poz="dusunuyor" boyut={90} />
+          <p>Bu ligde henüz kimse yarışmıyor — ilk sırayı sen kap.</p>
+          <button className="btn" onClick={() => navigate("/bildim")}>
+            Hemen oyna
+          </button>
         </div>
       ) : (
         <>

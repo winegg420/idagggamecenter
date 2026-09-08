@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "../../src/lib/supabase.js";
 import { useAuth } from "../../src/context/AuthContext.jsx";
 import Avatar from "../../src/components/Avatar.jsx";
+import Maskot from "../components/Maskot.jsx";
 
 const DOSTLUK_SECIMI = `id, requester, addressee, durum,
   req:profiles!friendships_requester_fkey(id, gorunen_ad, gorunen_avatar, puan),
@@ -205,8 +206,12 @@ export default function FriendsPage() {
 
       <div className="baslik">Arkadaşların ({arkadaslar.length})</div>
       {arkadaslar.length === 0 && (
-        <div className="alt-yazi" style={{ textAlign: "center", padding: 16 }}>
-          Henüz arkadaşın yok. Davet linkini paylaş ya da bir davet kodu gir.
+        <div className="bd-bos-durum">
+          <Maskot poz="selam" boyut={86} />
+          <p>Henüz arkadaşın yok — davet linkini paylaş, birlikte yarışın.</p>
+          <button className="btn" onClick={linkPaylas} disabled={!davetLinki}>
+            📤 Davet linkini paylaş
+          </button>
         </div>
       )}
       {arkadaslar.map((f) => {

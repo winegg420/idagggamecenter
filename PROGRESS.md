@@ -1579,3 +1579,46 @@ turnuvanın ilk 3'ü** (madalya + avatar + doğru sayısı) ve **katılımcı sa
 gösteriyor. Sayaç ve lobiye katıl butonu korundu.
 
 `npm run build` temiz.
+
+## 2026-09-08 — Bildim Görev 3 / Faz 2: Oyun kimliği (büyük kozmetik revizyon)
+
+**Sorun:** her şey aynı kenarlıklı mor karttı; ekran boş, doku/karakter/derinlik yoktu.
+
+- **`bildim/styles/tema.css`** (yeni, `src/styles.css`'ten SONRA yüklenir): zemin 2 ton,
+  yüzey 3 ton, anlam renkleri (mor vurgu / altın **yalnız ödül-puan** / yeşil / kırmızı /
+  mavi), yarıçap (12/16/24), gölge (yumuşak + derin + renkli glow + iç parlaklık) ve
+  tipografi ölçeği (Baloo 2 başlık 28/22/18, gövde 15/13/11).
+- **Arka plan** düz siyahtan çıktı: üç radyal gradient (üstte mor, sağda mavi, solda altın
+  lekesi) + `body::before` ile **ince nokta dokusu** (maskeli, aşağı doğru sönümlenen).
+  Görsel dosya eklenmedi, tamamı CSS.
+- **Kartlar zeminden ayrıştı:** kenarlık yerine yüzey gradyanı + `inset` iç parlaklık +
+  yumuşak gölge. Mevcut `.kart` sınıfının görünümü de güncellendi (sınıf silinmedi).
+- **Maskot "Bilge"** (`bildim/components/Maskot.jsx`): tamamen inline SVG baykuş, üç poz —
+  `selam` (hafif sallanma), `dusunuyor` (düşünce baloncukları), `kutluyor` (zıplama +
+  parıltı). Rütbe sistemindeki 🦉 "Bilge" ile aynı kimlikten geliyor.
+  Kullanıldığı yerler: ana sayfa hero, maç sonucu (kazandın/berabere/kaybettin pozları),
+  lig ve arkadaş boş durumları.
+- **Ana sayfa hero** tek kompozisyon oldu: maskot + "Hoş geldin" + takma ad + rütbe rozeti
+  + sağda avatar halkası, altında dev puan, rütbe ilerlemesi, seri alevi ve tek büyük
+  **HEMEN OYNA** (hafif nabız animasyonu).
+- **Mod kartları 6'ya çıktı ve her biri kendi renk temasını aldı:** Meydan Oku mor,
+  Hızlı Mod turuncu, Grup mavi, Turnuva altın, Joker pembe, Lig turkuaz — büyük ikon +
+  kısa slogan ("60 saniye", "Son kalan kazanır"). Kart üstünde temaya göre renk halesi.
+- **Soru ekranı:** soru kartı büyüdü ve derinlik kazandı; zaman çubuğu artık
+  **yeşil → sarı → kırmızı**; şıklar dolgun (62px) ve tam genişlik, seçince 150 ms ölçek
+  animasyonu; doğruda **yeşil parlayan kenar + konfeti** (`Konfeti.jsx`, salt CSS
+  parçacık, kütüphane yok), yanlışta **kırmızı sarsıntı**.
+- **Skor tablosu VS oldu:** iki avatar karşı karşıya, ortada yuvarlak kırmızı "VS" rozeti.
+- **Lig:** podyum kartları yükseltildi (1. altın halkalı ve yüksek kaide), sekmeler
+  segment kontrol görünümü aldı, kendi satırın mor halkayla vurgulu.
+- **Boş durumlar** maskot + tek cümle + eylem butonu ile dolduruldu (lig, arkadaşlar,
+  En İyiler, konum seçilmemiş ekranı).
+- **Mikro etkileşimler:** sayfa girişinde 150 ms fade+slide, puan sayacı (mevcut),
+  rütbe atlama overlay'i (mevcut). `prefers-reduced-motion` altında maskot animasyonları,
+  konfeti, sarsıntı ve nabız kapanıyor.
+- **Mobil:** 400px altı için hero/mod/şık/VS/boş durum ölçekleri ayrı ayarlandı;
+  tüm etkileşimli öğelere `min-height: 44px` garantisi; metin renkleri kontrast
+  eşiğinin üstünde (`--bd-metin-2: #b3aad6`).
+- **Eski CSS sınıflarının hiçbiri silinmedi** — tema dosyası üzerine yazıyor.
+
+`npm run build` temiz.

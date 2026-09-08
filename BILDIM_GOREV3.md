@@ -27,22 +27,22 @@
 - [x] 1.12 `npm run build` temiz + PROGRESS + commit
 
 ## Faz 2 — Kozmetik: oyun kimliği
-- [ ] 2.1 `bildim/styles/tema.css`: renk/yarıçap/gölge/tipografi tokenları
-- [ ] 2.2 Arka plan: radyal gradient + doku + bulanık renk lekeleri (CSS, görsel dosya yok)
-- [ ] 2.3 Kartlar zeminden ayrışsın (yüzey + iç parlaklık + gölge, her kart kenarlıklı değil)
-- [ ] 2.4 Baykuş maskotu inline SVG (selam / düşünüyor / kutluyor)
-- [ ] 2.5 Ana sayfa: hero tek kompozisyon (maskot + ad + rütbe + puan + seri)
-- [ ] 2.6 "HEMEN OYNA" tek büyük buton (nabız animasyonu)
-- [ ] 2.7 Mod kartları kendi renk temalarıyla (mor/turuncu/mavi/altın) + slogan
-- [ ] 2.8 Lig özeti 3'lü kutu + günlük görevler ilerleme halkalı
-- [ ] 2.9 Soru ekranı: büyük kart, zaman çubuğu yeşil→sarı→kırmızı, dolgun şıklar, 150 ms ölçek, doğruda konfeti, yanlışta sarsıntı
-- [ ] 2.10 Skor tablosu: iki avatar karşı karşıya "VS"
-- [ ] 2.11 Lig: podyum (1. ortada yüksek) + segment kontrol sekmeler + bayrak/rütbe ikonu
-- [ ] 2.12 Boş durumlar: maskot + tek cümle + eylem butonu
-- [ ] 2.13 Sayfa geçişi fade+slide 150 ms, puan sayacı, `prefers-reduced-motion`
-- [ ] 2.14 Mobil 390px gözden geçirme; dokunma ≥44px; kontrast ≥4.5
-- [ ] 2.15 Eski CSS sınıfları silinmedi
-- [ ] 2.16 `npm run build` temiz + PROGRESS + commit
+- [x] 2.1 `bildim/styles/tema.css`: renk/yarıçap/gölge/tipografi tokenları
+- [x] 2.2 Arka plan: radyal gradient + doku + bulanık renk lekeleri (CSS, görsel dosya yok)
+- [x] 2.3 Kartlar zeminden ayrışsın (yüzey + iç parlaklık + gölge, her kart kenarlıklı değil)
+- [x] 2.4 Baykuş maskotu inline SVG (selam / düşünüyor / kutluyor)
+- [x] 2.5 Ana sayfa: hero tek kompozisyon (maskot + ad + rütbe + puan + seri)
+- [x] 2.6 "HEMEN OYNA" tek büyük buton (nabız animasyonu)
+- [x] 2.7 Mod kartları kendi renk temalarıyla (mor/turuncu/mavi/altın) + slogan
+- [x] 2.8 Lig özeti 3'lü kutu + günlük görevler ilerleme halkalı
+- [x] 2.9 Soru ekranı: büyük kart, zaman çubuğu yeşil→sarı→kırmızı, dolgun şıklar, 150 ms ölçek, doğruda konfeti, yanlışta sarsıntı
+- [x] 2.10 Skor tablosu: iki avatar karşı karşıya "VS"
+- [x] 2.11 Lig: podyum (1. ortada yüksek) + segment kontrol sekmeler + bayrak/rütbe ikonu
+- [x] 2.12 Boş durumlar: maskot + tek cümle + eylem butonu
+- [x] 2.13 Sayfa geçişi fade+slide 150 ms, puan sayacı, `prefers-reduced-motion`
+- [x] 2.14 Mobil 390px gözden geçirme; dokunma ≥44px; kontrast ≥4.5
+- [x] 2.15 Eski CSS sınıfları silinmedi
+- [x] 2.16 `npm run build` temiz + PROGRESS + commit
 
 ## Faz 3 — Kapanış
 - [ ] 3.1 `npm run build` temiz

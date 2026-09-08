@@ -4,6 +4,8 @@ import { BrowserRouter } from "react-router-dom";
 import App from "./App.jsx";
 import { AuthProvider } from "./context/AuthContext.jsx";
 import "./styles.css";
+// Bildim görsel dili (tema tokenları) — global stillerden SONRA yüklenir
+import "../bildim/styles/tema.css";
 
 // Davet linkiyle gelindiyse sakla (girişten sonra ödül talep edilir)
 const params = new URLSearchParams(window.location.search);

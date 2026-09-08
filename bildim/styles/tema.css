@@ -1,0 +1,460 @@
+/* ============================================================
+   BİLDİM — GÖRSEL DİL (tema tokenları)
+   Hub'ın mor/altın renk ailesini korur, oyun hissi için derinlik ekler.
+   Eski sınıflar/sonraki dosyalar bu tokenları kullanır; hiçbir eski
+   sınıf silinmedi.
+   ============================================================ */
+
+:root {
+  /* ---------- Zemin (2 ton) ---------- */
+  --bd-zemin: #0b0918;
+  --bd-zemin-2: #120e26;
+
+  /* ---------- Yüzey (3 ton — kart derinliği) ---------- */
+  --bd-yuzey-1: #191333;   /* en yakın kart */
+  --bd-yuzey-2: #221a44;   /* yükseltilmiş */
+  --bd-yuzey-3: #2c2255;   /* vurgulu / seçili */
+
+  /* ---------- Anlam renkleri ---------- */
+  --bd-vurgu: #8b5cf6;
+  --bd-vurgu-2: #6d28d9;
+  --bd-vurgu-acik: #a78bfa;
+  --bd-odul: #fbbf24;       /* YALNIZ ödül / puan */
+  --bd-odul-2: #f59e0b;
+  --bd-basari: #22c55e;
+  --bd-hata: #ef4444;
+  --bd-bilgi: #38bdf8;
+
+  /* ---------- Metin ---------- */
+  --bd-metin: #f3f0ff;
+  --bd-metin-2: #b3aad6;    /* koyu zeminde kontrast > 4.5 */
+  --bd-metin-3: #8d84b5;
+
+  /* ---------- Yarıçap ---------- */
+  --bd-r-s: 12px;
+  --bd-r-m: 16px;
+  --bd-r-l: 24px;
+  --bd-r-tam: 999px;
+
+  /* ---------- Gölge (yumuşak + renkli glow) ---------- */
+  --bd-golge-yumusak: 0 8px 24px rgba(5, 3, 15, 0.5);
+  --bd-golge-derin: 0 16px 44px rgba(5, 3, 15, 0.62);
+  --bd-glow-mor: 0 0 0 1px rgba(167, 139, 250, 0.16), 0 10px 30px rgba(109, 40, 217, 0.3);
+  --bd-glow-odul: 0 10px 28px rgba(217, 119, 6, 0.36);
+  --bd-ic-parlaklik: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+
+  /* ---------- Tipografi ölçeği ---------- */
+  --bd-f-baslik: "Baloo 2", "Segoe UI", system-ui, sans-serif;
+  --bd-f-govde: system-ui, "Segoe UI", -apple-system, sans-serif;
+  --bd-t-xl: 28px;
+  --bd-t-l: 22px;
+  --bd-t-m: 18px;
+  --bd-t-govde: 15px;
+  --bd-t-kucuk: 13px;
+  --bd-t-mini: 11px;
+}
+
+/* ============================================================
+   ARKA PLAN — düz siyah yerine derinlik
+   Radyal gradient + ince nokta dokusu + köşelerde bulanık renk lekeleri.
+   Tamamı CSS; görsel dosya yok.
+   ============================================================ */
+
+body {
+  background:
+    radial-gradient(1000px 620px at 50% -220px, #2f1f6b 0%, transparent 62%),
+    radial-gradient(720px 520px at 105% 12%, rgba(56, 189, 248, 0.12) 0%, transparent 60%),
+    radial-gradient(760px 560px at -8% 78%, rgba(251, 191, 36, 0.1) 0%, transparent 62%),
+    linear-gradient(180deg, var(--bd-zemin-2) 0%, var(--bd-zemin) 60%);
+  background-attachment: fixed;
+}
+
+/* İnce nokta dokusu — zemine yüzey hissi verir */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background-image: radial-gradient(rgba(255, 255, 255, 0.045) 1px, transparent 1px);
+  background-size: 22px 22px;
+  mask-image: radial-gradient(120% 90% at 50% 0%, #000 35%, transparent 85%);
+  -webkit-mask-image: radial-gradient(120% 90% at 50% 0%, #000 35%, transparent 85%);
+}
+
+.app { position: relative; z-index: 1; }
+
+/* ============================================================
+   KARTLAR — zeminden ayrışsın; hepsi kenarlıklı olmasın
+   ============================================================ */
+
+.bd-yuzey {
+  background: linear-gradient(160deg, var(--bd-yuzey-2), var(--bd-yuzey-1));
+  border: none;
+  border-radius: var(--bd-r-l);
+  box-shadow: var(--bd-golge-yumusak), var(--bd-ic-parlaklik);
+}
+.bd-yuzey-2 {
+  background: var(--bd-yuzey-1);
+  border: none;
+  border-radius: var(--bd-r-m);
+  box-shadow: var(--bd-ic-parlaklik);
+}
+
+/* Mevcut `.kart` sınıfını da yeni dile taşı (sınıf silinmedi, görünümü güncellendi) */
+.app .kart {
+  background: linear-gradient(160deg, var(--bd-yuzey-2), var(--bd-yuzey-1));
+  border: none;
+  border-radius: var(--bd-r-l);
+  box-shadow: var(--bd-golge-yumusak), var(--bd-ic-parlaklik);
+}
+
+/* ============================================================
+   TİPOGRAFİ
+   ============================================================ */
+
+.app .baslik,
+.app .bolum-baslik {
+  font-family: var(--bd-f-baslik);
+  font-size: var(--bd-t-l);
+  letter-spacing: 0.2px;
+}
+.app .alt-yazi { color: var(--bd-metin-2); font-size: var(--bd-t-kucuk); }
+
+/* ============================================================
+   SAYFA GEÇİŞİ — fade + slide (150 ms)
+   ============================================================ */
+
+@keyframes bd-sayfa-gir {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: none; }
+}
+.sayfa > * {
+  animation: bd-sayfa-gir 0.15s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+/* ============================================================
+   MASKOT
+   ============================================================ */
+
+.bd-maskot { display: block; flex: 0 0 auto; }
+.bd-maskot-selam { animation: bd-maskot-sallan 3.4s ease-in-out infinite; transform-origin: 50% 90%; }
+@keyframes bd-maskot-sallan {
+  0%, 100% { transform: rotate(-2deg); }
+  50% { transform: rotate(2deg); }
+}
+.bd-maskot-kutluyor { animation: bd-maskot-zipla 1.1s ease-in-out infinite; }
+@keyframes bd-maskot-zipla {
+  0%, 100% { transform: translateY(0) scale(1); }
+  45% { transform: translateY(-7px) scale(1.03); }
+}
+.bd-maskot-parlak { animation: bd-parla 1.4s ease-in-out infinite; transform-origin: center; }
+@keyframes bd-parla {
+  0%, 100% { opacity: 0.55; }
+  50% { opacity: 1; }
+}
+.bd-maskot-dusunce { animation: bd-dusunce 2.6s ease-in-out infinite; }
+@keyframes bd-dusunce {
+  0%, 100% { opacity: 0.4; transform: translateY(0); }
+  50% { opacity: 1; transform: translateY(-3px); }
+}
+
+/* ============================================================
+   BOŞ DURUM — maskot + tek cümle + eylem
+   ============================================================ */
+
+.bd-bos-durum {
+  display: flex; flex-direction: column; align-items: center; gap: 12px;
+  padding: 30px 20px; text-align: center;
+}
+.bd-bos-durum p {
+  font-size: var(--bd-t-govde);
+  color: var(--bd-metin-2);
+  line-height: 1.5;
+  max-width: 300px;
+}
+.bd-bos-durum .btn { width: auto; min-width: 180px; }
+
+/* ============================================================
+   HAREKET AZALTMA
+   ============================================================ */
+
+@media (prefers-reduced-motion: reduce) {
+  .bd-maskot-selam,
+  .bd-maskot-kutluyor,
+  .bd-maskot-parlak,
+  .bd-maskot-dusunce,
+  .sayfa > * {
+    animation: none !important;
+  }
+}
+
+/* ============================================================
+   BİLDİM — Görev 3 / Faz 2: oyun kimliği
+   Eski sınıflar korunur; görünüm tema tokenlarıyla güncellenir.
+   ============================================================ */
+
+/* ---------- HERO ---------- */
+.bd-hero {
+  background:
+    radial-gradient(130% 100% at 50% -20%, rgba(167, 139, 250, 0.34), transparent 62%),
+    linear-gradient(160deg, var(--bd-yuzey-3), var(--bd-yuzey-1));
+  border: none;
+  border-radius: var(--bd-r-l);
+  box-shadow: var(--bd-golge-derin), var(--bd-ic-parlaklik);
+}
+.bd-hero-kimlik { align-items: center; }
+.bd-hero-maskot { margin-right: 2px; }
+.bd-hero-selam {
+  font-size: var(--bd-t-mini);
+  font-weight: 700;
+  letter-spacing: 1.4px;
+  text-transform: uppercase;
+  color: var(--bd-metin-3);
+}
+.bd-hero-ad {
+  font-family: var(--bd-f-baslik);
+  font-size: var(--bd-t-l);
+}
+.bd-hero-ad-blok { flex: 1; }
+.bd-hero-halka { flex: 0 0 auto; }
+
+/* HEMEN OYNA — sayfadaki tek birincil eylem, hafif nabız */
+.bd-ana-eylem {
+  box-shadow: var(--bd-glow-odul);
+  animation: bd-nabiz 2.6s ease-in-out infinite;
+}
+@keyframes bd-nabiz {
+  0%, 100% { transform: scale(1); box-shadow: var(--bd-glow-odul); }
+  50% { transform: scale(1.018); box-shadow: 0 14px 34px rgba(217, 119, 6, 0.5); }
+}
+.bd-ana-eylem:active { animation: none; }
+
+/* ---------- MOD KARTLARI — her biri kendi renk teması ---------- */
+.bd-mod {
+  position: relative;
+  overflow: hidden;
+  gap: 6px;
+  background: linear-gradient(160deg, var(--bd-yuzey-2), var(--bd-yuzey-1));
+  border: none;
+  border-radius: var(--bd-r-l);
+  box-shadow: var(--bd-golge-yumusak), var(--bd-ic-parlaklik);
+}
+.bd-mod::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: radial-gradient(90% 70% at 50% -10%, var(--tema, transparent), transparent 65%);
+  opacity: 0.3;
+  pointer-events: none;
+}
+.bd-mod:hover { border: none; transform: translateY(-2px); }
+.bd-mod-ikon {
+  width: 50px; height: 50px; border-radius: 16px;
+  background: var(--tema-ikon, linear-gradient(135deg, var(--bd-vurgu), var(--bd-vurgu-2)));
+  box-shadow: 0 6px 16px var(--tema-golge, rgba(109, 40, 217, 0.4));
+}
+.bd-mod-slogan {
+  font-size: var(--bd-t-mini);
+  color: var(--bd-metin-3);
+  text-align: center;
+}
+
+.bd-mod.tema-meydan  { --tema: rgba(167,139,250,0.5); --tema-ikon: linear-gradient(135deg,#a78bfa,#6d28d9); --tema-golge: rgba(109,40,217,0.45); }
+.bd-mod.tema-hizli   { --tema: rgba(251,191,36,0.45);  --tema-ikon: linear-gradient(135deg,#fbbf24,#d97706); --tema-golge: rgba(217,119,6,0.45); }
+.bd-mod.tema-hizli .bd-mod-ikon { color: #1b1206; }
+.bd-mod.tema-grup    { --tema: rgba(56,189,248,0.45);  --tema-ikon: linear-gradient(135deg,#38bdf8,#0369a1); --tema-golge: rgba(3,105,161,0.45); }
+.bd-mod.tema-turnuva { --tema: rgba(253,224,71,0.45);  --tema-ikon: linear-gradient(135deg,#fde047,#ca8a04); --tema-golge: rgba(202,138,4,0.45); }
+.bd-mod.tema-turnuva .bd-mod-ikon { color: #1b1206; }
+.bd-mod.tema-joker   { --tema: rgba(244,114,182,0.42); --tema-ikon: linear-gradient(135deg,#f472b6,#9d174d); --tema-golge: rgba(157,23,77,0.45); }
+.bd-mod.tema-lig     { --tema: rgba(45,212,191,0.42);  --tema-ikon: linear-gradient(135deg,#2dd4bf,#0f766e); --tema-golge: rgba(15,118,110,0.45); }
+
+/* ---------- Lig özeti 3'lü kutu ---------- */
+.bd-hero-lig { gap: var(--bd-bosluk-2); }
+.bd-lig-rozet {
+  background: rgba(255, 255, 255, 0.06);
+  border: none;
+  border-radius: var(--bd-r-m);
+  box-shadow: var(--bd-ic-parlaklik);
+}
+
+/* ---------- Günlük görev ilerleme çubuğu ---------- */
+.bd-gorev-bar {
+  height: 7px; border-radius: var(--bd-r-tam); overflow: hidden;
+  background: rgba(0, 0, 0, 0.32);
+}
+.bd-gorev-bar .dolgu { height: 100%; transition: width 0.5s cubic-bezier(0.2, 0.8, 0.2, 1); }
+
+/* ============================================================
+   SORU EKRANI
+   ============================================================ */
+
+.bd-soru { position: relative; }
+.bd-soru-metin {
+  background: linear-gradient(155deg, var(--bd-yuzey-3), var(--bd-yuzey-1));
+  border: none;
+  border-radius: var(--bd-r-l);
+  box-shadow: var(--bd-golge-derin), var(--bd-ic-parlaklik);
+  padding: 26px 18px;
+}
+
+/* Zaman çubuğu ince ve üstte */
+.bd-soru-bar { height: 6px; background: rgba(0, 0, 0, 0.35); }
+
+/* Şıklar dolgun ve tam genişlik */
+.bd-secenek {
+  min-height: 62px;
+  background: linear-gradient(160deg, var(--bd-yuzey-2), var(--bd-yuzey-1));
+  border: 1.5px solid transparent;
+  border-radius: var(--bd-r-m);
+  box-shadow: var(--bd-golge-yumusak), var(--bd-ic-parlaklik);
+  transition: transform 0.15s cubic-bezier(0.2, 0.8, 0.2, 1),
+              border-color 0.15s, background 0.15s, opacity 0.2s;
+}
+.bd-secenek:active:not(:disabled) { transform: scale(0.97); }
+.bd-secenek.secili {
+  transform: scale(1.02);
+  border-color: var(--bd-vurgu);
+  background: linear-gradient(160deg, rgba(139, 92, 246, 0.34), var(--bd-yuzey-1));
+}
+.bd-secenek.dogru {
+  border-color: var(--bd-basari);
+  background: linear-gradient(160deg, rgba(34, 197, 94, 0.32), var(--bd-yuzey-1));
+  box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.22), 0 10px 26px rgba(22, 163, 74, 0.35);
+}
+.bd-secenek.yanlis {
+  border-color: var(--bd-hata);
+  background: linear-gradient(160deg, rgba(239, 68, 68, 0.3), var(--bd-yuzey-1));
+}
+
+/* Doğru/yanlış tepkisi */
+.bd-yanlis-cevap { animation: bd-sarsinti 0.42s cubic-bezier(0.36, 0.07, 0.19, 0.97); }
+@keyframes bd-sarsinti {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-9px); }
+  45% { transform: translateX(8px); }
+  70% { transform: translateX(-4px); }
+}
+
+/* Konfeti */
+.bd-konfeti {
+  position: absolute; left: 50%; top: 42%;
+  width: 0; height: 0; pointer-events: none; z-index: 30;
+}
+.bd-konfeti span {
+  position: absolute; left: 0; top: 0;
+  border-radius: 2px;
+  animation: bd-konfeti-uc 1s cubic-bezier(0.2, 0.7, 0.3, 1) var(--gecikme) forwards;
+  opacity: 0;
+}
+@keyframes bd-konfeti-uc {
+  0% { opacity: 1; transform: translate(0, 0) rotate(0deg) scale(1); }
+  100% { opacity: 0; transform: translate(var(--x), var(--y)) rotate(var(--donme)) scale(0.5); }
+}
+
+/* ---------- VS skor tablosu ---------- */
+.bd-vs {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: var(--bd-bosluk-2);
+  padding: 14px;
+  background: linear-gradient(160deg, var(--bd-yuzey-2), var(--bd-yuzey-1));
+  border: none;
+  border-radius: var(--bd-r-l);
+  box-shadow: var(--bd-golge-yumusak), var(--bd-ic-parlaklik);
+}
+.bd-vs-taraf {
+  display: flex; flex-direction: column; align-items: center; gap: 5px;
+  flex: 1; min-width: 0;
+}
+.bd-vs-taraf .isim {
+  font-size: 12px; font-weight: 700; color: var(--bd-metin-2);
+  max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.bd-vs-taraf .skor {
+  font-family: var(--bd-f-baslik);
+  font-size: 28px; font-weight: 800; line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+.bd-vs-rozet {
+  flex: 0 0 auto;
+  display: flex; align-items: center; justify-content: center;
+  width: 42px; height: 42px; border-radius: 50%;
+  font-family: var(--bd-f-baslik);
+  font-size: 14px; font-weight: 800; color: #fff;
+  background: linear-gradient(135deg, var(--bd-hata), #991b1b);
+  box-shadow: 0 6px 18px rgba(153, 27, 27, 0.45);
+}
+
+.bd-sonuc-maskot { margin: 0 auto 6px; }
+
+/* ============================================================
+   LİG — podyum + segment kontrol
+   ============================================================ */
+
+.bd-sekme-ust {
+  background: rgba(0, 0, 0, 0.3);
+  border: none;
+  box-shadow: var(--bd-ic-parlaklik);
+  padding: 5px;
+}
+.bd-sekme.aktif { box-shadow: 0 4px 14px rgba(109, 40, 217, 0.45); }
+
+.bd-podyum { align-items: end; }
+.bd-podyum-yer {
+  background: linear-gradient(170deg, var(--bd-yuzey-2), var(--bd-yuzey-1));
+  border: none;
+  border-radius: var(--bd-r-m);
+  box-shadow: var(--bd-golge-yumusak), var(--bd-ic-parlaklik);
+}
+.bd-podyum-yer.yer-1 {
+  box-shadow: 0 0 0 2px rgba(251, 191, 36, 0.45), 0 12px 30px rgba(217, 119, 6, 0.3);
+}
+.bd-podyum-yer.yer-1 .bd-podyum-madalya { font-size: 26px; }
+.bd-podyum-kaide {
+  font-family: var(--bd-f-baslik);
+  background: linear-gradient(180deg, rgba(139, 92, 246, 0.4), rgba(139, 92, 246, 0.06));
+}
+.bd-podyum-yer.yer-1 .bd-podyum-kaide {
+  background: linear-gradient(180deg, rgba(251, 191, 36, 0.45), rgba(251, 191, 36, 0.06));
+  color: #fff;
+}
+
+.bd-lig-satir {
+  background: linear-gradient(160deg, var(--bd-yuzey-2), var(--bd-yuzey-1));
+  border: none;
+  border-radius: var(--bd-r-m);
+  box-shadow: var(--bd-ic-parlaklik);
+}
+.bd-lig-satir.ben {
+  box-shadow: 0 0 0 2px var(--bd-vurgu), 0 8px 22px rgba(109, 40, 217, 0.32);
+  background: linear-gradient(120deg, rgba(139, 92, 246, 0.24), var(--bd-yuzey-1) 65%);
+}
+.bd-orta-maskot { margin: 0 auto 8px; }
+
+/* ============================================================
+   MOBİL 390px
+   ============================================================ */
+
+@media (max-width: 400px) {
+  .bd-hero-maskot { width: 64px; height: 64px; }
+  .bd-hero-ad { font-size: var(--bd-t-m); }
+  .bd-mod-ikon { width: 44px; height: 44px; border-radius: 14px; }
+  .bd-mod-slogan { font-size: 10px; }
+  .bd-secenek { min-height: 56px; font-size: 15px; }
+  .bd-soru-metin { padding: 20px 14px; }
+  .bd-vs-taraf .skor { font-size: 24px; }
+  .bd-vs-rozet { width: 36px; height: 36px; font-size: 12.5px; }
+  .bd-bos-durum { padding: 22px 12px; }
+}
+
+/* Dokunma hedefleri */
+.bd-mod, .bd-secenek, .bd-sekme, .bd-alt-sekme, .bd-joker, .bd-ana-eylem {
+  min-height: 44px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bd-ana-eylem { animation: none; }
+  .bd-konfeti { display: none; }
+  .bd-yanlis-cevap { animation: none; }
+}
