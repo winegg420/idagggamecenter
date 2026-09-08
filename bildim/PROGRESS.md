@@ -654,3 +654,67 @@ Kullanıcının testi `e6d4aae` deploy'u yayılmadan yapılmış. Yeniden ölç�
 > (`davet_iptal`) ve 066/067 önceki oturumlarda kullanıldığı için bu oturumun
 > yeni migration'ı **068** oldu. Studio'da elle çalıştırmaya gerek yok —
 > kalıcı talimat gereği doğrudan uygulandı ve geçmişe kaydedildi.
+
+---
+
+## 2026-09-08 — Arkadas ekleme calismiyordu (KRITIK)
+
+**Sikayet:** "arkadas ekleme konusunda sikinti var, eklenmiyor."
+**Dogrulandi — sikayet tamamen hakliydi.**
+
+### Kok neden
+`arkadas_davet_kodu_ile_ekle` RPC'si cagrilinca patliyordu:
+
+```
+column reference "gorunen_ad" is ambiguous
+```
+
+Fonksiyon `returns table (durum text, gorunen_ad text)` tanimliyor; govdede
+bildirim metni kurulurken
+
+```sql
+(select gorunen_ad from public.profiles where id = auth.uid())
+```
+
+**niteliksiz** yazilmis. `gorunen_ad` hem out-parametre hem kolon oldugu icin
+PL/pgSQL karar veremiyor.
+
+**Etkisi:** davet koduyla arkadas eklemenin uc yolundan **ikisi tamamen
+kirikti** — hem yeni istek gonderme (`istek_gonderildi`) hem karsilikli
+eslesme (`arkadas_oldu`). Yalniz "zaten arkadassiniz" dali calisiyordu (o
+dalda alt sorgu yok). Yani pratikte **hic kimse arkadas ekleyemiyordu**.
+`lib/hata.js` ham SQL'i gizledigi icin kullanici yalnizca genel bir hata
+mesaji goruyordu.
+
+### Duzeltme (migration 069)
+Alt sorgu tablo takma adiyla nitelendirildi (`me.gorunen_ad`) ve bir kez
+degiskene alindi; fonksiyona `#variable_conflict use_column` eklendi.
+
+### Dogrulama — ucu de calisiyor
+
+| Senaryo | Donen durum | Sonuc |
+|---|---|---|
+| Yeni istek | `istek_gonderildi` | `friendships` satiri `bekliyor` ✅ |
+| Karsi taraf kodu girer | `arkadas_oldu` | satir `arkadas` oldu ✅ |
+| Zaten arkadas | `zaten_arkadas` | degisiklik yok ✅ |
+
+Bildirimler de dogru uretildi: "idagg sana arkadaslik istegi gonderdi." /
+"Oyuncu arkadasin oldu! 🤝"
+
+### Ayni hata sinifi icin SISTEMATIK TARAMA
+Bu, ayni desendeki **ucuncu** hataydi (once `hizli_mod_cevap.dogru`, sonra bu).
+Bir daha surpriz olmasin diye tum `returns table` + plpgsql fonksiyonlari
+**gercekten cagrilarak** tarandi; yalniz `ambiguous` iceren hatalar raporlandi:
+
+Temiz cikanlar: `lig_siralama`, `sehir_lig_sirasi`, `benim_lig_durumum`,
+`hizli_mod_siralama`, `hizli_mod_ozetim`, `bekleyen_davetlerim`,
+`ustalik_seviyelerim`, `ezeli_rakip`, `get_daily_quests`, `get_categories`,
+`profil_al`, `remove_friend` — ve gecersiz id ile erken cikabilecekleri
+gercek veriyle ayrica test edildi:
+
+| RPC | Gercek maçla test | Sonuc |
+|---|---|---|
+| `submit_group_match_answer` | gercek grup maci kuruldu, insan cevabi gonderildi | ✅ temiz |
+| `submit_hizli_cevap` | gercek hizli mac kuruldu, insan cevabi gonderildi | ✅ temiz |
+
+**`arkadas_davet_kodu_ile_ekle` disinda ambiguous hatasi olan baska RPC yok.**
