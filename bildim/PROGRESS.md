@@ -718,3 +718,81 @@ gercek veriyle ayrica test edildi:
 | `submit_hizli_cevap` | gercek hizli mac kuruldu, insan cevabi gonderildi | ✅ temiz |
 
 **`arkadas_davet_kodu_ile_ekle` disinda ambiguous hatasi olan baska RPC yok.**
+
+---
+
+## 2026-09-08 — "Hizli Olan Kazanir" maci acilmiyordu (KRITIK)
+
+Belirti: yaris kuruluyor, `/bildim/hizli-mac/<id>` acilinca sayfa kalici olarak
+**"Yukleniyor…"** kaliyordu. Konsolda hata yok. Grup macinda ayni akis calisiyor.
+
+### Iki ayri kok neden bulundu (tahminle degil, sorgu calistirilarak)
+
+**A) RLS sonsuz ozyinelemesi — sayfa hic acilmiyordu**
+
+`hizli_oyuncular` tablosunu sorgulamak dogrudan hata veriyordu:
+
+```
+ERROR: infinite recursion detected in policy for relation "hizli_oyuncular"
+```
+
+Politika KENDI TABLOSUNU sorguluyordu:
+```sql
+exists (select 1 from hizli_oyuncular ho2
+        where ho2.hizli_mac_id = hizli_oyuncular.hizli_mac_id
+          and ho2.user_id = auth.uid())
+```
+Alt sorguya da RLS uygulandigi icin ozyineleme olusuyor. `hizli_maclar`
+politikasi da ayni tabloyu sorguladigindan o da tetikleniyordu.
+
+Grup macinda bu sorun YOK, cunku orada `grup_mac_uyesi_mi(uuid)` adinda bir
+**SECURITY DEFINER** yardimci fonksiyon kullanilmis. Ayni desen hizli maca
+uygulanmamisti. Migration 070 bunu uyguladi (`hizli_mac_uyesi_mi`).
+
+**B) Dogru cevap puan getirmiyordu — ikinci ambiguous hatasi**
+
+`submit_hizli_cevap` icinde:
+```sql
+where hizli_mac_id = ... and soru_index = ... and dogru   -- NITELIKSIZ
+```
+Fonksiyon `returns table (dogru boolean, ...)` tanimladigi icin belirsizlik.
+**Yalniz DOGRU cevap verildiginde** bu dala girildigi icin gorunmuyordu —
+onceki taramada yanlis cevapla test edilmisti, o yuzden "temiz" cikmisti.
+Etkisi: modun tek puanlama kurali (ilk dogru +10) hic calismiyordu.
+Migration 071 ile nitelendirildi.
+
+> Ders: bu fonksiyonlari test ederken **hem dogru hem yanlis cevap** yolunu
+> ayri ayri denemek gerekiyor. Diger cevap RPC'leri (`submit_match_answer`,
+> `submit_group_match_answer`, `submit_tournament_answer`) kontrol edildi:
+> onlarda `dogru` yalnizca INSERT kolon listesinde geciyor, belirsizlik yok.
+
+### DOGRULAMA — uctan uca (4 botla yaris)
+
+| Adim | Beklenen | Sonuc |
+|---|---|---|
+| 1. Sayfa sorgusu (RLS) | mac + katilimcilar okunabilir | mac 1, katilimci **5/5** ✅ |
+| 2. Botlar kabul + baslangic | durum `aktif`, 20 soru | `aktif`, 20 soru, 5 kabul ✅ |
+| 3. Soru geliyor mu | `get_hizli_soru` satir dondurur | soru_index 0, soru geldi ✅ |
+| 4. Ilk dogru cevap | `dogru=true, ilk=true` | **true / true** ✅ |
+| 5. Puan | +10 | skor **10** ✅ |
+| 6. Mac sonu | `durum='bitti'` | 20 soru tamamlandi, **`bitti`** ✅ |
+
+### Sayfa artik sonsuza dek "Yukleniyor" gostermiyor
+`components/MacYukleniyor.jsx`: 8 saniyede veri gelmezse Turkce aciklama +
+**"Tekrar dene"** + **"Maci iptal et"** + "Meydan okumalara don".
+Uc mac sayfasina da baglandi (hizli, grup, 1v1). Ayrica `macYukle` artik
+**hatayi yutmuyor** — konsola yaziyor ve ekranda gosteriyor; sessiz
+kilitlenmenin ikinci sebebi buydu (`const { data } = ...` ile error yok
+sayiliyordu).
+
+### Yarim kalan maclar
+- Bildirilen takili mac (`ddeae48c-…`) **iptal edildi**.
+- `hizli_mac_temizle()` / `grup_mac_temizle()` eklendi; `bildim-yarim-mac-temizle`
+  cron'u saatte bir calisiyor (hizli mac 10 dk, grup mac 30 dk hareketsizse kapatir).
+- Kullanicida "Maci iptal et" zaten var (Meydan Oku listesi + yukleme ekrani).
+
+### Migration'lar
+| No | Dosya | Durum |
+|---|---|---|
+| 070 | `hizli_mac_rls_ozyineleme` | canliya uygulandi + gecmise kaydedildi |
+| 071 | `hizli_cevap_ambiguous` | canliya uygulandi + gecmise kaydedildi |

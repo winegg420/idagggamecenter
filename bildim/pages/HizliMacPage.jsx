@@ -5,6 +5,8 @@ import { supabase } from "../../src/lib/supabase.js";
 import { useAuth } from "../../src/context/AuthContext.jsx";
 import Avatar from "../../src/components/Avatar.jsx";
 import QuestionCard from "../components/QuestionCard.jsx";
+import MacYukleniyor from "../components/MacYukleniyor.jsx";
+import { hataMesaji } from "../lib/hata.js";
 
 const HIZLI_SECIMI = `*,
   katilimcilar:hizli_oyuncular(hizli_mac_id, user_id, davet_durumu, skor, joined_at,
@@ -18,18 +20,39 @@ export default function HizliMacPage() {
   const [soru, setSoru] = useState(null);
   const [cevapladim, setCevapladim] = useState(false);
   const [ilkBildim, setIlkBildim] = useState(null); // true=ilk, false=geç kaldı
+  const [yuklemeHatasi, setYuklemeHatasi] = useState(null);
   const advanceKilidi = useRef(false);
   const pollRef = useRef(null);
 
   const macYukle = useCallback(async () => {
-    const { data } = await supabase
-      .from("hizli_maclar")
-      .select(HIZLI_SECIMI)
-      .eq("id", id)
-      .single();
-    if (data) setMac(data);
-    return data;
+    // Hata YUTULMAZ: sessiz kilitlenmenin sebebi buydu.
+    try {
+      const { data, error } = await supabase
+        .from("hizli_maclar")
+        .select(HIZLI_SECIMI)
+        .eq("id", id)
+        .single();
+      if (error) throw error;
+      if (data) {
+        setMac(data);
+        setYuklemeHatasi(null);
+      }
+      return data;
+    } catch (e) {
+      console.error("[Bildim] hizli mac yuklenemedi:", e);
+      setYuklemeHatasi(hataMesaji(e, "Maç bilgisi alınamadı."));
+      return null;
+    }
   }, [id]);
+
+  const maciIptalEt = useCallback(async () => {
+    try {
+      await supabase.rpc("hizli_mac_iptal", { p_hizli_mac_id: id });
+    } catch (e) {
+      console.error("[Bildim] hizli mac iptal:", e);
+    }
+    navigate("/bildim/meydan");
+  }, [id, navigate]);
 
   useEffect(() => {
     macYukle();
@@ -111,7 +134,15 @@ export default function HizliMacPage() {
 
   useOyunModu(Boolean(soru) && mac?.durum === "aktif");
 
-  if (!mac) return <div className="yukleniyor">Yükleniyor…</div>;
+  if (!mac) {
+    return (
+      <MacYukleniyor
+        hata={yuklemeHatasi}
+        onTekrarDene={() => { setYuklemeHatasi(null); macYukle(); }}
+        onIptal={maciIptalEt}
+      />
+    );
+  }
 
   const katilimcilar = mac.katilimcilar ?? [];
   const benimKayit = katilimcilar.find((k) => k.user_id === user.id);

@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import MacYukleniyor from "../components/MacYukleniyor.jsx";
 import { hataMesaji } from "../lib/hata.js";
 import { useOyunModu } from "../lib/oyunModu.js";
 import { useParams, useNavigate } from "react-router-dom";
@@ -28,6 +29,7 @@ export default function GroupMatchPage() {
   const { user, refreshProfile } = useAuth();
   const navigate = useNavigate();
   const [mac, setMac] = useState(null);
+  const [yuklemeHatasi, setYuklemeHatasi] = useState(null);
   const [soru, setSoru] = useState(null);
   const [cevapladim, setCevapladim] = useState(false);
   const [jokerKullanildi, setJokerKullanildi] = useState({ elli: false, sure: false });
@@ -85,14 +87,33 @@ export default function GroupMatchPage() {
   };
 
   const macYukle = useCallback(async () => {
-    const { data } = await supabase
-      .from("group_matches")
-      .select(GRUP_SECIMI)
-      .eq("id", id)
-      .single();
-    if (data) setMac(data);
-    return data;
+    try {
+      const { data, error } = await supabase
+        .from("group_matches")
+        .select(GRUP_SECIMI)
+        .eq("id", id)
+        .single();
+      if (error) throw error;
+      if (data) {
+        setMac(data);
+        setYuklemeHatasi(null);
+      }
+      return data;
+    } catch (e) {
+      console.error("[Bildim] grup maci yuklenemedi:", e);
+      setYuklemeHatasi(hataMesaji(e, "Maç bilgisi alınamadı."));
+      return null;
+    }
   }, [id]);
+
+  const maciIptalEt = useCallback(async () => {
+    try {
+      await supabase.rpc("grup_mac_iptal", { p_group_match_id: id });
+    } catch (e) {
+      console.error("[Bildim] grup mac iptal:", e);
+    }
+    navigate("/bildim/meydan");
+  }, [id, navigate]);
 
   useEffect(() => {
     macYukle();
@@ -176,7 +197,15 @@ export default function GroupMatchPage() {
 
   useOyunModu(Boolean(soru) && mac?.durum === "aktif");
 
-  if (!mac) return <div className="yukleniyor">Yükleniyor…</div>;
+  if (!mac) {
+    return (
+      <MacYukleniyor
+        hata={yuklemeHatasi}
+        onTekrarDene={() => { setYuklemeHatasi(null); macYukle(); }}
+        onIptal={maciIptalEt}
+      />
+    );
+  }
 
   const katilimcilar = mac.katilimcilar ?? [];
   const benimKayit = katilimcilar.find((k) => k.user_id === user.id);

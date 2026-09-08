@@ -9,6 +9,7 @@ import BildirimIzniSor from "../components/BildirimIzniSor.jsx";
 import MacSonuEklentisi from "../components/MacSonuEklentisi.jsx";
 import Maskot from "../components/Maskot.jsx";
 import Ikon from "../components/Ikon.jsx";
+import MacYukleniyor from "../components/MacYukleniyor.jsx";
 import { useOyunModu } from "../lib/oyunModu.js";
 import { macBittiReklam } from "../lib/reklam.js";
 
@@ -41,6 +42,7 @@ export default function MatchPage() {
   const [kaliplarAcik, setKaliplarAcik] = useState(false);
   const [ilerleme, setIlerleme] = useState({ ben: 0, rakip: 0 });
   const [bilgiKapandi, setBilgiKapandi] = useState(false);
+  const [yuklemeHatasi, setYuklemeHatasi] = useState(null);
   const advanceKilidi = useRef(false);
   const pollRef = useRef(null);
   const balonTimer = useRef({});
@@ -92,11 +94,20 @@ export default function MatchPage() {
   };
 
   const macYukle = useCallback(async () => {
-    const { data } = await supabase
-      .from("matches")
-      .select(MAC_SECIMI)
-      .eq("id", id)
-      .single();
+    let data = null;
+    try {
+      const sonuc = await supabase
+        .from("matches")
+        .select(MAC_SECIMI)
+        .eq("id", id)
+        .single();
+      if (sonuc.error) throw sonuc.error;
+      data = sonuc.data;
+      if (data) setYuklemeHatasi(null);
+    } catch (e) {
+      console.error("[Bildim] mac yuklenemedi:", e);
+      setYuklemeHatasi(hataMesaji(e, "Maç bilgisi alınamadı."));
+    }
     if (data) setMac(data);
 
     // Asenkron maçta iki taraf farklı soruda olabilir; bunu ekranda göster
@@ -197,7 +208,14 @@ export default function MatchPage() {
     setTimeout(ilerletmeyiDene, Math.random() * 800 + 1000);
   }, [ilerletmeyiDene]);
 
-  if (!mac) return <div className="yukleniyor">Yükleniyor…</div>;
+  if (!mac) {
+    return (
+      <MacYukleniyor
+        hata={yuklemeHatasi}
+        onTekrarDene={() => { setYuklemeHatasi(null); macYukle(); }}
+      />
+    );
+  }
 
   const benP1 = mac.oyuncu1 === user.id;
   const toplamSoru = mac.soru_ids?.length ?? 5;
