@@ -42,15 +42,15 @@
 - [x] 2.4 `npm run build` temiz + PROGRESS eklendi + commit
 
 ## Faz 3 — 1.500 doğrulanmış soru
-- [ ] 3.0 Mevcut tüm `insert into public.questions` taranıp konu listesi çıkarıldı
-- [ ] 3.1 Parti 10 — `20260612000049_soru_parti10_genel_kultur.sql` (500 genel_kultur)
-- [ ] 3.2 Parti 10 öz denetim + rapor
-- [ ] 3.3 Parti 11 — `20260612000050_soru_parti11_genel_kultur.sql` (400 genel_kultur + 100 karışık)
-- [ ] 3.4 Parti 11 öz denetim + rapor
-- [ ] 3.5 Parti 12 — `20260612000051_soru_parti12_kategoriler.sql` (500: tarih/bilim/coğrafya/edebiyat/spor/sanat/sinema/müzik/teknoloji)
-- [ ] 3.6 Parti 12 öz denetim + rapor
-- [ ] 3.7 Her partide: şık karıştırma `created_at >= transaction_timestamp()` ile yalnız o parti
-- [ ] 3.8 `npm run build` temiz + PROGRESS eklendi + commit
+- [x] 3.0 Mevcut tüm `insert into public.questions` taranıp konu listesi çıkarıldı
+- [x] 3.1 Parti 10 — `20260612000049_soru_parti10_genel_kultur.sql` (500 genel_kultur)
+- [x] 3.2 Parti 10 öz denetim + rapor
+- [x] 3.3 Parti 11 — `20260612000050_soru_parti11_genel_kultur.sql` (400 genel_kultur + 100 karışık)
+- [x] 3.4 Parti 11 öz denetim + rapor
+- [x] 3.5 Parti 12 — `20260612000051_soru_parti12_kategoriler.sql` (500: tarih/bilim/coğrafya/edebiyat/spor/sanat/sinema/müzik/teknoloji)
+- [x] 3.6 Parti 12 öz denetim + rapor
+- [x] 3.7 Her partide: şık karıştırma `created_at >= transaction_timestamp()` ile yalnız o parti
+- [x] 3.8 `npm run build` temiz + PROGRESS eklendi + commit
 
 ## Faz 4 — Arayüz (`bildim/`)
 - [ ] 4.1 Zorunlu akış: takma ad → avatar → şehir (tamamlanmadan oyun ekranı açılmaz)

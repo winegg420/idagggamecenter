@@ -1140,3 +1140,57 @@ Meydan okuma push'u (`notify_new_challenge`) aynen korundu.
 
 `npm run build` temiz. Migration **uygulanmadı**; 47+48 birlikte geri alınan transaction
 içinde denendi, hatasız.
+
+## 2026-09-08 — Bildim Faz 3: 1.500 doğrulanmış yeni soru (partiler 10, 11, 12)
+
+Dosyalar: `20260612000049_soru_parti10_genel_kultur.sql` (500 genel_kultur),
+`…050_soru_parti11_genel_kultur.sql` (400 genel_kultur + 100 karışık kategori),
+`…051_soru_parti12_kategoriler.sql` (500, 9 kategoriye eşit).
+
+### Yöntem (bu partilerde kurulan, sonrakiler için kalıcı)
+
+Elle gözden geçirmek 1.500 soruda güvenilir değil; bu yüzden **otomatik denetim
+zinciri** kuruldu (scratchpad'de, `scripts/soru-parti-sablonu.md`'ye de eklendi):
+1. `mevcut-sorular.txt` — canlı DB'den çekilen tüm soru metinleri (parti bittikçe güncellenir).
+2. `denetle.mjs` — SQL biçimi, 4 şık, şık benzersizliği, soru işareti, şık uzunluğu,
+   zamana bağlı/yoruma açık kalıplar, parti içi tekrar, **mevcut havuzla anahtar kelime
+   örtüşmesi** (≥%80 kesişim + ≥3 anahtar kelime), doğru şık ve kategori dağılımı.
+3. `temizle.mjs` — çakışan/kuralı bozan soruları dosyadan siler.
+4. `birebir.mjs` — `on conflict (soru) do nothing` ile sessizce düşecek **birebir aynı**
+   metinleri yakalar (anahtar kelime taraması kısa sorularda bunları kaçırıyor).
+5. `tamamla.mjs` / `ekle-dengele.mjs` — doğru şıkkı 0-1-2-3 sırayla dağıtır (dosya
+   düzeyinde 125/125/125/125) ve parti sonuna karıştırma bloğunu ekler.
+6. Her parti canlı DB'de `begin; … rollback;` ile denenip kaç satırın gerçekten
+   eklendiği ölçüldü.
+
+### Parti raporları
+
+**Parti 10 — 500 genel_kultur.** Üretilen 525 → 25'i zorluk dengesi için çıkarıldı.
+Denetimde **86 soru elendi** (84 anahtar kelime çakışması + 2 şıkları benzersiz olmayan);
+yerlerine tamamen yeni konularda (meslekler, coğrafya terimleri, doğal afetler, tarım,
+hayvan yavruları, ev/mutfak araçları, kütüphane-iletişim-okul) 86 soru yazıldı.
+Ardından **9 birebir tekrar** daha yakalandı ve değiştirildi. Son durum: 500 soru,
+doğru şık 125/125/125/125, mevcut havuzla çakışma 0, DB'ye 500/500 eklendi.
+
+**Parti 11 — 400 genel_kultur + 100 karışık.** İlk yazımda 350 soru vardı; denetimde
+**64 soru elendi**, 214 yeni soru eklendi (dünya simge yapıları, baharat/mutfak teknikleri,
+uzay, hukuk-vatandaşlık, enerji-çevre, giyim, meteoroloji-ölçüm, güvenlik, ulaşım,
+Türk bilim insanları). Sonra kategori dengesi için 18 soru kırpıldı ve **5 birebir tekrar**
+değiştirildi. Son durum: 500 soru (genel_kultur 400; tarih 13, bilim 12, cografya 12,
+edebiyat 11, sinema 11, teknoloji 11, spor 10, sanat 10, muzik 10), çakışma 0, 500/500 eklendi.
+
+**Parti 12 — 500, 9 kategori.** Üretilen 496'dan **13 soru elendi**, 17 yeni soru eklendi.
+Son durum: tarih 56, bilim 56, cografya 56, spor 56, muzik 56, edebiyat 55, sanat 55,
+sinema 55, teknoloji 55. Çakışma 0, 500/500 eklendi.
+
+**Denetimde kalan 3 "hata" yanlış pozitiftir:** "güncel" kelimesi geçen üç soruda kelime
+zaman bağımlılığı değil, *"güncel konular"* (köşe yazısı türü) ve *"güncelleme"* (yazılım)
+anlamındadır; cevaplar zamanla değişmez. Bir şık 40 karakteri aşıyordu, kısaltıldı.
+
+### Sonuç
+
+Üç parti birlikte canlıda denendi: **1.500/1.500 soru eklendi**, hiçbiri
+`on conflict` ile düşmedi. Havuz 1.701 → **3.201**. Kategori dağılımı:
+genel_kultur 900, bilim 397, tarih 335, cografya 285, edebiyat 238, spor 227,
+genel 221, sanat 201, sinema 121, teknoloji 120, muzik 120, karisik 36.
+Migration'lar **uygulanmadı**. `npm run build` temiz.
