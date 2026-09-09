@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import Ikon from "../components/Ikon.jsx";
 import SenRozeti from "../components/SenRozeti.jsx";
+import YanlisSatiri from "../components/YanlisSatiri.jsx";
 import SureDolduGecis from "../components/SureDolduGecis.jsx";
 import MacYukleniyor from "../components/MacYukleniyor.jsx";
 import { hataMesaji } from "../lib/hata.js";
@@ -314,6 +315,9 @@ export default function GroupMatchPage() {
               <span style={{ fontWeight: 800 }}>{k.skor}</span>
             </div>
           ))}
+        </div>
+        <div style={{ maxWidth: 340, margin: "12px auto 0" }}>
+          <YanlisSatiri macTur="grup" macId={id} />
         </div>
         <button className="btn ikincil" style={{ marginTop: 16, maxWidth: 340, margin: "16px auto 0" }} onClick={() => navigate("/bildim/meydan")}>
           Meydan okumalara dön

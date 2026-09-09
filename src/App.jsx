@@ -48,6 +48,7 @@ const GizlilikPage = lazy(() => import("../bildim/pages/GizlilikPage.jsx"));
 const DavetPage = lazy(() => import("../bildim/pages/DavetPage.jsx"));
 const JokerDukkani = lazy(() => import("../bildim/pages/JokerDukkani.jsx"));
 const HizliModPage = lazy(() => import("../bildim/pages/HizliModPage.jsx"));
+const CalismaPage = lazy(() => import("../bildim/pages/CalismaPage.jsx"));
 
 export default function App() {
   const { session, loading } = useAuth();
@@ -158,6 +159,7 @@ export default function App() {
         <Route path="davet/:kod" element={<DavetPage />} />
         <Route path="joker" element={<JokerDukkani />} />
         <Route path="hizli-mod" element={<HizliModPage />} />
+        <Route path="calisma" element={<CalismaPage />} />
         <Route path="profil" element={<ProfilePage />} />
       </Route>
 

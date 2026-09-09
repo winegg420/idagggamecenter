@@ -33,9 +33,29 @@ export default function ProfilePage() {
   const [silMetin, setSilMetin] = useState("");
   const [silHata, setSilHata] = useState(null);
   const [siliniyor, setSiliniyor] = useState(false);
+  // Hatalarım bankası özeti
+  const [banka, setBanka] = useState(null);
 
   useEffect(() => {
     pushDurumu().then(setBildirim);
+  }, []);
+
+  // Hatalarım: öğrenilen / bankada bekleyen
+  useEffect(() => {
+    let aktif = true;
+    (async () => {
+      try {
+        const { data, error } = await supabase.rpc("yanlis_bankam");
+        if (error) throw error;
+        const ilk = (data ?? [])[0];
+        if (aktif && ilk) setBanka({ ogrenilen: ilk.ogrenilen ?? 0, bekleyen: ilk.bekleyen ?? 0 });
+      } catch {
+        /* migration bekliyor olabilir — bölüm gizli kalır */
+      }
+    })();
+    return () => {
+      aktif = false;
+    };
   }, []);
 
   useEffect(() => {
@@ -89,6 +109,22 @@ export default function ProfilePage() {
       <ProfilAyarlari />
 
       <UstalikIzgarasi />
+
+      {/* ---------- Hatalarım bankası ---------- */}
+      {banka && (
+        <Link to="/bildim/calisma" className="kart bd-profil-hatalarim">
+          <span className="bd-mod-ikon hatalarim">
+            <Ikon ad="kitap" boyut={20} />
+          </span>
+          <div className="bd-profil-hatalarim-metin">
+            <div className="ad">Hatalarım</div>
+            <div className="alt-yazi">
+              Öğrenilen soru: <b>{banka.ogrenilen}</b> · Bankada: <b>{banka.bekleyen}</b>
+            </div>
+          </div>
+          <span className="ok" aria-hidden="true">›</span>
+        </Link>
+      )}
 
       {/* ---------- Konum (şehir/ülke ligi) ---------- */}
       {konumDuzenle ? (

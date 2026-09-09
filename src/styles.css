@@ -1801,6 +1801,19 @@ input:focus { border-color: var(--primary); }
 .bd-mod-ikon.hizli { background: #F2B23C; color: #0B1220; }
 .bd-mod-ikon.grup { background: #4A9DD9; color: #0B1220; }
 .bd-mod-ikon.turnuva { background: #E8543F; color: #0B1220; }
+/* Hatalarım: kendi rengi (teal) — diğer modlardan ayrışsın */
+.bd-mod-ikon.hatalarim { background: #2FBF71; color: #0B1220; }
+
+/* Hatalarım mod kartı: köşede bankadaki soru sayısı rozeti */
+.bd-mod.tema-hatalarim { position: relative; }
+.bd-mod-rozet {
+  position: absolute; top: 10px; right: 12px;
+  min-width: 22px; height: 22px; padding: 0 6px;
+  display: inline-flex; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 800; line-height: 1;
+  color: #0B1220; background: var(--accent, #F2B23C);
+  border-radius: 999px;
+}
 .bd-mod-ad { font-size: 14.5px; font-weight: 800; text-align: center; }
 
 /* ---------- Turnuva bandı ---------- */
@@ -2160,4 +2173,156 @@ body.bd-oyun-modu .bd-joker-cubuk {
 .hata-siniri-kart code {
   display: block; margin-top: 8px; padding: 8px; font-size: 11.5px;
   background: var(--bg-2); border-radius: 8px; word-break: break-word;
+}
+
+/* ============================================================
+   HATALARIM — puansız çalışma modu
+   ============================================================ */
+
+/* ---- Seçim ekranı: banka özeti ---- */
+.bd-calisma-ozet { padding: 16px; }
+.bd-calisma-ozet-ust {
+  display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px;
+  font-size: 14.5px; color: var(--text);
+}
+.bd-calisma-ozet-ust b { color: var(--accent); }
+.bd-calisma-ozet-ust .ayrac { color: var(--text-dim); }
+
+.bd-calisma-cubuklar { display: grid; gap: 7px; margin-top: 14px; }
+.bd-calisma-cubuk {
+  display: grid; grid-template-columns: 88px 1fr 28px;
+  align-items: center; gap: 8px;
+  font-size: 12px; color: var(--text-dim);
+}
+.bd-calisma-cubuk .ad {
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.bd-calisma-cubuk .iz {
+  height: 7px; border-radius: 999px; overflow: hidden;
+  background: var(--bg-2);
+}
+.bd-calisma-cubuk .dolgu {
+  display: block; height: 100%; border-radius: 999px;
+  background: #2FBF71;
+}
+.bd-calisma-cubuk .adet { text-align: right; font-weight: 700; color: var(--text); }
+
+/* ---- Banka boşken ---- */
+.bd-calisma-bos {
+  display: flex; flex-direction: column; align-items: center; gap: 10px;
+  padding: 22px 16px; text-align: center;
+}
+.bd-calisma-bos-metin { font-size: 13.5px; line-height: 1.6; color: var(--text-dim); }
+
+/* ---- Soru sayısı seçici ---- */
+.bd-calisma-adet {
+  display: grid; grid-template-columns: repeat(3, 1fr);
+  gap: 8px; margin-bottom: var(--bd-bosluk-3, 14px);
+}
+.bd-calisma-adet-btn {
+  min-height: 46px; padding: 10px; cursor: pointer;
+  font-size: 16px; font-weight: 800; color: var(--text);
+  background: var(--card); border: 1px solid var(--border); border-radius: 12px;
+  transition: border-color 0.16s, background 0.16s;
+}
+.bd-calisma-adet-btn.aktif {
+  border-color: #2FBF71;
+  background: color-mix(in srgb, #2FBF71 14%, var(--card));
+}
+
+/* ---- Oyun ekranı ---- */
+.bd-calisma-serit {
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+  margin-bottom: 12px; padding: 7px 10px;
+  font-size: 10.5px; font-weight: 800; letter-spacing: 1.1px;
+  color: #2FBF71;
+  background: color-mix(in srgb, #2FBF71 12%, transparent);
+  border: 1px solid color-mix(in srgb, #2FBF71 34%, transparent);
+  border-radius: 999px;
+}
+.bd-calisma-serit.ic { margin: 0 auto 14px; max-width: 260px; }
+
+.bd-calisma-ilerleme { margin-bottom: 12px; }
+.bd-calisma-ilerleme .iz {
+  height: 6px; border-radius: 999px; overflow: hidden; background: var(--bg-2);
+}
+.bd-calisma-ilerleme .dolgu {
+  height: 100%; border-radius: 999px; background: #2FBF71;
+  transition: width 0.3s ease;
+}
+.bd-calisma-kalan {
+  display: block; margin-top: 6px; text-align: center;
+  font-size: 11.5px; color: var(--text-dim);
+}
+
+.bd-calisma-ust {
+  display: flex; align-items: center; gap: 8px;
+  margin-bottom: 12px; font-size: 12px; color: var(--text-dim);
+}
+.bd-calisma-kat { display: inline-flex; align-items: center; gap: 5px; }
+.bd-calisma-rozet {
+  padding: 3px 8px; font-size: 10.5px; font-weight: 700;
+  color: var(--danger, #E8543F);
+  background: color-mix(in srgb, #E8543F 14%, transparent);
+  border-radius: 999px;
+}
+.bd-calisma-sn { margin-left: auto; font-weight: 800; color: var(--text); }
+.bd-calisma-sn.kritik { color: var(--danger, #E8543F); }
+
+/* ---- Cevap sonrası geri bildirim ---- */
+.bd-calisma-geri {
+  margin-top: 12px; padding: 11px 14px; text-align: center;
+  font-size: 13px; font-weight: 600; border-radius: 12px;
+  animation: bd-calisma-geri-gir 0.24s ease both;
+}
+@keyframes bd-calisma-geri-gir {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: none; }
+}
+.bd-calisma-geri.iyi {
+  color: #2FBF71;
+  background: color-mix(in srgb, #2FBF71 12%, transparent);
+}
+.bd-calisma-geri.uyari {
+  color: var(--danger, #E8543F);
+  background: color-mix(in srgb, #E8543F 12%, transparent);
+}
+.bd-calisma-geri.ogrenildi {
+  color: #0B1220; font-weight: 800; background: #2FBF71;
+}
+
+/* ---- Sonuç ekranı ---- */
+.bd-calisma-sonuc { padding: 20px 16px; text-align: center; }
+.bd-calisma-buyuk {
+  font-size: 52px; font-weight: 900; line-height: 1; color: #2FBF71;
+}
+.bd-calisma-toplam {
+  margin-top: 14px; font-size: 12.5px; line-height: 1.6; color: var(--text-dim);
+}
+
+/* ---- Profil: Hatalarım bölümü ---- */
+.bd-profil-hatalarim {
+  display: flex; align-items: center; gap: 12px;
+  color: var(--text); text-decoration: none;
+}
+.bd-profil-hatalarim .bd-mod-ikon { width: 38px; height: 38px; border-radius: 12px; }
+.bd-profil-hatalarim-metin { flex: 1; text-align: left; }
+.bd-profil-hatalarim-metin .ad { font-weight: 800; font-size: 14.5px; }
+.bd-profil-hatalarim .ok { color: var(--text-dim); font-size: 20px; }
+
+/* ---- Maç sonucundaki "N soruyu yanlış bildin" satırı ---- */
+.bd-yanlis-satiri {
+  display: flex; align-items: center; gap: 10px;
+  margin-top: 12px; padding: 10px 12px;
+  color: var(--text); text-decoration: none; text-align: left;
+  background: var(--card); border: 1px solid var(--border); border-radius: 12px;
+}
+.bd-yanlis-satiri .bd-mod-ikon { width: 30px; height: 30px; border-radius: 10px; }
+.bd-yanlis-satiri .metin { flex: 1; font-size: 12.5px; line-height: 1.5; }
+.bd-yanlis-satiri .ok { color: var(--text-dim); font-size: 18px; }
+
+@media (max-width: 400px) {
+  .bd-calisma-buyuk { font-size: 46px; }
+  .bd-calisma-cubuk { grid-template-columns: 74px 1fr 26px; }
+  .bd-calisma-adet-btn { min-height: 44px; font-size: 15px; }
 }

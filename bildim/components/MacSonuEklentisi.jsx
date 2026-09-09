@@ -4,6 +4,7 @@ import { hataMesaji } from "../lib/hata.js";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../../src/lib/supabase.js";
 import { JOKER_BILGI } from "../lib/jokerler.js";
+import YanlisSatiri from "./YanlisSatiri.jsx";
 
 /**
  * Maç sonucu ekranına eklenen blok:
@@ -61,6 +62,9 @@ export default function MacSonuEklentisi({ macTur, macId, kaybettim }) {
 
   return (
     <div className="bd-mac-sonu-ek">
+      {/* Yanlışlar Hatalarım bankasına eklendi */}
+      <YanlisSatiri macTur={macTur} macId={macId} />
+
       {seri && (seri.seri_gun ?? 0) > 0 && (
         <div className="bd-sonuc-seri">
           <Ikon ad="ates" boyut={16} /> <b>{seri.seri_gun}.</b> gün — serin sürüyor

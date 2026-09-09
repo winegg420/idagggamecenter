@@ -27,6 +27,8 @@ export default function Home() {
   const [gecenHafta, setGecenHafta] = useState(null);
   const [rakipAra, setRakipAra] = useState(false);
   const [siraSendeMaclar, setSiraSendeMaclar] = useState([]);
+  // Hatalarım bankasında bekleyen soru sayısı (mod kartı rozeti)
+  const [bankaBekleyen, setBankaBekleyen] = useState(0);
   const [gorevlerAcik, setGorevlerAcik] = useState(false);
   // Ödülü alınmayı bekleyen görev sayısı (kapalıyken de görünür)
   const hazirOdul = gorevler.filter((g) => g.ilerleme >= g.hedef && !g.alindi).length;
@@ -41,6 +43,24 @@ export default function Home() {
   useEffect(() => {
     gorevleriYukle();
   }, [gorevleriYukle]);
+
+  // Hatalarım bankası — mod kartındaki rozet için
+  useEffect(() => {
+    let aktif = true;
+    (async () => {
+      try {
+        const { data, error } = await supabase.rpc("yanlis_bankam");
+        if (error) throw error;
+        const ilk = (data ?? [])[0];
+        if (aktif) setBankaBekleyen(ilk?.bekleyen ?? 0);
+      } catch {
+        /* migration bekliyor olabilir — rozet gizli kalır */
+      }
+    })();
+    return () => {
+      aktif = false;
+    };
+  }, []);
 
   // Asenkron maçlar: sırası BENDE olan yarım kalmış müsabakalar
   const siraYukle = useCallback(async () => {
@@ -339,6 +359,16 @@ export default function Home() {
         <button className="bd-mod tema-joker" onClick={() => navigate("/bildim/joker")}>
           <span className="bd-mod-ikon"><Ikon ad="yildiz" boyut={26} /></span>
           <span className="bd-mod-ad">Joker Dükkânı</span>
+        </button>
+        <button
+          className="bd-mod bd-mod-genis tema-hatalarim"
+          onClick={() => navigate("/bildim/calisma")}
+        >
+          <span className="bd-mod-ikon hatalarim"><Ikon ad="kitap" boyut={26} /></span>
+          <span className="bd-mod-ad">Hatalarım</span>
+          {bankaBekleyen > 0 && (
+            <span className="bd-mod-rozet">{bankaBekleyen}</span>
+          )}
         </button>
         <button className="bd-mod bd-mod-genis tema-lig" onClick={() => navigate("/bildim/siralama")}>
           <span className="bd-mod-ikon"><Ikon ad="grafik" boyut={26} /></span>
