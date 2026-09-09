@@ -366,7 +366,9 @@ input:focus { border-color: var(--primary); }
   text-align: center; padding: 12px 6px;
   background: var(--bg-2); border: 1px solid var(--border); border-radius: 12px;
 }
-.rozet.kilitli { opacity: 0.45; }
+/* 0.45'te kilitli rozetin 10px açıklaması 2.96:1 kontrasta düşüyordu (eşik 4.5).
+   0.65 hem "kilitli" hissini koruyor hem açıklamayı okunur kılıyor (4.72:1). */
+.rozet.kilitli { opacity: 0.65; }
 .rozet-ikon { font-size: 28px; margin-bottom: 4px; }
 .rozet-ad { font-size: 12px; font-weight: 800; }
 .rozet-aciklama { font-size: 10px; color: var(--text-dim); margin-top: 2px; line-height: 1.3; }
