@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "../../src/lib/supabase.js";
 import { useAuth } from "../../src/context/AuthContext.jsx";
 import Ikon from "./Ikon.jsx";
+import { y } from "../lib/yol.js";
 
 const TIP_IKON = {
   mac_daveti: "kilic",
@@ -52,13 +53,13 @@ const oncelikSirala = (liste) =>
 
 // Aynı türden birden fazla OKUNMAMIŞ bildirim varsa tek satırda toplanır.
 const TOPLAMA = {
-  sira_sende: { metin: (n) => `${n} maçta sıra sende`, yol: "/bildim/meydan" },
-  mac_daveti: { metin: (n) => `${n} yeni meydan okuma`, yol: "/bildim/meydan" },
-  rovans: { metin: (n) => `${n} rövanş isteği`, yol: "/bildim/meydan" },
-  grup_daveti: { metin: (n) => `${n} grup maçı daveti`, yol: "/bildim/meydan" },
-  hizli_daveti: { metin: (n) => `${n} hızlı maç daveti`, yol: "/bildim/meydan" },
-  seri: { metin: (n) => `${n} seri bildirimi`, yol: "/bildim" },
-  arkadas_istek: { metin: (n) => `${n} arkadaşlık isteği`, yol: "/bildim/arkadaslar" },
+  sira_sende: { metin: (n) => `${n} maçta sıra sende`, yol: y("/meydan") },
+  mac_daveti: { metin: (n) => `${n} yeni meydan okuma`, yol: y("/meydan") },
+  rovans: { metin: (n) => `${n} rövanş isteği`, yol: y("/meydan") },
+  grup_daveti: { metin: (n) => `${n} grup maçı daveti`, yol: y("/meydan") },
+  hizli_daveti: { metin: (n) => `${n} hızlı maç daveti`, yol: y("/meydan") },
+  seri: { metin: (n) => `${n} seri bildirimi`, yol: y() },
+  arkadas_istek: { metin: (n) => `${n} arkadaşlık isteği`, yol: y("/arkadaslar") },
 };
 
 /** Okunmamış tekrarları tek satıra indirger; okunmuşlara dokunmaz. */

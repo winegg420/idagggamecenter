@@ -6,6 +6,7 @@ import { supabase } from "../../src/lib/supabase.js";
 import { useAuth } from "../../src/context/AuthContext.jsx";
 import Avatar from "../../src/components/Avatar.jsx";
 import Maskot from "../components/Maskot.jsx";
+import { y } from "../lib/yol.js";
 
 const DOSTLUK_SECIMI = `id, requester, addressee, durum,
   req:profiles!friendships_requester_fkey(id, gorunen_ad, gorunen_avatar, puan),
@@ -79,7 +80,7 @@ export default function FriendsPage() {
   };
 
   const davetLinki = profile?.davet_kodu
-    ? `${window.location.origin}/bildim/davet/${profile.davet_kodu}`
+    ? window.location.origin + y(`/davet/${profile.davet_kodu}`)
     : null;
 
   const linkPaylas = async () => {
@@ -126,7 +127,7 @@ export default function FriendsPage() {
     try {
       const { error, data } = await supabase.rpc("create_challenge", { p_rakip: hedefId });
       if (error) throw error;
-      if (data) navigate("/bildim/meydan");
+      if (data) navigate(y("/meydan"));
     } catch (e) {
       setHata(hataMesaji(e, "Meydan okuma başlatılamadı."));
     }

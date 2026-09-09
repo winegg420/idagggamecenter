@@ -4,6 +4,7 @@ import { hataMesaji } from "../lib/hata.js";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "../../src/lib/supabase.js";
 import { useAuth } from "../../src/context/AuthContext.jsx";
+import { y } from "../lib/yol.js";
 
 const DEPO_ANAHTAR = "bildim_davet_kodu";
 
@@ -75,7 +76,7 @@ export default function DavetPage() {
         } catch {
           /* özel mod */
         }
-        setTimeout(() => navigate("/bildim/arkadaslar"), 1800);
+        setTimeout(() => navigate(y("/arkadaslar")), 1800);
       } catch (e) {
         setDurum("hata");
         setMesaj(hataMesaji(e, "Davet uygulanamadı."));
@@ -92,7 +93,7 @@ export default function DavetPage() {
         {durum === "basarili" ? "Davet uygulandı" : "Arkadaş daveti"}
       </div>
       <div className="alt-yazi" style={{ marginBottom: 14 }}>{mesaj}</div>
-      <button className="btn ikincil" onClick={() => navigate("/bildim/arkadaslar")}>
+      <button className="btn ikincil" onClick={() => navigate(y("/arkadaslar"))}>
         Arkadaşlara git
       </button>
     </div>

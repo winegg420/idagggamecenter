@@ -2553,3 +2553,52 @@ Redirect URLs'e `https://<proje>.pages.dev/**` eklenmeli.
 
 Ayrıca iki site birden yayında kalacaksa ikincisine `Disallow: /` veya asıl
 alan adına `rel=canonical` gerekir (yinelenen içerik).
+
+---
+
+## 2026-09-09 — Bildim kendi sitesine ayrıldı (tek depo, iki hedef)
+
+İstek: Bildim hub'dan ayrılıp kendi sitesi olsun; depo aynı kalsın; domain
+sonra alınacak.
+
+### Yaklaşım
+
+Ayrı depo/dal yerine **derleme modu anahtarı**. `VITE_MOD=bildim` ile derlenen
+çıktı yalnız Bildim'i içerir ve rotaları kökte tutar; değişken yokken hub
+aynen eskisi gibi derlenir. `src/App.jsx`'e hiç dokunulmadı.
+
+| Dosya | Değişiklik |
+|---|---|
+| `bildim/lib/yol.js` | **yeni** — `y()` yol yardımcısı, tek doğruluk kaynağı |
+| 22 bileşen/sayfa | 76 sabit `/bildim/...` yolu `y("/...")` çağrısına çevrildi |
+| `src/BildimApp.jsx` | **yeni** — Bildim rotaları kökte + eski `/bildim/*` → kök yönlendirmesi |
+| `src/main.jsx` | moda göre `App` / `BildimApp` (lazy — seçilmeyen taraf paketlenmez) |
+| `vite.config.js` | `bildimModuEklentisi`: index.html meta/manifest/ikon/canonical + çıktıdaki manifest, robots, sitemap |
+| `.env.bildim` | `npm run build:bildim` her işletim sisteminde çalışsın diye |
+| `package.json` | `build:bildim` betiği |
+
+### Doğrulama (yerel, derlenmiş çıktı + Chromium)
+
+**Bildim modu** — `/`, `/gizlilik`, `/kosullar`, `/calisma`, `/bildim/meydan`,
+`/bildim/mac/abc-123`, `/olmayan-sayfa`: 7/7 render, **JS hatası yok**.
+Statik dosyalar: `bildim.webmanifest` `start_url: "/"`, kısayollar
+`/`, `/meydan`, `/turnuva`; robots + sitemap `VITE_SITE_URL`'den üretildi;
+`<title>` "Bildim! — Bilgi Yarışması", manifest/ikon/apple başlığı Bildim,
+`rel=canonical` eklendi.
+Paket denetimi: `DriftGpApp` (1.086 kB), KafaTopu, PatiRun, Boks, Gladius,
+RUN, MeyveKes parçalarının **hiçbiri çıktıda yok**.
+
+**Hub regresyonu** — `/`, `/bildim`, `/bildim/calisma`, `/gizlilik`,
+`/kafatopu`: 5/5 render, JS hatası yok; `<title>` "IDA GG Game Center",
+manifest `manifest.webmanifest`, `bildim.webmanifest` `start_url: "/bildim"`,
+robots/sitemap Vercel adresinde, canonical eklenmedi. Yani hub bozulmadı.
+
+### Bekleyen (panel işi — koddan çözülmez)
+
+- Cloudflare'de `VITE_MOD=bildim` + `VITE_SITE_URL` + Supabase değişkenleri
+- Supabase izin listesine `https://<proje>.pages.dev/**`
+- `/kosullar` metni hâlâ "IDA GG Game Center ve içindeki Bildim!" diyor —
+  Bildim tek başına yayınlanınca bu cümle ve hizmet sağlayıcı kimliği
+  güncellenmeli (yasal metin, bilerek dokunulmadı)
+- İki site birden yayında kalırsa hub'ın `/bildim` sayfasına `noindex` ya da
+  yeni siteye canonical gerekir (canonical Bildim tarafında hazır)

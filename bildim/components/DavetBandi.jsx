@@ -6,6 +6,7 @@ import { useAuth } from "../../src/context/AuthContext.jsx";
 import Avatar from "../../src/components/Avatar.jsx";
 import Ikon from "./Ikon.jsx";
 import { kategoriEtiket } from "../lib/kategoriler.js";
+import { y } from "../lib/yol.js";
 
 const TUR_BILGI = {
   mac: { etiket: "sana meydan okudu", ikon: "kilic", sinif: "tur-mac", yol: "mac" },
@@ -68,7 +69,7 @@ export default function DavetBandi() {
       const { error } = await supabase.rpc(rpc, { [param]: d.kayit_id, p_kabul: kabul });
       if (error) throw error;
       setDavetler((l) => l.filter((x) => x.kayit_id !== d.kayit_id));
-      if (kabul) navigate(`/bildim/${bilgi.yol}/${d.kayit_id}`);
+      if (kabul) navigate(y(`/${bilgi.yol}/${d.kayit_id}`));
     } catch (e) {
       setHata(hataMesaji(e, "İşlem başarısız"));
     } finally {

@@ -14,6 +14,7 @@ import RankBadge from "../components/RankBadge.jsx";
 import SeriRozeti from "../components/SeriRozeti.jsx";
 import EzeliRakip from "../components/EzeliRakip.jsx";
 import Maskot from "../components/Maskot.jsx";
+import { y } from "../lib/yol.js";
 
 export default function Home() {
   const { user, profile, refreshProfile } = useAuth();
@@ -209,7 +210,7 @@ export default function Home() {
           kategori={profile?.tercih_kategori ?? null}
           onBulundu={(macId) => {
             setRakipAra(false);
-            navigate(`/bildim/mac/${macId}`);
+            navigate(y(`/mac/${macId}`));
           }}
           onIptal={() => setRakipAra(false)}
         />
@@ -290,7 +291,7 @@ export default function Home() {
         {ligDurum && (
           <div className="bd-hero-lig">
             {ligDurum.sehir && (
-              <Link to="/bildim/siralama" className="bd-lig-rozet">
+              <Link to={y("/siralama")} className="bd-lig-rozet">
                 <span className="bd-lig-rozet-ust">
                   <Ikon ad="sehir" boyut={13} /> {ligDurum.sehir}
                 </span>
@@ -299,7 +300,7 @@ export default function Home() {
               </Link>
             )}
             {ligDurum.ulke && (
-              <Link to="/bildim/siralama" className="bd-lig-rozet">
+              <Link to={y("/siralama")} className="bd-lig-rozet">
                 <span className="bd-lig-rozet-ust">
                   <Ikon ad="bayrak" boyut={13} /> Ülke
                 </span>
@@ -307,7 +308,7 @@ export default function Home() {
                 <span className="bd-lig-rozet-alt">/ {ligDurum.ulke_oyuncu}</span>
               </Link>
             )}
-            <Link to="/bildim/siralama" className="bd-lig-rozet">
+            <Link to={y("/siralama")} className="bd-lig-rozet">
               <span className="bd-lig-rozet-ust">
                 <Ikon ad="dunya" boyut={13} /> Dünya
               </span>
@@ -325,7 +326,7 @@ export default function Home() {
       {/* Yarım kalan maçlar — sıra sendeyse en görünür yerde dursun */}
       {siraSendeMaclar.length > 0 && (
         <Link
-          to={"/bildim/mac/" + siraSendeMaclar[0].id}
+          to={y("/mac/") + siraSendeMaclar[0].id}
           className="bd-devam-eden bd-giris-2"
         >
           <Ikon ad="saat" boyut={17} />
@@ -340,29 +341,29 @@ export default function Home() {
 
       {/* ---------- Oyun modları: 2 sütun, ikon + iki kelime ---------- */}
       <div className="bd-mod-grid bd-giris-2">
-        <button className="bd-mod bd-mod-genis tema-meydan" onClick={() => navigate("/bildim/meydan")}>
+        <button className="bd-mod bd-mod-genis tema-meydan" onClick={() => navigate(y("/meydan"))}>
           <span className="bd-mod-ikon"><Ikon ad="kilic" boyut={30} /></span>
           <span className="bd-mod-ad">Meydan Oku</span>
         </button>
-        <button className="bd-mod tema-hizli" onClick={() => navigate("/bildim/hizli-mod")}>
+        <button className="bd-mod tema-hizli" onClick={() => navigate(y("/hizli-mod"))}>
           <span className="bd-mod-ikon"><Ikon ad="saat" boyut={26} /></span>
           <span className="bd-mod-ad">Hızlı Mod</span>
         </button>
-        <button className="bd-mod tema-grup" onClick={() => navigate("/bildim/meydan")}>
+        <button className="bd-mod tema-grup" onClick={() => navigate(y("/meydan"))}>
           <span className="bd-mod-ikon"><Ikon ad="kisiler" boyut={26} /></span>
           <span className="bd-mod-ad">Grup Maçı</span>
         </button>
-        <button className="bd-mod tema-turnuva" onClick={() => navigate("/bildim/turnuva")}>
+        <button className="bd-mod tema-turnuva" onClick={() => navigate(y("/turnuva"))}>
           <span className="bd-mod-ikon"><Ikon ad="kupa" boyut={26} /></span>
           <span className="bd-mod-ad">Turnuva</span>
         </button>
-        <button className="bd-mod tema-joker" onClick={() => navigate("/bildim/joker")}>
+        <button className="bd-mod tema-joker" onClick={() => navigate(y("/joker"))}>
           <span className="bd-mod-ikon"><Ikon ad="yildiz" boyut={26} /></span>
           <span className="bd-mod-ad">Joker Dükkânı</span>
         </button>
         <button
           className="bd-mod bd-mod-genis tema-hatalarim"
-          onClick={() => navigate("/bildim/calisma")}
+          onClick={() => navigate(y("/calisma"))}
         >
           <span className="bd-mod-ikon hatalarim"><Ikon ad="kitap" boyut={26} /></span>
           <span className="bd-mod-ad">Hatalarım</span>
@@ -370,7 +371,7 @@ export default function Home() {
             <span className="bd-mod-rozet">{bankaBekleyen}</span>
           )}
         </button>
-        <button className="bd-mod bd-mod-genis tema-lig" onClick={() => navigate("/bildim/siralama")}>
+        <button className="bd-mod bd-mod-genis tema-lig" onClick={() => navigate(y("/siralama"))}>
           <span className="bd-mod-ikon"><Ikon ad="grafik" boyut={26} /></span>
           <span className="bd-mod-ad">Lig</span>
         </button>
@@ -393,11 +394,11 @@ export default function Home() {
         </div>
         <div className="bd-turnuva-sag">
           {canliTurnuva ? (
-            <button className="btn kucuk" onClick={() => navigate("/bildim/turnuva")}>
+            <button className="btn kucuk" onClick={() => navigate(y("/turnuva"))}>
               Katıl
             </button>
           ) : lobide ? (
-            <button className="btn kucuk ikincil" onClick={() => navigate("/bildim/turnuva")}>
+            <button className="btn kucuk ikincil" onClick={() => navigate(y("/turnuva"))}>
               Lobidesin ({lobiSayisi})
             </button>
           ) : (
@@ -467,7 +468,7 @@ export default function Home() {
       )}
 
       {/* ---------- Lig özeti: kart değil, üç sütunluk ince bant ---------- */}
-      <Link to="/bildim/siralama" className="bd-lig-serit bd-giris-4">
+      <Link to={y("/siralama")} className="bd-lig-serit bd-giris-4">
         <span className="bd-lig-serit-hucre">
           <b>{ligDurum?.sira_sehir ?? "—"}</b>
           <em>{ligDurum?.sehir ?? "Şehir"}</em>

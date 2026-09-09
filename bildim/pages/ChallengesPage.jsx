@@ -8,6 +8,7 @@ import { useAuth } from "../../src/context/AuthContext.jsx";
 import Avatar from "../../src/components/Avatar.jsx";
 import { kategoriAdi, kategoriEtiket, kategorileriSirala } from "../lib/kategoriler.js";
 import { oyuncuAdi } from "../lib/oyuncu.js";
+import { y } from "../lib/yol.js";
 
 const MAC_SECIMI = `*,
   p1:profiles!matches_oyuncu1_fkey(id, gorunen_ad, gorunen_avatar, puan),
@@ -301,7 +302,7 @@ export default function ChallengesPage() {
       const botMu = botlar.some((b) => b.id === hedefId);
       if (botMu && data) {
         // Bot daveti saniyeler içinde kabul eder: oyuncuyu bekletmeden maça al.
-        navigate(`/bildim/mac/${data}`);
+        navigate(y(`/mac/${data}`));
         return;
       }
       setToast("Davet gönderildi — rakip kabul edince maç başlayacak.");
@@ -322,7 +323,7 @@ export default function ChallengesPage() {
       p_kabul: kabul,
     });
     if (error) setHata(hataMesaji(error));
-    else if (kabul) navigate(`/bildim/mac/${macId}`);
+    else if (kabul) navigate(y(`/mac/${macId}`));
     else yukle();
   };
 
@@ -349,7 +350,7 @@ export default function ChallengesPage() {
     if (error) setGrupHata(hataMesaji(error));
     else {
       setGrupSecili([]);
-      navigate(`/bildim/grup-mac/${data}`);
+      navigate(y(`/grup-mac/${data}`));
     }
   };
 
@@ -360,7 +361,7 @@ export default function ChallengesPage() {
       p_kabul: kabul,
     });
     if (error) setGrupHata(hataMesaji(error));
-    else if (kabul) navigate(`/bildim/grup-mac/${grupMacId}`);
+    else if (kabul) navigate(y(`/grup-mac/${grupMacId}`));
     else grupYukle();
   };
 
@@ -383,7 +384,7 @@ export default function ChallengesPage() {
     if (error) setHizliHata(hataMesaji(error));
     else {
       setHizliSecili([]);
-      navigate(`/bildim/hizli-mac/${data}`);
+      navigate(y(`/hizli-mac/${data}`));
     }
   };
 
@@ -394,7 +395,7 @@ export default function ChallengesPage() {
       p_kabul: kabul,
     });
     if (error) setHizliHata(hataMesaji(error));
-    else if (kabul) navigate(`/bildim/hizli-mac/${hizliMacId}`);
+    else if (kabul) navigate(y(`/hizli-mac/${hizliMacId}`));
     else hizliYukle();
   };
 
@@ -801,7 +802,7 @@ export default function ChallengesPage() {
                 </div>
                 <div className="detay">Hızlı Olan Kazanır</div>
               </div>
-              <button className="btn kucuk" onClick={() => navigate(`/bildim/hizli-mac/${hm.id}`)}>
+              <button className="btn kucuk" onClick={() => navigate(y(`/hizli-mac/${hm.id}`))}>
                 Oyna
               </button>
               <button
@@ -865,7 +866,7 @@ export default function ChallengesPage() {
                 </div>
                 <div className="detay">{gm.oyuncu_sayisi} kişilik grup maçı</div>
               </div>
-              <button className="btn kucuk" onClick={() => navigate(`/bildim/grup-mac/${gm.id}`)}>
+              <button className="btn kucuk" onClick={() => navigate(y(`/grup-mac/${gm.id}`))}>
                 Oyna
               </button>
               {/* Yarım kalmış maçları temizlemek için */}
@@ -904,7 +905,7 @@ export default function ChallengesPage() {
                     {!siraSende && " · rakip oynuyor"}
                   </div>
                 </div>
-                <button className="btn kucuk" onClick={() => navigate(`/bildim/mac/${m.id}`)}>
+                <button className="btn kucuk" onClick={() => navigate(y(`/mac/${m.id}`))}>
                   {siraSende ? "Devam et" : "Gör"}
                 </button>
               </div>

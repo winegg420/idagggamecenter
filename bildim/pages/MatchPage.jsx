@@ -14,6 +14,7 @@ import Ikon from "../components/Ikon.jsx";
 import MacYukleniyor from "../components/MacYukleniyor.jsx";
 import { useOyunModu } from "../lib/oyunModu.js";
 import { macBittiReklam } from "../lib/reklam.js";
+import { y } from "../lib/yol.js";
 
 const MAC_SECIMI = `*,
   p1:profiles!matches_oyuncu1_fkey(id, gorunen_ad, gorunen_avatar),
@@ -257,7 +258,7 @@ export default function MatchPage() {
       <div className="buyuk-mesaj">
         <div className="emoji"><Ikon ad="carpi" boyut={40} /></div>
         <h2>Meydan okuma reddedildi</h2>
-        <button className="btn" style={{ marginTop: 16 }} onClick={() => navigate("/bildim/meydan")}>
+        <button className="btn" style={{ marginTop: 16 }} onClick={() => navigate(y("/meydan"))}>
           Geri dön
         </button>
       </div>
@@ -313,8 +314,8 @@ export default function MatchPage() {
                 p_rakip: rakipProfil.id,
                 p_kategori: mac.kategori,
               });
-              if (!error && data) navigate(`/bildim/mac/${data}`);
-              else navigate("/bildim/meydan");
+              if (!error && data) navigate(y(`/mac/${data}`));
+              else navigate(y("/meydan"));
             }}
           >
             Rövanş
@@ -364,7 +365,7 @@ export default function MatchPage() {
           })()}
           {/* Bildirim izni ilk açılışta değil, ilk maç sonucunda sorulur. */}
           <BildirimIzniSor />
-          <button className="btn ikincil" onClick={() => navigate("/bildim/meydan")}>
+          <button className="btn ikincil" onClick={() => navigate(y("/meydan"))}>
             Meydan okumalara dön
           </button>
         </div>
@@ -397,7 +398,7 @@ export default function MatchPage() {
             <div className="bd-vs-ilerleme">{ilerleme.rakip}/{toplamSoru}</div>
           </div>
         </div>
-        <button className="btn" onClick={() => navigate("/bildim/meydan")}>
+        <button className="btn" onClick={() => navigate(y("/meydan"))}>
           Yeni maça başla
         </button>
       </div>
@@ -417,7 +418,7 @@ export default function MatchPage() {
       <button
         className="bd-mac-cikis"
         aria-label="Maçtan çık"
-        onClick={() => navigate("/bildim/meydan")}
+        onClick={() => navigate(y("/meydan"))}
       >
         <Ikon ad="carpi" boyut={18} />
       </button>

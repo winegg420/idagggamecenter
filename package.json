@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+    "build:bildim": "vite build --mode bildim",
     "preview": "vite preview",
     "test:bildim": "node bildim/_test/joker-kurallari-test.mjs"
   },

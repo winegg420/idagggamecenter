@@ -11,6 +11,7 @@ import RankBadge from "../components/RankBadge.jsx";
 import KonumSecici from "../components/KonumSecici.jsx";
 import Maskot from "../components/Maskot.jsx";
 import { bayrak, haftaBitisi, sureMetni } from "../lib/konum.js";
+import { y } from "../lib/yol.js";
 
 const KAPSAMLAR = [
   { id: "sehir", etiket: "ŞEHİR", ikon: "sehir" },
@@ -54,7 +55,7 @@ export default function LeaderboardPage() {
         p_kategori: null,
       });
       if (error) throw error;
-      if (data) navigate(`/bildim/mac/${data}`);
+      if (data) navigate(y(`/mac/${data}`));
     } catch (e) {
       setHata(hataMesaji(e, "Meydan okuma başlatılamadı."));
     }
@@ -251,7 +252,7 @@ export default function LeaderboardPage() {
         <div className="bd-bos-durum">
           <Maskot poz="dusunuyor" boyut={90} />
           <p>Bu ligde henüz kimse yarışmıyor — ilk sırayı sen kap.</p>
-          <button className="btn" onClick={() => navigate("/bildim")}>
+          <button className="btn" onClick={() => navigate(y())}>
             Hemen oyna
           </button>
         </div>
@@ -263,7 +264,7 @@ export default function LeaderboardPage() {
               ? "Şehrinde ilk oyuncu sensin! Arkadaşlarını çağır, şehrini zirveye taşıyın."
               : "Bu ligde şimdilik tek başınasın. Arkadaşlarını davet et."}
           </p>
-          <button className="btn" onClick={() => navigate("/bildim/arkadaslar")}>
+          <button className="btn" onClick={() => navigate(y("/arkadaslar"))}>
             Arkadaş davet et
           </button>
           <button className="btn ikincil" onClick={() => setKapsam("global")}>

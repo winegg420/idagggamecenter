@@ -10,6 +10,7 @@ import { supabase } from "../../src/lib/supabase.js";
 import Avatar from "../../src/components/Avatar.jsx";
 import Ikon from "../components/Ikon.jsx";
 import { kategoriEtiket, kategorileriSirala } from "../lib/kategoriler.js";
+import { y } from "../lib/yol.js";
 
 const TOPLAM_SN = 60;
 const SORU_SN = 5;
@@ -342,7 +343,7 @@ export default function HizliModPage() {
         </div>
         <div className="bd-konum-butonlar" style={{ marginTop: 16 }}>
           <button className="btn" onClick={() => setAsama("secim")}>Tekrar oyna</button>
-          <button className="btn ikincil" onClick={() => navigate("/bildim")}>Ana sayfa</button>
+          <button className="btn ikincil" onClick={() => navigate(y())}>Ana sayfa</button>
         </div>
       </div>
 

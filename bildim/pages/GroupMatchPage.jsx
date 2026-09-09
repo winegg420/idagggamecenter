@@ -11,6 +11,7 @@ import { supabase } from "../../src/lib/supabase.js";
 import { useAuth } from "../../src/context/AuthContext.jsx";
 import Avatar from "../../src/components/Avatar.jsx";
 import QuestionCard from "../components/QuestionCard.jsx";
+import { y } from "../lib/yol.js";
 
 const GRUP_SECIMI = `*,
   katilimcilar:group_match_players(group_match_id, user_id, davet_durumu, skor, joined_at,
@@ -118,7 +119,7 @@ export default function GroupMatchPage() {
     } catch (e) {
       console.error("[Bildim] grup mac iptal:", e);
     }
-    navigate("/bildim/meydan");
+    navigate(y("/meydan"));
   }, [id, navigate]);
 
   useEffect(() => {
@@ -263,7 +264,7 @@ export default function GroupMatchPage() {
             </button>
           </div>
         )}
-        <button className="btn ikincil" style={{ marginTop: 16, maxWidth: 340 }} onClick={() => navigate("/bildim/meydan")}>
+        <button className="btn ikincil" style={{ marginTop: 16, maxWidth: 340 }} onClick={() => navigate(y("/meydan"))}>
           Geri dön
         </button>
       </div>
@@ -276,7 +277,7 @@ export default function GroupMatchPage() {
         <div className="emoji"><Ikon ad="carpi" boyut={40} /></div>
         <h2>Grup maçı iptal edildi</h2>
         <p className="alt-yazi">Davetlilerden biri reddetti.</p>
-        <button className="btn" style={{ marginTop: 16 }} onClick={() => navigate("/bildim/meydan")}>
+        <button className="btn" style={{ marginTop: 16 }} onClick={() => navigate(y("/meydan"))}>
           Geri dön
         </button>
       </div>
@@ -319,7 +320,7 @@ export default function GroupMatchPage() {
         <div style={{ maxWidth: 340, margin: "12px auto 0" }}>
           <YanlisSatiri macTur="grup" macId={id} />
         </div>
-        <button className="btn ikincil" style={{ marginTop: 16, maxWidth: 340, margin: "16px auto 0" }} onClick={() => navigate("/bildim/meydan")}>
+        <button className="btn ikincil" style={{ marginTop: 16, maxWidth: 340, margin: "16px auto 0" }} onClick={() => navigate(y("/meydan"))}>
           Meydan okumalara dön
         </button>
       </div>

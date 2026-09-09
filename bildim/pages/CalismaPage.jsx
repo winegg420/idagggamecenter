@@ -8,6 +8,7 @@ import { sesKilidiAc, sesTik, sesDogru, sesYanlis, sesKazandin } from "../lib/se
 import { hataMesaji } from "../lib/hata.js";
 import { supabase } from "../../src/lib/supabase.js";
 import { kategoriEtiket, kategorileriSirala } from "../lib/kategoriler.js";
+import { y } from "../lib/yol.js";
 
 const SORU_SN = 20;
 const HARFLER = ["A", "B", "C", "D"];
@@ -439,7 +440,7 @@ export default function CalismaPage() {
           <button className="btn" onClick={() => setAsama("secim")}>
             Tekrar çalış
           </button>
-          <button className="btn ikincil" onClick={() => navigate("/bildim")}>
+          <button className="btn ikincil" onClick={() => navigate(y())}>
             Ana sayfa
           </button>
         </div>

@@ -1,7 +1,15 @@
-import React from "react";
+import React, { lazy, Suspense } from "react";
 import ReactDOM from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
-import App from "./App.jsx";
+// KÖK UYGULAMA SEÇİMİ — aynı depo, iki site:
+//   VITE_MOD tanımsız → App.jsx      (idaGG Game Center hub; quiz /bildim/* altında)
+//   VITE_MOD=bildim   → BildimApp.jsx (yalnız Bildim; rotalar kökte)
+// lazy kullanılıyor ki seçilmeyen taraf paketlenmesin (hub'ın 3D oyunları
+// Bildim sitesinin paketine sızmasın).
+const BILDIM_MOD = import.meta.env.VITE_MOD === "bildim";
+const KokUygulama = lazy(() =>
+  BILDIM_MOD ? import("./BildimApp.jsx") : import("./App.jsx")
+);
 import { AuthProvider } from "./context/AuthContext.jsx";
 import HataSiniri from "./components/HataSiniri.jsx";
 import "./styles.css";
@@ -30,7 +38,9 @@ ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
     <BrowserRouter>
       <AuthProvider>
-        <App />
+        <Suspense fallback={<div className="yukleniyor">Yükleniyor…</div>}>
+          <KokUygulama />
+        </Suspense>
       </AuthProvider>
     </BrowserRouter>
   </React.StrictMode>

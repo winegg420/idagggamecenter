@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { y } from "../lib/yol.js";
 
 // Google Play zorunluluğu: mağaza kaydında gösterilecek gizlilik politikası.
 // Bu bir TASLAKTIR; yayına almadan önce iletişim e-postası ve şirket/kişi
@@ -76,7 +77,7 @@ export default function GizlilikPage() {
       <h2>Saklama ve silme</h2>
       <p>
         Verilerini hesabın açık olduğu sürece saklarız. Hesabını{" "}
-        <Link to="/bildim/profil">Profil</Link> sayfasındaki <b>Hesabımı Sil</b> düğmesiyle
+        <Link to={y("/profil")}>Profil</Link> sayfasındaki <b>Hesabımı Sil</b> düğmesiyle
         kalıcı olarak silebilirsin; profilin, maç kayıtların, rozetlerin ve mesajların silinir.
         Bu işlem geri alınamaz. Dilersen {ILETISIM} adresine yazarak da silme talebinde
         bulunabilirsin.
@@ -106,7 +107,7 @@ export default function GizlilikPage() {
         Sorular ve veri talepleri için: <b>{ILETISIM}</b>
       </p>
 
-      <Link to="/bildim" className="btn ikincil" style={{ marginTop: 18 }}>
+      <Link to={y()} className="btn ikincil" style={{ marginTop: 18 }}>
         Ana sayfaya dön
       </Link>
     </div>

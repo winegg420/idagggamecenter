@@ -14,6 +14,7 @@ import Ikon from "./Ikon.jsx";
 import Avatar from "../../src/components/Avatar.jsx";
 import Logo from "./Logo.jsx";
 import SesDugmesi from "./SesDugmesi.jsx";
+import { y } from "../lib/yol.js";
 
 export default function Layout() {
   const { profile, user } = useAuth();
@@ -93,21 +94,21 @@ export default function Layout() {
       )}
       <div className="bd-ust-blok">
         <header className="topbar">
-          <Link to="/bildim" style={{ textDecoration: "none" }} aria-label="Bildim ana sayfa">
+          <Link to={y()} style={{ textDecoration: "none" }} aria-label="Bildim ana sayfa">
             <Logo boyut={24} />
           </Link>
           {profile && (
             <div className="bd-topbar-sag">
               <SesDugmesi />
               <BildirimZili />
-              <Link to="/bildim/profil" className="bd-puan-link" aria-label="Puanım">
+              <Link to={y("/profil")} className="bd-puan-link" aria-label="Puanım">
                 <span className="puan-chip">
                   <Ikon ad="yildiz" boyut={15} /> <PuanSayaci deger={profile.puan} />
                 </span>
               </Link>
               {/* Profil kapısı: takma ad, avatar ve şehir buradan değişiyor.
                   Önce yalnız puan çipinden ulaşılıyordu; kimse bulamıyordu. */}
-              <Link to="/bildim/profil" className="bd-profil-link" aria-label="Profilim ve ayarlar" title="Profilim">
+              <Link to={y("/profil")} className="bd-profil-link" aria-label="Profilim ve ayarlar" title="Profilim">
                 <Avatar profile={profile} boyut={34} />
               </Link>
             </div>
@@ -123,23 +124,23 @@ export default function Layout() {
       </main>
 
       <nav className="tabbar">
-        <NavLink to="/bildim" end className={({ isActive }) => (isActive ? "aktif" : "")}>
+        <NavLink to={y()} end className={({ isActive }) => (isActive ? "aktif" : "")}>
           <span className="ikon"><Ikon ad="ev" boyut={22} /></span>Ana Sayfa
         </NavLink>
-        <NavLink to="/bildim/turnuva" className={({ isActive }) => (isActive ? "aktif" : "")}>
+        <NavLink to={y("/turnuva")} className={({ isActive }) => (isActive ? "aktif" : "")}>
           <span className="ikon"><Ikon ad="kupa" boyut={22} /></span>Turnuva
         </NavLink>
-        <NavLink to="/bildim/meydan" className={({ isActive }) => (isActive ? "aktif" : "")}>
+        <NavLink to={y("/meydan")} className={({ isActive }) => (isActive ? "aktif" : "")}>
           <span className="ikon"><Ikon ad="kilic" boyut={22} /></span>Meydan Oku
           {bekleyen > 0 && <span className="rozet">{bekleyen}</span>}
         </NavLink>
         <NavLink to="/" className={({ isActive }) => (isActive ? "aktif" : "")}>
           <span className="ikon"><Ikon ad="oyunKolu" boyut={22} /></span>Merkez
         </NavLink>
-        <NavLink to="/bildim/siralama" className={({ isActive }) => (isActive ? "aktif" : "")}>
+        <NavLink to={y("/siralama")} className={({ isActive }) => (isActive ? "aktif" : "")}>
           <span className="ikon"><Ikon ad="grafik" boyut={22} /></span>Sıralama
         </NavLink>
-        <NavLink to="/bildim/arkadaslar" className={({ isActive }) => (isActive ? "aktif" : "")}>
+        <NavLink to={y("/arkadaslar")} className={({ isActive }) => (isActive ? "aktif" : "")}>
           <span className="ikon"><Ikon ad="kisiler" boyut={22} /></span>Arkadaşlar
         </NavLink>
       </nav>

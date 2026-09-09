@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { y } from "../lib/yol.js";
 
 // Google Play, reklam ağları ve uygulama içi satın alma için zorunlu:
 // Kullanım Koşulları. Gizlilik politikasıyla aynı biçimde, girişsiz erişilir.
@@ -173,7 +174,7 @@ export default function KosullarPage() {
         Sorular, itirazlar ve bildirimler için: <b>{ILETISIM}</b>
       </p>
 
-      <Link to="/bildim" className="btn ikincil" style={{ marginTop: 18 }}>
+      <Link to={y()} className="btn ikincil" style={{ marginTop: 18 }}>
         Ana sayfaya dön
       </Link>
     </div>

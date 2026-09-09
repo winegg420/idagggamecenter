@@ -103,3 +103,62 @@ kaldırıldı ve ölçüldü:
 4. İki site birden yayında kalacaksa, arama motorunun ikisini birden
    dizinlememesi için **ikincil olanda** `robots.txt`'e `Disallow: /` koy ya da
    asıl alan adına `rel=canonical` ver — yoksa yinelenen içerik sayılır.
+
+---
+
+## Bildim'i kendi sitesi olarak yayınlama (VITE_MOD=bildim)
+
+Aynı depo iki siteyi besler. Fark yalnız **derleme anındaki ortam
+değişkenidir**; ayrı dal veya ayrı depo gerekmez.
+
+| | idaGG Game Center (Vercel) | Bildim (Cloudflare Pages) |
+|---|---|---|
+| Derleme komutu | `npm run build` | `npm run build` |
+| `VITE_MOD` | **yok** | `bildim` |
+| `VITE_SITE_URL` | yok | yayın adresi, ör. `https://bildim.pages.dev` |
+| Quiz rotaları | `/bildim/turnuva` | `/turnuva` |
+| Diğer oyunlar | var | **pakete hiç girmez** (3D DriftGP dahil) |
+| Manifest | `manifest.webmanifest` | `bildim.webmanifest` (`start_url: /`) |
+
+### Nasıl çalışıyor
+
+- `bildim/lib/yol.js` → `y("/meydan")` yardımcısı. Hub'da `/bildim/meydan`,
+  Bildim sitesinde `/meydan` üretir. Bileşenlerdeki 76 sabit yol buna çevrildi.
+- `src/BildimApp.jsx` → yalnız Bildim rotalarını **kökte** kuran uygulama.
+  `src/App.jsx` (hub) hiç değiştirilmedi.
+- `src/main.jsx` → `VITE_MOD`'a göre birini `lazy` yükler; seçilmeyen taraf
+  pakete girmez.
+- `vite.config.js` içindeki `bildimModuEklentisi` → `index.html` başlığı,
+  paylaşım kartı, manifest bağlantısı, ikon, `canonical`; ayrıca çıktıdaki
+  `bildim.webmanifest`, `robots.txt` ve `sitemap.xml` yeniden yazılır.
+- Eski `/bildim/*` adresleri Bildim sitesinde köke yönlendirilir
+  (`OnekiAt`) — bookmark, push bildirimi ve paylaşılmış davet linkleri kırılmaz.
+
+### Cloudflare panelinde girilecekler
+
+```
+Build command:        npm run build
+Build output:         dist
+Environment variables:
+  VITE_MOD              = bildim
+  VITE_SITE_URL         = https://<proje>.pages.dev   (domain alınca güncelle)
+  VITE_SUPABASE_URL     = https://zfpnxzybcpkxsotwdsey.supabase.co
+  VITE_SUPABASE_ANON_KEY= <anon anahtar>
+```
+
+`CRON_SECRET` buraya **konmaz** (sunucu sırrı, Supabase tarafında durur).
+
+### Dağıtımdan sonra ŞART
+
+1. **Supabase → Authentication → URL Configuration → Redirect URLs**'e
+   `https://<proje>.pages.dev/**` ekle. Eklenmezse giriş yapan oyuncu
+   Vercel sitesine düşer.
+2. `VITE_SITE_URL`'i gerçek adresle güncelle (sitemap ve canonical onu yazar).
+3. Domain alınınca aynı iki adımı yeni alan adı için tekrarla.
+
+### Yerel test
+
+```bash
+npm run build:bildim     # .env.bildim sayesinde Windows'ta da çalışır
+npx wrangler pages dev dist
+```

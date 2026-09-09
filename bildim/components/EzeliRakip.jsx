@@ -4,6 +4,7 @@ import { hataMesaji } from "../lib/hata.js";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../../src/lib/supabase.js";
 import Avatar from "../../src/components/Avatar.jsx";
+import { y } from "../lib/yol.js";
 
 /** "Ezeli rakibin" kartı — en çok karşılaştığın oyuncu (en az 3 maç). */
 export default function EzeliRakip() {
@@ -40,7 +41,7 @@ export default function EzeliRakip() {
         p_kategori: null,
       });
       if (error) throw error;
-      if (data) navigate(`/bildim/mac/${data}`);
+      if (data) navigate(y(`/mac/${data}`));
     } catch (e) {
       setHata(hataMesaji(e, "Meydan okuma başlatılamadı."));
     } finally {

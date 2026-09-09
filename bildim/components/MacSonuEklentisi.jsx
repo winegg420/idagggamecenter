@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "../../src/lib/supabase.js";
 import { JOKER_BILGI } from "../lib/jokerler.js";
 import YanlisSatiri from "./YanlisSatiri.jsx";
+import { y } from "../lib/yol.js";
 
 /**
  * Maç sonucu ekranına eklenen blok:
@@ -51,8 +52,8 @@ export default function MacSonuEklentisi({ macTur, macId, kaybettim }) {
     try {
       const { data, error } = await supabase.rpc("rovans_iste", { p_mac_id: macId });
       if (error) throw error;
-      if (data) navigate(`/bildim/mac/${data}`);
-      else navigate("/bildim/meydan");
+      if (data) navigate(y(`/mac/${data}`));
+      else navigate(y("/meydan"));
     } catch (e) {
       setHata(hataMesaji(e, "Rövanş istenemedi."));
     } finally {

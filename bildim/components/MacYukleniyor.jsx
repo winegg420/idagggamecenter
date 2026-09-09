@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Maskot from "./Maskot.jsx";
+import { y } from "../lib/yol.js";
 
 const ZAMAN_ASIMI_MS = 8000;
 
@@ -51,7 +52,7 @@ export default function MacYukleniyor({ hata, onTekrarDene, onIptal }) {
             Maçı iptal et
           </button>
         )}
-        <button className="btn ikincil" onClick={() => navigate("/bildim/meydan")}>
+        <button className="btn ikincil" onClick={() => navigate(y("/meydan"))}>
           Meydan okumalara dön
         </button>
       </div>

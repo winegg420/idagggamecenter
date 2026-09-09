@@ -4,6 +4,7 @@ import { hataMesaji } from "../lib/hata.js";
 import { Link } from "react-router-dom";
 import { supabase } from "../../src/lib/supabase.js";
 import { MAC_ICI_JOKERLER, JOKER_BILGI, envanterNesne } from "../lib/jokerler.js";
+import { y } from "../lib/yol.js";
 
 /**
  * Maç içi joker çubuğu. Tüm kararlar sunucudadır (joker_kullan RPC);
@@ -112,7 +113,7 @@ export default function JokerCubugu({ macTur, macId, soruIndex, onEtki, kilit })
           {/kalmadı/i.test(hata) && (
             <>
               {" "}
-              <Link to="/bildim/joker">Joker al</Link>
+              <Link to={y("/joker")}>Joker al</Link>
             </>
           )}
         </div>

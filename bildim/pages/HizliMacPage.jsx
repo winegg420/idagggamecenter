@@ -11,6 +11,7 @@ import Avatar from "../../src/components/Avatar.jsx";
 import QuestionCard from "../components/QuestionCard.jsx";
 import MacYukleniyor from "../components/MacYukleniyor.jsx";
 import { hataMesaji } from "../lib/hata.js";
+import { y } from "../lib/yol.js";
 
 const HIZLI_SECIMI = `*,
   katilimcilar:hizli_oyuncular(hizli_mac_id, user_id, davet_durumu, skor, joined_at,
@@ -57,7 +58,7 @@ export default function HizliMacPage() {
     } catch (e) {
       console.error("[Bildim] hizli mac iptal:", e);
     }
-    navigate("/bildim/meydan");
+    navigate(y("/meydan"));
   }, [id, navigate]);
 
   useEffect(() => {
@@ -200,7 +201,7 @@ export default function HizliMacPage() {
             </button>
           </div>
         )}
-        <button className="btn ikincil" style={{ marginTop: 16, maxWidth: 340 }} onClick={() => navigate("/bildim/meydan")}>
+        <button className="btn ikincil" style={{ marginTop: 16, maxWidth: 340 }} onClick={() => navigate(y("/meydan"))}>
           Geri dön
         </button>
       </div>
@@ -213,7 +214,7 @@ export default function HizliMacPage() {
         <div className="emoji"><Ikon ad="carpi" boyut={40} /></div>
         <h2>Hızlı yarış iptal edildi</h2>
         <p className="alt-yazi">Davetlilerden biri reddetti.</p>
-        <button className="btn" style={{ marginTop: 16 }} onClick={() => navigate("/bildim/meydan")}>
+        <button className="btn" style={{ marginTop: 16 }} onClick={() => navigate(y("/meydan"))}>
           Geri dön
         </button>
       </div>
@@ -256,7 +257,7 @@ export default function HizliMacPage() {
         <div style={{ maxWidth: 340, margin: "12px auto 0" }}>
           <YanlisSatiri macTur="hizli" macId={id} />
         </div>
-        <button className="btn ikincil" style={{ marginTop: 16, maxWidth: 340, margin: "16px auto 0" }} onClick={() => navigate("/bildim/meydan")}>
+        <button className="btn ikincil" style={{ marginTop: 16, maxWidth: 340, margin: "16px auto 0" }} onClick={() => navigate(y("/meydan"))}>
           Meydan okumalara dön
         </button>
       </div>

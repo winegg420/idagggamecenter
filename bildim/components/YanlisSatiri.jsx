@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import Ikon from "./Ikon.jsx";
 import { supabase } from "../../src/lib/supabase.js";
+import { y } from "../lib/yol.js";
 
 /**
  * Maç sonucu ekranlarında görünen küçük satır:
@@ -36,7 +37,7 @@ export default function YanlisSatiri({ macTur, macId }) {
   if (adet <= 0) return null;
 
   return (
-    <Link to="/bildim/calisma" className="bd-yanlis-satiri">
+    <Link to={y("/calisma")} className="bd-yanlis-satiri">
       <span className="bd-mod-ikon hatalarim">
         <Ikon ad="kitap" boyut={16} />
       </span>

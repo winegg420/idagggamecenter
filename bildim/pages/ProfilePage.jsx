@@ -13,6 +13,7 @@ import ProfilAyarlari from "../components/ProfilAyarlari.jsx";
 import UstalikIzgarasi from "../components/UstalikIzgarasi.jsx";
 import { bayrak, konumKilidiKalan, sureMetni } from "../lib/konum.js";
 import { rutbeBul, sonrakiRutbe } from "../lib/ranks.js";
+import { y } from "../lib/yol.js";
 import {
   pushDestekleniyor,
   pushDurumu,
@@ -112,7 +113,7 @@ export default function ProfilePage() {
 
       {/* ---------- Hatalarım bankası ---------- */}
       {banka && (
-        <Link to="/bildim/calisma" className="kart bd-profil-hatalarim">
+        <Link to={y("/calisma")} className="kart bd-profil-hatalarim">
           <span className="bd-mod-ikon hatalarim">
             <Ikon ad="kitap" boyut={20} />
           </span>

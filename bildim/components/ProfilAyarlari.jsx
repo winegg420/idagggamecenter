@@ -5,6 +5,7 @@ import { supabase } from "../../src/lib/supabase.js";
 import { useAuth } from "../../src/context/AuthContext.jsx";
 import { kategoriEtiket, kategorileriSirala } from "../lib/kategoriler.js";
 import { sureMetni } from "../lib/konum.js";
+import { y } from "../lib/yol.js";
 
 // 31 karakter avatarı (özgün çizim SVG, tamamı yerel — dış servis yok).
 // Üretici: scratchpad/avatar-uret.mjs. Eski düz siluetler (av1-av8) listeden
@@ -122,7 +123,7 @@ export default function ProfilAyarlari() {
   };
 
   const davetLinki = profile.davet_kodu
-    ? `${window.location.origin}/bildim/davet/${profile.davet_kodu}`
+    ? window.location.origin + y(`/davet/${profile.davet_kodu}`)
     : null;
 
   return (
