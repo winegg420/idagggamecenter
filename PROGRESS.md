@@ -2776,3 +2776,72 @@ gerçek hesapla gerçek maç, Supabase şema/RLS/RPC denetimi, HTTP başlıklar�
 - Maç bitince ekranın kendi kendine sonuca dönmesi: bir kez gecikmeli
   gördüm, ama 2 sn'lik yoklamanın çalıştığını ölçtüm (9 sn'de 6 istek) ve
   yeniden üretemedim. Hata olarak raporlanmadı.
+
+---
+
+## 9 Eylül 2026 (4) — Maç içi sesli sohbet
+
+Kullanıcı isteği: "arkadaşımla kendi evlerimizde oyunu oynarken sohbet ederek,
+onunla dalga geçerek oynayabileceğim" (mesaj yarıda kesilmişti; kapsam
+kararları AskUserQuestion ile alındı).
+
+**Kapsam (kullanıcı kararı):** yalnız 1v1 · yalnız karşılıklı arkadaşlar ·
+aktarma (TURN) sunucusu YOK, yalnız ücretsiz STUN.
+
+**Neden bu kapsam:** oyun 13 yaş üstüne açık. Yabancılarla ses açmak taciz
+riski ve denetim yükü getiriyor; ses kaydedilmediği için şikayette kanıt da
+olmuyor. Arkadaş sınırı bunu baştan çözüyor.
+
+### Önce yanıldığım nokta — sonra veriye baktım
+
+1v1 maçlar asenkron tasarlanmış (ortak oturum yok, herkes kendi hızında),
+bu yüzden "canlı sohbet" fikrinin oturmayacağını düşündüm. Ölçtüm:
+insan-insan maçlarının **7'sinden 4'ünde oyuncular %85-99 örtüşmeyle
+~2,5 dakika boyunca gerçekten aynı anda oynamış**. Senaryo gerçekmiş.
+Eksik olan tek şey "ikimiz de şu an buradayız" tespitiydi → Supabase
+Realtime **presence** eklendi (projede ilk kez kullanıldı).
+
+### Yeni dosyalar
+
+- `bildim/lib/sesliSohbet.js` — WebRTC motoru (UI bilmez): mikrofon,
+  teklif/cevap/ICE, aday sıraya alma, susturma, zaman aşımı, temizlik.
+- `bildim/components/SesliSohbet.jsx` — onay akışı, sinyalleşme, durumlar.
+- Migration 113 — `sesli_sohbet_izni` RPC: arkadaşlık + maçta olma + maç
+  aktif + bot değil. Kural tek yerde.
+
+### Kararlar ve nedenleri
+
+- **Karşılıklı onay zorunlu:** davet → kabul/red → iki tarafta da mikrofon
+  izni. Asıl koruma budur; RPC ürün kuralını uygular, tek başına güvenlik
+  sınırı değildir (ses P2P gider, karşı taraf kabul etmeden bağlanmaz).
+- **Rakip maçta değilse düğme hiç çizilmez** — boşuna çağrı gitmesin.
+- **Aktarma yok → sessiz takılma yasak:** 15 sn'de bağlanmazsa net Türkçe
+  hata + yazılı sohbete yönlendirme.
+- **`.btn` yerine kendi stilleri**, altın zeminde metin `#3a2400` (7.83:1).
+- Sesli sohbet yazılı sohbet barının ÜSTÜNE kondu; ölçüldü, şıklarda
+  düzen kayması yok (geçmişte kayma şıkka tıklamayı bozmuştu).
+
+### Test
+
+- İzin kapısı 5 senaryo: bot rakip / bitmiş maç / maçta olmayan üçüncü kişi /
+  iki arkadaş tarafı → hepsi doğru. Test maçı rollback ile geri alındı.
+  **Bu test kendi hatamı yakaladı:** arkadaşlık durumunu `'kabul'`
+  varsaymıştım, tablo CHECK kuralı `'bekliyor' | 'arkadas'` diyor — o haliyle
+  ses HİÇ açılmazdı.
+- WebRTC el sıkışması gerçek tarayıcıda döngü testiyle: iki taraf `connected`,
+  ses izleri karşılıklı ulaştı, aday sırası 0'a boşaldı.
+- Canlıda: bot maçında düğme gizli, RPC 200 + "Rakibin bir bot", JS hatası yok.
+
+### Yasal
+
+- Gizlilik politikasına "Sesli sohbet" bölümü: kaydedilmez, sunucudan geçmez,
+  **ama doğrudan bağlantı olduğu için IP adresleri karşı tarafa görünebilir**
+  (dürüstçe yazıldı; arkadaş sınırının başlıca sebebi bu).
+- Koşullara sesli taciz + izinsiz kayıt maddeleri; sesli sohbet içeriğinin
+  denetlenemediği açıkça belirtildi.
+
+### Doğrulanamayan (kullanıcıda)
+
+- **Aktarmasız gerçek ağ yolu.** Yapılan test tek makinede döngüydü; iki ayrı
+  evdeki cihaz arasında bağlantı kurulup kurulmayacağı ancak gerçek denemeyle
+  görülür. Kurulamazsa Cloudflare Realtime aktarması eklenecek.
