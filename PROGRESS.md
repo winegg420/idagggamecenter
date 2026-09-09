@@ -2212,3 +2212,119 @@ atlıyordu. `gorunen_ad` okumasına ve `takma_ad_sec` RPC'sine geçirildi
 5. Reklam yayıncı kimliği (`VITE_H5_ADS_CLIENT` boş → test modu) ve
    Play faturalandırma paketlemesi.
 6. Kendi alan adı.
+
+---
+
+## 2026-09-09 — BİLDİM: "Hatalarım" çalışma modu (GÖREV 10)
+
+Oyuncunun tüm modlarda yanlış bildiği sorular kişisel bir bankada birikiyor; oyuncu
+istediğinde bu bankadan **puansız, tek kişilik** bir çalışma turu yapıyor.
+
+### Yeni tablolar
+
+| Tablo | İçerik | RLS |
+|---|---|---|
+| `yanlis_sorular` | pk (user_id, question_id), `yanlis_sayisi`, `dogru_serisi`, `son_yanlis_at`, `ogrenildi_at` | Yalnız sahibi **okur**; INSERT/UPDATE politikası bilerek yok — yazım security-definer RPC ile |
+| `calisma_oturumlari` | `soru_ids`, `banka_ids`, `aktif_soru`, `soru_baslangic`, `dogru`, `yanlis`, `ogrenilen`, `durum` | Yalnız sahibi okur |
+
+### Yeni RPC'ler (hepsi `security definer`, yalnız `authenticated`)
+
+| RPC | İş |
+|---|---|
+| `yanlis_kaydet(question_id)` | Satır yoksa ekler, varsa `yanlis_sayisi+1`, `dogru_serisi=0`, `ogrenildi_at=null`. Botları ve silinmiş soruları atlar; hata yutulur ki maç akışı bozulmasın |
+| `calisma_baslat(p_kategori, p_soru_sayisi)` | Önce bankadan (öğrenilmemiş, `son_yanlis_at` eskiden yeniye + `yanlis_sayisi` çoktan aza), yetmezse `soru_sec` ile havuzdan tamamlar. Dönen: oturum, bankadan/havuzdan adet |
+| `calisma_soru(p_oturum_id)` | Soruyu **doğru cevapsız** döner; `bankadan`, `onceki_yanlis`, `dogru_serisi` bilgisini verir |
+| `calisma_cevap(p_oturum_id, p_soru_index, p_cevap)` | Süre ve doğruluk **sunucuda**. Doğruysa seri+1, 2'ye ulaşınca `ogrenildi_at=now()`; yanlışsa seri sıfır + `yanlis_kaydet`. Doğruda `kategori_dogru_arttir` |
+| `calisma_bitir(p_oturum_id)` | Tur özeti: doğru/yanlış, öğrenilen, bankada kalan, toplam öğrenilen |
+| `yanlis_bankam()` | Toplam / öğrenilen / bekleyen + kategori kırılımı |
+| `mac_yanlis_sayim(p_mac_tur, p_mac_id)` | Maç sonu satırı için yanlış adedi (1v1 / grup / turnuva / hızlı) |
+
+### Dokunulan cevap RPC'leri
+
+Gövdeleri birebir korunarak yalnız yanlış dalına `perform public.yanlis_kaydet(q.id)` eklendi
+(migration **20260612000105**):
+
+| RPC | Mod | Dosya |
+|---|---|---|
+| `submit_match_answer` | 1v1 | `supabase/migrations/20260612000105_hatalarim_cevap_kancalari.sql` |
+| `submit_group_match_answer` | Grup maçı | aynı dosya |
+| `submit_tournament_answer` | Turnuva | aynı dosya |
+| `submit_hizli_cevap` | Hızlı Olan Kazanır | aynı dosya |
+| `hizli_mod_cevap` | Hızlı Mod (60 sn) | aynı dosya |
+
+`match_answers` tablosunda `question_id` yok (yalnız `soru_index`); kayıt bu yüzden
+question_id'nin zaten bilindiği cevap RPC'sinden yazılıyor — tabloya kolon eklenmedi.
+
+### Geriye dönük doldurma — YAPILDI
+
+`soru_index` + üst kaydın `soru_ids` dizisi eşlemesi dört modda da mümkün olduğu için tek
+seferlik doldurma çalıştırıldı: `match_answers`, `group_match_answers`, `tournament_answers`,
+`hizli_cevaplar`. Aynı soru birden çok kez yanlışsa `yanlis_sayisi` toplandı, en yeni tarih alındı;
+botlar ve silinmiş sorular dışarıda bırakıldı.
+
+**Sonuç: 329 satır / 17 kullanıcı.** Kategori dağılımı: tarih 69, bilim 55, coğrafya 54,
+genel_kultur 42, edebiyat 35, sanat 32, … (`hizli_mod_oturumlar` soru bazlı cevap tutmadığı için
+Hızlı Mod geçmişi doldurmaya dahil edilemedi; o mod bugünden itibaren birikiyor.)
+
+### Doğrulama — `node bildim/_test/hatalarim-test.mjs`
+
+Geçici test kullanıcısı açılır, `request.jwt.claims` ile `auth.uid()` taklit edilir, sonda silinir.
+
+| # | Test | Sonuç | Ölçüm |
+|---|---|---|---|
+| 1 | 5 yanlış soru bankaya girdi | GEÇTİ | bankada 5 soru |
+| 2 | Çalışma turu bankadan doldu | GEÇTİ | bankadan 5, havuzdan 0 |
+| 3 | İlk doğruda öğrenilmedi (1/2) | GEÇTİ | öğrenilen 0, bankada 5 |
+| 4 | İkinci doğruda öğrenildi | GEÇTİ | öğrenilen 4, bankada kalan 1 |
+| 5 | Araya yanlış girince seri sıfırlandı, soru bankada kaldı | GEÇTİ | seri=0, `ogrenildi_at`=null, yanlış=2 |
+| 6 | **`profiles.puan` / `puan_hafta` / `seri_gun` DEĞİŞMEDİ** | GEÇTİ | puan 0→0, hafta 0→0, seri 0→0 |
+| 7 | Kategori ustalığı arttı | GEÇTİ | 0 → 9 doğru |
+| 8 | Boş bankada tur başladı, havuzdan doldu | GEÇTİ | toplam 10, bankadan 0, havuzdan 10 |
+| 9 | Havuzdan gelen soru yanlış bilinince bankaya eklendi | GEÇTİ | 1 satır |
+| 10 | `yanlis_bankam` özeti tutarlı | GEÇTİ | toplam 5, öğrenilen 4, bekleyen 1 |
+
+**10/10 geçti.**
+
+### Test'in yakaladığı gerçek hata (migration 106)
+
+Test 8 ilk çalıştırmada kaldı: 10 soru istenirken 15 soruluk tur açılıyordu. Nedeni,
+`calisma_baslat` içindeki havuz doldurma sorgusunda `limit v_eksik`'in `array_agg`'ın **dış**
+sorgusuna uygulanmasıydı — toplama tek satır döndürdüğü için limit hiçbir şeyi kısıtlamıyor,
+`soru_sec`'in döndürdüğü tüm id'ler oturuma giriyordu. Limit, id'lerin satır satır açıldığı iç
+sorguya taşındı (**20260612000106**).
+
+### Arayüz
+
+- **`bildim/pages/CalismaPage.jsx`** (yeni) — `/bildim/calisma`. Banka özeti (bekleyen/öğrenilen +
+  kategori mini çubukları), kategori seçici, soru sayısı 10/20/30, "Çalışmaya başla".
+  Banka boşsa maskot + "Henüz yanlışın yok…" ama tur yine başlatılabiliyor.
+- Çalışma ekranı: üstte **"ÇALIŞMA · PUAN VERİLMEZ"** şeridi, süre **20 sn** (rahat), joker yok,
+  ilerleme çubuğu + "kaç soru kaldı". Cevap sonrası geri bildirim:
+  bankadan geldiyse "Bunu daha önce N kez yanlış bilmiştin" / "1/2 doğru — bir kez daha bilirsen
+  öğrenilmiş sayılacak" / "Öğrenildi! Bankadan çıktı" (konfeti + ses).
+- Sonuç ekranı: öğrenilen sayısı büyük, doğru/yanlış/bankada kalan, toplam öğrenilen ve
+  "kategori ustalığına işlendi" notu. **Lig puanı yazmıyor.**
+- **`bildim/components/YanlisSatiri.jsx`** (yeni) — "N soruyu yanlış bildin — Hatalarım'a eklendi".
+  1v1 (`MacSonuEklentisi` içinden), grup maçı, turnuva ve hızlı maç sonuç ekranlarına eklendi.
+- Home'a **Hatalarım** mod kartı (kendi rengi #2FBF71, açıklamasız) + köşede bankadaki soru rozeti.
+- Profil sayfasına "Öğrenilen soru: N · Bankada: M" satırı + Hatalarım'a link.
+- `Ikon.jsx`'e `kitap` ikonu eklendi (42. ikon).
+- `src/styles.css`'e `.bd-calisma-*`, `.bd-yanlis-satiri`, `.bd-mod-rozet`, `.bd-mod-ikon.hatalarim`
+  blokları (152 satır, 400px altı için ayrı ayarlar dahil).
+
+### Kararlar (belirsizlikte en az yıkıcı seçenek)
+
+- **Çalışma modu `gorulen_sorular`'a yazmıyor.** Banka soruları tekrar tekrar sorulabilmeli;
+  havuzdan gelen doldurma soruları da "görüldü" sayılsaydı normal maçlardaki soru seçimi
+  daralırdı. Mevcut davranış hiç değişmedi.
+- **Maç kotası tüketilmiyor** (`mac_kotasi_kontrol` çağrılmıyor) — çalışma bir müsabaka değil.
+- **Havuzdan gelen soru doğru bilinirse bankaya girmiyor**; yalnız yanlış bilinirse ekleniyor.
+- `yanlis_sorular`'a INSERT/UPDATE RLS politikası **verilmedi**; tüm yazım security-definer
+  RPC üzerinden. İstemci bankayı doğrudan değiştiremiyor.
+- `yanlis_kaydet` hata yutuyor (`exception when others then return`): banka yazımı başarısız olsa
+  bile maç akışı kesilmiyor.
+
+### Studio'da çalıştırılacak migration'lar
+
+**20260612000104**, **20260612000105**, **20260612000106** — üçü de bu oturumda canlıya
+uygulandı (`pg` ile doğrudan), ayrıca çalıştırmaya gerek yok.
