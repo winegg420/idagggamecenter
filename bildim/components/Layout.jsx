@@ -94,7 +94,7 @@ export default function Layout() {
       )}
       <div className="bd-ust-blok">
         <header className="topbar">
-          <Link to={y()} style={{ textDecoration: "none" }} aria-label="QuizzExam ana sayfa">
+          <Link to={y()} style={{ textDecoration: "none" }} aria-label="Quizador ana sayfa">
             <Logo boyut={24} />
           </Link>
           {profile && (

@@ -16,10 +16,10 @@ self.addEventListener("push", (event) => {
   try {
     veri = event.data.json();
   } catch {
-    veri = { baslik: "QuizzExam", govde: event.data.text() };
+    veri = { baslik: "Quizador", govde: event.data.text() };
   }
   event.waitUntil(
-    self.registration.showNotification(veri.baslik ?? "QuizzExam", {
+    self.registration.showNotification(veri.baslik ?? "Quizador", {
       body: veri.govde ?? "",
       icon: "/icon-192.png",
       badge: "/icon-192.png",

@@ -10,7 +10,7 @@ import { useAuth } from "../context/AuthContext.jsx";
 import Avatar from "../components/Avatar.jsx";
 
 const SUTUNLAR = [
-  { key: "bildim", ad: "QuizzExam", ikon: "🧠" },
+  { key: "bildim", ad: "Quizador", ikon: "🧠" },
   { key: "kafatopu", ad: "Kafa Topu", ikon: "⚽" },
   { key: "driftgp", ad: "DidaGP", ikon: "🏎️" },
   { key: "meyvekes", ad: "Meyve Kes", ikon: "🍉" },

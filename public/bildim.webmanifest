@@ -1,7 +1,7 @@
 {
-  "name": "QuizzExam — Bilgi Yarışması",
-  "short_name": "QuizzExam",
-  "description": "QuizzExam: Türkçe bilgi yarışması — 1v1 meydan okuma, günlük turnuvalar, şehir ve ülke ligleri. Binlerce soru.",
+  "name": "Quizador — Bilgi Yarışması",
+  "short_name": "Quizador",
+  "description": "Quizador: Türkçe bilgi yarışması — 1v1 meydan okuma, günlük turnuvalar, şehir ve ülke ligleri. Binlerce soru.",
   "start_url": "/bildim",
   "scope": "/",
   "display": "standalone",

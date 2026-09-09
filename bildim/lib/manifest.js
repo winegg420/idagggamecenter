@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 
-// QuizzExam'in kendi PWA kimliği var (/bildim.webmanifest): ad "QuizzExam",
+// Quizador'in kendi PWA kimliği var (/bildim.webmanifest): ad "Quizador",
 // start_url "/bildim", portrait, gece lacivert tema. Hub'ın manifesti ise tüm oyun
 // merkezini temsil ediyor. Bildim rotalarındayken belge başlığındaki
 // <link rel="manifest"> ve theme-color Bildim'e çevrilir; çıkınca geri alınır.

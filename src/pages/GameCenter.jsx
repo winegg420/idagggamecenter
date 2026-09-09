@@ -10,7 +10,7 @@ import Avatar from "../components/Avatar.jsx";
 // Portala eklenen oyunlar. Yeni oyun eklemek = buraya bir kart eklemek.
 const OYUNLAR = [
   {
-    ad: "QuizzExam",
+    ad: "Quizador",
     aciklama: "Türkçe bilgi yarışması — turnuva, meydan okuma ve gece yarışı",
     ikon: "🧠",
     yol: "/bildim",
