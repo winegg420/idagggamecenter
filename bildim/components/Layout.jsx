@@ -14,7 +14,7 @@ import Ikon from "./Ikon.jsx";
 import Avatar from "../../src/components/Avatar.jsx";
 import Logo from "./Logo.jsx";
 import SesDugmesi from "./SesDugmesi.jsx";
-import { y } from "../lib/yol.js";
+import { y, BILDIM_MOD } from "../lib/yol.js";
 
 export default function Layout() {
   const { profile, user } = useAuth();
@@ -134,9 +134,15 @@ export default function Layout() {
           <span className="ikon"><Ikon ad="kilic" boyut={22} /></span>Meydan Oku
           {bekleyen > 0 && <span className="rozet">{bekleyen}</span>}
         </NavLink>
-        <NavLink to="/" className={({ isActive }) => (isActive ? "aktif" : "")}>
-          <span className="ikon"><Ikon ad="oyunKolu" boyut={22} /></span>Merkez
-        </NavLink>
+        {/* Oyun portalı sekmesi yalnız hub derlemesinde anlamlı: Quizador'un
+            kendi sitesinde "/" zaten Ana Sayfa olduğundan sekme kendini
+            tekrar ediyordu. Ayrıca "end" olmadığı için NavLink her yolla
+            eşleşip sekmeyi sürekli "aktif" gösteriyordu — eklendi. */}
+        {!BILDIM_MOD && (
+          <NavLink to="/" end className={({ isActive }) => (isActive ? "aktif" : "")}>
+            <span className="ikon"><Ikon ad="oyunKolu" boyut={22} /></span>Merkez
+          </NavLink>
+        )}
         <NavLink to={y("/siralama")} className={({ isActive }) => (isActive ? "aktif" : "")}>
           <span className="ikon"><Ikon ad="grafik" boyut={22} /></span>Sıralama
         </NavLink>
