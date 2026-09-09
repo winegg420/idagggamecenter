@@ -18,6 +18,7 @@ import { supabaseHazir } from "./lib/supabase.js";
 import Login from "./pages/Login.jsx";
 
 import Layout from "../bildim/components/Layout.jsx";
+import AnaEkranaEkle from "../bildim/components/AnaEkranaEkle.jsx";
 import Home from "../bildim/pages/Home.jsx";
 import ChallengesPage from "../bildim/pages/ChallengesPage.jsx";
 import MatchPage from "../bildim/pages/MatchPage.jsx";
@@ -74,7 +75,15 @@ export default function BildimApp() {
   if (loading && !bagimsizModul)
     return <div className="yukleniyor">Yükleniyor…</div>;
 
-  if (!session && !bagimsizModul) return <Login />;
+  // iPhone yönlendirmesi giriş ekranında da çıkmalı: kullanıcı Safari'de
+  // siteyi ilk açtığında karşılaştığı ekran burası.
+  if (!session && !bagimsizModul)
+    return (
+      <>
+        <Login />
+        <AnaEkranaEkle />
+      </>
+    );
 
   return (
     <Suspense fallback={<div className="yukleniyor">Yükleniyor…</div>}>
@@ -104,6 +113,7 @@ export default function BildimApp() {
 
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
+      <AnaEkranaEkle />
     </Suspense>
   );
 }

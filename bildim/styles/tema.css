@@ -2361,3 +2361,133 @@ body::before { will-change: opacity; }
 @media (max-width: 380px) {
   .app .bd-avatar-grid { grid-template-columns: repeat(4, 1fr); }
 }
+
+/* ============================================================
+   iPhone "Ana Ekrana Ekle" yönlendirmesi (AnaEkranaEkle.jsx)
+
+   Ekranın ALTINA oturur: Safari'nin paylaş düğmesi alt çubukta olduğu için
+   yönlendirme oraya yakın durmalı. Modal değil — arkayı karartmaz, oyuncu
+   isterse yok sayıp oynamaya devam eder.
+   ============================================================ */
+.bd-ekle-katman {
+  position: fixed;
+  left: 0; right: 0;
+  bottom: calc(env(safe-area-inset-bottom) + 8px);
+  z-index: 90;                     /* tabbar (80) üstünde, modal (100) altında */
+  display: flex;
+  justify-content: center;
+  padding: 0 12px;
+  pointer-events: none;            /* yalnız kartın kendisi tıklanabilir */
+  animation: bd-ekle-gir 260ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.bd-ekle-katman.kapaniyor { animation: bd-ekle-cik 200ms ease-in both; }
+
+@keyframes bd-ekle-gir {
+  from { opacity: 0; transform: translateY(18px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes bd-ekle-cik {
+  from { opacity: 1; transform: translateY(0); }
+  to   { opacity: 0; transform: translateY(18px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .bd-ekle-katman,
+  .bd-ekle-katman.kapaniyor { animation: none; }
+}
+
+.bd-ekle {
+  position: relative;
+  pointer-events: auto;
+  width: 100%;
+  max-width: 420px;
+  background: var(--bd-zemin-2);
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  border-radius: 18px;
+  padding: 14px 14px 12px;
+  box-shadow: 0 18px 44px rgba(0, 0, 0, 0.55);
+}
+
+.bd-ekle-kapat {
+  position: absolute;
+  top: 6px; right: 8px;
+  width: 30px; height: 30px;
+  display: grid; place-items: center;
+  background: none; border: 0;
+  color: var(--bd-metin-3);
+  font-size: 22px; line-height: 1;
+  cursor: pointer;
+}
+.bd-ekle-kapat:hover { color: var(--bd-metin); }
+
+.bd-ekle-ust { display: flex; gap: 11px; align-items: center; }
+.bd-ekle-ikon {
+  width: 52px; height: 52px;
+  border-radius: 12px;
+  flex: 0 0 auto;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.4);
+}
+.bd-ekle-basliklar { min-width: 0; padding-right: 22px; }
+.bd-ekle-baslik { display: flex; align-items: center; }
+.bd-ekle-alt {
+  margin-top: 3px;
+  font-size: 12.5px;
+  line-height: 1.35;
+  color: var(--bd-metin-2);
+}
+
+.bd-ekle-adimlar {
+  margin: 12px 0 0;
+  padding: 0 0 0 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+.bd-ekle-adimlar li {
+  font-size: 13.5px;
+  line-height: 1.45;
+  color: var(--bd-metin);
+}
+.bd-ekle-adimlar li::marker { color: var(--bd-odul); font-weight: 800; }
+.bd-ekle-adimlar b { font-weight: 800; }
+/* Satır içi ikonlar metinle aynı hizada dursun */
+.bd-ekle-adimlar svg {
+  vertical-align: -4px;
+  margin: 0 1px;
+  color: var(--bd-odul);
+}
+
+.bd-ekle-tamam {
+  width: 100%;
+  margin-top: 12px;
+  padding: 11px 14px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--bd-metin);
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 800;
+  cursor: pointer;
+}
+.bd-ekle-tamam:active { background: rgba(255, 255, 255, 0.12); }
+
+/* Oyun içinde (alt bar gizliyken) yönlendirme cevap şıklarının önüne
+   geçmesin — maç bitince tekrar görünür. */
+body.bd-oyun-modu .bd-ekle-katman { display: none; }
+
+/* Layout varsa alt bar da var: yönlendirme onun ÜSTÜNE otursun, üstünü
+   kapatmasın. Giriş ekranında `.app` yok, kart en altta kalır. */
+.app ~ .bd-ekle-katman { bottom: calc(env(safe-area-inset-bottom) + 78px); }
+
+/* Kart açıkken altta kalan içeriğin üstünü örtmesin: giriş ekranı ortalı
+   olduğu için yukarı kayar, oyun ekranı alttan boşluk kazanır. */
+/* Giriş ekranı normalde dikeyde ORTALI. Ortalıyken alta padding vermek
+   içeriği yalnız yarısı kadar kaldırır (kalanı üstte boşluğa gider) ve küçük
+   iPhone'larda kart yine yasal linklerin üstüne biner. Kart açıkken hizayı
+   üste alıyoruz: içerik yukarıdan başlar, sığmazsa sayfa kayar. */
+body.bd-ekle-acik .giris {
+  justify-content: flex-start;
+  padding-top: 32px;
+  padding-bottom: 330px;
+}
+body.bd-ekle-acik .app { padding-bottom: calc(300px + env(safe-area-inset-bottom)); }
