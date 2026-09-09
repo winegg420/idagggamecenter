@@ -15,3 +15,6 @@ supabase/.branches
 # Sır içermez, yalnız derleme modunu seçer; izlenmeli ki
 # `npm run build:bildim` temiz klonda da çalışsın.
 !.env.bildim
+
+# wrangler pages dev yerel önbelleği
+.wrangler/
