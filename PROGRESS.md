@@ -2966,3 +2966,82 @@ kullanıcının gezinmesi. **Ortada saldırı yok, kapatılacak bir ayar da yok.
 Otomatik hafifletme trafik normale dönünce kendiliğinden kalkar; Googlebot'un
 403 alması da bu geçici durumun yan etkisi. Hiçbir güvenlik ayarına
 dokunulmadı. Kalıcı olursa doğrulanmış tarayıcılar için bypass kuralı eklenir.
+
+---
+
+## 10 Eylül 2026 — GÖREV 11: Yayın sonrası dayanıklılık paketi (5 iş)
+
+### İŞ 1 — Soru havuzu dengesi (commit 6b0b595)
+
+**İki kök neden bulundu, ikisi de düzeltildi.**
+
+1. **Üretici aylardır hiç çalışmıyordu.** `HEDEF_HAVUZ = 200` **toplam** havuz
+   eşiğiydi; havuzda 11.422 soru olduğu için fonksiyon her çağrıda
+   "Havuz dolu" deyip çıkıyordu. Canlıda doğrulandı. Saatlik cron 48 saatte
+   48 kez "succeeded" dönüyordu ama sıfır soru üretiyordu.
+2. **Kategori enum'ı eksikti** (7 değer). `sinema`, `muzik`, `teknoloji`
+   enum'da YOKTU → o üç kategoriye hiç üretilemezdi. `genel` ise
+   `get_categories` tarafından gizleniyor, oraya üretilen soru görünmezdi.
+
+`karisik` enum'a **konmadı**: kategori değil, filtre
+(`get_categories`: `kategori not in ('genel','karisik')`).
+**Migration gerekmedi** — `questions.kategori` üzerinde check constraint yok.
+
+Yeni: `kalite.ts` (saf, sınanabilir kalite kapıları) + `_test/kalite-test.mjs`
+(26 iddia). Kapılar **mevcut 11.422 sorunun tamamına** uygulanarak yanlış
+pozitif denetimi yapıldı: ilk sürüm 79 soruya takılıyordu, incelenince
+`en\s+son` kalıbının kelime sınırı olmadığı ve "şimşek-**ten son**-ra",
+"sona ermiştir" gibi masum soruları elediği görüldü. Unicode lookaround
+eklendi, "bugün" ve yalın "kaç yaşında" bilerek çıkarıldı
+→ 62 (%0,54), yanlış pozitif 18 → 1.
+
+**Hedef zaten karşılanmış durumda:** 10 kategorinin hepsi 1000+
+(cografya 1908, genel_kultur 1353, bilim 1038, sanat 1029, sinema 1025,
+tarih 1024, muzik 1024, spor 1012, edebiyat 1005, teknoloji 1004).
+Üretim çalıştırılmadı — gerek yoktu.
+
+### İŞ 2 — Sentry (commit 886318d)
+
+Tamamen `VITE_SENTRY_DSN`'e bağlı. **Ölçümle doğrulandı:** DSN'siz derlemede
+18 paket tarandı, "sentry" dizgisi hiçbirinde geçmiyor (Rollup tamamen eliyor).
+DSN'li derlemede paketlere giriyor. `HataSiniri`'nin davranışı değişmedi.
+Gizlilik temizliği testi (20 iddia) **gerçek bir açık yakaladı**: Sentry
+`request.query_string`'i başında `?` olmadan gönderiyor ve davet kodu tam
+oradan sızıyordu.
+
+### İŞ 3 — RPC hız sınırı (commit a5874fa, migration 115+116)
+
+12 kullanıcı tetikli uç. **Limitler gerçek veriden seçildi**: canlıda
+60 sn'lik pencerede gözlenen en yüksek değerler match_answers 15 (ort. 4,4),
+group 9, turnuva 7, hızlı 3. Cevap uçları 60/60sn → gözlenen tavanın 4 katı.
+**Pay testle gösterildi:** aynı dakikada 3 tam maç (60 cevap) takılmıyor.
+Bot/cron muaf (`auth.uid()` NULL ise sessizce çıkıyor; oturumsuz 200 çağrı
+200 geçti). `advance_*` uçlarına bilerek sınır konmadı.
+
+### İŞ 4 — Hesap silme (commit 4d73184, migration 117)
+
+**İki gerçek engel bulundu:** turnuva kazanmış ya da başkasını davet etmiş
+oyuncu hesabını **silemiyordu** (FK ihlali). Bu, gizlilik politikasındaki
+"kalıcı olarak silebilirsin" vaadini ve KVKK silme hakkını bozuyordu.
+Oyun daveti aktif teşvik ettiği için (her davet +50 puan) nadir bir durum
+değildi. `kazanan`/`davet_eden` → ON DELETE SET NULL. NO ACTION kalan FK: 0.
+FK'sı olmayan tek tablo `pr_error_logs` → `hesabimi_sil` artık onu da siliyor.
+5/5 senaryo geçiyor, artakalan satır yok. Test gerçek hesap kullanmıyor ve
+sonunda rollback ediyor.
+
+### İŞ 5 — Yedekleme (commit fa5be8d, YEDEKLEME.md)
+
+**En önemli bulgu:** proje **Free planda ve HİÇ otomatik yedeği yok**
+(panelde ekrandan doğrulandı: "Free Plan does not include project backups").
+Veritabanı bozulursa geri dönüş yolu yok.
+
+**Döküm ve geri dönüş DENENEMEDİ** — bu makinede pg_dump, psql ve Docker yok;
+`npx supabase db dump` Docker istediği için başarısız oldu. Belge bu iki adımı
+açıkça "doğrulanmadı" diye işaretliyor, uydurma boyut/süre verilmedi.
+Bunun yerine ölçülebilen her şey ölçüldü (206 MB, 75 tablo, 170 fonksiyon,
+97 politika, 23 tetikleyici, 18 cron işi, 29 auth kullanıcısı, 0 storage) ve
+geri dönüş doğrulama ölçütü olarak belgeye kondu.
+
+### YAYIN_KONTROL.md
+
+C1, C2, C4, C8 **kapandı** (üstü çizildi + tarih). C5 durumu netleşti.

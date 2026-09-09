@@ -95,14 +95,14 @@ içindeki adresleri de o zaman güncellemek gerekiyor.
 
 | # | Konu | Durum |
 |---|---|---|
-| C1 | **Soru havuzu dengesiz** | coğrafya 2018, genel kültür 1450 ama sinema 533, teknoloji 539. Kategori seçen oyuncu birkaç turda soruları tekrar görür. Hedef: her kategori 1000+. |
-| C2 | **Hata izleme yok** | Sentry / Vercel Analytics kurulu değil; canlıda ne kırıldığını kullanıcı söylemeden bilemezsin. |
+| ~~C1~~ | ~~**Soru havuzu dengesiz**~~ | ✅ **KAPANDI (10 Eylül 2026).** Tüm kategoriler 1000+ (en düşük teknoloji 1004). Kök neden de düzeltildi: üretici enum'unda sinema/müzik/teknoloji YOKTU ve `HEDEF_HAVUZ=200` toplam eşik olduğu için üretici aylardır hiç çalışmıyordu. Artık kategori başına eşik + kalite/tekrar kapıları. |
+| ~~C2~~ | ~~**Hata izleme yok**~~ | ✅ **KAPANDI (10 Eylül 2026).** Sentry eklendi, tamamen `VITE_SENTRY_DSN`'e bağlı (DSN yoksa pakete bile girmiyor). Gizlilik temizliği: davet kodu + e-posta olaydan siliniyor. DSN girilmesi kullanıcıda. |
 | C3 | **DidaGP paketi 1.086 KB** | Hub'ın en büyük parçası (diğerleri 50-200 KB). Mobil ilk açılışta hissedilir. |
-| C4 | **RPC hız sınırı yok** | Bir oyuncu `submit_*` uçlarını döngüye sokabilir. Supabase tarafında rate limit ya da RPC içinde sayaç. |
-| C5 | **Yedekleme planı** | Supabase otomatik yedeği planına bağlı; geri dönüş prosedürü denenmedi. |
+| ~~C4~~ | ~~**RPC hız sınırı yok**~~ | ✅ **KAPANDI (10 Eylül 2026).** 12 kullanıcı tetikli uca sınır kondu (cevap 60/60sn, joker 20/60sn, başlatma 10/60sn). Limitler gerçek veriden seçildi; 3 tam maç aynı dakikada takılmıyor. Bot/cron akışları muaf. |
+| C5 | **Yedekleme planı** | ⚠️ **DURUM NETLEŞTİ (10 Eylül 2026):** proje **Free planda ve HİÇ otomatik yedeği yok** (panelde doğrulandı). Prosedür `YEDEKLEME.md`'ye yazıldı ama döküm/geri dönüş **denenemedi** (bu makinede pg_dump/Docker yok). Yayın öncesi kapatılmalı. |
 | C6 | **Diğer oyunlar denetlenmedi** | Bu denetim Bildim + paylaşılan kabuk odaklıydı. Kafa Topu, Meyve Kes, PatiRun, DidaGP, Gladius, RUN, Boks aynı gözle taranmalı (özellikle RLS ve skor doğrulama). |
 | C7 | **Service worker önbelleklemiyor** | `fetch` boş; çevrimdışı destek yok, sadece kurulabilirlik var. Bilinçli tercihse sorun değil. |
-| C8 | **Hesap silme test edilmedi** | `hesabimi_sil` RPC'si var ama uçtan uca denenmedi (denemek gerçek bir hesabı siler). |
+| ~~C8~~ | ~~**Hesap silme test edilmedi**~~ | ✅ **KAPANDI (10 Eylül 2026).** Uçtan uca test edildi ve **iki engel bulundu**: turnuva kazanmış ya da birini davet etmiş oyuncu hesabını SİLEMİYORDU (FK ihlali). Düzeltildi (migration 117), 5/5 senaryo geçiyor. |
 
 ---
 
