@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import SenRozeti from "../components/SenRozeti.jsx";
 import Modal from "../components/Modal.jsx";
 import { hataMesaji } from "../lib/hata.js";
 import { useNavigate } from "react-router-dom";
@@ -159,7 +160,7 @@ export default function LeaderboardPage() {
         <div className="bd-lig-isim">
           {s.gorunen_ad}
           {s.bot && <span className="bd-bot-rozet" title="Yapay rakip">🤖</span>}
-          {s.user_id === user.id && <span className="bd-sen">sen</span>}
+          {s.user_id === user.id && <SenRozeti />}
         </div>
         <div className="bd-lig-detay">
           <RankBadge puan={s.puan} />

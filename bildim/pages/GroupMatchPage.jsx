@@ -1,4 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import SenRozeti from "../components/SenRozeti.jsx";
+import SureDolduGecis from "../components/SureDolduGecis.jsx";
 import MacYukleniyor from "../components/MacYukleniyor.jsx";
 import { hataMesaji } from "../lib/hata.js";
 import { useOyunModu } from "../lib/oyunModu.js";
@@ -38,6 +40,8 @@ export default function GroupMatchPage() {
   const [kaliplarAcik, setKaliplarAcik] = useState(false);
   const advanceKilidi = useRef(false);
   const pollRef = useRef(null);
+  // Maç bitişinde sonuç ekranından önce 0.8 sn'lik "Maç bitti!" perdesi
+  const [gecisBitti, setGecisBitti] = useState(false);
   const balonTimer = useRef({});
 
   const balonGoster = useCallback((kimden, mesaj) => {
@@ -229,7 +233,7 @@ export default function GroupMatchPage() {
             <div key={k.user_id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "6px 0" }}>
               <Avatar profile={k.profil} boyut={34} />
               <span style={{ flex: 1, fontWeight: 600, textAlign: "left" }}>
-                {k.profil?.gorunen_ad} {k.user_id === user.id && "(sen)"}
+                {k.profil?.gorunen_ad}{k.user_id === user.id && <SenRozeti />}
               </span>
               <span
                 className="rutbe-chip"
@@ -277,6 +281,17 @@ export default function GroupMatchPage() {
     );
   }
 
+  if (mac.durum === "bitti" && !gecisBitti) {
+    return (
+      <SureDolduGecis
+        baslik="Maç bitti!"
+        skor={benimKayit?.skor ?? 0}
+        skorEtiket="puan"
+        onBitti={() => setGecisBitti(true)}
+      />
+    );
+  }
+
   if (mac.durum === "bitti") {
     const kazandim = mac.kazanan === user.id;
     const berabere = mac.kazanan === null;
@@ -292,7 +307,7 @@ export default function GroupMatchPage() {
               <span className={`sira-no ${i < 1 ? "ilk3" : ""}`}>{i + 1}</span>
               <Avatar profile={k.profil} boyut={34} />
               <span style={{ flex: 1, fontWeight: 600, textAlign: "left" }}>
-                {k.profil?.gorunen_ad} {k.user_id === user.id && "(sen)"}
+                {k.profil?.gorunen_ad}{k.user_id === user.id && <SenRozeti />}
               </span>
               <span style={{ fontWeight: 800 }}>{k.skor}</span>
             </div>
@@ -318,7 +333,7 @@ export default function GroupMatchPage() {
             className={`grup-skor-satir ${k.user_id === user.id ? "sen" : ""}`}
           >
             <Avatar profile={k.profil} boyut={30} />
-            <span className="isim">{k.profil?.gorunen_ad}{k.user_id === user.id && " (sen)"}</span>
+            <span className="isim">{k.profil?.gorunen_ad}{k.user_id === user.id && <SenRozeti />}</span>
             {balonlar[k.user_id] && (
               <span className={`balon grup ${k.user_id === user.id ? "" : "rakip"}`}>
                 {balonlar[k.user_id]}

@@ -1,4 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import SenRozeti from "../components/SenRozeti.jsx";
+import SureDolduGecis from "../components/SureDolduGecis.jsx";
 import { hataMesaji } from "../lib/hata.js";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "../../src/lib/supabase.js";
@@ -49,6 +51,8 @@ export default function MatchPage() {
   const [yuklemeHatasi, setYuklemeHatasi] = useState(null);
   const advanceKilidi = useRef(false);
   const pollRef = useRef(null);
+  // Maç bitişinde sonuç ekranından önce 0.8 sn'lik "Maç bitti!" perdesi
+  const [gecisBitti, setGecisBitti] = useState(false);
   const balonTimer = useRef({});
 
   const balonGoster = useCallback((kimden, mesaj) => {
@@ -260,6 +264,17 @@ export default function MatchPage() {
     );
   }
 
+  if (mac.durum === "bitti" && !gecisBitti) {
+    return (
+      <SureDolduGecis
+        baslik="Maç bitti!"
+        skor={mac.oyuncu1 === user.id ? mac.oyuncu1_skor : mac.oyuncu2_skor}
+        skorEtiket="puan"
+        onBitti={() => setGecisBitti(true)}
+      />
+    );
+  }
+
   if (mac.durum === "bitti") {
     const kazandim = mac.kazanan === user.id;
     const berabere = mac.kazanan === null;
@@ -276,7 +291,7 @@ export default function MatchPage() {
         {kazandim && <span className="bd-sonuc-kazanc">+20 ⭐</span>}
         <div className="skor-tabela" style={{ marginTop: 20 }}>
           <div className="taraf">
-            <div className="isim">{benimProfil?.gorunen_ad} (sen)</div>
+            <div className="isim">{benimProfil?.gorunen_ad}<SenRozeti /></div>
             <div className="skor">{benimSkor}</div>
             <div className="bd-vs-ilerleme">{ilerleme.ben}/{toplamSoru}</div>
           </div>
@@ -370,7 +385,7 @@ export default function MatchPage() {
         </p>
         <div className="skor-tabela bd-vs" style={{ maxWidth: 360, margin: "0 auto 16px" }}>
           <div className="taraf bd-vs-taraf">
-            <div className="isim">{benimProfil?.gorunen_ad} (sen)</div>
+            <div className="isim">{benimProfil?.gorunen_ad}<SenRozeti /></div>
             <div className="skor">{benimSkor}</div>
             <div className="bd-vs-ilerleme">{ilerleme.ben}/{toplamSoru}</div>
           </div>
@@ -429,7 +444,7 @@ export default function MatchPage() {
       <div className="skor-tabela bd-vs">
         <div className="taraf bd-vs-taraf">
           <Avatar profile={benimProfil} boyut={44} />
-          <div className="isim">{benimProfil?.gorunen_ad} (sen)</div>
+          <div className="isim">{benimProfil?.gorunen_ad}<SenRozeti /></div>
           <div className="skor">{benimSkor}</div>
           <div className="bd-vs-ilerleme">{ilerleme.ben}/{toplamSoru}</div>
         </div>

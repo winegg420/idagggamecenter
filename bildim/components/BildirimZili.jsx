@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../../src/lib/supabase.js";
 import { useAuth } from "../../src/context/AuthContext.jsx";
@@ -44,6 +45,9 @@ export default function BildirimZili() {
   const [acik, setAcik] = useState(false);
   const [liste, setListe] = useState([]);
   const [okunmamis, setOkunmamis] = useState(0);
+  // Panel body'ye portallanır; konumu zil düğmesinin ekrandaki yerine göre hesaplanır.
+  const zilRef = useRef(null);
+  const [konum, setKonum] = useState(null);
 
   const yukle = useCallback(async () => {
     if (!user) return;
@@ -80,8 +84,33 @@ export default function BildirimZili() {
     return () => supabase.removeChannel(kanal);
   }, [user, yukle]);
 
+  // Panelin ekran konumunu zil düğmesine göre ölç (sticky/başlık bloğu panelin
+  // yarısını kırpıyordu; artık panel body'ye taşınıp fixed konumlanıyor).
+  const konumOlc = useCallback(() => {
+    const el = zilRef.current;
+    if (!el) return;
+    try {
+      const r = el.getBoundingClientRect();
+      setKonum({ ust: r.bottom + 8, sag: Math.max(8, window.innerWidth - r.right) });
+    } catch {
+      setKonum({ ust: 64, sag: 12 });
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!acik) return;
+    konumOlc();
+    window.addEventListener("resize", konumOlc);
+    window.addEventListener("scroll", konumOlc, true);
+    return () => {
+      window.removeEventListener("resize", konumOlc);
+      window.removeEventListener("scroll", konumOlc, true);
+    };
+  }, [acik, konumOlc]);
+
   const ac = async () => {
     const yeniDurum = !acik;
+    if (yeniDurum) konumOlc();
     setAcik(yeniDurum);
     if (yeniDurum && okunmamis > 0) {
       try {
@@ -94,8 +123,45 @@ export default function BildirimZili() {
     }
   };
 
+  const panel = (
+    <>
+      <div className="bd-zil-ortu" onClick={() => setAcik(false)} />
+      <div
+        className="bd-zil-liste"
+        role="dialog"
+        aria-label="Bildirimler"
+        style={konum ? { top: konum.ust, right: konum.sag } : undefined}
+      >
+        <div className="bd-zil-baslik">Bildirimler</div>
+        {liste.length === 0 ? (
+          <div className="bd-zil-bos">
+            Henüz bildirim yok.<br />
+            Maç davetleri, lig hareketleri ve arkadaşlık istekleri burada görünür.
+          </div>
+        ) : (
+          liste.map((b) => (
+            <button
+              key={b.id}
+              className="bd-zil-satir"
+              onClick={() => {
+                setAcik(false);
+                if (b.yol) navigate(b.yol);
+              }}
+            >
+              <span className="ikon" aria-hidden="true">{TIP_IKON[b.tip] ?? "🔔"}</span>
+              <span className="govde">
+                <span className="metin">{b.metin}</span>
+                <span className="zaman">{zamanMetni(b.created_at)}</span>
+              </span>
+            </button>
+          ))
+        )}
+      </div>
+    </>
+  );
+
   return (
-    <div className="bd-zil-sarmal">
+    <div className="bd-zil-sarmal" ref={zilRef}>
       <button
         className="bd-zil"
         onClick={ac}
@@ -105,37 +171,7 @@ export default function BildirimZili() {
         {okunmamis > 0 && <span className="bd-zil-rozet">{okunmamis > 9 ? "9+" : okunmamis}</span>}
       </button>
 
-      {acik && (
-        <>
-          <div className="bd-zil-ortu" onClick={() => setAcik(false)} />
-          <div className="bd-zil-liste" role="dialog" aria-label="Bildirimler">
-            <div className="bd-zil-baslik">Bildirimler</div>
-            {liste.length === 0 ? (
-              <div className="bd-zil-bos">
-                Henüz bildirim yok.<br />
-                Maç davetleri, lig hareketleri ve arkadaşlık istekleri burada görünür.
-              </div>
-            ) : (
-              liste.map((b) => (
-                <button
-                  key={b.id}
-                  className="bd-zil-satir"
-                  onClick={() => {
-                    setAcik(false);
-                    if (b.yol) navigate(b.yol);
-                  }}
-                >
-                  <span className="ikon" aria-hidden="true">{TIP_IKON[b.tip] ?? "🔔"}</span>
-                  <span className="govde">
-                    <span className="metin">{b.metin}</span>
-                    <span className="zaman">{zamanMetni(b.created_at)}</span>
-                  </span>
-                </button>
-              ))
-            )}
-          </div>
-        </>
-      )}
+      {acik && typeof document !== "undefined" && createPortal(panel, document.body)}
     </div>
   );
 }

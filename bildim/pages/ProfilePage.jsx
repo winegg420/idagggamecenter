@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { sesAcikMi, sesAyarla, sesTik } from "../lib/ses.js";
 import Modal from "../components/Modal.jsx";
 import { hataMesaji } from "../lib/hata.js";
 import { Link } from "react-router-dom";
@@ -24,6 +25,7 @@ export default function ProfilePage() {
   const [kazanilan, setKazanilan] = useState(new Set());
   const [kopyalandi, setKopyalandi] = useState(false);
   const [bildirim, setBildirim] = useState("kapali");
+  const [ses, setSes] = useState(() => sesAcikMi());
   const [bildirimHata, setBildirimHata] = useState(null);
   const [konumDuzenle, setKonumDuzenle] = useState(false);
   const [silOnay, setSilOnay] = useState(false);
@@ -174,6 +176,30 @@ export default function ProfilePage() {
           )}
         </div>
       )}
+
+      {/* Maç sesleri: son 5 saniye tik'i, doğru/yanlış vuruşu, bitiş tonu */}
+      <div className="kart" style={{ display: "flex", alignItems: "center", gap: 12 }}>
+        <div style={{ fontSize: 26 }}>{ses ? "🔊" : "🔇"}</div>
+        <div style={{ flex: 1 }}>
+          <div style={{ fontWeight: 700, fontSize: 14 }}>Oyun sesleri</div>
+          <div className="alt-yazi">
+            {ses
+              ? "Açık — son 5 saniyede geri sayım tik'i, cevapta ve bitişte ses."
+              : "Kapalı — oyun tamamen sessiz oynanır."}
+          </div>
+        </div>
+        <button
+          className={`btn kucuk ${ses ? "ikincil" : ""}`}
+          onClick={() => {
+            const yeniDurum = !ses;
+            sesAyarla(yeniDurum);
+            setSes(yeniDurum);
+            if (yeniDurum) sesTik(3); // örnek ses
+          }}
+        >
+          {ses ? "Kapat" : "Aç"}
+        </button>
+      </div>
 
       <div className="kart" style={{ textAlign: "center" }}>
         <div className="baslik">🎁 Arkadaşını Davet Et</div>

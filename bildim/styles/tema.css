@@ -2038,3 +2038,40 @@ body::before { will-change: opacity; }
 @media (prefers-reduced-motion: reduce) {
   .bd-sira-sende { animation: none; }
 }
+
+/* ---------- Bitiş geçişi (Revize #3 · madde 4) ----------
+   Süre 0'a inince sonuç ekranına sert atlamak yerine 0.8 sn'lik perde. */
+.bd-sure-doldu {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 10px; min-height: 46dvh; text-align: center;
+  animation: bd-sd-gir 0.28s ease-out both;
+}
+.bd-sure-doldu-baslik {
+  font-size: 26px; font-weight: 900; letter-spacing: -0.4px;
+  background: linear-gradient(90deg, #fbbf24, #f472b6);
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+}
+.bd-sure-doldu-skor {
+  display: flex; align-items: baseline; gap: 8px;
+  font-size: 34px; font-weight: 900; color: var(--text);
+}
+.bd-sure-doldu-skor span { font-size: 13px; font-weight: 700; color: var(--text-dim); }
+@keyframes bd-sd-gir {
+  from { opacity: 0; transform: scale(0.94); }
+  to { opacity: 1; transform: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .bd-sure-doldu { animation: none; }
+}
+
+/* "sen" rozeti — tek bileşene indirildi (Revize #3 · madde 6).
+   Metin birleştirmesi ("idagg sen") yerine her yerde ayrı rozet. */
+.app .bd-sen {
+  display: inline-block; vertical-align: middle;
+  font-size: 10px; font-weight: 800; line-height: 16px;
+  margin-left: 6px; padding: 0 7px; border-radius: 999px;
+  color: #fff;
+  background: linear-gradient(135deg, #8b5cf6, #6d28d9);
+  border: 1px solid rgba(167, 139, 250, 0.55);
+  white-space: nowrap;
+}

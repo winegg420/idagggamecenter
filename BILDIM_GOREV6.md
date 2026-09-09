@@ -1,39 +1,39 @@
-# BİLDİM — Asenkron maç + heyecan + bildirim (Görev 6)
+# BİLDİM — REVİZE PAKETİ #3 (görev listesi)
 
-> Bağlam sıkışırsa **önce bu dosyayı oku**, ilk işaretsiz maddeden devam et.
-> Migration ve push kalıcı talimat gereği bana ait.
+Canlı test tarihi: 9 Eylül 2026. Kapsam: yalnız `bildim/` + paylaşılan giriş sayfası.
+Ayrıntılı doğrulama sonuçları: `PROGRESS.md` → "2026-09-09 — Revize Paketi #3".
 
-## İstek
-"Oyuncular aynı anda oynayamıyor, gecikme/kopma oluyor. Maç tek taraf için
-devam etsin, diğeri sonradan oynasın. Yarım kalan müsabaka görünsün, tıklayıp
-girilebilsin. Son 5 saniye sayı saysın, heyecan yaratsın (kızarma / kalp atışı).
-Bildirim telefona ve oyun içi zile muhakkak gelsin."
+## Kullanıcı bildirimleri (paket dışı, aynı turda)
+- [x] A. Mobilde bildirim ziline basınca panel yarım açılıyor
+      → panel `createPortal` ile body'ye taşındı, `position: fixed`, z-index 1201
+- [x] B. Maçta son 5 saniyede ses yok
+      → `bildim/lib/ses.js` (WebAudio); tik / doğru / yanlış / süre doldu sesleri
+        + Profil'de aç-kapa
+- [x] C. Twitter (X) / Facebook girişini aktif et — **kod hazır, panel anahtarı kapalı**
+      → canlı uçta doğrulandı: twitter 400, facebook 400, google 302.
+        Supabase panelinden açılması gerekiyor (bkz. PROGRESS "Kalan iş").
+- [x] D. Misafir girişini aktif et — **kod hazır, panel anahtarı kapalı**
+      → `signInAnonymously()` düğmesi eklendi; canlı uç
+        `422 anonymous_provider_disabled` döndürüyor, panelden açılmalı.
 
-## Mevcut durum (inceleme sonucu)
-1v1 maç **senkron**: `matches.aktif_soru` ve `soru_baslangic` iki oyuncu için
-ORTAK, süre 16 sn. Bağlantısı kopan/geç kalan taraf soruları kaçırıyor.
-
-## Faz 1 — Asenkron 1v1
-- [x] 1.1 Şema: oyuncu bazlı ilerleme + soru başlangıcı
-- [x] 1.2 `get_match_question` kendi indeksini versin, ilk çekişte süre başlasın
-- [x] 1.3 `submit_match_answer` kendi indeksi/süresiyle puanlasın ve ilerletsin
-- [x] 1.4 Bitiş: iki taraf da bitirince; terk edilirse 24 saat sonra
-- [x] 1.5 `bot_oyna` botu kendi indeksiyle oynatsın (insanı geçmesin)
-- [x] 1.6 Mevcut aktif maçlar geriye dönük doldurulsun
-- [x] 1.7 DOĞRULAMA: iki oyuncu farklı hızda oynasın, kimse kaçırmasın
-
-## Faz 2 — Yarım kalan maçlar görünsün
-- [x] 2.1 "Sıra sende" rozetiyle devam eden maçlar listesi
-- [x] 2.2 Ana sayfada da kısayol
-
-## Faz 3 — Son 5 saniye heyecanı
-- [x] 3.1 Geri sayım rakamı + ekran kızarması / kalp atışı
-- [x] 3.2 `prefers-reduced-motion` saygısı
-
-## Faz 4 — Bildirim (telefon + zil)
-- [x] 4.1 `bildirim_yaz` push'u da tetiklesin (tek kaynak)
-- [x] 4.2 Sıra sana geçince bildirim
-- [x] 4.3 DOĞRULAMA
+## Revize paketi #3
+- [x] 1. Hızlı Olan Kazanır'da insan hiç kazanamıyor
+      → gecikme (maç, soru, bot) için sabitlendi + zorluk pencereleri + kavrama payı.
+        Simülasyon: en zorlu senaryoda 17.1/20 (eski: 4.1/20). GEÇTİ.
+- [x] 2. "Joker yok" yazıyor ama maçta joker çubuğu var
+      → (a) seçildi: çubuk bu modda gizlendi, metin aynen kaldı.
+- [x] 3. Turnuva lobisi ölü görünüyor
+      → `turnuva_lobi_botlari()` + 10 dk'lık cron; 90 dk kala 3 bot (doğrulandı).
+- [x] 4. Hızlı Mod'da süre bitişi sert
+      → `SureDolduGecis` perdesi (0.8 sn); 1v1, grup ve hızlı maç bitişine de eklendi.
+- [x] 5. Bekleyen davetler birikiyor, temizlenmiyor
+      → `eski_davetleri_temizle()` + saatlik cron + sayfa açılışı; son 5 davet +
+        "Tümünü iptal et". Canlıda 3 eski davet temizlendi.
+- [x] 6. Sıralamada kendi satırı yazımı
+      → `SenRozeti` bileşeni; 11 yerde metin birleştirmesi kaldırıldı.
 
 ## Kapanış
-- [x] Build temiz, PROGRESS.md, commit + push
+- [x] Build temiz (`npm run build` — hata yok)
+- [x] Migration canlıya uygulandı (`20260612000074_bot_zorluk_lobi_davet.sql`)
+- [x] PROGRESS.md doğrulama sonuçları
+- [x] commit + push

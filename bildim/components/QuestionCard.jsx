@@ -3,6 +3,7 @@ import { supabase } from "../../src/lib/supabase.js";
 import { kalanSure, sunucuOffsetMs } from "../lib/zaman.js";
 import JokerCubugu from "./JokerCubugu.jsx";
 import Konfeti from "./Konfeti.jsx";
+import { sesTik, sesSureDoldu, sesDogru, sesYanlis, sesKilidiAc } from "../lib/ses.js";
 
 const HARFLER = ["A", "B", "C", "D"];
 const SURE = 15;
@@ -32,6 +33,9 @@ export default function QuestionCard({
   const [kapali, setKapali] = useState([]); // 50:50 ile elenen şıklar
   const sureDolduMu = useRef(false);
   const basiliTutTimer = useRef(null);
+  // Ses: son 5 saniyede saniyede bir tik. Efekt içinden okunabilmesi için ref.
+  const cevapVerildiRef = useRef(false);
+  const sonTikRef = useRef(null);
 
   // Yeni soru geldiğinde durumu sıfırla
   useEffect(() => {
@@ -40,8 +44,13 @@ export default function QuestionCard({
     setOy(null);
     setKapali([]);
     sureDolduMu.current = false;
+    cevapVerildiRef.current = false;
+    sonTikRef.current = null;
     clearTimeout(basiliTutTimer.current);
   }, [soru?.question_id, soru?.soru_index]);
+
+  // İlk kullanıcı hareketinde ses motoru açılsın (mobil tarayıcı kuralı)
+  useEffect(() => { sesKilidiAc(); }, []);
 
   useEffect(() => () => clearTimeout(basiliTutTimer.current), []);
 
@@ -54,9 +63,18 @@ export default function QuestionCard({
     const tik = () => {
       const k = kalanSure(soru.baslangic, offset, SURE);
       setKalan(k);
+      // Son 5 saniye: her tam saniyede bir tik sesi (cevap verildiyse susar)
+      if (k > 0 && k <= 5 && !cevapVerildiRef.current) {
+        const sn = Math.ceil(k);
+        if (sonTikRef.current !== sn) {
+          sonTikRef.current = sn;
+          sesTik(sn);
+        }
+      }
       if (k <= 0 && !sureDolduMu.current) {
         sureDolduMu.current = true;
         clearInterval(id);
+        if (!cevapVerildiRef.current) sesSureDoldu();
         onSureDoldu?.();
       }
     };
@@ -70,9 +88,13 @@ export default function QuestionCard({
   const cevapla = async (i) => {
     if (secim !== null || kalan <= 0) return;
     setSecim(i);
+    cevapVerildiRef.current = true;
     try {
       const r = await onCevapla(i);
-      if (r) setSonuc(r);
+      if (r) {
+        setSonuc(r);
+        if (r.dogru_cevap === i) sesDogru(); else sesYanlis();
+      }
     } catch {
       // süre dolmuş olabilir; sonuç ekranı advance ile gelir
     }
@@ -91,6 +113,7 @@ export default function QuestionCard({
     if (sonuc.tur === "elli" && Array.isArray(sonuc.kapali)) {
       setKapali(sonuc.kapali);
     } else if (sonuc.tur === "pas") {
+      cevapVerildiRef.current = true;
       setSecim(-1);
       setSonuc({ dogru: false, dogru_cevap: sonuc.dogru_cevap });
       onPas?.(sonuc);
@@ -205,8 +228,12 @@ export default function QuestionCard({
         })}
       </div>
 
-      {/* Yeni joker ekonomisi (sunucu tabanlı) */}
-      {macTur && macId && !sonuc && secim === null && kalan > 0 && (
+      {/* Yeni joker ekonomisi (sunucu tabanlı).
+          "Hızlı Olan Kazanır" modunda joker YOK: mod "ilk doğru cevap kazanır"
+          üzerine kurulu; 50:50 ya da +10 sn adaleti doğrudan bozar. Meydan Oku
+          açıklamasındaki "Joker yok!" cümlesiyle tutarlı olsun diye çubuk
+          bu modda hiç çizilmez. */}
+      {macTur && macTur !== "hizli" && macId && !sonuc && secim === null && kalan > 0 && (
         <JokerCubugu
           macTur={macTur}
           macId={macId}

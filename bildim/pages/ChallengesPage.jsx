@@ -146,6 +146,27 @@ export default function ChallengesPage() {
     }
   };
 
+  // Bekleyen tüm davetleri tek dokunuşla geri al
+  const tumDavetleriIptal = async () => {
+    setIptalHata(null);
+    setIptalEdilen("tumu");
+    try {
+      await Promise.all([
+        ...grupBeklenenTum.map((gm) =>
+          supabase.rpc("grup_mac_iptal", { p_group_match_id: gm.id })
+        ),
+        ...hizliBeklenenTum.map((hm) =>
+          supabase.rpc("hizli_mac_iptal", { p_hizli_mac_id: hm.id })
+        ),
+      ]);
+      await Promise.all([grupYukle(), hizliYukle()]);
+    } catch (e) {
+      setIptalHata(hataMesaji(e, "Davetler iptal edilemedi."));
+    } finally {
+      setIptalEdilen(null);
+    }
+  };
+
   useEffect(() => {
     supabase
       .from("profiles")
@@ -233,6 +254,27 @@ export default function ChallengesPage() {
       .limit(20);
     setHizliMaclar(data ?? []);
   }, []);
+
+  // Sayfa açılınca 24 saatten eski, yanıtlanmamış davetler temizlensin.
+  // (Saatlik cron da aynı işi yapar; cron durursa liste yine birikmesin diye
+  //  burada da tetikleniyor.)
+  useEffect(() => {
+    let iptal = false;
+    (async () => {
+      try {
+        const { data, error } = await supabase.rpc("eski_davetleri_temizle");
+        if (error) throw error;
+        if (!iptal && data > 0) {
+          grupYukle();
+          hizliYukle();
+          yukle();
+        }
+      } catch {
+        /* RPC yoksa (migration bekliyor) veya ağ hatası — sessiz geç */
+      }
+    })();
+    return () => { iptal = true; };
+  }, [grupYukle, hizliYukle, yukle]);
 
   useEffect(() => {
     hizliYukle();
@@ -359,9 +401,11 @@ export default function ChallengesPage() {
     (hm) => hm.durum === "bekliyor" && hizliBenimKaydim(hm)?.davet_durumu === "bekliyor"
   );
   const hizliAktif = hizliMaclar.filter((hm) => hm.durum === "aktif" && hizliBenimKaydim(hm));
-  const hizliBeklenen = hizliMaclar.filter(
+  const hizliBeklenenTum = hizliMaclar.filter(
     (hm) => hm.durum === "bekliyor" && hizliBenimKaydim(hm)?.davet_durumu === "kabul" && hm.kurucu === user.id
   );
+  // Listede en fazla son 5 davet gösterilir; eskiler yığılmasın.
+  const hizliBeklenen = hizliBeklenenTum.slice(0, 5);
   const hizliBiten = hizliMaclar
     .filter((hm) => hm.durum === "bitti" && hizliBenimKaydim(hm))
     .slice(0, 10);
@@ -371,9 +415,10 @@ export default function ChallengesPage() {
     (gm) => gm.durum === "bekliyor" && grupBenimKaydim(gm)?.davet_durumu === "bekliyor"
   );
   const grupAktif = grupMaclar.filter((gm) => gm.durum === "aktif" && grupBenimKaydim(gm));
-  const grupBeklenen = grupMaclar.filter(
+  const grupBeklenenTum = grupMaclar.filter(
     (gm) => gm.durum === "bekliyor" && grupBenimKaydim(gm)?.davet_durumu === "kabul" && gm.kurucu === user.id
   );
+  const grupBeklenen = grupBeklenenTum.slice(0, 5);
   const grupBiten = grupMaclar
     .filter((gm) => gm.durum === "bitti" && grupBenimKaydim(gm))
     .slice(0, 10);
@@ -697,6 +742,11 @@ export default function ChallengesPage() {
       {(grupBeklenen.length > 0 || hizliBeklenen.length > 0) && (
         <>
           <div className="baslik">📤 Bekleyen davetlerin</div>
+          {(grupBeklenenTum.length + hizliBeklenenTum.length) > 5 && (
+            <div className="alt-yazi" style={{ marginBottom: 8 }}>
+              Son 5 davet gösteriliyor ({grupBeklenenTum.length + hizliBeklenenTum.length} bekleyen davet var).
+            </div>
+          )}
           {grupBeklenen.map((gm) => (
             <BekleyenKurulum
               key={gm.id}
@@ -721,6 +771,16 @@ export default function ChallengesPage() {
               id={hm.id}
             />
           ))}
+          {(grupBeklenenTum.length + hizliBeklenenTum.length) > 1 && (
+            <button
+              className="btn ikincil kucuk"
+              style={{ width: "100%", marginTop: 4 }}
+              disabled={iptalEdilen !== null}
+              onClick={tumDavetleriIptal}
+            >
+              {iptalEdilen === "tumu" ? "İptal ediliyor…" : "Tümünü iptal et"}
+            </button>
+          )}
           {iptalHata && <div className="hata-kutu">{iptalHata}</div>}
         </>
       )}

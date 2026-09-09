@@ -1,4 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import SenRozeti from "../components/SenRozeti.jsx";
+import SureDolduGecis from "../components/SureDolduGecis.jsx";
+import { sesKilidiAc, sesTik } from "../lib/ses.js";
 import { hataMesaji } from "../lib/hata.js";
 import { macBittiReklam } from "../lib/reklam.js";
 import { useNavigate } from "react-router-dom";
@@ -13,7 +16,7 @@ const HARFLER = ["A", "B", "C", "D"];
 
 export default function HizliModPage() {
   const navigate = useNavigate();
-  const [asama, setAsama] = useState("secim"); // secim | oyun | sonuc
+  const [asama, setAsama] = useState("secim"); // secim | oyun | gecis | sonuc
   const [kategoriler, setKategoriler] = useState([]);
   const [kategori, setKategori] = useState(null);
   const [oturum, setOturum] = useState(null);
@@ -31,6 +34,9 @@ export default function HizliModPage() {
 
   const soruBaslangicRef = useRef(Date.now());
   const bittiRef = useRef(false);
+  const sonTikRef = useRef(null);
+
+  useEffect(() => { sesKilidiAc(); }, []);
 
   useEffect(() => {
     supabase.rpc("get_categories").then(({ data }) => setKategoriler(data ?? []));
@@ -54,6 +60,7 @@ export default function HizliModPage() {
       setSonucSoru(null);
       setKalanSoru(SORU_SN);
       setKalanToplam(s.kalan_toplam_sn ?? 0);
+      sonTikRef.current = null;
       soruBaslangicRef.current = Date.now();
     } catch (e) {
       if (/Süre doldu/i.test(e?.message ?? "")) {
@@ -91,6 +98,10 @@ export default function HizliModPage() {
     async (oturumId) => {
       if (bittiRef.current) return;
       bittiRef.current = true;
+      // Süre bitti: önce 0.8 sn'lik "Süre doldu!" perdesi, sonra sonuç ekranı.
+      // (Eskiden ekran donuk kalıp aniden sonuca atlıyordu.)
+      const perdeBasi = Date.now();
+      setAsama("gecis");
       try {
         const { data, error } = await supabase.rpc("hizli_mod_bitir", {
           p_oturum_id: oturumId,
@@ -100,7 +111,8 @@ export default function HizliModPage() {
       } catch (e) {
         setHata(hataMesaji(e, "Oturum kapatılamadı."));
       }
-      setAsama("sonuc");
+      const perdeKalan = Math.max(0, 800 - (Date.now() - perdeBasi));
+      setTimeout(() => setAsama("sonuc"), perdeKalan);
       macBittiReklam().catch(() => {}); // sıklık kuralı reklam.js'te
       try {
         const { data } = await supabase.rpc("hizli_mod_siralama", { p_kapsam: kapsam });
@@ -145,8 +157,16 @@ export default function HizliModPage() {
     if (asama !== "oyun" || !oturum) return;
     const id = setInterval(() => {
       const gecen = (Date.now() - soruBaslangicRef.current) / 1000;
-      setKalanSoru(Math.max(0, SORU_SN - gecen));
+      const ks = Math.max(0, SORU_SN - gecen);
+      setKalanSoru(ks);
       setKalanToplam((k) => Math.max(0, k - 0.1));
+      // Soru başına 5 sn; son 2 saniyede saniyede bir tik
+      if (ks > 0 && ks <= 2) {
+        const sn = Math.ceil(ks);
+        if (sonTikRef.current !== sn) { sonTikRef.current = sn; sesTik(sn); }
+      } else if (ks > 2) {
+        sonTikRef.current = null;
+      }
     }, 100);
     return () => clearInterval(id);
   }, [asama, oturum]);
@@ -227,6 +247,11 @@ export default function HizliModPage() {
         </button>
       </div>
     );
+  }
+
+  // Süre doldu perdesi (0.8 sn) — sonuç ekranından önce
+  if (asama === "gecis") {
+    return <SureDolduGecis baslik="Süre doldu!" skor={sonuc?.skor ?? skor} skorEtiket="doğru" />;
   }
 
   if (asama === "oyun") {
@@ -350,7 +375,7 @@ export default function HizliModPage() {
               />
               <div className="bd-lig-bilgi">
                 <div className="bd-lig-isim">
-                  {s.gorunen_ad} {s.ben && <span className="bd-sen">sen</span>}
+                  {s.gorunen_ad}{s.ben && <SenRozeti />}
                 </div>
               </div>
               <span className="bd-lig-puan">✓ {s.skor}</span>

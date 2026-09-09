@@ -1645,3 +1645,164 @@ ama incelendiğinde hepsi geçerli çıktı (`Na`, `K`, `Ud`, `Boşluk (space)`)
 
 **Not:** Frontend değişiklikleri henüz **push edilmedi** — veritabanı yeni, site eski
 sürümde. Push istendiğinde deploy edilecek.
+
+## 2026-09-09 — Revize Paketi #3 + kullanıcı bildirimleri (A–D)
+
+Canlı testte (Chrome, idagg oturumu) çıkan 6 madde + kullanıcının doğrudan
+ilettiği 4 madde. Görev listesi: `BILDIM_GOREV6.md`.
+**Migration:** `20260612000074_bot_zorluk_lobi_davet.sql` — **canlıya uygulandı.**
+
+### A) Mobilde bildirim paneli yarım açılıyordu
+- **Kök neden:** `.bd-zil-liste` panel `position: absolute` ile `.bd-ust-blok`
+  içindeydi. Bu blok `position: sticky; z-index: 46` olduğu için kendi yığın
+  bağlamını (stacking context) kuruyor; panelin `z-index: 61` değeri o bağlamın
+  İÇİNDE kalıyordu. Alt menü (`.tabbar`, kök bağlamda `z-index: 50`) panelin
+  altını örtüyor, `max-height: 60dvh` ile birlikte panel yarım görünüyordu.
+- **Çözüm:** panel `createPortal` ile `document.body`'ye taşındı; konumu zil
+  düğmesinin `getBoundingClientRect()` değerinden hesaplanıp `position: fixed`
+  ile çiziliyor (`z-index: 1201`). Yükseklik `calc(100dvh - 96px - safe-area)`
+  ile alt menü payını da düşüyor. Kaydırma/yeniden boyutlandırmada konum tazeleniyor.
+- **Dosyalar:** `bildim/components/BildirimZili.jsx`, `src/styles.css`.
+
+### B) Maçta son 5 saniyede ses yoktu
+- **Bulgu:** projede hiç ses kodu yoktu (`grep -i audio` → 0 sonuç). Son 5 saniyenin
+  yalnızca görsel efekti vardı (kızaran kenar + büyük geri sayım).
+- **Çözüm:** `bildim/lib/ses.js` — WebAudio osilatörüyle üretilen tonlar (ses
+  dosyası yok, PWA önbelleğine yük binmiyor). `sesTik` (son 5 sn, azaldıkça
+  tizleşir), `sesSureDoldu`, `sesDogru`, `sesYanlis`.
+- iOS/Android kuralı gereği AudioContext ilk kullanıcı hareketinde açılıyor
+  (`sesKilidiAc`). Tercih `localStorage.bildim_ses`, varsayılan **açık**;
+  Profil sayfasına "Oyun sesleri" aç/kapa kartı eklendi.
+- **Bağlandığı yerler:** `QuestionCard` (turnuva/1v1/grup/hızlı maç) ve
+  `HizliModPage` (soru başına 5 sn olduğu için son 2 saniyede tik).
+
+### C) X (Twitter) / Facebook girişi — DURUM: kod hazır, panel anahtarı KAPALI
+- Canlı uçtan doğrulandı:
+  `GET /auth/v1/authorize?provider=twitter` → **400**, `provider=facebook` → **400**,
+  `provider=google` → **302** (yalnız Google açık).
+- Bu iki sağlayıcı **Supabase panelinden** (Authentication → Providers) açılır ve
+  X/Meta geliştirici portalından alınan Client ID + Secret ister. SQL ya da
+  veritabanı erişimiyle açılamaz; bu oturumda yapılamadı.
+- **Kod tarafında yapılanlar:** `src/pages/Login.jsx` baştan sona try-catch'e
+  alındı, İngilizce hata metinleri Türkçeye çevrildi ("Facebook girişi şu an
+  kapalı…" gibi), düğmeler işlem sırasında kilitleniyor, `redirectTo` artık
+  gelinen sayfayı koruyor, Facebook için `public_profile,email` kapsamı isteniyor.
+- **Yapılması gereken (panel):** Supabase → Authentication → Providers → Twitter
+  ve Facebook'u aç, Callback URL olarak
+  `https://zfpnxzybcpkxsotwdsey.supabase.co/auth/v1/callback` gir.
+
+### D) Misafir girişi — DURUM: kod hazır, panel anahtarı KAPALI
+- Canlı uçtan doğrulandı: anonim kayıt →
+  `422 anonymous_provider_disabled — "Anonymous sign-ins are disabled"`.
+- **Kod tarafında yapılanlar:** giriş sayfasına "Misafir olarak dene" düğmesi
+  (`supabase.auth.signInAnonymously()`) + hesabın cihaza bağlı olduğunu anlatan
+  not eklendi. `handle_new_user` tetikleyicisi e-postasız kullanıcıda zaten
+  `oyuncu_xxxx` takma adı üretiyor, ek migration gerekmedi.
+- **Yapılması gereken (panel):** Supabase → Authentication → Sign In / Providers →
+  "Allow anonymous sign-ins" aç.
+
+### 1) Hızlı Olan Kazanır'da insan hiç kazanamıyordu (ÖNCELİK)
+- **Kök neden (asıl bulgu):** koşul
+  `now() >= soru_baslangic + (2 + random() * 4) * interval '1 second'` biçimindeydi.
+  Bu ifade `bot_oyna` HER çalıştığında yeniden değerlendirilir ve `random()` her
+  seferinde YENİDEN çekilir. Yani bot "2-6 sn bekle" demiyor; her yoklamada yeni
+  zar atıp ilk tutan zarda basıyor. Yoklama sıklaştıkça gerçekleşen gecikme
+  2.0 sn tabanına yığılıyor — 2 sn'de basan insan, ağ/render gecikmesi yüzünden
+  her seferinde geç kalıyordu. Gecikme ayrıca zorluktan tamamen bağımsızdı.
+- **Çözüm:**
+  - `profiles`'a `bot_seviye`, `bot_gecikme_min`, `bot_gecikme_max` eklendi.
+  - `bot_rasgele(tohum)` + `bot_gecikme_sn(bot, tohum, min, max)`: gecikme md5
+    ile **(maç, soru, bot) üçlüsüne sabitlendi**; kaç kez yoklanırsa yoklansın
+    aynı değer döner, yığılma biter.
+  - Pencereler: **Kolay 4.5–7.0 · Orta 3.0–5.0 · Zor 2.0–3.5 sn**.
+  - İsabet zorluğa bağlandı: **Kolay %45 · Orta %65 · Zor %85**
+    (eskiden 0.25/0.40/0.55/0.70/0.90 ve gecikmeden bağımsızdı).
+  - **Kavrama payı (+1.0 sn):** pencere "oyuncu soruyu GÖRDÜĞÜ andan" tanımlı;
+    sunucu ise `soru_baslangic`'tan sayıyor. Arada realtime yayını +
+    `get_hizli_soru` + render var. Bu pay olmadan Zor botun 2.0 sn tabanı, 2 sn'de
+    basan oyuncuyu yavaş bağlantıda hâlâ geçiyordu (ölçüldü: 5.0/20).
+  - Aynı düzeltme 1v1 bot gecikmesine de uygulandı.
+- **Bot atamaları:** ÇaylakBot + AcemiBot = kolay, BilgeBot + KurtBot = orta,
+  UstaBot = zor.
+- **DOĞRULAMA** (`node bildim/_test/hizli-bot-simulasyon.mjs`, 20 soru × 3000 tur,
+  oyuncu 2 sn'de basıyor ve soruyu biliyor):
+
+  | Senaryo | ESKİ | YENİ |
+  |---|---|---|
+  | Sürekli yoklama + 0.5 sn ağ | 16.8/20 (en kötü tur 11) | **20.0/20** (en kötü 20) |
+  | Sürekli yoklama + 1.5 sn ağ | 4.1/20 (en kötü tur 0, %1 hiç kazanamama) | **17.2/20** (en kötü 11) |
+  | 7 sn cron + 0.5 sn ağ | 19.8/20 | **20.0/20** |
+  | 7 sn cron + 1.5 sn ağ | 17.9/20 | **19.8/20** |
+
+  Kabul ölçütü (en zorlu senaryo, ortalama ≥8 ve en kötü tur ≥6): **GEÇTİ**
+  → ortalama 17.1/20, en kötü tur 11/20.
+- Canlı DB'de gecikme dağılımı doğrulandı (500 örnek):
+  ÇaylakBot/AcemiBot 4.50–7.00 · BilgeBot/KurtBot 3.00–5.00 · UstaBot 2.00–3.50.
+
+### 2) "Joker yok" yazıyor ama maçta joker çubuğu vardı
+- **Karar: (a) — joker çubuğu bu modda gizlendi.** Gerekçe: mod tamamen
+  "ilk doğru cevap kazanır" üzerine kurulu; 50:50 rakibin cevabını beklemeden
+  şansı ikiye katlıyor, +10 sn ise ortak sayaçta zaten anlamsız. Jokeri açık
+  bırakmak modun tek kuralını bozardı. Açıklama metnindeki "Joker yok!" cümlesi
+  aynen kaldı; artık doğru.
+- `QuestionCard`: `macTur !== "hizli"` koşulu eklendi (grup/turnuva/1v1 etkilenmedi).
+
+### 3) Turnuva lobisi ölü görünüyordu
+- **Eski:** `bildim-bot-turnuva` cron'u turnuvadan **30 dk önce bir kez** çalışıp
+  5 botu aynı anda ekliyordu; 1 saat kala lobide tek kişi görünüyordu.
+- **Yeni:** `turnuva_lobi_botlari()` + `bildim-turnuva-lobi-bot` cron'u
+  (`*/10 * * * *`). Turnuvaya kalan süreye göre hedef bot sayısı hesaplanıyor,
+  eksikse birer birer ekleniyor. 15 dk aralıklarla sızıyorlar:
+
+  | Kalan süre | Lobideki bot |
+  |---|---|
+  | 121+ dk | 0 |
+  | 120 dk | 1 |
+  | 105 dk | 2 |
+  | **90 dk** | **3** |
+  | 75 dk | 4 |
+  | 60 dk ve altı | 5 |
+
+- **DOĞRULAMA:** formül canlı DB'de sorgulandı; **90 dk kala 3 bot** (+ oyuncunun
+  kendisi = 4 kişi) doğrulandı. Sıra `bot_rasgele(turnuva_id || bot_id)` ile
+  karıştırılıyor, hep aynı bot ilk girmiyor. Eski `bildim-bot-turnuva` cron'u
+  emniyet ağı olarak duruyor (T-30'da eksik kalan olursa tamamlar).
+
+### 4) Hızlı Mod'da süre bitişi sertti
+- Yeni bileşen `bildim/components/SureDolduGecis.jsx`: maskot (Bilge, "düşünüyor"
+  pozu) + `PuanSayaci` ile sayılan skor + bitiş sesi, **0.8 sn**.
+- Hızlı Mod'a `gecis` aşaması eklendi; perde `hizli_mod_bitir` RPC'si dönmeden
+  ÖNCE açılıyor (donukluk zaten RPC beklerken oluşuyordu), RPC dönünce kalan
+  süre kadar bekleyip sonuç ekranına geçiyor.
+- Aynı perde **1v1, grup maçı ve Hızlı Olan Kazanır** bitişlerine de eklendi
+  ("Maç bitti!" + oyuncunun kendi puanı).
+
+### 5) Bekleyen davetler birikiyor, temizlenmiyordu
+- `eski_davetleri_temizle()` RPC'si: 24 saatten eski ve hâlâ `bekliyor` olan
+  grup / hızlı / 1v1 davetlerini `iptal` yapar, iptal sayısını döndürür.
+- İki yerden tetikleniyor: saatlik cron (`bildim-eski-davet-temizle`, `5 * * * *`)
+  **ve** Meydan Oku sayfası açılışı (cron durursa liste yine temizlensin diye).
+- Listede en fazla **son 5** davet gösteriliyor; üstünde "N bekleyen davet var"
+  notu, altında **"Tümünü iptal et"** düğmesi.
+- **DOĞRULAMA:** canlı DB'de ilk çalıştırmada **3 eski davet** iptal edildi —
+  kullanıcının gördüğü birikmiş davetlerin kaynağı buydu.
+
+### 6) Sıralamada kendi satırı yazımı
+- Yeni bileşen `bildim/components/SenRozeti.jsx`; tüm liste/sıralama ekranlarında
+  ad ile "sen" artık **ayrı düğümler** (metin birleştirme yok).
+- Değiştirilen yerler: `LeaderboardPage`, `HizliModPage`, `HizliMacPage` (3 yer),
+  `GroupMatchPage` (3 yer), `MatchPage` (3 yer) — hepsi "(sen)" ya da
+  `<span className="bd-sen">` yazıyordu.
+- `.app .bd-sen` kuralı `tema.css`'e eklendi: `display: inline-block`, mor
+  gradyan hap, kenarlık — rozet artık her yerde rozet gibi görünüyor.
+
+### Dokunulmayanlar
+Kullanıcının "bu turda çalıştığı doğrulandı" dediği hiçbir akışa dokunulmadı:
+Hızlı Mod tur akışı, lig 4 sekmesi, joker dükkânı, ana sayfa, modal konumları,
+arkadaş ekleme doğrulaması, manifest, grup maçı bot ilerlemesi.
+
+### Kalan iş (kullanıcı aksiyonu gerektirir)
+1. Supabase → Authentication → Providers: **Twitter** ve **Facebook** aç
+   (X/Meta geliştirici portalından Client ID + Secret gerekiyor).
+2. Supabase → Authentication: **Allow anonymous sign-ins** aç (misafir girişi).
+   İkisi de panel anahtarı; kod tarafı hazır ve kapalıyken dürüst mesaj veriyor.
