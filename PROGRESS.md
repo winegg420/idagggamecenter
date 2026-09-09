@@ -2034,3 +2034,61 @@ Hepsi eşiğin üzerinde.
 - Yeni ikon: **41 çizgi + 12 kategori = 53 SVG**.
 - Silinen/kısaltılan metin: **11 açıklama + 5 buton etiketi**.
 - Yeni bileşen: `Logo.jsx`, `KategoriIkon.jsx`, `SesDugmesi.jsx`.
+
+## 2026-09-09 (4. tur) — İsim/şehir değiştirme + canlı site denetimi
+
+Migration'lar: `076_isim_sehir_degistirme`, `077_bot_avatarlari_yerel`,
+`078_kilit_sifirla` — **üçü de canlıya uygulandı**.
+Canlı adres: `https://idagg-game-center.vercel.app`.
+
+### 1) Oyun içinde isim ve şehir değiştirme
+- **Bulgu (canlı):** Profil sayfasında "Takma adın · **29 gün 1 saat** ·
+  Değiştir (pasif)" yazıyordu. Sunucuda kilit **30 gün**, konumda **7 gün**.
+  Yani özellik vardı ama pratikte kullanılamıyordu.
+- **Karar:** kilitler taklit/lig sömürüsüne karşı var, kaldırılmadı; ikisi de
+  **24 saate** indirildi (076). Doğrulama, benzersizlik, yasaklı kelime ve
+  şehir listesi kuralları aynen korundu.
+- **İkinci bulgu:** kilit penceresi kısalınca bile mevcut sayaçlar ESKİ kural
+  altında işlemişti; 078 ile gerçek oyuncuların sayaçları bir kez sıfırlandı.
+- **Keşfedilebilirlik:** Profil'e yalnız üst çubuktaki puan çipinden
+  gidilebiliyordu, alt menüde girişi yok. Üst çubuğa **avatar düğmesi** eklendi.
+- **DOĞRULAMA (canlı):** kilit "29 gün 1 saat" → "55 dk" → 078 sonrası açık.
+  Değiştir formu açıldı; "ab" gönderildi → sunucudan
+  `Takma ad 3-16 karakter olmalı.` döndü (RPC yolu çalışıyor). Şehir formu da
+  ülke/şehir açılır listeleriyle açılıyor.
+- Arayüzdeki 4 kilit metni sunucuyla çelişiyordu ("30 günde bir",
+  "Haftada yalnızca bir kez"); dördü de "günde bir kez" oldu.
+
+### 2) Canlı sitede bulunan ve düzeltilen kusurlar
+Sayfa sayfa gezilip (ana, meydan, lig, joker, turnuva, arkadaşlar, hızlı mod,
+profil, 1v1 maç) ölçüldü:
+
+| # | Bulgu | Düzeltme |
+|---|---|---|
+| 1 | Maç ekranındaki **cevap şıkları hâlâ mordu** (`#2a2156`), şık harfi `#4c1d95`, ikincil buton `#2a2154`, davet bandı, toast, bağlantı rengi | Renk **tonu** taramasıyla (hex + rgb, hue 245-315) 28 değer bulundu; lacivert/altına çevrildi |
+| 2 | **Podyum puanı ve turnuva başlığı kırmızıydı** — `--accent` mercana bağlanmıştı | `--accent` altın oldu; hata rengi ayrı (`--danger`) |
+| 3 | **"sen" rozeti** altın zeminde beyaz metin — ölçülen kontrast **1.87:1** | Koyu lacivert metin (aynı düzeltme aktif sekme ve podyum kaidesinde) |
+| 4 | Hero'da **rütbe çipi 378px gerilmişti** (sütun flex'inde stretch) | `align-self: flex-start; width: fit-content` |
+| 5 | Üst çubukta **dokunma hedefleri 44px altında** (logo 24px, puan çipi 32px) | `min-height: 44px` |
+| 6 | Maçta **soru sayacı rozeti kırmızıydı** (`--bd-hata`) — hata gibi okunuyordu | Nötr yüzey + altın metin |
+| 7 | Profilde **"Sonraki rütbe: kılıç Üstat"** — ikon adı ham metin olarak basılıyordu | `<Ikon>` ile çiziliyor |
+| 8 | **Arkadaş silme** tek dokunuşla, onaysız ve geri dönüşsüzdü; düğmenin erişilebilir adı da yoktu | Onaylı iki adım (Sil / Vazgeç) + `aria-label`/`title` |
+| 9 | **Bot avatarları dış CDN'den** (`api.dicebear.com`) geliyordu: dış bağımlılık + mor robotlar | Yerel `public/avatars/bot1..5.svg`, palete uygun (077) |
+| 10 | Oyuncu avatarlarından **av1 mor, av8 indigo** | Altın ve turkuaza alındı |
+| 11 | Kategori **"Karışık" ikonu kadeh**ti, turnuva kupasıyla karışıyordu | Dört kare (zar) |
+| 12 | Ustalık seviye renkleri ve RankBadge iç dolgusunda mor kalıntı | Palete alındı |
+
+### Ölçüm (canlı, tarayıcıda hesaplanmış)
+- Alfa kompozitli kontrast denetimi: sayfa başına **4 hata** bulundu
+  (podyum puanı 4.37, "sen" rozeti 1.87) — ikisi de düzeltildi.
+- Yatay taşma: hiçbir sayfada yok.
+- Etiketsiz ikon butonu taraması: düzeltmeden sonra **0**.
+- Mor tonu taraması (hue 245-315, doygunluk > 0.18) `bildim/`, `src/styles.css`
+  ve `public/avatars/` üzerinde: **kapsam içinde 0 sonuç**
+  (kalan tek yer `.run-serit` — RUN oyununun hub kartı, Bildim kapsamı dışı).
+
+### Not edilen, değiştirilmeyen
+- Asenkron 1v1'de rakip bot kendi sırasını oynadığı için maç başında skor
+  "0 - 16" görünebiliyor. Tasarım gereği (bot oyuncunun sırasını geçemiyor,
+  yalnız bir soru önde). Rakip skorunu maç bitene kadar gizlemek deneyimi
+  değiştireceğinden bu turda dokunulmadı.
