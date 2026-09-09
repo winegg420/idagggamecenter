@@ -18,17 +18,18 @@ export default function KosullarPage() {
 
       <h2>Kısaca</h2>
       <p>
-        IDA GG Game Center ve içindeki <b>Bildim!</b> oyunu ücretsiz olarak sunulur.
-        Oyunu kullanarak bu koşulları kabul etmiş olursun. Kurallara uyduğun sürece
-        hesabın senindir; hile, taciz veya kötüye kullanım durumunda hesabın
-        kısıtlanabilir.
+        <b>QuizzExam</b> bilgi yarışması ücretsiz olarak sunulur. Oyun hem kendi
+        sitesinde hem de IDA GG Game Center portalı içinde oynanabilir; bu koşullar
+        ikisi için de geçerlidir. Oyunu kullanarak bu koşulları kabul etmiş olursun.
+        Kurallara uyduğun sürece hesabın senindir; hile, taciz veya kötüye kullanım
+        durumunda hesabın kısıtlanabilir.
       </p>
 
       <h2>1. Taraflar ve kapsam</h2>
       <p>
         Bu koşullar, hizmeti işleten (bundan sonra "biz") ile hizmeti kullanan kişi
-        (bundan sonra "sen") arasındaki sözleşmedir. Kapsam, IDA GG Game Center
-        sitesi ve içindeki tüm oyunlardır.
+        (bundan sonra "sen") arasındaki sözleşmedir. Kapsam, QuizzExam sitesi ve
+        IDA GG Game Center portalı ile içindeki tüm oyunlardır.
       </p>
 
       <h2>2. Hesap</h2>

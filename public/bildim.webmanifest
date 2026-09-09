@@ -1,7 +1,7 @@
 {
-  "name": "Bildim! — Bilgi Yarışması",
-  "short_name": "Bildim!",
-  "description": "Türkçe bilgi yarışması: 1v1 meydan okuma, günlük turnuvalar, şehir ve ülke ligleri. 5.000'den fazla soru.",
+  "name": "QuizzExam — Bilgi Yarışması",
+  "short_name": "QuizzExam",
+  "description": "QuizzExam: Türkçe bilgi yarışması — 1v1 meydan okuma, günlük turnuvalar, şehir ve ülke ligleri. Binlerce soru.",
   "start_url": "/bildim",
   "scope": "/",
   "display": "standalone",
@@ -10,15 +10,49 @@
   "theme_color": "#0B1220",
   "lang": "tr",
   "dir": "ltr",
-  "categories": ["games", "trivia", "education"],
+  "categories": [
+    "games",
+    "trivia",
+    "education"
+  ],
   "icons": [
-    { "src": "/bildim-icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
-    { "src": "/bildim-icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
-    { "src": "/bildim-icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+    {
+      "src": "/bildim-icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/bildim-icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/bildim-icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
   ],
   "shortcuts": [
-    { "name": "Hemen Oyna", "short_name": "Oyna", "url": "/bildim", "description": "Rakip bul ve hemen başla" },
-    { "name": "Meydan Oku", "short_name": "Meydan", "url": "/bildim/meydan", "description": "Arkadaşına meydan oku" },
-    { "name": "Turnuva", "short_name": "Turnuva", "url": "/bildim/turnuva", "description": "Günlük turnuva lobisi" }
+    {
+      "name": "Hemen Oyna",
+      "short_name": "Oyna",
+      "url": "/bildim",
+      "description": "Rakip bul ve hemen başla"
+    },
+    {
+      "name": "Meydan Oku",
+      "short_name": "Meydan",
+      "url": "/bildim/meydan",
+      "description": "Arkadaşına meydan oku"
+    },
+    {
+      "name": "Turnuva",
+      "short_name": "Turnuva",
+      "url": "/bildim/turnuva",
+      "description": "Günlük turnuva lobisi"
+    }
   ]
 }

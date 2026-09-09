@@ -24,21 +24,21 @@ function bildimModuEklentisi(mod, siteUrl) {
     // ---- index.html: başlık, paylaşım kartı, manifest, tema ----
     transformIndexHtml(html) {
       if (!aktif) return html;
-      const ad = "Bildim! — Bilgi Yarışması";
+      const ad = "QuizzExam — Bilgi Yarışması";
       const aciklama =
         "Türkçe bilgi yarışması: 1v1 meydan okuma, günlük turnuvalar, şehir ve ülke ligleri. Binlerce soru, ücretsiz.";
       const gorsel = siteUrl ? `${siteUrl}/bildim-icon-512.png` : "/bildim-icon-512.png";
       let c = html;
       c = c.replace(/<title>[\s\S]*?<\/title>/, `<title>${ad}</title>`);
       c = c.replace(/(<meta name="description" content=")[^"]*(")/, `$1${aciklama}$2`);
-      c = c.replace(/(<meta property="og:site_name" content=")[^"]*(")/, `$1Bildim!$2`);
+      c = c.replace(/(<meta property="og:site_name" content=")[^"]*(")/, `$1QuizzExam$2`);
       c = c.replace(/(<meta property="og:title" content=")[^"]*(")/, `$1${ad}$2`);
       c = c.replace(/(<meta property="og:description" content=")[^"]*(")/, `$1${aciklama}$2`);
       c = c.replace(/(<meta name="twitter:title" content=")[^"]*(")/, `$1${ad}$2`);
       c = c.replace(/(<meta name="twitter:description" content=")[^"]*(")/, `$1${aciklama}$2`);
       c = c.replace(/(<meta property="og:image" content=")[^"]*(")/, `$1${gorsel}$2`);
       c = c.replace(/(<meta name="twitter:image" content=")[^"]*(")/, `$1${gorsel}$2`);
-      c = c.replace(/(<meta name="apple-mobile-web-app-title" content=")[^"]*(")/, `$1Bildim!$2`);
+      c = c.replace(/(<meta name="apple-mobile-web-app-title" content=")[^"]*(")/, `$1QuizzExam$2`);
       c = c.replace(/(<link rel="manifest" href=")[^"]*(")/, `$1/bildim.webmanifest$2`);
       c = c.replace(/(<link rel="icon" type="image\/png" href=")[^"]*(")/, `$1/bildim-icon-192.png$2`);
       c = c.replace(/(<link rel="apple-touch-icon" href=")[^"]*(")/, `$1/bildim-icon-192.png$2`);
