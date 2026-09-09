@@ -1,0 +1,5 @@
+# Cloudflare Pages — SPA yönlendirmesi.
+# React Router istemci tarafında çalışır; /bildim/calisma gibi derin bağlantılar
+# sunucuda dosya olarak yoktur. Bu kural olmadan hepsi 404 döner.
+# (Vercel aynı işi vercel.json içindeki rewrites ile yapar; bu dosyayı yok sayar.)
+/*    /index.html   200
