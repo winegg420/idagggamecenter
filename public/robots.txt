@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://idagg-game-center.vercel.app/sitemap.xml

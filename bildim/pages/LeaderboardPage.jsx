@@ -219,7 +219,7 @@ export default function LeaderboardPage() {
 
       {donem === "hafta" && (
         <div className="bd-hafta-serit">
-          ⏳ Hafta bitimine <b>{sureMetni(kalanHafta)}</b> kaldı — ilk 3 rozet kazanır.
+          <Ikon ad="saat" boyut={15} /> Hafta bitimine <b>{sureMetni(kalanHafta)}</b> kaldı — ilk 3 rozet kazanır.
         </div>
       )}
 
