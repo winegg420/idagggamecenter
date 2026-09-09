@@ -1,5 +1,0 @@
-# Cloudflare Pages — CLI ile dağıtım için (panelden bağlarsan bu dosya gerekmez).
-#   npm run build && npx wrangler pages deploy
-name = "idagg-game-center"
-pages_build_output_dir = "dist"
-compatibility_date = "2026-09-09"

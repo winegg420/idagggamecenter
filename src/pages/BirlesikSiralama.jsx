@@ -113,7 +113,7 @@ export default function BirlesikSiralama() {
         )}
       </section>
 
-      <footer className="gc-footer">IDA GG Game Center · Genel sıralama 🚀</footer>
+      <footer className="gc-footer">Quizador · Genel sıralama 🚀</footer>
     </div>
   );
 }

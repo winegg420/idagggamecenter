@@ -1,7 +1,7 @@
 {
-  "name": "IDA GG Game Center",
-  "short_name": "IDA GG",
-  "description": "IDA GG Game Center — birçok oyun tek çatı altında.",
+  "name": "Quizador",
+  "short_name": "Quizador",
+  "description": "Quizador — birçok oyun tek çatı altında.",
   "start_url": "/",
   "display": "standalone",
   "orientation": "any",

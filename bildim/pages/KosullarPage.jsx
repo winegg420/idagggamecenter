@@ -19,7 +19,7 @@ export default function KosullarPage() {
       <h2>Kısaca</h2>
       <p>
         <b>Quizador</b> bilgi yarışması ücretsiz olarak sunulur. Oyun hem kendi
-        sitesinde hem de IDA GG Game Center portalı içinde oynanabilir; bu koşullar
+        adresinde hem de Quizador oyun portalı içinde oynanabilir; bu koşullar
         ikisi için de geçerlidir. Oyunu kullanarak bu koşulları kabul etmiş olursun.
         Kurallara uyduğun sürece hesabın senindir; hile, taciz veya kötüye kullanım
         durumunda hesabın kısıtlanabilir.
@@ -29,7 +29,7 @@ export default function KosullarPage() {
       <p>
         Bu koşullar, hizmeti işleten (bundan sonra "biz") ile hizmeti kullanan kişi
         (bundan sonra "sen") arasındaki sözleşmedir. Kapsam, Quizador sitesi ve
-        IDA GG Game Center portalı ile içindeki tüm oyunlardır.
+        portalı ile içindeki tüm oyunlardır.
       </p>
 
       <h2>2. Hesap</h2>

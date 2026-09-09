@@ -56,7 +56,7 @@ export async function kartUret(v) {
   ctx.fillText("GÖLGE BOKS", W / 2, 150);
   ctx.fillStyle = RENK.dim;
   ctx.font = "600 30px system-ui, sans-serif";
-  ctx.fillText("idaGG GAME CENTER", W / 2, 200);
+  ctx.fillText("QUIZADOR", W / 2, 200);
 
   // oyuncu
   ctx.fillStyle = RENK.metin;
@@ -199,11 +199,18 @@ export class KlipKaydedici {
     // Daha iyi bir combo gelmediyse yeniden kaydetme.
     if (combo <= this.comboEsik) return false;
     try {
-      const akis = canvas.captureStream(30);
-      const secenek = MediaRecorder.isTypeSupported("video/webm;codecs=vp9")
-        ? { mimeType: "video/webm;codecs=vp9", videoBitsPerSecond: 2500000 }
+      // AKICILIK (2026-08-15): klip TAM DA en yoğun anda (seri ≥5) başlıyor ve
+      // canvas'ı canlı kodlamaya alıyor. VP9 yazılım kodlaması mobilde poz
+      // çıkarımıyla aynı çekirdekleri yiyip görünür takılma yapıyordu; üstelik
+      // 30 fps × 2.5 Mbps bir paylaşım klibi için fazlasıyla yüksek.
+      // VP8 tercih ediliyor (donanım/optimize yol çok daha yaygın), yakalama
+      // 24 fps, bit hızı 1.2 Mbps — klip kalitesi paylaşım için hâlâ fazlasıyla
+      // yeterli, oyun ise akmaya devam ediyor.
+      const akis = canvas.captureStream(24);
+      const secenek = MediaRecorder.isTypeSupported("video/webm;codecs=vp8")
+        ? { mimeType: "video/webm;codecs=vp8", videoBitsPerSecond: 1200000 }
         : MediaRecorder.isTypeSupported("video/webm")
-          ? { mimeType: "video/webm", videoBitsPerSecond: 2500000 }
+          ? { mimeType: "video/webm", videoBitsPerSecond: 1200000 }
           : {};
       const kayit = new MediaRecorder(akis, secenek);
       this.parcalar = [];

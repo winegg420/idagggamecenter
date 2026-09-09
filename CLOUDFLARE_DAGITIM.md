@@ -59,7 +59,7 @@ Cloudflare'de değil, izin listesindedir.
 ```bash
 npx wrangler login          # tarayıcıda Cloudflare oturumu açar (senin yapman gerek)
 npm run build
-npx wrangler pages deploy   # wrangler.toml'daki ayarları kullanır
+npx wrangler pages deploy dist --project-name=bildim
 ```
 
 ---
@@ -71,7 +71,7 @@ npx wrangler pages deploy   # wrangler.toml'daki ayarları kullanır
 | `public/_redirects` | **SPA yönlendirmesi.** React Router istemcide çalışır; `/bildim/calisma` sunucuda dosya değil. Bu kural olmadan tüm derin bağlantılar 404 döner. Vercel aynı işi `vercel.json` ile yapar ve bu dosyayı yok sayar. |
 | `public/_headers` | `sw.js` için `no-cache` (eski service worker takılı kalmasın), `/assets/*` için 1 yıl `immutable` (Vite hash'li ad üretiyor, güvenli), `nosniff` / `Referrer-Policy` / `X-Frame-Options`. |
 | `.node-version` → `22` | **Kritik.** Vite 7, Node `^20.19 \|\| >=22.12` istiyor; Cloudflare Pages varsayılanı daha eski. Sabitlenmezse **ilk derleme hata verir.** Vercel de bu dosyayı okur, uyumlu. |
-| `wrangler.toml` | CLI ile dağıtım için (`pages_build_output_dir = "dist"`). Panelden bağlarsan gerekmez, zararı yok. |
+| ~~`wrangler.toml`~~ | **KALDIRILDI — zararsız değilmiş.** Cloudflare Pages depoda `wrangler.toml` bulunca panel yapılandırmasını (derleme komutu **ve ortam değişkenleri dahil**) tamamen yok sayıyor. Derleme günlüğü: `Found wrangler.toml file. Reading build configuration...` → `Build environment variables: (none found)`. Sonuç: `VITE_MOD` gitmediği için Bildim modu yerine **hub** derlemesi çıkıyor, Supabase anahtarları gitmediği için site "Supabase yapılandırması eksik" diyordu. Panelden bağlı bir projede bu dosya bulunmamalı. |
 
 ---
 
