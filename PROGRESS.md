@@ -2602,3 +2602,51 @@ robots/sitemap Vercel adresinde, canonical eklenmedi. Yani hub bozulmadı.
   güncellenmeli (yasal metin, bilerek dokunulmadı)
 - İki site birden yayında kalırsa hub'ın `/bildim` sayfasına `noindex` ya da
   yeni siteye canonical gerekir (canonical Bildim tarafında hazır)
+
+---
+
+## 9 Eylül 2026 — Quizador canlı testi (quizador.pages.dev)
+
+Kullanıcı isteği: "quizador.pages.dev de giriş yapıp test et çalışıyor mu".
+Site canlıda gerçek hesapla (idagg, 350 puan) baştan sona gezildi.
+
+### Çalışan (doğrulandı)
+
+- SPA fallback: 12 rota (`/turnuva`, `/siralama`, `/calisma`, `/profil`,
+  `/gizlilik`, `/kosullar` …) hepsi 200; `/bildim/*` kök rotalara yönleniyor.
+- **Hatalarım / Çalışma modu uçtan uca**: 10 soruluk tur oynandı → 10 doğru,
+  6 soru "öğrenildi", banka 169 → 163 düştü, **`puan` 350'de kaldı**
+  (puansız çalışma kuralı canlıda da doğru işliyor).
+- Turnuva lobisi (geri sayım + 5 bot), Sıralama (şehir/ülke/dünya/arkadaş,
+  bu hafta / tüm zamanlar), Profil (rütbe, seri, takma ad/avatar) sorunsuz.
+- Konsolda tek bir JS hatası yok.
+- Giriş ekranı: Google yönlendirmesi çalışıyor, e-posta ve misafir düğmeleri
+  yerinde. (Oturum yedeklenip geçici silinerek test edildi, sonra geri yüklendi.)
+
+### Bulunan ve düzeltilen 2 hata
+
+1. **"Merkez" sekmesi** (`bildim/components/Layout.jsx`) — `to="/"` sabit
+   yazılmıştı. Quizador'un kendi sitesinde `/` zaten Ana Sayfa olduğundan
+   sekme kendini tekrar ediyordu; ayrıca `end` yokluğundan NavLink her yolla
+   eşleşip sekme **her sayfada "aktif"** görünüyordu (hub'da da aynı hata).
+   → Sekme yalnız hub derlemesinde (`!BILDIM_MOD`) çiziliyor, `end` eklendi.
+
+2. **Facebook / X giriş düğmeleri** (`src/pages/Login.jsx`) — sağlayıcılar
+   Supabase'de kapalı ama düğmeler duruyordu. `supabase-js` `signInWithOAuth`
+   sağlayıcıyı **doğrulamadan** tarayıcıyı yönlendirdiği için oyuncu
+   uygulamadan çıkıp ham JSON hata sayfasında kalıyordu
+   (`Unsupported provider: provider is not enabled` — canlıda doğrulandı).
+   Koddaki Türkçe hata çevirisi bu yüzden hiç çalışmıyordu.
+   → Düğmeler `VITE_SOSYAL` değişkenine bağlandı (varsayılan `google`).
+   Karar gerekçesi: kodu silmek yerine kapıya bağlamak; X/Meta anahtarları
+   alınınca `.env`'e `VITE_SOSYAL=google,facebook,twitter` yazmak yeterli.
+   Misafir notundaki sağlayıcı listesi de artık açık olanlardan üretiliyor.
+
+İki derleme de doğrulandı (`build:bildim` + `build`), commit + push edildi
+(`d6c80a8`) → Cloudflare otomatik dağıtım.
+
+### Hâlâ bekleyen (kullanıcı tarafı, koddan çözülmez)
+
+- X (developer.x.com) ve Meta (developers.facebook.com) uygulama anahtarları
+- Özel SMTP — yerleşik e-posta tek gönderimden sonra `429` veriyor
+- Türkçe/Quizador markalı auth e-posta şablonları
