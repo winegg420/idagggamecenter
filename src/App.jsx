@@ -45,6 +45,7 @@ const FriendsPage = lazy(() => import("../bildim/pages/FriendsPage.jsx"));
 const ProfilePage = lazy(() => import("../bildim/pages/ProfilePage.jsx"));
 // Gizlilik politikası: Google Play kaydı için giriş duvarının ÖNÜNDE erişilebilir olmalı.
 const GizlilikPage = lazy(() => import("../bildim/pages/GizlilikPage.jsx"));
+const KosullarPage = lazy(() => import("../bildim/pages/KosullarPage.jsx"));
 const DavetPage = lazy(() => import("../bildim/pages/DavetPage.jsx"));
 const JokerDukkani = lazy(() => import("../bildim/pages/JokerDukkani.jsx"));
 const HizliModPage = lazy(() => import("../bildim/pages/HizliModPage.jsx"));
@@ -56,12 +57,13 @@ export default function App() {
 
   // Gladius ve RUN bağımsız modüllerdir: Supabase/oturum kullanmazlar,
   // bu yüzden giriş duvarının önünde açılabilirler.
-  // /gizlilik de giriş gerektirmez: Google Play mağaza kaydı bu adresi
-  // oturum açmadan görebilmelidir.
+  // /gizlilik ve /kosullar giriş gerektirmez: Google Play mağaza kaydı ve
+  // reklam ağları bu adresleri oturum açmadan görebilmelidir.
   const bagimsizModul =
     pathname.startsWith("/gladius") ||
     pathname.startsWith("/run") ||
-    pathname.startsWith("/gizlilik");
+    pathname.startsWith("/gizlilik") ||
+    pathname.startsWith("/kosullar");
 
   if (!supabaseHazir && !bagimsizModul) {
     return (
@@ -140,6 +142,8 @@ export default function App() {
       />
       {/* Gizlilik politikası (statik, giriş gerektirmez) — Play Store için. */}
       <Route path="/gizlilik" element={<GizlilikPage />} />
+      {/* Kullanım koşulları (statik, giriş gerektirmez) — Play Store ve reklam ağları için. */}
+      <Route path="/kosullar" element={<KosullarPage />} />
 
       {/* idaGG Game Center: sitenin ana giriş sayfası (oyun portalı). */}
       <Route path="/" element={<GameCenter />} />

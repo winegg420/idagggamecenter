@@ -285,6 +285,9 @@ export default function ProfilePage() {
         <Link to="/gizlilik" className="bd-metin-link">
           Gizlilik politikası
         </Link>
+        <Link to="/kosullar" className="bd-metin-link">
+          Kullanım koşulları
+        </Link>
 
         <button
           className="btn tehlike"

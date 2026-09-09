@@ -2331,3 +2331,13 @@ body.bd-oyun-modu .bd-joker-cubuk {
   .bd-calisma-cubuk { grid-template-columns: 74px 1fr 26px; }
   .bd-calisma-adet-btn { min-height: 44px; font-size: 15px; }
 }
+
+/* Giriş ekranı yasal bağlantıları — Play Store ve reklam ağları için
+   giriş duvarının önünde görünür olmalı. */
+.giris-yasal {
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  width: 100%; max-width: 340px; margin-top: 16px;
+  font-size: 11.5px; color: var(--text-dim);
+}
+.giris-yasal a { color: var(--text-dim); text-decoration: underline; }
+.giris-yasal a:hover { color: var(--text); }

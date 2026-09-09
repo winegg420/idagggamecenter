@@ -162,6 +162,14 @@ export default function Login() {
         Misafir hesabı bu cihaza bağlıdır. Puanların kaybolmasın diye daha sonra
         Google, Facebook veya X hesabını bağlayabilirsin.
       </div>
+
+      {/* Yasal metinler giriş duvarının ÖNÜNDE erişilebilir olmalı
+          (Google Play ve reklam ağları şartı). */}
+      <div className="giris-yasal">
+        <a href="/gizlilik">Gizlilik politikası</a>
+        <span aria-hidden="true">·</span>
+        <a href="/kosullar">Kullanım koşulları</a>
+      </div>
     </div>
   );
 }
