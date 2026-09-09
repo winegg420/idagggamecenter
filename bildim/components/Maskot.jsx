@@ -1,24 +1,29 @@
 /**
- * BİLGE — Bildim!'in baykuş maskotu (tamamen inline SVG, görsel dosya yok).
- * Rütbe sisteminde zaten 🦉 "Bilge" rütbesi var; maskot onunla aynı kimlikten geliyor.
+ * BİLGE — Bildim!'in kuşu.
  *
- * Pozlar: "selam" (karşılama), "dusunuyor" (boş durum / bekleme), "kutluyor" (başarı).
- * Renkler currentColor'a bağlı değil; tema değişkenlerinden okur.
+ * Yeniden çizildi: eski hâli yuvarlak-şirin bir baykuştu ve Duolingo'yu
+ * hatırlatıyordu. Yeni hâl KÖŞELİ/GEOMETRİK — düz kenarlar, kırık açılar,
+ * lacivert gövde, altın gaga, gözler yalnız iki daire. Gradient ve arka ışık
+ * kaldırıldı (düz renk).
+ *
+ * Pozlar korundu: "selam", "dusunuyor", "kutluyor".
+ * Boyut varsayılanı küçültüldü: maskot artık ekranın odağı değil, aksan.
  */
-export default function Maskot({ poz = "selam", boyut = 96, className = "" }) {
-  const kanat =
+export default function Maskot({ poz = "selam", boyut = 64, className = "" }) {
+  // Kanatlar da köşeli: üçgen paneller
+  const kanatSol =
     poz === "selam"
-      ? "M26 62c-7 2-12 8-11 15 6 2 12-2 15-8"
+      ? "M26 58 12 50l4 16z"
       : poz === "kutluyor"
-        ? "M26 58c-8-4-15-1-17 6 5 5 13 5 18 0"
-        : "M27 64c-6 3-9 9-7 15 6 1 11-4 13-10";
+        ? "M26 56 14 40l2 18z"
+        : "M26 60 14 58l6 12z";
 
   const kanatSag =
     poz === "selam"
-      ? "M74 62c7 2 12 8 11 15-6 2-12-2-15-8"
+      ? "M74 58 88 50l-4 16z"
       : poz === "kutluyor"
-        ? "M74 58c8-4 15-1 17 6-5 5-13 5-18 0"
-        : "M73 64c6 3 9 9 7 15-6 1-11-4-13-10";
+        ? "M74 56 86 40l-2 18z"
+        : "M74 60 86 58l-6 12z";
 
   return (
     <svg
@@ -27,88 +32,53 @@ export default function Maskot({ poz = "selam", boyut = 96, className = "" }) {
       height={boyut}
       viewBox="0 0 100 110"
       role="img"
-      aria-label="Bilge, Bildim baykuşu"
+      aria-label="Bilge"
+      focusable="false"
     >
-      <defs>
-        <linearGradient id="bd-tuy" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="#a78bfa" />
-          <stop offset="100%" stopColor="#6d28d9" />
-        </linearGradient>
-        <linearGradient id="bd-govde" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="#c4b5fd" />
-          <stop offset="100%" stopColor="#8b5cf6" />
-        </linearGradient>
-        <radialGradient id="bd-isik" cx="50%" cy="35%" r="60%">
-          <stop offset="0%" stopColor="#fbbf24" stopOpacity="0.35" />
-          <stop offset="100%" stopColor="#fbbf24" stopOpacity="0" />
-        </radialGradient>
-      </defs>
-
-      {/* Arka ışık */}
-      <ellipse cx="50" cy="48" rx="46" ry="44" fill="url(#bd-isik)" />
-
-      {/* Kuyruk */}
-      <path d="M42 92c3 8 13 8 16 0-3 4-13 4-16 0z" fill="#5b21b6" />
-
-      {/* Gövde */}
-      <ellipse cx="50" cy="62" rx="30" ry="32" fill="url(#bd-govde)" />
-      {/* Göğüs */}
-      <ellipse cx="50" cy="70" rx="19" ry="21" fill="#ede9fe" opacity="0.92" />
+      {/* Gövde — altı daralan altıgen panel */}
+      <path d="M50 30 76 44v34L50 94 24 78V44z" fill="#1F2C4A" />
+      {/* Göğüs plakası — daha açık lacivert, köşeli */}
+      <path d="M50 48 64 56v20l-14 8-14-8V56z" fill="#2C3D63" />
 
       {/* Kanatlar */}
-      <path d={kanat} stroke="#5b21b6" strokeWidth="7" strokeLinecap="round" fill="none" />
-      <path d={kanatSag} stroke="#5b21b6" strokeWidth="7" strokeLinecap="round" fill="none" />
+      <path d={kanatSol} fill="#16223C" />
+      <path d={kanatSag} fill="#16223C" />
 
-      {/* Baş */}
-      <ellipse cx="50" cy="38" rx="31" ry="27" fill="url(#bd-tuy)" />
-      {/* Kulak püskülleri */}
-      <path d="M24 20c2 6 6 10 11 12-4-7-6-11-11-12z" fill="#6d28d9" />
-      <path d="M76 20c-2 6-6 10-11 12 4-7 6-11 11-12z" fill="#6d28d9" />
+      {/* Baş — köşeli, kulak boynuzları düz üçgen */}
+      <path d="M50 6 74 20v20L50 52 26 40V20z" fill="#26365A" />
+      <path d="M26 20 20 6l12 6z" fill="#F2B23C" />
+      <path d="M74 20 80 6 68 12z" fill="#F2B23C" />
 
-      {/* Göz çukurları */}
-      <circle cx="38" cy="37" r="13" fill="#faf5ff" />
-      <circle cx="62" cy="37" r="13" fill="#faf5ff" />
-
-      {/* Gözler — poza göre */}
-      {poz === "dusunuyor" ? (
+      {/* Gözler — yalnız iki daire */}
+      {poz === "kutluyor" ? (
         <>
-          <circle cx="40" cy="35" r="5.5" fill="#1f1147" />
-          <circle cx="64" cy="35" r="5.5" fill="#1f1147" />
-          <circle cx="41.8" cy="33.2" r="1.9" fill="#fff" />
-          <circle cx="65.8" cy="33.2" r="1.9" fill="#fff" />
-        </>
-      ) : poz === "kutluyor" ? (
-        <>
-          {/* Mutlu kısık gözler */}
-          <path d="M32 38c3-5 9-5 12 0" stroke="#1f1147" strokeWidth="3.4" strokeLinecap="round" fill="none" />
-          <path d="M56 38c3-5 9-5 12 0" stroke="#1f1147" strokeWidth="3.4" strokeLinecap="round" fill="none" />
+          <rect x="33" y="26" width="12" height="3.4" rx="1.7" fill="#0B1220" />
+          <rect x="55" y="26" width="12" height="3.4" rx="1.7" fill="#0B1220" />
         </>
       ) : (
         <>
-          <circle cx="38" cy="37" r="6" fill="#1f1147" />
-          <circle cx="62" cy="37" r="6" fill="#1f1147" />
-          <circle cx="40" cy="35" r="2.1" fill="#fff" />
-          <circle cx="64" cy="35" r="2.1" fill="#fff" />
+          <circle cx="39" cy="28" r={poz === "dusunuyor" ? 4.6 : 5.4} fill="#0B1220" />
+          <circle cx="61" cy="28" r={poz === "dusunuyor" ? 4.6 : 5.4} fill="#0B1220" />
         </>
       )}
 
-      {/* Gaga */}
-      <path d="M50 44l-5 7h10l-5-7z" fill="#fbbf24" />
+      {/* Gaga — altın, keskin üçgen */}
+      <path d="M50 34 44 44h12z" fill="#F2B23C" />
 
-      {/* Ayaklar */}
-      <path d="M42 92v5M46 92v5M54 92v5M58 92v5" stroke="#fbbf24" strokeWidth="3" strokeLinecap="round" />
+      {/* Ayaklar — düz çizgi */}
+      <path d="M42 94v6M58 94v6" stroke="#F2B23C" strokeWidth="3" strokeLinecap="butt" />
 
-      {/* Poza özel süs */}
+      {/* Poza özel aksan — parıltı yerine düz geometrik işaret */}
       {poz === "kutluyor" && (
         <g className="bd-maskot-parlak">
-          <path d="M14 26l2 5 5 2-5 2-2 5-2-5-5-2 5-2z" fill="#fbbf24" />
-          <path d="M86 30l1.6 4 4 1.6-4 1.6-1.6 4-1.6-4-4-1.6 4-1.6z" fill="#fde68a" />
+          <path d="M14 22 17 30 9 27z" fill="#F2B23C" />
+          <path d="M88 26 90 32 84 30z" fill="#F7CB77" />
         </g>
       )}
       {poz === "dusunuyor" && (
         <g className="bd-maskot-dusunce">
-          <circle cx="80" cy="20" r="3" fill="#c4b5fd" opacity="0.9" />
-          <circle cx="87" cy="12" r="4.5" fill="#c4b5fd" opacity="0.75" />
+          <rect x="78" y="18" width="5" height="5" fill="#4A9DD9" opacity="0.9" />
+          <rect x="86" y="9" width="7" height="7" fill="#4A9DD9" opacity="0.65" />
         </g>
       )}
     </svg>

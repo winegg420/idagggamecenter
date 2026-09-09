@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import Maskot from "./Maskot.jsx";
 import PuanSayaci from "./PuanSayaci.jsx";
-import { sesSureDoldu } from "../lib/ses.js";
+import { sesSureDoldu, sesKazandin } from "../lib/ses.js";
 
 /**
  * Maç/tur bitişinde araya giren 0.8 sn'lik geçiş ekranı.
@@ -22,20 +22,22 @@ export default function SureDolduGecis({
   skorEtiket = "doğru",
   onBitti,
   sure = 800,
+  kazandi = false,
 }) {
   useEffect(() => {
     try {
-      sesSureDoldu();
+      if (kazandi) sesKazandin();
+      else sesSureDoldu();
     } catch {
       /* ses çalınamadı — geçiş yine de görünür */
     }
     const t = setTimeout(() => onBitti?.(), sure);
     return () => clearTimeout(t);
-  }, [onBitti, sure]);
+  }, [onBitti, sure, kazandi]);
 
   return (
     <div className="bd-sure-doldu" role="status" aria-live="polite">
-      <Maskot poz="dusunuyor" boyut={92} />
+      <Maskot poz={kazandi ? "kutluyor" : "dusunuyor"} boyut={64} />
       <div className="bd-sure-doldu-baslik">{baslik}</div>
       {skor !== null && (
         <div className="bd-sure-doldu-skor">

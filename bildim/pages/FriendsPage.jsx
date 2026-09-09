@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import Ikon from "../components/Ikon.jsx";
 import { hataMesaji } from "../lib/hata.js";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../../src/lib/supabase.js";
@@ -61,11 +62,11 @@ export default function FriendsPage() {
       const sonuc = Array.isArray(data) ? data[0] : data;
       const ad = sonuc?.gorunen_ad ?? "Oyuncu";
       const mesajlar = {
-        istek_gonderildi: `${ad} kişisine arkadaşlık isteği gönderildi ✅`,
-        arkadas_oldu: `${ad} artık arkadaşın! 🎉`,
+        istek_gonderildi: `${ad} kişisine arkadaşlık isteği gönderildi`,
+        arkadas_oldu: `${ad} artık arkadaşın!`,
         zaten_arkadas: `${ad} zaten arkadaşın.`,
       };
-      setBilgi(mesajlar[sonuc?.durum] ?? "İstek gönderildi ✅");
+      setBilgi(mesajlar[sonuc?.durum] ?? "İstek gönderildi");
       setKod("");
       yukle();
     } catch (e) {
@@ -140,29 +141,26 @@ export default function FriendsPage() {
 
   return (
     <div>
-      <div className="baslik">👥 Arkadaşlar</div>
+      <div className="baslik">Arkadaşlar</div>
       {hata && <div className="hata-kutu">{hata}</div>}
       {bilgi && <div className="bd-bilgi-kutu">{bilgi}</div>}
 
       {/* ---------- Davet ---------- */}
       <div className="kart bd-davet-kart">
         <div className="bd-kat-baslik">
-          <span>🎟️ Davet kodun</span>
+          <span>Davet kodun</span>
         </div>
         <div className="bd-davet-kod" aria-label="Davet kodun">
           {profile?.davet_kodu ?? "—"}
         </div>
-        <div className="alt-yazi" style={{ marginBottom: 12 }}>
-          Bu kodu ya da linki arkadaşına gönder; seni eklesin. Gerçek adın görünmez.
-        </div>
         <button className="btn" onClick={linkPaylas} disabled={!davetLinki}>
-          {kopyalandi ? "✅ Kopyalandı!" : "📤 Davet linkini paylaş"}
+          {kopyalandi ? "Kopyalandı" : "Davet linkini paylaş"}
         </button>
       </div>
 
       <div className="kart">
         <div className="bd-kat-baslik">
-          <span>➕ Davet koduyla ekle</span>
+          <span>Davet koduyla ekle</span>
         </div>
         <div className="bd-kod-satir">
           <input
@@ -186,7 +184,7 @@ export default function FriendsPage() {
 
       {gelenIstekler.length > 0 && (
         <>
-          <div className="baslik">📥 Gelen İstekler</div>
+          <div className="baslik">Gelen istekler</div>
           {gelenIstekler.map((f) => (
             <div key={f.id} className="liste-satir">
               <Avatar profile={f.req} />
@@ -211,7 +209,7 @@ export default function FriendsPage() {
           <Maskot poz="selam" boyut={86} />
           <p>Henüz arkadaşın yok — davet linkini paylaş, birlikte yarışın.</p>
           <button className="btn" onClick={linkPaylas} disabled={!davetLinki}>
-            📤 Davet linkini paylaş
+            Davet linkini paylaş
           </button>
         </div>
       )}
@@ -222,13 +220,13 @@ export default function FriendsPage() {
             <Avatar profile={p} />
             <div className="bilgi">
               <div className="isim">{p?.gorunen_ad}</div>
-              <div className="detay">⭐ {p?.puan} puan</div>
+              <div className="detay"><Ikon ad="yildiz" boyut={13} /> {p?.puan} puan</div>
             </div>
             <button className="btn kucuk" onClick={() => meydanOku(p.id)}>
-              ⚔️
+              <Ikon ad="kilic" boyut={17} />
             </button>
             <button className="btn kucuk ikincil" onClick={() => cikar(f.id)}>
-              ✕
+              <Ikon ad="carpi" boyut={16} />
             </button>
           </div>
         );
@@ -237,7 +235,7 @@ export default function FriendsPage() {
       {gidenIstekler.length > 0 && (
         <>
           <div className="baslik" style={{ marginTop: 14 }}>
-            📤 Bekleyen İstekler
+            Bekleyen istekler
           </div>
           {gidenIstekler.map((f) => (
             <div key={f.id} className="liste-satir">

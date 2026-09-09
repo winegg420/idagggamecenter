@@ -6,16 +6,19 @@ import { useAuth } from "../../src/context/AuthContext.jsx";
 import Ikon from "./Ikon.jsx";
 
 const TIP_IKON = {
-  mac_daveti: "⚔️",
-  rovans: "⚔️",
-  grup_daveti: "👥",
-  hizli_daveti: "⚡",
-  lige_girdin: "🏙️",
-  gecildin: "⚡",
-  hafta_sonuc: "🏆",
-  arkadas_istek: "🤝",
-  arkadas_kabul: "🎉",
-  seri_hatirlatma: "🔥",
+  mac_daveti: "kilic",
+  rovans: "kilic",
+  grup_daveti: "kisiler",
+  hizli_daveti: "hizli",
+  lige_girdin: "sehir",
+  gecildin: "hizli",
+  hafta_sonuc: "kupa",
+  arkadas_istek: "kisiEkle",
+  arkadas_kabul: "kisiler",
+  seri: "ates",
+  seri_hatirlatma: "ates",
+  sira_sende: "saat",
+  ustalik: "madalya",
 };
 
 // Öncelik: meydan okuma > rozet/seviye > seri > sıra sende.
@@ -49,13 +52,13 @@ const oncelikSirala = (liste) =>
 
 // Aynı türden birden fazla OKUNMAMIŞ bildirim varsa tek satırda toplanır.
 const TOPLAMA = {
-  sira_sende: { metin: (n) => `${n} maçta sıra sende ⏳`, yol: "/bildim/meydan" },
-  mac_daveti: { metin: (n) => `${n} yeni meydan okuma ⚔️`, yol: "/bildim/meydan" },
-  rovans: { metin: (n) => `${n} rövanş isteği ⚔️`, yol: "/bildim/meydan" },
-  grup_daveti: { metin: (n) => `${n} grup maçı daveti 👥`, yol: "/bildim/meydan" },
-  hizli_daveti: { metin: (n) => `${n} hızlı maç daveti ⚡`, yol: "/bildim/meydan" },
-  seri: { metin: (n) => `${n} seri bildirimi 🔥`, yol: "/bildim" },
-  arkadas_istek: { metin: (n) => `${n} arkadaşlık isteği 🤝`, yol: "/bildim/arkadaslar" },
+  sira_sende: { metin: (n) => `${n} maçta sıra sende`, yol: "/bildim/meydan" },
+  mac_daveti: { metin: (n) => `${n} yeni meydan okuma`, yol: "/bildim/meydan" },
+  rovans: { metin: (n) => `${n} rövanş isteği`, yol: "/bildim/meydan" },
+  grup_daveti: { metin: (n) => `${n} grup maçı daveti`, yol: "/bildim/meydan" },
+  hizli_daveti: { metin: (n) => `${n} hızlı maç daveti`, yol: "/bildim/meydan" },
+  seri: { metin: (n) => `${n} seri bildirimi`, yol: "/bildim" },
+  arkadas_istek: { metin: (n) => `${n} arkadaşlık isteği`, yol: "/bildim/arkadaslar" },
 };
 
 /** Okunmamış tekrarları tek satıra indirger; okunmuşlara dokunmaz. */
@@ -212,7 +215,7 @@ export default function BildirimZili() {
                 if (b.yol) navigate(b.yol);
               }}
             >
-              <span className="ikon" aria-hidden="true">{TIP_IKON[b.tip] ?? "🔔"}</span>
+              <span className="ikon" aria-hidden="true"><Ikon ad={TIP_IKON[b.tip] ?? "zil"} boyut={18} /></span>
               <span className="govde">
                 <span className="metin">{b.metin}</span>
                 <span className="zaman">{zamanMetni(b.created_at)}</span>

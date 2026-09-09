@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import Ikon from "./Ikon.jsx";
 import { supabase } from "../../src/lib/supabase.js";
 
 /** Ana sayfa hero'sundaki günlük seri sayacı + koruma durumu. */
@@ -27,7 +28,7 @@ export default function SeriRozeti() {
 
   return (
     <div className={`bd-seri ${bugunOynadi ? "aktif" : "bekliyor"}`}>
-      <span className="bd-seri-alev" aria-hidden="true">🔥</span>
+      <span className="bd-seri-alev" aria-hidden="true"><Ikon ad="ates" boyut={15} /></span>
       <span className="bd-seri-govde">
         <span className="bd-seri-sayi">{gun}</span>
         <span className="bd-seri-etiket">
@@ -40,7 +41,7 @@ export default function SeriRozeti() {
       </span>
       {koruma > 0 && (
         <span className="bd-seri-kalkan" title={`${koruma} adet seri koruma`}>
-          🛡️ {koruma}
+          <Ikon ad="kalkan" boyut={14} /> {koruma}
         </span>
       )}
       {durum.seri_en_uzun > gun && (

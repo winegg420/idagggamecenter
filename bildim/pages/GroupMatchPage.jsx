@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import Ikon from "../components/Ikon.jsx";
 import SenRozeti from "../components/SenRozeti.jsx";
 import SureDolduGecis from "../components/SureDolduGecis.jsx";
 import MacYukleniyor from "../components/MacYukleniyor.jsx";
@@ -246,7 +247,7 @@ export default function GroupMatchPage() {
                         : "var(--text-dim)",
                 }}
               >
-                {k.davet_durumu === "kabul" ? "Hazır ✓" : k.davet_durumu === "red" ? "Reddetti" : "Bekliyor…"}
+                {k.davet_durumu === "kabul" ? "Hazır" : k.davet_durumu === "red" ? "Reddetti" : "Bekliyor…"}
               </span>
             </div>
           ))}
@@ -262,7 +263,7 @@ export default function GroupMatchPage() {
           </div>
         )}
         <button className="btn ikincil" style={{ marginTop: 16, maxWidth: 340 }} onClick={() => navigate("/bildim/meydan")}>
-          ← Geri dön
+          Geri dön
         </button>
       </div>
     );
@@ -271,11 +272,11 @@ export default function GroupMatchPage() {
   if (mac.durum === "iptal") {
     return (
       <div className="buyuk-mesaj">
-        <div className="emoji">🙅</div>
+        <div className="emoji"><Ikon ad="carpi" boyut={40} /></div>
         <h2>Grup maçı iptal edildi</h2>
         <p className="alt-yazi">Davetlilerden biri reddetti.</p>
         <button className="btn" style={{ marginTop: 16 }} onClick={() => navigate("/bildim/meydan")}>
-          ← Geri dön
+          Geri dön
         </button>
       </div>
     );
@@ -287,6 +288,7 @@ export default function GroupMatchPage() {
         baslik="Maç bitti!"
         skor={benimKayit?.skor ?? 0}
         skorEtiket="puan"
+        kazandi={mac.kazanan === user.id}
         onBitti={() => setGecisBitti(true)}
       />
     );
@@ -297,7 +299,7 @@ export default function GroupMatchPage() {
     const berabere = mac.kazanan === null;
     return (
       <div className="buyuk-mesaj">
-        <div className="emoji">{berabere ? "🤝" : kazandim ? "🎉" : "😢"}</div>
+        <div className="emoji"><Ikon ad={berabere ? "kisiler" : kazandim ? "kupa" : "kalkan"} boyut={40} /></div>
         <h2>
           {berabere ? "Berabere!" : kazandim ? `Kazandın! +${10 * mac.oyuncu_sayisi} puan` : "Kaybettin"}
         </h2>
@@ -314,7 +316,7 @@ export default function GroupMatchPage() {
           ))}
         </div>
         <button className="btn ikincil" style={{ marginTop: 16, maxWidth: 340, margin: "16px auto 0" }} onClick={() => navigate("/bildim/meydan")}>
-          ← Meydan okumalara dön
+          Meydan okumalara dön
         </button>
       </div>
     );
@@ -354,7 +356,7 @@ export default function GroupMatchPage() {
           className={kaliplarAcik ? "acik" : ""}
           onClick={() => setKaliplarAcik((a) => !a)}
         >
-          💬
+          <Ikon ad="sohbet" boyut={18} />
         </button>
       </div>
       {kaliplarAcik && (

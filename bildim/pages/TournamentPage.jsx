@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import Ikon from "../components/Ikon.jsx";
 import Maskot from "../components/Maskot.jsx";
 import { hataMesaji } from "../lib/hata.js";
 import { useOyunModu } from "../lib/oyunModu.js";
@@ -132,7 +133,7 @@ export default function TournamentPage() {
       <div>
         {kazanan && (
           <div className="kart" style={{ textAlign: "center" }}>
-            <div style={{ fontSize: 40 }}>🏆</div>
+            <Ikon ad="kupa" boyut={38} />
             <div className="baslik" style={{ marginBottom: 4 }}>
               Son turnuvanın şampiyonu
             </div>
@@ -143,12 +144,12 @@ export default function TournamentPage() {
         )}
         <div className="geri-sayim-kart">
           <div style={{ fontSize: 14, fontWeight: 700, color: "var(--accent)" }}>
-            🌙 SIRADAKİ TURNUVA
+            SIRADAKİ TURNUVA
           </div>
           <Countdown />
           {hata && <div className="hata-kutu">{hata}</div>}
           <button className="btn" onClick={lobiyeKatil}>
-            🎟️ Lobiye Katıl
+            Lobiye katıl
           </button>
         </div>
 
@@ -163,7 +164,7 @@ export default function TournamentPage() {
       <div>
         <div className="geri-sayim-kart">
           <div style={{ fontSize: 14, fontWeight: 700, color: "var(--accent)" }}>
-            🌙 TURNUVA LOBİSİ
+            TURNUVA LOBİSİ
           </div>
           <Countdown onSifir={turnuvaYukle} />
           {hata && <div className="hata-kutu">{hata}</div>}
@@ -173,7 +174,7 @@ export default function TournamentPage() {
             </button>
           ) : (
             <button className="btn" onClick={lobiyeKatil}>
-              🎟️ Lobiye Katıl
+              Lobiye katıl
             </button>
           )}
         </div>
@@ -210,11 +211,11 @@ export default function TournamentPage() {
 
       {elendim && (
         <div className="durum-bandi elendi">
-          💀 Elendin! Kalan oyuncuları izlemeye devam edebilirsin.
+          Elendin. Kalan oyuncuları izlemeye devam edebilirsin.
         </div>
       )}
       {izleyiciyim && (
-        <div className="durum-bandi elendi">👀 İzleyici modundasın.</div>
+        <div className="durum-bandi elendi">İzleyici modundasın.</div>
       )}
 
       {soru && !elendim && !izleyiciyim ? (
@@ -240,7 +241,7 @@ export default function TournamentPage() {
         <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
           {hayatta.map((o) => (
             <span key={o.user_id} className="rutbe-chip" style={{ color: "var(--success)" }}>
-              {o.profil?.gorunen_ad} ({o.dogru_sayisi}✓)
+              {o.profil?.gorunen_ad} ({o.dogru_sayisi} doğru)
             </span>
           ))}
         </div>

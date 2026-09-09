@@ -158,7 +158,7 @@ export default function KurulumSihirbazi({ onTamam }) {
 
         {adim === 1 && (
           <>
-            <div className="bd-konum-baslik">👋 Kendine bir takma ad seç</div>
+            <div className="bd-konum-baslik">Kendine bir takma ad seç</div>
             <div className="bd-konum-aciklama">
               Bildim''de <b>gerçek adın hiçbir zaman gösterilmez</b>. Diğer oyuncular
               yalnızca burada seçtiğin takma adı görür.
@@ -185,7 +185,7 @@ export default function KurulumSihirbazi({ onTamam }) {
                 disabled={calisiyor || takmaAd.trim().length < 3}
                 onClick={adKaydet}
               >
-                {calisiyor ? "Kaydediliyor…" : "Devam →"}
+                {calisiyor ? "Kaydediliyor…" : "Devam"}
               </button>
             </div>
           </>
@@ -193,7 +193,7 @@ export default function KurulumSihirbazi({ onTamam }) {
 
         {adim === 2 && (
           <>
-            <div className="bd-konum-baslik">🎭 Avatarını seç</div>
+            <div className="bd-konum-baslik">Avatarını seç</div>
             <div className="bd-konum-aciklama">
               Hazır bir avatar seç ya da Google fotoğrafını kullanmayı onayla.
               Onaylamazsan fotoğrafın <b>kimseye gösterilmez</b>.
@@ -253,7 +253,7 @@ export default function KurulumSihirbazi({ onTamam }) {
 
         {adim === 3 && (
           <>
-            <div className="bd-konum-baslik">🏙️ Hangi şehir için yarışıyorsun?</div>
+            <div className="bd-konum-baslik">Hangi şehir için yarışıyorsun?</div>
             <div className="bd-konum-aciklama">
               Şehir ve ülke liglerinde bu bilgiyle yarışırsın.{" "}
               <b>Haftada yalnızca bir kez değiştirebilirsin.</b>
@@ -302,7 +302,7 @@ export default function KurulumSihirbazi({ onTamam }) {
 
             <div className="bd-konum-butonlar">
               <button className="btn" disabled={calisiyor} onClick={konumKaydet}>
-                {calisiyor ? "Kaydediliyor…" : "Oyuna başla 🎮"}
+                {calisiyor ? "Kaydediliyor…" : "Oyuna başla"}
               </button>
             </div>
           </>

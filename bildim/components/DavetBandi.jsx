@@ -119,7 +119,7 @@ export default function DavetBandi() {
           aria-label="Daveti reddet"
           onClick={() => cevapla(false)}
         >
-          ✕
+          <Ikon ad="carpi" boyut={16} />
         </button>
       </div>
 

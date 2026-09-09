@@ -138,7 +138,7 @@ export default function RakipAra({ kategori, onBulundu, onIptal }) {
         )}
 
         <div className="bd-arama-alt">
-          {kategori ? kategoriEtiket(kategori) : "🎯 Karışık"} kategorisinde
+          {kategori ? kategoriEtiket(kategori) : "Karışık"} kategorisinde
           {botaDusuldu
             ? " uygun rakip bulunamadı — BilgeBot ile oynuyorsun."
             : " seninle aynı seviyede birini arıyoruz."}

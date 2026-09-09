@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import Ikon from "./Ikon.jsx";
 import { hataMesaji } from "../lib/hata.js";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../../src/lib/supabase.js";
@@ -62,7 +63,7 @@ export default function MacSonuEklentisi({ macTur, macId, kaybettim }) {
     <div className="bd-mac-sonu-ek">
       {seri && (seri.seri_gun ?? 0) > 0 && (
         <div className="bd-sonuc-seri">
-          🔥 <b>{seri.seri_gun}.</b> gün — serin sürüyor
+          <Ikon ad="ates" boyut={16} /> <b>{seri.seri_gun}.</b> gün — serin sürüyor
         </div>
       )}
 
@@ -72,7 +73,7 @@ export default function MacSonuEklentisi({ macTur, macId, kaybettim }) {
           <span className="bd-sonuc-joker-liste">
             {jokerler.map((j, i) => (
               <span key={i} className="bd-sonuc-joker">
-                {JOKER_BILGI[j.tur]?.ikon ?? "❔"} {JOKER_BILGI[j.tur]?.ad ?? j.tur}
+                <Ikon ad={JOKER_BILGI[j.tur]?.ikon ?? "soru"} boyut={15} /> {JOKER_BILGI[j.tur]?.ad ?? j.tur}
                 {j.ucretsiz && <em> (ücretsiz)</em>}
               </span>
             ))}
@@ -83,7 +84,7 @@ export default function MacSonuEklentisi({ macTur, macId, kaybettim }) {
       {kaybettim && macTur === "1v1" && (
         <>
           <button className="bd-rovans" disabled={calisiyor} onClick={rovans}>
-            ⚔️ RÖVANŞ İSTE
+            Rövanş iste
           </button>
           <div className="alt-yazi" style={{ textAlign: "center", marginTop: 6 }}>
             Aynı kategoride, 24 saat içinde geçerli.

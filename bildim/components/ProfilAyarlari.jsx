@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import KategoriIkon from "./KategoriIkon.jsx";
 import { hataMesaji } from "../lib/hata.js";
 import { supabase } from "../../src/lib/supabase.js";
 import { useAuth } from "../../src/context/AuthContext.jsx";
@@ -101,16 +102,16 @@ export default function ProfilAyarlari() {
     <>
       {/* ---------- Gizlilik açıklaması ---------- */}
       <div className="kart bd-gizlilik-not">
-        🔒 <b>Gerçek adın hiçbir zaman gösterilmez.</b> Diğer oyuncular yalnızca takma
+        <b>Gerçek adın hiçbir zaman gösterilmez.</b> Diğer oyuncular yalnızca takma
         adını ve seçtiğin avatarı görür.
       </div>
 
       {/* ---------- Takma ad ---------- */}
       <div className="kart">
         <div className="bd-kat-baslik">
-          <span>🏷️ Takma adın</span>
+          <span>Takma adın</span>
           {kalanKilit > 0 && (
-            <span className="alt-yazi">🔒 {sureMetni(kalanKilit)}</span>
+            <span className="alt-yazi">{sureMetni(kalanKilit)}</span>
           )}
         </div>
 
@@ -164,7 +165,7 @@ export default function ProfilAyarlari() {
       {/* ---------- Avatar ---------- */}
       <div className="kart">
         <div className="bd-kat-baslik">
-          <span>🎭 Avatarın</span>
+          <span>Avatarın</span>
         </div>
         {avatarDuzenle ? (
           <>
@@ -221,7 +222,7 @@ export default function ProfilAyarlari() {
       {/* ---------- Davet kodu ---------- */}
       <div className="kart">
         <div className="bd-kat-baslik">
-          <span>🎟️ Davet kodun</span>
+          <span>Davet kodun</span>
         </div>
         <div className="bd-davet-kod">{profile.davet_kodu ?? "—"}</div>
         <button
@@ -238,14 +239,14 @@ export default function ProfilAyarlari() {
             }
           }}
         >
-          {kopyalandi ? "✅ Kopyalandı" : "🔗 Davet linkini kopyala"}
+          {kopyalandi ? "Kopyalandı" : "Davet linkini kopyala"}
         </button>
       </div>
 
       {/* ---------- Varsayılan kategori ---------- */}
       <div className="kart">
         <div className="bd-kat-baslik">
-          <span>🎯 Varsayılan kategorim</span>
+          <span>Varsayılan kategorim</span>
         </div>
         <div className="alt-yazi" style={{ marginBottom: 10 }}>
           "Hemen Oyna" önce bu kategoride rakip arar.
@@ -255,7 +256,8 @@ export default function ProfilAyarlari() {
             className={`bd-kat-kart ${!profile.tercih_kategori ? "aktif" : ""}`}
             onClick={() => kategoriKaydet(null)}
           >
-            <span className="bd-kat-ad">🎲 Karışık</span>
+            <KategoriIkon anahtar="karisik" boyut={24} plaka />
+              <span className="bd-kat-ad">Karışık</span>
           </button>
           {kategorileriSirala(kategoriler).map((k) => (
             <button
@@ -263,6 +265,7 @@ export default function ProfilAyarlari() {
               className={`bd-kat-kart ${profile.tercih_kategori === k.kategori ? "aktif" : ""}`}
               onClick={() => kategoriKaydet(k.kategori)}
             >
+              <KategoriIkon anahtar={k.kategori} boyut={24} plaka />
               <span className="bd-kat-ad">{kategoriEtiket(k.kategori)}</span>
               <span className="bd-kat-alt">{k.soru_sayisi} soru</span>
             </button>

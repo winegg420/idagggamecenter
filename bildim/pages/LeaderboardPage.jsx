@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import Ikon from "../components/Ikon.jsx";
 import SenRozeti from "../components/SenRozeti.jsx";
 import Modal from "../components/Modal.jsx";
 import { hataMesaji } from "../lib/hata.js";
@@ -12,10 +13,10 @@ import Maskot from "../components/Maskot.jsx";
 import { bayrak, haftaBitisi, sureMetni } from "../lib/konum.js";
 
 const KAPSAMLAR = [
-  { id: "sehir", etiket: "ŞEHİR", ikon: "🏙️" },
-  { id: "ulke", etiket: "ÜLKE", ikon: "🏳️" },
-  { id: "global", etiket: "DÜNYA", ikon: "🌍" },
-  { id: "arkadas", etiket: "ARKADAŞ", ikon: "👥" },
+  { id: "sehir", etiket: "ŞEHİR", ikon: "sehir" },
+  { id: "ulke", etiket: "ÜLKE", ikon: "bayrak" },
+  { id: "global", etiket: "DÜNYA", ikon: "dunya" },
+  { id: "arkadas", etiket: "ARKADAŞ", ikon: "kisiler" },
 ];
 
 const DONEMLER = [
@@ -159,7 +160,7 @@ export default function LeaderboardPage() {
       <div className="bd-lig-bilgi">
         <div className="bd-lig-isim">
           {s.gorunen_ad}
-          {s.bot && <span className="bd-bot-rozet" title="Yapay rakip">🤖</span>}
+          {s.bot && <span className="bd-bot-rozet" title="Yapay rakip"><Ikon ad="robot" boyut={13} /></span>}
           {s.user_id === user.id && <SenRozeti />}
         </div>
         <div className="bd-lig-detay">
@@ -171,7 +172,7 @@ export default function LeaderboardPage() {
           )}
         </div>
       </div>
-      <span className="bd-lig-puan">⭐ {s.puan}</span>
+      <span className="bd-lig-puan">{s.puan}</span>
       {s.user_id !== user.id && (
         <button
           className="bd-ikon-btn"
@@ -179,7 +180,7 @@ export default function LeaderboardPage() {
           aria-label={`${s.gorunen_ad} oyuncusuna meydan oku`}
           onClick={() => meydanOku(s.user_id)}
         >
-          ⚔️
+          <Ikon ad="kilic" boyut={17} />
         </button>
       )}
     </div>
@@ -187,7 +188,7 @@ export default function LeaderboardPage() {
 
   return (
     <div className="bd-lig">
-      <div className="baslik">📊 Lig</div>
+      <div className="baslik">Lig</div>
 
       {hata && <div className="hata-kutu">{hata}</div>}
 
@@ -198,7 +199,7 @@ export default function LeaderboardPage() {
             className={`bd-sekme ${kapsam === k.id ? "aktif" : ""}`}
             onClick={() => setKapsam(k.id)}
           >
-            <span aria-hidden="true">{k.ikon}</span>
+            <Ikon ad={k.ikon} boyut={15} />
             {k.etiket}
           </button>
         ))}
@@ -227,7 +228,7 @@ export default function LeaderboardPage() {
           {bayrak(sehirSirasi.ulke)} <b>{sehirSirasi.sehir}</b>{" "}
           {donem === "hafta" ? "bu hafta" : "tüm zamanlarda"} ülkende{" "}
           <b>{sehirSirasi.sira}.</b> sırada ({sehirSirasi.sehir_sayisi} şehir içinde) ·{" "}
-          {sehirSirasi.oyuncu_sayisi} oyuncu · ⭐ {sehirSirasi.toplam_puan}
+          {sehirSirasi.oyuncu_sayisi} oyuncu · {sehirSirasi.toplam_puan} puan
         </div>
       )}
 
@@ -283,14 +284,14 @@ export default function LeaderboardPage() {
                     }`}
                   >
                     <div className="bd-podyum-madalya">
-                      {basamak === 1 ? "🥇" : basamak === 2 ? "🥈" : "🥉"}
+                      {basamak}
                     </div>
                     <Avatar
                       profile={{ gorunen_ad: p.gorunen_ad, gorunen_avatar: p.gorunen_avatar }}
                       boyut={basamak === 1 ? 62 : 50}
                     />
                     <div className="bd-podyum-ad">{p.gorunen_ad}</div>
-                    <div className="bd-podyum-puan">⭐ {p.puan}</div>
+                    <div className="bd-podyum-puan">{p.puan}</div>
                     <div className="bd-podyum-kaide">{basamak}</div>
                   </div>
                 );

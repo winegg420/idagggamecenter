@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import Ikon from "./Ikon.jsx";
 import { pushDestekleniyor, bildirimleriAc } from "../lib/push.js";
 
 const DEPO = "bildim_bildirim_sorma";
@@ -37,7 +38,7 @@ export default function BildirimIzniSor() {
 
   return (
     <div className="bd-izin-kart">
-      <div className="ikon" aria-hidden="true">🔔</div>
+      <div className="ikon" aria-hidden="true"><Ikon ad="zil" boyut={22} /></div>
       <div className="govde">
         <div className="bd-izin-baslik">Bir sonraki maçı kaçırma</div>
         <div className="alt-yazi">

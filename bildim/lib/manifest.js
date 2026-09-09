@@ -1,12 +1,12 @@
 import { useEffect } from "react";
 
 // Bildim'in kendi PWA kimliği var (/bildim.webmanifest): ad "Bildim!",
-// start_url "/bildim", portrait, mor tema. Hub'ın manifesti ise tüm oyun
+// start_url "/bildim", portrait, gece lacivert tema. Hub'ın manifesti ise tüm oyun
 // merkezini temsil ediyor. Bildim rotalarındayken belge başlığındaki
 // <link rel="manifest"> ve theme-color Bildim'e çevrilir; çıkınca geri alınır.
 
 const BILDIM_MANIFEST = "/bildim.webmanifest";
-const BILDIM_TEMA = "#7c4dff";
+const BILDIM_TEMA = "#0B1220";
 
 function etiketBul(secici, olustur) {
   let e = document.querySelector(secici);

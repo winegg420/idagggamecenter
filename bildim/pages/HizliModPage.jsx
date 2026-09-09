@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import KategoriIkon from "../components/KategoriIkon.jsx";
 import SenRozeti from "../components/SenRozeti.jsx";
 import SureDolduGecis from "../components/SureDolduGecis.jsx";
 import { sesKilidiAc, sesTik } from "../lib/ses.js";
@@ -202,7 +203,7 @@ export default function HizliModPage() {
   if (asama === "secim") {
     return (
       <div>
-        <div className="baslik">⚡ Hızlı Mod</div>
+        <div className="baslik">Hızlı Mod</div>
         <div className="kart bd-hizli-tanit">
           <div className="bd-hizli-buyuk">60</div>
           <div className="alt-yazi">
@@ -220,13 +221,14 @@ export default function HizliModPage() {
           )}
         </div>
 
-        <div className="bd-kat-baslik"><span>🎯 Kategori</span></div>
+        <div className="bd-kat-baslik"><span>Kategori</span></div>
         <div className="bd-kat-grid">
           <button
             className={`bd-kat-kart ${kategori === null ? "aktif" : ""}`}
             onClick={() => setKategori(null)}
           >
-            <span className="bd-kat-ad">🎲 Karışık</span>
+            <KategoriIkon anahtar="karisik" boyut={24} plaka />
+              <span className="bd-kat-ad">Karışık</span>
           </button>
           {kategorileriSirala(kategoriler).map((k) => (
             <button
@@ -234,6 +236,7 @@ export default function HizliModPage() {
               className={`bd-kat-kart ${kategori === k.kategori ? "aktif" : ""}`}
               onClick={() => setKategori(k.kategori)}
             >
+              <KategoriIkon anahtar={k.kategori} boyut={24} plaka />
               <span className="bd-kat-ad">{kategoriEtiket(k.kategori)}</span>
               <span className="bd-kat-alt">{k.soru_sayisi} soru</span>
             </button>
@@ -243,7 +246,7 @@ export default function HizliModPage() {
         {hata && <div className="hata-kutu">{hata}</div>}
         <button className="bd-ana-eylem" onClick={basla}>
           <Ikon ad="hizli" boyut={22} />
-          <span>BAŞLA</span>
+          <span>Başla</span>
         </button>
       </div>
     );
@@ -273,7 +276,7 @@ export default function HizliModPage() {
           />
         </div>
         <div className="bd-hizli-ust">
-          <span className="bd-hizli-skor">✓ {skor}</span>
+          <span className="bd-hizli-skor"><Ikon ad="onay" boyut={15} /> {skor}</span>
           <span className="bd-hizli-sn">{Math.ceil(kalanToplam)} sn</span>
         </div>
 
@@ -343,7 +346,7 @@ export default function HizliModPage() {
         </div>
       </div>
 
-      <div className="bd-kat-baslik"><span>🏅 Haftalık sıralama</span></div>
+      <div className="bd-kat-baslik"><span>Haftalık sıralama</span></div>
       <div className="bd-sekme-ust">
         {[
           { id: "sehir", etiket: "ŞEHİR" },
@@ -378,7 +381,7 @@ export default function HizliModPage() {
                   {s.gorunen_ad}{s.ben && <SenRozeti />}
                 </div>
               </div>
-              <span className="bd-lig-puan">✓ {s.skor}</span>
+              <span className="bd-lig-puan">{s.skor}</span>
             </div>
           ))
         )}

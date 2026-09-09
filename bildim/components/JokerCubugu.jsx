@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import Ikon from "./Ikon.jsx";
 import { hataMesaji } from "../lib/hata.js";
 import { Link } from "react-router-dom";
 import { supabase } from "../../src/lib/supabase.js";
@@ -88,7 +89,7 @@ export default function JokerCubugu({ macTur, macId, soruIndex, onEtki, kilit })
             aria-label={`${bilgi.ad} — ${engel ?? bilgi.aciklama}`}
             onClick={() => kullan(tur)}
           >
-            <span className="bd-joker-ikon" aria-hidden="true">{bilgi.ikon}</span>
+            <span className="bd-joker-ikon" aria-hidden="true"><Ikon ad={bilgi.ikon} boyut={18} /></span>
             <span className="bd-joker-ad">{bilgi.ad}</span>
             <span className={`bd-joker-adet ${ucretsiz ? "bedava" : ""}`}>
               {calisan === tur ? "…" : ucretsiz ? "ÜCRETSİZ" : adet}
@@ -100,7 +101,7 @@ export default function JokerCubugu({ macTur, macId, soruIndex, onEtki, kilit })
       {(sinirDoldu || finalYasak) && (
         <div className="bd-joker-not">
           {finalYasak
-            ? "🏆 Finalde joker yok — sadece bilgi."
+            ? "Finalde joker yok — sadece bilgi."
             : `Bu maçta joker hakkın doldu (${durum.kullanilan}/${durum.sinir}).`}
         </div>
       )}
@@ -111,7 +112,7 @@ export default function JokerCubugu({ macTur, macId, soruIndex, onEtki, kilit })
           {/kalmadı/i.test(hata) && (
             <>
               {" "}
-              <Link to="/bildim/joker">Joker al →</Link>
+              <Link to="/bildim/joker">Joker al</Link>
             </>
           )}
         </div>

@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import Ikon from "./Ikon.jsx";
 import { supabase } from "../../src/lib/supabase.js";
 import { kategoriEtiket } from "../lib/kategoriler.js";
 import { JOKER_BILGI } from "../lib/jokerler.js";
@@ -63,7 +64,7 @@ export default function UstalikIzgarasi() {
     <>
       {/* ---------- Seri + joker istatistikleri ---------- */}
       <div className="kart">
-        <div className="bd-kat-baslik"><span>🔥 Seri ve jokerler</span></div>
+        <div className="bd-kat-baslik"><span>Seri ve jokerler</span></div>
         <div className="bd-istatistik-grid">
           <div>
             <b>{seri?.seri_gun ?? 0}</b>
@@ -86,7 +87,7 @@ export default function UstalikIzgarasi() {
           <div className="bd-envanter-satir">
             {envanter.map((e) => (
               <span key={e.tur} className="bd-envanter-cip">
-                {JOKER_BILGI[e.tur]?.ikon ?? "❔"} {e.adet}
+                <Ikon ad={JOKER_BILGI[e.tur]?.ikon ?? "soru"} boyut={15} /> {e.adet}
               </span>
             ))}
           </div>
@@ -96,7 +97,7 @@ export default function UstalikIzgarasi() {
       {/* ---------- Kategori ustalığı ---------- */}
       <div className="kart">
         <div className="bd-kat-baslik">
-          <span>🎖️ Kategori ustalığı</span>
+          <span>Kategori ustalığı</span>
           <span className="alt-yazi">{toplamDogru} doğru</span>
         </div>
 

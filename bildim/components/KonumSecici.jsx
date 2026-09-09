@@ -97,7 +97,7 @@ export default function KonumSecici({ mod = "kart", onKapat, onKaydedildi }) {
   const govde = (
     <>
       <div className="bd-konum-baslik">
-        {mod === "modal" ? "🏙️ Hangi şehir için yarışıyorsun?" : "🏙️ Şehrin ve ülken"}
+        {mod === "modal" ? "Hangi şehir için yarışıyorsun?" : "Şehrin ve ülken"}
       </div>
       <div className="bd-konum-aciklama">
         Şehir ve ülke liglerinde bu bilgiyle yarışırsın.{" "}
@@ -151,7 +151,7 @@ export default function KonumSecici({ mod = "kart", onKapat, onKaydedildi }) {
 
       {kilitli && (
         <div className="bd-uyari">
-          🔒 Konumunu tekrar değiştirebilmen için{" "}
+          Konumunu tekrar değiştirebilmen için{" "}
           <b>{sureMetni(kalan)}</b> kaldı.
         </div>
       )}

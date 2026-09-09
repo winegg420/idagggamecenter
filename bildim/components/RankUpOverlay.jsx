@@ -1,4 +1,6 @@
 import { useEffect, useState } from "react";
+import Ikon from "./Ikon.jsx";
+import { sesRutbeAtladi } from "../lib/ses.js";
 import { useAuth } from "../../src/context/AuthContext.jsx";
 import { RUTBELER, rutbeBul } from "../lib/ranks.js";
 
@@ -21,6 +23,7 @@ export default function RankUpOverlay() {
       const yeniIdx = RUTBELER.findIndex((r) => r.ad === yeni.ad);
       if (yeniIdx > eskiIdx) {
         setGoster(yeni);
+        try { sesRutbeAtladi(); } catch { /* ses kapalı olabilir */ }
         const id = setTimeout(() => setGoster(null), 3500);
         localStorage.setItem(anahtar, yeni.ad);
         return () => clearTimeout(id);
@@ -36,10 +39,10 @@ export default function RankUpOverlay() {
       <div className="icerik">
         <div className="isiltilar">
           {[...Array(8)].map((_, i) => (
-            <span key={i} className="isilti" style={{ "--i": i }}>✨</span>
+            <span key={i} className="isilti" style={{ "--i": i }} />
           ))}
         </div>
-        <div className="buyuk-ikon">{goster.ikon}</div>
+        <div className="buyuk-ikon"><Ikon ad={goster.ikon} boyut={46} /></div>
         <div className="etiket">RÜTBE ATLADIN!</div>
         <div className="rutbe-adi" style={{ color: goster.renk }}>
           {goster.ad}

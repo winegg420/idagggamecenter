@@ -11,6 +11,8 @@ import Tanitim from "./Tanitim.jsx";
 import { useBildimManifest } from "../lib/manifest.js";
 import BildirimToast from "./BildirimToast.jsx";
 import Ikon from "./Ikon.jsx";
+import Logo from "./Logo.jsx";
+import SesDugmesi from "./SesDugmesi.jsx";
 
 export default function Layout() {
   const { profile, user } = useAuth();
@@ -90,15 +92,16 @@ export default function Layout() {
       )}
       <div className="bd-ust-blok">
         <header className="topbar">
-          <Link to="/bildim" style={{ textDecoration: "none" }}>
-            <span className="logo">Bildim!</span>
+          <Link to="/bildim" style={{ textDecoration: "none" }} aria-label="Bildim ana sayfa">
+            <Logo boyut={24} />
           </Link>
           {profile && (
             <div className="bd-topbar-sag">
+              <SesDugmesi />
               <BildirimZili />
               <Link to="/bildim/profil" className="bd-puan-link" aria-label="Profilim">
                 <span className="puan-chip">
-                  ⭐ <PuanSayaci deger={profile.puan} />
+                  <Ikon ad="yildiz" boyut={15} /> <PuanSayaci deger={profile.puan} />
                 </span>
               </Link>
             </div>

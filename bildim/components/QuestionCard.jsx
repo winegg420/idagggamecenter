@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import Ikon from "./Ikon.jsx";
 import { supabase } from "../../src/lib/supabase.js";
 import { kalanSure, sunucuOffsetMs } from "../lib/zaman.js";
 import JokerCubugu from "./JokerCubugu.jsx";
@@ -219,9 +220,9 @@ export default function QuestionCard({
             >
               <span className="bd-harf">{HARFLER[i]}</span>
               <span className="bd-secenek-metin">{s}</span>
-              {sonuc && i === sonuc.dogru_cevap && <span className="bd-isaret">✓</span>}
+              {sonuc && i === sonuc.dogru_cevap && <span className="bd-isaret"><Ikon ad="onay" boyut={16} /></span>}
               {sonuc && i === secim && i !== sonuc.dogru_cevap && (
-                <span className="bd-isaret">✕</span>
+                <span className="bd-isaret"><Ikon ad="carpi" boyut={16} /></span>
               )}
             </button>
           );
@@ -252,13 +253,13 @@ export default function QuestionCard({
               if (r?.kapali) setKapali(r.kapali);
             }}
           >
-            ⚖️ 50:50 <span className="bedel">Ücretsiz</span>
+            <Ikon ad="terazi" boyut={16} /> 50:50 <span className="bedel">Ücretsiz</span>
           </button>
           <button
             disabled={jokerler.kullanildi.sure}
             onClick={() => jokerler.onKullan("sure")}
           >
-            ⏱️ +10 sn <span className="bedel">20⭐</span>
+            <Ikon ad="saat" boyut={16} /> +10 sn <span className="bedel">20 puan</span>
           </button>
         </div>
       )}
@@ -267,10 +268,10 @@ export default function QuestionCard({
         <div className="adil-oylama">
           <span>Bu soru adil miydi?</span>
           <button className={oy === true ? "secildi" : ""} onClick={() => oyVer(true)}>
-            👍
+            <Ikon ad="onay" boyut={17} />
           </button>
           <button className={oy === false ? "secildi" : ""} onClick={() => oyVer(false)}>
-            👎
+            <Ikon ad="carpi" boyut={17} />
           </button>
         </div>
       )}

@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import Ikon from "../components/Ikon.jsx";
 import { sesAcikMi, sesAyarla, sesTik } from "../lib/ses.js";
 import Modal from "../components/Modal.jsx";
 import { hataMesaji } from "../lib/hata.js";
@@ -63,9 +64,6 @@ export default function ProfilePage() {
         {/* Görünen ad artık takma addır; gerçek kullanıcı adı gösterilmez.
             Takma ad düzenlemesi aşağıdaki ProfilAyarlari kartındadır. */}
         <div className="bd-profil-ad">{profile.gorunen_ad}</div>
-        <div className="alt-yazi" style={{ marginTop: 4 }}>
-          Hesap kimliğin: <code>{profile.username}</code> (yalnızca sana görünür)
-        </div>
 
         <div style={{ marginTop: 12 }}>
           <RankBadge puan={profile.puan} />
@@ -98,7 +96,7 @@ export default function ProfilePage() {
       ) : (
         <div className="kart bd-konum-ozet">
           <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ fontWeight: 700, fontSize: 14 }}>🏙️ Yarıştığın şehir</div>
+            <div style={{ fontWeight: 700, fontSize: 14 }}>Yarıştığın şehir</div>
             <div className="alt-yazi">
               {profile.ulke
                 ? `${bayrak(profile.ulke)} ${profile.sehir ?? "—"}`
@@ -106,7 +104,7 @@ export default function ProfilePage() {
             </div>
             {konumKilidiKalan(profile.konum_degisti_at) > 0 && (
               <div className="alt-yazi">
-                🔒 Değiştirmek için {sureMetni(konumKilidiKalan(profile.konum_degisti_at))} kaldı.
+                Değiştirmek için {sureMetni(konumKilidiKalan(profile.konum_degisti_at))} kaldı.
               </div>
             )}
           </div>
@@ -140,15 +138,15 @@ export default function ProfilePage() {
 
       {pushDestekleniyor() && bildirim !== "desteklenmiyor" && (
         <div className="kart" style={{ display: "flex", alignItems: "center", gap: 12 }}>
-          <div style={{ fontSize: 26 }}>🔔</div>
+          <div className="bd-ayar-ikon"><Ikon ad="zil" boyut={22} /></div>
           <div style={{ flex: 1 }}>
             <div style={{ fontWeight: 700, fontSize: 14 }}>Bildirimler</div>
             <div className="alt-yazi">
               {bildirim === "acik"
-                ? "Açık — turnuva ve meydan okumalardan haberin olur."
+                ? "Açık"
                 : bildirim === "engelli"
                   ? "Tarayıcı ayarlarından engellenmiş."
-                  : "Turnuva başlarken ve sana meydan okununca haber verelim."}
+                  : "Kapalı"}
             </div>
             {bildirimHata && <div className="hata-kutu" style={{ marginTop: 6 }}>{bildirimHata}</div>}
           </div>
@@ -179,13 +177,11 @@ export default function ProfilePage() {
 
       {/* Maç sesleri: son 5 saniye tik'i, doğru/yanlış vuruşu, bitiş tonu */}
       <div className="kart" style={{ display: "flex", alignItems: "center", gap: 12 }}>
-        <div style={{ fontSize: 26 }}>{ses ? "🔊" : "🔇"}</div>
+        <div className="bd-ayar-ikon"><Ikon ad={ses ? "sesAcik" : "sesKapali"} boyut={22} /></div>
         <div style={{ flex: 1 }}>
           <div style={{ fontWeight: 700, fontSize: 14 }}>Oyun sesleri</div>
           <div className="alt-yazi">
-            {ses
-              ? "Açık — son 5 saniyede geri sayım tik'i, cevapta ve bitişte ses."
-              : "Kapalı — oyun tamamen sessiz oynanır."}
+            {ses ? "Açık" : "Kapalı"}
           </div>
         </div>
         <button
@@ -202,18 +198,18 @@ export default function ProfilePage() {
       </div>
 
       <div className="kart" style={{ textAlign: "center" }}>
-        <div className="baslik">🎁 Arkadaşını Davet Et</div>
+        <div className="baslik">Arkadaşını davet et</div>
         <div className="alt-yazi" style={{ marginBottom: 12 }}>
-          Davet linkinle gelen her arkadaş için <b>ikiniz de +50 puan</b> kazanırsınız!
+          Her davet için <b>ikiniz de +50 puan</b>.
           {profile.davet_sayisi > 0 && (
-            <> Şu ana kadar {profile.davet_sayisi} kişi davet ettin. 🎉</>
+            <> Şu ana kadar {profile.davet_sayisi} kişi davet ettin.</>
           )}
         </div>
         <button
           className="btn"
           onClick={async () => {
             const link = `${window.location.origin}/?davet=${user.id}`;
-            const mesaj = `Bildim!'de benimle yarışmaya var mısın? 🧠 Bu linkle gel, ikimiz de +50 puan kazanalım: ${link}`;
+            const mesaj = `Bildim!'de benimle yarışmaya var mısın? Bu linkle gel, ikimiz de +50 puan kazanalım: ${link}`;
             if (navigator.share) {
               try {
                 await navigator.share({ title: "Bildim!", text: mesaj });
@@ -225,20 +221,20 @@ export default function ProfilePage() {
             }
           }}
         >
-          {kopyalandi ? "✅ Kopyalandı!" : "📤 Davet Linkini Paylaş"}
+          {kopyalandi ? "Kopyalandı" : "Davet linkini paylaş"}
         </button>
       </div>
 
       <div className="kart">
         <div className="baslik">
-          🏅 Rozetler ({kazanilan.size}/{rozetler.length})
+          Rozetler ({kazanilan.size}/{rozetler.length})
         </div>
         <div className="rozet-grid">
           {rozetler.map((r) => {
             const var_mi = kazanilan.has(r.id);
             return (
               <div key={r.id} className={`rozet ${var_mi ? "" : "kilitli"}`}>
-                <div className="rozet-ikon">{var_mi ? r.ikon : "🔒"}</div>
+                <div className="rozet-ikon">{var_mi ? r.ikon : <Ikon ad="kilit" boyut={18} />}</div>
                 <div className="rozet-ad">{r.ad}</div>
                 <div className="rozet-aciklama">{r.aciklama}</div>
               </div>
@@ -249,9 +245,9 @@ export default function ProfilePage() {
 
       {/* ---------- Yasal / hesap ---------- */}
       <div className="kart">
-        <div className="baslik">⚙️ Hesap</div>
+        <div className="baslik">Hesap</div>
         <Link to="/gizlilik" className="bd-metin-link">
-          🔒 Gizlilik Politikası
+          Gizlilik politikası
         </Link>
 
         <button
@@ -262,7 +258,7 @@ export default function ProfilePage() {
             setSilOnay(true);
           }}
         >
-          🗑️ Hesabımı Sil
+          Hesabımı sil
         </button>
         <div className="alt-yazi" style={{ marginTop: 8 }}>
           Profilin, puanların, rozetlerin ve tüm oyun kayıtların kalıcı olarak silinir.
@@ -277,7 +273,7 @@ export default function ProfilePage() {
       {silOnay && (
         <Modal onKapat={siliniyor ? undefined : () => { setSilOnay(false); setSilMetin(""); }} etiket="Hesap silme onayı">
           <div className="bd-modal">
-            <div className="bd-konum-baslik">🗑️ Hesabını silmek üzeresin</div>
+            <div className="bd-konum-baslik">Hesabını silmek üzeresin</div>
             <div className="bd-konum-aciklama">
               Bu işlem <b>geri alınamaz</b>. Onaylamak için aşağıya{" "}
               <b>{profile.username}</b> yaz.

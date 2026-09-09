@@ -56,7 +56,7 @@ export default function TurnuvaTanitim() {
   return (
     <>
       <div className="kart bd-turnuva-nasil">
-        <div className="bd-kat-baslik"><span>❓ Nasıl oynanır?</span></div>
+        <div className="bd-kat-baslik"><span>Nasıl oynanır?</span></div>
         <ol className="bd-nasil-liste">
           <li>
             <span className="bd-nasil-no">1</span>
@@ -85,14 +85,14 @@ export default function TurnuvaTanitim() {
       {sonTurnuva && ilkUc.length > 0 && (
         <div className="kart">
           <div className="bd-kat-baslik">
-            <span>🏅 Son turnuva</span>
+            <span>Son turnuva</span>
             <span className="alt-yazi">{katilan} katılımcı</span>
           </div>
           <div className="bd-son-turnuva">
             {ilkUc.map((o, i) => (
               <div key={o.user_id} className={`bd-son-satir ${i === 0 ? "birinci" : ""}`}>
                 <span className="bd-son-madalya">
-                  {i === 0 ? "🥇" : i === 1 ? "🥈" : "🥉"}
+                  {i + 1}
                 </span>
                 <Avatar profile={o.profil} boyut={32} />
                 <span className="bd-son-ad">{o.profil?.gorunen_ad ?? "Oyuncu"}</span>

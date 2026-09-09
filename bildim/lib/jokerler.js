@@ -5,25 +5,25 @@ export const JOKER_BILGI = {
   elli: {
     ad: "50:50",
     aciklama: "İki yanlış şık silinir",
-    ikon: "⚖️",
+    ikon: "terazi",
     macIci: true,
   },
   sure: {
     ad: "+10 sn",
     aciklama: "Soruya 10 saniye ekler",
-    ikon: "⏱️",
+    ikon: "saat",
     macIci: true,
   },
   pas: {
     ad: "Pas",
     aciklama: "Soruyu atlar (puan yok)",
-    ikon: "⏭️",
+    ikon: "ileriAtla",
     macIci: true,
   },
   seri_koruma: {
     ad: "Seri Koruma",
     aciklama: "Kaçırdığın bir günü telafi eder",
-    ikon: "🛡️",
+    ikon: "kalkan",
     macIci: false,
   },
 };
@@ -34,8 +34,9 @@ export function jokerAdi(tur) {
   return JOKER_BILGI[tur]?.ad ?? tur;
 }
 
+// Artık emoji değil, <Ikon ad={...} /> için ikon ADI döner.
 export function jokerIkon(tur) {
-  return JOKER_BILGI[tur]?.ikon ?? "❔";
+  return JOKER_BILGI[tur]?.ikon ?? "soru";
 }
 
 /** RPC'den gelen envanter dizisini { tur: adet } nesnesine çevirir. */

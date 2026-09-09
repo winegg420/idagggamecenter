@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import Ikon from "./Ikon.jsx";
 import { hataMesaji } from "../lib/hata.js";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../../src/lib/supabase.js";
@@ -53,7 +54,7 @@ export default function EzeliRakip() {
   return (
     <div className="kart bd-ezeli">
       <div className="bd-kat-baslik">
-        <span>⚔️ Ezeli rakibin</span>
+        <span><Ikon ad="kilic" boyut={16} /> Ezeli rakibin</span>
         <span className="alt-yazi">{rakip.toplam} maç</span>
       </div>
       <div className="bd-ezeli-govde">

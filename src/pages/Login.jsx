@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { supabase } from "../lib/supabase.js";
+import Logo from "../../bildim/components/Logo.jsx";
 
 // Supabase'in İngilizce hata metinlerini oyuncuya anlaşılır Türkçeye çevirir.
 // Sağlayıcı panelde kapalıysa dönen mesaj ("provider is not enabled") teknik
@@ -93,11 +94,11 @@ export default function Login() {
 
   return (
     <div className="giris">
-      <div className="buyuk-logo">Bildim!</div>
+      <div className="buyuk-logo"><Logo boyut={44} /></div>
       <div className="slogan">
         Her gün 10:00 ve 22:00'de büyük turnuva.
         <br />
-        7/24 meydan okumalar. Sen de yerini al! 🔥
+        7/24 meydan okumalar. Sen de yerini al.
       </div>
 
       {hata && <div className="hata-kutu">{hata}</div>}
@@ -131,7 +132,7 @@ export default function Login() {
 
       {gonderildi ? (
         <div className="kart" style={{ maxWidth: 340, textAlign: "center" }}>
-          📬 Giriş bağlantısı <b>{email}</b> adresine gönderildi. E-postanı kontrol et!
+          Giriş bağlantısı <b>{email}</b> adresine gönderildi. E-postanı kontrol et.
         </div>
       ) : (
         <form onSubmit={epostaGiris} style={{ width: "100%", maxWidth: 340, display: "flex", flexDirection: "column", gap: 10 }}>
@@ -155,7 +156,7 @@ export default function Login() {
         disabled={bekleyen !== null}
         onClick={misafirGiris}
       >
-        👤 {bekleyen === "misafir" ? "Giriş yapılıyor…" : "Misafir olarak dene"}
+        {bekleyen === "misafir" ? "Giriş yapılıyor…" : "Misafir olarak dene"}
       </button>
       <div className="giris-not">
         Misafir hesabı bu cihaza bağlıdır. Puanların kaybolmasın diye daha sonra

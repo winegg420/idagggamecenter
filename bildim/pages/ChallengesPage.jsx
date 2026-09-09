@@ -1,10 +1,12 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import KategoriIkon from "../components/KategoriIkon.jsx";
+import Ikon from "../components/Ikon.jsx";
 import { hataMesaji } from "../lib/hata.js";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../../src/lib/supabase.js";
 import { useAuth } from "../../src/context/AuthContext.jsx";
 import Avatar from "../../src/components/Avatar.jsx";
-import { kategoriAdi, kategoriEtiket, kategoriIkon, kategorileriSirala } from "../lib/kategoriler.js";
+import { kategoriAdi, kategoriEtiket, kategorileriSirala } from "../lib/kategoriler.js";
 import { oyuncuAdi } from "../lib/oyuncu.js";
 
 const MAC_SECIMI = `*,
@@ -42,7 +44,7 @@ function BekleyenKurulum({ baslik, kategori, katilimcilar, onIptal, iptalEdilen,
       <div className="bd-bk-ust">
         <div className="bd-bk-baslik">{baslik}</div>
         <div className="bd-bk-alt">
-          {kategori ? kategoriEtiket(kategori) : "🎲 Karışık"} · {hazir}/
+          {kategori ? kategoriEtiket(kategori) : "Karışık"} · {hazir}/
           {katilimcilar.length} hazır
         </div>
       </div>
@@ -64,7 +66,7 @@ function BekleyenKurulum({ baslik, kategori, katilimcilar, onIptal, iptalEdilen,
               boyut={34}
             />
             <span className="bd-bk-durum" aria-hidden="true">
-              {k.davet_durumu === "kabul" ? "✓" : "…"}
+              {k.davet_durumu === "kabul" ? "hazır" : "…"}
             </span>
             <span className="bd-bk-ad">{oyuncuAdi(k.profil, k.user_id)}</span>
           </div>
@@ -432,7 +434,7 @@ export default function ChallengesPage() {
 
   return (
     <div>
-      <div className="baslik">⚔️ Meydan Okuma</div>
+      <div className="baslik">Meydan Okuma</div>
       {hata && <div className="hata-kutu">{hata}</div>}
       {toast && <div className="bd-toast">{toast}</div>}
 
@@ -440,7 +442,7 @@ export default function ChallengesPage() {
       <div className="bd-gelen-davetler">
       {gelen.length > 0 && (
         <>
-          <div className="baslik">📥 Sana Gelen ({gelen.length})</div>
+          <div className="baslik">Sana gelen ({gelen.length})</div>
           {gelen.map((m) => (
             <div key={m.id} className="liste-satir">
               <Avatar profile={m.p1} />
@@ -461,7 +463,7 @@ export default function ChallengesPage() {
 
       {hizliGelen.length > 0 && (
         <>
-          <div className="baslik">⚡ Hızlı Yarış Davetlerin ({hizliGelen.length})</div>
+          <div className="baslik">Hızlı yarış davetlerin ({hizliGelen.length})</div>
           {hizliGelen.map((hm) => (
             <div key={hm.id} className="liste-satir">
               <div className="bilgi">
@@ -486,7 +488,7 @@ export default function ChallengesPage() {
 
       {grupGelen.length > 0 && (
         <>
-          <div className="baslik">📥 Grup Davetlerin ({grupGelen.length})</div>
+          <div className="baslik">Grup davetlerin ({grupGelen.length})</div>
           {grupGelen.map((gm) => (
             <div key={gm.id} className="liste-satir">
               <div className="bilgi">
@@ -514,7 +516,7 @@ export default function ChallengesPage() {
 
       {/* Kategori seçimi 1v1, grup ve hızlı modun HEPSİ için geçerlidir. */}
       <div className="bd-kat-baslik">
-        <span>🎯 Kategori</span>
+        <span>Kategori</span>
         <span className="alt-yazi">1v1 · grup · hızlı mod için</span>
       </div>
       <div className={`bd-kat-serit ${seritSonda ? "sonda" : ""}`}>
@@ -523,7 +525,7 @@ export default function ChallengesPage() {
           className={`bd-kat-kart ${kategori === null ? "aktif" : ""}`}
           onClick={() => setKategori(null)}
         >
-          <span className="bd-kat-ikon">🎲</span>
+          <KategoriIkon anahtar="karisik" boyut={26} plaka />
           <span className="bd-kat-ad">Karışık</span>
           <span className="bd-kat-alt">Tüm kategoriler</span>
         </button>
@@ -537,7 +539,7 @@ export default function ChallengesPage() {
               className={`bd-kat-kart kat-${k.kategori} ${kategori === k.kategori ? "aktif" : ""}`}
               onClick={() => setKategori(k.kategori)}
             >
-              <span className="bd-kat-ikon">{kategoriIkon(k.kategori)}</span>
+              <KategoriIkon anahtar={k.kategori} boyut={26} plaka />
               <span className="bd-kat-ad">{kategoriAdi(k.kategori)}</span>
               <span className="bd-kat-alt">
                 {toplam} soru
@@ -569,13 +571,13 @@ export default function ChallengesPage() {
             <div key={b.id} className="liste-satir">
               <Avatar profile={b} />
               <div className="bilgi">
-                <div className="isim">{b.gorunen_ad} 🤖</div>
+                <div className="isim">{b.gorunen_ad} <Ikon ad="robot" boyut={14} /></div>
                 <div className="detay">
                   Zorluk: <span style={{ color: z.renk, fontWeight: 700 }}>{z.etiket}</span> · her zaman hazır
                 </div>
               </div>
               <button className="btn kucuk" onClick={() => meydanOku(b.id)}>
-                ⚔️ Meydan Oku
+                Meydan oku
               </button>
             </div>
           );
@@ -583,7 +585,7 @@ export default function ChallengesPage() {
 
       <div className="kart">
         <div className="bd-kat-baslik">
-          <span>⚔️ Arkadaşlarına meydan oku</span>
+          <span>Arkadaşlarına meydan oku</span>
           <span className="alt-yazi">{oyuncular.length} arkadaş</span>
         </div>
         {oyuncular.length === 0 ? (
@@ -596,7 +598,7 @@ export default function ChallengesPage() {
               <Avatar profile={p} boyut={34} />
               <span style={{ flex: 1, fontWeight: 600 }}>{p.gorunen_ad}</span>
               <button className="btn kucuk" onClick={() => meydanOku(p.id)}>
-                ⚔️ Meydan Oku
+                Meydan oku
               </button>
             </div>
           ))
@@ -610,7 +612,7 @@ export default function ChallengesPage() {
           onClick={() => setGrupAcik((a) => !a)}
           aria-expanded={grupAcik}
         >
-          <span aria-hidden="true">👥</span>
+          <Ikon ad="kisiler" boyut={18} />
           <span>Grup Maçı Kur (3-5 kişi)</span>
           <span className="ok" aria-hidden="true">›</span>
         </button>
@@ -645,7 +647,7 @@ export default function ChallengesPage() {
                 onClick={() => grupSecimToggle(p.id)}
               >
                 {p.gorunen_ad}
-                {p.bot_isabet != null && " 🤖"}
+                {p.bot_isabet != null && <Ikon ad="robot" boyut={13} />}
               </button>
             );
           })}
@@ -657,7 +659,7 @@ export default function ChallengesPage() {
           disabled={grupSecili.length !== grupGerekli}
           onClick={grubuKur}
         >
-          🚀 Grubu Kur ve Davet Et
+          Grubu kur ve davet et
         </button>
         </div>
         )}
@@ -669,7 +671,7 @@ export default function ChallengesPage() {
           onClick={() => setHizliAcik((a) => !a)}
           aria-expanded={hizliAcik}
         >
-          <span aria-hidden="true">⚡</span>
+          <Ikon ad="hizli" boyut={18} />
           <span>Hızlı Olan Kazanır (5 kişi)</span>
           <span className="ok" aria-hidden="true">›</span>
         </button>
@@ -693,7 +695,7 @@ export default function ChallengesPage() {
                 onClick={() => hizliSecimToggle(p.id)}
               >
                 {p.gorunen_ad}
-                {p.bot_isabet != null && " 🤖"}
+                {p.bot_isabet != null && <Ikon ad="robot" boyut={13} />}
               </button>
             );
           })}
@@ -705,7 +707,7 @@ export default function ChallengesPage() {
           disabled={hizliSecili.length !== hizliGerekli}
           onClick={hizliKur}
         >
-          ⚡ Yarışı Kur ve Davet Et
+          Yarışı kur ve davet et
         </button>
         </div>
         )}
@@ -713,7 +715,7 @@ export default function ChallengesPage() {
 
       {oyuncular.length > 0 && (
         <>
-          <div className="baslik">🧑‍🤝‍🧑 Oyuncular</div>
+          <div className="baslik">Oyuncular</div>
           {oyuncular.map((p) => {
             const mevcutMac = maclar.some(
               (m) =>
@@ -725,11 +727,11 @@ export default function ChallengesPage() {
                 <Avatar profile={p} boyut={38} />
                 <div className="bilgi">
                   <div className="isim">{p.gorunen_ad}</div>
-                  <div className="detay">⭐ {p.puan}</div>
+                  <div className="detay"><Ikon ad="yildiz" boyut={13} /> {p.puan}</div>
                 </div>
                 {!mevcutMac && (
                   <button className="btn kucuk" onClick={() => meydanOku(p.id)}>
-                    ⚔️ Meydan Oku
+                    Meydan oku
                   </button>
                 )}
               </div>
@@ -741,7 +743,7 @@ export default function ChallengesPage() {
       {/* Kurduğun ve yanıt bekleyen davetler — düz metin yerine kart listesi */}
       {(grupBeklenen.length > 0 || hizliBeklenen.length > 0) && (
         <>
-          <div className="baslik">📤 Bekleyen davetlerin</div>
+          <div className="baslik">Bekleyen davetlerin</div>
           {(grupBeklenenTum.length + hizliBeklenenTum.length) > 5 && (
             <div className="alt-yazi" style={{ marginBottom: 8 }}>
               Son 5 davet gösteriliyor ({grupBeklenenTum.length + hizliBeklenenTum.length} bekleyen davet var).
@@ -787,7 +789,7 @@ export default function ChallengesPage() {
 
       {hizliAktif.length > 0 && (
         <>
-          <div className="baslik">⚡ Devam Eden Hızlı Yarışlar</div>
+          <div className="baslik">Devam eden hızlı yarışlar</div>
           {hizliAktif.map((hm) => (
             <div key={hm.id} className="liste-satir">
               <div className="bilgi">
@@ -800,7 +802,7 @@ export default function ChallengesPage() {
                 <div className="detay">Hızlı Olan Kazanır</div>
               </div>
               <button className="btn kucuk" onClick={() => navigate(`/bildim/hizli-mac/${hm.id}`)}>
-                Oyna →
+                Oyna
               </button>
               <button
                 className="btn kucuk ikincil"
@@ -816,7 +818,7 @@ export default function ChallengesPage() {
 
       {hizliBiten.length > 0 && (
         <>
-          <div className="baslik">🏁 Biten Hızlı Yarışlar</div>
+          <div className="baslik">Biten hızlı yarışlar</div>
           {hizliBiten.map((hm) => {
             const kazandim = hm.kazanan === user.id;
             const berabere = hm.kazanan === null;
@@ -851,7 +853,7 @@ export default function ChallengesPage() {
 
       {grupAktif.length > 0 && (
         <>
-          <div className="baslik">🎮 Devam Eden Grup Maçları</div>
+          <div className="baslik">Devam eden grup maçları</div>
           {grupAktif.map((gm) => (
             <div key={gm.id} className="liste-satir">
               <div className="bilgi">
@@ -864,7 +866,7 @@ export default function ChallengesPage() {
                 <div className="detay">{gm.oyuncu_sayisi} kişilik grup maçı</div>
               </div>
               <button className="btn kucuk" onClick={() => navigate(`/bildim/grup-mac/${gm.id}`)}>
-                Oyna →
+                Oyna
               </button>
               {/* Yarım kalmış maçları temizlemek için */}
               <button
@@ -881,7 +883,7 @@ export default function ChallengesPage() {
 
       {aktif.length > 0 && (
         <>
-          <div className="baslik">🎮 Devam Eden</div>
+          <div className="baslik">Devam eden</div>
           {aktif.map((m) => {
             // Asenkron maç: herkes kendi hızında oynar. Kendi sıramız bitmediyse
             // "sıra sende" — yarım kalan müsabaka buradan sürdürülür.
@@ -903,7 +905,7 @@ export default function ChallengesPage() {
                   </div>
                 </div>
                 <button className="btn kucuk" onClick={() => navigate(`/bildim/mac/${m.id}`)}>
-                  {siraSende ? "Devam et →" : "Gör →"}
+                  {siraSende ? "Devam et" : "Gör"}
                 </button>
               </div>
             );
@@ -913,7 +915,7 @@ export default function ChallengesPage() {
 
       {giden.length > 0 && (
         <>
-          <div className="baslik">📤 Gönderdiğin</div>
+          <div className="baslik">Gönderdiğin</div>
           {giden.map((m) => (
             <div key={m.id} className="liste-satir">
               <Avatar profile={m.p2} />
@@ -928,7 +930,7 @@ export default function ChallengesPage() {
 
       {biten.length > 0 && (
         <>
-          <div className="baslik">🏁 Bitenler</div>
+          <div className="baslik">Bitenler</div>
           {biten.map((m) => {
             const kazandim = m.kazanan === user.id;
             const berabere = m.kazanan === null;
@@ -961,7 +963,7 @@ export default function ChallengesPage() {
 
       {grupBiten.length > 0 && (
         <>
-          <div className="baslik">🏁 Biten Grup Maçları</div>
+          <div className="baslik">Biten grup maçları</div>
           {grupBiten.map((gm) => {
             const kazandim = gm.kazanan === user.id;
             const berabere = gm.kazanan === null;

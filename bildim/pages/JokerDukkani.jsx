@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import Ikon from "../components/Ikon.jsx";
 import { hataMesaji } from "../lib/hata.js";
 import { Link } from "react-router-dom";
 import { supabase } from "../../src/lib/supabase.js";
@@ -97,7 +98,7 @@ export default function JokerDukkani() {
       if (!cevap.ok) throw new Error(sonuc?.hata ?? "Satın alma doğrulanamadı.");
 
       await tuket(purchase_token);
-      setBilgi("Satın alman tamamlandı, jokerler hesabına eklendi 🎉");
+      setBilgi("Satın alman tamamlandı, jokerler hesabına eklendi.");
       await yukle();
     } catch (e) {
       setHata(hataMesaji(e, "Satın alma tamamlanamadı."));
@@ -110,18 +111,18 @@ export default function JokerDukkani() {
 
   return (
     <div className="bd-dukkan">
-      <div className="baslik">🎁 Joker Dükkânı</div>
+      <div className="baslik">Joker Dükkânı</div>
 
       {hata && <div className="hata-kutu">{hata}</div>}
       {bilgi && <div className="bd-bilgi-kutu">{bilgi}</div>}
 
       {/* ---------- Envanter ---------- */}
       <div className="kart">
-        <div className="bd-kat-baslik"><span>🎒 Envanterin</span></div>
+        <div className="bd-kat-baslik"><span>Envanterin</span></div>
         <div className="bd-envanter-grid">
           {Object.entries(JOKER_BILGI).map(([tur, b]) => (
             <div key={tur} className="bd-envanter-kutu">
-              <span className="bd-envanter-ikon" aria-hidden="true">{b.ikon}</span>
+              <span className="bd-envanter-ikon" aria-hidden="true"><Ikon ad={b.ikon} boyut={20} /></span>
               <span className="bd-envanter-adet">{envanter[tur] ?? 0}</span>
               <span className="bd-envanter-ad">{b.ad}</span>
             </div>
@@ -137,7 +138,7 @@ export default function JokerDukkani() {
       {/* ---------- Ödüllü video ---------- */}
       <div className="kart">
         <div className="bd-kat-baslik">
-          <span>🎬 Video izle, joker kazan</span>
+          <span>Video izle, joker kazan</span>
           <span className="alt-yazi">bugün {reklam.bugun}/{reklam.tavan}</span>
         </div>
         <div className="alt-yazi" style={{ marginBottom: 12 }}>
@@ -163,14 +164,14 @@ export default function JokerDukkani() {
               ? "Reklam açılıyor…"
               : reklamKaldi <= 0
                 ? "Bugünlük hakkın doldu"
-                : `▶️ Video izle (+1 joker)`}
+                : `Video izle (+1 joker)`}
           </button>
         )}
       </div>
 
       {/* ---------- Paketler ---------- */}
       <div className="kart">
-        <div className="bd-kat-baslik"><span>🛒 Joker paketleri</span></div>
+        <div className="bd-kat-baslik"><span>Joker paketleri</span></div>
 
         {!playVar && (
           <div className="bd-uyari">
@@ -190,7 +191,7 @@ export default function JokerDukkani() {
                   <div className="bd-paket-icerik">
                     {Object.entries(p.icerik ?? {}).map(([tur, adet]) => (
                       <span key={tur} className="bd-paket-parca">
-                        {JOKER_BILGI[tur]?.ikon ?? "❔"} {adet}
+                        <Ikon ad={JOKER_BILGI[tur]?.ikon ?? "soru"} boyut={15} /> {adet}
                       </span>
                     ))}
                   </div>

@@ -1,33 +1,35 @@
-// Kategori etiketleri ve ikonları (tek kaynak).
+// Kategori etiketleri (tek kaynak). İkonlar KategoriIkon.jsx içinde SVG.
 // 'genel' kategorisine dokunulmadı; "Genel Kültür" ayrı bir anahtardır
 // ve listede her zaman en üstte gelir (sunucudaki get_categories da öyle sıralar).
 
 export const KATEGORI_BILGI = {
-  genel_kultur: { ad: "Genel Kültür", ikon: "🧠" },
-  genel: { ad: "Genel", ikon: "🎲" },
-  bilim: { ad: "Bilim", ikon: "🔬" },
-  tarih: { ad: "Tarih", ikon: "🏛️" },
-  cografya: { ad: "Coğrafya", ikon: "🌍" },
-  edebiyat: { ad: "Edebiyat", ikon: "📚" },
-  spor: { ad: "Spor", ikon: "⚽" },
-  sanat: { ad: "Sanat", ikon: "🎨" },
-  sinema: { ad: "Sinema", ikon: "🎬" },
-  muzik: { ad: "Müzik", ikon: "🎵" },
-  teknoloji: { ad: "Teknoloji", ikon: "💻" },
-  karisik: { ad: "Karışık", ikon: "🎯" },
+  genel_kultur: { ad: "Genel Kültür" },
+  genel: { ad: "Genel" },
+  bilim: { ad: "Bilim" },
+  tarih: { ad: "Tarih" },
+  cografya: { ad: "Coğrafya" },
+  edebiyat: { ad: "Edebiyat" },
+  spor: { ad: "Spor" },
+  sanat: { ad: "Sanat" },
+  sinema: { ad: "Sinema" },
+  muzik: { ad: "Müzik" },
+  teknoloji: { ad: "Teknoloji" },
+  karisik: { ad: "Karışık" },
 };
 
 export function kategoriAdi(anahtar) {
   return KATEGORI_BILGI[anahtar]?.ad ?? anahtar;
 }
 
-export function kategoriIkon(anahtar) {
-  return KATEGORI_BILGI[anahtar]?.ikon ?? "❓";
+// Emoji ikonlar kaldırıldı; görsel karşılık <KategoriIkon anahtar=... /> ile
+// çizilir (bildim/components/KategoriIkon.jsx).
+export function kategoriIkon() {
+  return "";
 }
 
+// Etiket artık yalnız ad (emoji önek yok).
 export function kategoriEtiket(anahtar) {
-  const b = KATEGORI_BILGI[anahtar];
-  return b ? `${b.ikon} ${b.ad}` : anahtar;
+  return kategoriAdi(anahtar);
 }
 
 // Genel Kültür her zaman başta; gerisi sunucudan gelen sırayı korur.

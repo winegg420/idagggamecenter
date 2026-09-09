@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import Ikon from "../components/Ikon.jsx";
 import { hataMesaji } from "../lib/hata.js";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "../../src/lib/supabase.js";
@@ -63,12 +64,12 @@ export default function DavetPage() {
         const sonuc = Array.isArray(data) ? data[0] : data;
         const ad = sonuc?.gorunen_ad ?? "Oyuncu";
         const mesajlar = {
-          istek_gonderildi: `${ad} kişisine arkadaşlık isteği gönderildi ✅`,
-          arkadas_oldu: `${ad} artık arkadaşın! 🎉`,
+          istek_gonderildi: `${ad} kişisine arkadaşlık isteği gönderildi`,
+          arkadas_oldu: `${ad} artık arkadaşın!`,
           zaten_arkadas: `${ad} zaten arkadaşın.`,
         };
         setDurum("basarili");
-        setMesaj(mesajlar[sonuc?.durum] ?? "İstek gönderildi ✅");
+        setMesaj(mesajlar[sonuc?.durum] ?? "İstek gönderildi");
         try {
           localStorage.removeItem(DEPO_ANAHTAR);
         } catch {
@@ -85,7 +86,7 @@ export default function DavetPage() {
   return (
     <div className="kart bd-davet-sonuc">
       <div style={{ fontSize: 40, marginBottom: 10 }}>
-        {durum === "basarili" ? "🎉" : durum === "hata" ? "⚠️" : "🎟️"}
+        <Ikon ad={durum === "basarili" ? "onay" : durum === "hata" ? "uyari" : "hediye"} boyut={34} />
       </div>
       <div style={{ fontWeight: 800, fontSize: 17, marginBottom: 8 }}>
         {durum === "basarili" ? "Davet uygulandı" : "Arkadaş daveti"}

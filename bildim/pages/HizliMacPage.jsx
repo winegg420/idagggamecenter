@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import Ikon from "../components/Ikon.jsx";
 import SenRozeti from "../components/SenRozeti.jsx";
 import SureDolduGecis from "../components/SureDolduGecis.jsx";
 import { useOyunModu } from "../lib/oyunModu.js";
@@ -158,7 +159,7 @@ export default function HizliMacPage() {
     const bekleyenler = katilimcilar.filter((k) => k.davet_durumu === "bekliyor");
     return (
       <div className="buyuk-mesaj">
-        <div className="emoji">⚡</div>
+        <div className="emoji"><Ikon ad="hizli" boyut={40} /></div>
         <h2>Hızlı yarış bekleniyor</h2>
         <p className="alt-yazi" style={{ marginBottom: 16 }}>
           {bekleyenler.length > 0
@@ -183,7 +184,7 @@ export default function HizliMacPage() {
                         : "var(--text-dim)",
                 }}
               >
-                {k.davet_durumu === "kabul" ? "Hazır ✓" : k.davet_durumu === "red" ? "Reddetti" : "Bekliyor…"}
+                {k.davet_durumu === "kabul" ? "Hazır" : k.davet_durumu === "red" ? "Reddetti" : "Bekliyor…"}
               </span>
             </div>
           ))}
@@ -199,7 +200,7 @@ export default function HizliMacPage() {
           </div>
         )}
         <button className="btn ikincil" style={{ marginTop: 16, maxWidth: 340 }} onClick={() => navigate("/bildim/meydan")}>
-          ← Geri dön
+          Geri dön
         </button>
       </div>
     );
@@ -208,11 +209,11 @@ export default function HizliMacPage() {
   if (mac.durum === "iptal") {
     return (
       <div className="buyuk-mesaj">
-        <div className="emoji">🙅</div>
+        <div className="emoji"><Ikon ad="carpi" boyut={40} /></div>
         <h2>Hızlı yarış iptal edildi</h2>
         <p className="alt-yazi">Davetlilerden biri reddetti.</p>
         <button className="btn" style={{ marginTop: 16 }} onClick={() => navigate("/bildim/meydan")}>
-          ← Geri dön
+          Geri dön
         </button>
       </div>
     );
@@ -224,6 +225,7 @@ export default function HizliMacPage() {
         baslik="Maç bitti!"
         skor={benimKayit?.skor ?? 0}
         skorEtiket="puan"
+        kazandi={mac.kazanan === user.id}
         onBitti={() => setGecisBitti(true)}
       />
     );
@@ -234,7 +236,7 @@ export default function HizliMacPage() {
     const berabere = mac.kazanan === null;
     return (
       <div className="buyuk-mesaj">
-        <div className="emoji">{berabere ? "🤝" : kazandim ? "🎉" : "😢"}</div>
+        <div className="emoji"><Ikon ad={berabere ? "kisiler" : kazandim ? "kupa" : "kalkan"} boyut={40} /></div>
         <h2>
           {berabere ? "Berabere!" : kazandim ? "Kazandın! +50 puan" : "Kaybettin"}
         </h2>
@@ -251,7 +253,7 @@ export default function HizliMacPage() {
           ))}
         </div>
         <button className="btn ikincil" style={{ marginTop: 16, maxWidth: 340, margin: "16px auto 0" }} onClick={() => navigate("/bildim/meydan")}>
-          ← Meydan okumalara dön
+          Meydan okumalara dön
         </button>
       </div>
     );
@@ -261,7 +263,7 @@ export default function HizliMacPage() {
   return (
     <div>
       <div className="durum-bandi canli" style={{ marginBottom: 12 }}>
-        ⚡ Hızlı Olan Kazanır · İlk doğru cevap +10
+        Hızlı Olan Kazanır · İlk doğru cevap +10
       </div>
 
       <div className="grup-skor-listesi">
@@ -294,9 +296,9 @@ export default function HizliMacPage() {
       {cevapladim && (
         <div className="alt-yazi" style={{ textAlign: "center", marginTop: 14 }}>
           {ilkBildim === true
-            ? "⚡ İlk sen bildin! +10 puan"
+            ? "İlk sen bildin! +10 puan"
             : ilkBildim === false
-              ? "Birisi senden hızlı davrandı 😬"
+              ? "Birisi senden hızlı davrandı"
               : "Diğer oyuncular bekleniyor…"}
         </div>
       )}

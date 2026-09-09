@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 
-const RENKLER = ["#fbbf24", "#22c55e", "#a78bfa", "#38bdf8", "#f472b6"];
+const RENKLER = ["#F2B23C", "#2FBF71", "#F7CB77", "#4A9DD9", "#E8543F"];
 
 /**
  * Doğru cevapta kısa parçacık patlaması. Salt CSS animasyonu — kütüphane yok.

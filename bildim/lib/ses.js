@@ -111,3 +111,23 @@ export function sesDogru() {
 export function sesYanlis() {
   ton({ frekans: 200, sure: 0.2, hacim: 0.15, tip: "square" });
 }
+
+/** Buton dokunuşu — çok kısa klik. */
+export function sesDokunus() {
+  ton({ frekans: 1150, sure: 0.035, hacim: 0.075, tip: "square" });
+}
+
+/** Maç kazandın — üç notalı arpej. */
+export function sesKazandin() {
+  ton({ frekans: 523, sure: 0.12, hacim: 0.16 });
+  ton({ frekans: 659, sure: 0.12, hacim: 0.16, gecikme: 0.11 });
+  ton({ frekans: 784, sure: 0.26, hacim: 0.17, gecikme: 0.22 });
+}
+
+/** Rütbe atlama — yükselen dörtlü, sonuncusu uzun. */
+export function sesRutbeAtladi() {
+  ton({ frekans: 523, sure: 0.1, hacim: 0.15, tip: "triangle" });
+  ton({ frekans: 698, sure: 0.1, hacim: 0.15, tip: "triangle", gecikme: 0.1 });
+  ton({ frekans: 880, sure: 0.1, hacim: 0.16, tip: "triangle", gecikme: 0.2 });
+  ton({ frekans: 1047, sure: 0.36, hacim: 0.17, tip: "triangle", gecikme: 0.3 });
+}

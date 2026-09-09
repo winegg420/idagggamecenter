@@ -255,10 +255,10 @@ export default function MatchPage() {
   if (mac.durum === "reddedildi" || mac.durum === "iptal") {
     return (
       <div className="buyuk-mesaj">
-        <div className="emoji">🙅</div>
+        <div className="emoji"><Ikon ad="carpi" boyut={40} /></div>
         <h2>Meydan okuma reddedildi</h2>
         <button className="btn" style={{ marginTop: 16 }} onClick={() => navigate("/bildim/meydan")}>
-          ← Geri dön
+          Geri dön
         </button>
       </div>
     );
@@ -270,6 +270,7 @@ export default function MatchPage() {
         baslik="Maç bitti!"
         skor={mac.oyuncu1 === user.id ? mac.oyuncu1_skor : mac.oyuncu2_skor}
         skorEtiket="puan"
+        kazandi={mac.kazanan === user.id}
         onBitti={() => setGecisBitti(true)}
       />
     );
@@ -288,7 +289,7 @@ export default function MatchPage() {
         <h2 className={`bd-sonuc-baslik ${kazandim ? "kazandi" : berabere ? "" : "kaybetti"}`}>
           {berabere ? "Berabere!" : kazandim ? "Kazandın!" : "Kaybettin"}
         </h2>
-        {kazandim && <span className="bd-sonuc-kazanc">+20 ⭐</span>}
+        {kazandim && <span className="bd-sonuc-kazanc">+20 puan</span>}
         <div className="skor-tabela" style={{ marginTop: 20 }}>
           <div className="taraf">
             <div className="isim">{benimProfil?.gorunen_ad}<SenRozeti /></div>
@@ -316,15 +317,15 @@ export default function MatchPage() {
               else navigate("/bildim/meydan");
             }}
           >
-            🔁 Rövanş
+            Rövanş
           </button>
           {(() => {
             const sonucYazi = berabere
               ? `${rakipProfil?.gorunen_ad} ile ${benimSkor}-${rakipSkor} berabere kaldım`
               : kazandim
-                ? `${rakipProfil?.gorunen_ad}'i ${benimSkor}-${rakipSkor} yendim! 🏆`
+                ? `${rakipProfil?.gorunen_ad}'i ${benimSkor}-${rakipSkor} yendim!`
                 : `${rakipProfil?.gorunen_ad} karşısında kıl payı kaybettim`;
-            const mesaj = `🧠 Bildim!'de ${sonucYazi} Sen de gel, kapışalım: ${window.location.origin}/?davet=${user.id}`;
+            const mesaj = `Bildim!'de ${sonucYazi} Sen de gel, kapışalım: ${window.location.origin}/?davet=${user.id}`;
             const enc = encodeURIComponent(mesaj);
             return (
               <div className="paylas-bar">
@@ -334,7 +335,7 @@ export default function MatchPage() {
                   target="_blank"
                   rel="noreferrer"
                 >
-                  💬 WhatsApp
+                  WhatsApp
                 </a>
                 <a
                   className="paylas x"
@@ -356,7 +357,7 @@ export default function MatchPage() {
                     }
                   }}
                 >
-                  📤 Diğer
+                  Diğer
                 </button>
               </div>
             );
@@ -364,7 +365,7 @@ export default function MatchPage() {
           {/* Bildirim izni ilk açılışta değil, ilk maç sonucunda sorulur. */}
           <BildirimIzniSor />
           <button className="btn ikincil" onClick={() => navigate("/bildim/meydan")}>
-            ← Meydan okumalara dön
+            Meydan okumalara dön
           </button>
         </div>
       </div>
@@ -378,7 +379,7 @@ export default function MatchPage() {
     return (
       <div className="buyuk-mesaj">
         <Maskot poz="selam" boyut={104} className="bd-sonuc-maskot" />
-        <h2>Senin bölümün bitti 🎉</h2>
+        <h2>Senin bölümün bitti</h2>
         <p className="alt-yazi" style={{ marginBottom: 14 }}>
           {toplamSoru} sorunun tamamını oynadın. <b>{rakipProfil?.gorunen_ad}</b> kendi
           zamanında oynayınca maç sonuçlanacak — bittiğinde sana haber vereceğiz.
@@ -436,7 +437,7 @@ export default function MatchPage() {
             aria-label="Kapat"
             onClick={() => setBilgiKapandi(true)}
           >
-            ✕
+            <Ikon ad="carpi" boyut={16} />
           </button>
         </div>
       )}
@@ -502,7 +503,7 @@ export default function MatchPage() {
           className={kaliplarAcik ? "acik" : ""}
           onClick={() => setKaliplarAcik((a) => !a)}
         >
-          💬
+          <Ikon ad="sohbet" boyut={18} />
         </button>
       </div>
       {kaliplarAcik && (

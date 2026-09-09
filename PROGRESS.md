@@ -1867,3 +1867,170 @@ arkadaş ekleme doğrulaması, manifest, grup maçı bot ilerlemesi.
   - Yani panelde bot kaynaklı "sıra sende" bildirimi **kalmadı**; gerçek olaylar
     (mac_daveti, ustalik, arkadas_istek) öncelik sırasıyla üstte.
   - `bildim-bildirim-temizle` cron kaydı doğrulandı (`20 3 * * *`).
+
+## 2026-09-09 (3. tur) — "AI yapımı" görünümünü kırma paketi (kozmetik)
+
+Görev listesi: `BILDIM_GOREV7.md`. Migration YOK — tamamı arayüz.
+Kapsam yalnız `bildim/` + paylaşılan giriş sayfası ve manifest dosyaları.
+(`src/pages/GameCenter.jsx` ve `BirlesikSiralama.jsx` hub'a ait; dokunulmadı.)
+
+### 1) Palet — mor tamamen kaldırıldı
+
+| Rol | ESKİ | YENİ |
+|---|---|---|
+| Zemin | `#0d0b1f` / `#0b0918` (koyu mor) | **`#0B1220`** (gece lacivert) |
+| Zemin 2 | `#161330` / `#120e26` | **`#131C31`** |
+| Yüzey 1 (kart) | `#1a1635` / `#191333` | **`#18233B`** |
+| Yüzey 2 | `#1f1b40` / `#221a44` | **`#1F2C4A`** |
+| Yüzey 3 | `#2c2255` | **`#27365A`** |
+| Kenarlık | `#2e2856` | **`#26344F`** |
+| Ana vurgu | `#8b5cf6` (mor) | **`#F2B23C`** (altın) |
+| Vurgu 2 | `#6d28d9` | **`#C98A22`** |
+| Vurgu açık | `#a78bfa` | **`#F7CB77`** |
+| Ödül/puan | `#fbbf24` / `#ffc83d` | **`#F2B23C`** |
+| Başarı | `#22c55e` / `#2ecc71` | **`#2FBF71`** |
+| Hata/uyarı | `#ef4444` / `#ff5a5f` | **`#E8543F`** (mercan) |
+| Bilgi | `#38bdf8` / `#22d3ee` | **`#4A9DD9`** |
+| Metin | `#f1efff` / `#f3f0ff` | **`#EAF0FA`** |
+| Metin 2 | `#b3aad6` | **`#A8B8D0`** |
+| Metin 3 | `#8d84b5` | **`#8496B2`** |
+
+- Kategori renkleri de yeniden atandı (10 kategori, hiçbiri mor):
+  genel kültür `#4A9DD9`, bilim `#2FBF71`, tarih `#C98A22`, coğrafya `#3FA9A0`,
+  edebiyat `#E8543F`, spor `#5AA9E6`, sanat `#E0729A`, sinema `#8C93A8`,
+  müzik `#F2B23C`, teknoloji `#4FB3C9`.
+- **Gradient sayısı: 184 → 22 satır (%88 azalma).** Kalanlar: zemin (2 body
+  kuralı), tek birincil buton, maskeler (`mask-image`) ve kapsam dışı `.gc-*`
+  hub kartları. Kart / ikon plakası / rozet gradientlerinin tamamı düz renge indi.
+- **Renkli glow yalnız `.bd-ana-eylem`'de** (`--bd-glow-odul`). Diğer 19 renkli
+  `box-shadow` düz siyah, düşük opaklık, kısa yayılıma çevrildi.
+- `theme-color` meta + `manifest.webmanifest` + `bildim.webmanifest` + JS'teki
+  `BILDIM_TEMA` → `#0B1220`.
+- **DOĞRULAMA:** `grep -ri "7c4dff|8b5cf6|a78bfa|6d28d9|c4b5fd|5b21b6|46179c|1c1642|
+  rgb(139,92,246)|rgb(167,139,250)|rgb(109,40,217)" bildim/ src/styles.css src/pages`
+  → **0 sonuç**. Tarayıcıda çalışan stil sayfalarında mor kural sayısı: **0**.
+  Hesaplanan `body` zemini: `rgb(11, 18, 32)`.
+  (Ara adımda gözden kaçan 8 alfa'lı mor yüzey — `rgba(26,20,54,…)` gibi — ve
+  buton gölgesindeki `#46179c` canlı tarayıcı ölçümüyle yakalanıp düzeltildi.)
+
+### 2) Emojiler silindi, yerine özel ikon seti
+
+- **`bildim/components/Ikon.jsx` — 41 çizgi ikon** (2px kontur, yuvarlak uç,
+  `currentColor`, 24px kutu, dolgu yok): ev, kupa, kılıç, oyun kolu, grafik,
+  kişiler, kişi, kişi ekle, zil, yıldız, ateş, kalkan, madalya, uyarı, terazi,
+  saat, ileri atla, hızlı, soru, robot, sohbet, şehir, dünya, harita pini,
+  bayrak, kilit, onay, çarpı, ok, geri, artı, yenile, çöp, paylaş, ayar,
+  hediye, ses açık, ses kapalı, liste, kalem, çıkış.
+- **`bildim/components/KategoriIkon.jsx` — 12 dolgu kategori ikonu** (beyin,
+  atom, sütun, küre, kitap, top, palet, film şeridi, nota, çip, kadeh),
+  her biri kendi kategori renginde plakada (`plaka` özelliği).
+- **Emoji sayımı: 309 satır → 15 satır.** Kalan 15'in tamamı bilinçli:
+  5 kod yorumundaki `→` okları, 2 ülke bayrağı fallback'i (`konum.js` — bayrak
+  emojisi ülkeyi kodlayan **veri**, süs değil), 8 maç içi tepki satırı
+  (`EMOJILER` dizisi + tepki cümleleri = kullanıcı içeriği, kalması istenmişti).
+- Rütbe ve joker tabloları da emoji yerine ikon ADI tutuyor
+  (`ranks.js`, `jokerler.js`); `kategoriEtiket()` artık emoji öneki eklemiyor.
+
+### 3) Açıklama metinleri silindi
+- Mod kartlarındaki **6 slogan** kaldırıldı: "Arkadaşını yen", "60 saniye",
+  "3-5 kişi", "Son kalan kazanır", "Güçlen", "Sıranı gör". Kartta yalnız
+  ikon + mod adı kaldı (`.bd-mod-slogan` CSS'te de gizlendi).
+- Aynı refleksle yazılmış **5 yardımcı cümle** silindi/kısaltıldı:
+  - "Bu kodu ya da linki arkadaşına gönder; seni eklesin. Gerçek adın görünmez." → silindi
+  - "Hesap kimliğin: … (yalnızca sana görünür)" → silindi
+  - "Açık — son 5 saniyede geri sayım tik'i, cevapta ve bitişte ses." → "Açık"
+  - "Açık — turnuva ve meydan okumalardan haberin olur." → "Açık"
+  - "Davet linkinle gelen her arkadaş için ikiniz de +50 puan kazanırsınız!"
+    → "Her davet için ikiniz de +50 puan."
+- Buton metinleri kısaldı: "🎟️ Lobiye Katıl" → "Lobiye katıl",
+  "⚔️ Meydan Oku" → "Meydan oku", "🚀 Grubu Kur ve Davet Et" → "Grubu kur ve
+  davet et", "⚔️ RÖVANŞ İSTE" → "Rövanş iste", "HEMEN OYNA" → "Hemen oyna".
+- **Toplam silinen/kısaltılan metin: 11 + 5 buton etiketi.**
+
+### 4) Kart kalıbı kırıldı — ritim
+- **Hero:** kart değil. `background: none`, kenarlık yok, gölge yok; sayfa
+  dolgusunun dışına taşıp `.app` sütununun tamamını kaplıyor, altında tek ince
+  çizgi. Altın büyük puan + ince rütbe çubuğu (5px).
+  (İlk denemede `calc(50% - 50vw)` ile viewport'a taşırıldı; masaüstünde kaydırma
+  çubuğu kadar sola kayma ölçüldü — `margin: 0 -12px` ile düzeltildi.)
+- **Mod ızgarası:** 2 sütun ama kartlar EŞİT DEĞİL. İlk kart (Meydan Oku) ve son
+  kart (Lig) `grid-column: span 2` ile çift genişlikte ve yatay dizilimli;
+  diğer dördü 1.45:1 küçük kart. Kartlar arası boşluk 8px.
+- **Turnuva:** dikey kart yerine **yatay bant** — etiket + sayaç solda, buton
+  sağda, `flex-wrap: nowrap`. Sayaç kutuları küçültüldü ki buton alta düşmesin.
+- **Lig özeti:** kart değil, üç sütunluk ince bant (şehir / ülke / dünya sırası,
+  altın rakam + küçük etiket).
+- **Günlük görevler:** zaten katlanmış tek satırdı, korundu.
+- Dikey boşluklar ~%30 azaldı: sayfa dolgusu 16 → 12px, kart dolgusu 16 → 12px,
+  kartlar arası 14 → 10px, başlık marjı 20/10 → 14/8px.
+
+### 5) Arka plan
+- İki `body` kuralındaki 7 renk lekesi (mor + camgöbeği + sarı radyaller) tek
+  altın radyal ışığa indi; altta koyulaşan dikey geçiş kaldı.
+- `body::before` nokta dokusu yerine **135° ince köşegen çizgi**
+  (`repeating-linear-gradient`, opaklık **0.03**, 9px aralık), aşağı doğru
+  maskeli sönüm. Görsel dosya eklenmedi.
+
+### 6) Logo
+- `bildim/components/Logo.jsx`: gradient renkli düz metin yerine **çizilmiş
+  SVG wordmark** — kalın harfler, altın ve 8° eğik "!" (ayrı iki dikdörtgen),
+  harflerin altında ince altın çizgi. Üst çubukta (24px) ve giriş ekranında (44px).
+
+### 7) Maskot
+- `Maskot.jsx` sıfırdan yeniden çizildi: yuvarlak-şirin baykuş (Duolingo
+  çağrışımı) yerine **köşeli/geometrik kuş** — altıgen lacivert gövde, üçgen
+  kanat panelleri, altın üçgen gaga ve boynuzlar, gözler yalnız iki daire.
+  Gradient ve arka ışık kaldırıldı. Üç poz korundu (selam / düşünüyor / kutluyor).
+- Varsayılan boyut **96 → 64**; bitiş perdesinde 92 → 64. Artık odak değil aksan.
+
+### 8) Ses
+- `bildim/lib/ses.js` genişletildi (WebAudio, ses dosyası yok):
+  `sesDokunus` (kısa klik), `sesDogru` (yükselen üçlü), `sesYanlis` (alçalan tek
+  nota), `sesTik` (son 5 sn), `sesSureDoldu`, `sesKazandin` (üç notalı arpej),
+  `sesRutbeAtladi` (yükselen dörtlü).
+- **Üst çubukta aç/kapa düğmesi** (`SesDugmesi.jsx`); tercih `localStorage`da
+  (`bildim_ses`), varsayılan **AÇIK**. AudioContext ilk kullanıcı hareketinde
+  try-catch içinde açılıyor (tarayıcı kısıtı).
+- Bağlandığı yerler: `QuestionCard` (tik/doğru/yanlış/süre doldu),
+  `SureDolduGecis` (`kazandi` ise arpej), `RankUpOverlay` (rütbe atlama),
+  Profil sayfası ve üst çubuk düğmesi.
+
+### 9) Detay temizliği
+- Yarıçap karışık: kart 12px, buton/şık 10px, rozet-çip-zil tam yuvarlak
+  (eski tek tip 16/24px yerine).
+- Gölge: renkli glow yerine düz siyah, düşük opaklık, kısa yayılım
+  (`0 2px 6px rgba(0,0,0,.32)` / `0 6px 16px rgba(0,0,0,.42)`).
+- Tipografi: Baloo 2 yalnız hero, mod adları ve büyük sayılarda; bölüm
+  başlıkları gövde fontuna, 15px, `text-transform: none` oldu.
+  Büyük harf + geniş harf aralığı yalnız küçük etiketlerde (mini label).
+- Mod ikon plakaları artık mod temasının rengini alıyor (`--tema-ikon`);
+  önce hepsi altın çıkıyordu, canlı ölçümle yakalandı.
+
+### DOĞRULAMA (Chrome, derlenmiş `index.css` ile gerçek ölçüm)
+Beş genişlikte (360 / 390 / 412 / 768 / 1280 px):
+- **Yatay taşma: yok** (`documentElement.scrollWidth <= innerWidth` hepsinde).
+- **44px altı dokunma hedefi: yok** (tüm `button`/`a` ölçüldü).
+- Hero `left: 0`, genişlik = sütun genişliği; mod ızgarasında geniş kart
+  351px / küçük kart 172px (390px'te) — dengesizlik amaçlandığı gibi.
+
+Kontrast (WCAG AA eşiği 4.5):
+
+| Öğe | Oran |
+|---|---|
+| Gövde metni | **7.83** |
+| Küçük etiket (PUAN) | **6.23** |
+| Altın puan | **9.99** |
+| Bölüm başlığı | **16.35** |
+| Lig bandı etiketi | **5.20** |
+| Liste detayı | **6.54** |
+| Turnuva etiketi | **5.20** |
+
+Hepsi eşiğin üzerinde.
+
+### Sayılarla özet
+- Palet: **13 renk tokenı** değişti, mor kalıntısı **0**.
+- Gradient: **184 → 22** satır (%88 ↓). Renkli glow: **20 → 1**.
+- Emoji: **309 → 15** satır (kalanlar kod yorumu, ülke bayrağı, maç içi tepki).
+- Yeni ikon: **41 çizgi + 12 kategori = 53 SVG**.
+- Silinen/kısaltılan metin: **11 açıklama + 5 buton etiketi**.
+- Yeni bileşen: `Logo.jsx`, `KategoriIkon.jsx`, `SesDugmesi.jsx`.
