@@ -1801,8 +1801,8 @@ input:focus { border-color: var(--primary); }
 .bd-mod-ikon.hizli { background: #F2B23C; color: #0B1220; }
 .bd-mod-ikon.grup { background: #4A9DD9; color: #0B1220; }
 .bd-mod-ikon.turnuva { background: #E8543F; color: #0B1220; }
-/* Hatalarım: kendi rengi (teal) — diğer modlardan ayrışsın */
-.bd-mod-ikon.hatalarim { background: #2FBF71; color: #0B1220; }
+/* Hatalarım: kendi rengi (camgöbeği) — Lig'in yeşiliyle karışmasın */
+.bd-mod-ikon.hatalarim { background: #20A4A0; color: #0B1220; }
 
 /* Hatalarım mod kartı: köşede bankadaki soru sayısı rozeti */
 .bd-mod.tema-hatalarim { position: relative; }
@@ -2186,7 +2186,7 @@ body.bd-oyun-modu .bd-joker-cubuk {
   font-size: 14.5px; color: var(--text);
 }
 .bd-calisma-ozet-ust b { color: var(--accent); }
-.bd-calisma-ozet-ust .ayrac { color: var(--text-dim); }
+.bd-calisma-ozet-ust .bd-calisma-ayrac { color: var(--text-dim); }
 
 .bd-calisma-cubuklar { display: grid; gap: 7px; margin-top: 14px; }
 .bd-calisma-cubuk {
@@ -2301,6 +2301,9 @@ body.bd-oyun-modu .bd-joker-cubuk {
 }
 
 /* ---- Profil: Hatalarım bölümü ---- */
+/* `.app a` (0,1,1) bu kuralı eziyordu: satır altın + altı çizili görünüyordu.
+   Aynı özgüllüğe çıkarıldı. */
+.app a.bd-profil-hatalarim,
 .bd-profil-hatalarim {
   display: flex; align-items: center; gap: 12px;
   color: var(--text); text-decoration: none;
@@ -2311,6 +2314,8 @@ body.bd-oyun-modu .bd-joker-cubuk {
 .bd-profil-hatalarim .ok { color: var(--text-dim); font-size: 20px; }
 
 /* ---- Maç sonucundaki "N soruyu yanlış bildin" satırı ---- */
+/* `.app a` özgüllüğünü aşmak için (bkz. .bd-profil-hatalarim). */
+.app a.bd-yanlis-satiri,
 .bd-yanlis-satiri {
   display: flex; align-items: center; gap: 10px;
   margin-top: 12px; padding: 10px 12px;

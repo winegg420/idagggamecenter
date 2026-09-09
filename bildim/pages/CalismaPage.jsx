@@ -223,7 +223,7 @@ export default function CalismaPage() {
               <span>
                 Bankanda <b>{banka.bekleyen} soru</b> var
               </span>
-              <span className="ayrac">·</span>
+              <span className="bd-calisma-ayrac">·</span>
               <span>
                 <b>{banka.ogrenilen}</b> tanesini öğrendin
               </span>

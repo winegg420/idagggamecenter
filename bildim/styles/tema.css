@@ -281,6 +281,9 @@ body::before {
 .bd-mod.tema-turnuva .bd-mod-ikon { color: #1b1206; }
 .bd-mod.tema-joker   { --tema: rgba(244,114,182,0.42); --tema-ikon: #E8543F; --tema-golge: rgba(157,23,77,0.45); }
 .bd-mod.tema-lig     { --tema: rgba(45,212,191,0.42);  --tema-ikon: #2FBF71; --tema-golge: rgba(15,118,110,0.45); }
+/* Hatalarım: kendi rengi. Lig'in yeşiliyle aynı olmasın diye camgöbeği seçildi
+   (paletteki en yakın renge ΔE 40.9, zemin kontrastı 6.13). */
+.bd-mod.tema-hatalarim { --tema: rgba(32,164,160,0.42); --tema-ikon: #20A4A0; --tema-golge: rgba(13,94,92,0.45); }
 
 /* ---------- Lig özeti 3'lü kutu ---------- */
 .bd-hero-lig { gap: var(--bd-bosluk-2); }

@@ -87,8 +87,12 @@ export default function Ikon({ ad, boyut = 20, kalinlik = 2, className = "" }) {
       aria-hidden="true"
       focusable="false"
     >
-      {d.split("M").filter(Boolean).map((p, i) => (
-        <path key={i} d={"M" + p} />
+      {/* Alt yollar büyük "M" komutundan ayrılır; komut harfi KORUNUR.
+          (Eski hâli split("M") + "M" ekliyordu; küçük "m" ile başlayan
+          yollar "Mm…" olup geçersizleşiyor ve hiç çizilmiyordu —
+          yildiz, hizli ve onay ikonları bu yüzden görünmüyordu.) */}
+      {d.split(/(?=M)/).filter(Boolean).map((p, i) => (
+        <path key={i} d={p} />
       ))}
     </svg>
   );
