@@ -2650,3 +2650,46 @@ Site canlıda gerçek hesapla (idagg, 350 puan) baştan sona gezildi.
 - X (developer.x.com) ve Meta (developers.facebook.com) uygulama anahtarları
 - Özel SMTP — yerleşik e-posta tek gönderimden sonra `429` veriyor
 - Türkçe/Quizador markalı auth e-posta şablonları
+
+## 9 Eylül 2026 (2) — iPhone "Ana Ekrana Ekle" yönlendirmesi
+
+Kullanıcı hatırlattı: Safari'de açanlara kısayol oluşturma yönlendirmesi
+çıkacaktı. PROGRESS ve git geçmişinde kaydı yok — konuşulmuş ama koda hiç
+girmemiş. Eklendi.
+
+**Neden gerekliydi:** iOS Safari `beforeinstallprompt` olayını desteklemiyor
+(Apple otomatik kurulum banner'ını iOS 12.2'de kaldırdı). Android'de Chrome
+kendi önerisini gösterirken iPhone kullanıcısı hiçbir davet almıyordu.
+PWA altyapısı zaten doğruydu (`apple-touch-icon`, `apple-mobile-web-app-*`,
+manifest); eksik olan tek şey kullanıcıya bunu söyleyen yönlendirmeydi.
+
+**Yeni:** `bildim/components/AnaEkranaEkle.jsx` — alttan giren kart, modal
+değil. 3 adım + Safari paylaş / artı-kutu ikonları. Kapatılınca localStorage
+ile bir daha çıkmaz.
+
+**Gösterilme kapısı** (dördü birden): iOS cihaz · gerçek Safari · uygulama
+zaten ana ekrandan açılmamış · daha önce kapatılmamış.
+8 gerçek UA dizesiyle sınandı, 8/8 doğru (iPhone/iPad Safari → göster;
+CriOS, Instagram, Facebook, Android Chrome, Mac Safari, Windows → gizle).
+
+**Kararlar ve nedenleri:**
+- iPadOS 13+ kendini "MacIntel" diye tanıttığı için `maxTouchPoints > 1`
+  ile ayırt ediliyor; yoksa masaüstü Mac'te de çıkardı.
+- Uygulama içi tarayıcılar (Instagram/Facebook) elendi: orada "Ana Ekrana
+  Ekle" menüsü yok, göstermek kullanıcıyı boşa uğraştırırdı.
+- Metinde **"aşağıdaki paylaş düğmesi" denmiyor** — iOS 15+ varsayılanında
+  alt çubukta ama "Tek Sekme" ayarında ve yatay modda sağ üstte. Konum vaat
+  etmek yerine ikon gösteriliyor. Aynı sebeple işaret oku kaldırıldı.
+- Giriş ekranı dikeyde ortalı olduğundan alta padding vermek içeriği yalnız
+  yarısı kadar kaldırıyordu (ölçtüm: 300px padding → kart yasal linklerin
+  9px üstüne biniyordu). Kart açıkken hiza üste alındı; en alta kayınca
+  116px boşluk ölçüldü.
+- `.btn` sınıfı kullanılmadı: o kural `.app` altında tanımlı, giriş ekranında
+  `.app` sarmalayıcısı yok — düğme stilsiz kalırdı.
+- Maç sırasında (`body.bd-oyun-modu`) gizleniyor; cevap şıklarının önüne
+  geçmesin.
+- Yalnız `BildimApp.jsx`'e bağlandı → hub derlemesi etkilenmedi.
+
+**Doğrulanamayan:** gerçek iPhone'da görünüm ve "Ana Ekrana Ekle" akışı —
+tarayıcı otomasyonunda iOS Safari taklit edilemiyor. Kapı mantığı ve CSS
+yerleşimi ölçülerek doğrulandı, cihaz testi kullanıcıda.
