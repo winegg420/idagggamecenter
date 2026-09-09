@@ -2845,3 +2845,99 @@ Realtime **presence** eklendi (projede ilk kez kullanıldı).
 - **Aktarmasız gerçek ağ yolu.** Yapılan test tek makinede döngüydü; iki ayrı
   evdeki cihaz arasında bağlantı kurulup kurulmayacağı ancak gerçek denemeyle
   görülür. Kurulamazsa Cloudflare Realtime aktarması eklenecek.
+
+---
+
+## 9 Eylül 2026 (5) — Daha önce hiç denetlenmemiş alanların taraması
+
+Kullanıcı isteği: "Bugüne kadar hiç kontrol etmediğin özellikleri kontrol et."
+Kapsam: zamanlanmış görevler, rozet/görev sistemi, grup & hızlı maç, Hızlı Mod,
+davet linkleri, bildirim paneli, Edge Function'lar, PWA manifest, robots/sitemap.
+
+### 🔴 BULGU 1 — Haftalık lig 3 aydır hiç kapanmıyordu (migration 114)
+
+`lig_arsiv` **tamamen boş**. Sonuçları:
+- "Haftanın Birincisi/İkincisi/Üçüncüsü" ve "Şehrin Kralı" rozetleri
+  kazanılması **imkânsız** (16 rozetin 4'ü ölü)
+- Hiç `hafta_sonuc` bildirimi gönderilmemiş
+- `puan_hafta` hiç sıfırlanmamış
+- Ana sayfa "Haftalık lig bitimine N gün" diye geri sayıyor ama karşılığı yok
+
+**Teşhis (adım adım):**
+1. `haftayi_kapat()` kuru çalıştırma (transaction + rollback) → **kusursuz**:
+   haftayı arşivledi, 4 rozet dağıttı, 3 bildirim yazdı, puanları sıfırladı.
+   Yani fonksiyon sağlam.
+2. `cron.job`'da iş `active=true`, doğru schedule, doğru database/username.
+3. `cron.job_run_details`'te **tek bir çalışma kaydı yok** (3 aylık, 1,2M kayıtlık
+   geçmişte).
+4. pg_cron sağlıklı: test işi (`* * * * *`) kurulur kurulmaz 1 dk'da çalıştı.
+5. **Belirli saatli** test işi (`36 20 * * *`) de tam 20:36:00'da çalıştı —
+   yani bozuk görevlerin ait olduğu desen sınıfında sorun yok.
+6. 30 Ağustos ve 6 Eylül **Pazar günleri tam 21:00:00'da** `turnuva-ilerlet`
+   çalışmış → o anda cron ayaktaydı, haftalık iş yine tetiklenmedi.
+
+**Sonuç:** eski `cron.job` kaydı ölüymüş (kaydediliyor ama zamanlayıcı almıyor).
+Kök nedeni pg_cron içinde tam olarak saptayamadım; **kanıtlanan** şey fonksiyonun
+ve cron'un çalıştığı, eski kaydın çalışmadığı.
+
+**Çözüm:** işler yeniden kuruldu (yeni jobid 53/54/55) VE tek dakikaya
+bağımlılık kaldırıldı. `haftayi_kapat` zaten tekrar-güvenli
+(`if exists (... lig_arsiv where hafta = v_hafta) then return`), bu yüzden
+pencereye yayıldı: `0 21,22,23 * * 0` + Pazartesi yakalayıcı `0 0,1,2,3 * * 1`.
+İlk çalışan iş görür, kalanlar boşa döner → 1 şans yerine 7 şans.
+
+**Pencere neden dar:** fonksiyon `puan_hafta`'nın O ANKİ değerini arşivliyor.
+Çok geç çalışırsa yeni haftanın puanları birikmiş olur ve yanlış hafta
+arşivlenip sıfırlanır. Bu yüzden sınırın hemen ardındaki birkaç saatle sınırlı.
+
+`bildim-hafta-bildir` **çoğaltılmadı**: `haftalik_sonuc_bildir()` tekrar-güvenli
+değil (her çalışmada yeniden push atar), mükerrer bildirim gönderirdi.
+
+**Geçmiş haftalar geri getirilemez** — arşiv, puan_hafta'nın o haftanın
+sonundaki değerini ister; o değerler artık yok. Bilerek dokunulmadı.
+
+### 🔴 BULGU 2 — `satin_alma_dogrula` Edge Function dağıtılmamış (404)
+
+`JokerDukkani.jsx:88` satın alma sonrası bu fonksiyonu çağırıyor; fonksiyon
+Supabase'de **yok**. Bugün kimseyi etkilemiyor (satın alma yalnız TWA/Android
+içinde çalışıyor, web'de düğmeler kilitli) ama **Android sürümü için yayın
+engeli**: oyuncu Google Play'e para öder, joker envantere hiç işlenmez.
+`generate-questions` ve `send-push` dağıtılmış ve yetkisiz isteği 401 ile
+reddediyor.
+
+### 🟡 BULGU 3 — idagg hub'ında Vercel Attack Challenge Mode açık
+
+`X-Vercel-Mitigated: challenge`. Sonuçları: her ziyaretçi önce "Tarayıcınızı
+doğruluyoruz" ekranı görüyor (~5 sn), **Googlebot 403 alıyor** → portal
+aranabilir değil. quizador.pages.dev (Cloudflare) etkilenmiyor (Googlebot 200).
+Panel ayarı — kod değişikliği değil, kullanıcı kararı bekliyor.
+
+### ✅ Temiz çıkanlar (ilk kez denetlendi)
+
+- **17 zamanlanmış görev**, 48 saatte ~27.500 çalışma. Tek başarısızlık:
+  `bot_oyna`'da 1 deadlock (24.522'de 1 = %0,004), eşzamanlı DDL kaynaklı.
+- **Grup maçı kurma**: kota dolmadan düğme kilitli, fazla rakip seçtirmiyor,
+  geri alma çalışıyor (3/4/5 kişi seçicisi doğru).
+- **Hızlı Olan Kazanır** paneli, kuralları ("Joker yok!") doğru.
+- **Hızlı Mod** uçtan uca: başlangıç → sorular → 60 sn → bitiş ekranı →
+  haftalık sıralama. Skor 0 alındı ama **haftalık rekor 9'da kaldı** (doğru).
+  `hizli_mod_oturumlar` + `hizli_mod_skorlar` satırları yazıldı.
+- **Davet linki**: kendi kodu ve geçersiz kod net Türkçe mesajla reddediliyor.
+- **Görev sistemi**: 5 tamamlama, 110 puan dağıtılmış.
+- **Rozet sistemi**: `ilk_galibiyet` 8, `seri_3` 1, `ustalik_cirak` 1.
+- Hiçbir modda takılı maç yok (grup/hızlı/turnuva).
+- Öksüz bildirim yok, tüm gerçek profillerde davet kodu var.
+- PWA manifest derleme modunda doğru yeniden yazılıyor
+  (quizador'da `start_url: "/"`, kısayollar kökte).
+- robots.txt + sitemap.xml doğru.
+
+### Yanlış alarm diye elenenler (kontrol edildi, hata değil)
+
+- **Bildirim sırası** ("23 saat → 1 gün → 21 saat"): kasıtlı öncelik sıralaması
+  (meydan okuma > rozet > seri), kodda yorumu var.
+- **"Gece Şampiyonu" rozeti 0**: biten 6 turnuvanın **hepsini bot kazanmış**,
+  rozetin verilmemesi doğru.
+- **`bildim-bildirim-temizle` hiç çalışmamış**: 8-9 Eylül'de kurulmuş, ilk
+  03:20'sine daha gelmemiş. Hata değil.
+- **`bildim.webmanifest` start_url "/bildim"**: kaynak dosyada öyle ama derleme
+  moda göre yeniden yazıyor.
