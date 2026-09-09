@@ -206,7 +206,7 @@ export default function ProfilAyarlari() {
                   disabled={calisiyor}
                   onClick={() => avatarKaydet(a.url)}
                 >
-                  <img src={a.url} alt="" loading="lazy" />
+                  <img src={a.url} alt="" />
                 </button>
               ))}
             </div>

@@ -234,7 +234,7 @@ export default function KurulumSihirbazi({ onTamam }) {
                   title={a.ad}
                   onClick={() => setSecilenAvatar(a.url)}
                 >
-                  <img src={a.url} alt="" loading="lazy" />
+                  <img src={a.url} alt="" />
                 </button>
               ))}
             </div>
