@@ -11,6 +11,7 @@ import Tanitim from "./Tanitim.jsx";
 import { useBildimManifest } from "../lib/manifest.js";
 import BildirimToast from "./BildirimToast.jsx";
 import Ikon from "./Ikon.jsx";
+import Avatar from "../../src/components/Avatar.jsx";
 import Logo from "./Logo.jsx";
 import SesDugmesi from "./SesDugmesi.jsx";
 
@@ -99,10 +100,15 @@ export default function Layout() {
             <div className="bd-topbar-sag">
               <SesDugmesi />
               <BildirimZili />
-              <Link to="/bildim/profil" className="bd-puan-link" aria-label="Profilim">
+              <Link to="/bildim/profil" className="bd-puan-link" aria-label="Puanım">
                 <span className="puan-chip">
                   <Ikon ad="yildiz" boyut={15} /> <PuanSayaci deger={profile.puan} />
                 </span>
+              </Link>
+              {/* Profil kapısı: takma ad, avatar ve şehir buradan değişiyor.
+                  Önce yalnız puan çipinden ulaşılıyordu; kimse bulamıyordu. */}
+              <Link to="/bildim/profil" className="bd-profil-link" aria-label="Profilim ve ayarlar" title="Profilim">
+                <Avatar profile={profile} boyut={34} />
               </Link>
             </div>
           )}

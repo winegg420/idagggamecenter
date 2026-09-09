@@ -12,8 +12,8 @@ export function bayrak(kod) {
   );
 }
 
-// Konum haftada bir kez değişebilir (RPC de aynı kuralı uygular).
-export const KONUM_KILIT_MS = 7 * 24 * 60 * 60 * 1000;
+// Konum günde bir kez değişebilir (RPC de aynı kuralı uygular).
+export const KONUM_KILIT_MS = 24 * 60 * 60 * 1000;
 
 // Kalan kilit süresi (ms). 0 = değiştirilebilir.
 export function konumKilidiKalan(konumDegistiAt) {

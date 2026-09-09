@@ -393,9 +393,9 @@ body::before {
   display: flex; align-items: center; justify-content: center;
   width: 42px; height: 42px; border-radius: 50%;
   font-family: var(--bd-f-baslik);
-  font-size: 14px; font-weight: 800; color: #fff;
-  background: var(--bd-hata);
-  box-shadow: 0 6px 18px rgba(153, 27, 27, 0.45);
+  font-size: 14px; font-weight: 800; color: var(--bd-odul);
+  background: var(--bd-yuzey-3);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.32);
 }
 
 .bd-sonuc-maskot { margin: 0 auto 6px; }
@@ -487,8 +487,8 @@ body::before {
   overflow: hidden;
   border-radius: var(--bd-r-m);
   color: #fff;
-  background: #4c1d95;
-  box-shadow: 0 10px 26px var(--dv-golge, rgba(76, 29, 149, 0.5)),
+  background: var(--bd-yuzey-2);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.32),
               var(--bd-ic-parlaklik);
   animation: bd-davet-gir 0.32s cubic-bezier(0.2, 0.9, 0.25, 1.15) both;
 }
@@ -562,7 +562,7 @@ body::before {
 .bd-davet-btn:disabled { opacity: 0.6; cursor: default; }
 .bd-davet-btn.kabul {
   padding: 9px 15px; min-height: 38px;
-  background: #fff; color: #2a1065;
+  background: var(--bd-odul); color: #0B1220;
   box-shadow: 0 4px 14px rgba(0, 0, 0, 0.28);
 }
 .bd-davet-bandi.tur-hizli .bd-davet-btn.kabul { color: #7c2d12; }
@@ -620,13 +620,13 @@ body.bd-oyun-modu .bd-davet-bandi { display: none; }
   overflow: hidden;
   border-radius: var(--bd-r-m);
   color: #fff;
-  background: #1e1b4b;
+  background: var(--bd-yuzey-2);
   box-shadow: var(--bd-golge-derin), 0 0 0 1px rgba(255, 255, 255, 0.09);
   backdrop-filter: blur(8px);
 }
-.bd-ust-toast.onemli { --ts-1: #F2B23C; --ts-2: #4c1d95; }
+.bd-ust-toast.onemli { --ts-1: #F2B23C; --ts-2: #C98A22; }
 .bd-ust-toast.uyari  { --ts-1: #C98A22; --ts-2: #92400e; }
-.bd-ust-toast.bilgi  { --ts-1: #0ea5e9; --ts-2: #075985; }
+.bd-ust-toast.bilgi  { --ts-1: #4A9DD9; --ts-2: #1F2C4A; }
 .bd-ust-toast.odul   { --ts-1: #F2B23C; --ts-2: #b45309; color: #241606; }
 
 .bd-toast-ikon {
@@ -706,12 +706,12 @@ body.bd-oyun-modu .bd-toast-kat { display: none; }
 /* Bant veya toast varken blok tamamen opak dursun */
 .bd-ust-blok:has(.bd-davet-bandi),
 .bd-ust-blok:has(.bd-toast-kat) {
-  background: rgba(11, 9, 24, 0.9);
+  background: rgba(11, 18, 32, 0.9);
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
 }
 .app .topbar {
-  background: rgba(18, 14, 38, 0.62);
+  background: rgba(19, 28, 49, 0.62);
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
   padding-bottom: 10px;
@@ -750,7 +750,7 @@ body.bd-oyun-modu .bd-toast-kat { display: none; }
   box-shadow: var(--bd-ic-parlaklik);
 }
 .app .bd-zil-rozet {
-  box-shadow: 0 0 0 2px rgba(11, 9, 24, 0.9), 0 3px 10px rgba(239, 68, 68, 0.55);
+  box-shadow: 0 0 0 2px rgba(11, 18, 32, 0.9), 0 3px 10px rgba(239, 68, 68, 0.55);
   animation: bd-zil-nabiz 1.9s ease-in-out infinite;
 }
 @keyframes bd-zil-nabiz {
@@ -760,11 +760,11 @@ body.bd-oyun-modu .bd-toast-kat { display: none; }
 
 /* ---------- Alt menü: aktif sekme hale + renk ---------- */
 .tabbar {
-  background: rgba(11, 9, 24, 0.97);
+  background: rgba(11, 18, 32, 0.97);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
   border-top: none;
-  box-shadow: 0 -10px 30px rgba(5, 3, 15, 0.55);
+  box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.5);
 }
 .tabbar::before {
   content: "";
@@ -798,7 +798,7 @@ body.bd-oyun-modu .bd-toast-kat { display: none; }
 .tabbar .rozet {
   background: #dc2626;
   font-weight: 800;
-  box-shadow: 0 0 0 2px rgba(11, 9, 24, 0.9), 0 3px 10px rgba(220, 38, 38, 0.6);
+  box-shadow: 0 0 0 2px rgba(11, 18, 32, 0.9), 0 3px 10px rgba(220, 38, 38, 0.6);
   animation: bd-zil-nabiz 1.9s ease-in-out infinite;
 }
 
@@ -872,7 +872,7 @@ body.bd-oyun-modu .bd-toast-kat { display: none; }
 .bd-mod { transition: transform 0.16s cubic-bezier(0.2, 0.9, 0.3, 1.25), box-shadow 0.2s; }
 .bd-mod:active {
   transform: scale(0.96);
-  box-shadow: 0 4px 14px rgba(5, 3, 15, 0.5), var(--bd-ic-parlaklik);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.45), var(--bd-ic-parlaklik);
 }
 .bd-mod::before {
   content: "";
@@ -986,7 +986,7 @@ body.bd-oyun-modu .app { padding-bottom: calc(24px + env(safe-area-inset-bottom)
   margin-right: calc(50% - 50vw);
   padding-left: calc(50vw - 50%);
   padding-right: calc(50vw - 50%);
-  background: rgba(11, 9, 24, 0.72);
+  background: rgba(11, 18, 32, 0.72);
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
 }
@@ -1032,7 +1032,7 @@ body.bd-oyun-modu .app { padding-bottom: calc(24px + env(safe-area-inset-bottom)
   position: fixed; inset: 0; z-index: 200;
   display: flex; align-items: center; justify-content: center;
   padding: 24px;
-  background: rgba(8, 6, 18, 0.98);
+  background: rgba(11, 18, 32, 0.98);
   backdrop-filter: blur(6px);
   -webkit-backdrop-filter: blur(6px);
   animation: bd-arama-gir 0.2s ease-out both;
@@ -1114,7 +1114,7 @@ body.bd-oyun-modu .app { padding-bottom: calc(24px + env(safe-area-inset-bottom)
   position: fixed; inset: 0; z-index: 210;
   display: flex; align-items: center; justify-content: center;
   padding: 20px;
-  background: #080612;
+  background: #0B1220;
   animation: bd-arama-gir 0.2s ease-out both;
 }
 
@@ -1270,7 +1270,7 @@ body::before {
 .app .kart {
   background: rgba(24, 35, 59, 0.72);
   border-radius: 22px;
-  box-shadow: 0 10px 30px rgba(6, 4, 18, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.06);
   padding: 18px;
 }
 .app .kart::before { display: none; }  /* Faz 1'deki ince çizgi artık gereksiz */
@@ -1299,12 +1299,12 @@ body::before {
   box-shadow: 0 2px 0 #A5721C, 0 2px 6px rgba(0, 0, 0, 0.32);
 }
 .app .btn.ikincil {
-  background: #2a2154;
-  box-shadow: 0 var(--bd-kalinlik) 0 #1b1540, 0 8px 18px rgba(6, 4, 18, 0.4);
+  background: var(--bd-yuzey-2);
+  box-shadow: 0 var(--bd-kalinlik) 0 #101A2C, 0 2px 6px rgba(0, 0, 0, 0.32);
 }
 .app .btn.ikincil:active:not(:disabled) {
   transform: translateY(3px);
-  box-shadow: 0 2px 0 #1b1540;
+  box-shadow: 0 2px 0 #101A2C;
 }
 .app .btn.tehlike {
   background: var(--bd-hata);
@@ -1367,7 +1367,7 @@ body::before {
   background:
     var(--bd-yuzey-2);
   border-radius: 26px;
-  box-shadow: 0 16px 40px rgba(6, 4, 18, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.07);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.07);
 }
 .bd-hero-maskot { filter: drop-shadow(0 8px 18px rgba(242, 178, 60, 0.45)); }
 
@@ -1388,7 +1388,7 @@ body::before {
   border-radius: 22px;
   padding: 16px 10px 14px;
   background: rgba(24, 35, 59, 0.9);
-  box-shadow: 0 6px 0 rgba(0, 0, 0, 0.28), 0 12px 26px rgba(6, 4, 18, 0.42);
+  box-shadow: 0 6px 0 rgba(0, 0, 0, 0.28), 0 12px 26px rgba(0, 0, 0, 0.42);
 }
 .bd-mod:active {
   transform: translateY(4px);
@@ -1407,7 +1407,7 @@ body::before {
   border-radius: 20px;
   padding: 14px 16px;
   background: rgba(24, 35, 59, 0.9);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 10px 24px rgba(6, 4, 18, 0.4);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 10px 24px rgba(0, 0, 0, 0.36);
 }
 
 /* Tek satır lig özeti */
@@ -1453,13 +1453,15 @@ body::before {
   border-radius: 22px;
   padding: 12px 14px;
   background: rgba(24, 35, 59, 0.86);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 10px 24px rgba(6, 4, 18, 0.4);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 10px 24px rgba(0, 0, 0, 0.36);
 }
 .bd-vs-rozet {
   width: 46px; height: 46px;
   font-size: 13px;
-  background: #c9282d;
-  box-shadow: 0 4px 0 #8e1b1f;
+  /* Soru sayacı hata rengiyle (kırmızı) çiziliyordu; nötr yüzey + altın metin */
+  color: var(--bd-odul);
+  background: var(--bd-yuzey-3);
+  box-shadow: 0 3px 0 #101A2C;
 }
 .bd-vs-taraf .skor { font-size: 30px; }
 
@@ -1474,8 +1476,8 @@ body::before {
   border-radius: 24px;
   padding: 28px 20px;
   font-size: 18.5px; line-height: 1.45; font-weight: 700;
-  background: #1e1748;
-  box-shadow: 0 14px 34px rgba(6, 4, 18, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  background: var(--bd-yuzey-2);
+  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.08);
 }
 
 /* Şıklar: tam genişlik chunky buton, renkli harf plakası */
@@ -1483,12 +1485,12 @@ body::before {
   min-height: 64px;
   border-radius: 18px;
   padding: 12px 14px;
-  background: #2a2156;
-  box-shadow: 0 var(--bd-kalinlik) 0 #17123a, 0 8px 18px rgba(6, 4, 18, 0.34);
+  background: var(--bd-yuzey-2);
+  box-shadow: 0 var(--bd-kalinlik) 0 #101A2C, 0 2px 6px rgba(0, 0, 0, 0.32);
 }
 .bd-secenek:active:not(:disabled) {
   transform: translateY(3px);
-  box-shadow: 0 2px 0 #17123a;
+  box-shadow: 0 2px 0 #101A2C;
 }
 .bd-harf {
   display: inline-flex; align-items: center; justify-content: center;
@@ -1497,12 +1499,13 @@ body::before {
   font-family: var(--bd-f-baslik); font-size: 14px; font-weight: 800;
   color: #fff;
   border-radius: 10px;
-  background: #4c1d95;
+  background: var(--bd-vurgu);
+  color: #0B1220;
   box-shadow: 0 2px 0 rgba(0, 0, 0, 0.3);
 }
 .bd-secenek.secili {
-  background: #5a30c4;
-  box-shadow: 0 var(--bd-kalinlik) 0 #2f1670;
+  background: var(--bd-yuzey-3);
+  box-shadow: 0 var(--bd-kalinlik) 0 #101A2C, 0 0 0 2px var(--bd-vurgu);
 }
 .bd-secenek.dogru {
   background: #17924c;
@@ -1521,10 +1524,10 @@ body::before {
   border: none;
   border-radius: 18px;
   padding: 11px 6px;
-  background: #2a2154;
-  box-shadow: 0 4px 0 #1b1540;
+  background: var(--bd-yuzey-2);
+  box-shadow: 0 4px 0 #101A2C;
 }
-.bd-joker:active:not(:disabled) { transform: translateY(2px); box-shadow: 0 2px 0 #1b1540; }
+.bd-joker:active:not(:disabled) { transform: translateY(2px); box-shadow: 0 2px 0 #101A2C; }
 .bd-joker.ucretsiz:not(:disabled) {
   background: var(--bd-odul);
   box-shadow: 0 4px 0 #b97e07;
@@ -1563,7 +1566,7 @@ body::before {
 .bd-podyum-yer {
   background: rgba(24, 35, 59, 0.92);
   border-radius: 20px;
-  box-shadow: 0 8px 22px rgba(6, 4, 18, 0.45);
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.45);
 }
 .bd-podyum-yer.yer-1 {
   box-shadow: 0 0 0 2px var(--bd-odul), 0 2px 6px rgba(0, 0, 0, 0.32);
@@ -1594,9 +1597,9 @@ body::before {
   margin-top: 10px;
   padding: 4px 8px;
   border-radius: 18px;
-  background: rgba(10, 8, 24, 0.97);
+  background: rgba(11, 18, 32, 0.97);
   backdrop-filter: blur(10px);
-  box-shadow: 0 -6px 20px rgba(6, 4, 18, 0.5);
+  box-shadow: 0 -6px 20px rgba(0, 0, 0, 0.5);
 }
 
 /* Segment kontrol */
@@ -1628,7 +1631,7 @@ body::before {
   border-radius: 18px;
   padding: 12px 8px;
   background: var(--bd-yuzey-1);
-  box-shadow: 0 5px 0 rgba(0, 0, 0, 0.3), 0 10px 22px rgba(6, 4, 18, 0.4);
+  box-shadow: 0 5px 0 rgba(0, 0, 0, 0.3), 0 10px 22px rgba(0, 0, 0, 0.36);
 }
 .bd-kat-kart:active { transform: translateY(3px); box-shadow: 0 2px 0 rgba(0, 0, 0, 0.3); }
 .bd-kat-kart.aktif {
@@ -1685,7 +1688,7 @@ body::before {
   border-radius: 26px;
   background:
     var(--bd-yuzey-2);
-  box-shadow: 0 16px 40px rgba(6, 4, 18, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.07);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.07);
 }
 .bd-profil-ad { font-family: var(--bd-f-baslik); font-size: 22px; font-weight: 800; }
 .bd-istatistik-3 {
@@ -1757,7 +1760,7 @@ body::before {
   margin-bottom: 10px;
   border-radius: 20px;
   background: rgba(24, 35, 59, 0.82);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05), 0 8px 20px rgba(6, 4, 18, 0.36);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05), 0 8px 20px rgba(0, 0, 0, 0.36);
 }
 .bd-bk-ust { display: flex; flex-direction: column; gap: 2px; }
 .bd-bk-baslik { font-size: 14.5px; font-weight: 800; }
@@ -1815,7 +1818,7 @@ body::before {
   color: var(--bd-metin);
   background: rgba(242, 178, 60, 0.55);
   border-radius: 50%;
-  box-shadow: 0 2px 10px rgba(6, 4, 18, 0.5);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
   pointer-events: none;
   opacity: 1;
   transition: opacity 0.2s;
@@ -1841,8 +1844,8 @@ body::before {
 
 :root {
   /* Koyu yüzeyde kontrastı >= 4.5 olan bağlantı rengi */
-  --bd-baglanti: #c9b8ff;
-  --bd-baglanti-vurgu: #ffd873;
+  --bd-baglanti: #F7CB77;
+  --bd-baglanti-vurgu: #FFE1A3;
 }
 
 .app a {
@@ -1850,7 +1853,7 @@ body::before {
   text-decoration: underline;
   text-underline-offset: 2px;
   text-decoration-thickness: 1px;
-  text-decoration-color: rgba(201, 184, 255, 0.5);
+  text-decoration-color: rgba(247, 203, 119, 0.5);
   transition: color 0.15s, text-decoration-color 0.15s;
 }
 .app a:hover,
@@ -1992,7 +1995,7 @@ body::before { will-change: opacity; }
 
 /* Soru kartı hafifçe kızarsın */
 .bd-son-saniyeler .bd-soru-metin {
-  box-shadow: 0 14px 34px rgba(6, 4, 18, 0.5),
+  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.5),
               inset 0 1px 0 rgba(255, 255, 255, 0.08),
               0 0 0 2px rgba(255, 90, 95, 0.34);
 }
@@ -2276,3 +2279,57 @@ body::before { will-change: opacity; }
   -webkit-background-clip: initial; background-clip: initial;
   color: var(--bd-odul);
 }
+
+/* ---------- 4.10 Üst çubukta profil kapısı ----------
+   Takma ad / avatar / şehir ayarları Profil sayfasında ama oraya yalnız puan
+   çipinden gidiliyordu; alt menüde de girişi yok. Avatar düğmesi eklendi. */
+.bd-profil-link {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-width: 44px; min-height: 44px;
+  border-radius: 999px;
+  text-decoration: none;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.05);
+}
+.bd-profil-link:active { transform: scale(0.96); }
+
+/* Dar ekranda üst çubuk sıkışmasın */
+@media (max-width: 400px) {
+  .bd-topbar-sag { gap: 6px; }
+  .app .topbar .puan-chip { padding: 5px 9px; font-size: 13px; }
+  .bd-profil-link { min-width: 40px; min-height: 40px; }
+}
+
+/* ============================================================
+   FAZ 4.11 — CANLI TEST DÜZELTMELERİ (9 Eylül 2026)
+   Yayındaki sürüm sayfa sayfa gezilip ölçüldü; bulunanlar:
+   ============================================================ */
+
+/* 1) Altın zemin üstünde BEYAZ metin okunmuyordu (ölçülen kontrast 1.87:1).
+      Altın her zaman koyu lacivert metin taşır. */
+.app .bd-sen,
+.app .bd-sekme.aktif,
+.app .sekme.aktif,
+.app .bd-podyum-yer.yer-1 .bd-podyum-kaide,
+.app .bd-kat-kart.aktif .bd-kat-ad {
+  color: #0B1220;
+}
+.app .bd-sen { background: var(--bd-odul); border-color: var(--bd-odul-2); }
+.app .bd-podyum-kaide { color: var(--bd-metin); }
+.app .bd-podyum-yer.yer-1 .bd-podyum-kaide { background: var(--bd-odul); }
+
+/* 2) Hero'da rütbe çipi satır boyunca geriliyordu (378px). İçeriğe otursun. */
+.app .bd-hero-ad-blok { align-items: flex-start; }
+.app .bd-hero-ad-blok .rutbe-chip { align-self: flex-start; width: fit-content; }
+
+/* 3) Üst çubukta dokunma hedefleri 44px altındaydı (logo 24px, puan çipi 32px) */
+.app .topbar a,
+.app .topbar .bd-puan-link {
+  display: inline-flex; align-items: center;
+  min-height: 44px;
+}
+.app .topbar .puan-chip { min-height: 36px; }
+
+/* 4) Podyum puanı hata rengiyle (kırmızı) çiziliyordu — ödül altını olmalı */
+.app .bd-podyum-puan { color: var(--bd-odul); }
+.app .turnuva-seans { color: var(--bd-odul); }

@@ -17,7 +17,8 @@ const HAZIR_AVATARLAR = [
   "/avatars/av8.svg",
 ];
 
-const TAKMA_AD_KILIT_MS = 30 * 24 * 60 * 60 * 1000;
+// Takma ad günde bir kez değişir (sunucudaki takma_ad_sec ile aynı pencere).
+const TAKMA_AD_KILIT_MS = 24 * 60 * 60 * 1000;
 
 /** Profil sayfasındaki kimlik ayarları: takma ad, avatar, davet kodu, varsayılan kategori. */
 export default function ProfilAyarlari() {

@@ -11,7 +11,7 @@
   --text-dim: #9AAAC4;
   --primary: #F2B23C;      /* altın — ana vurgu */
   --primary-2: #C98A22;
-  --accent: #E8543F;       /* mercan — ikincil */
+  --accent: #F2B23C;       /* altın — ödül/vurgu (hata rengi --danger) */
   --success: #2FBF71;
   --danger: #E8543F;
   --radius: 12px;
@@ -163,8 +163,8 @@ input:focus { border-color: var(--primary); }
 
 /* ---------- Geri sayım ---------- */
 .geri-sayim-kart {
-  background: #1a1230;
-  border: 1px solid #4c3a99;
+  background: var(--bg-3);
+  border: 1px solid var(--border);
   border-radius: var(--radius);
   padding: 22px 16px; text-align: center; margin-bottom: 14px;
   position: relative; overflow: hidden;
@@ -178,7 +178,7 @@ input:focus { border-color: var(--primary); }
   display: flex; justify-content: center; gap: 10px; margin: 14px 0;
 }
 .gs-kutu {
-  background: rgba(13, 11, 31, 0.7); border: 1px solid var(--border);
+  background: rgba(11, 18, 32, 0.7); border: 1px solid var(--border);
   border-radius: 12px; padding: 10px 0; width: 76px;
 }
 .gs-kutu .deger { font-size: 30px; font-weight: 900; font-variant-numeric: tabular-nums; }
@@ -436,7 +436,7 @@ input:focus { border-color: var(--primary); }
 }
 .rutbe-kutlama {
   position: fixed; inset: 0; z-index: 100;
-  background: rgba(13, 11, 31, 0.92);
+  background: rgba(11, 18, 32, 0.92);
   display: flex; align-items: center; justify-content: center;
   animation: kutlama-arka 0.25s ease-out;
 }
@@ -1020,7 +1020,7 @@ input:focus { border-color: var(--primary); }
   align-items: center;
   justify-content: center;
   padding: 16px;
-  background: rgba(6, 4, 18, 0.78);
+  background: rgba(0, 0, 0, 0.78);
   backdrop-filter: blur(6px);
 }
 .bd-modal {
@@ -1180,7 +1180,7 @@ input:focus { border-color: var(--primary); }
   font-size: 12px; font-weight: 700; text-align: center;
   max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
-.bd-podyum-puan { font-size: 12px; font-weight: 800; color: var(--accent); }
+.bd-podyum-puan { font-size: 12px; font-weight: 800; color: var(--bd-odul, var(--accent)); }
 .bd-podyum-kaide {
   width: 100%; margin-top: 6px;
   font-size: 15px; font-weight: 900; text-align: center;
@@ -1283,7 +1283,7 @@ input:focus { border-color: var(--primary); }
 
 /* Kontrast: eski --text-dim (#9AAAC4) koyu zeminde ~4.1:1 idi;
    4.5:1 eşiğini geçmesi için bir tık açıldı. */
-:root { --text-dim: #a9a2d2; }
+:root { --text-dim: #B3C2D8; }
 
 /* Klavye odağı her yerde görünür olsun (erişilebilirlik) */
 .bd-secenek:focus-visible,
