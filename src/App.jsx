@@ -1,5 +1,6 @@
-import { lazy, Suspense } from "react";
-import { Routes, Route, Navigate, useLocation } from "react-router-dom";
+import { lazy, Suspense, useEffect } from "react";
+import { Routes, Route, Navigate, useLocation, useNavigate } from "react-router-dom";
+import { girisHedefiniAl } from "./lib/girisHedefi.js";
 
 // Eski top-level quiz yollarını yeni /bildim/* yapısına yönlendirir (parametreyi
 // korur). Geriye uyumluluk: push bildirimi deep-link'leri, bookmark, eski linkler.
@@ -54,6 +55,18 @@ const CalismaPage = lazy(() => import("../bildim/pages/CalismaPage.jsx"));
 export default function App() {
   const { session, loading } = useAuth();
   const { pathname } = useLocation();
+  const navigate = useNavigate();
+
+  // Giriş sonrası derin bağlantıyı geri yükle. Supabase, izin listesinde
+  // olmayan bir redirectTo'yu sessizce Site URL'ine düşürdüğü için oyuncu
+  // davet/maç sayfası yerine köke iniyordu (bkz. src/lib/girisHedefi.js).
+  useEffect(() => {
+    if (!session || loading) return;
+    const hedef = girisHedefiniAl();
+    if (hedef && hedef !== pathname) navigate(hedef, { replace: true });
+    // Yalnız oturum ilk kurulduğunda çalışır; hedef tek kullanımlıktır.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [session, loading]);
 
   // Gladius ve RUN bağımsız modüllerdir: Supabase/oturum kullanmazlar,
   // bu yüzden giriş duvarının önünde açılabilirler.

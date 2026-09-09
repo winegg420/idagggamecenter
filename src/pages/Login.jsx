@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { supabase } from "../lib/supabase.js";
 import Logo from "../../bildim/components/Logo.jsx";
+import { girisHedefiniKaydet } from "../lib/girisHedefi.js";
 
 // Supabase'in İngilizce hata metinlerini oyuncuya anlaşılır Türkçeye çevirir.
 // Sağlayıcı panelde kapalıysa dönen mesaj ("provider is not enabled") teknik
@@ -40,6 +41,9 @@ export default function Login() {
   const sosyalGiris = async (provider) => {
     setHata(null);
     setBekleyen(provider);
+    // Supabase izin listesi redirectTo'yu reddederse Site URL'ine düşer;
+    // hedefi burada saklarız ki derin bağlantı kaybolmasın.
+    girisHedefiniKaydet();
     try {
       const { error } = await supabase.auth.signInWithOAuth({
         provider,
@@ -78,6 +82,7 @@ export default function Login() {
     e.preventDefault();
     setHata(null);
     setBekleyen("eposta");
+    girisHedefiniKaydet();
     try {
       const { error } = await supabase.auth.signInWithOtp({
         email,
