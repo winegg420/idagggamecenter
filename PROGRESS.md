@@ -2941,3 +2941,28 @@ Panel ayarı — kod değişikliği değil, kullanıcı kararı bekliyor.
   03:20'sine daha gelmemiş. Hata değil.
 - **`bildim.webmanifest` start_url "/bildim"**: kaynak dosyada öyle ama derleme
   moda göre yeniden yazıyor.
+
+### Düzeltme + tamamlanan işler (aynı gün, denetim sonrası)
+
+**BULGU 2 kapatıldı — `satin_alma_dogrula` dağıtıldı.** CLI yanlış hesaba
+(`idafroditproject@gmail.com`) bağlıydı; kullanıcı Quizador'un
+`idagureli@gmail.com`'da olduğunu söyledi. Kalıcı erişim anahtarı üretmek
+yerine Supabase panelindeki tarayıcı editörü kullanıldı. Kaynak pano üzerinden
+aktarıldı ve **birebir doğrulandı** (5894 karakter, Türkçe karakterler sağlam).
+Sonuç: 404 → **401** (yetkisiz istek doğru reddediliyor).
+Fonksiyon `PLAY_SERVICE_ACCOUNT` yokken **açık hata döner, sahte onay VERMEZ** —
+bu yüzden sırlar olmadan dağıtmak güvenli.
+**Kalan bağımlılık (yalnız kullanıcı sağlayabilir):** `PLAY_PACKAGE_NAME` ve
+`PLAY_SERVICE_ACCOUNT` (Google Play Console servis hesabı JSON'u). Panelde
+tanımlı sırlar: CRON_SECRET, VAPID_*; PLAY_* yok.
+
+**BULGU 3 DÜZELTİLDİ — yanlış teşhis koymuşum.** "Vercel Attack Challenge Mode
+açık" demiştim; doğrusu değil. Firewall paneli: Custom Rules 0, Bot Protection
+Inactive, devrede olan **otomatik "DDoS Mitigation" sistem kuralı**.
+Trafiğe bakınca tek bir IP'den **14.400 istek** göründü, ikinci sıradaki 96.
+O IP'yi sorguladım: `176.237.238.78` = **bu bilgisayarın kendi public IP'si**
+(Bursa/Turkcell). Yani engellenen trafik BİZİM — benim otomatik testlerim ve
+kullanıcının gezinmesi. **Ortada saldırı yok, kapatılacak bir ayar da yok.**
+Otomatik hafifletme trafik normale dönünce kendiliğinden kalkar; Googlebot'un
+403 alması da bu geçici durumun yan etkisi. Hiçbir güvenlik ayarına
+dokunulmadı. Kalıcı olursa doğrulanmış tarayıcılar için bypass kuralı eklenir.
