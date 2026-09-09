@@ -983,6 +983,16 @@ body.bd-oyun-modu .app { padding-bottom: calc(24px + env(safe-area-inset-bottom)
 }
 
 /* ---------- 1.12 Üst blok tam genişlik (sağ/sol sert kenar gitsin) ---------- */
+
+/* Üst blok aşağıda 50vw ile viewport genişliğine taşıyor. `vw` DİKEY KAYDIRMA
+   ÇUBUĞUNU DA sayar; çubuk varken blok içerik alanından ~8px geniş kalıyor ve
+   masaüstünde sayfanın altında yatay kaydırma çubuğu çıkıyordu (denetimde
+   ölçüldü: scrollWidth 1529 > clientWidth 1521, taşan tek öğe .bd-ust-blok).
+   Telefonda çubuk bindirmeli olduğu için görünmüyordu.
+   `clip` seçildi, `hidden` DEĞİL: hidden kaydırma bağlamı yaratıp üstteki
+   position:sticky bloğu bozardı. */
+html { overflow-x: clip; }
+
 .bd-ust-blok {
   /* .app 540px ile sınırlı; blok viewport genişliğine taşar, içerik ortada kalır */
   margin-left: calc(50% - 50vw);
