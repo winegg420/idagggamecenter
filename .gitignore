@@ -12,3 +12,6 @@ supabase/.branches
 .vercel
 .env*
 !.env.example
+# Sır içermez, yalnız derleme modunu seçer; izlenmeli ki
+# `npm run build:bildim` temiz klonda da çalışsın.
+!.env.bildim
