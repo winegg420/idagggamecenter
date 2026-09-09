@@ -1,0 +1,22 @@
+[
+{"soru":"'Kürek çekme ergometresi' neyi ölçer?","secenekler":["Çekiş gücü ve mesafeyi","Esnekliği","Dengeyi","Boyu"],"dogru":0,"kategori":"spor"},
+{"soru":"'Kürsü' yarışmada neyi gösterir?","secenekler":["Katılımı","İlk üç dereceyi","Eleme turunu","Kura sırasını"],"dogru":1,"kategori":"spor"},
+{"soru":"'Sporcu kampı' hangi amaca hizmet eder?","secenekler":["Tatil","Tanıtım","Yoğun hazırlık","Transfer"],"dogru":2,"kategori":"spor"},
+{"soru":"'Yükseklik kampı' neyi hedefler?","secenekler":["Kilo vermeyi","Esnekliği","Tekniği","Oksijen taşıma kapasitesini"],"dogru":3,"kategori":"spor"},
+{"soru":"'Sezon öncesi hazırlık' neyi kurar?","secenekler":["Fiziksel ve taktik temeli","Kadro kısıtını","Bilet düzenini","Yayını"],"dogru":0,"kategori":"spor"},
+{"soru":"'Sezon içi bakım antrenmanı' ne sağlar?","secenekler":["Yeni kazanım","Kazanılan formu korumayı","Dinlenmeyi yalnızca","Kilo artışını"],"dogru":1,"kategori":"spor"},
+{"soru":"'Geçiş dönemi' sporcuda ne sağlar?","secenekler":["Yoğun yükü","Yarışmayı","Toparlanma ve zihinsel dinlenmeyi","Transferi"],"dogru":2,"kategori":"spor"},
+{"soru":"'Antrenman yükü izleme' neyi önler?","secenekler":["Gelişimi","Tekniği","Taktiği","Aşırı yüklenmeyi"],"dogru":3,"kategori":"spor"},
+{"soru":"'Yaralanma önleme programı' neye dayanır?","secenekler":["Güçlendirme ve denge çalışmasına","Yalnız dinlenmeye","Yalnız masaja","Yalnız beslenmeye"],"dogru":0,"kategori":"spor"},
+{"soru":"'Sakatlık sonrası dönüş' neye bağlıdır?","secenekler":["Takvime","Aşamalı yükleme ve testlere","Kadroya","Rakibe"],"dogru":1,"kategori":"spor"},
+{"soru":"'Fizyoterapist' spor takımında ne yapar?","secenekler":["Taktik kurar","Kadro seçer","Tedavi ve rehabilitasyonu yürütür","Bilet satar"],"dogru":2,"kategori":"spor"},
+{"soru":"'Performans analisti' neyi sağlar?","secenekler":["Masaj","Beslenme","İlk yardım","Veriye dayalı değerlendirme"],"dogru":3,"kategori":"spor"},
+{"soru":"'Diyetisyen' sporcuya ne verir?","secenekler":["Beslenme planı","Antrenman planı","Taktik","Ekipman"],"dogru":0,"kategori":"spor"},
+{"soru":"'Spor hekimi' hangi konuda yetkilidir?","secenekler":["Taktikte","Sağlık değerlendirmesinde","Transferde","Yayında"],"dogru":1,"kategori":"spor"},
+{"soru":"'Takım kaptanlığı bandı' neyi belirtir?","secenekler":["Cezayı","Yedekliği","Kaptanlık görevini","Sakatlığı"],"dogru":2,"kategori":"spor"},
+{"soru":"'Forma numarası tahsisi' neye göre yapılır?","secenekler":["Boya","Yaşa","Kuraya","Kulüp ve lig kurallarına"],"dogru":3,"kategori":"spor"},
+{"soru":"'Isınma turu' maç öncesi ne sağlar?","secenekler":["Kas ve dolaşımı hazırlar","Skor verir","Kadro belirler","Ceza siler"],"dogru":0,"kategori":"spor"},
+{"soru":"'Devre arası' takıma ne kazandırır?","secenekler":["Puan","Dinlenme ve taktik düzeltme","Oyuncu","Süre"],"dogru":1,"kategori":"spor"},
+{"soru":"'Maç sonu değerlendirmesi' neyi amaçlar?","secenekler":["Ceza vermeyi","Bilet saymayı","Eksikleri belirlemeyi","Kadro küçültmeyi"],"dogru":2,"kategori":"spor"},
+{"soru":"'Video toplantısı' takımda ne sağlar?","secenekler":["Dinlenme","Beslenme","Ulaşım","Ortak taktik anlayış"],"dogru":3,"kategori":"spor"}
+]
