@@ -990,8 +990,13 @@ body.bd-oyun-modu .app { padding-bottom: calc(24px + env(safe-area-inset-bottom)
    ölçüldü: scrollWidth 1529 > clientWidth 1521, taşan tek öğe .bd-ust-blok).
    Telefonda çubuk bindirmeli olduğu için görünmüyordu.
    `clip` seçildi, `hidden` DEĞİL: hidden kaydırma bağlamı yaratıp üstteki
-   position:sticky bloğu bozardı. */
-html { overflow-x: clip; }
+   position:sticky bloğu bozardı.
+   İKİSİNE BİRDEN yazılmalı: kökün overflow'u viewport'a devrolduğu için tek
+   başına `html` yetmiyor, kaydırma body'ye düşüyordu. Canlıda ölçüldü —
+   yalnız html: scrollX 8'e çıkıyor; html+body: 0. Alt bar (fixed), yapışkan
+   üst blok ve dikey kaydırma etkilenmiyor. */
+html,
+body { overflow-x: clip; }
 
 .bd-ust-blok {
   /* .app 540px ile sınırlı; blok viewport genişliğine taşar, içerik ortada kalır */
