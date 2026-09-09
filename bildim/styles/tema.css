@@ -2477,7 +2477,11 @@ body.bd-oyun-modu .bd-ekle-katman { display: none; }
 
 /* Layout varsa alt bar da var: yönlendirme onun ÜSTÜNE otursun, üstünü
    kapatmasın. Giriş ekranında `.app` yok, kart en altta kalır. */
-.app ~ .bd-ekle-katman { bottom: calc(env(safe-area-inset-bottom) + 78px); }
+/* 92px ölçülerek seçildi: alt bar 64px + kendi 8px alt dolgusu. 78px'te kart
+   barın 4px üstüne biniyordu; 92px'te 10px boşluk kalıyor. Çentikli
+   iPhone'larda bar dolgusu safe-area kadar büyür, kural da aynı değişkeni
+   eklediği için boşluk korunur. */
+.app ~ .bd-ekle-katman { bottom: calc(env(safe-area-inset-bottom) + 92px); }
 
 /* Kart açıkken altta kalan içeriğin üstünü örtmesin: giriş ekranı ortalı
    olduğu için yukarı kayar, oyun ekranı alttan boşluk kazanır. */
