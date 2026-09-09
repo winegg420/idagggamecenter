@@ -1,6 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Yalnızca giriş gerektirmeyen, gerçekten var olan adresler listelenir.
+  Oyun içi rotalar (maç, davet, profil) oturum ister; arama motoruna verilmez.
+-->
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url><loc>https://idagg-game-center.vercel.app/</loc><priority>1.0</priority></url>
   <url><loc>https://idagg-game-center.vercel.app/bildim</loc><priority>0.9</priority></url>
-  <url><loc>https://idagg-game-center.vercel.app/bildim/gizlilik</loc><priority>0.3</priority></url>
+  <url><loc>https://idagg-game-center.vercel.app/kafatopu</loc><priority>0.8</priority></url>
+  <url><loc>https://idagg-game-center.vercel.app/driftgp</loc><priority>0.8</priority></url>
+  <url><loc>https://idagg-game-center.vercel.app/meyvekes</loc><priority>0.8</priority></url>
+  <url><loc>https://idagg-game-center.vercel.app/patirun</loc><priority>0.8</priority></url>
+  <url><loc>https://idagg-game-center.vercel.app/boks</loc><priority>0.8</priority></url>
+  <url><loc>https://idagg-game-center.vercel.app/run</loc><priority>0.6</priority></url>
+  <url><loc>https://idagg-game-center.vercel.app/gladius</loc><priority>0.6</priority></url>
+  <url><loc>https://idagg-game-center.vercel.app/gizlilik</loc><priority>0.3</priority></url>
+  <url><loc>https://idagg-game-center.vercel.app/kosullar</loc><priority>0.3</priority></url>
 </urlset>

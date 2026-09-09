@@ -1295,6 +1295,10 @@ body::before {
 .app .btn {
   border-radius: 16px;
   background: var(--bd-vurgu);
+  /* Altın zemine BEYAZ yazı 1.87:1 kontrast veriyordu (WCAG eşiği 4.5) —
+     "Lobiye katıl", "Meydan oku" gibi butonlar solgun ve okunaksızdı.
+     Koyu yazı 7.83:1 veriyor ve .bd-ana-eylem ile aynı görünüyor. */
+  color: #3a2400;
   box-shadow: 0 var(--bd-kalinlik) 0 #A5721C, 0 2px 6px rgba(0, 0, 0, 0.32);
 }
 .app .btn:active:not(:disabled) {
@@ -1303,6 +1307,7 @@ body::before {
 }
 .app .btn.ikincil {
   background: var(--bd-yuzey-2);
+  color: var(--bd-metin);           /* koyu yüzey → açık yazı (13.8:1) */
   box-shadow: 0 var(--bd-kalinlik) 0 #101A2C, 0 2px 6px rgba(0, 0, 0, 0.32);
 }
 .app .btn.ikincil:active:not(:disabled) {
@@ -1310,7 +1315,10 @@ body::before {
   box-shadow: 0 2px 0 #101A2C;
 }
 .app .btn.tehlike {
-  background: var(--bd-hata);
+  /* Mercan (#E8543F) üzerine beyaz 3.64:1 idi. Zemin bir tık koyulaştırıldı:
+     #C43A26 ile beyaz 5.28:1 — kırmızı kimliği korunuyor. */
+  background: #C43A26;
+  color: #fff;
   box-shadow: 0 var(--bd-kalinlik) 0 #a32328, 0 8px 18px rgba(163, 35, 40, 0.4);
 }
 .app .btn.tehlike:active:not(:disabled) { transform: translateY(3px); box-shadow: 0 2px 0 #a32328; }

@@ -144,6 +144,12 @@ export default function GameCenter() {
 
       <footer className="gc-footer">
         idaGG Game Center · Tüm oyunlar tek çatı altında 🚀
+        {/* Yasal metinler ana kapıdan da erişilebilir olmalı (mağaza ve reklam ağı şartı). */}
+        <div className="gc-footer-yasal">
+          <Link to="/gizlilik">Gizlilik politikası</Link>
+          <span aria-hidden="true">·</span>
+          <Link to="/kosullar">Kullanım koşulları</Link>
+        </div>
       </footer>
     </div>
   );

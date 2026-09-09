@@ -940,6 +940,11 @@ input:focus { border-color: var(--primary); }
 }
 
 .gc-footer { text-align: center; opacity: 0.55; font-size: 0.78rem; margin-top: 34px; }
+.gc-footer-yasal {
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  margin-top: 8px; flex-wrap: wrap;
+}
+.gc-footer-yasal a { color: inherit; text-decoration: underline; }
 
 @media (max-width: 520px) {
   .gc-hero-baslik { font-size: 1.45rem; }
