@@ -6,15 +6,41 @@ import { useAuth } from "../../src/context/AuthContext.jsx";
 import { kategoriEtiket, kategorileriSirala } from "../lib/kategoriler.js";
 import { sureMetni } from "../lib/konum.js";
 
+// 31 karakter avatarı (özgün çizim SVG, tamamı yerel — dış servis yok).
+// Üretici: scratchpad/avatar-uret.mjs. Eski düz siluetler (av1-av8) listeden
+// çıkarıldı; dosyalar duruyor ki eski profiller kırılmasın.
 const HAZIR_AVATARLAR = [
-  "/avatars/av1.svg",
-  "/avatars/av2.svg",
-  "/avatars/av3.svg",
-  "/avatars/av4.svg",
-  "/avatars/av5.svg",
-  "/avatars/av6.svg",
-  "/avatars/av7.svg",
-  "/avatars/av8.svg",
+  { url: "/avatars/k01.svg", ad: "Kedi" },
+  { url: "/avatars/k02.svg", ad: "Köpek" },
+  { url: "/avatars/k03.svg", ad: "Baykuş" },
+  { url: "/avatars/k04.svg", ad: "Tilki" },
+  { url: "/avatars/k05.svg", ad: "Panda" },
+  { url: "/avatars/k06.svg", ad: "Penguen" },
+  { url: "/avatars/k07.svg", ad: "Kurbağa" },
+  { url: "/avatars/k08.svg", ad: "Ayı" },
+  { url: "/avatars/k09.svg", ad: "Maymun" },
+  { url: "/avatars/k10.svg", ad: "Dinozor" },
+  { url: "/avatars/k11.svg", ad: "Ejderha" },
+  { url: "/avatars/k12.svg", ad: "Köpekbalığı" },
+  { url: "/avatars/k13.svg", ad: "Ahtapot" },
+  { url: "/avatars/k14.svg", ad: "Arı" },
+  { url: "/avatars/k15.svg", ad: "Robot" },
+  { url: "/avatars/k16.svg", ad: "Uzaylı" },
+  { url: "/avatars/k17.svg", ad: "Astronot" },
+  { url: "/avatars/k18.svg", ad: "Ninja" },
+  { url: "/avatars/k19.svg", ad: "Korsan" },
+  { url: "/avatars/k20.svg", ad: "Şövalye" },
+  { url: "/avatars/k21.svg", ad: "Büyücü" },
+  { url: "/avatars/k22.svg", ad: "Dedektif" },
+  { url: "/avatars/k23.svg", ad: "Aşçı" },
+  { url: "/avatars/k24.svg", ad: "Profesör" },
+  { url: "/avatars/k25.svg", ad: "Viking" },
+  { url: "/avatars/k26.svg", ad: "Hayalet" },
+  { url: "/avatars/k27.svg", ad: "Zombi" },
+  { url: "/avatars/k28.svg", ad: "Mumya" },
+  { url: "/avatars/k29.svg", ad: "Kahraman" },
+  { url: "/avatars/k30.svg", ad: "Palyaço" },
+  { url: "/avatars/k31.svg", ad: "Kral" },
 ];
 
 // Takma ad günde bir kez değişir (sunucudaki takma_ad_sec ile aynı pencere).
@@ -171,15 +197,16 @@ export default function ProfilAyarlari() {
         {avatarDuzenle ? (
           <>
             <div className="bd-avatar-grid">
-              {HAZIR_AVATARLAR.map((u) => (
+              {HAZIR_AVATARLAR.map((a) => (
                 <button
-                  key={u}
-                  className={`bd-avatar-sec ${profile.avatar_url === u ? "aktif" : ""}`}
-                  aria-label="Avatar seç"
+                  key={a.url}
+                  className={`bd-avatar-sec ${profile.avatar_url === a.url ? "aktif" : ""}`}
+                  aria-label={`${a.ad} avatarını seç`}
+                  title={a.ad}
                   disabled={calisiyor}
-                  onClick={() => avatarKaydet(u)}
+                  onClick={() => avatarKaydet(a.url)}
                 >
-                  <img src={u} alt="" />
+                  <img src={a.url} alt="" loading="lazy" />
                 </button>
               ))}
             </div>

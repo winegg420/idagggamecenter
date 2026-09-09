@@ -2333,3 +2333,20 @@ body::before { will-change: opacity; }
 /* 4) Podyum puanı hata rengiyle (kırmızı) çiziliyordu — ödül altını olmalı */
 .app .bd-podyum-puan { color: var(--bd-odul); }
 .app .turnuva-seans { color: var(--bd-odul); }
+
+/* ---------- 4.12 Avatar seçici: 31 karakter ----------
+   Liste 8 satıra çıktığı için kart içinde kendi kaydırmasıyla duruyor. */
+.app .bd-avatar-grid {
+  grid-template-columns: repeat(5, 1fr);
+  gap: 8px;
+  max-height: 46vh;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding-right: 2px;
+}
+.app .bd-avatar-sec { padding: 0; border-width: 2px; border-radius: 12px; overflow: hidden; }
+.app .bd-avatar-sec img { width: 100%; height: 100%; display: block; }
+.app .bd-avatar-sec.aktif { border-color: var(--bd-odul); }
+@media (max-width: 380px) {
+  .app .bd-avatar-grid { grid-template-columns: repeat(4, 1fr); }
+}
