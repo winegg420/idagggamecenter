@@ -146,7 +146,7 @@ export default function ProfilAyarlari() {
               <div className="alt-yazi">
                 {kalanKilit > 0
                   ? `Tekrar değiştirebilmen için ${sureMetni(kalanKilit)} kaldı.`
-                  : "30 günde bir değiştirebilirsin."}
+                  : "Günde bir kez değiştirebilirsin."}
               </div>
             </div>
             <button

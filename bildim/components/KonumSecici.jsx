@@ -101,7 +101,7 @@ export default function KonumSecici({ mod = "kart", onKapat, onKaydedildi }) {
       </div>
       <div className="bd-konum-aciklama">
         Şehir ve ülke liglerinde bu bilgiyle yarışırsın.{" "}
-        <b>Haftada yalnızca bir kez değiştirebilirsin.</b>
+        <b>Günde yalnızca bir kez değiştirebilirsin.</b>
       </div>
 
       <label className="bd-alan">

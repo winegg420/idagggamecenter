@@ -176,7 +176,7 @@ export default function KurulumSihirbazi({ onTamam }) {
               />
             </label>
             <div className="alt-yazi">
-              Harf, rakam ve alt çizgi kullanabilirsin. Sonradan 30 günde bir değiştirilebilir.
+              Harf, rakam ve alt çizgi kullanabilirsin. Sonradan günde bir kez değiştirilebilir.
             </div>
             {hata && <div className="hata-kutu">{hata}</div>}
             <div className="bd-konum-butonlar">
@@ -256,7 +256,7 @@ export default function KurulumSihirbazi({ onTamam }) {
             <div className="bd-konum-baslik">Hangi şehir için yarışıyorsun?</div>
             <div className="bd-konum-aciklama">
               Şehir ve ülke liglerinde bu bilgiyle yarışırsın.{" "}
-              <b>Haftada yalnızca bir kez değiştirebilirsin.</b>
+              <b>Günde yalnızca bir kez değiştirebilirsin.</b>
             </div>
 
             <label className="bd-alan">

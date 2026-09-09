@@ -118,7 +118,7 @@ export default function ProfilePage() {
         <div className="kart">
           <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8 }}>
             <span style={{ fontWeight: 700, fontSize: 14 }}>
-              Sonraki rütbe: {sonraki.ikon} {sonraki.ad}
+              Sonraki rütbe: <Ikon ad={sonraki.ikon} boyut={15} /> {sonraki.ad}
             </span>
             <span className="alt-yazi">
               {profile.puan}/{sonraki.min}

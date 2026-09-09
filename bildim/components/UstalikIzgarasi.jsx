@@ -5,11 +5,11 @@ import { kategoriEtiket } from "../lib/kategoriler.js";
 import { JOKER_BILGI } from "../lib/jokerler.js";
 
 const SEVIYE_RENK = {
-  "Çırak": "#9aa0b5",
-  "Kalfa": "#4ade80",
-  "Usta": "#38bdf8",
-  "Üstat": "#c084fc",
-  "Efsane": "#fbbf24",
+  "Çırak": "#8496B2",
+  "Kalfa": "#2FBF71",
+  "Usta": "#4A9DD9",
+  "Üstat": "#3FA9A0",
+  "Efsane": "#F2B23C",
 };
 
 /** Profil sayfası: kategori ustalığı, en uzun seri ve joker istatistikleri. */

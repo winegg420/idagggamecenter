@@ -20,6 +20,8 @@ export default function FriendsPage() {
   const [bilgi, setBilgi] = useState(null);
   const [kopyalandi, setKopyalandi] = useState(false);
   const [calisiyor, setCalisiyor] = useState(false);
+  // Arkadaş silme geri alınamaz: tek dokunuşla değil, onaylı iki adımda.
+  const [silOnay, setSilOnay] = useState(null);
 
   const yukle = useCallback(async () => {
     try {
@@ -222,12 +224,36 @@ export default function FriendsPage() {
               <div className="isim">{p?.gorunen_ad}</div>
               <div className="detay"><Ikon ad="yildiz" boyut={13} /> {p?.puan} puan</div>
             </div>
-            <button className="btn kucuk" onClick={() => meydanOku(p.id)}>
+            <button
+              className="btn kucuk"
+              onClick={() => meydanOku(p.id)}
+              aria-label={(p?.gorunen_ad ?? "Arkadaşına") + " meydan oku"}
+              title="Meydan oku"
+            >
               <Ikon ad="kilic" boyut={17} />
             </button>
-            <button className="btn kucuk ikincil" onClick={() => cikar(f.id)}>
-              <Ikon ad="carpi" boyut={16} />
-            </button>
+            {silOnay === f.id ? (
+              <>
+                <button
+                  className="btn kucuk tehlike"
+                  onClick={() => { setSilOnay(null); cikar(f.id); }}
+                >
+                  Sil
+                </button>
+                <button className="btn kucuk ikincil" onClick={() => setSilOnay(null)}>
+                  Vazgeç
+                </button>
+              </>
+            ) : (
+              <button
+                className="btn kucuk ikincil"
+                onClick={() => setSilOnay(f.id)}
+                aria-label={(p?.gorunen_ad ?? "Arkadaşını") + " arkadaşlıktan çıkar"}
+                title="Arkadaşlıktan çıkar"
+              >
+                <Ikon ad="carpi" boyut={16} />
+              </button>
+            )}
           </div>
         );
       })}

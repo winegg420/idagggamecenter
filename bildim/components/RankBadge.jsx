@@ -11,19 +11,19 @@ const BICIM = {
   Bilge: (r) => (
     <>
       <path d="M12 4 19 8v5c0 4-3 6.5-7 7.5C8 19.5 5 17 5 13V8z" fill={r} opacity="0.9" />
-      <path d="m9.5 12.5 1.8 1.8 3.4-3.6" stroke="#0d0b1f" strokeWidth="1.8" fill="none" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="m9.5 12.5 1.8 1.8 3.4-3.6" stroke="#0B1220" strokeWidth="1.8" fill="none" strokeLinecap="round" strokeLinejoin="round" />
     </>
   ),
   Üstat: (r) => (
     <>
       <path d="M12 3 20 7v6c0 4.5-3.4 7.3-8 8.5C7.4 20.3 4 17.5 4 13V7z" fill={r} opacity="0.9" />
-      <path d="M12 8v7M9 11h6" stroke="#0d0b1f" strokeWidth="1.9" strokeLinecap="round" />
+      <path d="M12 8v7M9 11h6" stroke="#0B1220" strokeWidth="1.9" strokeLinecap="round" />
     </>
   ),
   Kahin: (r) => (
     <>
       <circle cx="12" cy="12" r="7.5" fill={r} opacity="0.85" />
-      <circle cx="12" cy="12" r="3.2" fill="#0d0b1f" opacity="0.55" />
+      <circle cx="12" cy="12" r="3.2" fill="#0B1220" opacity="0.55" />
       <path d="M12 2.5v2M12 19.5v2M2.5 12h2M19.5 12h2" stroke={r} strokeWidth="2" strokeLinecap="round" />
     </>
   ),
