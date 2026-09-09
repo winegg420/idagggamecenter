@@ -2390,3 +2390,72 @@ misafir girişi `anonymous_provider_disabled`. Yalnız Google (302) çalışıyo
 `CRON_SECRET` rotasyonu ve deponun private yapılması da açık
 (ayrıntılar `YAYIN_KONTROL.md` B1-B6). Yasal metinlerde veri sorumlusu / hizmet
 sağlayıcı kimliği hâlâ doldurulmayı bekliyor.
+
+---
+
+## 2026-09-09 — Giriş sağlayıcıları: neden kapalı, ne yapıldı
+
+**Soru:** "Facebook ve X girişleri neden aktif değil, aktif olsun."
+
+**Cevap:** Bu anahtar kodla çevrilemiyor. İki nedenle:
+1. Sağlayıcı ayarı Supabase'in kimlik servisinde tutulur; **veritabanında yok**
+   (auth şemasında yapılandırma tablosu bulunmuyor — kontrol edildi).
+   Management API için erişim tokeni gerekiyor, elimde yok.
+2. Asıl engel Supabase değil: **X ve Meta tarafında uygulama kaydı olmadığı için
+   API Key / App Secret yok.** Bunlar geliştirici portallarından, hesap sahibinin
+   kendi hesabıyla alınır.
+
+Yapılan: `GIRIS_SAGLAYICILARI.md` — tahminsiz, adım adım rehber (callback adresi,
+hangi alan nereye, hangi kutu işaretlenecek, Meta'nın Business Verification
+uyarısı, açıldıktan sonra doğrulama komutları).
+
+### Bu sırada bulunan gerçek hata: yönlendirme izin listesi eski alan adında
+
+Supabase Auth izin listesi ölçüldü (`/auth/v1/verify` ucu, geçersiz token):
+
+| İstenen adres | Sonuç |
+|---|---|
+| `idagg-game-center.vercel.app/` | **RED** → `bildim.vercel.app`'e düşüyor |
+| `idagg-game-center.vercel.app/bildim` | **RED** |
+| `idagg-game-center.vercel.app/bildim/davet/ABC` | **RED** |
+| `bildim.vercel.app/` | İZİNLİ |
+| `bildim.vercel.app/bildim` | İZİNLİ |
+
+Yani **güncel alan adı izin listesinde yok.** Girişlerin bugün çalışmasının tek
+nedeni `bildim.vercel.app`'in **307 ile köke** yönlendirmesi: token fragment'i
+hayatta kalıyor ama **yol kayboluyor**. Sonuç: davet linkiyle gelen oyuncu giriş
+sonrası davet sayfasına değil ana sayfaya iniyor. Facebook/X açıldığında aynı
+sorun onları da vuracaktı. Ayrıca bu alias kaldırılırsa **tüm girişler kırılır**.
+
+İzin listesi doğru tarafta çalışıyor (kötü niyetli adres reddedildi) — açık
+yönlendirme (open redirect) açığı yok.
+
+### Uygulama tarafına eklenen yedek
+
+Panel ayarına erişemediğim için uygulamayı bu ayardan bağımsız hâle getirdim:
+
+- **`src/lib/girisHedefi.js`** (yeni): hedef yol girişten önce `localStorage`'a
+  yazılır, oturum açılınca **tek kullanımlık** okunur. 15 dk ömür, `//` ile
+  başlayan dış adres reddi, `/` yok sayımı, her erişim try-catch (özel sekme /
+  depolama kapalı olabilir).
+- `Login.jsx`: OAuth ve e-posta girişinden önce hedef kaydedilir.
+- `App.jsx`: oturum kurulunca saklanan hedefe `replace` ile dönülür.
+
+`localStorage` origin başına olduğu için zincir çalışıyor: hedef idagg'da
+yazılır, 307 sonrası yine idagg'da okunur.
+
+**Canlıda doğrulandı:**
+
+| Test | Sonuç |
+|---|---|
+| `/` → saklanan `/bildim/calisma` hedefine dönüldü | ✔ |
+| Hedef tek kullanımlık (anahtar silindi) | ✔ |
+| `//kotu-site.example.com` hedefi reddedildi, kendi alan adında kalındı | ✔ |
+| 20 dk önceki (süresi geçmiş) hedef yok sayıldı | ✔ |
+
+### Doğrulanan diğer şey
+
+`handle_new_user` tetikleyicisi `new.email`'e **hiç dokunmuyor**; takma adı
+UUID'den üretiyor (`oyuncu_xxxxxxxx`). Yani X e-posta vermezse veya misafir
+girişinde kayıt yine sorunsuz tamamlanır — sağlayıcılar açıldığında bu yüzden
+ek geliştirme gerekmeyecek.
