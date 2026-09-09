@@ -1,4 +1,5 @@
 import { Component } from "react";
+import { hataBildir } from "../lib/hataIzleme.js";
 
 /**
  * Uygulama genelinde hata sınırı.
@@ -23,6 +24,9 @@ export default class HataSiniri extends Component {
   componentDidCatch(hata, bilgi) {
     // eslint-disable-next-line no-console
     console.error("[Uygulama hatası]", hata, bilgi?.componentStack);
+    // Sentry kuruluysa raporla. Kurulu değilse (VITE_SENTRY_DSN boşsa) bu
+    // çağrı sessizce hiçbir şey yapmaz — ekran ve davranış aynı kalır.
+    hataBildir(hata, bilgi);
   }
 
   render() {

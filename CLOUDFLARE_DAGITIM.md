@@ -144,9 +144,29 @@ Environment variables:
   VITE_SITE_URL         = https://<proje>.pages.dev   (domain alınca güncelle)
   VITE_SUPABASE_URL     = https://zfpnxzybcpkxsotwdsey.supabase.co
   VITE_SUPABASE_ANON_KEY= <anon anahtar>
+  VITE_SENTRY_DSN       = (isteğe bağlı — aşağıya bak)
 ```
 
 `CRON_SECRET` buraya **konmaz** (sunucu sırrı, Supabase tarafında durur).
+
+### Hata izleme (Sentry) — isteğe bağlı
+
+Canlıda bir şey kırıldığında kullanıcı söylemeden haberimiz olsun diye
+Sentry bağlanabilir. **Tamamen isteğe bağlıdır:**
+
+- `VITE_SENTRY_DSN` **boşsa ya da hiç tanımlı değilse** Sentry kurulmaz.
+  Paket derlemeye bile girmez (doğrulandı: DSN'siz derlemede `sentry`
+  dizgisi hiçbir pakette geçmiyor), konsola uyarı da basılmaz.
+- Açmak için: [sentry.io](https://sentry.io) → yeni proje (platform: React) →
+  verilen **DSN**'i Cloudflare Pages ortam değişkenlerine
+  `VITE_SENTRY_DSN` adıyla ekle ve yeniden dağıt.
+- DSN gizli bir sır DEĞİLDİR (tarayıcıya gider), ama yine de panelde tutulur.
+
+Gizlilik ayarları kodda sabit (`src/lib/hataIzleme.js`):
+`sendDefaultPii: false`, oturum tekrarı kapalı (`replaysSessionSampleRate: 0`),
+performans örneklemesi `0.1`. Gönderilmeden önce olaydan **davet kodları ve
+e-posta benzeri dizgiler temizlenir** — oyunun "gerçek adın hiçbir zaman
+gösterilmez" vaadi hata raporlarında da geçerli.
 
 ### Dağıtımdan sonra ŞART
 
