@@ -2139,3 +2139,76 @@ incelendi; dördü ilk çıkışta okunmuyordu:
 - **Canlı doğrulama:** 31 karo, **31/31 görsel yüklendi**, kırık yok.
   İlk denemede yalnız seçili avatar görünüyordu: kaydırılabilir kutu içindeki
   `loading="lazy"` görselleri yüklemiyordu; kaldırıldı.
+
+## 2026-09-09 (6. tur) — Yayın öncesi güvenlik denetimi
+
+Migration'lar: `080_gizli_anahtar_tablosu`, `081_profil_gizliligi` — **ikisi de
+canlıya uygulandı.** Tam liste: `YAYIN_KONTROL.md`.
+
+### 🔴 Bulgu 1 — Sunucu sırrı herkese açık depoda
+`CRON_SECRET` yedi migration dosyasına düz metin yazılmıştı ve depo GitHub'da
+public (`"private": false` API'den doğrulandı; ham dosya anonim olarak
+**200** ile indirilebiliyor).
+**Etki, canlı uçta doğrulandı:** repodaki sırla
+`POST /functions/v1/send-push` → **200**, yanlış sırla → **401**. Yani üçüncü
+bir kişi tüm kullanıcılara istediği push bildirimini gönderebilir ve
+`generate-questions`'ı tetikleyip Anthropic kredisi yakabilirdi.
+**Düzeltme:** RLS'li, tüm rollerden revoke edilmiş `sunucu_gizli` tablosu +
+`gizli_al()` kapısı. Canlıdaki 6 fonksiyon (`bildirim_yaz`,
+`haftalik_sonuc_bildir`, `notify_new_challenge`, `notify_new_group_challenge`,
+`notify_new_hizli_davet`, `seri_hatirlat`) `pg_get_functiondef` üzerinden
+okunup literal, tablo okumasıyla değiştirilerek yeniden yazıldı.
+Doğrulandı: sır içeren fonksiyon **0**.
+**Kalan:** sır git geçmişinde durduğu için döndürülmeli — panel adımı
+kullanıcıda (YAYIN_KONTROL B1).
+
+### 🔴 Bulgu 2 — Profil verileri girişsiz okunabiliyordu
+`profiles` politikası `using (true)`, SELECT `anon` rolüne de veriliydi.
+Anon anahtar JS paketinde olduğundan giriş yapmadan
+`GET /rest/v1/profiles?select=*` → **27 kaydın tamamı**: gerçek addan türeyen
+`username` ("emiralkaya_12cd", "hanıfebatur_6d46"), Google profil fotoğrafı
+adresi, `davet_kodu`, `provider`, `last_seen`, `hile_yetkisi`.
+Uygulama ekranda "gerçek adın hiçbir zaman gösterilmez" sözü veriyordu;
+API seviyesinde tutulmuyordu (KVKK/GDPR açısından da yayın engeli).
+Ayrıca `anon` ve `authenticated` rollerinde profiles üzerinde
+INSERT/DELETE/**TRUNCATE**/TRIGGER/REFERENCES yetkileri vardı; TRUNCATE
+RLS'e tabi değildir.
+**Düzeltme:** anon erişimi tamamen kaldırıldı; `authenticated` yalnız gösterim
+sütunlarını okuyor (`id, gorunen_ad, gorunen_avatar, puan, ...`); kendi tam
+profil `profilim()` RPC'siyle geliyor; yazma yetkisi 3 sütuna indirildi.
+Doğrulandı: anon için `42501 permission denied`; giriş yapmış oyuncuda ana
+sayfa, lig ve maç ekranları çalışıyor.
+
+### Yan bulgu — Kafa Topu
+Oyuncu adı için `profiles.username` okuyup **doğrudan tabloya yazıyordu**;
+uzunluk, benzersizlik, yasaklı kelime ve günlük kilit kontrollerinin hepsini
+atlıyordu. `gorunen_ad` okumasına ve `takma_ad_sec` RPC'sine geçirildi
+(5 dosya, 13 yer).
+
+### Eklenen üretim altyapısı
+- **`HataSiniri`**: projede hiç hata sınırı yoktu; render hatası tüm ağacı
+  söküp beyaz ekran bırakıyordu. Artık Türkçe kurtarma ekranı + konsol kaydı.
+- **`og:`/`twitter:` etiketleri**: link paylaşımında önizleme boştu.
+- **`robots.txt` + `sitemap.xml`**: yoktu.
+- Lig sayfasındaki kalan tek emoji (kum saati) ikona çevrildi.
+
+### Denetimde temiz çıkanlar
+- `public` şemasındaki **tüm tablolarda RLS açık**; politikasız olanlar
+  (questions, push_subscriptions, quest_progress, question_votes,
+  matchmaking_queue, yasakli_kelimeler) yalnız security-definer RPC üzerinden
+  erişilebiliyor — doğru kurgu.
+- pg_cron: **17 görevin hepsi aktif**.
+- Depoda TODO/FIXME yok, `console.log` yok, `.env` git'e girmiyor,
+  istemci kodunda service_role/API anahtarı sızıntısı yok.
+- 8 Bildim sayfası 390px'te yatay taşmasız açılıyor; boş/hatalı ekran yok.
+- Soru havuzu 8.224 aktif.
+
+### Yayını engelleyen, panelde yapılacaklar
+1. `CRON_SECRET` döndürme (Supabase → Edge Functions → Secrets).
+2. Depoyu private yapma.
+3. Twitter/Facebook + misafir girişini açma.
+4. Gizlilik politikasında veri sorumlusu kimliği + **Kullanım Koşulları sayfası
+   (hiç yok)**.
+5. Reklam yayıncı kimliği (`VITE_H5_ADS_CLIENT` boş → test modu) ve
+   Play faturalandırma paketlemesi.
+6. Kendi alan adı.
