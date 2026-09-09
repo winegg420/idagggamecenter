@@ -2328,3 +2328,65 @@ sorguya taşındı (**20260612000106**).
 
 **20260612000104**, **20260612000105**, **20260612000106** — üçü de bu oturumda canlıya
 uygulandı (`pg` ile doğrudan), ayrıca çalıştırmaya gerek yok.
+
+---
+
+## 2026-09-09 — BİLDİM: Canlı yayın öncesi test ve düzeltmeler
+
+Canlıda (`idagg-game-center.vercel.app`) gerçek hesapla uçtan uca test yapıldı;
+bulunan 4 hata düzeltildi ve 1 yayın engelleyici eksik kapatıldı.
+
+### Bulunan ve düzeltilen hatalar
+
+| # | Hata | Kök neden | Etki | Düzeltme |
+|---|---|---|---|---|
+| 1 | `yildiz`, `hizli`, `onay` ikonları **hiç çizilmiyordu** | `Ikon.jsx` yolu `split("M")` ile bölüp her parçaya `"M"` ekliyordu; küçük `m` ile başlayan yollar `"Mm…"` olup geçersizleşiyordu | Joker Dükkânı kartında ikon yerine boş kırmızı plaka, başlıktaki puan yıldızı ve Hızlı Mod onay işareti görünmüyordu | `split(/(?=M)/)` — komut harfi korunuyor |
+| 2 | Hatalarım mod kartı Lig ile **aynı yeşil** (#2FBF71) | Yeni tema `styles.css`'e yazılmıştı; mod temaları `bildim/styles/tema.css` içinde `--tema-ikon` ile tanımlı | Alt alta iki tam genişlik kart ayırt edilemiyordu | `.bd-mod.tema-hatalarim` → **#20A4A0** camgöbeği |
+| 3 | Banka özeti satırı ikiye bölünüyordu | `.ayrac` sınıfı global **yatay ayraç çizgisi** (max-width 340px); noktayı 340px genişletiyordu | Özet kartı bozuk görünüyordu | `.bd-calisma-ayrac` olarak yeniden adlandırıldı |
+| 4 | Profil ve maç sonu satırları **altın + altı çizili ham bağlantı** gibi görünüyordu | `.app a` (özgüllük 0,1,1) kendi kurallarımızı (0,1,0) eziyordu | İki yeni satır tasarımdan kopuktu | Kurallar `.app a.<sınıf>` ile aynı özgüllüğe çıkarıldı |
+
+**Renk seçimi ölçümle yapıldı:** aday tonlar CIE Lab'da mevcut 6 mod rengiyle
+karşılaştırıldı; #20A4A0 en yakın renge **ΔE 40.9**, zemin kontrastı **6.13**,
+mor bandı (hue 245-315) dışında. İkon düzeltmesi 42 ikonun tamamında doğrulandı:
+3 bozuk ikon düzeldi, kalan 39'unun çıktısı **byte-ayni**.
+
+### Yayın engelleyici eksik kapatıldı
+
+`YAYIN_KONTROL.md` B4: "Kullanım Koşulları sayfası hiç yok."
+→ **`bildim/pages/KosullarPage.jsx`** yazıldı (17 madde): taraflar, hesap, yaş sınırı,
+kabul edilebilir kullanım (hile/taciz), kullanıcı içeriği, sanal öğeler ve Play
+faturalandırması, reklamlar, soru doğruluğu, askıya alma, garanti reddi, sorumluluk
+sınırı, fikri mülkiyet, uygulanacak hukuk (TR; tüketici hakları saklı).
+`/kosullar` rotası **giriş duvarının önünde** (gizlilik gibi); profil > Hesap
+bölümüne ve giriş ekranına bağlantı eklendi.
+
+### Canlıda doğrulanan davranışlar
+
+| Test | Sonuç |
+|---|---|
+| Çalışma turu bankadan doldu, soru geldi | ✔ |
+| Yanlış cevap → "Bunu daha önce N kez yanlış bilmiştin" | ✔ |
+| İlk doğru → "1/2 doğru", ikinci doğru → "Öğrenildi! Bankadan çıktı" | ✔ |
+| Tur sonu: 2 öğrenildi, banka 168 → 166 | ✔ |
+| `profiles.puan` 20 çalışma cevabı sonrası değişmedi (350 → 350) | ✔ |
+| Kategori ustalığı arttı (profil ızgarasında görünüyor) | ✔ |
+| Maç sonucunda "6 soruyu yanlış bildin — Hatalarım'a eklendi" | ✔ |
+| 10 sayfada JS hatası / bozuk ikon / hata kutusu | **0** |
+| 390px genişlikte yeni bileşenlerde yatay taşma | **yok** |
+| `/kosullar` canlıda açılıyor (18 başlık) | ✔ |
+
+### Not: test betiğimin ürettiği yanlış alarm
+
+İlk canlı denemede doğru cevapladığım 5 soru "yanlış" göründü. DB kaydı da öyleydi.
+Nedeni **uygulama değil, benim otomasyon betiğimdi**: doğru şık indekslerini oturum
+sırasına göre sabitlemiştim, ekranda gösterilen soru bir kaydığında hepsi kaydı.
+Soruyu **metinden eşleyerek** tekrarladığımda 10/10 doğru sonuç alındı. Uygulamada
+düzeltme gerekmedi — buraya, ileride aynı yanlış teşhis tekrarlanmasın diye yazıldı.
+
+### Hâlâ senin yapman gerekenler (panel işi, kod tarafı hazır)
+
+Canlı uçta yeniden doğrulandı: `twitter` **400**, `facebook` **400**, `apple` **400**,
+misafir girişi `anonymous_provider_disabled`. Yalnız Google (302) çalışıyor.
+`CRON_SECRET` rotasyonu ve deponun private yapılması da açık
+(ayrıntılar `YAYIN_KONTROL.md` B1-B6). Yasal metinlerde veri sorumlusu / hizmet
+sağlayıcı kimliği hâlâ doldurulmayı bekliyor.

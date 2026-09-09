@@ -72,7 +72,9 @@ Kod tarafı ikisi için de hazır; kapalıyken dürüst Türkçe mesaj veriyor.
 ### B4. 🟠 Yasal metinler
 - Gizlilik politikası **taslak** (dosyanın başında da öyle yazıyor):
   veri sorumlusu kimliği (şahıs mı şirket mi, adres) doldurulmalı.
-- **Kullanım Koşulları sayfası hiç yok.** Google Play ve reklam ağları istiyor.
+- ~~Kullanım Koşulları sayfası hiç yok.~~ **YAPILDI (9 Eylül 2026):** `/kosullar`
+  sayfası yazıldı ve giriş duvarının önüne alındı. Hizmet sağlayıcı kimliği
+  (şahıs/şirket, unvan, adres) doldurulmayı bekliyor.
 - KVKK aydınlatma metni ayrı istenir (Türkiye'ye yayın yapıyorsan).
 - Reklam açılınca çerez/izin metni de gerekir.
 
