@@ -2459,3 +2459,50 @@ yazılır, 307 sonrası yine idagg'da okunur.
 UUID'den üretiyor (`oyuncu_xxxxxxxx`). Yani X e-posta vermezse veya misafir
 girişinde kayıt yine sorunsuz tamamlanır — sağlayıcılar açıldığında bu yüzden
 ek geliştirme gerekmeyecek.
+
+---
+
+## 2026-09-09 — Site geneli denetim (hub + 8 oyun modülü)
+
+Sağlayıcı işi ertelendi; site baştan sona tarandı. **3 gerçek hata bulundu ve
+düzeltildi**, 1 yayın eksiği kapatıldı.
+
+### Düzeltilenler
+
+| # | Hata | Ölçüm | Düzeltme |
+|---|---|---|---|
+| 1 | **Buton kontrastı** — `.app .btn` altın zemine **beyaz** yazı kullanıyordu. "Lobiye katıl" ve "Meydan oku" solgun/okunaksızdı; aynı sayfadaki "Hemen oyna" doğru şekilde koyu yazı kullanıyor. | **1.87:1** (WCAG eşiği 4.5) | `color: #3a2400` → **7.83:1**, `.bd-ana-eylem` ile aynı |
+| 1b | `.btn.tehlike` mercan zemine beyaz | **3.64:1** | zemin `#E8543F` → `#C43A26` → **5.28:1** |
+| 2 | **Sitemap var olmayan adres bildiriyordu:** `/bildim/gizlilik` — böyle bir rota yok, canlıda ana sayfaya düşüyor (soft-404, yanlış kanonik sinyal) | canlıda doğrulandı | `/gizlilik` olarak düzeltildi; `/kosullar` + 7 oyun rotası eklendi (3 → 11 adres) |
+| 3 | **Kilitli rozet okunaksız** — `opacity: 0.45`, 10px açıklama | **2.96:1** | `opacity: 0.65` → **4.72:1** (kilitli hissi korunuyor) |
+| 4 | Hub alt bilgisinde yasal bağlantı yoktu | — | Gizlilik + Kullanım koşulları eklendi (mağaza/reklam ağı şartı) |
+
+### Temiz çıkanlar
+
+- **8 oyun modülünün tamamı** hatasız yükleniyor: Bildim, Kafa Topu, DidaGP,
+  Meyve Kes, PatiRun, Gölge Boks, RUN, Gladius. JS hatası **0**, konsol hatası
+  **0**, hata sınırı hiç devreye girmedi.
+- 13 rota tarandı: bozuk görsel yok, alt'sız görsel yok, etiketsiz düğme yok,
+  390px'te yatay taşma yok.
+- Meta/OG etiketleri, `robots.txt`, manifest ve 3 PWA ikonu (200) **güncel alan
+  adını** gösteriyor — eski alan adı sızıntısı yalnızca Supabase izin
+  listesindeydi (ayrı madde).
+- Joker, meydan, sıralama, hızlı mod sayfalarında düşük kontrast veya 36px altı
+  dokunma hedefi yok.
+
+### Ölçüm araçlarımın ürettiği 3 yanlış alarm (not düşülüyor)
+
+Bunları hata olarak raporlamadan önce doğruladım; hiçbiri site hatası değildi:
+
+1. **"Aynı uzunlukta farklı sayfalar"** — tarayıcı arka plan sekmesinde
+   render'ı kısıtladığı için ölçüm bir sayfa geriden geliyordu. Bekleme
+   koşulu eklenince tutarlı oldu.
+2. **"Tüm metinler kontrast 1.00"** — `document.visibilityState === "hidden"`
+   olduğunda CSS giriş animasyonları donuyor, `opacity` `from` değerinde (0)
+   kalıyor. Ölçümden önce `getAnimations().finish()` çağrılınca düzeldi.
+3. **"350 puanı kontrast 1.00"** — `background-clip: text` kullanan degrade
+   metin; tarayıcının kendi arka plan rengini zemin sanmışım. Gerçekte altın
+   üzeri koyu zemin, sorun yok.
+
+Ayrıca `.bd-mod-ikon` overflow uyarıları `position: fixed` üst bar ve tabbar'dan
+geliyordu — yanlış pozitif.
