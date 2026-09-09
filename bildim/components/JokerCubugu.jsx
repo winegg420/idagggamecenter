@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Ikon from "./Ikon.jsx";
 import { hataMesaji } from "../lib/hata.js";
 import { Link } from "react-router-dom";
@@ -17,6 +17,19 @@ export default function JokerCubugu({ macTur, macId, soruIndex, onEtki, kilit })
   const [durum, setDurum] = useState(null); // { sinir, kullanilan, ucretsiz_elli_kaldi }
   const [hata, setHata] = useState(null);
   const [calisan, setCalisan] = useState(null);
+  const hataRef = useRef(null);
+
+  // Joker çubuğu ekranın EN ALTINDA duruyor; hata notu düğmelerin altına
+  // düştüğü için görünür alanın dışında kalıyordu (ölçüm: not y=817, pencere
+  // 791). Oyuncu sessiz bir başarısızlık görüyordu. Not artık göze sokuluyor.
+  useEffect(() => {
+    if (!hata) return;
+    try {
+      hataRef.current?.scrollIntoView({ block: "nearest", behavior: "smooth" });
+    } catch {
+      /* eski tarayıcı: notu kaydıramadıysak da metin yerinde duruyor */
+    }
+  }, [hata]);
 
   const yukle = useCallback(async () => {
     try {
@@ -108,7 +121,7 @@ export default function JokerCubugu({ macTur, macId, soruIndex, onEtki, kilit })
       )}
 
       {hata && (
-        <div className="bd-joker-not hata">
+        <div className="bd-joker-not hata" ref={hataRef} role="alert">
           {hata}
           {/kalmadı/i.test(hata) && (
             <>

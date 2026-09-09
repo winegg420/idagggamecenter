@@ -901,7 +901,11 @@ export default function ChallengesPage() {
                     {siraSende && <span className="bd-sira-sende">SIRA SENDE</span>}
                   </div>
                   <div className="detay">
-                    {m.oyuncu1_skor} - {m.oyuncu2_skor} · {benimSoru}/{toplam} soru
+                    {/* Skor DAİMA "senin - rakibin" sırasında. Konumsal yazılırsa
+                        (oyuncu1 - oyuncu2) rakip seni davet ettiğinde sen sağa
+                        geçiyorsun ve satır tersine okunuyor. */}
+                    {benP1 ? m.oyuncu1_skor : m.oyuncu2_skor} -{" "}
+                    {benP1 ? m.oyuncu2_skor : m.oyuncu1_skor} · {benimSoru}/{toplam} soru
                     {!siraSende && " · rakip oynuyor"}
                   </div>
                 </div>
@@ -935,13 +939,16 @@ export default function ChallengesPage() {
           {biten.map((m) => {
             const kazandim = m.kazanan === user.id;
             const berabere = m.kazanan === null;
+            const benP1 = m.oyuncu1 === user.id;
             return (
               <div key={m.id} className="liste-satir">
                 <Avatar profile={rakip(m)} />
                 <div className="bilgi">
                   <div className="isim">{rakip(m)?.gorunen_ad}</div>
                   <div className="detay">
-                    {m.oyuncu1_skor} - {m.oyuncu2_skor}
+                    {/* "Senin - rakibin" sırası; bkz. Devam eden bloğundaki not. */}
+                    {benP1 ? m.oyuncu1_skor : m.oyuncu2_skor} -{" "}
+                    {benP1 ? m.oyuncu2_skor : m.oyuncu1_skor}
                   </div>
                 </div>
                 <span
