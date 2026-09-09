@@ -2092,3 +2092,50 @@ profil, 1v1 maç) ölçüldü:
   "0 - 16" görünebiliyor. Tasarım gereği (bot oyuncunun sırasını geçemiyor,
   yalnız bir soru önde). Rakip skorunu maç bitene kadar gizlemek deneyimi
   değiştireceğinden bu turda dokunulmadı.
+
+## 2026-09-09 (5. tur) — 31 karakter avatarı
+
+Migration: `079_yeni_karakter_avatarlari` — **canlıya uygulandı**.
+
+### İstek ve karar
+Kullanıcı "avatar fotoğrafları yükleyelim, şu ankiler berbat; gerçek görseller
+olabilir, ünlüler, komik içerikler, 20-30 tane" dedi.
+
+**Gerçek ünlü fotoğrafları kullanılmadı.** Telifli bir fotoğrafı ve bir kişinin
+görüntü/kişilik hakkını oyuna gömmek olurdu; oyun yayına açık ve mağazaya
+gidecek. Yerine aynı işi gören ve tamamen özgün olan yol seçildi: **31 karakterli
+komik çizim avatar**.
+
+### Üretilenler (`public/avatars/k01..k31.svg`)
+Hayvanlar: kedi, köpek, baykuş, tilki, panda, penguen, kurbağa, ayı, maymun,
+dinozor, ejderha, köpekbalığı, ahtapot, arı.
+Karakterler: robot, uzaylı, astronot, ninja, korsan, şövalye, büyücü, dedektif,
+aşçı, profesör, viking, hayalet, zombi, mumya, kahraman, palyaço, kral.
+
+- Toplam **~130 KB**, hepsi **yerel** (dış servis / CDN yok).
+- 34px avatarda da 92px profil resminde de okunur (ikisi de önizlemede ölçüldü).
+- Palet gece lacivert + altın ailesiyle uyumlu; **mor kullanılmadı**.
+- Üretici `bildim/_test/avatar-uret.mjs` olarak repoda: göz / ağız / kulak /
+  şapka gibi **parça fonksiyonlarından** kuruluyor, yeni karakter eklemek tek
+  satırlık bir tanım.
+
+### Önizlemede yakalanıp düzeltilenler
+Üretilen 31 avatar bir önizleme sayfasında 96px ve 34px olarak yan yana
+incelendi; dördü ilk çıkışta okunmuyordu:
+- **profesör** koyuna benziyordu (saç tepeyi de kapatıyordu) → saç yalnız
+  yanlarda, sakal küçültüldü.
+- **mumya**da sargı rengi kafa rengiyle aynıydı, sargılar görünmüyordu →
+  kafa koyulaştı, sargılar açıldı, aralarına gölge çizgisi eklendi.
+- **astronot**un kask camı yüzü soluklaştırıyordu → cam saydamlaştı, altın
+  çember eklendi.
+- **köpek** ayıya benziyordu → açık renk burun bölgesi eklendi.
+
+### Bağlantı
+- Profil ve kurulum sihirbazındaki seçici 31 karaktere geçti; **5 sütun**,
+  kart içinde kendi kaydırması (`max-height: 46vh`), her karo `aria-label` +
+  `title` taşıyor ("Kurbağa avatarını seç").
+- Eski düz siluetler (av1-av8) listeden çıkarıldı; **dosyalar duruyor**.
+  Migration 079 o siluetleri seçmiş oyuncuları yeni karşılıklarına taşıdı.
+- **Canlı doğrulama:** 31 karo, **31/31 görsel yüklendi**, kırık yok.
+  İlk denemede yalnız seçili avatar görünüyordu: kaydırılabilir kutu içindeki
+  `loading="lazy"` görselleri yüklemiyordu; kaldırıldı.
