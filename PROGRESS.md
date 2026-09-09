@@ -2701,3 +2701,78 @@ yok. **Bulunan hata:** kart alt barın 4px üzerine biniyordu (kural 78px idi).
 Canlıda ölçüldü — bar 64px + 8px dolgu; 84px→2px, 88px→6px, 92px→10px boşluk.
 92px'e çekildi. Çentikli iPhone'larda bar dolgusu safe-area kadar büyüdüğü ve
 kural da aynı değişkeni eklediği için boşluk korunuyor.
+
+---
+
+## 9 Eylül 2026 (3) — Baştan sona canlı denetim
+
+Kullanıcı isteği: "Projeyi canlıda baştan sona incele. Hata, açık, açılmayan
+bir şey, tıklanmayan bir şey var mı komple kontrol et."
+
+Kapsam: quizador.pages.dev (11 sayfa) + idagg hub (8 oyun + 3 ortak sayfa),
+gerçek hesapla gerçek maç, Supabase şema/RLS/RPC denetimi, HTTP başlıkları.
+
+### Bulunan ve düzeltilen 6 hata
+
+1. **Jokerler 1v1 maçta hiç çalışmıyordu** (migration 109) — 50:50/+10 sn/Pas
+   basınca hiçbir şey olmuyordu. Kök neden: 1v1 **asenkron**, ilerleme
+   `oyuncu1_soru/oyuncu2_soru`'da; `joker_kullan` ortak `aktif_soru`'yu
+   okuyordu → `p_soru_index <> v_aktif_soru` → "Soru değişti". Ölçüm: aktif
+   6 maçın 6'sında uyuşmazlık. Aynı kök nedenin diğer sonuçları da
+   düzeltildi (yanlış sorunun şıkları elenirdi, +10 sn RAKİBİN süresini
+   uzatırdı, Pas yanlış indekse yazardı). Grup/hızlı/turnuva senkron —
+   dokunulmadı. Canlıda doğrulandı.
+2. **Joker hata mesajı ekran dışında** — not, joker çubuğunun altında
+   çiziliyordu (ölçüm: y=817, pencere 791). `role="alert"` + scrollIntoView.
+3. **Maç listesinde skor ters okunuyordu** — `ChallengesPage` skoru konumsal
+   yazıyordu; rakip seni davet edince sen oyuncu2 olduğun için satır ters
+   okunuyordu ("279-274 · Kaybettin"). Botlar hep oyuncu2 olduğundan yalnız
+   insan-insan maçında görünüyordu. `MatchPage` zaten doğru yapıyordu.
+4. **"Hatalarım" sayacı ulaşılamaz soruları sayıyordu** (migration 110) —
+   `calisma_baslat` `q.aktif` filtreliyor, `yanlis_bankam` filtrelemiyordu.
+   16 kullanıcıda 47 ölü kayıt. `ogrenilen` bilerek filtrelenmedi.
+5. **Noktalama farkıyla ikizlenmiş 15 soru** (migration 111) — `soru` UNIQUE
+   ama tırnak farkı farklı satır sayılıyor. Silinmedi, `aktif=false`;
+   her çiftte en eski korundu (hepsinde `toplam_oy=0`, veri kaybı yok).
+6. **Yatay taşma** — `.bd-ust-blok` `50vw` kullanıyor; dikey kaydırma çubuğu
+   varken 8px taşıp masaüstünde yatay kaydırma çubuğu çıkarıyordu.
+   `html{overflow-x:clip}` (`hidden` değil — sticky'yi bozardı).
+
+### Temiz çıkanlar
+
+- 11 sayfa + hub'daki 8 oyun: **sıfır JS hatası, sıfır ağ hatası**, kırık
+  görsel yok, boş link yok, adsız düğme yok.
+- Takma ad doğrulaması sunucuda ve sağlam (uzunluk, karakter seti, küfür
+  listesi, benzersizlik, hız limiti, `unique_violation` yakalaması).
+- Davet kodu doğrulaması: geçersiz kod ve kendi kodu net mesajla reddediliyor.
+- Joker dükkânı: reklam kimliği yokken "sahte ödül verilmez" diyor, tüm
+  satın alma düğmeleri kilitli. Dürüst davranış.
+- Soru havuzu: 11.422 aktif, bozuk şık/cevap/boş soru **0**, tekrar **0**.
+- RLS tüm tablolarda açık; politikasız tablolar (questions, sunucu_gizli,
+  yasakli_kelimeler…) kasıtlı olarak yalnız RPC üzerinden erişilebilir.
+- HTTP başlıkları doğru (nosniff, frame, referrer; sw.js no-store,
+  assets immutable). `_headers`, `.env` gibi yollar sızmıyor (SPA yedeği).
+- Turnuva lobisi katıl/ayrıl, sıralama 4 lig × 2 dönem, profil kontrolleri,
+  ses/bildirim düğmeleri, kategori şeridi: hepsi çalışıyor.
+
+### Sertleştirme
+
+- PatiRun'ın iki `security definer` fonksiyonunda `search_path` yoktu
+  (migration 112). Artık projede açıkta fonksiyon **0**.
+
+### Kullanıcı kararı bekleyen (düzeltilmedi)
+
+- `pr_apply_race_result` puanı istemciden **doğrulamasız** alıyor. Kendi
+  satırına sınırlı (başkası bozulamaz) ama oyuncu kendi PatiRun puanını
+  şişirebilir ve bu puan hub'daki `birlesik_siralama`'ya giriyor. Meşru
+  aralık bilinmeden üst sınır koymak oyunu bozabileceği için dokunulmadı.
+  PatiRun'da şu an veri yok (max puan 0) — istismar edilmemiş.
+- Modüller arası kimlik tutarsızlığı: Bildim `takma_ad`'ı ("idagg"),
+  PatiRun/DidaGP `username`'i ("idaGG") gösteriyor. Aynı oyuncu iki farklı
+  adla görünüyor. Bildim kapsamı dışı olduğu için dokunulmadı.
+
+### Doğrulanamayan
+
+- Maç bitince ekranın kendi kendine sonuca dönmesi: bir kez gecikmeli
+  gördüm, ama 2 sn'lik yoklamanın çalıştığını ölçtüm (9 sn'de 6 istek) ve
+  yeniden üretemedim. Hata olarak raporlanmadı.
