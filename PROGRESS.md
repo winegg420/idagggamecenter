@@ -2693,3 +2693,11 @@ CriOS, Instagram, Facebook, Android Chrome, Mac Safari, Windows → gizle).
 **Doğrulanamayan:** gerçek iPhone'da görünüm ve "Ana Ekrana Ekle" akışı —
 tarayıcı otomasyonunda iOS Safari taklit edilemiyor. Kapı mantığı ve CSS
 yerleşimi ölçülerek doğrulandı, cihaz testi kullanıcıda.
+
+**Canlı doğrulama (aynı gün):** dağıtım sonrası paket ve CSS kuralları
+sunucudan tek tek denetlendi (hepsi yayında). Windows Chrome'da kart
+çıkmıyor ve gövdeye sınıf eklenmiyor — iPhone dışı kullanıcıda düzen kayması
+yok. **Bulunan hata:** kart alt barın 4px üzerine biniyordu (kural 78px idi).
+Canlıda ölçüldü — bar 64px + 8px dolgu; 84px→2px, 88px→6px, 92px→10px boşluk.
+92px'e çekildi. Çentikli iPhone'larda bar dolgusu safe-area kadar büyüdüğü ve
+kural da aynı değişkeni eklediği için boşluk korunuyor.
