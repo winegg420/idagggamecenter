@@ -2506,3 +2506,50 @@ Bunları hata olarak raporlamadan önce doğruladım; hiçbiri site hatası değ
 
 Ayrıca `.bd-mod-ikon` overflow uyarıları `position: fixed` üst bar ve tabbar'dan
 geliyordu — yanlış pozitif.
+
+---
+
+## 2026-09-09 — Cloudflare Pages dağıtımı hazırlandı (depo aynı)
+
+Vercel'e dokunulmadı; aynı depo iki yerde birden yayınlanabilir durumda.
+
+### Eklenen dosyalar
+
+| Dosya | Neden |
+|---|---|
+| `public/_redirects` | SPA yönlendirmesi. Olmadan `/bildim/calisma` gibi **tüm derin bağlantılar Cloudflare'de 404** döner. Vercel bu dosyayı yok sayar (o `vercel.json` kullanıyor). |
+| `public/_headers` | `sw.js` → `no-cache` (eski service worker takılı kalmasın), `/assets/*` → 1 yıl `immutable` (Vite hash'li ad üretiyor), `nosniff` + `Referrer-Policy` + `X-Frame-Options`. |
+| `.node-version` → `22` | **Kritik.** Vite 7 Node `^20.19 \|\| >=22.12` istiyor; Cloudflare Pages varsayılanı daha eski — sabitlenmezse **ilk derleme patlar.** Vercel de aynı dosyayı okuyor, uyumlu. |
+| `wrangler.toml` | CLI dağıtımı için (`pages_build_output_dir = "dist"`). Panelden bağlanırsa gerekmez. |
+| `CLOUDFLARE_DAGITIM.md` | Adım adım rehber + dağıtım sonrası yapılacaklar. |
+
+### Yerel doğrulama — `npx wrangler pages dev dist`
+
+Cloudflare'in kendi çalışma zamanı yerelde ayağa kaldırıldı (hesap gerekmedi):
+
+| Test | Sonuç |
+|---|---|
+| `/`, `/bildim`, `/bildim/calisma`, `/bildim/mac/abc-123`, `/kosullar`, `/gizlilik`, `/kafatopu` | 7/7 **200** + `text/html` |
+| `/sitemap.xml`, `/robots.txt`, `/manifest.webmanifest`, `/sw.js`, `/icon-192.png` | 5/5 **200** |
+| `sw.js` → `Cache-Control: no-cache, no-store, must-revalidate` | ✔ |
+| `/assets/*.js` → `public, max-age=31536000, immutable` | ✔ |
+| `x-content-type-options: nosniff` | ✔ |
+| Uygulama tarayıcıda `/bildim/calisma` derin bağlantısından açıldı | ✔ |
+
+### Vercel regresyon kontrolü
+
+`.node-version` eklemek Vercel derlemesini de etkilediği için canlı doğrulandı:
+site açılıyor, `/bildim/calisma` render ediliyor, önceki CSS düzeltmeleri
+(buton `#3a2400`, rozet `0.65`) yerinde, sitemap 11 adres. `_redirects`
+Vercel'de statik dosya olarak servis ediliyor (200) — zararsız.
+
+### Cloudflare yayına açılmadan önce ŞART
+
+Supabase izin listesinde yalnız `bildim.vercel.app` var. **Cloudflare alan adı
+eklenmeden giriş çalışmaz** — kullanıcı giriş yapınca Vercel sitesine düşer.
+Vercel'de çalışmasının tek nedeni o alan adının 307 yönlendirmesi; Cloudflare'de
+böyle bir yedek yok. Supabase → Authentication → URL Configuration →
+Redirect URLs'e `https://<proje>.pages.dev/**` eklenmeli.
+
+Ayrıca iki site birden yayında kalacaksa ikincisine `Disallow: /` veya asıl
+alan adına `rel=canonical` gerekir (yinelenen içerik).
