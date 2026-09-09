@@ -1806,3 +1806,64 @@ arkadaş ekleme doğrulaması, manifest, grup maçı bot ilerlemesi.
    (X/Meta geliştirici portalından Client ID + Secret gerekiyor).
 2. Supabase → Authentication: **Allow anonymous sign-ins** aç (misafir girişi).
    İkisi de panel anahtarı; kod tarafı hazır ve kapalıyken dürüst mesaj veriyor.
+
+## 2026-09-09 (2. tur) — Bildirim paneli taşması + bot bildirim gürültüsü
+
+**Migration:** `20260612000075_bildirim_gurultusu.sql` — **canlıya uygulandı.**
+
+### 1) Panel mobilde ekranın soluna taşıyordu
+- **Kanıt (kullanıcı):** ~412px genişlikte satır başları kesiliyordu —
+  "UstaBot" → "staBot", "sillaaa" → "illaaa", "BilgeBot" → "ilgeBot".
+- **Kök neden:** panel `right` değeri JS'ten zil düğmesinin konumuna göre
+  veriliyor, genişlik ise `min(340px, 100vw - 24px)` ile SABİT ayarlanıyordu.
+  Sağa yaslı sabit genişlik + zilin sağ kenar payı toplamı dar ekranlarda
+  viewport'u aşıyor, panel sola kayıyordu.
+- **Çözüm:**
+  - JS artık yalnız **dikey** konumu ölçüyor (`top`); yatay yerleşim tamamen CSS'te.
+  - Mobil (<600px): `position: fixed; left: 8px; right: 8px; width: auto` —
+    sağa yaslanmak yerine iki kenardan boşluklu.
+  - Geniş ekran (≥600px): `right: 16px; width: min(360px, 92vw)`.
+  - `max-width: calc(100vw - 16px)`, `max-height: 60vh` + kendi içinde dikey kaydırma.
+  - `.bd-zil-satir .metin`: `overflow-wrap: anywhere` + `word-break: break-word`;
+    `.govde` için `flex: 1` — uzun takma adlar kesilmiyor, sarılıyor.
+- **DOĞRULAMA** (Chrome, gerçek `getBoundingClientRect()` ölçümü; derlenmiş
+  `index.css` ile üç ayrı iframe genişliğinde):
+
+  | Viewport | panel.left | panel.right | genişlik | `left>=0 && right<=innerWidth` | metin taşması |
+  |---|---|---|---|---|---|
+  | 360px | 8 | 352 | 344 | **true** | yok |
+  | 412px | 8 | 404 | 396 | **true** | yok |
+  | 768px | 392 | 752 | 360 | **true** | yok |
+
+  Satır metinleri de ayrıca ölçüldü; üç genişlikte de hiçbir metin kutusu
+  viewport dışına çıkmıyor.
+
+### 2) Bot bildirimleri gerçek bildirimleri boğuyordu
+- **Kanıt (kullanıcı):** panelde üst üste 5 adet "<Bot> hamlesini yaptı — sıra
+  sende!"; aralarında kaybolmuş gerçek olaylar (meydan okuma, seri, ustalık).
+- **Kök neden:** `trg_mac_sira_bildir` ilerleyen tarafın bot olup olmadığına
+  bakmıyordu. Bot her tikte bir soru ilerlettiği için 20 soruluk maç boyunca
+  oyuncuya defalarca "sıra sende" düşüyordu. Bot zaten her an hazır — bildirimin
+  bilgi değeri yok.
+- **Sunucu tarafı (`20260612000075`):**
+  - Tetikleyiciye bot kontrolü eklendi: **bot ilerlemesi bildirim üretmiyor.**
+    Yalnız gerçek oyuncu hamle yapınca bildirim çıkıyor.
+  - Birikmiş bot kaynaklı `sira_sende` kayıtları silindi (maç kaydından rakibin
+    `is_bot` değerine bakılarak).
+  - `bildirim_temizle()`: **7 günden eski OKUNMUŞ** bildirimler siliniyor.
+    Okunmamışlara dokunulmuyor (kullanıcı görmediği olayı kaybetmesin).
+    İki yerden tetikleniyor: günlük cron `bildim-bildirim-temizle` (`20 3 * * *`)
+    **ve** `bildirimleri_oku()` içinde (panel her açılışında).
+- **İstemci tarafı (`BildirimZili.jsx`):**
+  - **Öncelik sırası:** meydan okuma / davet / arkadaşlık isteği (0) >
+    rozet-seviye (ustalık, lig, hafta sonucu) (1) > seri (2) > sıra sende (3).
+    Okunmamışlar her zaman en üstte; eşitlikte en yeni önce.
+  - **Toplama:** aynı türden birden fazla OKUNMAMIŞ bildirim tek satıra iniyor —
+    "3 maçta sıra sende ⏳", "2 yeni meydan okuma ⚔️" gibi; satır ilgili
+    listeye götürüyor. Okunmuşlar tek tek kalıyor.
+- **DOĞRULAMA (canlı DB):**
+  - Temizlik öncesi `sira_sende` = **5**, sonrası = **1**;
+    kalan tek kayıt gerçek oyuncudan (`idagg hamlesini yaptı`, `rakip_bot = false`).
+  - Yani panelde bot kaynaklı "sıra sende" bildirimi **kalmadı**; gerçek olaylar
+    (mac_daveti, ustalik, arkadas_istek) öncelik sırasıyla üstte.
+  - `bildim-bildirim-temizle` cron kaydı doğrulandı (`20 3 * * *`).

@@ -18,15 +18,76 @@ const TIP_IKON = {
   seri_hatirlatma: "🔥",
 };
 
-// Davet bildirimleri listenin en üstüne çekilir.
-const ONCELIKLI = new Set(["mac_daveti", "rovans", "grup_daveti", "hizli_daveti"]);
+// Öncelik: meydan okuma > rozet/seviye > seri > sıra sende.
+// (Bot maçlarında "sıra sende" artık hiç üretilmiyor — bkz. migration 075 —
+//  ama gerçek rakiplerden gelenler de gerçek olayların üstüne çıkmasın.)
+const ONCELIK = {
+  mac_daveti: 0,
+  rovans: 0,
+  grup_daveti: 0,
+  hizli_daveti: 0,
+  arkadas_istek: 0,
+  ustalik: 1,
+  lige_girdin: 1,
+  hafta_sonuc: 1,
+  arkadas_kabul: 1,
+  seri: 2,
+  seri_hatirlatma: 2,
+  sira_sende: 3,
+  gecildin: 3,
+};
+const oncelikNo = (tip) => (tip in ONCELIK ? ONCELIK[tip] : 2);
+
 const oncelikSirala = (liste) =>
   [...liste].sort((a, b) => {
-    const oa = ONCELIKLI.has(a.tip) && !a.okundu ? 0 : 1;
-    const ob = ONCELIKLI.has(b.tip) && !b.okundu ? 0 : 1;
-    if (oa !== ob) return oa - ob;
+    // Okunmamışlar her zaman üstte
+    if (Boolean(a.okundu) !== Boolean(b.okundu)) return a.okundu ? 1 : -1;
+    const fark = oncelikNo(a.tip) - oncelikNo(b.tip);
+    if (fark !== 0) return fark;
     return new Date(b.created_at) - new Date(a.created_at);
   });
+
+// Aynı türden birden fazla OKUNMAMIŞ bildirim varsa tek satırda toplanır.
+const TOPLAMA = {
+  sira_sende: { metin: (n) => `${n} maçta sıra sende ⏳`, yol: "/bildim/meydan" },
+  mac_daveti: { metin: (n) => `${n} yeni meydan okuma ⚔️`, yol: "/bildim/meydan" },
+  rovans: { metin: (n) => `${n} rövanş isteği ⚔️`, yol: "/bildim/meydan" },
+  grup_daveti: { metin: (n) => `${n} grup maçı daveti 👥`, yol: "/bildim/meydan" },
+  hizli_daveti: { metin: (n) => `${n} hızlı maç daveti ⚡`, yol: "/bildim/meydan" },
+  seri: { metin: (n) => `${n} seri bildirimi 🔥`, yol: "/bildim" },
+  arkadas_istek: { metin: (n) => `${n} arkadaşlık isteği 🤝`, yol: "/bildim/arkadaslar" },
+};
+
+/** Okunmamış tekrarları tek satıra indirger; okunmuşlara dokunmaz. */
+function grupla(liste) {
+  const sayac = new Map();
+  for (const b of liste) {
+    if (b.okundu || !TOPLAMA[b.tip]) continue;
+    sayac.set(b.tip, (sayac.get(b.tip) ?? 0) + 1);
+  }
+  const toplanan = new Set([...sayac.entries()].filter(([, n]) => n > 1).map(([t]) => t));
+  if (toplanan.size === 0) return liste;
+
+  const sonuc = [];
+  const yazildi = new Set();
+  for (const b of liste) {
+    if (!b.okundu && toplanan.has(b.tip)) {
+      if (yazildi.has(b.tip)) continue;
+      yazildi.add(b.tip);
+      const n = sayac.get(b.tip);
+      sonuc.push({
+        ...b,
+        id: `toplu-${b.tip}`,
+        metin: TOPLAMA[b.tip].metin(n),
+        yol: TOPLAMA[b.tip].yol,
+        adet: n,
+      });
+      continue;
+    }
+    sonuc.push(b);
+  }
+  return sonuc;
+}
 
 function zamanMetni(iso) {
   const fark = Date.now() - new Date(iso).getTime();
@@ -58,7 +119,7 @@ export default function BildirimZili() {
         .order("created_at", { ascending: false })
         .limit(30);
       if (error) throw error;
-      setListe(oncelikSirala(data ?? []));
+      setListe(grupla(oncelikSirala(data ?? [])));
       setOkunmamis((data ?? []).filter((b) => !b.okundu).length);
     } catch {
       /* tablo henüz yok (migration bekliyor) veya ağ hatası — sessiz geç */
@@ -91,9 +152,12 @@ export default function BildirimZili() {
     if (!el) return;
     try {
       const r = el.getBoundingClientRect();
-      setKonum({ ust: r.bottom + 8, sag: Math.max(8, window.innerWidth - r.right) });
+      // Yalnız DİKEY konum ölçülür. Yatay yerleşim CSS'e bırakıldı: mobilde
+      // panel iki kenardan 8px boşlukla gerilir, geniş ekranda sağa yaslanır.
+      // (Zile göre sabit genişlik vermek dar ekranlarda paneli sola taşırıyordu.)
+      setKonum({ ust: Math.max(8, r.bottom + 8) });
     } catch {
-      setKonum({ ust: 64, sag: 12 });
+      setKonum({ ust: 64 });
     }
   }, []);
 
@@ -130,7 +194,7 @@ export default function BildirimZili() {
         className="bd-zil-liste"
         role="dialog"
         aria-label="Bildirimler"
-        style={konum ? { top: konum.ust, right: konum.sag } : undefined}
+        style={konum ? { top: konum.ust } : undefined}
       >
         <div className="bd-zil-baslik">Bildirimler</div>
         {liste.length === 0 ? (

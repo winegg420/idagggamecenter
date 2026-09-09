@@ -1512,16 +1512,26 @@ input:focus { border-color: var(--primary); }
 /* Panel body'ye portallanır: sticky üst blok ve alt menü artık kırpamaz. */
 .bd-zil-ortu { position: fixed; inset: 0; z-index: 1200; }
 .bd-zil-liste {
-  position: fixed; top: 64px; right: 12px; z-index: 1201;
-  width: min(340px, calc(100vw - 24px));
-  /* Alt menü payı da düşülür; panel ekranın altına takılıp yarım kalmaz. */
-  max-height: calc(100dvh - 96px - env(safe-area-inset-bottom));
+  position: fixed; z-index: 1201;
+  top: 64px;
+  /* Mobil: sağ üste yaslanmak yerine iki kenardan 8px boşluklu.
+     Zile yaslanan sabit genişlik dar ekranlarda sola taşıyordu. */
+  left: 8px; right: 8px; width: auto;
+  max-width: calc(100vw - 16px);
+  max-height: 60vh;
   overflow-y: auto; -webkit-overflow-scrolling: touch;
   overscroll-behavior: contain;
   background: var(--card);
   border: 1px solid var(--border);
   border-radius: var(--bd-yaricap-m);
   box-shadow: var(--bd-golge-2);
+}
+/* Masaüstü / geniş ekran: zilin altına, sağa yaslı açılır menü */
+@media (min-width: 600px) {
+  .bd-zil-liste {
+    left: auto; right: 16px;
+    width: min(360px, 92vw);
+  }
 }
 .bd-zil-baslik {
   padding: 12px 14px 8px;
@@ -1538,8 +1548,9 @@ input:focus { border-color: var(--primary); }
 }
 .bd-zil-satir:active { background: var(--bg-2); }
 .bd-zil-satir .ikon { font-size: 18px; flex: 0 0 20px; }
-.bd-zil-satir .govde { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
-.bd-zil-satir .metin { font-size: 13px; line-height: 1.4; }
+.bd-zil-satir .govde { display: flex; flex-direction: column; gap: 3px; min-width: 0; flex: 1; }
+/* Uzun takma adlar kesilmesin; kelime ortasından da sarılabilsin */
+.bd-zil-satir .metin { font-size: 13px; line-height: 1.4; overflow-wrap: anywhere; word-break: break-word; }
 .bd-zil-satir .zaman { font-size: 11px; color: var(--text-dim); }
 
 /* ---------- Kurulum sihirbazı ---------- */
