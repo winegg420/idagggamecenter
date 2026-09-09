@@ -1,13 +1,34 @@
-// Bildim! — Claude API ile soru üretimi
+// Quizador — Claude API ile soru üretimi
 // Çağrı: POST, header "x-cron-secret: <CRON_SECRET>"
 // Gerekli secret'lar: ANTHROPIC_API_KEY, CRON_SECRET
 // (SUPABASE_URL ve SUPABASE_SERVICE_ROLE_KEY otomatik sağlanır)
+//
+// ============================================================================
+// NEDEN YENİDEN YAZILDI (denetimde bulunan iki kök neden)
+//
+// 1) HEDEF_HAVUZ = 200 TOPLAM havuz eşiğiydi. Havuzda 11.422 soru olduğu için
+//    fonksiyon her çağrıda "Havuz dolu" deyip çıkıyordu — saatlik cron aylardır
+//    hiçbir şey üretmiyordu. Eşik artık KATEGORİ BAŞINA.
+//
+// 2) Kategori enum'ı 7 değerdi: ["genel","tarih","cografya","bilim","sanat",
+//    "spor","edebiyat"]. Gerçek kategoriler 10 ve arada sinema/muzik/teknoloji
+//    YOKTU — o üç kategoriye hiç soru üretilmiyordu. Ayrıca "genel" değeri
+//    get_categories tarafından gizleniyor (genel + karisik birleştirilmiş),
+//    yani oraya üretilen soru oyuncuya HİÇ görünmezdi.
+//
+// "karisik" bir kategori DEĞİL, "kategori seçme" filtresidir (bkz.
+// get_categories: `kategori not in ('genel','karisik')`). Enum'a konmadı.
+// ============================================================================
 
 import Anthropic from "npm:@anthropic-ai/sdk";
 import { createClient } from "npm:@supabase/supabase-js@2";
 
-const HEDEF_HAVUZ = 200; // aktif soru sayısı bu değerin altındaysa üret
-const PARTI_BOYU = 15; // her çağrıda üretilecek soru sayısı
+import { KATEGORILER, normalize, nedenGecersiz, type Soru } from "./kalite.ts";
+
+/** Kategori başına hedef aktif soru sayısı. Altındaki kategoriye üretilir. */
+const KATEGORI_HEDEFI = 1000;
+/** Her çağrıda üretilecek soru sayısı. */
+const PARTI_BOYU = 15;
 
 const questionSchema = {
   type: "object",
@@ -18,15 +39,9 @@ const questionSchema = {
         type: "object",
         properties: {
           soru: { type: "string" },
-          secenekler: {
-            type: "array",
-            items: { type: "string" },
-          },
+          secenekler: { type: "array", items: { type: "string" } },
           dogru_cevap: { type: "integer", enum: [0, 1, 2, 3] },
-          kategori: {
-            type: "string",
-            enum: ["genel", "tarih", "cografya", "bilim", "sanat", "spor", "edebiyat"],
-          },
+          kategori: { type: "string", enum: [...KATEGORILER] },
         },
         required: ["soru", "secenekler", "dogru_cevap", "kategori"],
         additionalProperties: false,
@@ -51,41 +66,76 @@ Deno.serve(async (req) => {
     Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
   );
 
-  // Havuz yeterince doluysa üretme
-  const { count } = await supabase
-    .from("questions")
-    .select("id", { count: "exact", head: true })
-    .eq("aktif", true);
-
-  if ((count ?? 0) >= HEDEF_HAVUZ) {
-    return Response.json({ uretildi: 0, mesaj: "Havuz dolu", havuz: count });
+  // --- Hangi kategori en aç? -----------------------------------------------
+  const sayimlar: Record<string, number> = {};
+  for (const k of KATEGORILER) {
+    const { count } = await supabase
+      .from("questions")
+      .select("id", { count: "exact", head: true })
+      .eq("aktif", true)
+      .eq("kategori", k);
+    sayimlar[k] = count ?? 0;
   }
 
-  // Tekrarı önlemek için mevcut soruları al
+  let hedefKategori: string | null = null;
+  let enAz = Number.POSITIVE_INFINITY;
+  for (const k of KATEGORILER) {
+    if (sayimlar[k] < KATEGORI_HEDEFI && sayimlar[k] < enAz) {
+      enAz = sayimlar[k];
+      hedefKategori = k;
+    }
+  }
+
+  if (!hedefKategori) {
+    return Response.json({
+      uretildi: 0,
+      mesaj: "Tüm kategoriler hedefte",
+      hedef: KATEGORI_HEDEFI,
+      sayimlar,
+    });
+  }
+
+  // --- Tekrarı önle: HEDEF KATEGORİNİN tüm soruları --------------------------
+  // (Eskiden yalnız en yeni 300 soru veriliyordu ve kategori ayrımı yoktu.)
   const { data: mevcut } = await supabase
     .from("questions")
     .select("soru")
-    .order("created_at", { ascending: false })
-    .limit(300);
+    .eq("kategori", hedefKategori)
+    .limit(5000);
 
-  const mevcutListe = (mevcut ?? []).map((q) => q.soru).join("\n");
+  const mevcutMetinler = (mevcut ?? []).map((q) => q.soru as string);
+  const mevcutNorm = new Set(mevcutMetinler.map(normalize));
+  // İstem uzamasın diye modele en fazla 400 örnek gösteriliyor; asıl eleme
+  // aşağıda normalize edilmiş küme ile SUNUCUDA yapılıyor.
+  const ornekListe = mevcutMetinler.slice(-400).join("\n");
 
-  const anthropic = new Anthropic({ apiKey: Deno.env.get("ANTHROPIC_API_KEY")! });
+  const anahtar = Deno.env.get("ANTHROPIC_API_KEY");
+  if (!anahtar) {
+    return Response.json(
+      { hata: "ANTHROPIC_API_KEY tanımlı değil", hedefKategori, sayimlar },
+      { status: 500 },
+    );
+  }
+  const anthropic = new Anthropic({ apiKey: anahtar });
 
   const response = await anthropic.messages.create({
-    model: "claude-opus-4-8",
+    model: "claude-opus-5",
     max_tokens: 16000,
     system:
-      "Türkçe, orta zorlukta, doğruluğundan %100 emin olduğun genel kültür soruları üret. " +
-      "4 şık olsun. Daha önce sorulmuş sorular tekrar sorulmasın. " +
-      "Şıklardan yalnızca biri kesin doğru olmalı, diğerleri makul ama kesinlikle yanlış çeldiriciler olmalı. " +
-      "Tartışmalı, zamana bağlı değişen veya birden fazla doğru cevabı olabilecek sorulardan kaçın.",
+      "Türkçe, orta zorlukta, doğruluğundan %100 emin olduğun bilgi yarışması soruları üret. " +
+      "4 şık olsun ve şıklar birbirinden net ayrılsın. " +
+      "Şıklardan yalnızca biri kesin doğru olmalı; diğerleri makul ama kesinlikle yanlış çeldiriciler olmalı. " +
+      "Cevap sorunun metninde geçmesin. " +
+      "'Aşağıdakilerden hangisi yanlıştır/değildir' gibi OLUMSUZ kalıplar KULLANMA. " +
+      "Zamana bağlı bilgi sorma (şu anki, günümüzde, en son, kaç yaşında gibi) — " +
+      "cevap yıllar sonra da aynı kalmalı. " +
+      "Türkçe karakterleri ve noktalamayı doğru kullan.",
     messages: [
       {
         role: "user",
         content:
-          `${PARTI_BOYU} adet yeni genel kültür sorusu üret. Kategorileri dengeli dağıt.\n\n` +
-          `Daha önce sorulmuş sorular (BUNLARI VE ÇOK BENZERLERİNİ TEKRAR SORMA):\n${mevcutListe}`,
+          `${PARTI_BOYU} adet yeni soru üret. HEPSİ "${hedefKategori}" kategorisinde olsun.\n\n` +
+          `Bu kategoride daha önce sorulmuş sorular (BUNLARI VE ÇOK BENZERLERİNİ TEKRAR SORMA):\n${ornekListe}`,
       },
     ],
     output_config: {
@@ -102,32 +152,45 @@ Deno.serve(async (req) => {
     return Response.json({ hata: "Modelden metin alınamadı" }, { status: 502 });
   }
 
-  const parsed = JSON.parse(textBlock.text) as {
-    sorular: Array<{
-      soru: string;
-      secenekler: string[];
-      dogru_cevap: number;
-      kategori: string;
-    }>;
-  };
+  const parsed = JSON.parse(textBlock.text) as { sorular: Soru[] };
 
-  const gecerli = parsed.sorular.filter(
-    (q) =>
-      q.soru?.trim() &&
-      Array.isArray(q.secenekler) &&
-      q.secenekler.length === 4 &&
-      q.dogru_cevap >= 0 &&
-      q.dogru_cevap <= 3,
-  );
+  // --- Kalite + tekrar elemesi (SUNUCUDA) -----------------------------------
+  const elenen: Record<string, number> = {};
+  const partiNorm = new Set<string>();
+  const gecerli: Soru[] = [];
+
+  for (const q of parsed.sorular ?? []) {
+    const sebep = nedenGecersiz(q);
+    if (sebep) {
+      elenen[sebep] = (elenen[sebep] ?? 0) + 1;
+      continue;
+    }
+    const n = normalize(q.soru);
+    if (mevcutNorm.has(n)) {
+      elenen["havuzda zaten var"] = (elenen["havuzda zaten var"] ?? 0) + 1;
+      continue;
+    }
+    if (partiNorm.has(n)) {
+      elenen["parti içi tekrar"] = (elenen["parti içi tekrar"] ?? 0) + 1;
+      continue;
+    }
+    partiNorm.add(n);
+    gecerli.push(q);
+  }
+
+  if (gecerli.length === 0) {
+    return Response.json({ uretildi: 0, mesaj: "Tümü elendi", hedefKategori, elenen });
+  }
 
   const { data: eklenen, error } = await supabase
     .from("questions")
     .upsert(
       gecerli.map((q) => ({
         soru: q.soru.trim(),
-        secenekler: q.secenekler,
+        secenekler: q.secenekler.map((s) => String(s).trim()),
         dogru_cevap: q.dogru_cevap,
-        kategori: q.kategori,
+        // Kategori modelden DEĞİL, sunucudan: parti tek kategori için istendi.
+        kategori: hedefKategori,
       })),
       { onConflict: "soru", ignoreDuplicates: true },
     )
@@ -139,6 +202,9 @@ Deno.serve(async (req) => {
 
   return Response.json({
     uretildi: eklenen?.length ?? 0,
-    havuz: (count ?? 0) + (eklenen?.length ?? 0),
+    hedefKategori,
+    kategoriYeniToplam: sayimlar[hedefKategori] + (eklenen?.length ?? 0),
+    hedef: KATEGORI_HEDEFI,
+    elenen,
   });
 });
