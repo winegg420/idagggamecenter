@@ -4,7 +4,7 @@ import { y } from "../lib/yol.js";
 // Google Play zorunluluğu: mağaza kaydında gösterilecek gizlilik politikası.
 // Bu bir TASLAKTIR; yayına almadan önce iletişim e-postası ve şirket/kişi
 // bilgisi kontrol edilmelidir.
-const GUNCELLEME = "8 Eylül 2026";
+const GUNCELLEME = "9 Eylül 2026";
 const ILETISIM = "idagureli@gmail.com";
 
 export default function GizlilikPage() {
@@ -63,6 +63,33 @@ export default function GizlilikPage() {
         <li>Sana daha önce görmediğin soruları göstermek.</li>
         <li>Kötüye kullanımı (puan kasma, sahte hesap) tespit etmek.</li>
         <li>İzin verdiysen turnuva ve haftalık sonuç bildirimleri göndermek.</li>
+      </ul>
+
+      <h2>Sesli sohbet</h2>
+      <p>
+        1v1 maçlarda, <b>yalnızca arkadaş olduğun</b> bir oyuncuyla ve
+        <b> iki taraf da açıkça kabul ederse</b> sesli sohbet açılabilir. Kapalı
+        gelir; sen başlatmadan mikrofonun açılmaz.
+      </p>
+      <ul>
+        <li>
+          <b>Konuşma kaydedilmez.</b> Ses doğrudan iki cihaz arasında gider
+          (WebRTC); sunucularımızdan geçmez, saklanmaz, dinlenmez.
+        </li>
+        <li>
+          <b>IP adresi:</b> bu teknoloji doğrudan bağlantı kurduğu için,
+          görüşme sırasında cihazlarınızın IP adresleri karşı tarafa
+          görünebilir. Bu, sesli sohbetin yalnız arkadaşlarla açılmasının
+          başlıca sebebidir.
+        </li>
+        <li>
+          Mikrofon izni tarayıcından istenir ve istediğin an geri alabilirsin.
+          Görüşmeyi tek dokunuşla kapatabilir ya da mikrofonunu susturabilirsin.
+        </li>
+        <li>
+          Sesli sohbet tamamen isteğe bağlıdır; hiç kullanmadan da oyunun
+          tamamını oynayabilirsin.
+        </li>
       </ul>
 
       <h2>Paylaşım</h2>

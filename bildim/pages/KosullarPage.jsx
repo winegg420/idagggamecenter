@@ -61,8 +61,14 @@ export default function KosullarPage() {
           hile ile etkilemek.
         </li>
         <li>
-          <b>Taciz:</b> takma ad, avatar veya maç içi sohbette hakaret, nefret
-          söylemi, tehdit, cinsel içerik veya spam.
+          <b>Taciz:</b> takma ad, avatar, maç içi yazılı sohbet veya{" "}
+          <b>sesli sohbette</b> hakaret, nefret söylemi, tehdit, cinsel içerik
+          veya spam.
+        </li>
+        <li>
+          <b>Sesli sohbette izinsiz kayıt:</b> karşı tarafın rızası olmadan
+          görüşmeyi kaydetmek, yayınlamak veya başkalarına dinletmek yasaktır ve
+          ayrıca hukuki sorumluluk doğurabilir.
         </li>
         <li>Başkasının kimliğine bürünmek; yanıltıcı takma ad kullanmak.</li>
         <li>Hizmete aşırı yük bindirmek, güvenlik önlemlerini aşmaya çalışmak.</li>
@@ -75,6 +81,13 @@ export default function KosullarPage() {
         Bunları hizmet içinde göstermemiz için bize sınırlı ve ücretsiz bir
         kullanım izni vermiş olursun. Kurallara aykırı içeriği bildirim üzerine
         veya kendiliğimizden kaldırabiliriz.
+      </p>
+      <p>
+        <b>Sesli sohbet bunun dışındadır:</b> ses doğrudan iki cihaz arasında
+        gider, bize hiç ulaşmaz ve kaydedilmez. Bu yüzden sesli sohbet içeriğini
+        göremez, denetleyemez ve şikâyet hâlinde inceleyemeyiz. Sesli sohbeti
+        yalnız arkadaş olduğun ve güvendiğin kişilerle aç; rahatsız edilirsen
+        görüşmeyi kapat ve kişiyi arkadaşlıktan çıkar.
       </p>
 
       <h2>6. Sanal öğeler, jokerler ve satın almalar</h2>

@@ -12,6 +12,7 @@ import MacSonuEklentisi from "../components/MacSonuEklentisi.jsx";
 import Maskot from "../components/Maskot.jsx";
 import Ikon from "../components/Ikon.jsx";
 import MacYukleniyor from "../components/MacYukleniyor.jsx";
+import SesliSohbet from "../components/SesliSohbet.jsx";
 import { useOyunModu } from "../lib/oyunModu.js";
 import { macBittiReklam } from "../lib/reklam.js";
 import { y } from "../lib/yol.js";
@@ -493,6 +494,10 @@ export default function MatchPage() {
           Sıradaki soru geliyor…
         </div>
       )}
+
+      {/* Sesli sohbet yazılı sohbetin ÜSTÜNDE: yalnız arkadaş olan iki oyuncu
+          aynı anda maçtayken çizilir, aksi halde hiç görünmez. */}
+      <SesliSohbet macId={id} benimId={user.id} />
 
       <div className="sohbet-bar">
         {EMOJILER.map((e) => (

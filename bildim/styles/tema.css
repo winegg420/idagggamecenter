@@ -2510,3 +2510,124 @@ body.bd-ekle-acik .giris {
   padding-bottom: 330px;
 }
 body.bd-ekle-acik .app { padding-bottom: calc(300px + env(safe-area-inset-bottom)); }
+
+/* ============================================================
+   MAÇ İÇİ SESLİ SOHBET (SesliSohbet.jsx)
+   Yazılı sohbet barının hemen üstünde, dar bir şerit. Soru ekranını
+   aşağı itmemeli — maç sırasında düzen kayması şıkka tıklamayı bozuyor.
+   ============================================================ */
+.bd-ses {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin: 10px 0 0;
+}
+
+.bd-ses-dugme {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 13px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--bd-metin);
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.bd-ses-dugme:hover:not(:disabled) { background: rgba(255, 255, 255, 0.11); }
+.bd-ses-dugme:disabled { opacity: 0.42; cursor: not-allowed; }
+
+.bd-ses-bilgi-dugme {
+  width: 24px; height: 24px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: none;
+  color: var(--bd-metin-2);
+  font-family: inherit;
+  font-size: 12px; font-weight: 800;
+  line-height: 1;
+  cursor: pointer;
+}
+.bd-ses-bilgi-dugme:hover { color: var(--bd-metin); }
+
+.bd-ses-durum,
+.bd-ses-cagri {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  flex: 1 1 auto;
+  min-width: 0;
+  padding: 8px 12px;
+  border-radius: 13px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  font-size: 13px;
+  color: var(--bd-metin);
+}
+.bd-ses-durum.bagli {
+  background: rgba(32, 164, 160, 0.14);
+  border-color: rgba(32, 164, 160, 0.42);
+}
+
+/* Bağlanıyor: sönük yanıp söner. Bağlı: canlı yeşil. */
+.bd-ses-nokta {
+  width: 9px; height: 9px;
+  border-radius: 50%;
+  background: var(--bd-metin-3);
+  flex: 0 0 auto;
+  animation: bd-ses-yanip 1.2s ease-in-out infinite;
+}
+.bd-ses-nokta.canli { background: var(--bd-basari); animation: none; }
+@keyframes bd-ses-yanip { 0%, 100% { opacity: 0.35; } 50% { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) {
+  .bd-ses-nokta { animation: none; opacity: 0.8; }
+}
+
+.bd-ses-cagri-metin {
+  display: flex; flex-direction: column; gap: 1px;
+  min-width: 0; flex: 1 1 auto;
+}
+.bd-ses-cagri-metin span { font-size: 11.5px; color: var(--bd-metin-2); }
+
+.bd-ses-kucuk,
+.bd-ses-kabul {
+  flex: 0 0 auto;
+  padding: 6px 11px;
+  border-radius: 9px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: rgba(255, 255, 255, 0.07);
+  color: var(--bd-metin);
+  font-family: inherit;
+  font-size: 12px; font-weight: 700;
+  cursor: pointer;
+}
+.bd-ses-kucuk:hover { background: rgba(255, 255, 255, 0.13); }
+.bd-ses-kucuk.tehlike { color: #FFD9D2; border-color: rgba(196, 58, 38, 0.55); }
+.bd-ses-kabul {
+  background: var(--bd-odul);
+  border-color: var(--bd-odul);
+  color: #3a2400;   /* altın üstünde beyaz 1.87:1 idi; bu 7.83:1 */
+}
+
+.bd-ses-hata,
+.bd-ses-bilgi {
+  flex: 1 1 100%;
+  font-size: 12px;
+  line-height: 1.45;
+  padding: 8px 11px;
+  border-radius: 11px;
+}
+.bd-ses-hata {
+  color: #FFD9D2;
+  background: rgba(196, 58, 38, 0.16);
+  border: 1px solid rgba(196, 58, 38, 0.42);
+}
+.bd-ses-bilgi {
+  color: var(--bd-metin-2);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.10);
+}

@@ -35,6 +35,9 @@ const YOLLAR = {
   soru: "M9.1 9a3 3 0 1 1 4.5 2.6c-.9.5-1.6 1.3-1.6 2.4M12 18h.01M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18",
   robot: "M5 9h14a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2zM12 6V3M9 14h.01M15 14h.01M9.5 17.5h5",
   sohbet: "M21 12a8 8 0 0 1-11.6 7.1L3 21l1.9-6.4A8 8 0 1 1 21 12z",
+  // Mikrofon: kapsül + altında yay ve sap (maç içi sesli sohbet)
+  mikrofon:
+    "M12 2a3 3 0 0 0-3 3v6a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3M19 11a7 7 0 0 1-14 0M12 18v3",
 
   // --- yer / dünya ---
   sehir:
