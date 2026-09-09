@@ -40,8 +40,8 @@ export default function AdminPage() {
         const idler = (p.data ?? []).map((x) => x.user_id);
         let adlar = {};
         if (idler.length) {
-          const { data } = await supabase.from("profiles").select("id, username").in("id", idler);
-          for (const x of data ?? []) adlar[x.id] = x.username;
+          const { data } = await supabase.from("profiles").select("id, gorunen_ad").in("id", idler);
+          for (const x of data ?? []) adlar[x.id] = x.gorunen_ad;
         }
         setOyuncular((p.data ?? []).map((x) => ({ ...x, ad: adlar[x.user_id] ?? x.user_id.slice(0, 8) })));
       }

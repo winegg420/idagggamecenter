@@ -167,7 +167,7 @@ export default function MenuPage() {
     }
   };
 
-  // Oyuncu ismi Bildim profiles.username'dir; lobi/maç/sıralamada her yerde
+  // Oyuncu ismi hub'ın gorunen_ad'idir (takma ad); lobi/maç/sıralamada her yerde
   // aynı isim görünür. Kurallar Bildim ana sayfasıyla birebir (min 3, benzersiz).
   const isimKaydet = async () => {
     setIsimHata("");
@@ -177,10 +177,10 @@ export default function MenuPage() {
       return;
     }
     try {
-      const { error } = await supabase
-        .from("profiles")
-        .update({ username: ad })
-        .eq("id", user.id);
+      // Doğrudan tabloya yazmak yerine hub'ın doğrulamalı RPC'si:
+      // uzunluk, karakter, benzersizlik, yasaklı kelime ve günlük kilit
+      // kontrolleri orada. (Eski hâli bu kontrollerin hepsini atlıyordu.)
+      const { error } = await supabase.rpc("takma_ad_sec", { p_ad: ad });
       if (error) throw error;
       refreshProfile?.(user.id);
       setModal(null);
@@ -202,12 +202,12 @@ export default function MenuPage() {
             className="kt-ikon-btn kt-isim-chip"
             title="İsmini değiştir"
             onClick={() => {
-              setYeniAd(bildimProfil?.username ?? "");
+              setYeniAd(bildimProfil?.gorunen_ad ?? "");
               setIsimHata("");
               setModal("isim");
             }}
           >
-            👤 {bildimProfil?.username ?? "…"} ✏️
+            👤 {bildimProfil?.gorunen_ad ?? "…"} ✏️
           </button>
           <span className="kt-lig-rozet" style={{ color: lig.renk }}>
             {lig.ikon} {lig.ad} · {profil?.puan ?? "…"}

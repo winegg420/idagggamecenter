@@ -30,9 +30,9 @@ export default function SiralamaPage() {
         if (idler.length) {
           const { data: profilListesi } = await supabase
             .from("profiles")
-            .select("id, username")
+            .select("id, gorunen_ad")
             .in("id", idler);
-          for (const p of profilListesi ?? []) adlar[p.id] = p.username;
+          for (const p of profilListesi ?? []) adlar[p.id] = p.gorunen_ad;
         }
         if (aktif) {
           setListe(

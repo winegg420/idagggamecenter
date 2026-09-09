@@ -75,10 +75,10 @@ export default function OdaPage() {
       let profiller = {};
       if (idler.length) {
         const [{ data: adlar }, { data: ktp }] = await Promise.all([
-          supabase.from("profiles").select("id, username").in("id", idler),
+          supabase.from("profiles").select("id, gorunen_ad").in("id", idler),
           supabase.from("kafatopu_profiller").select("user_id, kafa").in("user_id", idler),
         ]);
-        for (const p of adlar ?? []) profiller[p.id] = { ad: p.username };
+        for (const p of adlar ?? []) profiller[p.id] = { ad: p.gorunen_ad };
         for (const p of ktp ?? []) profiller[p.user_id] = { ...profiller[p.user_id], kafa: p.kafa };
       }
       setOyuncular(
@@ -107,8 +107,8 @@ export default function OdaPage() {
         const { data } = await supabase
           .from("friendships")
           .select(`requester, addressee, durum,
-            req:profiles!friendships_requester_fkey(id, username),
-            add:profiles!friendships_addressee_fkey(id, username)`)
+            req:profiles!friendships_requester_fkey(id, gorunen_ad),
+            add:profiles!friendships_addressee_fkey(id, gorunen_ad)`)
           .or(`requester.eq.${user.id},addressee.eq.${user.id}`)
           .eq("durum", "arkadas");
         setArkadaslar(
@@ -279,7 +279,7 @@ export default function OdaPage() {
                   <div key={a.id} className="kt-sira-satir">
                     <span className="kt-sira-ad">
                       {cevrimiciIdler.has(a.id) ? "🟢 " : "⚪ "}
-                      {a.username}
+                      {a.gorunen_ad}
                     </span>
                     {zatenIcerde ? (
                       <span className="kt-istatistik">Odada ✓</span>

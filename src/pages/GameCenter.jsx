@@ -88,7 +88,7 @@ const OYUNLAR = [
 
 export default function GameCenter() {
   const { profile } = useAuth();
-  const ad = profile?.username || "Oyuncu";
+  const ad = profile?.gorunen_ad || profile?.username || "Oyuncu";
 
   return (
     <div className="gc-root">

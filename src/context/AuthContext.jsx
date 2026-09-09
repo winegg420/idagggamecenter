@@ -8,14 +8,18 @@ export function AuthProvider({ children }) {
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  // Kendi profilimiz RPC ile gelir. Tablodan `select("*")` çekmek, gerçek addan
+  // türeyen `username` ve Google fotoğrafı gibi özel alanları istemciye açmak
+  // demekti; o sütunlar artık başkasına kapalı (migration 081).
   const refreshProfile = useCallback(async (userId) => {
     if (!supabase || !userId) return;
-    const { data } = await supabase
-      .from("profiles")
-      .select("*")
-      .eq("id", userId)
-      .single();
-    if (data) setProfile(data);
+    try {
+      const { data, error } = await supabase.rpc("profilim");
+      if (error) throw error;
+      if (data) setProfile(data);
+    } catch {
+      /* ağ hatası ya da RPC yoksa profil önceki hâlinde kalır */
+    }
   }, []);
 
   useEffect(() => {

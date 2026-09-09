@@ -496,9 +496,9 @@ export default function MacPage() {
         try {
           const { data: pr } = await supabase
             .from("profiles")
-            .select("id, username")
+            .select("id, gorunen_ad")
             .in("id", oyuncular.map((o) => o.user_id));
-          for (const p of pr ?? []) adlar[p.id] = p.username;
+          for (const p of pr ?? []) adlar[p.id] = p.gorunen_ad;
         } catch (e) {
           console.error("KafaTopu ad listesi hatası:", e);
         }
