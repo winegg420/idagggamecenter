@@ -1065,3 +1065,61 @@ sart (ayni konunun farkli anlatimi eleniyor).
 **SIRADAKI:** FAZ 3'u en dilinde bitir, sonra de/es/pt/fr/it/ru. Ardindan
 FAZ 4 (soru_sec havuz kurali + soru_metni yedek zinciri + tum get_*_question RPC'leri),
 FAZ 5 (UI i18n), FAZ 6 (magaza/meta metinleri).
+
+## 2026-09-10 — Kozmetik revizyon ("oyun hissi" paketi, 6 faz)
+
+Oyun mantigina, puanlamaya, RPC'lere ve veritabanina dokunulmadi.
+Tek istisna: Faz 6c'de botlarin lig podyumundaki GOSTERIMI (puan/sira ayni).
+
+**FAZ 1 — Cevap geri bildirimi** (6ca58c6)
+Cevaptan sonra ~1400 ms'lik pencere (hizli modda 700 ms): dokunusta
+scale(0.97)+klik+titresim, 120 ms'de renk (yanlissa DOGRU SIK DA YESIL),
+250 ms'de ucan puan, 400 ms'de parilti / "3 UST USTE!", yanlista sarsilma,
+sonra soldan kayarak yeni soru.
+Ortak parcalar: lib/geriBildirim.js, components/CevapEfekti.jsx.
+QuestionCard 1v1/grup/hizli mac/turnuvayi kapsiyor; HizliMod ve Calisma
+kendi isaretlemelerinde ayni bileseni kullaniyor.
+Sunucu zamanlayicilariyla cakisma kontrol edildi:
+- 1v1/grup/turnuva: sonraki sorunun suresi get_*_question CAGRISINDA
+  basliyor (oyuncuN_baslangic null'a cekiliyor) -> 1400 ms sureden yemiyor
+- hizli mod: sunucu soru_baslangic'i CEVAP aninda kuruyor -> pencere 700 ms,
+  sunucudaki 1 sn'lik ag payinin icinde (5000+700 < 6000)
+
+**DUZELTME** (3e029e8) — kapsam disi ama yol uzerinde bulundu:
+RakipAra temizlemesinde `supabase.rpc(...).catch()` TypeError atip ekrani
+BOMBOS birakiyordu (rpc thenable ama Promise degil). Eslesme ekranindan her
+cikista tetikleniyordu.
+
+**FAZ 2 — Ses ve dokunsal** (37aa5cd)
+ses.js'e sesKaybettin (alcalan iki nota) ve sesJoker (bant gecirenli beyaz
+gurultu swoosh) eklendi. Titresim: dokunma 10, dogru 10, yanlis 30,
+kazanma [15,30,15], joker 10 ms. HizliMod'da dogru/yanlis sesi hic
+calmiyordu, baglandi. Ses dosyasi yok, hepsi WebAudio.
+
+**FAZ 3 — Tek vurgu rengi** (2f47f21)
+Mod ikon kutulari tek notr renge (bes ayri doygun renk kalkti), sik harf
+rozetleri notr, ana sayfada altin yalniz "Hemen oyna". KategoriIkon renk
+haritasi kategori secim ekrani icin korundu.
+
+**FAZ 4 — Ana sayfa 14 blok -> 3 katman** (1cabfb7)
+Katman 1 kimlik + tek eylem, katman 2 "Seni bekleyenler", katman 3 modlar.
+Sayfada iki kez duran lig kutusu teke indi (hero'daki uc rozet kaldirildi).
+
+**FAZ 5 — Olcek disiplini** (84646f2)
+--bd-b-1..7 (4/8/12/16/24/32/48) tokenlari; 210 bosluk degeri en yakin
+basamaga yuvarlandi. Yazi agirligi 500/800'e indi (22 duzeltme).
+.bd-secenek min-height 56px + :active scale(0.98).
+Yeni SayanSayi bileseni (300 ms, rAF, easeOutCubic): mac skoru, profil
+puani, lig listesi ve podyum puanlari.
+Yan fayda: --bd-bosluk-2/-3 hic tanimli degildi, gap bosa dusuyordu.
+
+**FAZ 6 — Rakip gerilimi ve bos durumlar** (d37216e)
+Ust tabelada onde olan buyuk+kenarlikli, geride olan sonuk; rakip cevap
+verince avatarinda nabiz; son 3 soruda tabela kenarligi altin.
+Tepki emojileri SVG ikona cevrildi (sunucuya giden metin AYNI kaldi).
+Profilde "0 sampiyonluk" yerine hedef metni; lig podyumundaki botlar robot
+rozeti + sonuk renkle ayrisiyor (puan/sira degismedi).
+
+Tum fazlarda prefers-reduced-motion: reduce gozetildi (animasyon kapali,
+renk geri bildirimi korunuyor). Yeni bagimlilik eklenmedi.
+`npm run build` ve `npm run build:bildim` her fazda hatasiz gecti.
