@@ -26,8 +26,12 @@ export default function SeriRozeti() {
   const bugunOynadi = Boolean(durum.bugun_oynadi);
   const koruma = durum.koruma ?? 0;
 
+  // Alev, serinin uzunluğuna göre ısınır. Seri oyuncunun kaybetmek
+  // istemeyeceği tek şey — görsel olarak da öyle dursun.
+  const isi = gun >= 7 ? "sicak" : gun >= 3 ? "orta" : gun >= 1 ? "sonuk" : "yok";
+
   return (
-    <div className={`bd-seri ${bugunOynadi ? "aktif" : "bekliyor"}`}>
+    <div className={`bd-seri isi-${isi} ${bugunOynadi ? "aktif" : "bekliyor"}`}>
       <span className="bd-seri-alev" aria-hidden="true"><Ikon ad="ates" boyut={15} /></span>
       <span className="bd-seri-govde">
         <span className="bd-seri-sayi">{gun}</span>

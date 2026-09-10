@@ -243,7 +243,8 @@ export default function Home() {
       )}
 
       {/* ---------- HERO: tek odak — rütbe, haftalık sıra, birincil eylem ---------- */}
-      <section className="bd-hero bd-giris-1">
+      {/* --rutbe: rütbe çubuğu, rütbe adı ve avatar halkası aynı rengi kullanır */}
+      <section className="bd-hero bd-giris-1" style={{ "--rutbe": rutbe.renk }}>
         <div className="bd-hero-isik" aria-hidden="true" />
 
         <div className="bd-hero-kimlik">

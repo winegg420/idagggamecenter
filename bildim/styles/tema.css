@@ -2202,19 +2202,77 @@ body::before { will-change: opacity; }
 }
 .app .bd-hero-isik { display: none; }          /* radyal ışık lekesi kalktı */
 .app .bd-hero-maskot { width: 48px; height: 48px; }
+/* Puan sayısı büyür ve altın kalır (altının üç işinden biri: skor). */
 .app .bd-hero-puan-sayi {
   font-family: var(--bd-f-baslik);
   color: var(--bd-odul);
-  font-size: 40px; line-height: 1;
+  font-size: 52px; line-height: 1;
 }
+/* Etiket küçülür — sayı konuşsun, etiket değil. */
 .app .bd-hero-puan-etiket {
-  font-size: 11px; letter-spacing: 1.6px; text-transform: uppercase;
+  font-size: 9.5px; letter-spacing: 1.8px; text-transform: uppercase;
   color: var(--bd-metin-3);
 }
-/* Rütbe çubuğu inceldi */
-.app .bd-hero-bar { height: 5px; border-radius: 999px; background: rgba(255, 255, 255, 0.09); }
-.app .bd-hero-bar .dolgu { background: var(--bd-odul); }
+/* Rütbe çubuğu: gri değil, oyuncunun KENDİ rütbe renginde dolar.
+   --rutbe hero'da inline veriliyor (Home.jsx), yoksa altına düşer. */
+.app .bd-hero-bar { height: 6px; border-radius: 999px; background: rgba(255, 255, 255, 0.09); }
+.app .bd-hero-bar .dolgu {
+  background: var(--rutbe, var(--bd-odul));
+  box-shadow: 0 0 10px color-mix(in srgb, var(--rutbe, var(--bd-odul)) 45%, transparent);
+}
 .app .bd-hero-ilerleme { margin: var(--bd-b-2) 0 var(--bd-b-2); }
+
+/* ============================================================
+   FAZ 3 — KİMLİK BLOĞU CANLANSIN
+   ============================================================ */
+
+/* Avatarın çevresinde rütbe renginde ince halka. --halka Home.jsx'ten gelir. */
+.app .bd-hero-halka {
+  position: relative;
+  border-radius: 999px;
+  padding: 3px;
+  background: transparent;
+  box-shadow: inset 0 0 0 2px var(--halka, var(--bd-metin-3)),
+              0 0 12px color-mix(in srgb, var(--halka, var(--bd-metin-3)) 35%, transparent);
+}
+.app .bd-hero-halka > * { display: block; border-radius: 999px; }
+
+/* Rütbe adı kendi renginde — RankBadge inline color veriyor, burada yalnız
+   okunurluk için hafif bir zemin.
+   Zemin %8 tint: ölçüldü, %10 ve üstünde Çaylak (4.45) ve Üstat (4.56) AA'nın
+   altına düşüyordu. %8'de en düşük 4.62 ve beş rütbe de geçiyor. */
+.app .bd-hero-ad-blok .bd-rutbe-chip {
+  background: color-mix(in srgb, var(--rutbe, var(--bd-metin-3)) 8%, transparent);
+  padding: 2px var(--bd-b-2);
+  font-weight: 800;
+}
+
+/* ---------- Günlük seri: alev serinin uzunluğuna göre ısınır ---------- */
+.app .bd-seri-alev {
+  display: inline-flex;
+  transition: color 0.3s ease, filter 0.3s ease;
+}
+.app .bd-seri.isi-yok .bd-seri-alev   { color: var(--bd-metin-3); }
+.app .bd-seri.isi-sonuk .bd-seri-alev { color: #C97A3A; }              /* 1-2 gün */
+.app .bd-seri.isi-orta .bd-seri-alev  {                                 /* 3-6 gün */
+  color: #F58A2E;
+  filter: drop-shadow(0 0 4px rgba(245, 138, 46, 0.5));
+}
+.app .bd-seri.isi-sicak .bd-seri-alev {                                 /* 7+ gün */
+  color: #FF6B4A;
+  filter: drop-shadow(0 0 5px rgba(255, 107, 74, 0.75))
+          drop-shadow(0 0 12px rgba(255, 220, 200, 0.45));
+  animation: bd-seri-titre 1.8s ease-in-out infinite;
+}
+.app .bd-seri.isi-sicak .bd-seri-sayi { color: #FF8A6B; }
+@keyframes bd-seri-titre {
+  0%, 100% { transform: scale(1); }
+  50%      { transform: scale(1.12); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .app .bd-seri-alev { transition: none; }
+  .app .bd-seri.isi-sicak .bd-seri-alev { animation: none; }
+}
 
 /* ---------- 4.3 Mod ızgarası: eşit değil ---------- */
 .app .bd-mod-grid { gap: var(--bd-b-2); }
