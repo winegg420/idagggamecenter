@@ -3385,3 +3385,22 @@ body.bd-ekle-acik .app { padding-bottom: calc(300px + env(safe-area-inset-bottom
   border: 1px solid rgba(255, 255, 255, 0.14);
   box-shadow: none;
 }
+
+/* Tur dökümü anahtarı: üç durumun adı, her biri kendi renginde nokta. */
+.app .bd-dokum-anahtar {
+  display: flex; flex-wrap: wrap; justify-content: center;
+  gap: var(--bd-b-3);
+  margin-top: var(--bd-b-3);
+  font-size: var(--bd-t-mini);
+  color: var(--bd-metin-3);
+}
+.app .bd-dokum-anahtar span {
+  display: inline-flex; align-items: center; gap: var(--bd-b-1);
+}
+.app .bd-dokum-anahtar i {
+  width: 8px; height: 8px; border-radius: 50%;
+  display: inline-block; flex: 0 0 8px;
+}
+.app .bd-dokum-anahtar i.dogru  { background: #0c6132; }
+.app .bd-dokum-anahtar i.yanlis { background: #8e1b1f; }
+.app .bd-dokum-anahtar i.sure   { background: var(--bd-yuzey-3); }

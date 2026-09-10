@@ -113,6 +113,13 @@ export default function MacSonuDokum({ macId, kazanilanPuan = 0 }) {
           </span>
         ))}
       </div>
+      {/* Nötr noktanın ne demek olduğu yazmıyordu; canlı testte 17 nötr tur
+          çıkmış ve oyuncu ne olduğunu anlamamıştı. Üç durum da adlandırıldı. */}
+      <div className="bd-dokum-anahtar">
+        <span><i className="dogru" />Doğru</span>
+        <span><i className="yanlis" />Yanlış</span>
+        <span><i className="sure" />Süre doldu</span>
+      </div>
       {ilerlemeBlok}
     </div>
   );
