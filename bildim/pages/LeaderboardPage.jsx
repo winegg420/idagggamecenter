@@ -8,6 +8,7 @@ import { supabase } from "../../src/lib/supabase.js";
 import { useAuth } from "../../src/context/AuthContext.jsx";
 import Avatar from "../../src/components/Avatar.jsx";
 import RankBadge from "../components/RankBadge.jsx";
+import SayanSayi from "../components/SayanSayi.jsx";
 import KonumSecici from "../components/KonumSecici.jsx";
 import Maskot from "../components/Maskot.jsx";
 import { bayrak, haftaBitisi, sureMetni } from "../lib/konum.js";
@@ -173,7 +174,7 @@ export default function LeaderboardPage() {
           )}
         </div>
       </div>
-      <span className="bd-lig-puan">{s.puan}</span>
+      <span className="bd-lig-puan"><SayanSayi deger={s.puan} /></span>
       {s.user_id !== user.id && (
         <button
           className="bd-ikon-btn"
@@ -292,7 +293,7 @@ export default function LeaderboardPage() {
                       boyut={basamak === 1 ? 62 : 50}
                     />
                     <div className="bd-podyum-ad">{p.gorunen_ad}</div>
-                    <div className="bd-podyum-puan">{p.puan}</div>
+                    <div className="bd-podyum-puan"><SayanSayi deger={p.puan} /></div>
                     <div className="bd-podyum-kaide">{basamak}</div>
                   </div>
                 );

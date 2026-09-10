@@ -8,6 +8,7 @@ import { supabase } from "../../src/lib/supabase.js";
 import { useAuth } from "../../src/context/AuthContext.jsx";
 import Avatar from "../../src/components/Avatar.jsx";
 import RankBadge from "../components/RankBadge.jsx";
+import SayanSayi from "../components/SayanSayi.jsx";
 import KonumSecici from "../components/KonumSecici.jsx";
 import ProfilAyarlari from "../components/ProfilAyarlari.jsx";
 import UstalikIzgarasi from "../components/UstalikIzgarasi.jsx";
@@ -94,7 +95,7 @@ export default function ProfilePage() {
       {/* İstatistikler: 3'lü plaka */}
       <div className="bd-istatistik-3">
         <div className="bd-istatistik">
-          <span className="deger" style={{ color: "var(--bd-odul)" }}>{profile.puan}</span>
+          <span className="deger" style={{ color: "var(--bd-odul)" }}><SayanSayi deger={profile.puan} /></span>
           <span className="etiket">Puan</span>
         </div>
         <div className="bd-istatistik">

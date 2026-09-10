@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import SenRozeti from "../components/SenRozeti.jsx";
+import SayanSayi from "../components/SayanSayi.jsx";
 import SureDolduGecis from "../components/SureDolduGecis.jsx";
 import { hataMesaji } from "../lib/hata.js";
 import { useParams, useNavigate } from "react-router-dom";
@@ -297,13 +298,13 @@ export default function MatchPage() {
         <div className="skor-tabela" style={{ marginTop: 20 }}>
           <div className="taraf">
             <div className="isim">{benimProfil?.gorunen_ad}<SenRozeti /></div>
-            <div className="skor">{benimSkor}</div>
+            <div className="skor"><SayanSayi deger={benimSkor} /></div>
             <div className="bd-vs-ilerleme">{ilerleme.ben}/{toplamSoru}</div>
           </div>
           <div className="vs">VS</div>
           <div className="taraf">
             <div className="isim">{rakipProfil?.gorunen_ad}</div>
-            <div className="skor">{rakipSkor}</div>
+            <div className="skor"><SayanSayi deger={rakipSkor} /></div>
             <div className="bd-vs-ilerleme">{ilerleme.rakip}/{toplamSoru}</div>
           </div>
         </div>
@@ -391,13 +392,13 @@ export default function MatchPage() {
         <div className="skor-tabela bd-vs" style={{ maxWidth: 360, margin: "0 auto 16px" }}>
           <div className="taraf bd-vs-taraf">
             <div className="isim">{benimProfil?.gorunen_ad}<SenRozeti /></div>
-            <div className="skor">{benimSkor}</div>
+            <div className="skor"><SayanSayi deger={benimSkor} /></div>
             <div className="bd-vs-ilerleme">{ilerleme.ben}/{toplamSoru}</div>
           </div>
           <div className="vs bd-vs-rozet">VS</div>
           <div className="taraf bd-vs-taraf">
             <div className="isim">{rakipProfil?.gorunen_ad}</div>
-            <div className="skor">{rakipSkor}</div>
+            <div className="skor"><SayanSayi deger={rakipSkor} /></div>
             <div className="bd-vs-ilerleme">{ilerleme.rakip}/{toplamSoru}</div>
           </div>
         </div>
@@ -450,7 +451,7 @@ export default function MatchPage() {
         <div className="taraf bd-vs-taraf">
           <Avatar profile={benimProfil} boyut={44} />
           <div className="isim">{benimProfil?.gorunen_ad}<SenRozeti /></div>
-          <div className="skor">{benimSkor}</div>
+          <div className="skor"><SayanSayi deger={benimSkor} /></div>
           <div className="bd-vs-ilerleme">{ilerleme.ben}/{toplamSoru}</div>
         </div>
         {/* Asenkron: rozet KENDİ sıramızı gösterir, ortak sayacı değil */}
@@ -460,7 +461,7 @@ export default function MatchPage() {
         <div className="taraf bd-vs-taraf">
           <Avatar profile={rakipProfil} boyut={44} />
           <div className="isim">{rakipProfil?.gorunen_ad}</div>
-          <div className="skor">{rakipSkor}</div>
+          <div className="skor"><SayanSayi deger={rakipSkor} /></div>
           <div className="bd-vs-ilerleme">{ilerleme.rakip}/{toplamSoru}</div>
         </div>
       </div>
