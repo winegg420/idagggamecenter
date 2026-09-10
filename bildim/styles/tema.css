@@ -2858,3 +2858,77 @@ body.bd-ekle-acik .app { padding-bottom: calc(300px + env(safe-area-inset-bottom
 @media (prefers-reduced-motion: reduce) {
   .app .bd-secenek:active:not(:disabled) { transform: none; }
 }
+
+/* ============================================================
+   FAZ 6 — RAKİP GERİLİMİ VE BOŞ DURUMLAR
+   ============================================================ */
+
+/* 6a. Kim önde belli olsun: iki avatar iki sayı yeterli değildi */
+.app .bd-vs-taraf {
+  transition: transform 260ms cubic-bezier(0.2, 0.9, 0.3, 1.2),
+              opacity 260ms ease, box-shadow 260ms ease;
+  border-radius: var(--bd-r-l);
+}
+.app .bd-vs-taraf.onde {
+  transform: scale(1.04);
+  box-shadow: inset 0 0 0 2px var(--bd-vurgu-acik);
+}
+.app .bd-vs-taraf.geride { opacity: 0.75; }
+
+/* Rakip cevap verdiğinde avatarında kısa nabız */
+@keyframes bd-nabiz {
+  0%, 100% { transform: scale(1); }
+  35%      { transform: scale(1.14); }
+  70%      { transform: scale(0.98); }
+}
+.app .bd-vs-taraf.bd-nabiz .bd-avatar,
+.app .bd-vs-taraf.bd-nabiz img,
+.app .bd-vs-taraf.bd-nabiz > :first-child {
+  animation: bd-nabiz 700ms ease-out both;
+}
+
+/* Son 3 soru: tabelanın kenarlığı altına döner — maç kızışıyor */
+.app .skor-tabela.bd-vs-kizisti {
+  box-shadow: inset 0 0 0 2px var(--bd-vurgu), var(--bd-golge-derin);
+}
+
+/* 6b. Tepki çubuğu artık SVG ikon taşıyor — düğmeler kare ve nötr */
+.app .sohbet-bar button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--bd-metin-2);
+}
+.app .sohbet-bar button:active { color: var(--bd-metin); }
+/* Balonda ikon metinle aynı hizada dursun */
+.app .balon svg { vertical-align: -3px; }
+
+/* 6c. Boş durumlar: kocaman "0" yerine hedef */
+.app .bd-istatistik-hedef .hedef {
+  display: block;
+  font-family: var(--bd-f-baslik);
+  font-size: var(--bd-t-govde);
+  font-weight: 800;
+  line-height: 1.25;
+  color: var(--bd-metin);
+}
+.app .bd-istatistik-hedef .etiket { color: var(--bd-metin-3); }
+
+/* Lig podyumunda botlar sönük + robot rozetli; sıra/puan DEĞİŞMEDİ */
+.app .bd-podyum-yer.bot { opacity: 0.62; }
+.app .bd-podyum-yer.bot .bd-podyum-ad,
+.app .bd-podyum-yer.bot .bd-podyum-puan { color: var(--bd-metin-3); }
+.app .bd-podyum-ad .bd-bot-rozet {
+  display: inline-flex;
+  align-items: center;
+  margin-left: var(--bd-b-1);
+  vertical-align: -2px;
+  color: var(--bd-metin-3);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .app .bd-vs-taraf { transition: none; }
+  .app .bd-vs-taraf.bd-nabiz .bd-avatar,
+  .app .bd-vs-taraf.bd-nabiz img,
+  .app .bd-vs-taraf.bd-nabiz > :first-child { animation: none; }
+}

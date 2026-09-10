@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import Ikon from "../components/Ikon.jsx";
+import { TEPKILER, tepkiIkonu } from "../lib/tepkiler.js";
 import SenRozeti from "../components/SenRozeti.jsx";
 import YanlisSatiri from "../components/YanlisSatiri.jsx";
 import SureDolduGecis from "../components/SureDolduGecis.jsx";
@@ -17,7 +18,12 @@ const GRUP_SECIMI = `*,
   katilimcilar:group_match_players(group_match_id, user_id, davet_durumu, skor, joined_at,
     profil:profiles(id, gorunen_ad, gorunen_avatar))`;
 
-const EMOJILER = ["👍", "😂", "😮", "😡", "🔥", "😎"];
+// Tepkiler artık SVG ikon (bkz. lib/tepkiler.js). Sunucuya giden metin aynı.
+// Balonda gösterim: mesaj bir tepki emojisiyse ikonu, değilse metni çiz.
+function balonIcerik(mesaj) {
+  const ad = tepkiIkonu(mesaj);
+  return ad ? <Ikon ad={ad} boyut={20} /> : mesaj;
+}
 const KALIPLAR = [
   "İyi şanslar!",
   "Bunu biliyordum!",
@@ -344,7 +350,7 @@ export default function GroupMatchPage() {
             <span className="isim">{k.profil?.gorunen_ad}{k.user_id === user.id && <SenRozeti />}</span>
             {balonlar[k.user_id] && (
               <span className={`balon grup ${k.user_id === user.id ? "" : "rakip"}`}>
-                {balonlar[k.user_id]}
+                {balonIcerik(balonlar[k.user_id])}
               </span>
             )}
             <span className="skor">{k.skor}</span>
@@ -353,9 +359,14 @@ export default function GroupMatchPage() {
       </div>
 
       <div className="sohbet-bar">
-        {EMOJILER.map((e) => (
-          <button key={e} onClick={() => mesajGonder(e)}>
-            {e}
+        {TEPKILER.map((t) => (
+          <button
+            key={t.deger}
+            onClick={() => mesajGonder(t.deger)}
+            aria-label={t.etiket}
+            title={t.etiket}
+          >
+            <Ikon ad={t.ad} boyut={18} />
           </button>
         ))}
         <button

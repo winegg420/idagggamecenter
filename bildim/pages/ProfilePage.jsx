@@ -98,14 +98,30 @@ export default function ProfilePage() {
           <span className="deger" style={{ color: "var(--bd-odul)" }}><SayanSayi deger={profile.puan} /></span>
           <span className="etiket">Puan</span>
         </div>
-        <div className="bd-istatistik">
-          <span className="deger">{profile.sampiyonluk}</span>
-          <span className="etiket">Şampiyonluk</span>
-        </div>
-        <div className="bd-istatistik">
-          <span className="deger">{profile.seri ?? 0}</span>
-          <span className="etiket">Günlük Seri</span>
-        </div>
+        {/* Boş durum: kocaman bir "0" yerine hedefi göster. Sıfır bir başarı
+            değil, henüz atılmamış bir adım. */}
+        {profile.sampiyonluk > 0 ? (
+          <div className="bd-istatistik">
+            <span className="deger"><SayanSayi deger={profile.sampiyonluk} /></span>
+            <span className="etiket">Şampiyonluk</span>
+          </div>
+        ) : (
+          <div className="bd-istatistik bd-istatistik-hedef">
+            <span className="hedef">İlk şampiyonluğuna</span>
+            <span className="etiket">1 turnuva kaldı</span>
+          </div>
+        )}
+        {(profile.seri ?? 0) > 0 ? (
+          <div className="bd-istatistik">
+            <span className="deger">{profile.seri}</span>
+            <span className="etiket">Günlük Seri</span>
+          </div>
+        ) : (
+          <div className="bd-istatistik bd-istatistik-hedef">
+            <span className="hedef">Seriyi başlat</span>
+            <span className="etiket">bugün 1 maç oyna</span>
+          </div>
+        )}
       </div>
 
       <ProfilAyarlari />

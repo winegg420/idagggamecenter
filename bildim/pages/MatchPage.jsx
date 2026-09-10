@@ -12,6 +12,7 @@ import BildirimIzniSor from "../components/BildirimIzniSor.jsx";
 import MacSonuEklentisi from "../components/MacSonuEklentisi.jsx";
 import Maskot from "../components/Maskot.jsx";
 import Ikon from "../components/Ikon.jsx";
+import { TEPKILER, tepkiIkonu } from "../lib/tepkiler.js";
 import MacYukleniyor from "../components/MacYukleniyor.jsx";
 import SesliSohbet from "../components/SesliSohbet.jsx";
 import { useOyunModu } from "../lib/oyunModu.js";
@@ -23,7 +24,12 @@ const MAC_SECIMI = `*,
   p1:profiles!matches_oyuncu1_fkey(id, gorunen_ad, gorunen_avatar),
   p2:profiles!matches_oyuncu2_fkey(id, gorunen_ad, gorunen_avatar)`;
 
-const EMOJILER = ["👍", "😂", "😮", "😡", "🔥", "😎"];
+// Tepkiler artık SVG ikon (bkz. lib/tepkiler.js). Sunucuya giden metin aynı.
+// Balonda gösterim: mesaj bir tepki emojisiyse ikonu, değilse metni çiz.
+function balonIcerik(mesaj) {
+  const ad = tepkiIkonu(mesaj);
+  return ad ? <Ikon ad={ad} boyut={20} /> : mesaj;
+}
 const KALIPLAR = [
   "İyi şanslar!",
   "Bunu biliyordum!",
@@ -47,6 +53,10 @@ export default function MatchPage() {
   const [balonlar, setBalonlar] = useState({}); // { [user_id]: mesaj }
   const [kaliplarAcik, setKaliplarAcik] = useState(false);
   const [ilerleme, setIlerleme] = useState({ ben: 0, rakip: 0 });
+  // Rakip cevap verdiğinde avatarında kısa bir nabız — rakip görünmez bir
+  // hayalet olmaktan çıksın.
+  const [rakipNabiz, setRakipNabiz] = useState(false);
+  const rakipIlerlemeRef = useRef(0);
   const [bilgiKapandi, setBilgiKapandi] = useState(false);
   // Bilgi kartı yalnız maça ilk girişte gösterilir. Sonradan belirip soru
   // ekranını aşağı itmesin diye ilk render'da sabitlenir (canlı testte
@@ -183,6 +193,16 @@ export default function MatchPage() {
         if (data?.[0]) setSoru(data[0]);
       });
   }, [mac?.id, mac?.durum, kendiIndeks, mac?.soru_ids?.length]);
+
+  // Rakip bir soru ilerlediyse (yani cevap verdiyse) avatarı bir kez atsın
+  useEffect(() => {
+    const onceki = rakipIlerlemeRef.current;
+    rakipIlerlemeRef.current = ilerleme.rakip;
+    if (ilerleme.rakip <= onceki) return;
+    setRakipNabiz(true);
+    const t = setTimeout(() => setRakipNabiz(false), 700);
+    return () => clearTimeout(t);
+  }, [ilerleme.rakip]);
 
   useOyunModu(Boolean(soru) && mac?.durum === "aktif");
 
@@ -380,6 +400,8 @@ export default function MatchPage() {
   // Asenkron maç: kendi bölümümüz bitti ama rakip henüz oynamadı.
   // Maç burada kapanmaz — rakip kendi zamanında oynayınca sonuçlanır.
   const benimSoru = benP1 ? (mac.oyuncu1_soru ?? 0) : (mac.oyuncu2_soru ?? 0);
+  // Son 3 soru: tabelanın kenarlığı altına döner
+  const sonDuzluk = toplamSoru - benimSoru <= 3;
   if (mac.durum === "aktif" && benimSoru >= toplamSoru) {
     return (
       <div className="buyuk-mesaj">
@@ -447,8 +469,15 @@ export default function MatchPage() {
         </div>
       )}
 
-      <div className="skor-tabela bd-vs">
-        <div className="taraf bd-vs-taraf">
+      {/* Üst tabela: kim önde belli olsun. Önde olan hafif büyük ve
+          kenarlıklı, geride olan sönük. Son 3 soruda tabelanın kenarlığı
+          altına döner ("maç kızışıyor"). */}
+      <div className={`skor-tabela bd-vs ${sonDuzluk ? "bd-vs-kizisti" : ""}`}>
+        <div
+          className={`taraf bd-vs-taraf ${
+            benimSkor > rakipSkor ? "onde" : benimSkor < rakipSkor ? "geride" : ""
+          }`}
+        >
           <Avatar profile={benimProfil} boyut={44} />
           <div className="isim">{benimProfil?.gorunen_ad}<SenRozeti /></div>
           <div className="skor"><SayanSayi deger={benimSkor} /></div>
@@ -458,7 +487,11 @@ export default function MatchPage() {
         <div className="vs bd-vs-rozet">
           {Math.min(benimSoru + 1, toplamSoru)}/{toplamSoru}
         </div>
-        <div className="taraf bd-vs-taraf">
+        <div
+          className={`taraf bd-vs-taraf ${
+            rakipSkor > benimSkor ? "onde" : rakipSkor < benimSkor ? "geride" : ""
+          } ${rakipNabiz ? "bd-nabiz" : ""}`}
+        >
           <Avatar profile={rakipProfil} boyut={44} />
           <div className="isim">{rakipProfil?.gorunen_ad}</div>
           <div className="skor"><SayanSayi deger={rakipSkor} /></div>
@@ -469,11 +502,13 @@ export default function MatchPage() {
       {(balonlar[user.id] || balonlar[rakipProfil?.id]) && (
         <div className="balon-satir">
           <div className="balon-yuva">
-            {balonlar[user.id] && <div className="balon">{balonlar[user.id]}</div>}
+            {balonlar[user.id] && (
+              <div className="balon">{balonIcerik(balonlar[user.id])}</div>
+            )}
           </div>
           <div className="balon-yuva sag">
             {balonlar[rakipProfil?.id] && (
-              <div className="balon rakip">{balonlar[rakipProfil?.id]}</div>
+              <div className="balon rakip">{balonIcerik(balonlar[rakipProfil?.id])}</div>
             )}
           </div>
         </div>
@@ -503,9 +538,14 @@ export default function MatchPage() {
       <SesliSohbet macId={id} benimId={user.id} />
 
       <div className="sohbet-bar">
-        {EMOJILER.map((e) => (
-          <button key={e} onClick={() => mesajGonder(e)}>
-            {e}
+        {TEPKILER.map((t) => (
+          <button
+            key={t.deger}
+            onClick={() => mesajGonder(t.deger)}
+            aria-label={t.etiket}
+            title={t.etiket}
+          >
+            <Ikon ad={t.ad} boyut={18} />
           </button>
         ))}
         <button

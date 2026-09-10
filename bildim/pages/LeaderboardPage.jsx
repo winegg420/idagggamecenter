@@ -283,7 +283,7 @@ export default function LeaderboardPage() {
                     key={p.user_id}
                     className={`bd-podyum-yer yer-${basamak} ${
                       p.user_id === user.id ? "ben" : ""
-                    }`}
+                    } ${p.bot ? "bot" : ""}`}
                   >
                     <div className="bd-podyum-madalya">
                       {basamak}
@@ -292,7 +292,17 @@ export default function LeaderboardPage() {
                       profile={{ gorunen_ad: p.gorunen_ad, gorunen_avatar: p.gorunen_avatar }}
                       boyut={basamak === 1 ? 62 : 50}
                     />
-                    <div className="bd-podyum-ad">{p.gorunen_ad}</div>
+                    {/* Botlar podyumda gerçek oyuncuların önüne geçmesin:
+                        sıra ve puanları AYNEN duruyor, yalnız görsel olarak
+                        ayrışıyorlar (robot rozeti + sönük renk). */}
+                    <div className="bd-podyum-ad">
+                      {p.gorunen_ad}
+                      {p.bot && (
+                        <span className="bd-bot-rozet" title="Yapay rakip">
+                          <Ikon ad="robot" boyut={12} />
+                        </span>
+                      )}
+                    </div>
                     <div className="bd-podyum-puan"><SayanSayi deger={p.puan} /></div>
                     <div className="bd-podyum-kaide">{basamak}</div>
                   </div>
