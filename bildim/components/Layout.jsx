@@ -35,20 +35,20 @@ export default function Layout() {
     if (!user) return;
     let aktif = true;
 
+    // Bekleyen sayısı TEK sunucu çağrısıyla gelir (bkz. migration 122).
+    // Eskiden iki ayrı PostgREST HEAD isteği (count=exact) atılıyordu; canlı
+    // denetimde ikisi de 503 dönüyor, sayı null geliyor ve rozet hiç
+    // görünmüyordu. Üstelik `error` hiç okunmadığı için hata sessizce
+    // yutuluyordu — bu yüzden aylarca fark edilmemişti.
     const yukle = async () => {
-      const [{ count: mac }, { count: istek }] = await Promise.all([
-        supabase
-          .from("matches")
-          .select("id", { count: "exact", head: true })
-          .eq("oyuncu2", user.id)
-          .eq("durum", "bekliyor"),
-        supabase
-          .from("friendships")
-          .select("id", { count: "exact", head: true })
-          .eq("addressee", user.id)
-          .eq("durum", "bekliyor"),
-      ]);
-      if (aktif) setBekleyen((mac ?? 0) + (istek ?? 0));
+      try {
+        const { data, error } = await supabase.rpc("bekleyen_sayim");
+        if (error) throw error;
+        if (aktif) setBekleyen(Number(data) || 0);
+      } catch (e) {
+        // Hata olursa ÖNCEKİ değer korunur; rozet sıfıra düşüp kaybolmasın.
+        console.error("[Bildim] bekleyen sayısı alınamadı:", e);
+      }
     };
     yukle();
 
