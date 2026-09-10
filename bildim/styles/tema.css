@@ -2970,27 +2970,27 @@ body.bd-ekle-acik .app { padding-bottom: calc(300px + env(safe-area-inset-bottom
 }
 .app .bd-mac-iptal:disabled { opacity: 0.5; }
 
-.app .bd-modal-baslik {
+.bd-modal-baslik {
   font-family: var(--bd-f-baslik);
   font-size: var(--bd-t-l);
   font-weight: 800;
   margin-bottom: var(--bd-b-2);
 }
-.app .bd-modal-metin {
+.bd-modal-metin {
   margin: 0 0 var(--bd-b-4);
   font-size: var(--bd-t-govde);
   font-weight: 500;
   line-height: 1.5;
   color: var(--bd-metin-2);
 }
-.app .bd-modal-metin.tehlike {
+.bd-modal-metin.tehlike {
   color: var(--bd-metin);
   padding: var(--bd-b-3);
   border-radius: var(--bd-r-m);
   background: rgba(232, 84, 63, 0.14);
   border: 1px solid rgba(232, 84, 63, 0.42);
 }
-.app .bd-modal-eylemler {
+.bd-modal-eylemler {
   display: flex;
   gap: var(--bd-b-2);
   justify-content: flex-end;
@@ -3019,4 +3019,21 @@ body.bd-ekle-acik .app { padding-bottom: calc(300px + env(safe-area-inset-bottom
   font-weight: 800;
   letter-spacing: 0.4px;
   text-transform: uppercase;
+}
+
+/* Modal portalla document.body'ye basılır — .app kapsayıcısının DIŞINDA
+   kalır, bu yüzden buradaki kurallar .app öneki almaz.
+   Onay penceresindeki birincil eylem altın olmasın: iptal bir kazanım değil.
+   Tehlikeli durumda (hükmen mağlubiyet) kırmızı, değilse nötr. */
+.bd-modal-katman .btn:not(.tehlike) {
+  background: var(--bd-yuzey-3);
+  color: var(--bd-metin);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  box-shadow: none;
+}
+.bd-modal-katman .btn:not(.tehlike)::after { display: none; }
+.bd-modal-katman .btn.tehlike {
+  background: var(--bd-hata);
+  color: #2a0b06;
+  border: none;
 }

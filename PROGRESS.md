@@ -3045,3 +3045,63 @@ geri dönüş doğrulama ölçütü olarak belgeye kondu.
 ### YAYIN_KONTROL.md
 
 C1, C2, C4, C8 **kapandı** (üstü çizildi + tarih). C5 durumu netleşti.
+
+---
+
+## 10 Eylül 2026 — Yarım maçlar hep görünsün + iptal edilebilsin (Bildim)
+
+Canlı testte çıkan üç somut şikâyetin işi: yarım kalan maçlar listeden
+düşüyordu, iptal edilemiyordu, süre dolunca hiçbir geri bildirim yoktu.
+
+### FAZ 1 — Süren/biten ayrı sorgular (commit 57cd695)
+
+`ChallengesPage.jsx` tek bir `limit(30)` sorgusuyla hem süren hem biten
+maçları çekiyordu. 30 satırın hepsi bitmiş maç olursa **aktif maç
+görünmüyordu**. Artık her mod (1v1 / grup / hızlı) iki sorgu yapıyor:
+süren = sınırsız (güvenlik tavanı 200), biten = son 20. Realtime
+abonelikleri değişmedi.
+
+**Ölçüm:** en yoğun kullanıcıda (`e4f6006f`) 51 maç var — 4 aktif,
+1 bekliyor, 46 bitmiş. Bugün için tarihe göre 1,2,3,5,7. sıradalar, yani
+hata **henüz tetiklenmemiş, gizli** durumdaydı. Limit yapay olarak 4'e
+düşürülünce eski desende 5 süren maçın 3'ü görünüyor, yeni desende 5'i de
+görünüyor.
+
+### FAZ 2 — `mac_iptal` RPC + arayüz (commit b66960f, migration 120)
+
+Adalet tablosu: bot rakip veya hiç cevap verilmemiş maç → düz iptal, puan
+değişmez. Gerçek rakibe karşı **başlamış** maçı iptal → **hükmen
+mağlubiyet**, rakip kazanır. Gelen daveti reddetme mevcut akışta kalıyor.
+
+**Ayrı puan hesabı yazılmadı:** `advance_match` içindeki bitiş bloğu
+`mac_sonuclandir(match_id, kazanan, kaybeden)` olarak birebir dışarı alındı;
+`advance_match` de `mac_iptal` de artık onu çağırıyor. Böylece hükmen
+mağlubiyette puan/lig/seri güncellemesi normal bitişle **aynı yoldan**
+geçiyor.
+
+Yalnız maçın tarafı iptal edebiliyor, satır `FOR UPDATE` ile kilitleniyor.
+Onay metni senaryoya göre değişiyor; hükmen durumunda birebir:
+"Bu maçı iptal edersen yenik sayılırsın ve {rakip} kazanır. Emin misin?"
+İptal butonları altın değil; MatchPage'in sol üstteki ✕'ine dokunulmadı.
+
+`_test/mac-iptal-test.mjs` — 5 senaryo, geçici kullanıcılarla, sonunda
+temizliyor.
+
+### FAZ 3 — Canlı testte bulunan 3 hata (commit ebb2a27, migration 121)
+
+- **3a Zaman aşımı sessizdi.** Soru cevaplanmadan süre dolunca ekran doğrudan
+  sonraki soruya atlıyordu. `mac_soruyu_atla` artık atladığı sorunun doğru
+  cevabını döndürüyor (oyun mantığı değişmedi, yalnız dönüş değeri eklendi);
+  `QuestionCard` "Süre doldu" bandını gösterip doğru şıkkı yeşile boyuyor.
+  MatchPage / GroupMatchPage / HizliModPage / CalismaPage — dört mod da.
+- **3b Podyumda bot skoru okunmuyordu.** Ölçülen kontrast 2.86 (12 px).
+  Sönükleştirme artık yalnız avatara uygulanıyor, skor ve isim renkle
+  ayrılıyor. Yeni ölçüm: **skor 8.35**, **isim 5.20** — ikisi de AA (≥4.5).
+- **3c** Kalan iki ham `⏳` emojisi (MatchPage, GroupMatchPage) `Ikon`'a
+  çevrildi; kalan ham emoji taraması yapıldı.
+
+### Sonradan düzeltme — onay penceresi stili
+
+`Modal.jsx` portalla `document.body`'ye basıldığı için `.app` önekli
+kurallar ona uygulanmıyordu: başlık/metin tipografisi düşüyor, onay butonu
+altın kalıyordu. Kurallar `.bd-modal-katman` üzerinden yazıldı.
