@@ -10,6 +10,15 @@ import { kategoriAdi, kategoriEtiket, kategorileriSirala } from "../lib/kategori
 import { oyuncuAdi } from "../lib/oyuncu.js";
 import { y } from "../lib/yol.js";
 
+// Liste çekme kuralı: SÜREN işler limitsiz, BİTEN maçlar kısıtlı.
+// Eskiden tek sorgu 30 satır çekiyordu; biten maçlar da o 30'un içinde
+// olduğu için oyuncu 30 maçı geçince devam eden eski maçlarını göremiyordu.
+const SUREN_DURUMLAR = ["aktif", "bekliyor"];
+const MAC_BITEN_DURUMLAR = ["bitti", "iptal", "reddedildi"]; // matches tablosu
+const BITEN_DURUMLAR = ["bitti", "iptal"];                   // grup / hızlı
+const SUREN_TAVAN = 200;  // güvenlik tavanı; pratikte hiç dolmaz
+const BITEN_LIMIT = 20;
+
 const MAC_SECIMI = `*,
   p1:profiles!matches_oyuncu1_fkey(id, gorunen_ad, gorunen_avatar, puan),
   p2:profiles!matches_oyuncu2_fkey(id, gorunen_ad, gorunen_avatar, puan)`;
@@ -212,13 +221,27 @@ export default function ChallengesPage() {
   }, [user.id]);
 
   const yukle = useCallback(async () => {
-    const { data } = await supabase
-      .from("matches")
-      .select(MAC_SECIMI)
-      .or(`oyuncu1.eq.${user.id},oyuncu2.eq.${user.id}`)
-      .order("created_at", { ascending: false })
-      .limit(30);
-    setMaclar(data ?? []);
+    // İKİ AYRI SORGU. Eskiden tek sorgu 30 satır çekiyordu ve biten maçlar da
+    // o 30'un içindeydi; oyuncu 30 maçı geçince eski DEVAM EDEN maçları
+    // listede göremiyordu (maç veritabanında duruyor, sadece görünmüyordu).
+    // Süren işler asla listeden düşmemeli, biten maçlar kısıtlanabilir.
+    const [{ data: suren }, { data: biten }] = await Promise.all([
+      supabase
+        .from("matches")
+        .select(MAC_SECIMI)
+        .or(`oyuncu1.eq.${user.id},oyuncu2.eq.${user.id}`)
+        .in("durum", SUREN_DURUMLAR)
+        .order("created_at", { ascending: false })
+        .limit(SUREN_TAVAN),
+      supabase
+        .from("matches")
+        .select(MAC_SECIMI)
+        .or(`oyuncu1.eq.${user.id},oyuncu2.eq.${user.id}`)
+        .in("durum", MAC_BITEN_DURUMLAR)
+        .order("created_at", { ascending: false })
+        .limit(BITEN_LIMIT),
+    ]);
+    setMaclar([...(suren ?? []), ...(biten ?? [])]);
   }, [user.id]);
 
   useEffect(() => {
@@ -231,12 +254,23 @@ export default function ChallengesPage() {
   }, [yukle]);
 
   const grupYukle = useCallback(async () => {
-    const { data } = await supabase
-      .from("group_matches")
-      .select(GRUP_SECIMI)
-      .order("created_at", { ascending: false })
-      .limit(20);
-    setGrupMaclar(data ?? []);
+    // matches ile aynı tuzak: tek sorgu + limit, biten maçlar süren maçları
+    // listeden itiyordu.
+    const [{ data: suren }, { data: biten }] = await Promise.all([
+      supabase
+        .from("group_matches")
+        .select(GRUP_SECIMI)
+        .in("durum", SUREN_DURUMLAR)
+        .order("created_at", { ascending: false })
+        .limit(SUREN_TAVAN),
+      supabase
+        .from("group_matches")
+        .select(GRUP_SECIMI)
+        .in("durum", BITEN_DURUMLAR)
+        .order("created_at", { ascending: false })
+        .limit(BITEN_LIMIT),
+    ]);
+    setGrupMaclar([...(suren ?? []), ...(biten ?? [])]);
   }, []);
 
   useEffect(() => {
@@ -250,12 +284,21 @@ export default function ChallengesPage() {
   }, [grupYukle]);
 
   const hizliYukle = useCallback(async () => {
-    const { data } = await supabase
-      .from("hizli_maclar")
-      .select(HIZLI_SECIMI)
-      .order("created_at", { ascending: false })
-      .limit(20);
-    setHizliMaclar(data ?? []);
+    const [{ data: suren }, { data: biten }] = await Promise.all([
+      supabase
+        .from("hizli_maclar")
+        .select(HIZLI_SECIMI)
+        .in("durum", SUREN_DURUMLAR)
+        .order("created_at", { ascending: false })
+        .limit(SUREN_TAVAN),
+      supabase
+        .from("hizli_maclar")
+        .select(HIZLI_SECIMI)
+        .in("durum", BITEN_DURUMLAR)
+        .order("created_at", { ascending: false })
+        .limit(BITEN_LIMIT),
+    ]);
+    setHizliMaclar([...(suren ?? []), ...(biten ?? [])]);
   }, []);
 
   // Sayfa açılınca 24 saatten eski, yanıtlanmamış davetler temizlensin.
