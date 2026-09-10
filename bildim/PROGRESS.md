@@ -1227,3 +1227,56 @@ izlenmeli.
 2. FAZ 4-6: ulke havuzu kurali, arayuz i18n, magaza metinleri.
 3. Acik kalan: sik dengeleme (6.212'de 502 tamam, `sik-dengele.mjs` hazir)
    ve ikiz soru temizligi (elemede pasife cekilenler disinda kalanlar).
+
+---
+
+## 2026-09-11 — 1v1'de "şıkkı işaretliyorum sıfırlanıyor" hatası düzeltildi
+
+**Şikayet:** "Canlı sohbet bağlanınca oyun takılıyor. Bazen sayfa yenilenir
+gibi oluyor. Bazen işaretliyorum sayfa yenileniyor, bir daha işaretliyorum."
+
+**Kök neden — `QuestionCard`'ın key'i yanlış alana bağlıydı.**
+`MatchPage`'de kart şöyle çiziliyordu:
+
+```jsx
+<QuestionCard key={`${mac.id}-${mac.aktif_soru}`} ... />
+```
+
+Ama 1v1 **asenkron**: oyuncular farklı sorularda olabiliyor ve soruyu çeken
+effect kendi sayacımıza bakıyor (`oyuncu1_soru` / `oyuncu2_soru`).
+`aktif_soru` ise senkron dönemden kalma **ortak** sayaç — iki oyuncudan hangisi
+ileriyse onu gösteriyor. Canlı veriden ölçüldü:
+
+| aktif_soru | oyuncu1_soru | oyuncu2_soru | durum |
+|---|---|---|---|
+| 3 | 1 | **3** | aktif |
+| 4 | 3 | **4** | aktif |
+| 8 | 7 | **8** | aktif |
+| 11 | 10 | **11** | aktif |
+
+Yani **rakip cevap verdiğinde `aktif_soru` artıyordu → key değişiyordu →
+React kartı komple yeniden bindiriyordu.** Kartın kendi state'i
+(`secim`, `kalan` süre, `sonuc`, 50:50 ile elenenler) sıfırlanıyordu: oyuncu
+şıkkı işaretliyor, rakip bir cevap veriyor, kart baştan çiziliyor ve seçim
+uçuyor. "Sayfa yenilendi" hissi süre sayacının başa dönmesinden.
+
+**Neden özellikle sesli sohbette:** asenkron maçta iki taraf normalde farklı
+zamanlarda oynuyor, çakışma nadir. Sesli sohbet açıkken **aynı anda**
+oynuyorlar — rakibin her cevabı anında realtime ile geliyor ve kart sürekli
+yeniden biniyor.
+
+**Düzeltme:** key kendi indekse bağlandı — soruyu çeken effect ile aynı kaynak:
+
+```jsx
+key={`${mac.id}-${kendiIndeks}`}
+```
+
+**İkinci düzeltme (takılma):** `macYukle` 2 saniyede bir yoklama yapıyor ve
+her seferinde `setMac(yeni nesne)` diyordu; veri değişmese bile React "değişti"
+sayıp tüm maç ekranını yeniden çiziyordu. Artık gelen satırın imzası
+öncekiyle aynıysa state'e dokunulmuyor (`macImzaRef`). Sesli sohbetin WebRTC
+yükü üstüne binen bu gereksiz çizim, hissedilen takılmanın ikinci kaynağıydı.
+
+**Dokunulmayanlar:** `GroupMatchPage` ve `HizliMacPage` aynı key desenini
+kullanıyor ama onlar **gerçekten senkron** (tabloda kişi bazlı sayaç yok,
+soru çekme de `aktif_soru`'ya bağlı) — orada key doğru, değiştirilmedi.

@@ -69,6 +69,9 @@ export default function MatchPage() {
   const [yuklemeHatasi, setYuklemeHatasi] = useState(null);
   const advanceKilidi = useRef(false);
   const pollRef = useRef(null);
+  // Son yüklenen maç satırının imzası — yoklama aynı veriyi getirdiğinde
+  // gereksiz yeniden çizimi engeller (bkz. macYukle).
+  const macImzaRef = useRef(null);
   // Maç bitişinde sonuç ekranından önce 0.8 sn'lik "Maç bitti!" perdesi
   const [gecisBitti, setGecisBitti] = useState(false);
   const balonTimer = useRef({});
@@ -134,17 +137,25 @@ export default function MatchPage() {
       console.error("[Bildim] mac yuklenemedi:", e);
       setYuklemeHatasi(hataMesaji(e, "Maç bilgisi alınamadı."));
     }
-    if (data) setMac(data);
-
-    // Asenkron maçta iki taraf farklı soruda olabilir.
-    // match_answers RLS'i yalnız KENDİ cevaplarını gösterdiği için rakip
-    // ilerlemesi hep 0 çıkıyordu; sayaçlar matches tablosunda tutuluyor.
+    // Yoklama 2 saniyede bir dönüyor. Gelen satır bir öncekiyle birebir
+    // aynıysa state'e DOKUNMA: yeni nesne yazmak React'e "değişti" dedirtir
+    // ve maç ekranı boşuna baştan çizilir. Sesli sohbet (WebRTC) açıkken bu
+    // gereksiz çizim yükü hissedilir takılmaya dönüşüyordu.
     if (data) {
-      const benP1x = data.oyuncu1 === user.id;
-      setIlerleme({
-        ben: benP1x ? (data.oyuncu1_soru ?? 0) : (data.oyuncu2_soru ?? 0),
-        rakip: benP1x ? (data.oyuncu2_soru ?? 0) : (data.oyuncu1_soru ?? 0),
-      });
+      const imza = JSON.stringify(data);
+      if (imza !== macImzaRef.current) {
+        macImzaRef.current = imza;
+        setMac(data);
+
+        // Asenkron maçta iki taraf farklı soruda olabilir.
+        // match_answers RLS'i yalnız KENDİ cevaplarını gösterdiği için rakip
+        // ilerlemesi hep 0 çıkıyordu; sayaçlar matches tablosunda tutuluyor.
+        const benP1x = data.oyuncu1 === user.id;
+        setIlerleme({
+          ben: benP1x ? (data.oyuncu1_soru ?? 0) : (data.oyuncu2_soru ?? 0),
+          rakip: benP1x ? (data.oyuncu2_soru ?? 0) : (data.oyuncu1_soru ?? 0),
+        });
+      }
     }
     return data;
   }, [id, user.id]);
@@ -548,7 +559,20 @@ export default function MatchPage() {
 
       {soru && (
         <QuestionCard
-          key={`${mac.id}-${mac.aktif_soru}`}
+          // KENDİ indeksimize bağlanır — `aktif_soru`ya DEĞİL.
+          //
+          // `aktif_soru` iki oyuncudan hangisi ileriyse onu gösteren ORTAK
+          // sayaç (senkron dönemden kalma). Asenkron 1v1'de rakip cevap
+          // verdiğinde de artıyor; key ona bağlıyken rakibin her cevabı bu
+          // kartı komple yeniden bindiriyordu: seçili şık, süre sayacı ve
+          // sonuç ekranı sıfırlanıyor, oyuncu "sayfa yenilendi, şıkkı yeniden
+          // işaretledim" diyordu. Sesli sohbette iki taraf aynı anda oynadığı
+          // için sorun orada sürekli görülüyordu.
+          //
+          // Soruyu çeken effect de `kendiIndeks`e bağlı (yukarıda); key artık
+          // onunla aynı kaynağa bakıyor. Grup ve Hızlı maç GERÇEKTEN senkron
+          // olduğu için oralarda `aktif_soru` doğrudur, dokunulmadı.
+          key={`${mac.id}-${kendiIndeks}`}
           soru={soru}
           onCevapla={cevapla}
           onSureDoldu={sureDoldu}
