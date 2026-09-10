@@ -5,6 +5,8 @@ import { Link } from "react-router-dom";
 import { supabase } from "../../src/lib/supabase.js";
 import { MAC_ICI_JOKERLER, JOKER_BILGI, envanterNesne } from "../lib/jokerler.js";
 import { y } from "../lib/yol.js";
+import { sesJoker } from "../lib/ses.js";
+import { titret } from "../lib/geriBildirim.js";
 
 /**
  * Maç içi joker çubuğu. Tüm kararlar sunucudadır (joker_kullan RPC);
@@ -68,6 +70,8 @@ export default function JokerCubugu({ macTur, macId, soruIndex, onEtki, kilit })
         p_tur: tur,
       });
       if (error) throw error;
+      sesJoker();
+      titret(10);
       onEtki?.(data);
       await yukle();
     } catch (e) {

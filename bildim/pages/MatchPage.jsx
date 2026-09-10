@@ -274,6 +274,7 @@ export default function MatchPage() {
         skor={mac.oyuncu1 === user.id ? mac.oyuncu1_skor : mac.oyuncu2_skor}
         skorEtiket="puan"
         kazandi={mac.kazanan === user.id}
+        kaybetti={mac.kazanan !== null && mac.kazanan !== user.id}
         onBitti={() => setGecisBitti(true)}
       />
     );

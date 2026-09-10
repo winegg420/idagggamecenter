@@ -1,7 +1,8 @@
 import { useEffect } from "react";
 import Maskot from "./Maskot.jsx";
 import PuanSayaci from "./PuanSayaci.jsx";
-import { sesSureDoldu, sesKazandin } from "../lib/ses.js";
+import { sesSureDoldu, sesKazandin, sesKaybettin } from "../lib/ses.js";
+import { titret } from "../lib/geriBildirim.js";
 
 /**
  * Maç/tur bitişinde araya giren 0.8 sn'lik geçiş ekranı.
@@ -23,17 +24,26 @@ export default function SureDolduGecis({
   onBitti,
   sure = 800,
   kazandi = false,
+  // Maç kaybedildiyse alçalan iki nota. Verilmezse yalnız "süre doldu" sesi
+  // çalar (hızlı mod gibi kazanan/kaybeden olmayan ekranlar için).
+  kaybetti = false,
 }) {
   useEffect(() => {
     try {
-      if (kazandi) sesKazandin();
-      else sesSureDoldu();
+      if (kazandi) {
+        sesKazandin();
+        titret([15, 30, 15]);
+      } else if (kaybetti) {
+        sesKaybettin();
+      } else {
+        sesSureDoldu();
+      }
     } catch {
       /* ses çalınamadı — geçiş yine de görünür */
     }
     const t = setTimeout(() => onBitti?.(), sure);
     return () => clearTimeout(t);
-  }, [onBitti, sure, kazandi]);
+  }, [onBitti, sure, kazandi, kaybetti]);
 
   return (
     <div className="bd-sure-doldu" role="status" aria-live="polite">

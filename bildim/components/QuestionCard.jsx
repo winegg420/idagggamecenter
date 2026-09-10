@@ -115,6 +115,7 @@ export default function QuestionCard({
         // 120 ms: renk geri bildirimi CSS'te; ses ve seri burada
         if (dogruMu) {
           sesDogru();
+          titret(10);
           setSeri((s) => s + 1);
           if (puanHesapla) setPuan(puanHesapla(kalanAn, true));
         } else {

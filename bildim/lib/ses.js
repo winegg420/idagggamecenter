@@ -131,3 +131,46 @@ export function sesRutbeAtladi() {
   ton({ frekans: 880, sure: 0.1, hacim: 0.16, tip: "triangle", gecikme: 0.2 });
   ton({ frekans: 1047, sure: 0.36, hacim: 0.17, tip: "triangle", gecikme: 0.3 });
 }
+
+/** Maç kaybetme — alçalan iki nota (kazanma arpejinin tersi). */
+export function sesKaybettin() {
+  ton({ frekans: 392, sure: 0.16, hacim: 0.15, tip: "triangle" });
+  ton({ frekans: 262, sure: 0.34, hacim: 0.15, tip: "triangle", gecikme: 0.15 });
+}
+
+/**
+ * Joker kullanımı — süzgeçten geçmiş beyaz gürültüyle kısa "swoosh".
+ * Osilatör tonu bu etkiyi veremiyor; kısa bir gürültü tamponu üretilip
+ * bant geçiren süzgeçten geçiriliyor. Dosya yok, boyut yok.
+ */
+export function sesJoker() {
+  if (!sesAcikMi()) return;
+  const c = context();
+  if (!c) return;
+  try {
+    if (c.state === "suspended") c.resume();
+    const sure = 0.26;
+    const uzunluk = Math.floor(c.sampleRate * sure);
+    const tampon = c.createBuffer(1, uzunluk, c.sampleRate);
+    const veri = tampon.getChannelData(0);
+    for (let i = 0; i < uzunluk; i++) veri[i] = Math.random() * 2 - 1;
+    const kaynak = c.createBufferSource();
+    kaynak.buffer = tampon;
+    const suzgec = c.createBiquadFilter();
+    suzgec.type = "bandpass";
+    suzgec.Q.value = 1.1;
+    const t0 = c.currentTime;
+    // Süzgeç tepe frekansı yukarı kayar → "swoosh" hissi
+    suzgec.frequency.setValueAtTime(500, t0);
+    suzgec.frequency.exponentialRampToValueAtTime(3600, t0 + sure);
+    const kazanc = c.createGain();
+    kazanc.gain.setValueAtTime(0.0001, t0);
+    kazanc.gain.exponentialRampToValueAtTime(0.14, t0 + 0.05);
+    kazanc.gain.exponentialRampToValueAtTime(0.0001, t0 + sure);
+    kaynak.connect(suzgec).connect(kazanc).connect(c.destination);
+    kaynak.start(t0);
+    kaynak.stop(t0 + sure + 0.02);
+  } catch {
+    /* ses çalınamadı — joker yine de kullanılır */
+  }
+}

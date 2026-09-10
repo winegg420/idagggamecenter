@@ -152,6 +152,7 @@ export default function HizliModPage() {
       setKalanToplam(s?.kalan_toplam_sn ?? 0);
       if (s?.dogru) {
         sesDogru();
+        titret(10);
         setSeri((x) => x + 1);
       } else {
         sesYanlis();
