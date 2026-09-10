@@ -3223,14 +3223,14 @@ body.bd-ekle-acik .app { padding-bottom: calc(300px + env(safe-area-inset-bottom
 /* Kaybetmede skor sönük; Rövanş öne çıksın diye tabela geri çekilir. */
 .app .bd-sonuc-ekran.kaybetti .skor-tabela { opacity: 0.92; }
 
-/* ---------- Rövanş: kaybedende sayfanın en büyük eylemi ---------- */
-.app .bd-sonuc-ekran.kaybetti .btn:first-of-type {
-  font-size: var(--bd-t-m);
+/* ---------- Rövanş: kaybedende sayfanın en büyük eylemi ----------
+   [DARALTILDI] Burada seçici `.btn:first-of-type` idi ve kaybetme ekranındaki
+   BAŞKA kutuların ilk butonunu da mercan yapıyordu — canlı testte
+   "Bildirimleri aç" bu yüzden kırmızı çıkmıştı. Rövanşın artık kendi sınıfı
+   var (.bd-rovans / .bd-rovans-tek), kural oraya taşındı. */
+.app .bd-sonuc-ekran.kaybetti .bd-rovans,
+.app .bd-sonuc-ekran.kaybetti .bd-rovans-tek {
   padding: var(--bd-b-4) var(--bd-b-5);
-  background: var(--bd-hata);
-  color: #2a0b06;
-  border: none;
-  box-shadow: 0 6px 18px rgba(232, 84, 63, 0.32);
 }
 
 /* ---------- Tur tur döküm ---------- */
@@ -3366,3 +3366,22 @@ body.bd-ekle-acik .app { padding-bottom: calc(300px + env(safe-area-inset-bottom
 }
 .app .bd-rovans::after,
 .app .bd-sonuc-ekran .bd-rovans-tek::after { display: none; }
+
+/* ============================================================
+   BİLDİRİM İZNİ — BİRİNCİL EYLEM ALTIN
+   Canlı testte "Bildirimleri aç" kırmızı çıkıyordu. Bu sistemde kırmızı
+   YANLIŞ CEVAP ve TEHLİKE demek; bildirim açmak tehlike değil. Bulunduğu
+   kutuda birincil eylem odur, altın kuralını bozmaz.
+   ============================================================ */
+.app .bd-izin-butonlar .btn:not(.ikincil) {
+  background: var(--bd-vurgu);
+  color: #2a1a05;
+  border: none;
+  box-shadow: var(--bd-glow-odul);
+}
+.app .bd-izin-butonlar .btn.ikincil {
+  background: var(--bd-yuzey-2);
+  color: var(--bd-metin);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  box-shadow: none;
+}
