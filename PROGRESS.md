@@ -3175,3 +3175,49 @@ Renk değiştirilen her yer ölçüldü, hiçbiri tahmin değil. Üç yerde eşi
 ölçümle düzeltildi: rütbe chip tinti %16 → %8 (Çaylak 4.08 → 4.62), kategori
 etiketi metni %20 beyazla açıldı (edebiyat 4.30 → 4.78), mod ikon mürekkebi
 koyu `#12151F` seçildi (yedi dolguda da beyazı geçiyor).
+
+---
+
+## 10 Eylül 2026 — Canlı testte bulunan 4 kusur (Bildim)
+
+### 1. Maç sonunda iki Rövanş butonu (commit c157e90)
+
+Kaybedilen 1v1 maçın sonunda alt alta **iki** "Rövanş" butonu duruyordu:
+`MacSonuEklentisi`'ndeki "Rövanş iste" (`rovans_iste`, koyu kırmızı) ve
+`MatchPage`'deki doğrudan "Rövanş" (`create_challenge`, mercan). Oyuncu
+hangisine basacağını bilmiyordu.
+
+Artık rakip türüne göre **yalnız biri** çiziliyor: bota doğrudan rövanş
+(alt yazı yok), gerçek oyuncuya rövanş isteği (*"Rakibine istek gönderilir ·
+aynı kategori · 24 saat geçerli"*). Gerçek oyuncu zorla maça sokulamaz.
+`is_bot` ekstra sorgu açılmadan `MAC_SECIMI`'ndeki profil satırına eklendi.
+
+### 2. Hızlı Mod kartı çamur rengiydi (commit 5040dc5)
+
+`::after` yıkaması sabit %16'ydı. Sarı `#FFD23F` × %16, lacivert üzerinde
+`rgb(60,62,57)` veriyordu — hardal/haki. Sebep parlaklık farkı: sarının bağıl
+parlaklığı ~0,69, morunki ~0,21.
+
+`--tema-yikama` eklendi, opaklık renge göre: hızlı %7, lig %11, grup/hatalarım
+%14, meydan/joker %16, turnuva %18. Hızlı Mod `#3d3f3c` → **`#282f3b`**.
+
+### 3. "Bildirimleri aç" kırmızıydı (commit 1c96210)
+
+**Kök neden kendi kuralı değildi:** FAZ 4'te yazılan
+`.bd-sonuc-ekran.kaybetti .btn:first-of-type` seçicisi, kaybetme ekranındaki
+başka kutuların ilk butonunu da mercan yapıyordu. Rövanşın artık kendi sınıfı
+olduğu için (madde 1) kural `.bd-rovans` / `.bd-rovans-tek`'e daraltıldı —
+yan etki kökünden kalktı. Buton altın oldu, "Şimdi değil" nötr kaldı.
+
+### 4. Tur dökümünde açıklama yoktu (commit ...)
+
+Test maçında 2 yeşil, 1 kırmızı, **17 nötr** çıkmış ve oyuncu nötrün ne
+demek olduğunu anlamamıştı. Noktaların altına üç durumu adlandıran anahtar
+satırı eklendi: Doğru / Yanlış / Süre doldu.
+
+### Çıkarım
+
+3. madde, bir önceki oturumda eklenen bir kuralın yan etkisiydi.
+`:first-of-type` gibi konuma dayalı seçiciler, kapsayıcı içinde başka
+butonlar belirdiğinde sessizce yanlış hedefi vuruyor — bileşene özel sınıf
+kullanmak daha güvenli.
