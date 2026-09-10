@@ -6,23 +6,37 @@ Pages çalışma zamanıyla test edildi** (`wrangler pages dev`).
 
 ---
 
-## ⚠️ ÖNCE BUNU OKU — yoksa Cloudflare'de giriş çalışmaz
+## ⚠️ Giriş izin listesi — DURUM GÜNCEL (10 Eylül 2026 ölçümü)
 
-Supabase Auth izin listesinde şu an **yalnız `bildim.vercel.app`** var
-(9 Eylül'de ölçüldü). Vercel'de girişlerin çalışmasının nedeni o alan adının
-307 ile yönlendirmesi. **Cloudflare'de böyle bir yedek yok:** kullanıcı giriş
-yapınca Vercel sitesine düşer, Cloudflare sitesine değil.
+> Bu bölümün eski hâli "izin listesinde yalnız `bildim.vercel.app` var" diyordu.
+> **Artık geçerli değil.** Panel güncellenmiş; aşağısı yeni ölçüm.
 
-Cloudflare alan adın belli olur olmaz, **yayına açmadan önce**:
+Supabase'in **Site URL**'i artık `https://quizador.pages.dev/`. Ölçüm yöntemi
+(dışarıdan, panele girmeden): `auth/v1/callback` ucuna geçersiz istek atılır,
+Supabase kullanıcıyı Site URL'e düşürür ve `Location` başlığı onu ele verir:
 
-Supabase → Authentication → **URL Configuration**
-- **Redirect URLs**'e ekle: `https://<PROJE>.pages.dev/**`
-  (özel alan adı bağlarsan onu da: `https://alanadin.com/**`)
-- Site URL'i hangi alan adı **asıl** olacaksa ona çevir.
-- Eski adresleri bir süre listede tut ki mevcut linkler bozulmasın.
+```bash
+curl -sSI https://zfpnxzybcpkxsotwdsey.supabase.co/auth/v1/callback | grep -i location
+# location: https://quizador.pages.dev/?error=invalid_request&...
+```
 
-Bu yapılmadan Cloudflare kopyası "giriş yapılamıyor" gibi görünür — ama sorun
-Cloudflare'de değil, izin listesindedir.
+Bunun iki sonucu var:
+
+- **Cloudflare (Quizador) tarafı sağlam.** Giriş sonrası dönüş buraya düşüyor;
+  eskiden korkulan "Vercel'e düşer" durumu geçti.
+- **`bildim.vercel.app` ÖLDÜ.** Artık 404 (`DEPLOYMENT_NOT_FOUND`). Eskiden
+  girişleri ayakta tutan 307 yönlendirmesi yok. Bu adresi kimseye vermeyin;
+  Supabase izin listesinde duruyorsa temizlenebilir.
+
+Hâlâ kontrol edilmesi gereken: hub (`idagg-game-center.vercel.app`) **Redirect
+URLs** listesinde mi? Değilse hub'da giriş yapan oyuncu Quizador sitesine
+düşer. İzin listesi dışarıdan okunamaz (doğrulama Google dönüşünde yapılır),
+panelden bakmak gerekir:
+
+Supabase → Authentication → **URL Configuration** → Redirect URLs
+- `https://quizador.pages.dev/**`  ← asıl site
+- `https://idagg-game-center.vercel.app/**`  ← hub
+- özel alan adı bağlanınca onu da ekle
 
 ---
 
@@ -182,3 +196,64 @@ gösterilmez" vaadi hata raporlarında da geçerli.
 npm run build:bildim     # .env.bildim sayesinde Windows'ta da çalışır
 npx wrangler pages dev dist
 ```
+
+---
+
+## quizador.pages.dev HER ZAMAN en güncel olmalı — nasıl garantiye alınır
+
+**Kural:** Quizador'un asıl sitesi `https://quizador.pages.dev`. Kod deposunda
+ne varsa burada yayında olmalı; hub (Vercel) ikincildir.
+
+### Önce şunu kontrol et: dağıtım elle mi, otomatik mi?
+
+Cloudflare panelinde **Workers & Pages → quizador → Settings → Builds &
+deployments** bölümüne bak:
+
+- **"Connected to Git" yazıyorsa** → `main`'e her push otomatik dağıtılır,
+  ekstra iş yok. Yalnız *Build configuration*'ın doğru olduğundan emin ol
+  (aşağıdaki tablo).
+- **"Direct Upload" yazıyorsa** → dağıtım **elle** yapılıyor demektir. Bu
+  durumda her `git push` sonrası site kendiliğinden güncellenmez; unutulursa
+  yayındaki sürüm eskir. **Git'e bağlamak gerekir** (Yol A) — tek kalıcı çözüm.
+
+### Git'e bağlıyken olması gereken derleme ayarı
+
+| Alan | Değer |
+|---|---|
+| Build command | `npm run build` |
+| Build output directory | `dist` |
+| Production branch | `main` |
+| `VITE_MOD` | `bildim` ← **bu yoksa hub sürümü yayınlanır, yanlış olur** |
+| `VITE_SITE_URL` | `https://quizador.pages.dev` |
+| `VITE_SUPABASE_URL` | `https://zfpnxzybcpkxsotwdsey.supabase.co` |
+| `VITE_SUPABASE_ANON_KEY` | anon anahtar (aşağıdaki nota bak) |
+
+Ortam değişkenleri **Production ve Preview için ayrı ayrı** girilir.
+
+### Anahtar tutarsızlığı (10 Eylül 2026'da ölçüldü)
+
+İki yayın farklı türde anon anahtar kullanıyor:
+
+| Yayın | Anahtar | Kaynak |
+|---|---|---|
+| Vercel (hub) | `sb_publishable_…` | Vercel paneli |
+| Cloudflare (Quizador) | `eyJ…` (eski JWT) | yerel `.env` |
+
+**Şu an ikisi de çalışıyor** (ölçüldü: `auth/v1/settings` her ikisiyle de 200).
+Ama Supabase eski JWT anahtarlarını aşamalı kaldırıyor. Cloudflare panelindeki
+`VITE_SUPABASE_ANON_KEY` yeni `sb_publishable_…` değeriyle güncellenmeli;
+yerel `.env` de aynı şekilde. Aksi hâlde anahtar kapandığı gün Quizador
+sitesi giriş yapamaz duruma gelir.
+
+### Dağıtımın gerçekten güncel olduğunu doğrulama
+
+Yayındaki paket adları yerel derlemeyle birebir aynı olmalı:
+
+```bash
+npm run build:bildim
+grep -oE '/assets/[A-Za-z0-9_.-]+\.js' dist/index.html | sort -u
+curl -s https://quizador.pages.dev/ | grep -oE '/assets/[A-Za-z0-9_.-]+\.js' | sort -u
+```
+
+İki liste aynıysa yayın günceldir. (Vite dosya adına içerik özeti koyar; kod
+değişince ad da değişir.)

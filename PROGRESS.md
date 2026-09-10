@@ -3263,3 +3263,57 @@ Bu üç madde de aynı kök alışkanlığın sonucu: `error` alanını okumadan
 bilmiyor, geliştirici de konsolda göremiyor. Yeni Supabase çağrılarında
 `error` kontrolü zorunlu sayılmalı; tarama betiği `.tmp/` altında değil,
 gerekirse `_test/` altına kalıcı alınabilir.
+
+---
+
+## 2026-09-10 — "Site açılmıyor" şikayeti: uçtan uca canlı denetim
+
+**Tetikleyen:** paylaşılan link bir arkadaşta açılmadı. `quizador.pages.dev`,
+`idagg-game-center.vercel.app` ve `bildim.vercel.app` tek tek ölçüldü.
+
+**Sonuç: her iki canlı site de sağlam. Sunucu tarafında hiçbir sorun yok.**
+
+| Adres | Durum |
+|---|---|
+| `quizador.pages.dev` | **200** — asıl Quizador sitesi, `VITE_MOD=bildim` derlemesi |
+| `idagg-game-center.vercel.app` | **200** — hub (8 oyun) |
+| `bildim.vercel.app` | **404 DEPLOYMENT_NOT_FOUND** — ölü, kullanılmamalı |
+
+Ölçülenler (hepsi 200): ana sayfa · `index`/`react`/`router`/`supabase`
+paketleri · CSS · manifest · ikonlar · `sw.js` · `_redirects` · `_headers` ·
+`robots.txt` · `sitemap.xml`. Derin bağlantılar (`/turnuva`, `/profil`,
+`/davet/ABC123`, olmayan bir yol) hepsi 200 + `text/html` → SPA yönlendirmesi
+çalışıyor. iPhone ve Android kullanıcı-ajanıyla da 200. Tarayıcı konsolunda
+uygulama kaynaklı tek hata yok.
+
+**Misafir akışı uçtan uca denendi** (oturum geçici olarak yedeklenip kaldırıldı,
+test sonrası aynen geri yüklendi): giriş ekranı geliyor → "Misafir olarak dene"
+→ hesap açılıyor → "Nasıl oynanır?" ve takma ad ekranları geliyor. **Giriş
+çalışıyor.**
+
+**Eskiyen iki belge düzeltildi:**
+- `GIRIS_SAGLAYICILARI.md` — "Site URL `bildim.vercel.app`, o alias kalkarsa
+  girişler kırılır" uyarısı aşıldı. Alias gerçekten kalktı ama panel arada
+  güncellenmiş: **Site URL artık `quizador.pages.dev`**. Ayrıca sağlayıcı
+  durumu yenilendi: google + email + **misafir girişi açık** (eskiden kapalıydı).
+- `CLOUDFLARE_DAGITIM.md` — aynı düzeltme + yeni bölüm: *"quizador.pages.dev
+  HER ZAMAN en güncel olmalı"*.
+
+**Kalan iki gerçek risk (kod/panel işi, kullanıcı kararı bekliyor):**
+
+1. **Eski cihazlarda beyaz ekran.** `vite.config.js`'te `build.target` yok →
+   Vite varsayılanı `modules` (Chrome 87+ / Safari 14+). Yayındaki pakette
+   `?.` ve `??` var, `nomodule` yedeği yok. iOS 13'te kalmış bir iPhone ya da
+   eski Android tarayıcısı siteyi **boş** görür — "açılmıyor" şikayetinin en
+   olası teknik nedeni budur. Çözüm: `@vitejs/plugin-legacy`.
+2. **Anon anahtar tutarsızlığı.** Cloudflare derlemesi eski JWT anahtarını
+   (`eyJ…`, yerel `.env`'den), Vercel yeni `sb_publishable_…` anahtarını
+   kullanıyor. İkisi de bugün çalışıyor (ölçüldü), ama Supabase eski anahtarları
+   aşamalı kaldırıyor.
+
+**Ayrıca:** `*.pages.dev` Türkiye'de operatör/DNS düzeyinde engellenebiliyor;
+bu da kişiye göre değişen "bende açılıyor onda açılmıyor" tablosunu üretir.
+Kalıcı çözüm özel alan adı bağlamaktır.
+
+**Not:** test sırasında açılan misafir hesabı ("Oyuncu", 0 puan) veritabanında
+kaldı — zararsız, istenirse silinebilir.

@@ -5,35 +5,53 @@
 > Management API için erişim tokeni gerekir. Kod tarafı hazırdır — aşağıdaki
 > adımlar tamamlanınca düğmeler çalışır, ek geliştirme gerekmez.
 >
-> Son ölçüm (9 Eylül 2026, canlı uç):
-> `google` **302 (açık)** · `facebook` **400** · `twitter` **400** · `apple` **400**
-> · misafir girişi `anonymous_provider_disabled`
+> Son ölçüm (10 Eylül 2026, `auth/v1/settings` ucundan):
+> **AÇIK:** `google` · `email` · `anonymous_users` (misafir girişi artık açık —
+> canlıda uçtan uca denendi: hesap açılıyor, takma ad ekranı geliyor)
+> **KAPALI:** `apple` · `facebook` · `twitter` · ve diğer 20 sağlayıcı
+>
+> ```bash
+> curl -s -H "apikey: <anon>" https://zfpnxzybcpkxsotwdsey.supabase.co/auth/v1/settings
+> ```
 
 ---
 
-## 0. ÖNCE BU — yoksa hiçbir giriş doğru çalışmaz
+## 0. URL yapılandırması — 10 Eylül 2026'da yeniden ölçüldü
 
-Supabase → **Authentication → URL Configuration**
+> **Bu bölümün eski hâli aşılmıştır.** Aşağıdaki uyarı geçerliydi:
+> *"Site URL `bildim.vercel.app`; girişlerin çalışmasının tek nedeni onun 307
+> yönlendirmesi, o alias kalkarsa tüm girişler kırılır."*
+> **Alias gerçekten kalktı** (`bildim.vercel.app` → 404 `DEPLOYMENT_NOT_FOUND`),
+> ama arada panel de güncellenmiş: girişler kırılmadı.
 
-| Alan | Şu anki (yanlış) | Olması gereken |
-|---|---|---|
-| Site URL | `https://bildim.vercel.app` | `https://idagg-game-center.vercel.app` |
-| Redirect URLs | yalnız eski alan adı | `https://idagg-game-center.vercel.app/**` ekle |
+**Yeni durum:**
 
-**Neden kritik:** izin listesinde güncel alan adı yok. Ölçüm:
+| Alan | Ölçülen değer |
+|---|---|
+| Site URL | `https://quizador.pages.dev/` ✔ (yaşayan, çalışan adres) |
+| `bildim.vercel.app` | **ÖLÜ** — 404. Kimseye verilmemeli, listeden çıkarılabilir. |
 
+Ölçüm yöntemi (panele girmeden, dışarıdan):
+
+```bash
+curl -sSI https://zfpnxzybcpkxsotwdsey.supabase.co/auth/v1/callback | grep -i location
+# location: https://quizador.pages.dev/?error=invalid_request&error_code=bad_oauth_callback
 ```
-idagg-game-center.vercel.app/            → RED (bildim.vercel.app'e düşüyor)
-idagg-game-center.vercel.app/bildim/...  → RED
-bildim.vercel.app/                       → İZİNLİ
-```
 
-Girişlerin bugün çalışmasının tek nedeni `bildim.vercel.app`'in **307 ile köke**
-yönlendirmesi. Token hayatta kalıyor ama **yol kayboluyor**. Bu alias kalkarsa
-tüm girişler kırılır. (Uygulama tarafına derin bağlantıyı koruyan bir yedek
-eklendi — `src/lib/girisHedefi.js` — ama asıl düzeltme burasıdır.)
+Geçersiz bir callback isteğinde Supabase kullanıcıyı Site URL'e düşürür; başlık
+onu ele verir.
 
-Eski alan adını da bir süre listede tut; eski linkler bozulmasın.
+**Geriye kalan tek kontrol:** hub (`idagg-game-center.vercel.app`) Redirect URLs
+listesinde mi? Değilse hub'da giriş yapan oyuncu Quizador sitesine düşer. İzin
+listesi dışarıdan okunamaz — doğrulama yalnız Google dönüşünde yapılıyor
+(authorize adımı `redirect_to`'yu olduğu gibi taşıyor, ölçüldü), o yüzden
+panelden bakmak gerekir. Listede şunlar olmalı:
+
+- `https://quizador.pages.dev/**` ← asıl site
+- `https://idagg-game-center.vercel.app/**` ← hub
+
+Uygulama tarafındaki yedek (`src/lib/girisHedefi.js`) derin bağlantıyı yine de
+korur, ama asıl düzeltme panel tarafındadır.
 
 ---
 
