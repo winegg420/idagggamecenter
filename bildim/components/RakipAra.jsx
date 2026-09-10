@@ -118,7 +118,10 @@ export default function RakipAra({ kategori, onBulundu, onIptal }) {
     return () => {
       iptal = true;
       clearInterval(zamanlayiciRef.current);
-      if (!bittiRef.current) supabase.rpc("kuyruktan_cik").catch(() => {});
+      // supabase.rpc() bir PostgrestFilterBuilder döndürür: thenable ama Promise
+      // DEĞİL, .catch() metodu yok. Doğrudan .catch çağrısı TypeError atıp
+      // ekranı boş bırakıyordu. then'in ikinci argümanı hatayı güvenle yutar.
+      if (!bittiRef.current) supabase.rpc("kuyruktan_cik").then(() => {}, () => {});
     };
   }, [kategori, bitir, sonCare]);
 
