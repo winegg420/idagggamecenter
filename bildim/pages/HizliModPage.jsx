@@ -288,6 +288,11 @@ export default function HizliModPage() {
     return (
       <div className={`bd-hizli-oyun ${sarsil ? "bd-sarsil" : ""}`}>
         <CevapEfekti dogru={Boolean(sonucSoru?.dogru)} puan={0} seri={seri} />
+        {secim === -1 && (
+          <div className="bd-sure-doldu-bant" role="status">
+            <Ikon ad="saat" boyut={15} /> Süre doldu
+          </div>
+        )}
         {/* 60 sn toplam çubuk */}
         <div className="bd-hizli-toplam">
           <div

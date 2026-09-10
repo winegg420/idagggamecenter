@@ -230,7 +230,7 @@ export default function GroupMatchPage() {
     const bekleyenler = katilimcilar.filter((k) => k.davet_durumu === "bekliyor");
     return (
       <div className="buyuk-mesaj">
-        <div className="emoji">⏳</div>
+        <div className="emoji"><Ikon ad="saat" boyut={44} /></div>
         <h2>Grup maçı bekleniyor</h2>
         <p className="alt-yazi" style={{ marginBottom: 16 }}>
           {bekleyenler.length > 0

@@ -241,13 +241,24 @@ export default function MatchPage() {
   };
 
   // Asenkron maç: süre dolunca YALNIZ kendi sıramız atlanır, rakip beklenmez.
-  const sureDoldu = useCallback(() => {
-    if (advanceKilidi.current) return;
+  // Atlama RPC'si atlanan sorunun DOĞRU CEVABINI döndürür; QuestionCard onu
+  // yeşile boyayıp geri bildirim penceresini açar. Sonraki soru pencere
+  // kadar (GB_MS) beklendikten sonra yüklenir — eskiden ekran anında
+  // atlıyor, doğru cevap hiç gösterilmiyordu.
+  const sureDoldu = useCallback(async () => {
+    if (advanceKilidi.current) return null;
     advanceKilidi.current = true;
-    supabase
-      .rpc("mac_soruyu_atla", { p_match_id: id })
-      .then(() => macYukle())
-      .catch((e) => console.error("[Bildim] soru atlanamadi:", e));
+    try {
+      const { data, error } = await supabase.rpc("mac_soruyu_atla", { p_match_id: id });
+      if (error) throw error;
+      setTimeout(macYukle, GB_MS);
+      const satir = Array.isArray(data) ? data[0] : data;
+      return satir?.dogru_cevap ?? null;
+    } catch (e) {
+      console.error("[Bildim] soru atlanamadi:", e);
+      setTimeout(macYukle, GB_MS);
+      return null;
+    }
   }, [id, macYukle]);
 
   if (!mac) {
@@ -269,7 +280,7 @@ export default function MatchPage() {
   if (mac.durum === "bekliyor") {
     return (
       <div className="buyuk-mesaj">
-        <div className="emoji">⏳</div>
+        <div className="emoji"><Ikon ad="saat" boyut={44} /></div>
         <h2>Cevap bekleniyor</h2>
         <p className="alt-yazi">{rakipProfil?.gorunen_ad} henüz kabul etmedi.</p>
       </div>

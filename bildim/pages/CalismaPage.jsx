@@ -349,6 +349,11 @@ export default function CalismaPage() {
         <Konfeti aktif={kutlama} />
         {/* Çalışma modunda puan verilmez — uçan rozet yok, yalnız seri bandı */}
         <CevapEfekti dogru={Boolean(sonucSoru?.dogru)} puan={0} seri={seri} />
+        {secim === -1 && (
+          <div className="bd-sure-doldu-bant" role="status">
+            <Ikon ad="saat" boyut={15} /> Süre doldu
+          </div>
+        )}
 
         {/* Bu modun puansız olduğu her an görünür */}
         <div className="bd-calisma-serit">

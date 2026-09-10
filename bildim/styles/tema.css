@@ -2914,10 +2914,21 @@ body.bd-ekle-acik .app { padding-bottom: calc(300px + env(safe-area-inset-bottom
 }
 .app .bd-istatistik-hedef .etiket { color: var(--bd-metin-3); }
 
-/* Lig podyumunda botlar sönük + robot rozetli; sıra/puan DEĞİŞMEDİ */
-.app .bd-podyum-yer.bot { opacity: 0.62; }
-.app .bd-podyum-yer.bot .bd-podyum-ad,
-.app .bd-podyum-yer.bot .bd-podyum-puan { color: var(--bd-metin-3); }
+/* Lig podyumunda botlar sönük + robot rozetli; sıra/puan DEĞİŞMEDİ.
+   ÖLÇÜM DÜZELTMESİ: kartın tamamına opacity 0.62 verilince 12px'lik puan
+   sayısı --bd-yuzey-1 zeminine karşı 2.86 kontrasta düşüyordu (küçük metin
+   için asgari 4.5). Soluklaştırma artık YALNIZ avatar ve isme uygulanıyor;
+   puan tam kontrastta (--bd-odul, ölçüm 8.35). Bot ayrımı robot rozeti ve
+   sönük isim/avatarla korunuyor. */
+.app .bd-podyum-yer.bot .bd-avatar,
+.app .bd-podyum-yer.bot img { opacity: 0.62; }
+/* İsim de 12px: opaklıkla söndürülünce 2.86'ya düşüyordu. Rengiyle geri
+   plana atılıyor ama okunur kalıyor (ölçüm 5.20). Bot ayrımını asıl robot
+   rozeti ve sönük avatar taşıyor. */
+.app .bd-podyum-yer.bot .bd-podyum-ad {
+  opacity: 1;
+  color: var(--bd-metin-3);
+}
 .app .bd-podyum-ad .bd-bot-rozet {
   display: inline-flex;
   align-items: center;
@@ -2983,4 +2994,29 @@ body.bd-ekle-acik .app { padding-bottom: calc(300px + env(safe-area-inset-bottom
   display: flex;
   gap: var(--bd-b-2);
   justify-content: flex-end;
+}
+
+/* ============================================================
+   ZAMAN AŞIMI GERİ BİLDİRİMİ
+   Soru cevaplanmadan süre dolduğunda ekran doğrudan sonraki soruya
+   atlıyordu. Artık aynı geri bildirim penceresinden geçiyor: doğru şık
+   yeşile döner, "Süre doldu" görünür, ses ve titreşim yanlış cevabınkiyle
+   aynıdır.
+   ============================================================ */
+.app .bd-sure-doldu-bant {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--bd-b-2);
+  margin-bottom: var(--bd-b-3);
+  padding: var(--bd-b-2) var(--bd-b-3);
+  border-radius: var(--bd-r-m);
+  background: rgba(232, 84, 63, 0.16);
+  border: 1px solid rgba(232, 84, 63, 0.42);
+  color: #FFD9D2;
+  font-family: var(--bd-f-baslik);
+  font-size: var(--bd-t-kucuk);
+  font-weight: 800;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
 }

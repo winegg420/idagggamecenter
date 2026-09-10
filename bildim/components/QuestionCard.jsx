@@ -41,6 +41,8 @@ export default function QuestionCard({
   const [puan, setPuan] = useState(0);
   const [seri, setSeri] = useState(0);
   const [sarsil, setSarsil] = useState(false);
+  // Zaman aşımı: "Süre doldu" bilgisi geri bildirim penceresi boyunca durur
+  const [zamanAsimi, setZamanAsimi] = useState(false);
   const kalanRef = useRef(SURE);
   const sureDolduMu = useRef(false);
   const basiliTutTimer = useRef(null);
@@ -56,6 +58,7 @@ export default function QuestionCard({
     setKapali([]);
     setPuan(0);
     setSarsil(false);
+    setZamanAsimi(false);
     sureDolduMu.current = false;
     cevapVerildiRef.current = false;
     sonTikRef.current = null;
@@ -88,8 +91,30 @@ export default function QuestionCard({
       if (k <= 0 && !sureDolduMu.current) {
         sureDolduMu.current = true;
         clearInterval(id);
-        if (!cevapVerildiRef.current) sesSureDoldu();
-        onSureDoldu?.();
+        if (cevapVerildiRef.current) {
+          onSureDoldu?.();
+          return;
+        }
+        // ZAMAN AŞIMI DA GERİ BİLDİRİM PENCERESİNDEN GEÇER.
+        // Eskiden ekran doğrudan sonraki soruya atlıyordu: doğru cevap
+        // gösterilmiyor, "süre doldu" bile denmiyordu.
+        sesSureDoldu();
+        titret(30);
+        setZamanAsimi(true);
+        setSeri(0);
+        setSecim(-1); // seçili şık yok; yalnız doğru olan işaretlenecek
+        Promise.resolve(onSureDoldu?.())
+          .then((dc) => {
+            // 1v1'de mac_soruyu_atla doğru cevabı döndürür; grup/hızlı/turnuva
+            // ortak ilerletme kullandığı için değer gelmez, o zaman yalnız
+            // "Süre doldu" bilgisi gösterilir.
+            if (typeof dc === "number" && dc >= 0) {
+              setSonuc({ dogru: false, dogru_cevap: dc });
+            }
+          })
+          .catch(() => {
+            /* atlama başarısızsa da ekran donmasın; ilerletme sayfada */
+          });
       }
     };
     tik();
@@ -187,6 +212,13 @@ export default function QuestionCard({
     >
       <Konfeti aktif={dogruCevapVerdim} />
       <CevapEfekti dogru={dogruCevapVerdim} puan={puan} seri={seri} />
+
+      {/* Zaman aşımı bilgisi — geri bildirim penceresi boyunca durur */}
+      {zamanAsimi && (
+        <div className="bd-sure-doldu-bant" role="status">
+          <Ikon ad="saat" boyut={15} /> Süre doldu
+        </div>
+      )}
 
       {/* Son 5 saniye: kızaran kenarlar + ortada büyük geri sayım */}
       {sonDuzluk && (
