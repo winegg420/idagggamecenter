@@ -7,6 +7,7 @@ import Konfeti from "./Konfeti.jsx";
 import CevapEfekti from "./CevapEfekti.jsx";
 import { sesTik, sesSureDoldu, sesDogru, sesYanlis, sesDokunus, sesKilidiAc } from "../lib/ses.js";
 import { titret, macPuani } from "../lib/geriBildirim.js";
+import { kategoriAdi } from "../lib/kategoriler.js";
 
 const HARFLER = ["A", "B", "C", "D"];
 const SURE = 15;
@@ -31,6 +32,9 @@ export default function QuestionCard({
   // Kazanılan puanı uçan rozet olarak göstermek için. null verilirse rozet
   // çizilmez (hızlı maçta soru başına puan yok — sahte sayı gösterilmez).
   puanHesapla = macPuani,
+  // Soru üstündeki kategori etiketi. Maç ekranındaki TEK renk dokunuşu;
+  // verilmezse etiket hiç çizilmez (kategorisi olmayan modlar).
+  kategori = null,
 }) {
   const [kalan, setKalan] = useState(SURE);
   const [secim, setSecim] = useState(null);
@@ -232,7 +236,14 @@ export default function QuestionCard({
 
       {/* Üst şerit: soru numarası + kalan süre halkası + ilerleme çubuğu */}
       <div className="bd-soru-ust">
-        <div className="bd-soru-no">Soru {soru.soru_index + 1}</div>
+        <div className="bd-soru-no">
+          Soru {soru.soru_index + 1}
+          {kategori && kategori !== "karisik" && (
+            <span className="bd-soru-kategori" data-kat={kategori}>
+              {kategoriAdi(kategori)}
+            </span>
+          )}
+        </div>
         <div className="bd-sure-halka" aria-label={`${Math.ceil(kalan)} saniye kaldı`}>
           <svg viewBox="0 0 48 48" aria-hidden="true">
             <circle className="iz" cx="24" cy="24" r="20" />

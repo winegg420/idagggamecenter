@@ -396,6 +396,7 @@ export default function GroupMatchPage() {
           onSureDoldu={sureDoldu}
           macTur={"grup"}
           macId={id}
+          kategori={mac.kategori}
         />
       )}
 

@@ -540,6 +540,7 @@ export default function MatchPage() {
           onSureDoldu={sureDoldu}
           macTur={"1v1"}
           macId={id}
+          kategori={mac.kategori}
         />
       )}
 

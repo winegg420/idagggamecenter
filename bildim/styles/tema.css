@@ -3300,3 +3300,38 @@ body.bd-ekle-acik .app { padding-bottom: calc(300px + env(safe-area-inset-bottom
 @media (prefers-reduced-motion: reduce) {
   .app .bd-sonuc-rutbe-bar .dolgu.artiyor { animation: none; }
 }
+
+/* ============================================================
+   FAZ 5 — MAÇ EKRANI ODAKLI KALIR (kasıtlı zıtlık)
+   Ana sayfa yüksek sesli, maç ekranı sessiz. Bu fazda maç ekranına renk
+   EKLENMEDİ; şık harf rozetleri nötr, doğru/yanlış tek renk kaynağı olarak
+   duruyor. Tek küçük dokunuş kategori etiketi: oyuncu hangi kategoride
+   olduğunu bilsin.
+   ============================================================ */
+.app .bd-soru-no {
+  display: inline-flex; align-items: center; gap: var(--bd-b-2);
+}
+/* Metin, kategori renginin %20 beyazla açılmış tonu. Ölçüldü: ham renkle
+   edebiyat 4.30 ve sinema 4.41 ile AA'nın altında kalıyordu (tint sıfırken
+   bile). %80 renk + %20 beyazda en düşük 4.78 ve on kategori de geçiyor;
+   renk hâlâ tanınır. */
+.app .bd-soru-kategori {
+  padding: 2px var(--bd-b-2);
+  border-radius: var(--bd-r-s);
+  font-size: var(--bd-t-mini);
+  font-weight: 800;
+  letter-spacing: 0.3px;
+  text-transform: none;
+  color: color-mix(in srgb, var(--kat, var(--bd-metin-2)) 80%, #EAF0FA);
+  background: color-mix(in srgb, var(--kat, var(--bd-metin-2)) 10%, transparent);
+}
+.app .bd-soru-kategori[data-kat="genel_kultur"] { --kat: var(--kat-genel_kultur); }
+.app .bd-soru-kategori[data-kat="bilim"]        { --kat: var(--kat-bilim); }
+.app .bd-soru-kategori[data-kat="tarih"]        { --kat: var(--kat-tarih); }
+.app .bd-soru-kategori[data-kat="cografya"]     { --kat: var(--kat-cografya); }
+.app .bd-soru-kategori[data-kat="spor"]         { --kat: var(--kat-spor); }
+.app .bd-soru-kategori[data-kat="sanat"]        { --kat: var(--kat-sanat); }
+.app .bd-soru-kategori[data-kat="sinema"]       { --kat: var(--kat-sinema); }
+.app .bd-soru-kategori[data-kat="muzik"]        { --kat: var(--kat-muzik); }
+.app .bd-soru-kategori[data-kat="teknoloji"]    { --kat: var(--kat-teknoloji); }
+.app .bd-soru-kategori[data-kat="edebiyat"]     { --kat: var(--kat-edebiyat); }
