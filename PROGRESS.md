@@ -3221,3 +3221,45 @@ satırı eklendi: Doğru / Yanlış / Süre doldu.
 `:first-of-type` gibi konuma dayalı seçiciler, kapsayıcı içinde başka
 butonlar belirdiğinde sessizce yanlış hedefi vuruyor — bileşene özel sınıf
 kullanmak daha güvenli.
+
+---
+
+## 10 Eylül 2026 — Canlı ağ denetiminde bulunan 3 hata (Bildim)
+
+### 1. Bekleyen rozeti hiç çalışmıyordu (commit 09ee851, migration 122)
+
+`Layout.jsx` her sayfa yüklemesinde iki ayrı PostgREST HEAD isteği atıyordu
+(`count=exact`, RLS altında tam sayım). Denetimde ikisinin de **503** döndüğü,
+sayının `null` geldiği ve alt bardaki rozetin hiç görünmediği raporlandı.
+İstemci `error` alanını hiç okumadığı için hata sessizce yutuluyordu.
+
+Yeni RPC `public.bekleyen_sayim()` — tek çağrı, sayım sunucuda, `auth.uid()`
+ile kendi satırları. `Layout.jsx` try-catch + `error` kontrolü ile çağırıyor;
+hatada **önceki değer korunuyor** (rozet sıfıra düşmüyor) ve `console.error`'a
+düşüyor.
+
+**Not:** 503'ü kendi ölçümümde tekrar üretemedim — aynı iki istek bende 200
+döndü. Karar yine de uygulandı: iki istek → bir, hata yönetimi eklendi.
+
+### 2. `profilim` her yüklemede iki kez çağrılıyordu (commit d853553)
+
+`getSession().then()` ve `onAuthStateChange` ikisi de `refreshProfile`
+çağırıyordu; supabase-js abone olunduğu anda `INITIAL_SESSION` yayınladığı
+için iki yol da aynı yüklemede koşuyordu. `getSession` artık yalnız oturumu
+kurup yüklemeyi kapatıyor; profil ve davet işleri tek yerde.
+
+`setLoading(false)` iki yolda da çalışıyor — oturum yokken "Yükleniyor…"
+ekranında takılma olmasın diye `onAuthStateChange`'e de eklendi.
+
+### 3. Sessiz yutulan Supabase hataları — 7 yer (commit 530ad5a)
+
+Aynı desen depoda tarandı. **Supabase hata fırlatmaz**, `{data:null, error}`
+döner; bu yüzden `try` bloğu olan yerler bile korunmuyordu.
+
+### Çıkarım
+
+Bu üç madde de aynı kök alışkanlığın sonucu: `error` alanını okumadan
+`data`'yı kullanmak. Hata olduğunda ekran boş kalıyor, kullanıcı sebebini
+bilmiyor, geliştirici de konsolda göremiyor. Yeni Supabase çağrılarında
+`error` kontrolü zorunlu sayılmalı; tarama betiği `.tmp/` altında değil,
+gerekirse `_test/` altına kalıcı alınabilir.
