@@ -305,13 +305,16 @@ body::before {
    --tema-mürek  ikon çizgisinin rengi
    --tema-golge  kart gölgesi — düz siyah değil, kendi renginin koyu tonu
    ============================================================ */
-.bd-mod.tema-meydan    { --tema: #FF5B4A; --tema-ikon: #FF5B4A; --tema-murek: #12151F; --tema-golge: rgba(138, 34, 24, 0.5); }
-.bd-mod.tema-hizli     { --tema: #FFD23F; --tema-ikon: #FFD23F; --tema-murek: #12151F; --tema-golge: rgba(146, 112, 8, 0.5); }
-.bd-mod.tema-grup      { --tema: #4A9DD9; --tema-ikon: #4A9DD9; --tema-murek: #12151F; --tema-golge: rgba(18, 74, 118, 0.5); }
-.bd-mod.tema-turnuva   { --tema: #A855F7; --tema-ikon: #A855F7; --tema-murek: #12151F; --tema-golge: rgba(76, 20, 124, 0.5); }
-.bd-mod.tema-joker     { --tema: #EC4899; --tema-ikon: #EC4899; --tema-murek: #12151F; --tema-golge: rgba(126, 20, 74, 0.5); }
-.bd-mod.tema-lig       { --tema: #2FBF71; --tema-ikon: #2FBF71; --tema-murek: #12151F; --tema-golge: rgba(14, 92, 52, 0.5); }
-.bd-mod.tema-hatalarim { --tema: #20A4A0; --tema-ikon: #20A4A0; --tema-murek: #12151F; --tema-golge: rgba(10, 80, 78, 0.5); }
+/* Seçicilerde .bd-mod öneki YOK: aynı sınıf bir mod kartına da, o modun
+   bağlamındaki bir kutuya da verilebilsin (FAZ 2 ikincil butonlar bunu
+   kullanıyor). Yalnız değişken tanımlarlar, tek başlarına görünüm vermezler. */
+.tema-meydan    { --tema: #FF5B4A; --tema-ikon: #FF5B4A; --tema-murek: #12151F; --tema-golge: rgba(138, 34, 24, 0.5); }
+.tema-hizli     { --tema: #FFD23F; --tema-ikon: #FFD23F; --tema-murek: #12151F; --tema-golge: rgba(146, 112, 8, 0.5); }
+.tema-grup      { --tema: #4A9DD9; --tema-ikon: #4A9DD9; --tema-murek: #12151F; --tema-golge: rgba(18, 74, 118, 0.5); }
+.tema-turnuva   { --tema: #A855F7; --tema-ikon: #A855F7; --tema-murek: #12151F; --tema-golge: rgba(76, 20, 124, 0.5); }
+.tema-joker     { --tema: #EC4899; --tema-ikon: #EC4899; --tema-murek: #12151F; --tema-golge: rgba(126, 20, 74, 0.5); }
+.tema-lig       { --tema: #2FBF71; --tema-ikon: #2FBF71; --tema-murek: #12151F; --tema-golge: rgba(14, 92, 52, 0.5); }
+.tema-hatalarim { --tema: #20A4A0; --tema-ikon: #20A4A0; --tema-murek: #12151F; --tema-golge: rgba(10, 80, 78, 0.5); }
 
 /* Kart yıkaması: opak tema rengi ::after üzerinden düşük opaklıkla biniyor,
    bu yüzden burada opaklık düşürülüyor (eski rgba(...,0.45) yerine). */
@@ -2838,7 +2841,8 @@ body.bd-ekle-acik .app { padding-bottom: calc(300px + env(safe-area-inset-bottom
 .app .bd-secenek.yanlis .bd-harf { background: #8e1b1f; color: #EAF0FA; }
 
 /* 3) Ana sayfada altın olan tek şey "Hemen oyna" kalsın.
-      İkincil butonlar (Lobiye katıl, Turnuva, Ödül al…) nötr/çerçeveli. */
+      Altının işi üçe indi: birincil eylem, puan/skor sayıları, rütbe ve ödül
+      rozetleri. İkincil butonlar altın DEĞİL — ama gri de değil (bkz. FAZ 2). */
 .app .anasayfa .btn:not(.tehlike) {
   background: var(--bd-yuzey-2);
   color: var(--bd-metin);
@@ -2846,6 +2850,30 @@ body.bd-ekle-acik .app { padding-bottom: calc(300px + env(safe-area-inset-bottom
   box-shadow: none;
 }
 .app .anasayfa .btn:not(.tehlike)::after { display: none; }
+
+/* ============================================================
+   FAZ 2 — İKİNCİL BUTONLAR: BAĞLAMIN MOD RENGİNDEN TON
+   Yukarıdaki kural bütün ikincil butonları düz griye çeviriyordu ve ekran
+   ölü görünüyordu. Buton artık bağlamının renginden bir ton alıyor:
+   "Lobiye katıl" turnuva moru, "Ödül al" joker magentası, "Meydan oku"
+   meydan mercanı. Bağlamı olmayan (tema-* taşımayan) buton nötr kalır.
+
+   Dolgu değil TINT: zemin %18, kenarlık %45. Metin tam kontrast
+   (--bd-metin, ölçülen en düşük oran 7.84 — hepsi AA).
+   ============================================================ */
+.app .anasayfa .tema-meydan .btn:not(.tehlike),
+.app .anasayfa .tema-hizli .btn:not(.tehlike),
+.app .anasayfa .tema-grup .btn:not(.tehlike),
+.app .anasayfa .tema-turnuva .btn:not(.tehlike),
+.app .anasayfa .tema-joker .btn:not(.tehlike),
+.app .anasayfa .tema-lig .btn:not(.tehlike),
+.app .anasayfa .tema-hatalarim .btn:not(.tehlike) {
+  background: color-mix(in srgb, var(--tema) 18%, var(--bd-yuzey-2));
+  color: var(--bd-metin);
+  border: 1px solid color-mix(in srgb, var(--tema) 45%, transparent);
+}
+/* Mod kartlarının kendisi buton; bu tint onları etkilemesin. */
+.app .anasayfa .bd-mod.btn:not(.tehlike) { background: rgba(24, 35, 59, 0.9); }
 
 /* ============================================================
    FAZ 4 — ANA SAYFA: 3 KATMAN

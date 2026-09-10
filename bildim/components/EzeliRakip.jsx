@@ -53,7 +53,8 @@ export default function EzeliRakip() {
   const berabere = rakip.galibiyet === rakip.maglubiyet;
 
   return (
-    <div className="kart bd-ezeli">
+    // tema-meydan: "Meydan oku" butonu bağlamının rengini (mercan) alsın
+    <div className="kart bd-ezeli tema-meydan">
       <div className="bd-kat-baslik">
         <span><Ikon ad="kilic" boyut={16} /> Ezeli rakibin</span>
         <span className="alt-yazi">{rakip.toplam} maç</span>

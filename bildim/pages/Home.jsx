@@ -313,7 +313,8 @@ export default function Home() {
         )}
 
         {/* Turnuva: yatay bant — sayaç solda, eylem sağda */}
-        <div className="bd-turnuva-serit">
+        {/* tema-turnuva: "Lobiye katıl" / "Katıl" turnuva morunu alsın */}
+        <div className="bd-turnuva-serit tema-turnuva">
           <div className="bd-turnuva-sol">
             <div className="bd-turnuva-etiket">
               {sonrakiTurnuvaSeans() === "sabah" ? "SABAH TURNUVASI" : "GECE TURNUVASI"}
@@ -347,9 +348,9 @@ export default function Home() {
 
         <EzeliRakip />
 
-        {/* Günlük Görevler */}
+        {/* Günlük Görevler — tema-joker: "+N al" butonu joker magentasını alır */}
         {gorevler.length > 0 && (
-          <div className="bd-gorev-acilir">
+          <div className="bd-gorev-acilir tema-joker">
             <button
               className={`bd-gorev-basi ${gorevlerAcik ? "acik" : ""}`}
               onClick={() => setGorevlerAcik((a) => !a)}
