@@ -2752,3 +2752,54 @@ body.bd-ekle-acik .app { padding-bottom: calc(300px + env(safe-area-inset-bottom
 
 /* Hızlı mod ve Çalışma ekranları da efekt katmanını barındırır */
 .bd-hizli-oyun, .bd-calisma-oyun { position: relative; }
+
+/* ============================================================
+   FAZ 3 — RENK KURALI: TEK VURGU RENGİ
+   Altın (--bd-vurgu) yalnız BİRİNCİL EYLEM için. Doğru/yanlış renkleri
+   yalnız cevap geri bildirimi ve maç sonucu için. Geri kalan her şey nötr.
+   Kategori ikonları kategori SEÇİM ekranında renkli kalır (orada renk
+   gerçekten ayırt edici bilgi taşır) — aşağıdaki kural yalnız mod
+   kartlarını ve şık rozetlerini kapsar.
+   ============================================================ */
+
+/* 1) Mod ikon kutuları tek nötr renge. Renkle değil ikon çizimiyle ayrışırlar. */
+.app .bd-mod .bd-mod-ikon {
+  background: var(--bd-yuzey-2);
+  color: var(--bd-metin);
+  box-shadow: none;
+}
+/* Kartın arkasındaki renkli yıkama da kalksın (beş ayrı doygun renk vardı) */
+.app .bd-mod.tema-meydan,
+.app .bd-mod.tema-hizli,
+.app .bd-mod.tema-grup,
+.app .bd-mod.tema-turnuva,
+.app .bd-mod.tema-joker,
+.app .bd-mod.tema-lig,
+.app .bd-mod.tema-hatalarim {
+  --tema: transparent;
+  --tema-ikon: var(--bd-yuzey-2);
+  --tema-golge: rgba(0, 0, 0, 0.28);
+}
+/* Üstteki .tema-hizli / .tema-turnuva ikon rengi kuralını da geçersiz kıl */
+.app .bd-mod.tema-hizli .bd-mod-ikon,
+.app .bd-mod.tema-turnuva .bd-mod-ikon { color: var(--bd-metin); }
+
+/* 2) Şık harf rozetleri nötr — dört altın yuvarlak yan yana durunca altın
+      anlamını yitiriyordu. Doğru/yanlış durumunda renk yine dolgu veriyor. */
+.app .bd-secenek .bd-harf {
+  background: var(--bd-yuzey-3);
+  color: var(--bd-metin-2);
+  box-shadow: none;
+}
+.app .bd-secenek.dogru .bd-harf { background: #0c6132; color: #EAF0FA; }
+.app .bd-secenek.yanlis .bd-harf { background: #8e1b1f; color: #EAF0FA; }
+
+/* 3) Ana sayfada altın olan tek şey "Hemen oyna" kalsın.
+      İkincil butonlar (Lobiye katıl, Turnuva, Ödül al…) nötr/çerçeveli. */
+.app .anasayfa .btn:not(.tehlike) {
+  background: var(--bd-yuzey-2);
+  color: var(--bd-metin);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  box-shadow: none;
+}
+.app .anasayfa .btn:not(.tehlike)::after { display: none; }
