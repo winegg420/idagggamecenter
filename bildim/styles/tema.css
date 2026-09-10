@@ -2803,3 +2803,27 @@ body.bd-ekle-acik .app { padding-bottom: calc(300px + env(safe-area-inset-bottom
   box-shadow: none;
 }
 .app .anasayfa .btn:not(.tehlike)::after { display: none; }
+
+/* ============================================================
+   FAZ 4 — ANA SAYFA: 3 KATMAN
+   14 blok alt alta duruyordu ve lig sıralaması sayfada iki kez görünüyordu.
+   Katman 1 kimlik (kaydırmadan görünür), katman 2 "Seni bekleyenler",
+   katman 3 modlar.
+   ============================================================ */
+.bd-katman {
+  display: flex;
+  flex-direction: column;
+  gap: var(--bd-b-3, 12px);
+  margin-top: var(--bd-b-6, 32px);
+}
+.bd-katman-baslik {
+  margin: 0 0 var(--bd-b-1, 4px);
+  font-family: var(--bd-f-baslik);
+  font-size: var(--bd-t-kucuk);
+  font-weight: 800;
+  letter-spacing: 0.7px;
+  text-transform: uppercase;
+  color: var(--bd-metin-3);
+}
+/* Katman 1 tek odak: kimlik + tek eylem. Altındaki boşluk nefes aldırır. */
+.app .anasayfa .bd-hero { margin-bottom: var(--bd-b-4, 16px); }

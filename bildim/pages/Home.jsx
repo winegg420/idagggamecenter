@@ -287,201 +287,183 @@ export default function Home() {
           <Ikon ad="ok" boyut={20} className="bd-ana-eylem-ok" />
         </button>
         {mesaj && <div className="hata-kutu" style={{ marginTop: 10 }}>{mesaj}</div>}
+      </section>
+      {/* KATMAN 1 BİTTİ.
+          Lig sıralaması ve haftalık geri sayım buradan 2. katmana taşındı:
+          aynı bilgi sayfanın hem en üstünde hem en altında iki kez duruyordu. */}
 
-        {ligDurum && (
-          <div className="bd-hero-lig">
-            {ligDurum.sehir && (
-              <Link to={y("/siralama")} className="bd-lig-rozet">
-                <span className="bd-lig-rozet-ust">
-                  <Ikon ad="sehir" boyut={13} /> {ligDurum.sehir}
-                </span>
-                <span className="bd-lig-rozet-deger">{ligDurum.sira_sehir}.</span>
-                <span className="bd-lig-rozet-alt">/ {ligDurum.sehir_oyuncu}</span>
-              </Link>
+      {/* ============ KATMAN 2 — SENİ BEKLEYENLER ============
+          Zaman baskılı işlerin hepsi tek başlık altında toplandı: sıra sende
+          olan maçlar, turnuva geri sayımı, ezeli rakip, günlük görevler ve
+          haftalık lig durumu. */}
+      <section className="bd-katman bd-giris-2">
+        <h2 className="bd-katman-baslik">Seni bekleyenler</h2>
+
+        {/* Yarım kalan maçlar — sıra sendeyse en görünür yerde dursun */}
+        {siraSendeMaclar.length > 0 && (
+          <Link to={y("/mac/") + siraSendeMaclar[0].id} className="bd-devam-eden">
+            <Ikon ad="saat" boyut={17} />
+            <span>
+              {siraSendeMaclar.length === 1
+                ? "Yarım kalan maçın var — sıra sende!"
+                : siraSendeMaclar.length + " maçta sıra sende!"}
+            </span>
+            <span className="ok" aria-hidden="true">›</span>
+          </Link>
+        )}
+
+        {/* Turnuva: yatay bant — sayaç solda, eylem sağda */}
+        <div className="bd-turnuva-serit">
+          <div className="bd-turnuva-sol">
+            <div className="bd-turnuva-etiket">
+              {sonrakiTurnuvaSeans() === "sabah" ? "SABAH TURNUVASI" : "GECE TURNUVASI"}
+            </div>
+            {canliTurnuva ? (
+              <div className="bd-turnuva-canli">
+                <span className="canli-nokta" />
+                Şu an canlı
+              </div>
+            ) : (
+              <Countdown />
             )}
-            {ligDurum.ulke && (
-              <Link to={y("/siralama")} className="bd-lig-rozet">
-                <span className="bd-lig-rozet-ust">
-                  <Ikon ad="bayrak" boyut={13} /> Ülke
-                </span>
-                <span className="bd-lig-rozet-deger">{ligDurum.sira_ulke}.</span>
-                <span className="bd-lig-rozet-alt">/ {ligDurum.ulke_oyuncu}</span>
-              </Link>
+          </div>
+          <div className="bd-turnuva-sag">
+            {canliTurnuva ? (
+              <button className="btn kucuk" onClick={() => navigate(y("/turnuva"))}>
+                Katıl
+              </button>
+            ) : lobide ? (
+              <button className="btn kucuk ikincil" onClick={() => navigate(y("/turnuva"))}>
+                Lobidesin ({lobiSayisi})
+              </button>
+            ) : (
+              <button className="btn kucuk" onClick={lobiyeKatil}>
+                Lobiye katıl
+              </button>
             )}
-            <Link to={y("/siralama")} className="bd-lig-rozet">
-              <span className="bd-lig-rozet-ust">
-                <Ikon ad="dunya" boyut={13} /> Dünya
+          </div>
+          {mesaj && <div className="hata-kutu" style={{ flexBasis: "100%" }}>{mesaj}</div>}
+        </div>
+
+        <EzeliRakip />
+
+        {/* Günlük Görevler */}
+        {gorevler.length > 0 && (
+          <div className="bd-gorev-acilir">
+            <button
+              className={`bd-gorev-basi ${gorevlerAcik ? "acik" : ""}`}
+              onClick={() => setGorevlerAcik((a) => !a)}
+              aria-expanded={gorevlerAcik}
+            >
+              <Ikon ad="liste" boyut={17} />
+              <span>Günlük Görevler</span>
+              <span className="sayac">
+                {hazirOdul > 0
+                  ? `${hazirOdul} ödül hazır!`
+                  : `${gorevler.filter((g) => g.alindi).length}/${gorevler.length}`}
               </span>
-              <span className="bd-lig-rozet-deger">{ligDurum.sira_global}.</span>
-              <span className="bd-lig-rozet-alt">/ {ligDurum.global_oyuncu}</span>
-            </Link>
+              <span className="ok" aria-hidden="true">›</span>
+            </button>
+            {gorevlerAcik && (
+              <div className="bd-gorev-govde">
+                {gorevler.map((g) => {
+                  const tamam = g.ilerleme >= g.hedef;
+                  return (
+                    <div key={g.quest_id} className="gorev-satir">
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, fontWeight: 800, marginBottom: 4 }}>
+                          <span>{g.ad}</span>
+                          <span className="alt-yazi">{g.ilerleme}/{g.hedef}</span>
+                        </div>
+                        <div className="bd-gorev-bar">
+                          <div
+                            className="dolgu"
+                            style={{
+                              width: `${Math.min(100, (g.ilerleme / g.hedef) * 100)}%`,
+                              background: g.alindi ? "var(--bd-basari)" : "var(--bd-odul)",
+                            }}
+                          />
+                        </div>
+                      </div>
+                      {g.alindi ? (
+                        <span className="rutbe-chip" style={{ color: "var(--success)" }}>+{g.odul}</span>
+                      ) : tamam ? (
+                        <button className="btn kucuk" onClick={() => odulAl(g.quest_id)}>
+                          +{g.odul} al
+                        </button>
+                      ) : (
+                        <span className="rutbe-chip">+{g.odul}</span>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
         )}
 
+        {/* Lig özeti — SAYFADA YALNIZ BURADA. Eskiden hem hero'da üç rozet
+            hem sayfanın en altında şerit olarak iki kez duruyordu. */}
+        <Link to={y("/siralama")} className="bd-lig-serit">
+          <span className="bd-lig-serit-hucre">
+            <b>{ligDurum?.sira_sehir ?? "—"}</b>
+            <em>{ligDurum?.sehir ?? "Şehir"}</em>
+          </span>
+          <span className="bd-lig-serit-hucre">
+            <b>{ligDurum?.sira_ulke ?? "—"}</b>
+            <em>Ülke</em>
+          </span>
+          <span className="bd-lig-serit-hucre">
+            <b>{ligDurum?.sira_global ?? "—"}</b>
+            <em>Dünya</em>
+          </span>
+        </Link>
         <div className="bd-hero-hafta">
           <Ikon ad="saat" boyut={13} /> Haftalık lig bitimine <b>{sureMetni(haftaKalan)}</b>
         </div>
       </section>
 
-      {/* Yarım kalan maçlar — sıra sendeyse en görünür yerde dursun */}
-      {siraSendeMaclar.length > 0 && (
-        <Link
-          to={y("/mac/") + siraSendeMaclar[0].id}
-          className="bd-devam-eden bd-giris-2"
-        >
-          <Ikon ad="saat" boyut={17} />
-          <span>
-            {siraSendeMaclar.length === 1
-              ? "Yarım kalan maçın var — sıra sende!"
-              : siraSendeMaclar.length + " maçta sıra sende!"}
-          </span>
-          <span className="ok" aria-hidden="true">›</span>
-        </Link>
-      )}
-
-      {/* ---------- Oyun modları: 2 sütun, ikon + iki kelime ---------- */}
-      <div className="bd-mod-grid bd-giris-2">
-        <button className="bd-mod bd-mod-genis tema-meydan" onClick={() => navigate(y("/meydan"))}>
-          <span className="bd-mod-ikon"><Ikon ad="kilic" boyut={30} /></span>
-          <span className="bd-mod-ad">Meydan Oku</span>
-        </button>
-        <button className="bd-mod tema-hizli" onClick={() => navigate(y("/hizli-mod"))}>
-          <span className="bd-mod-ikon"><Ikon ad="saat" boyut={26} /></span>
-          <span className="bd-mod-ad">Hızlı Mod</span>
-        </button>
-        <button className="bd-mod tema-grup" onClick={() => navigate(y("/meydan"))}>
-          <span className="bd-mod-ikon"><Ikon ad="kisiler" boyut={26} /></span>
-          <span className="bd-mod-ad">Grup Maçı</span>
-        </button>
-        <button className="bd-mod tema-turnuva" onClick={() => navigate(y("/turnuva"))}>
-          <span className="bd-mod-ikon"><Ikon ad="kupa" boyut={26} /></span>
-          <span className="bd-mod-ad">Turnuva</span>
-        </button>
-        <button className="bd-mod tema-joker" onClick={() => navigate(y("/joker"))}>
-          <span className="bd-mod-ikon"><Ikon ad="yildiz" boyut={26} /></span>
-          <span className="bd-mod-ad">Joker Dükkânı</span>
-        </button>
-        <button
-          className="bd-mod bd-mod-genis tema-hatalarim"
-          onClick={() => navigate(y("/calisma"))}
-        >
-          <span className="bd-mod-ikon hatalarim"><Ikon ad="kitap" boyut={26} /></span>
-          <span className="bd-mod-ad">Hatalarım</span>
-          {bankaBekleyen > 0 && (
-            <span className="bd-mod-rozet">{bankaBekleyen}</span>
-          )}
-        </button>
-        <button className="bd-mod bd-mod-genis tema-lig" onClick={() => navigate(y("/siralama"))}>
-          <span className="bd-mod-ikon"><Ikon ad="grafik" boyut={26} /></span>
-          <span className="bd-mod-ad">Lig</span>
-        </button>
-      </div>
-
-      {/* ---------- Turnuva: yatay bant — sayaç solda, eylem sağda ---------- */}
-      <div className="bd-turnuva-serit bd-giris-3">
-        <div className="bd-turnuva-sol">
-          <div className="bd-turnuva-etiket">
-            {sonrakiTurnuvaSeans() === "sabah" ? "SABAH TURNUVASI" : "GECE TURNUVASI"}
-          </div>
-          {canliTurnuva ? (
-            <div className="bd-turnuva-canli">
-              <span className="canli-nokta" />
-              Şu an canlı
-            </div>
-          ) : (
-            <Countdown />
-          )}
-        </div>
-        <div className="bd-turnuva-sag">
-          {canliTurnuva ? (
-            <button className="btn kucuk" onClick={() => navigate(y("/turnuva"))}>
-              Katıl
-            </button>
-          ) : lobide ? (
-            <button className="btn kucuk ikincil" onClick={() => navigate(y("/turnuva"))}>
-              Lobidesin ({lobiSayisi})
-            </button>
-          ) : (
-            <button className="btn kucuk" onClick={lobiyeKatil}>
-              Lobiye katıl
-            </button>
-          )}
-        </div>
-        {mesaj && <div className="hata-kutu" style={{ flexBasis: "100%" }}>{mesaj}</div>}
-      </div>
-
-      <EzeliRakip />
-
-      {/* ---------- Günlük Görevler ---------- */}
-      {gorevler.length > 0 && (
-        <div className="bd-gorev-acilir bd-giris-3">
-          <button
-            className={`bd-gorev-basi ${gorevlerAcik ? "acik" : ""}`}
-            onClick={() => setGorevlerAcik((a) => !a)}
-            aria-expanded={gorevlerAcik}
-          >
-            <Ikon ad="liste" boyut={17} />
-            <span>Günlük Görevler</span>
-            <span className="sayac">
-              {hazirOdul > 0
-                ? `${hazirOdul} ödül hazır!`
-                : `${gorevler.filter((g) => g.alindi).length}/${gorevler.length}`}
-            </span>
-            <span className="ok" aria-hidden="true">›</span>
+      {/* ============ KATMAN 3 — MODLAR ============
+          Düzenli ızgara, kaydırarak ulaşılır. Hiçbir mod kaldırılmadı. */}
+      <section className="bd-katman bd-giris-3">
+        <h2 className="bd-katman-baslik">Modlar</h2>
+        <div className="bd-mod-grid">
+          <button className="bd-mod bd-mod-genis tema-meydan" onClick={() => navigate(y("/meydan"))}>
+            <span className="bd-mod-ikon"><Ikon ad="kilic" boyut={30} /></span>
+            <span className="bd-mod-ad">Meydan Oku</span>
           </button>
-          {gorevlerAcik && (
-          <div className="bd-gorev-govde">
-            {gorevler.map((g) => {
-              const tamam = g.ilerleme >= g.hedef;
-              return (
-                <div key={g.quest_id} className="gorev-satir">
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, fontWeight: 700, marginBottom: 4 }}>
-                      <span>{g.ad}</span>
-                      <span className="alt-yazi">{g.ilerleme}/{g.hedef}</span>
-                    </div>
-                    <div className="bd-gorev-bar">
-                      <div
-                        className="dolgu"
-                        style={{
-                          width: `${Math.min(100, (g.ilerleme / g.hedef) * 100)}%`,
-                          background: g.alindi ? "var(--bd-basari)" : "var(--bd-odul)",
-                        }}
-                      />
-                    </div>
-                  </div>
-                  {g.alindi ? (
-                    <span className="rutbe-chip" style={{ color: "var(--success)" }}>+{g.odul}</span>
-                  ) : tamam ? (
-                    <button className="btn kucuk" onClick={() => odulAl(g.quest_id)}>
-                      +{g.odul} al
-                    </button>
-                  ) : (
-                    <span className="rutbe-chip">+{g.odul}</span>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-          )}
+          <button className="bd-mod tema-hizli" onClick={() => navigate(y("/hizli-mod"))}>
+            <span className="bd-mod-ikon"><Ikon ad="saat" boyut={26} /></span>
+            <span className="bd-mod-ad">Hızlı Mod</span>
+          </button>
+          <button className="bd-mod tema-grup" onClick={() => navigate(y("/meydan"))}>
+            <span className="bd-mod-ikon"><Ikon ad="kisiler" boyut={26} /></span>
+            <span className="bd-mod-ad">Grup Maçı</span>
+          </button>
+          <button className="bd-mod tema-turnuva" onClick={() => navigate(y("/turnuva"))}>
+            <span className="bd-mod-ikon"><Ikon ad="kupa" boyut={26} /></span>
+            <span className="bd-mod-ad">Turnuva</span>
+          </button>
+          <button className="bd-mod tema-joker" onClick={() => navigate(y("/joker"))}>
+            <span className="bd-mod-ikon"><Ikon ad="yildiz" boyut={26} /></span>
+            <span className="bd-mod-ad">Joker Dükkânı</span>
+          </button>
+          <button
+            className="bd-mod bd-mod-genis tema-hatalarim"
+            onClick={() => navigate(y("/calisma"))}
+          >
+            <span className="bd-mod-ikon hatalarim"><Ikon ad="kitap" boyut={26} /></span>
+            <span className="bd-mod-ad">Hatalarım</span>
+            {bankaBekleyen > 0 && (
+              <span className="bd-mod-rozet">{bankaBekleyen}</span>
+            )}
+          </button>
+          <button className="bd-mod bd-mod-genis tema-lig" onClick={() => navigate(y("/siralama"))}>
+            <span className="bd-mod-ikon"><Ikon ad="grafik" boyut={26} /></span>
+            <span className="bd-mod-ad">Lig</span>
+          </button>
         </div>
-      )}
-
-      {/* ---------- Lig özeti: kart değil, üç sütunluk ince bant ---------- */}
-      <Link to={y("/siralama")} className="bd-lig-serit bd-giris-4">
-        <span className="bd-lig-serit-hucre">
-          <b>{ligDurum?.sira_sehir ?? "—"}</b>
-          <em>{ligDurum?.sehir ?? "Şehir"}</em>
-        </span>
-        <span className="bd-lig-serit-hucre">
-          <b>{ligDurum?.sira_ulke ?? "—"}</b>
-          <em>Ülke</em>
-        </span>
-        <span className="bd-lig-serit-hucre">
-          <b>{ligDurum?.sira_global ?? "—"}</b>
-          <em>Dünya</em>
-        </span>
-      </Link>
+      </section>
     </div>
   );
 }
