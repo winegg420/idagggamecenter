@@ -3105,3 +3105,73 @@ temizliyor.
 `Modal.jsx` portalla `document.body`'ye basıldığı için `.app` önekli
 kurallar ona uygulanmıyordu: başlık/metin tipografisi düşüyor, onay butonu
 altın kalıyordu. Kurallar `.bd-modal-katman` üzerinden yazıldı.
+
+---
+
+## 10 Eylül 2026 — Görsel yön: renk kimliktir (Bildim)
+
+Yönetici kararı: bu bir **oyundur**, panel değil. Renk kimliktir, süs değil;
+enerji almak yanlıştır; ana sayfa yüksek sesli, maç ekranı odaklı — bu zıtlık
+kasıtlı. Önceki revizyonda mod ikonları nötrleştirilmişti; **o karar bu
+görevde geri alındı.**
+
+### FAZ 1 — Mod kimlik renkleri (commit 388c9df)
+
+Nötrleştirme üç yerden kaldırıldı: ikon kutusu nötr dolgu kuralı, toplu
+`--tema: transparent` bloğu ve `.app .bd-mod::before/::after { display:none }`
+(bu sonuncusu tema ışığını ve kart yıkamasını kapatıyordu).
+
+Eski palette meydan/hızlı/turnuva **üçü de altın-sarı** tonundaydı, bu yüzden
+ayrışmıyorlardı. Yeni palette her mod ayrı renk ailesi: meydan `#FF5B4A`,
+hızlı `#FFD23F`, grup `#4A9DD9`, turnuva `#A855F7`, joker `#EC4899`,
+lig `#2FBF71`, hatalarım `#20A4A0`. İkon kutusu kendi renginde dolgu, üst
+kenarda 1px kimlik şeridi, gölge kendi renginin koyu tonunda, `:active`'te
+ikon parlar.
+
+### FAZ 2 — İkincil butonlar (commit c574a39)
+
+`.app .anasayfa .btn:not(.tehlike)` bütün ikincil butonları düz griye
+çekiyordu. Buton artık bağlamının renginden **tint** alıyor (dolgu değil):
+"Lobiye katıl" turnuva moru, "+N al" joker magentası, "Meydan oku" meydan
+mercanı. Bağlamı olmayan buton nötr kalır (doğrulandı).
+
+`tema-*` sınıflarından `.bd-mod` öneki kaldırıldı — aynı sınıf hem karta hem
+bağlam kutusuna verilebiliyor.
+
+### FAZ 3 — Kimlik bloğu (commit e7d4a9d)
+
+Rütbe çubuğu artık altın değil, oyuncunun **kendi rütbe renginde** doluyor;
+rütbe adı ve avatar halkası aynı `--rutbe` değişkenini kullanıyor.
+`.bd-hero-halka`'ya `--halka` veriliyordu ama hiçbir görsel kural yoktu —
+halka eklendi. Puan 40px → 52px (altın kaldı), "PUAN" etiketi 11px → 9.5px.
+Seri alevi uzunluğa göre ısınıyor: 1-2 gün sönük turuncu, 3-6 gün turuncu +
+glow, 7+ gün kırmızı-beyaz sıcak + nabız.
+
+### FAZ 4 — Maç sonu (commit 96c28cd)
+
+Üç durum üç ton: kazanmada üstten altın parıltı + vurgulu "+20 puan" rozeti,
+kaybetmede sönük mercan (utandırmadan) ve Rövanş sayfanın en büyük eylemi,
+beraberede nötr perde + eşit ağırlıklı skorlar.
+
+Yeni bileşen `MacSonuDokum`: tur tur doğru/yanlış/süre-doldu dökümü ve rütbe
+ilerleme çubuğu — maç öncesi seviye sönük katman olarak durur, dolgu yeni
+değere animasyonla kayar, **artış gözle görülür**.
+
+**Sınır:** `match_answers` RLS'i yalnız kendi cevaplarını gösteriyor
+(`match_answers_select_own`), bu yüzden döküm oyuncunun kendi turlarıdır.
+Rakip dökümü için RPC gerekirdi; bu görev arayüz işi olduğu için sunucuya
+dokunulmadı.
+
+### FAZ 5 — Maç ekranı odaklı (commit 6aa1351)
+
+Maç ekranına renk **eklenmedi**. Şık harf rozetleri nötr kaldı, doğru/yanlış
+tek renk kaynağı olarak duruyor. Tek dokunuş: soru üstünde kategori etiketi —
+üst şeritte kategori etiketi hiç yoktu, eklendi. Kategorisi olmayan modda
+(turnuva, hızlı mod) ve "karışık" maçta çizilmez.
+
+### Kontrast
+
+Renk değiştirilen her yer ölçüldü, hiçbiri tahmin değil. Üç yerde eşik
+ölçümle düzeltildi: rütbe chip tinti %16 → %8 (Çaylak 4.08 → 4.62), kategori
+etiketi metni %20 beyazla açıldı (edebiyat 4.30 → 4.78), mod ikon mürekkebi
+koyu `#12151F` seçildi (yedi dolguda da beyazı geçiyor).
