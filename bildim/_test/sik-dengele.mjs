@@ -146,12 +146,26 @@ async function durum() {
   console.log(`yedeklenmiş (dengelenmiş) soru: ${yedek}`);
 }
 
-async function parti(adet) {
+async function parti(adet, kisa) {
   const hepsi = await tumSorular(null);
   const bozuk = hepsi
     .filter((r) => eleVeriyor(siklar(r), r.dogru_cevap))
     .sort((a, b) => (a.id < b.id ? -1 : 1))
     .slice(0, adet);
+
+  // KISA BİÇİM: iş elle (model tarafından) yürütüldüğü için tur başına
+  // token'ı düşürmek gerekiyor. Satır başına bir soru:
+  //   <id8> <TAB> <soru> <TAB> <şıklar |ile ayrılmış> <TAB> <doğru index>
+  // Yanıtta soru metni tekrar yazılmaz; yalnız yeni şıklar + indeks.
+  if (kisa) {
+    for (const r of bozuk) {
+      console.log(
+        [r.id.slice(0, 8), r.soru, siklar(r).join(" | "), r.dogru_cevap].join("\t")
+      );
+    }
+    console.error(`\n${bozuk.length} soru yazdırıldı (kısa biçim).`);
+    return;
+  }
 
   console.log(
     JSON.stringify(
@@ -171,8 +185,38 @@ async function parti(adet) {
   console.error(`\n${bozuk.length} soru yazdırıldı.`);
 }
 
-async function yaz(dosya) {
-  const gelen = JSON.parse(fs.readFileSync(dosya, "utf8"));
+/**
+ * Kısa biçimi ayrıştırır: <id8> <TAB> <şıklar |ile> <TAB> <doğru index>
+ * id ön ekten tam uuid'ye çevrilir; ön ek birden çok soruyla eşleşirse hata.
+ */
+async function kisaOku(metin) {
+  const satirlar = metin.split("\n").map((s) => s.trim()).filter(Boolean);
+  const onekler = satirlar.map((s) => s.split("\t")[0]);
+  const r = await c.query(
+    `select id from public.questions where left(id::text, 8) = any($1::text[])`,
+    [onekler]
+  );
+  const say = new Map();
+  for (const row of r.rows) {
+    const k = row.id.slice(0, 8);
+    say.set(k, (say.get(k) ?? 0) + 1);
+  }
+  const tam = new Map(r.rows.map((row) => [row.id.slice(0, 8), row.id]));
+
+  return satirlar.map((s) => {
+    const [onek, siklarMetni, dogru] = s.split("\t");
+    if (say.get(onek) > 1) throw new Error(`id öneki benzersiz değil: ${onek}`);
+    return {
+      id: tam.get(onek) ?? onek,
+      secenekler: (siklarMetni ?? "").split("|").map((x) => x.trim()),
+      dogru_cevap: Number(dogru),
+    };
+  });
+}
+
+async function yaz(dosya, kisa) {
+  const ham = fs.readFileSync(dosya, "utf8");
+  const gelen = kisa ? await kisaOku(ham) : JSON.parse(ham);
   if (!Array.isArray(gelen)) throw new Error("Dosya bir dizi olmalı");
 
   const idler = gelen.map((g) => g.id);
@@ -284,11 +328,12 @@ const komut = process.argv[2];
 await c.connect();
 try {
   if (komut === "durum") await durum();
-  else if (komut === "parti") await parti(Number(process.argv[3]) || PARTI_BOYU);
-  else if (komut === "yaz") await yaz(process.argv[3]);
+  else if (komut === "parti") {
+    await parti(Number(process.argv[3]) || PARTI_BOYU, process.argv[4] === "kisa");
+  } else if (komut === "yaz") await yaz(process.argv[3], process.argv[4] === "kisa");
   else if (komut === "ornek") await ornek(Number(process.argv[3]) || 5);
   else {
-    console.error("kullanım: durum | parti [n] | yaz <dosya.json> | ornek [n]");
+    console.error("kullanım: durum | parti [n] [kisa] | yaz <dosya> [kisa] | ornek [n]");
     process.exitCode = 1;
   }
 } finally {
