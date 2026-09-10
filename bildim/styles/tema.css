@@ -3149,3 +3149,154 @@ body.bd-ekle-acik .app { padding-bottom: calc(300px + env(safe-area-inset-bottom
   color: #2a0b06;
   border: none;
 }
+
+/* ============================================================
+   FAZ 4 — MAÇ SONU: BİR SONUÇ GİBİ HİSSETTİRSİN
+   Oyunun ikinci en duygusal anı. Üç durum üç ayrı ton:
+   kazanma altın parıltı, kaybetme sönük mercan (utandırmadan),
+   berabere nötr ve simetrik.
+   ============================================================ */
+.app .bd-sonuc-ekran { position: relative; }
+
+/* Üstten aşağı inen perde — durumun rengini taşır. */
+.app .bd-sonuc-ekran::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 50%;
+  width: 150vw; max-width: none;
+  height: 260px;
+  transform: translateX(-50%);
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.9;
+}
+.app .bd-sonuc-ekran > * { position: relative; z-index: 1; }
+
+/* KAZANMA: altın parıltı. Altının üç işinden biri ödül. */
+.app .bd-sonuc-ekran.kazandi::before {
+  background: radial-gradient(
+    120% 100% at 50% 0%,
+    rgba(242, 178, 60, 0.34) 0%,
+    rgba(242, 178, 60, 0.12) 42%,
+    transparent 72%
+  );
+}
+/* KAYBETME: sönük mercan. Suçlayıcı değil, sakin. */
+.app .bd-sonuc-ekran.kaybetti::before {
+  background: radial-gradient(
+    120% 100% at 50% 0%,
+    rgba(232, 84, 63, 0.16) 0%,
+    rgba(232, 84, 63, 0.06) 45%,
+    transparent 74%
+  );
+}
+/* BERABERE: nötr, iki taraf eşit ağırlıkta. */
+.app .bd-sonuc-ekran.berabere::before {
+  background: radial-gradient(
+    120% 100% at 50% 0%,
+    rgba(168, 184, 208, 0.14) 0%,
+    transparent 68%
+  );
+}
+
+/* Kazanılan puan ayrı satırda ve vurgulu. */
+.app .bd-sonuc-kazanc {
+  display: inline-block;
+  margin-top: var(--bd-b-2);
+  padding: var(--bd-b-1) var(--bd-b-4);
+  border-radius: var(--bd-r-tam);
+  font-family: var(--bd-f-baslik);
+  font-size: var(--bd-t-l);
+  color: var(--bd-odul);
+  background: rgba(242, 178, 60, 0.12);
+  box-shadow: 0 0 16px rgba(242, 178, 60, 0.22);
+}
+
+/* Berabere: iki skor eşit ağırlıkta — hiçbiri öne çıkmasın. */
+.app .bd-sonuc-ekran.berabere .skor-tabela .taraf .skor { color: var(--bd-metin); }
+
+/* Kaybetmede skor sönük; Rövanş öne çıksın diye tabela geri çekilir. */
+.app .bd-sonuc-ekran.kaybetti .skor-tabela { opacity: 0.92; }
+
+/* ---------- Rövanş: kaybedende sayfanın en büyük eylemi ---------- */
+.app .bd-sonuc-ekran.kaybetti .btn:first-of-type {
+  font-size: var(--bd-t-m);
+  padding: var(--bd-b-4) var(--bd-b-5);
+  background: var(--bd-hata);
+  color: #2a0b06;
+  border: none;
+  box-shadow: 0 6px 18px rgba(232, 84, 63, 0.32);
+}
+
+/* ---------- Tur tur döküm ---------- */
+.app .bd-sonuc-dokum {
+  max-width: 340px;
+  margin: var(--bd-b-5) auto 0;
+  padding: var(--bd-b-4);
+  border-radius: var(--bd-r-l);
+  background: var(--bd-yuzey-1);
+  box-shadow: var(--bd-golge-yumusak);
+}
+.app .bd-dokum-baslik {
+  font-size: var(--bd-t-kucuk);
+  color: var(--bd-metin-2);
+  margin-bottom: var(--bd-b-3);
+}
+.app .bd-dokum-baslik b { color: var(--bd-metin); }
+.app .bd-dokum-turlar {
+  display: flex; flex-wrap: wrap; gap: var(--bd-b-2);
+  justify-content: center;
+}
+.app .bd-tur-nokta {
+  width: 26px; height: 26px;
+  display: inline-flex; align-items: center; justify-content: center;
+  border-radius: var(--bd-r-s);
+  font-size: var(--bd-t-mini); font-weight: 800;
+}
+/* Doğru/yanlış geri bildirimi maç ekranındaki renklerle aynı kaynaktan. */
+.app .bd-tur-nokta.dogru  { background: #0c6132; color: #EAF0FA; }
+.app .bd-tur-nokta.yanlis { background: #8e1b1f; color: #EAF0FA; }
+.app .bd-tur-nokta.sure   { background: var(--bd-yuzey-3); color: var(--bd-metin-2); }
+
+/* ---------- Rütbe ilerleme değişimi ---------- */
+.app .bd-sonuc-rutbe { margin-top: var(--bd-b-4); }
+.app .bd-sonuc-rutbe-ust {
+  display: flex; justify-content: space-between; align-items: baseline;
+  gap: var(--bd-b-2);
+  margin-bottom: var(--bd-b-2);
+}
+.app .bd-sonuc-rutbe-ad {
+  font-weight: 800;
+  color: var(--rutbe, var(--bd-metin));
+}
+.app .bd-sonuc-rutbe-kalan {
+  font-size: var(--bd-t-mini);
+  color: var(--bd-metin-2);
+}
+.app .bd-sonuc-rutbe-bar {
+  position: relative;
+  height: 8px; border-radius: var(--bd-r-tam);
+  background: rgba(255, 255, 255, 0.09);
+  overflow: hidden;
+}
+/* Maç öncesi seviye — sönük, referans olarak durur. */
+.app .bd-sonuc-rutbe-bar .eski {
+  position: absolute; inset: 0 auto 0 0;
+  background: color-mix(in srgb, var(--rutbe, var(--bd-odul)) 40%, transparent);
+}
+.app .bd-sonuc-rutbe-bar .dolgu {
+  position: absolute; inset: 0 auto 0 0;
+  background: var(--rutbe, var(--bd-odul));
+  box-shadow: 0 0 10px color-mix(in srgb, var(--rutbe, var(--bd-odul)) 45%, transparent);
+}
+/* Artış gözle görülsün: çubuk eski değerden yeni değere kayar. */
+.app .bd-sonuc-rutbe-bar .dolgu.artiyor {
+  animation: bd-rutbe-artis 0.9s cubic-bezier(0.2, 0.8, 0.2, 1) 0.25s both;
+}
+@keyframes bd-rutbe-artis {
+  from { width: var(--baslangic); }
+  to   { width: var(--bitis); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .app .bd-sonuc-rutbe-bar .dolgu.artiyor { animation: none; }
+}

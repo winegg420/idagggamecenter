@@ -10,6 +10,7 @@ import Avatar from "../../src/components/Avatar.jsx";
 import QuestionCard from "../components/QuestionCard.jsx";
 import BildirimIzniSor from "../components/BildirimIzniSor.jsx";
 import MacSonuEklentisi from "../components/MacSonuEklentisi.jsx";
+import MacSonuDokum from "../components/MacSonuDokum.jsx";
 import Maskot from "../components/Maskot.jsx";
 import Ikon from "../components/Ikon.jsx";
 import { TEPKILER, tepkiIkonu } from "../lib/tepkiler.js";
@@ -315,8 +316,11 @@ export default function MatchPage() {
   if (mac.durum === "bitti") {
     const kazandim = mac.kazanan === user.id;
     const berabere = mac.kazanan === null;
+    const durumSinifi = kazandim ? "kazandi" : berabere ? "berabere" : "kaybetti";
     return (
-      <div className="buyuk-mesaj">
+      /* bd-sonuc-ekran + durum sınıfı: kazanmada altın parıltı, kaybetmede
+         sönük mercan, berabere nötr (bkz. tema.css FAZ 4). */
+      <div className={`buyuk-mesaj bd-sonuc-ekran ${durumSinifi}`}>
         <Maskot
           poz={kazandim ? "kutluyor" : berabere ? "selam" : "dusunuyor"}
           boyut={110}
@@ -339,6 +343,7 @@ export default function MatchPage() {
             <div className="bd-vs-ilerleme">{ilerleme.rakip}/{toplamSoru}</div>
           </div>
         </div>
+        <MacSonuDokum macId={id} kazanilanPuan={kazandim ? 20 : 0} />
         <MacSonuEklentisi macTur="1v1" macId={id} kaybettim={!kazandim && !berabere} />
 
         <div style={{ display: "flex", flexDirection: "column", gap: 10, maxWidth: 340, margin: "20px auto 0" }}>
