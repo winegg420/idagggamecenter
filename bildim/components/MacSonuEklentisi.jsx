@@ -10,10 +10,13 @@ import { y } from "../lib/yol.js";
 /**
  * Maç sonucu ekranına eklenen blok:
  *  - bu maçta kullanılan jokerler
- *  - kaybedildiyse büyük "Rövanş" butonu (son 24 saat)
+ *  - kaybedildiyse büyük "Rövanş" butonu (son 24 saat) — YALNIZ gerçek
+ *    oyuncuya karşı. Bot rakipte doğrudan rövanş MatchPage'de çizilir;
+ *    eskiden ikisi birden görünüyor ve oyuncu hangisine basacağını
+ *    bilemiyordu (10 Eylül canlı testi).
  *  - güncel günlük seri
  */
-export default function MacSonuEklentisi({ macTur, macId, kaybettim }) {
+export default function MacSonuEklentisi({ macTur, macId, kaybettim, rakipBot = false }) {
   const navigate = useNavigate();
   const [jokerler, setJokerler] = useState([]);
   const [seri, setSeri] = useState(null);
@@ -86,13 +89,15 @@ export default function MacSonuEklentisi({ macTur, macId, kaybettim }) {
         </div>
       )}
 
-      {kaybettim && macTur === "1v1" && (
+      {/* Rövanş İSTEĞİ yalnız gerçek oyuncuya karşı. Bot rakipte doğrudan
+          rövanş MatchPage'de çizilir; ikisi aynı anda görünmez. */}
+      {kaybettim && macTur === "1v1" && !rakipBot && (
         <>
           <button className="bd-rovans" disabled={calisiyor} onClick={rovans}>
-            Rövanş iste
+            Rövanş
           </button>
           <div className="alt-yazi" style={{ textAlign: "center", marginTop: 6 }}>
-            Aynı kategoride, 24 saat içinde geçerli.
+            Rakibine istek gönderilir · aynı kategori · 24 saat geçerli
           </div>
         </>
       )}

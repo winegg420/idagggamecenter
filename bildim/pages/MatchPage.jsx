@@ -21,9 +21,12 @@ import { macBittiReklam } from "../lib/reklam.js";
 import { y } from "../lib/yol.js";
 import { GB_MS } from "../lib/geriBildirim.js";
 
+// is_bot: maç sonunda hangi rövanş eyleminin gösterileceğini belirler
+// (bota doğrudan yeni maç, gerçek oyuncuya istek). Ekstra sorgu açmamak için
+// zaten çekilen profil satırına eklendi.
 const MAC_SECIMI = `*,
-  p1:profiles!matches_oyuncu1_fkey(id, gorunen_ad, gorunen_avatar),
-  p2:profiles!matches_oyuncu2_fkey(id, gorunen_ad, gorunen_avatar)`;
+  p1:profiles!matches_oyuncu1_fkey(id, gorunen_ad, gorunen_avatar, is_bot),
+  p2:profiles!matches_oyuncu2_fkey(id, gorunen_ad, gorunen_avatar, is_bot)`;
 
 // Tepkiler artık SVG ikon (bkz. lib/tepkiler.js). Sunucuya giden metin aynı.
 // Balonda gösterim: mesaj bir tepki emojisiyse ikonu, değilse metni çiz.
@@ -276,6 +279,7 @@ export default function MatchPage() {
   const benimSkor = benP1 ? mac.oyuncu1_skor : mac.oyuncu2_skor;
   const rakipSkor = benP1 ? mac.oyuncu2_skor : mac.oyuncu1_skor;
   const rakipProfil = benP1 ? mac.p2 : mac.p1;
+  const rakipBot = Boolean(rakipProfil?.is_bot);
   const benimProfil = benP1 ? mac.p1 : mac.p2;
 
   if (mac.durum === "bekliyor") {
@@ -344,22 +348,32 @@ export default function MatchPage() {
           </div>
         </div>
         <MacSonuDokum macId={id} kazanilanPuan={kazandim ? 20 : 0} />
-        <MacSonuEklentisi macTur="1v1" macId={id} kaybettim={!kazandim && !berabere} />
+        <MacSonuEklentisi
+          macTur="1v1"
+          macId={id}
+          kaybettim={!kazandim && !berabere}
+          rakipBot={rakipBot}
+        />
 
         <div style={{ display: "flex", flexDirection: "column", gap: 10, maxWidth: 340, margin: "20px auto 0" }}>
-          <button
-            className="btn"
-            onClick={async () => {
-              const { data, error } = await supabase.rpc("create_challenge", {
-                p_rakip: rakipProfil.id,
-                p_kategori: mac.kategori,
-              });
-              if (!error && data) navigate(y(`/mac/${data}`));
-              else navigate(y("/meydan"));
-            }}
-          >
-            Rövanş
-          </button>
+          {/* TEK rövanş butonu. Bot rakipte doğrudan yeni maç kurulur; gerçek
+              oyuncuda istek gönderilir ve o buton MacSonuEklentisi'nde çizilir
+              (zorla maça sokulamaz). İkisi aynı anda ASLA görünmez. */}
+          {rakipBot && (
+            <button
+              className="btn bd-rovans-tek"
+              onClick={async () => {
+                const { data, error } = await supabase.rpc("create_challenge", {
+                  p_rakip: rakipProfil.id,
+                  p_kategori: mac.kategori,
+                });
+                if (!error && data) navigate(y(`/mac/${data}`));
+                else navigate(y("/meydan"));
+              }}
+            >
+              Rövanş
+            </button>
+          )}
           {(() => {
             const sonucYazi = berabere
               ? `${rakipProfil?.gorunen_ad} ile ${benimSkor}-${rakipSkor} berabere kaldım`

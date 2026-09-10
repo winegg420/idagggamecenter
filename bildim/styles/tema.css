@@ -3335,3 +3335,29 @@ body.bd-ekle-acik .app { padding-bottom: calc(300px + env(safe-area-inset-bottom
 .app .bd-soru-kategori[data-kat="muzik"]        { --kat: var(--kat-muzik); }
 .app .bd-soru-kategori[data-kat="teknoloji"]    { --kat: var(--kat-teknoloji); }
 .app .bd-soru-kategori[data-kat="edebiyat"]     { --kat: var(--kat-edebiyat); }
+
+/* ============================================================
+   RÖVANŞ — TEK BUTON, TEK RENK
+   Canlı testte kaybetme ekranında iki ayrı "Rövanş" butonu yan yana
+   duruyordu: MacSonuEklentisi'ndeki "Rövanş iste" (#991B1B) ve
+   MatchPage'deki doğrudan "Rövanş" (#E8543F). Artık rakibin türüne göre
+   yalnız biri render ediliyor.
+
+   Renk mercan: koyu kırmızı #991B1B bu sistemde tehlike/silme rengi,
+   rövanş bir tehlike değil. İkisi de kaybetme ekranının en büyük eylemi
+   olarak aynı ağırlıkta (FAZ 4 kararı korunuyor).
+   ============================================================ */
+.app .bd-rovans,
+.app .bd-sonuc-ekran .bd-rovans-tek {
+  min-height: 56px;
+  font-size: var(--bd-t-m);
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  background: var(--bd-hata);
+  color: #2a0b06;
+  border: none;
+  border-radius: var(--bd-r-l);
+  box-shadow: 0 6px 18px rgba(232, 84, 63, 0.32);
+}
+.app .bd-rovans::after,
+.app .bd-sonuc-ekran .bd-rovans-tek::after { display: none; }
