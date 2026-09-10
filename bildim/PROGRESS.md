@@ -1177,3 +1177,53 @@ elemeyle kucululdu, kalan ~6.700 global soru cevrilecek.
 gorundu; ikizlerin buyuk kismi bu iste pasife cekildi ama `soru` kolonu
 UNIQUE oldugu icin kalanlar farkli metinle ayni bilgiyi soruyor. Ayri bir
 temizlik isi olarak degerlendirilebilir.
+
+---
+
+## 2026-09-10 — FAZ 3 TAMAM: Ingilizce ceviri bitti (7.031/7.031)
+
+**Is:** Cok dilli donusumun FAZ 3 adimi olan Ingilizce ceviri ucdan uca
+tamamlandi. Oturum basinda 2.020 ceviri vardi; bu oturumda 5.190 soru daha
+cevrildi. `question_translations` tablosunda `dil='en'` icin 7.210 satir var
+(179 fazlasi elemede pasife cekilen sorulara ait eski cevirilerdir; aktif
+global havuzun tamami cevrilidir). `parti en` artik "BITTI" donuyor.
+
+**Yontem:** `bildim/_test/ceviri.mjs` ile 100'luk partiler halinde:
+`parti en 100` -> ceviriyi `.tmp/enNN.json` olarak yaz -> `yaz en <dosya>`.
+Arac imlecsiz calisir: sirada ne varsa "o dilde cevirisi olmayan aktif
+global soru" sorgusuyla bulunur, bu yuzden yarida kesilse de kaldigi yerden
+devam eder. Tum partilerde `atlanan=0`; hicbir soru dogrulamaya takilmadi.
+
+**Kritik kural — SIK SIRASI:** `questions.dogru_cevap` `secenekler` dizisine
+tamsayi indeks oldugundan cevrilen siklar kaynakla birebir ayni sirada
+yazildi. `yaz` komutu her soru icin sik sayisi, bos alan, siklarin birbirinden
+farkli olmasi ve soru metninin kaynakla ayni olmamasi kontrollerini yapiyor;
+DB tarafinda da `qt_dogrula()` tetikleyicisi ayni bekciligi yapiyor.
+`ceviri.mjs ornek en 3` ciktisinda yildizli dogru sik TR ve EN'de ayni
+konumda dogrulandi.
+
+**Ceviri uslubu (sonraki diller icin de olcut):**
+- Ingiliz imlasi (colour, metre, sulphur, aluminium, -ise ekleri).
+- Birebir degil, dogal/idiomatik karsilik. Terimler alan standardiyla
+  yazildi (shot list, room tone, base level, key signature, push/pull factor).
+- Celdiriciler makul ve kaynakla benzer uzunlukta tutuldu; "yalnizca X"
+  tarzi kaynak celdiricileri aynen korundu (dogru cevabi ele vermesin diye
+  uzunluk dengesi bozulmadi).
+- Ozel adlar Ingilizcede yerlesik bicimiyle: Córdoba, Ferdowsi,
+  Al-Khwarizmi, Mussorgsky, Brontë, Çatalhöyük, Göbekli Tepe, Türkiye.
+
+**Ogrenilen (araca dair):** `durum` komutundaki "kalan" sutunu yaniltici —
+`hedef - cevrilen` hesapladigi icin pasif sorulara bagli eski cevirileri de
+sayiyor ve simdi yuzdeyi %102,5 gosteriyor. Gercek kalan is her zaman `yaz`
+ciktisindaki `kalan=` degeri ya da `parti` komutunun bos donmesi.
+
+**Ogrenilen (surece dair):** JSON parti dosyalari **Write araciyla** yazildi;
+bash heredoc denemesi Turkce/tirnak icerigi yuzunden basarisiz oldu
+(`unexpected EOF while looking for matching`). Sonraki dillerde de ayni yol
+izlenmeli.
+
+**Siradaki isler:**
+1. Diger diller: de / es / pt / fr / it / ru — hepsi %0. Ayni akis gecerli.
+2. FAZ 4-6: ulke havuzu kurali, arayuz i18n, magaza metinleri.
+3. Acik kalan: sik dengeleme (6.212'de 502 tamam, `sik-dengele.mjs` hazir)
+   ve ikiz soru temizligi (elemede pasife cekilenler disinda kalanlar).
