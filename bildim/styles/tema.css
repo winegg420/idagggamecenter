@@ -308,17 +308,22 @@ body::before {
 /* Seçicilerde .bd-mod öneki YOK: aynı sınıf bir mod kartına da, o modun
    bağlamındaki bir kutuya da verilebilsin (FAZ 2 ikincil butonlar bunu
    kullanıyor). Yalnız değişken tanımlarlar, tek başlarına görünüm vermezler. */
-.tema-meydan    { --tema: #FF5B4A; --tema-ikon: #FF5B4A; --tema-murek: #12151F; --tema-golge: rgba(138, 34, 24, 0.5); }
-.tema-hizli     { --tema: #FFD23F; --tema-ikon: #FFD23F; --tema-murek: #12151F; --tema-golge: rgba(146, 112, 8, 0.5); }
-.tema-grup      { --tema: #4A9DD9; --tema-ikon: #4A9DD9; --tema-murek: #12151F; --tema-golge: rgba(18, 74, 118, 0.5); }
-.tema-turnuva   { --tema: #A855F7; --tema-ikon: #A855F7; --tema-murek: #12151F; --tema-golge: rgba(76, 20, 124, 0.5); }
-.tema-joker     { --tema: #EC4899; --tema-ikon: #EC4899; --tema-murek: #12151F; --tema-golge: rgba(126, 20, 74, 0.5); }
-.tema-lig       { --tema: #2FBF71; --tema-ikon: #2FBF71; --tema-murek: #12151F; --tema-golge: rgba(14, 92, 52, 0.5); }
-.tema-hatalarim { --tema: #20A4A0; --tema-ikon: #20A4A0; --tema-murek: #12151F; --tema-golge: rgba(10, 80, 78, 0.5); }
+/* --tema-yikama: kart yıkamasının opaklığı. SABİT DEĞİL, renge göre.
+   Canlı testte bulundu: sabit %16 yıkama açık renklerde çamur üretiyordu.
+   Sarı #FFD23F × %16, lacivert rgb(24,35,59) üstünde rgb(60,62,57) veriyordu
+   — hardal/haki, kart "sarı" değil "kirli" okunuyordu. Sebep parlaklık farkı:
+   sarının bağıl parlaklığı ~0.69, morunki ~0.21. Açık renk daha az yıkama alır. */
+.tema-meydan    { --tema: #FF5B4A; --tema-ikon: #FF5B4A; --tema-murek: #12151F; --tema-golge: rgba(138, 34, 24, 0.5); --tema-yikama: 0.16; }
+.tema-hizli     { --tema: #FFD23F; --tema-ikon: #FFD23F; --tema-murek: #12151F; --tema-golge: rgba(146, 112, 8, 0.5); --tema-yikama: 0.07; }
+.tema-grup      { --tema: #4A9DD9; --tema-ikon: #4A9DD9; --tema-murek: #12151F; --tema-golge: rgba(18, 74, 118, 0.5); --tema-yikama: 0.14; }
+.tema-turnuva   { --tema: #A855F7; --tema-ikon: #A855F7; --tema-murek: #12151F; --tema-golge: rgba(76, 20, 124, 0.5); --tema-yikama: 0.18; }
+.tema-joker     { --tema: #EC4899; --tema-ikon: #EC4899; --tema-murek: #12151F; --tema-golge: rgba(126, 20, 74, 0.5); --tema-yikama: 0.16; }
+.tema-lig       { --tema: #2FBF71; --tema-ikon: #2FBF71; --tema-murek: #12151F; --tema-golge: rgba(14, 92, 52, 0.5); --tema-yikama: 0.11; }
+.tema-hatalarim { --tema: #20A4A0; --tema-ikon: #20A4A0; --tema-murek: #12151F; --tema-golge: rgba(10, 80, 78, 0.5); --tema-yikama: 0.14; }
 
-/* Kart yıkaması: opak tema rengi ::after üzerinden düşük opaklıkla biniyor,
-   bu yüzden burada opaklık düşürülüyor (eski rgba(...,0.45) yerine). */
-.bd-mod::after { opacity: 0.16; }
+/* Kart yıkaması: opak tema rengi ::after üzerinden biniyor. Opaklık artık
+   sabit değil, her modun kendi --tema-yikama değeri (bkz. yukarıdaki not). */
+.bd-mod::after { opacity: var(--tema-yikama, 0.16); }
 
 /* İkon kutusu kendi renginde dolu; çizgi koyu mürekkeple okunur. */
 .bd-mod .bd-mod-ikon {
