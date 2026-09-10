@@ -3317,3 +3317,58 @@ Kalıcı çözüm özel alan adı bağlamaktır.
 
 **Not:** test sırasında açılan misafir hesabı ("Oyuncu", 0 puan) veritabanında
 kaldı — zararsız, istenirse silinebilir.
+
+---
+
+## 2026-09-11 — Quizador Vercel'de de yayına alındı: quizador.vercel.app
+
+**Neden:** `*.pages.dev` Türkiye'de operatör/DNS düzeyinde engellenebiliyor;
+paylaşılan link bir arkadaşta açılmamıştı. Aynı site ikinci bir adresten daha
+yayına alındı ki erişim tek altyapıya bağlı kalmasın.
+
+**Yeni adres: https://quizador.vercel.app** (ölçüldü: `/`, `/turnuva`,
+`/sitemap.xml` → 200; misafir girişi tarayıcıda uçtan uca denendi, hesap
+açılıyor ve ana sayfa verisi geliyor).
+
+**Nasıl yapıldı:**
+- `VITE_MOD=bildim` + `VITE_SITE_URL=https://quizador.vercel.app` ile üretim
+  derlemesi alındı (Quizador sürümü — hub pakete girmiyor).
+- Vercel Build Output API yapısı (`.vercel/output/static` + `config.json`,
+  SPA rewrite) hazırlanıp `vercel deploy --prebuilt --prod` ile gönderildi.
+  Proje adı: **quizador-vercel**, kısa alias: `quizador.vercel.app`.
+- Derlemeye hub ile **aynı yeni anahtar** gömüldü
+  (`sb_publishable_…`); Cloudflare'daki eski JWT anahtarı buraya taşınmadı.
+- Bu sürümde `canonical` ve `sitemap.xml` artık doğru adresi gösteriyor.
+
+**Yol boyunca çıkan engel — Vercel Deployment Protection:**
+Proje ilk `--prod` dağıtımından sonra dışarıya **302** vermeye başladı
+(`vercel.com/sso-api`'ye yönlendirme). Sebep: takım varsayılanı
+`ssoProtection: {"deploymentType":"all_except_custom_domains"}` — yani özel
+alan adı dışındaki tüm `*.vercel.app` adresleri Vercel oturumu istiyordu.
+Vercel API ile `ssoProtection: null` yapıldı, site herkese açıldı.
+**Yeni bir Vercel projesi açarken bu ayar tekrar karşına çıkar; ilk iş onu
+kapat** (Project → Settings → Deployment Protection).
+
+**BEKLEYEN İŞ — Google girişi için gerekli (panelden, ben yapamam):**
+Supabase → Authentication → URL Configuration → **Redirect URLs**'e
+`https://quizador.vercel.app/**` eklenmeli. Eklenmezse Google ile giren oyuncu
+dönüşte Site URL'e (`quizador.pages.dev`) düşer — pages.dev erişilemiyorsa
+kullanıcı yine takılır. **Misafir girişi ve e-posta bağlantısı bundan
+etkilenmez** (misafir akışı yönlendirme kullanmıyor, test edildi).
+Erişim sorunu kalıcıysa Site URL'in de bu adrese çevrilmesi düşünülmeli.
+
+**BEKLEYEN İŞ — otomatik güncelleme:** Bu proje Git'e **bağlı değil**;
+dağıtım elle yapıldı. "Quizador her zaman en güncel olsun" kuralı için
+Vercel'de projeyi depoya bağlamak gerekiyor (Build command `npm run build`,
+env `VITE_MOD=bildim`, `VITE_SITE_URL=https://quizador.vercel.app`,
+Supabase URL + yeni anon anahtar). Aynısı Cloudflare tarafı için de geçerli —
+ayrıntılar `CLOUDFLARE_DAGITIM.md`'de.
+
+**Durum özeti:**
+
+| Adres | Ne | Durum |
+|---|---|---|
+| `quizador.vercel.app` | Quizador (yeni) | **200**, misafir girişi ✔ |
+| `quizador.pages.dev` | Quizador (Cloudflare) | 200, ama pages.dev engellenebiliyor |
+| `idagg-game-center.vercel.app` | Hub (8 oyun) | 200 |
+| `bildim.vercel.app` | — | **404, ölü** |
