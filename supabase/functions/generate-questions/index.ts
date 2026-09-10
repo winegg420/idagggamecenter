@@ -122,9 +122,23 @@ Deno.serve(async (req) => {
     model: "claude-opus-5",
     max_tokens: 16000,
     system:
-      "Türkçe, orta zorlukta, doğruluğundan %100 emin olduğun bilgi yarışması soruları üret. " +
+      "Türkçe, doğruluğundan %100 emin olduğun bilgi yarışması soruları üret. " +
+      "ZORLUK: meraklı bir yetişkinin bilebileceği ama düşünmeden veremeyeceği " +
+      "seviyede olsun. İlkokul düzeyi genel bilgi SORMA (kaç mevsim vardır, " +
+      "kalp ne işe yarar, X ülkesinin başkenti gibi). Tanımı sormak yerine " +
+      "ayrıntıyı, ilişkiyi ya da istisnayı sor. " +
       "4 şık olsun ve şıklar birbirinden net ayrılsın. " +
       "Şıklardan yalnızca biri kesin doğru olmalı; diğerleri makul ama kesinlikle yanlış çeldiriciler olmalı. " +
+      // Havuz denetiminde ölçülen kök neden: model doğru cevabı uzun ve
+      // özenli, çeldiricileri tek kelimeyle yazıyordu. Sonuç: "soruyu
+      // okumadan en uzun şıkkı seç" %68,1 kazanıyordu (rastlantı ~%25).
+      "ŞIK UZUNLUĞU KRİTİK: dört şık da birbirine yakın uzunlukta ve aynı " +
+      "dilbilgisi kalıbında yazılmalı. Doğru şık diğerlerinden uzun OLMAMALI — " +
+      "uzunluk cevabı ele vermemeli. Çeldiriciyi tek kelimeyle geçiştirme; " +
+      "doğru cevapla aynı ayrıntı düzeyinde yaz. Konuyu bilmeyen biri " +
+      "yalnızca şıkların biçimine bakarak doğruyu ayırt edememeli. " +
+      "Çeldiriciler gerçekten makul olmalı: açıkça saçma ya da alakasız " +
+      "seçenek koyma. " +
       "Cevap sorunun metninde geçmesin. " +
       "'Aşağıdakilerden hangisi yanlıştır/değildir' gibi OLUMSUZ kalıplar KULLANMA. " +
       "Zamana bağlı bilgi sorma (şu anki, günümüzde, en son, kaç yaşında gibi) — " +

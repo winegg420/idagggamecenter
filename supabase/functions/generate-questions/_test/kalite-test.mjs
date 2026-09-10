@@ -46,6 +46,14 @@ const gecerliler = [
   ], 0),
   soru("Bir futbol takımında sahada kaç oyuncu bulunur?", ["9", "10", "11", "12"], 2),
   soru("Gitarın standart tel sayısı kaçtır?", ["4", "5", "6", "7"], 2),
+  // Uzunluk dengesi kapısı bunları ELEMEMELİ: fark birkaç karakter, oyuncuya
+  // kullanılabilir bir ipucu vermiyor (mutlak fark muafiyeti).
+  soru("Ses hangi ortamda en hızlı yayılır?", ["Katılarda", "Boşlukta", "Suda", "Havada"], 0),
+  // Dengelemenin hedeflediği biçim: çeldiriciler doğru şıkla aynı kalıpta
+  // yazılınca uzunluk ipucu kayboluyor ve soru kolaylaşmıyor, zorlaşıyor.
+  soru("Yemen hangi boğaza kıyıdır?", [
+    "Bab-ül Mendeb Boğazı", "Hürmüz Boğazı", "Malakka Boğazı", "Cebelitarık Boğazı",
+  ], 0),
 ];
 for (const q of gecerliler) {
   const s = nedenGecersiz(q);
@@ -71,6 +79,14 @@ const elenmeliler = [
     soru("En son çıkan iPhone modeli hangisidir?", ["Model A", "Model B", "Model C", "Model D"], 0)],
   ["zamana bağlı bilgi (kaç yaşında)",
     soru("Ünlü oyuncu kaç yaşındadır bugün?", ["30", "40", "50", "60"], 0)],
+  // Havuz denetiminde bulunan gerçek kalıp: doğru cevap uzun ve tek makul
+  // olan, çeldiriciler tek kelime. Okumadan "en uzunu seç" ile bulunuyor.
+  ["doğru şık belirgin uzun (gerçek örnek: spor)",
+    soru("Sporda 'hedef belirleme' neyi artırır?",
+      ["Motivasyon ve odaklanmayı", "Sakatlığı", "Yorgunluğu", "Rastlantıyı"], 0)],
+  ["doğru şık belirgin uzun (gerçek örnek: coğrafya)",
+    soru("Süveyş ve Panama kanallarının ortak sonucu nedir?",
+      ["Deniz ticaretini kısaltması", "Ticareti azaltması", "Tarımı geliştirmesi", "Nüfusu azaltması"], 0)],
 ];
 for (const [beklenen, q] of elenmeliler) {
   const s = nedenGecersiz(q);

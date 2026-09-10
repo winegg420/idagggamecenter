@@ -76,6 +76,60 @@ export type Soru = {
 };
 
 /**
+ * UZUNLUK DENGESİ — doğru şık, yanlış şıkların ortalamasının bu katından
+ * uzun olamaz.
+ *
+ * NEDEN: canlı havuz denetiminde bulundu. Model doğru cevabı özenle ve uzun
+ * yazıp çeldiricileri tek kelimeyle geçiştiriyordu; ölçülen sonuç, 9.381
+ * global soruda doğru şık ortalama 17,8 karakter, yanlış şıklar 10,0 karakter.
+ * Bunun oyundaki bedeli: "soruyu hiç okumadan en uzun şıkkı seç" stratejisi
+ * %68,1 başarıyla oynuyordu (4 şıkta rastlantı ~%25). Gerçek oyuncular ise
+ * aynı dönemde %59,9 doğru yapıyordu — yani oyun bilgiyle değil şık
+ * uzunluğuna bakarak kazanılıyordu.
+ *
+ * EŞİK VERİDEN SEÇİLDİ, tahminle değil: mevcut havuzda 1,2 / 1,3 / 1,4 /
+ * 1,5 / 1,75 / 2,0 denendi. 1,4'te kapıyı geçen soruların oluşturduğu havuzda
+ * aynı stratejinin başarısı %24,1'e (rastlantı seviyesine) düşüyor; 1,5'te
+ * %31,8'de kalıyor. Bu yüzden 1,4.
+ *
+ * MUTLAK FARK MUAFİYETİ: yalnız oransal bakmak, cevabı doğal olarak biraz
+ * uzun olan meşru soruları eliyordu ("Ses hangi ortamda en hızlı yayılır?
+ * Katılarda | Boşlukta | Suda | Havada"). Birkaç karakterlik fark oyuncuya
+ * kullanılabilir bir ipucu vermez. 0/3/4/5/6/8 karakter denendi: 3'te kapıyı
+ * geçen havuzda strateji %27,5 (hedef %30'un altında), 5'te %32,4'e çıkıyor.
+ * Bu yüzden 3.
+ */
+export const DENGE_ORANI = 1.4;
+export const DENGE_MUAF_FARK = 3;
+
+/** Doğru şık / yanlış şıkların ortalaması. Şık yoksa 0 döner. */
+export function dengeOrani(q: Soru): number {
+  const uz = q.secenekler.map((s) => String(s ?? "").trim().length);
+  const digerleri = uz.filter((_, i) => i !== q.dogru_cevap);
+  if (digerleri.length === 0) return 0;
+  const ortalama = digerleri.reduce((a, b) => a + b, 0) / digerleri.length;
+  if (ortalama === 0) return Number.POSITIVE_INFINITY;
+  return uz[q.dogru_cevap] / ortalama;
+}
+
+/** Doğru şık, yanlışların ortalamasından kaç karakter uzun. */
+export function dengeFarki(q: Soru): number {
+  const uz = q.secenekler.map((s) => String(s ?? "").trim().length);
+  const digerleri = uz.filter((_, i) => i !== q.dogru_cevap);
+  if (digerleri.length === 0) return 0;
+  return uz[q.dogru_cevap] - digerleri.reduce((a, b) => a + b, 0) / digerleri.length;
+}
+
+/**
+ * Doğru şık, uzunluğuyla kendini ele veriyor mu?
+ * İki koşul birlikte aranır: oransal olarak belirgin uzun VE mutlak farkın
+ * fark edilebilir olması.
+ */
+export function uzunlukEleVeriyorMu(q: Soru): boolean {
+  return dengeOrani(q) > DENGE_ORANI && dengeFarki(q) > DENGE_MUAF_FARK;
+}
+
+/**
  * Tek bir soruyu kurallara göre denetler.
  * Geçerliyse null, değilse Türkçe sebep döner (raporlanabilsin diye).
  */
@@ -101,5 +155,8 @@ export function nedenGecersiz(q: Soru): string | null {
 
   if (OLUMSUZ.test(metin)) return "olumsuz kalıp";
   if (ZAMANA_BAGLI.test(metin)) return "zamana bağlı bilgi";
+
+  // Doğru şık uzunluğuyla kendini ele vermesin (bkz. DENGE_ORANI notu).
+  if (uzunlukEleVeriyorMu(q)) return "doğru şık diğerlerinden belirgin uzun";
   return null;
 }
