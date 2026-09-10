@@ -63,13 +63,14 @@ export function AuthProvider({ children }) {
       }
     };
 
+    // getSession YALNIZ oturumu kurar ve yüklemeyi kapatır.
+    // Profil yükleme ve davet işleri burada DEĞİL, aşağıdaki
+    // onAuthStateChange'de yapılır: supabase-js abone olunduğu anda
+    // INITIAL_SESSION olayını yayınlıyor, dolayısıyla iki yol da çalışınca
+    // profilim RPC'si her sayfa yüklemesinde iki kez çağrılıyordu
+    // (canlı ağ denetimi). Tek kaynak onAuthStateChange.
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
-      if (session) {
-        refreshProfile(session.user.id);
-        davetTalep(session.user.id);
-        davetKoduUygula(session.user.id);
-      }
       setLoading(false);
     });
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
@@ -80,6 +81,9 @@ export function AuthProvider({ children }) {
           davetTalep(session.user.id);
           davetKoduUygula(session.user.id);
         } else setProfile(null);
+        // Oturum yoksa da yükleme kapanmalı: kapalı oturumla açılışta
+        // "Yükleniyor…" ekranında takılı kalınmasın.
+        setLoading(false);
       }
     );
     return () => subscription.unsubscribe();
