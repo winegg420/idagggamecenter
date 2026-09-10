@@ -1041,7 +1041,7 @@ sart (ayni konunun farkli anlatimi eleniyor).
 - profiles.dil + check (tr,en,de,es,pt,fr,it,ru)
 - Eski `dil` kolonu kaynak_dil ile trigger uzerinden senkron (eski yazarlar bozulmuyor)
 
-**FAZ 2 (bitti, commit 8f8f8f8 - `git log` bak):** migration 20260612000119_soru_ayiklama.sql
+**FAZ 2 (bitti, commit b5a802b):** migration 20260612000119_soru_ayiklama.sql
 - 11.982 sorunun tamami 60 partide elle siniflandirildi: 9774 global, 2208 yerel(TR)
 - 81 soru "ceviri_bozar" (deyim/atasozu/dil bilgisi) -> aktif, yerel havuzda, asla globale gitmez
 - Karar dosyasi: bildim/veri/soru-ayiklama.jsonl (surum kontrolunde, migration bundan uretildi)
