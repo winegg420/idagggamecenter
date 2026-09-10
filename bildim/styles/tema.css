@@ -290,17 +290,52 @@ body::before {
   text-align: center;
 }
 
-.bd-mod.tema-meydan  { --tema: rgba(247, 203, 119,0.5); --tema-ikon: var(--bd-vurgu); --tema-golge: rgba(201, 138, 34,0.45); }
-.bd-mod.tema-hizli   { --tema: rgba(251,191,36,0.45);  --tema-ikon: #F2B23C; --tema-golge: rgba(217,119,6,0.45); }
-.bd-mod.tema-hizli .bd-mod-ikon { color: #1b1206; }
-.bd-mod.tema-grup    { --tema: rgba(56,189,248,0.45);  --tema-ikon: #4A9DD9; --tema-golge: rgba(3,105,161,0.45); }
-.bd-mod.tema-turnuva { --tema: rgba(253,224,71,0.45);  --tema-ikon: #C98A22; --tema-golge: rgba(202,138,4,0.45); }
-.bd-mod.tema-turnuva .bd-mod-ikon { color: #1b1206; }
-.bd-mod.tema-joker   { --tema: rgba(244,114,182,0.42); --tema-ikon: #E8543F; --tema-golge: rgba(157,23,77,0.45); }
-.bd-mod.tema-lig     { --tema: rgba(45,212,191,0.42);  --tema-ikon: #2FBF71; --tema-golge: rgba(15,118,110,0.45); }
-/* Hatalarım: kendi rengi. Lig'in yeşiliyle aynı olmasın diye camgöbeği seçildi
-   (paletteki en yakın renge ΔE 40.9, zemin kontrastı 6.13). */
-.bd-mod.tema-hatalarim { --tema: rgba(32,164,160,0.42); --tema-ikon: #20A4A0; --tema-golge: rgba(13,94,92,0.45); }
+/* ============================================================
+   MOD KİMLİK RENKLERİ
+   Eski palette meydan / hızlı / turnuva üçü de altın-sarı tonundaydı, bu
+   yüzden birbirinden ayrışmıyorlardı. Yeni palette her mod ayrı bir renk
+   ailesi: oyuncu ikona bakmadan renkten tanısın.
+
+   İkon rengi ölçülerek seçildi (WCAG, dolgu üstünde): koyu #12151F her yedi
+   dolguda beyazı geçiyor — en düşüğü turnuva moru 4,60; en yükseği hızlı
+   sarısı 12,62. Hepsi AA (4,5+).
+
+   --tema        kart yıkaması ve tint'lerin kaynağı (opak; ::after 0.3 ile bindirir)
+   --tema-ikon   ikon kutusu dolgusu
+   --tema-mürek  ikon çizgisinin rengi
+   --tema-golge  kart gölgesi — düz siyah değil, kendi renginin koyu tonu
+   ============================================================ */
+.bd-mod.tema-meydan    { --tema: #FF5B4A; --tema-ikon: #FF5B4A; --tema-murek: #12151F; --tema-golge: rgba(138, 34, 24, 0.5); }
+.bd-mod.tema-hizli     { --tema: #FFD23F; --tema-ikon: #FFD23F; --tema-murek: #12151F; --tema-golge: rgba(146, 112, 8, 0.5); }
+.bd-mod.tema-grup      { --tema: #4A9DD9; --tema-ikon: #4A9DD9; --tema-murek: #12151F; --tema-golge: rgba(18, 74, 118, 0.5); }
+.bd-mod.tema-turnuva   { --tema: #A855F7; --tema-ikon: #A855F7; --tema-murek: #12151F; --tema-golge: rgba(76, 20, 124, 0.5); }
+.bd-mod.tema-joker     { --tema: #EC4899; --tema-ikon: #EC4899; --tema-murek: #12151F; --tema-golge: rgba(126, 20, 74, 0.5); }
+.bd-mod.tema-lig       { --tema: #2FBF71; --tema-ikon: #2FBF71; --tema-murek: #12151F; --tema-golge: rgba(14, 92, 52, 0.5); }
+.bd-mod.tema-hatalarim { --tema: #20A4A0; --tema-ikon: #20A4A0; --tema-murek: #12151F; --tema-golge: rgba(10, 80, 78, 0.5); }
+
+/* Kart yıkaması: opak tema rengi ::after üzerinden düşük opaklıkla biniyor,
+   bu yüzden burada opaklık düşürülüyor (eski rgba(...,0.45) yerine). */
+.bd-mod::after { opacity: 0.16; }
+
+/* İkon kutusu kendi renginde dolu; çizgi koyu mürekkeple okunur. */
+.bd-mod .bd-mod-ikon {
+  background: var(--tema-ikon, var(--bd-vurgu));
+  color: var(--tema-murek, #0B1220);
+  box-shadow: 0 2px 8px var(--tema-golge, rgba(0, 0, 0, 0.32));
+}
+
+/* Üst kenardaki 1px kimlik şeridi .bd-mod::before'da tanımlı (yukarıda).
+   Nötrleştirme onu display:none ile kapatmıştı; o kural geri alındı. */
+
+/* Basılınca ikon kutusu parlar (glow yoğunluğu artar). */
+.bd-mod:active .bd-mod-ikon {
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--tema) 28%, transparent),
+              0 4px 18px var(--tema-golge, rgba(0, 0, 0, 0.4));
+}
+.bd-mod .bd-mod-ikon { transition: box-shadow 0.16s ease; }
+@media (prefers-reduced-motion: reduce) {
+  .bd-mod .bd-mod-ikon { transition: none; }
+}
 
 /* ---------- Lig özeti 3'lü kutu ---------- */
 .bd-hero-lig { gap: var(--bd-bosluk-2); }
@@ -894,10 +929,12 @@ body.bd-oyun-modu .bd-toast-kat { display: none; }
   transform: scale(0.96);
   box-shadow: 0 4px 14px rgba(0, 0, 0, 0.45), var(--bd-ic-parlaklik);
 }
+/* Kartın üst kenarındaki kimlik şeridi: 1px, modun kendi renginde. */
 .bd-mod::before {
   content: "";
-  position: absolute; top: 0; left: 0; right: 0; height: 2px;
+  position: absolute; top: 0; left: 10%; right: 10%; height: 1px;
   background: var(--tema, rgba(242, 178, 60, 0.4));
+  opacity: 0.9;
   pointer-events: none;
   z-index: 1;
 }
@@ -1431,11 +1468,16 @@ body::before {
   border-radius: 22px;
   padding: var(--bd-b-4) var(--bd-b-2) var(--bd-b-3);
   background: rgba(24, 35, 59, 0.9);
-  box-shadow: 0 6px 0 rgba(0, 0, 0, 0.28), 0 12px 26px rgba(0, 0, 0, 0.42);
+  /* Kalınlık payı düz siyah kalır (zemine oturma hissi), yayılan gölge modun
+     kendi renginin koyu tonunda — kart hangi moda ait olduğunu gölgesiyle de
+     söyler. */
+  box-shadow: 0 6px 0 rgba(0, 0, 0, 0.28),
+              0 12px 26px var(--tema-golge, rgba(0, 0, 0, 0.42));
 }
 .bd-mod:active {
   transform: translateY(4px);
-  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.28);
+  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.28),
+              0 6px 18px var(--tema-golge, rgba(0, 0, 0, 0.42));
 }
 .bd-mod-ikon {
   width: 54px; height: 54px;
@@ -2199,9 +2241,10 @@ body::before { will-change: opacity; }
   font-size: 14px; font-weight: 800; letter-spacing: 0;
   text-transform: none;
 }
-.app .bd-mod-ikon { border-radius: 10px; box-shadow: none; }
-.app .bd-mod::before,
-.app .bd-mod::after { display: none; }         /* tema ışığı/çizgisi kalktı */
+.app .bd-mod-ikon { border-radius: 10px; }
+/* [GERİ ALINDI] Burada tema ışığı ve kart yıkaması display:none ile
+   kapatılıyordu. Renk bu oyunda kimlik taşıyor: ışık çizgisi de yıkama da
+   geri açıldı. */
 
 /* ---------- 4.4 Turnuva: yatay bant ---------- */
 .bd-turnuva-serit {
@@ -2779,27 +2822,10 @@ body.bd-ekle-acik .app { padding-bottom: calc(300px + env(safe-area-inset-bottom
    kartlarını ve şık rozetlerini kapsar.
    ============================================================ */
 
-/* 1) Mod ikon kutuları tek nötr renge. Renkle değil ikon çizimiyle ayrışırlar. */
-.app .bd-mod .bd-mod-ikon {
-  background: var(--bd-yuzey-2);
-  color: var(--bd-metin);
-  box-shadow: none;
-}
-/* Kartın arkasındaki renkli yıkama da kalksın (beş ayrı doygun renk vardı) */
-.app .bd-mod.tema-meydan,
-.app .bd-mod.tema-hizli,
-.app .bd-mod.tema-grup,
-.app .bd-mod.tema-turnuva,
-.app .bd-mod.tema-joker,
-.app .bd-mod.tema-lig,
-.app .bd-mod.tema-hatalarim {
-  --tema: transparent;
-  --tema-ikon: var(--bd-yuzey-2);
-  --tema-golge: rgba(0, 0, 0, 0.28);
-}
-/* Üstteki .tema-hizli / .tema-turnuva ikon rengi kuralını da geçersiz kıl */
-.app .bd-mod.tema-hizli .bd-mod-ikon,
-.app .bd-mod.tema-turnuva .bd-mod-ikon { color: var(--bd-metin); }
+/* 1) [KALDIRILDI] Mod ikon kutularını tek nötr renge çeken kural buradaydı.
+      Karar geri alındı: renk bu oyunda kimliktir, süs değil — oyuncu ikona
+      bakmadan renkten tanır. Yeni mod paleti için bkz. "MOD KİMLİK RENKLERİ".
+      2 ve 3 numaralı maddeler yerinde duruyor. */
 
 /* 2) Şık harf rozetleri nötr — dört altın yuvarlak yan yana durunca altın
       anlamını yitiriyordu. Doğru/yanlış durumunda renk yine dolgu veriyor. */
