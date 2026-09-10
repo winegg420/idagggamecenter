@@ -1280,3 +1280,57 @@ yükü üstüne binen bu gereksiz çizim, hissedilen takılmanın ikinci kaynağ
 **Dokunulmayanlar:** `GroupMatchPage` ve `HizliMacPage` aynı key desenini
 kullanıyor ama onlar **gerçekten senkron** (tabloda kişi bazlı sayaç yok,
 soru çekme de `aktif_soru`'ya bağlı) — orada key doğru, değiştirilmedi.
+
+---
+
+## 2026-09-11 — Hızlı Mod: 5 saniyeye sığmayan sorular elendi
+
+**İstek:** "5 sn modunda sorular belirli bir kısalıkta olmalı ki süre yetsin."
+
+**Durum tespiti:** Öyle tasarlanmamıştı. Hızlı Mod soru başına 5 sn veriyor
+(60 sn / en çok 12 soru) ama soruları genel havuzdan `soru_sec` ile çekiyordu
+ve orada **hiçbir uzunluk ölçütü yoktu**. Aktif havuzda ölçüldü:
+
+| | değer |
+|---|---|
+| soru metni | ort. 41 · ortanca 40 · p90 56 · en uzun 90 karakter |
+| şıklar toplamı | ort. 50 · p90 79 · en uzun 130 karakter |
+| en ağır örnek | 61 + 116 = **177 karakter** — 5 saniyede okunamaz |
+
+**Tasarım — okuma yükü tavanı.** `soru_sec`'e isteğe bağlı beşinci parametre
+eklendi: `p_max_okuma` = soru metni + şıkların toplam karakter sayısı.
+Varsayılanı `null`, yani **parametreyi vermeyen bütün modlar birebir eskisi
+gibi çalışır**. Yalnız `hizli_mod_baslat` tavanı kullanıyor: **110 karakter**.
+
+**110 neden:** havuzun %81'i (7.060 soru) altında kalıyor ve her kategoride en
+az 552 uygun soru var — bir oturum 25 soru çekiyor, hiçbir kategoride sıkışma
+yok. 90 tavanı havuzu yarıya düşürüyordu; 130 ise 5 saniyeye sığmayanları geri
+alıyordu.
+
+**Geri düşüş sırası** (oyuncu hata ekranı görmesin diye): önce **tavan** kalkar
+— oyuncunun seçtiği kategori uzunluk tercihinden değerlidir —, sonra kategori,
+en son dil. Canlıda doğrulandı: imkânsız bir tavan (20 karakter) verildiğinde
+bile 25 soru dönüyor.
+
+**Migration:** `20260612000123_hizli_mod_kisa_soru.sql` (canlıya uygulandı).
+`soru_sec`'in eski 4 parametreli imzası düşürüldü ki iki ayrı fonksiyon
+(overload) kalmasın; yeni parametrenin varsayılanı `null` olduğu için mevcut
+4 argümanlı çağrıların hepsi çalışmaya devam ediyor.
+
+**Canlı ölçüm (uygulama sonrası):**
+
+| çağrı | sonuç |
+|---|---|
+| Hızlı Mod, karışık | 25 soru · en ağır **108** · ortalama 89 |
+| Hızlı Mod, coğrafya | 25 soru · en ağır **110** · ortalama 82 |
+| Hızlı Mod, teknoloji | 25 soru · en ağır **110** · ortalama 95 |
+| 1v1 (4 parametreli eski çağrı) | 20 soru · en ağır **145** — *değişmemiş, doğru* |
+
+**Uçtan uca test:** quizador.vercel.app'te misafir hesapla Hızlı Mod oynandı;
+gelen ilk soru "'Baharat Yolu' hangi ürünlerin ticaretini sağlardı?" +
+tek kelimelik şıklar (~85 karakter) — 5 saniyede rahat okunuyor.
+
+**Not (ileriye):** bu bir *seçim* filtresidir; soru üretimi (Edge Function)
+tarafına dokunulmadı. Havuzun %81'i uygun olduğu için şu an sorun yok, ama
+üretilen sorular zamanla uzarsa hızlı mod havuzu daralır. Gerekirse
+`generate-questions` prompt'una "kısa soru" hedefi eklenebilir.
