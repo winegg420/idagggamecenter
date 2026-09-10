@@ -1031,3 +1031,37 @@ Canli veritabaninda dogrulanan kalite olcumleri:
 oturumda ayni uretim hatti (`scratchpad/pgi/uret.mjs`) ile surdurulmeli.
 Ortusme suzgeci nedeniyle yeni partilerde **yeni alt konu alanlari** acmak
 sart (ayni konunun farkli anlatimi eleniyor).
+
+## 2026-09-10 — Cok dilli donusum (FAZ 1-3)
+
+**FAZ 1 (bitti, commit 0a5d35e):** migration 20260612000118_cokdilli_sema.sql
+- questions: kapsam ('global'|'yerel'), ulke, kaynak_dil kolonlari + check constraint
+- question_translations tablosu (question_id, dil, soru, secenekler) + qt_dogrula() tetikleyicisi
+  (secenek sayisi/bosluk/tekrar/dogru_cevap indeksi dogrulamasi -> sira korunumu guvencesi)
+- profiles.dil + check (tr,en,de,es,pt,fr,it,ru)
+- Eski `dil` kolonu kaynak_dil ile trigger uzerinden senkron (eski yazarlar bozulmuyor)
+
+**FAZ 2 (bitti, commit 8f8f8f8 - `git log` bak):** migration 20260612000119_soru_ayiklama.sql
+- 11.982 sorunun tamami 60 partide elle siniflandirildi: 9774 global, 2208 yerel(TR)
+- 81 soru "ceviri_bozar" (deyim/atasozu/dil bilgisi) -> aktif, yerel havuzda, asla globale gitmez
+- Karar dosyasi: bildim/veri/soru-ayiklama.jsonl (surum kontrolunde, migration bundan uretildi)
+- Arac: bildim/_test/ayiklama.mjs (parti | yaz | durum | rapor | ornek)
+
+**FAZ 3 (DEVAM EDIYOR):** bildim/_test/ceviri.mjs
+- Hedef: 9381 aktif global soru x 7 dil (en -> de -> es -> pt -> fr -> it -> ru sirasiyla)
+- DURUM (2026-09-10): en = 2020/9381 (%21.5). Diger diller 0.
+- Yeniden baslatilabilir: imlec dosyasi YOK. Siradaki parti dogrudan sorguyla bulunur
+  (kapsam='global' and aktif and o dile cevirisi olmayan). Yarim kalan is otomatik gorunur.
+- Akis (20'ser soru):
+    node bildim/_test/ceviri.mjs parti en          -> siradaki 20 soru
+    <ceviriyi JSON dosyasina yaz>
+    node bildim/_test/ceviri.mjs yaz en <dosya>    -> dogrular ve yazar
+    node bildim/_test/ceviri.mjs durum             -> dil x cevrilen tablosu
+    node bildim/_test/ceviri.mjs ornek en 5        -> ornek ceviriler (kaynakla yan yana)
+- Yazma yolu: Supabase CLI YANLIS HESAPTA (idafroditproject@gmail.com), `db push` calismiyor.
+  Migration ve toplu yazma pg paketiyle pooler uzerinden yapiliyor
+  (.env.local -> SUPABASE_DB_PASSWORD). Bu yol test edildi, 5000 satir 1.3 sn.
+
+**SIRADAKI:** FAZ 3'u en dilinde bitir, sonra de/es/pt/fr/it/ru. Ardindan
+FAZ 4 (soru_sec havuz kurali + soru_metni yedek zinciri + tum get_*_question RPC'leri),
+FAZ 5 (UI i18n), FAZ 6 (magaza/meta metinleri).
