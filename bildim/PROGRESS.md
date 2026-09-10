@@ -1123,3 +1123,57 @@ rozeti + sonuk renkle ayrisiyor (puan/sira degismedi).
 Tum fazlarda prefers-reduced-motion: reduce gozetildi (animasyon kapali,
 renk geri bildirimi korunuyor). Yeni bagimlilik eklenmedi.
 `npm run build` ve `npm run build:bildim` her fazda hatasiz gecti.
+
+---
+
+## 2026-09-10 — Asiri basit (ilkokul duzeyi) sorularin ayiklanmasi
+
+**Sorun (kullanici bildirdi):** "sorular asiri basit, ilkokul sorusu dolu
+oyun." Havuzun tamami (8.765 aktif soru) elle okundu ve degerlendirildi.
+
+**Sonuc:** 2.657 soru `aktif = false` yapildi. Aktif havuz 11.422 -> 8.765.
+Global 7.031, yerel 1.734 aktif soru kaldi.
+
+**Neden elle:** kalip/regex denendi ve guvenilmez cikti. Genis sinyaller
+686 aday uretti ve icinde tamamen mesru sorular vardi ("Frekans birimi
+nedir?", "Fotosentez hangi organelde gerceklesir?"); dar kaliplar 15
+adayda kaldi, onlarda da yanlis eslesme oldu ("And **Dagları** kac ulkeden
+gecer" icindeki "ari"). Bu yuzden 25 partide her soru okunarak karar
+verildi.
+
+**Eleme olcutu (tutarli uygulandi):**
+- Yetiskinin dusunmeden bildigi tek adimlik tanimlar
+- Cevabi soru metninin icinde gecenler ("Ruzgar turbinine ne denir?")
+- Totolojik cevaplar ("Veri merkezleri ne yapar? -> Sunucu barindirir")
+- Cok bilinen baskentler/bayraklar, temel sayma sorulari
+- **Ikiz sorular:** ayni bilgiyi soran kopyalar (biri birakildi). Bu is
+  sirasinda yuzlerce ikiz tespit edildi — asil kirlilik kaynagi buydu.
+- Bozuk/belirsiz cevapli sorular ("Kaleci topu en fazla ne kadar tutabilir?
+  -> Sinirli bir sure")
+
+**Birakilanlar:** ortaokul duzeyi ayrinti soran, iliski/istisna soran ya da
+alan bilgisi gerektiren her sey ("Mitokondri", "Atmosferde en cok bulunan
+gaz", "Isik hangi ortamda en hizli ilerler", "Deprem buyuklugunu olcen
+alet").
+
+**Guvenlik:** SILME YOK. Sorular `aktif = false` yapildi, satirlar duruyor.
+Her parti `bildim/veri/basit-ayiklama-yedek.jsonl` dosyasina eklendi
+(surum kontrolunde). `node bildim/_test/basit-ayikla.mjs geri` komutu
+tumunu tek seferde geri acar. Projede otomatik DB yedegi olmadigi icin bu
+yol secildi.
+
+**Arac:** `bildim/_test/basit-ayikla.mjs`
+(`parti [n] [atla] | ele <dosya> | durum | geri`)
+
+**Kok neden zaten kapatilmisti:** `supabase/functions/generate-questions/`
+icinde prompt "ZORLUK" bolumuyle sertlestirildi (ilkokul duzeyi genel bilgi
+sorma; tanim yerine ayrinti/iliski/istisna sor) ve `kalite.ts` icine sik
+uzunluk dengesi kapisi eklendi. Yeni uretilecek sorular bu filtreden gecer.
+
+**Siradaki is:** Ingilizce ceviri (kaldigi yer 2.020 soru). Hedef havuz
+elemeyle kucululdu, kalan ~6.700 global soru cevrilecek.
+
+**Not (kapsam disi, ileriye):** eleme sirasinda cok sayida tam kopya soru
+gorundu; ikizlerin buyuk kismi bu iste pasife cekildi ama `soru` kolonu
+UNIQUE oldugu icin kalanlar farkli metinle ayni bilgiyi soruyor. Ayri bir
+temizlik isi olarak degerlendirilebilir.
