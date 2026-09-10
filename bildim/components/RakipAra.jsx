@@ -40,7 +40,7 @@ export default function RakipAra({ kategori, onBulundu, onIptal }) {
       bittiRef.current = true;
       clearInterval(zamanlayiciRef.current);
       try {
-        const { data } = await supabase
+        const { data, error } = await supabase
           .from("matches")
           .select(
             `oyuncu1, oyuncu2,
@@ -49,12 +49,14 @@ export default function RakipAra({ kategori, onBulundu, onIptal }) {
           )
           .eq("id", macId)
           .maybeSingle();
+        if (error) throw error;
         if (data) {
           const rakip = data.oyuncu1 === user?.id ? data.p2 : data.p1;
           setRakipAdi(rakip?.gorunen_ad ?? null);
         }
-      } catch {
-        /* ad alınamadı — yine de maça geç */
+      } catch (e) {
+        // Ad alınamadı — maça yine de geçilir, ama sebep sessizce yutulmasın.
+        console.error("[Bildim] rakip adı alınamadı:", e);
       }
       window.setTimeout(() => onBulundu(macId), 1000);
     },

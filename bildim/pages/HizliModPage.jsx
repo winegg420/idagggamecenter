@@ -121,9 +121,11 @@ export default function HizliModPage() {
       setTimeout(() => setAsama("sonuc"), perdeKalan);
       macBittiReklam().catch(() => {}); // sıklık kuralı reklam.js'te
       try {
-        const { data } = await supabase.rpc("hizli_mod_siralama", { p_kapsam: kapsam });
+        const { data, error } = await supabase.rpc("hizli_mod_siralama", { p_kapsam: kapsam });
+        if (error) throw error;
         setSiralama(data ?? []);
-      } catch {
+      } catch (e) {
+        console.error("[Bildim] hizli mod siralamasi alinamadi:", e);
         setSiralama([]);
       }
       supabase.rpc("hizli_mod_ozetim").then(({ data }) => {

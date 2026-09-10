@@ -21,11 +21,21 @@ export default function TournamentPage() {
   const advanceKilidi = useRef(false);
 
   const turnuvaYukle = useCallback(async () => {
-    const { data } = await supabase
-      .from("tournaments")
-      .select("*")
-      .order("tarih", { ascending: false })
-      .limit(3);
+    // error okunmazsa turnuva hiç yüklenmemiş gibi görünür ve sebebi
+    // hiçbir yere düşmez; kullanıcıya da gösterilecek bir mesaj kalmaz.
+    let data = null;
+    try {
+      const sonuc = await supabase
+        .from("tournaments")
+        .select("*")
+        .order("tarih", { ascending: false })
+        .limit(3);
+      if (sonuc.error) throw sonuc.error;
+      data = sonuc.data;
+    } catch (e) {
+      console.error("[Bildim] turnuvalar alınamadı:", e);
+      setHata(hataMesaji(e, "Turnuva bilgisi alınamadı."));
+    }
     const liste = data ?? [];
     const secilen =
       liste.find((t) => t.durum === "aktif") ??
@@ -34,12 +44,17 @@ export default function TournamentPage() {
       null;
     setTurnuva(secilen);
     if (secilen) {
-      const { data: ply } = await supabase
-        .from("tournament_players")
-        .select("*, profil:profiles(gorunen_ad, gorunen_avatar, puan)")
-        .eq("tournament_id", secilen.id)
-        .order("joined_at");
-      setOyuncular(ply ?? []);
+      try {
+        const { data: ply, error } = await supabase
+          .from("tournament_players")
+          .select("*, profil:profiles(gorunen_ad, gorunen_avatar, puan)")
+          .eq("tournament_id", secilen.id)
+          .order("joined_at");
+        if (error) throw error;
+        setOyuncular(ply ?? []);
+      } catch (e) {
+        console.error("[Bildim] turnuva oyuncuları alınamadı:", e);
+      }
     }
     setYukleniyor(false);
     return secilen;

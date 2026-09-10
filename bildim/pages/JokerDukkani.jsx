@@ -83,7 +83,8 @@ export default function JokerDukkani() {
       const { purchase_token } = await satinAl(urunId);
 
       // Doğrulama SUNUCUDA (Edge Function → Play Developer API)
-      const { data: oturum } = await supabase.auth.getSession();
+      const { data: oturum, error: oturumHatasi } = await supabase.auth.getSession();
+      if (oturumHatasi) throw oturumHatasi;
       const jwt = oturum?.session?.access_token;
       const url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/satin_alma_dogrula`;
       const cevap = await fetch(url, {

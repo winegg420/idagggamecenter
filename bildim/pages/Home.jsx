@@ -153,23 +153,37 @@ export default function Home() {
 
   useEffect(() => {
     const yukle = async () => {
-      const { data: tlar } = await supabase
-        .from("tournaments")
-        .select("id, durum, tarih")
-        .order("tarih", { ascending: false })
-        .limit(2);
+      // Supabase hata FIRLATMAZ, { data:null, error } döner; error okunmazsa
+      // turnuva şeridi sessizce boş kalır ve nedeni hiçbir yere düşmez.
+      let tlar = null;
+      try {
+        const { data, error } = await supabase
+          .from("tournaments")
+          .select("id, durum, tarih")
+          .order("tarih", { ascending: false })
+          .limit(2);
+        if (error) throw error;
+        tlar = data;
+      } catch (e) {
+        console.error("[Bildim] turnuva listesi alınamadı:", e);
+      }
 
       const aktif = (tlar ?? []).find((t) => t.durum === "aktif");
       setCanliTurnuva(Boolean(aktif));
 
       const lobi = (tlar ?? []).find((t) => t.durum === "lobi");
       if (lobi) {
-        const { data: oyuncular, count } = await supabase
-          .from("tournament_players")
-          .select("user_id", { count: "exact" })
-          .eq("tournament_id", lobi.id);
-        setLobiSayisi(count ?? 0);
-        setLobide((oyuncular ?? []).some((o) => o.user_id === user.id));
+        try {
+          const { data: oyuncular, count, error } = await supabase
+            .from("tournament_players")
+            .select("user_id", { count: "exact" })
+            .eq("tournament_id", lobi.id);
+          if (error) throw error;
+          setLobiSayisi(count ?? 0);
+          setLobide((oyuncular ?? []).some((o) => o.user_id === user.id));
+        } catch (e) {
+          console.error("[Bildim] lobi oyuncuları alınamadı:", e);
+        }
       }
 
       // Ana sayfada uzun lider listesi yok (Faz 3): lig özeti tek satırda,
