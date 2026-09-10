@@ -2631,3 +2631,124 @@ body.bd-ekle-acik .app { padding-bottom: calc(300px + env(safe-area-inset-bottom
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(255, 255, 255, 0.10);
 }
+
+/* ============================================================
+   FAZ 1 — CEVAP GERİ BİLDİRİMİ
+   Cevaptan sonra ~1400 ms'lik pencere: renk, uçan puan, seri bandı,
+   yanlışta sarsılma, sonraki sorunun soldan kayarak gelmesi.
+   Hiçbir eski sınıf silinmedi; yalnız yeni sınıflar eklendi.
+   ============================================================ */
+
+/* Yeni soru soldan kayarak gelir (kart key değişince yeniden çalışır) */
+@keyframes bd-soru-kay {
+  from { opacity: 0; transform: translateX(-28px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+.bd-soru-giris { animation: bd-soru-kay 260ms cubic-bezier(0.22, 0.9, 0.3, 1) both; }
+
+/* Yanlışta kart iki kez hafifçe sağa-sola (±4px, ~180 ms x2) */
+@keyframes bd-sarsinti {
+  0%, 100% { transform: translateX(0); }
+  15%      { transform: translateX(-4px); }
+  30%      { transform: translateX(4px); }
+  45%      { transform: translateX(-4px); }
+  60%      { transform: translateX(4px); }
+  75%      { transform: translateX(-2px); }
+}
+.bd-sarsil { animation: bd-sarsinti 360ms ease-in-out both; }
+
+/* Efekt katmanı — tıklamayı engellemez */
+.bd-cevap-efekt {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 4;
+}
+
+/* Kazanılan puan: şıkların üstünde belirip skora doğru (yukarı) uçar */
+@keyframes bd-puan-uc {
+  0%   { opacity: 0; transform: translate(-50%, 12px) scale(0.85); }
+  18%  { opacity: 1; transform: translate(-50%, 0) scale(1.08); }
+  32%  { transform: translate(-50%, 0) scale(1); }
+  100% { opacity: 0; transform: translate(-50%, -150px) scale(0.9); }
+}
+.bd-puan-ucus {
+  position: absolute;
+  left: 50%;
+  top: 46%;
+  transform: translate(-50%, 0);
+  font-family: var(--bd-f-baslik);
+  font-size: 30px;
+  font-weight: 800;
+  color: var(--bd-odul);
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.6);
+  animation: bd-puan-uc 1150ms cubic-bezier(0.3, 0.8, 0.4, 1) both;
+  animation-delay: 250ms;   /* tablo: 250 ms'de belirir */
+}
+/* Hareket azaltıldıysa uçmaz, yerinde belirip söner */
+.bd-puan-ucus.durgun { animation: none; opacity: 1; }
+
+/* Seri bandı: 3+ üst üste doğru */
+@keyframes bd-seri-gir {
+  0%   { opacity: 0; transform: translate(-50%, 8px) scale(0.9); }
+  20%  { opacity: 1; transform: translate(-50%, 0) scale(1.04); }
+  35%  { transform: translate(-50%, 0) scale(1); }
+  85%  { opacity: 1; }
+  100% { opacity: 0; }
+}
+.bd-seri-bant {
+  position: absolute;
+  left: 50%;
+  top: 24%;
+  transform: translate(-50%, 0);
+  padding: 6px 14px;
+  border-radius: var(--bd-r-tam);
+  background: var(--bd-odul);
+  color: #3a2400;
+  font-family: var(--bd-f-baslik);
+  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: 0.4px;
+  white-space: nowrap;
+  box-shadow: var(--bd-golge-derin);
+  animation: bd-seri-gir 1150ms ease-out both;
+  animation-delay: 400ms;   /* tablo: 400 ms'de belirir */
+}
+.bd-seri-bant.durgun { animation: none; opacity: 1; }
+
+/* Doğru cevapta kartın çevresinde kısa parıltı (400 ms) */
+@keyframes bd-parilti {
+  0%   { box-shadow: 0 0 0 0 rgba(47, 191, 113, 0.45); }
+  100% { box-shadow: 0 0 0 18px rgba(47, 191, 113, 0); }
+}
+.bd-soru.bd-dogru-cevap::after {
+  content: "";
+  position: absolute;
+  inset: -2px;
+  border-radius: inherit;
+  pointer-events: none;
+  animation: bd-parilti 620ms ease-out 400ms both;
+}
+
+/* Seçilen şık dokunma anında hafifçe küçülür (0 ms) */
+.bd-secenek.secili { transform: scale(0.97); }
+
+/* Yanlış cevapta DOĞRU şık da yeşile döner — öğrenme burada olur.
+   .dogru sınıfı zaten sonuç geldiğinde doğru şıkka veriliyor; burada
+   yanlış cevap durumunda da belirginleşsin diye vurgulanır. */
+.bd-soru.bd-yanlis-cevap .bd-secenek.dogru {
+  box-shadow: 0 var(--bd-kalinlik, 4px) 0 #0c6132, 0 0 0 2px var(--bd-basari);
+}
+
+/* Hareket azaltma: animasyonlar kapanır, RENK GERİ BİLDİRİMİ KORUNUR */
+@media (prefers-reduced-motion: reduce) {
+  .bd-soru-giris,
+  .bd-sarsil,
+  .bd-soru.bd-dogru-cevap::after { animation: none; }
+  .bd-puan-ucus,
+  .bd-seri-bant { animation: none; opacity: 1; }
+  .bd-secenek.secili { transform: none; }
+}
+
+/* Hızlı mod ve Çalışma ekranları da efekt katmanını barındırır */
+.bd-hizli-oyun, .bd-calisma-oyun { position: relative; }

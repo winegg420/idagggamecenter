@@ -2,7 +2,9 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import KategoriIkon from "../components/KategoriIkon.jsx";
 import SenRozeti from "../components/SenRozeti.jsx";
 import SureDolduGecis from "../components/SureDolduGecis.jsx";
-import { sesKilidiAc, sesTik } from "../lib/ses.js";
+import { sesKilidiAc, sesTik, sesDogru, sesYanlis, sesDokunus } from "../lib/ses.js";
+import CevapEfekti from "../components/CevapEfekti.jsx";
+import { GB_HIZLI_MS, titret } from "../lib/geriBildirim.js";
 import { hataMesaji } from "../lib/hata.js";
 import { macBittiReklam } from "../lib/reklam.js";
 import { useNavigate } from "react-router-dom";
@@ -25,6 +27,8 @@ export default function HizliModPage() {
   const [soru, setSoru] = useState(null);
   const [secim, setSecim] = useState(null);
   const [sonucSoru, setSonucSoru] = useState(null);
+  const [seri, setSeri] = useState(0);
+  const [sarsil, setSarsil] = useState(false);
   const [skor, setSkor] = useState(0);
   const [kalanToplam, setKalanToplam] = useState(TOPLAM_SN);
   const [kalanSoru, setKalanSoru] = useState(SORU_SN);
@@ -134,6 +138,7 @@ export default function HizliModPage() {
   const cevapla = async (i) => {
     if (secim !== null || !oturum || !soru) return;
     setSecim(i);
+    if (i >= 0) { sesDokunus(); titret(10); }
     try {
       const { data, error } = await supabase.rpc("hizli_mod_cevap", {
         p_oturum_id: oturum.oturum_id,
@@ -145,10 +150,22 @@ export default function HizliModPage() {
       setSonucSoru(s);
       setSkor(s?.skor ?? skor);
       setKalanToplam(s?.kalan_toplam_sn ?? 0);
+      if (s?.dogru) {
+        sesDogru();
+        setSeri((x) => x + 1);
+      } else {
+        sesYanlis();
+        titret(30);
+        setSeri(0);
+        setSarsil(true);
+        setTimeout(() => setSarsil(false), 380);
+      }
+      // Hızlı modda pencere kısa: sunucu bir sonraki sorunun süresini CEVAP
+      // anında başlatıyor, 700 ms 1 sn'lik ağ payının içinde kalır.
       setTimeout(() => {
         if (s?.bitti) bitir(oturum.oturum_id);
         else soruGetir(oturum.oturum_id);
-      }, 450);
+      }, GB_HIZLI_MS);
     } catch (e) {
       setHata(hataMesaji(e, "Cevap gönderilemedi."));
     }
@@ -268,7 +285,8 @@ export default function HizliModPage() {
     const CEVRE = 2 * Math.PI * 20;
 
     return (
-      <div className="bd-hizli-oyun">
+      <div className={`bd-hizli-oyun ${sarsil ? "bd-sarsil" : ""}`}>
+        <CevapEfekti dogru={Boolean(sonucSoru?.dogru)} puan={0} seri={seri} />
         {/* 60 sn toplam çubuk */}
         <div className="bd-hizli-toplam">
           <div
@@ -300,7 +318,9 @@ export default function HizliModPage() {
               </span>
             </div>
 
-            <div className="bd-soru-metin">{soru.soru}</div>
+            <div className="bd-soru-metin bd-soru-giris" key={soru.soru_index}>
+              {soru.soru}
+            </div>
 
             <div className="bd-secenekler">
               {secenekler.map((s, i) => {

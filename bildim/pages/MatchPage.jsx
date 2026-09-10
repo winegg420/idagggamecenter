@@ -16,6 +16,7 @@ import SesliSohbet from "../components/SesliSohbet.jsx";
 import { useOyunModu } from "../lib/oyunModu.js";
 import { macBittiReklam } from "../lib/reklam.js";
 import { y } from "../lib/yol.js";
+import { GB_MS } from "../lib/geriBildirim.js";
 
 const MAC_SECIMI = `*,
   p1:profiles!matches_oyuncu1_fkey(id, gorunen_ad, gorunen_avatar),
@@ -214,7 +215,7 @@ export default function MatchPage() {
     if (error) throw error;
     setCevapladim(true);
     // Kendi sıramız sunucuda ilerledi; bir sonraki soruyu çekmek için tazele.
-    setTimeout(macYukle, 900);
+    setTimeout(macYukle, GB_MS);
     return data?.[0];
   };
 

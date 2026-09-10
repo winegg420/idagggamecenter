@@ -295,6 +295,8 @@ export default function HizliMacPage() {
           onSureDoldu={sureDoldu}
           macTur="hizli"
           macId={mac.id}
+          // "Hızlı Olan Kazanır"da soru başına puan yok — uçan rozet çizilmez
+          puanHesapla={null}
         />
       )}
 

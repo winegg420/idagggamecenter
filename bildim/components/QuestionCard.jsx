@@ -4,7 +4,9 @@ import { supabase } from "../../src/lib/supabase.js";
 import { kalanSure, sunucuOffsetMs } from "../lib/zaman.js";
 import JokerCubugu from "./JokerCubugu.jsx";
 import Konfeti from "./Konfeti.jsx";
-import { sesTik, sesSureDoldu, sesDogru, sesYanlis, sesKilidiAc } from "../lib/ses.js";
+import CevapEfekti from "./CevapEfekti.jsx";
+import { sesTik, sesSureDoldu, sesDogru, sesYanlis, sesDokunus, sesKilidiAc } from "../lib/ses.js";
+import { titret, macPuani } from "../lib/geriBildirim.js";
 
 const HARFLER = ["A", "B", "C", "D"];
 const SURE = 15;
@@ -26,12 +28,20 @@ export default function QuestionCard({
   macTur,
   macId,
   onPas,
+  // Kazanılan puanı uçan rozet olarak göstermek için. null verilirse rozet
+  // çizilmez (hızlı maçta soru başına puan yok — sahte sayı gösterilmez).
+  puanHesapla = macPuani,
 }) {
   const [kalan, setKalan] = useState(SURE);
   const [secim, setSecim] = useState(null);
   const [sonuc, setSonuc] = useState(null); // { dogru, dogru_cevap }
   const [oy, setOy] = useState(null);
   const [kapali, setKapali] = useState([]); // 50:50 ile elenen şıklar
+  // Geri bildirim penceresi: kazanılan puan + üst üste doğru serisi
+  const [puan, setPuan] = useState(0);
+  const [seri, setSeri] = useState(0);
+  const [sarsil, setSarsil] = useState(false);
+  const kalanRef = useRef(SURE);
   const sureDolduMu = useRef(false);
   const basiliTutTimer = useRef(null);
   // Ses: son 5 saniyede saniyede bir tik. Efekt içinden okunabilmesi için ref.
@@ -44,6 +54,8 @@ export default function QuestionCard({
     setSonuc(null);
     setOy(null);
     setKapali([]);
+    setPuan(0);
+    setSarsil(false);
     sureDolduMu.current = false;
     cevapVerildiRef.current = false;
     sonTikRef.current = null;
@@ -64,6 +76,7 @@ export default function QuestionCard({
     const tik = () => {
       const k = kalanSure(soru.baslangic, offset, SURE);
       setKalan(k);
+      if (!cevapVerildiRef.current) kalanRef.current = k;
       // Son 5 saniye: her tam saniyede bir tik sesi (cevap verildiyse susar)
       if (k > 0 && k <= 5 && !cevapVerildiRef.current) {
         const sn = Math.ceil(k);
@@ -88,13 +101,31 @@ export default function QuestionCard({
 
   const cevapla = async (i) => {
     if (secim !== null || kalan <= 0) return;
+    const kalanAn = kalanRef.current;
     setSecim(i);
     cevapVerildiRef.current = true;
+    // 0 ms: dokunma anı — kısa klik + 10 ms titreşim (şık CSS ile küçülür)
+    sesDokunus();
+    titret(10);
     try {
       const r = await onCevapla(i);
       if (r) {
         setSonuc(r);
-        if (r.dogru_cevap === i) sesDogru(); else sesYanlis();
+        const dogruMu = r.dogru_cevap === i;
+        // 120 ms: renk geri bildirimi CSS'te; ses ve seri burada
+        if (dogruMu) {
+          sesDogru();
+          setSeri((s) => s + 1);
+          if (puanHesapla) setPuan(puanHesapla(kalanAn, true));
+        } else {
+          sesYanlis();
+          titret(30);
+          setSeri(0);
+          setPuan(0);
+          // Yanlışta kart iki kez hafifçe sarsılır (±4px, 180 ms)
+          setSarsil(true);
+          setTimeout(() => setSarsil(false), 380);
+        }
       }
     } catch {
       // süre dolmuş olabilir; sonuç ekranı advance ile gelir
@@ -150,9 +181,11 @@ export default function QuestionCard({
 
   return (
     <div
-      className={`bd-soru ${dogruCevapVerdim ? "bd-dogru-cevap" : ""} ${yanlisCevapVerdim ? "bd-yanlis-cevap" : ""} ${sonDuzluk ? "bd-son-saniyeler" : ""}`}
+      key={`${soru.question_id}-${soru.soru_index}`}
+      className={`bd-soru bd-soru-giris ${dogruCevapVerdim ? "bd-dogru-cevap" : ""} ${yanlisCevapVerdim ? "bd-yanlis-cevap" : ""} ${sonDuzluk ? "bd-son-saniyeler" : ""} ${sarsil ? "bd-sarsil" : ""}`}
     >
       <Konfeti aktif={dogruCevapVerdim} />
+      <CevapEfekti dogru={dogruCevapVerdim} puan={puan} seri={seri} />
 
       {/* Son 5 saniye: kızaran kenarlar + ortada büyük geri sayım */}
       {sonDuzluk && (

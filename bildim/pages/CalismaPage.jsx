@@ -4,7 +4,9 @@ import KategoriIkon from "../components/KategoriIkon.jsx";
 import Maskot from "../components/Maskot.jsx";
 import Ikon from "../components/Ikon.jsx";
 import Konfeti from "../components/Konfeti.jsx";
-import { sesKilidiAc, sesTik, sesDogru, sesYanlis, sesKazandin } from "../lib/ses.js";
+import { sesKilidiAc, sesTik, sesDogru, sesYanlis, sesKazandin, sesDokunus } from "../lib/ses.js";
+import CevapEfekti from "../components/CevapEfekti.jsx";
+import { GB_MS, titret } from "../lib/geriBildirim.js";
 import { hataMesaji } from "../lib/hata.js";
 import { supabase } from "../../src/lib/supabase.js";
 import { kategoriEtiket, kategorileriSirala } from "../lib/kategoriler.js";
@@ -27,6 +29,8 @@ export default function CalismaPage() {
   const [soruSayisi, setSoruSayisi] = useState(10);
   const [oturum, setOturum] = useState(null);
   const [soru, setSoru] = useState(null);
+  const [seri, setSeri] = useState(0);
+  const [sarsil, setSarsil] = useState(false);
   const [secim, setSecim] = useState(null);
   const [sonucSoru, setSonucSoru] = useState(null);
   const [kalan, setKalan] = useState(SORU_SN);
@@ -139,6 +143,7 @@ export default function CalismaPage() {
   const cevapla = async (i) => {
     if (secim !== null || !oturum || !soru) return;
     setSecim(i);
+    if (i >= 0) { sesDokunus(); titret(10); }
     try {
       const { data, error } = await supabase.rpc("calisma_cevap", {
         p_oturum_id: oturum.oturum_id,
@@ -156,6 +161,14 @@ export default function CalismaPage() {
         sesDogru();
       } else {
         sesYanlis();
+        titret(30);
+      }
+      if (s?.dogru) {
+        setSeri((x) => x + 1);
+      } else {
+        setSeri(0);
+        setSarsil(true);
+        setTimeout(() => setSarsil(false), 380);
       }
       // Öğrenildi kutlaması için biraz daha uzun bekle
       setTimeout(
@@ -163,7 +176,7 @@ export default function CalismaPage() {
           if (s?.bitti) bitir(oturum.oturum_id);
           else soruGetir(oturum.oturum_id);
         },
-        s?.ogrenildi ? 1500 : 1100
+        s?.ogrenildi ? 1500 : GB_MS
       );
     } catch (e) {
       setHata(hataMesaji(e, "Cevap gönderilemedi."));
@@ -332,8 +345,10 @@ export default function CalismaPage() {
     }
 
     return (
-      <div className="bd-calisma-oyun">
+      <div className={`bd-calisma-oyun ${sarsil ? "bd-sarsil" : ""}`}>
         <Konfeti aktif={kutlama} />
+        {/* Çalışma modunda puan verilmez — uçan rozet yok, yalnız seri bandı */}
+        <CevapEfekti dogru={Boolean(sonucSoru?.dogru)} puan={0} seri={seri} />
 
         {/* Bu modun puansız olduğu her an görünür */}
         <div className="bd-calisma-serit">
@@ -367,7 +382,9 @@ export default function CalismaPage() {
               </span>
             </div>
 
-            <div className="bd-soru-metin">{soru.soru}</div>
+            <div className="bd-soru-metin bd-soru-giris" key={soru.soru_index}>
+              {soru.soru}
+            </div>
 
             <div className="bd-secenekler">
               {secenekler.map((s, i) => {
