@@ -2932,3 +2932,55 @@ body.bd-ekle-acik .app { padding-bottom: calc(300px + env(safe-area-inset-bottom
   .app .bd-vs-taraf.bd-nabiz img,
   .app .bd-vs-taraf.bd-nabiz > :first-child { animation: none; }
 }
+
+/* ============================================================
+   1v1 MAÇ İPTALİ
+   İptal düğmesi altın DEĞİL: sade, küçük, "Devam et"ten ayrık dursun ki
+   yanlışlıkla basılmasın. Onay penceresi zorunlu.
+   ============================================================ */
+.app .bd-mac-iptal {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  margin-left: var(--bd-b-2);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: var(--bd-r-m);
+  background: transparent;
+  color: var(--bd-metin-3);
+  box-shadow: none;
+}
+.app .bd-mac-iptal:active:not(:disabled) {
+  transform: scale(0.94);
+  color: var(--bd-hata);
+  border-color: rgba(232, 84, 63, 0.5);
+}
+.app .bd-mac-iptal:disabled { opacity: 0.5; }
+
+.app .bd-modal-baslik {
+  font-family: var(--bd-f-baslik);
+  font-size: var(--bd-t-l);
+  font-weight: 800;
+  margin-bottom: var(--bd-b-2);
+}
+.app .bd-modal-metin {
+  margin: 0 0 var(--bd-b-4);
+  font-size: var(--bd-t-govde);
+  font-weight: 500;
+  line-height: 1.5;
+  color: var(--bd-metin-2);
+}
+.app .bd-modal-metin.tehlike {
+  color: var(--bd-metin);
+  padding: var(--bd-b-3);
+  border-radius: var(--bd-r-m);
+  background: rgba(232, 84, 63, 0.14);
+  border: 1px solid rgba(232, 84, 63, 0.42);
+}
+.app .bd-modal-eylemler {
+  display: flex;
+  gap: var(--bd-b-2);
+  justify-content: flex-end;
+}

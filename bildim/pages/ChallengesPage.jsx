@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import KategoriIkon from "../components/KategoriIkon.jsx";
 import Ikon from "../components/Ikon.jsx";
+import Modal from "../components/Modal.jsx";
 import { hataMesaji } from "../lib/hata.js";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../../src/lib/supabase.js";
@@ -20,8 +21,8 @@ const SUREN_TAVAN = 200;  // güvenlik tavanı; pratikte hiç dolmaz
 const BITEN_LIMIT = 20;
 
 const MAC_SECIMI = `*,
-  p1:profiles!matches_oyuncu1_fkey(id, gorunen_ad, gorunen_avatar, puan),
-  p2:profiles!matches_oyuncu2_fkey(id, gorunen_ad, gorunen_avatar, puan)`;
+  p1:profiles!matches_oyuncu1_fkey(id, gorunen_ad, gorunen_avatar, puan, is_bot),
+  p2:profiles!matches_oyuncu2_fkey(id, gorunen_ad, gorunen_avatar, puan, is_bot)`;
 
 const GRUP_SECIMI = `*,
   katilimcilar:group_match_players(group_match_id, user_id, davet_durumu, skor,
@@ -116,6 +117,8 @@ export default function ChallengesPage() {
   const [hizliAcik, setHizliAcik] = useState(false);
   const [iptalEdilen, setIptalEdilen] = useState(null);
   const [iptalHata, setIptalHata] = useState(null);
+  // Onay bekleyen 1v1 iptali (maç nesnesi)
+  const [iptalSorulan, setIptalSorulan] = useState(null);
   const katSeritRef = useRef(null);
   const [seritSonda, setSeritSonda] = useState(false);
 
@@ -153,6 +156,68 @@ export default function ChallengesPage() {
       else await hizliYukle();
     } catch (e) {
       setIptalHata(hataMesaji(e, "Davet iptal edilemedi."));
+    } finally {
+      setIptalEdilen(null);
+    }
+  };
+
+  // ---------------------------------------------------------------- 1v1 iptal
+  // Onay penceresi ZORUNLU: başlamış bir maçta iptal = hükmen mağlubiyet.
+  // Sonucu sunucu belirler (mac_iptal); buradaki metin yalnız uyarıdır.
+  const iptalMetni = (m) => {
+    const rakipProfil = m.oyuncu1 === user.id ? m.p2 : m.p1;
+    const ad = oyuncuAdi(rakipProfil, m.oyuncu1 === user.id ? m.oyuncu2 : m.oyuncu1);
+    if (m.durum === "bekliyor") {
+      return {
+        baslik: "Daveti geri al",
+        metin: `${ad} henüz cevaplamadı. Daveti geri alırsan kimseye puan yazılmaz.`,
+        tehlike: false,
+      };
+    }
+    if (rakipProfil?.is_bot) {
+      return {
+        baslik: "Bot maçını iptal et",
+        metin: "Rakibin bir bot. İptal edersen puan değişmez, mağlubiyet yazılmaz.",
+        tehlike: false,
+      };
+    }
+    // "Başlamış" ölçütü: taraflardan biri en az bir soru ilerlemişse.
+    // Sunucudaki ölçüt cevap kaydıdır (match_answers); süre dolduğu için
+    // atlanan sorularda istemci uyarır ama sunucu sade iptal uygular —
+    // yani uyarı hep güvenli yönde, tersi asla olmaz.
+    const basladi = (m.oyuncu1_soru ?? 0) > 0 || (m.oyuncu2_soru ?? 0) > 0;
+    if (!basladi) {
+      return {
+        baslik: "Maçı iptal et",
+        metin: `Maç henüz başlamadı. İptal edersen iki tarafa da ceza yok.`,
+        tehlike: false,
+      };
+    }
+    return {
+      baslik: "Maçı iptal et",
+      metin: `Bu maçı iptal edersen yenik sayılırsın ve ${ad} kazanır. Emin misin?`,
+      tehlike: true,
+    };
+  };
+
+  const macIptalOnayla = async () => {
+    const m = iptalSorulan;
+    if (!m) return;
+    setIptalHata(null);
+    setIptalEdilen(m.id);
+    try {
+      const { data, error } = await supabase.rpc("mac_iptal", { p_match_id: m.id });
+      if (error) throw error;
+      const s = Array.isArray(data) ? data[0] : data;
+      setToast(
+        s?.sonuc === "hukmen"
+          ? "Maç iptal edildi — hükmen mağlup sayıldın."
+          : "Maç iptal edildi. Kimseye puan yazılmadı."
+      );
+      setIptalSorulan(null);
+      await yukle();
+    } catch (e) {
+      setIptalHata(hataMesaji(e, "Maç iptal edilemedi."));
     } finally {
       setIptalEdilen(null);
     }
@@ -955,6 +1020,17 @@ export default function ChallengesPage() {
                 <button className="btn kucuk" onClick={() => navigate(y(`/mac/${m.id}`))}>
                   {siraSende ? "Devam et" : "Gör"}
                 </button>
+                {/* İptal: altın DEĞİL, sade. Yanlışlıkla basılmasın diye
+                    "Devam et"ten ayrı ve küçük; onay penceresi zorunlu. */}
+                <button
+                  className="bd-mac-iptal"
+                  aria-label="Maçı iptal et"
+                  title="Maçı iptal et"
+                  disabled={iptalEdilen === m.id}
+                  onClick={() => setIptalSorulan(m)}
+                >
+                  <Ikon ad="carpi" boyut={15} />
+                </button>
               </div>
             );
           })}
@@ -971,10 +1047,54 @@ export default function ChallengesPage() {
                 <div className="isim">{m.p2?.gorunen_ad}</div>
                 <div className="detay">cevap bekleniyor…</div>
               </div>
+              <button
+                className="bd-mac-iptal"
+                aria-label="Daveti geri al"
+                title="Daveti geri al"
+                disabled={iptalEdilen === m.id}
+                onClick={() => setIptalSorulan(m)}
+              >
+                <Ikon ad="carpi" boyut={15} />
+              </button>
             </div>
           ))}
         </>
       )}
+
+      {/* 1v1 iptal onayı — hükmen mağlubiyet uyarısı burada verilir */}
+      {iptalSorulan && (() => {
+        const bilgi = iptalMetni(iptalSorulan);
+        return (
+          <Modal onKapat={() => setIptalSorulan(null)} etiket={bilgi.baslik}>
+            <div className="bd-modal">
+              <div className="bd-modal-baslik">{bilgi.baslik}</div>
+              <p className={`bd-modal-metin ${bilgi.tehlike ? "tehlike" : ""}`}>
+                {bilgi.metin}
+              </p>
+              {iptalHata && <div className="hata-kutu">{iptalHata}</div>}
+              <div className="bd-modal-eylemler">
+                <button
+                  className="btn kucuk ikincil"
+                  onClick={() => setIptalSorulan(null)}
+                >
+                  Vazgeç
+                </button>
+                <button
+                  className={`btn kucuk ${bilgi.tehlike ? "tehlike" : ""}`}
+                  disabled={iptalEdilen === iptalSorulan.id}
+                  onClick={macIptalOnayla}
+                >
+                  {iptalEdilen === iptalSorulan.id
+                    ? "İptal ediliyor…"
+                    : bilgi.tehlike
+                      ? "Evet, yenik say"
+                      : "İptal et"}
+                </button>
+              </div>
+            </div>
+          </Modal>
+        );
+      })()}
 
       {biten.length > 0 && (
         <>
