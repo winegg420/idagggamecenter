@@ -12,6 +12,8 @@ import { useGorunurlukTazele } from "../lib/gorunurluk.js";
 
 const HARFLER = ["A", "B", "C", "D"];
 const SURE = 15;
+// Atlama basarisiz olursa bu kadar bekleyip yeniden denenir (ag istek yagmuru olmasin).
+const YENIDEN_DENE_MS = 1500;
 
 /**
  * Ortak soru ekranı (turnuva + 1v1).
@@ -69,6 +71,7 @@ export default function QuestionCard({
     sureDolduMu.current = false;
     cevapVerildiRef.current = false;
     sonTikRef.current = null;
+    yenidenDeneRef.current = 0;
     clearTimeout(basiliTutTimer.current);
   }, [soru?.question_id, soru?.soru_index]);
 
@@ -95,11 +98,19 @@ export default function QuestionCard({
           sesTik(sn);
         }
       }
-      if (k <= 0 && !sureDolduMu.current) {
+      if (k <= 0 && !sureDolduMu.current && Date.now() >= yenidenDeneRef.current) {
         sureDolduMu.current = true;
-        clearInterval(id);
+        // Interval BİLEREK durdurulmuyor: atlama başarısız olursa kilit
+        // yeniden açılıyor ve sonraki tik işi tekrar deniyor. Eskiden burada
+        // clearInterval vardı; atlama sekme arka plandayken başarısız olunca
+        // ekran "Süre doldu" görüntüsünde sonsuza kadar donuyordu.
         if (cevapVerildiRef.current) {
-          onSureDoldu?.();
+          // Cevap verilmişti; ilerletme sayfada. Yine de başarısız olursa
+          // kilidi açıyoruz ki dönüşte yeniden denenebilsin.
+          Promise.resolve(onSureDoldu?.()).catch(() => {
+            sureDolduMu.current = false;
+            yenidenDeneRef.current = Date.now() + YENIDEN_DENE_MS;
+          });
           return;
         }
         // ZAMAN AŞIMI DA GERİ BİLDİRİM PENCERESİNDEN GEÇER.
@@ -119,14 +130,26 @@ export default function QuestionCard({
               setSonuc({ dogru: false, dogru_cevap: dc });
             }
           })
-          .catch(() => {
-            /* atlama başarısızsa da ekran donmasın; ilerletme sayfada */
+          .catch((e) => {
+            // ATLAMA BAŞARISIZ — ekranı donuk bırakma, yeniden denenebilir yap.
+            // Telefonda arka plana alınınca istek askıda kalıp reddediliyor;
+            // kilit kapalı kalsaydı oyuncu döndüğünde soru ne ilerler ne de
+            // yeniden denenirdi. Kilidi açıp kısa bir bekleme koyuyoruz ki
+            // 100 ms'lik tik ağı istek yağmuruna tutmasın.
+            console.error("[Bildim] soru atlanamadi, yeniden denenecek:", e);
+            sureDolduMu.current = false;
+            yenidenDeneRef.current = Date.now() + YENIDEN_DENE_MS;
+            setZamanAsimi(false);
+            setSecim(null);
           });
       }
     };
     tikRef.current = tik;
     tik();
-    if (!sureDolduMu.current) id = setInterval(tik, 100);
+    // Interval KOŞULSUZ kurulur. Eskiden "süre dolmadıysa" koşuluna bağlıydı:
+    // soru zaten süresi geçmiş gelirse (sekmeden dönüş) interval hiç kurulmuyor,
+    // atlama bir kez denenip başarısız olursa yeniden deneyecek tik kalmıyordu.
+    id = setInterval(tik, 100);
     return () => clearInterval(id);
   }, [soru, onSureDoldu]);
 

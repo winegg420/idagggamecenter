@@ -17,7 +17,7 @@ import { TEPKILER, tepkiIkonu } from "../lib/tepkiler.js";
 import MacYukleniyor from "../components/MacYukleniyor.jsx";
 import SesliSohbet from "../components/SesliSohbet.jsx";
 import { useOyunModu } from "../lib/oyunModu.js";
-import { useGorunurlukTazele } from "../lib/gorunurluk.js";
+import { useGorunurlukTazele, zamanAsimiyla } from "../lib/gorunurluk.js";
 import { macBittiReklam } from "../lib/reklam.js";
 import { y } from "../lib/yol.js";
 import { GB_MS } from "../lib/geriBildirim.js";
@@ -71,6 +71,9 @@ export default function MatchPage() {
   const advanceKilidi = useRef(false);
   const pollRef = useRef(null);
   const kanalRef = useRef(null);
+  // Kanal düştüğünde yeniden kurma zamanlayıcısı ve güncel kanalKur referansı
+  const yenidenBaglaRef = useRef(null);
+  const kanalKurRef = useRef(null);
   // Son yüklenen maç satırının imzası — yoklama aynı veriyi getirdiğinde
   // gereksiz yeniden çizimi engeller (bkz. macYukle).
   const macImzaRef = useRef(null);
@@ -176,10 +179,32 @@ export default function MatchPage() {
         { event: "INSERT", schema: "public", table: "match_messages", filter: `match_id=eq.${id}` },
         (payload) => balonGoster(payload.new.user_id, payload.new.mesaj)
       )
-      .subscribe();
+      // Kanal ölürse sessizce kalmasın: Realtime kopmasi (ag dalgalanmasi,
+      // uyku, arka plan) CHANNEL_ERROR/TIMED_OUT/CLOSED olarak bildirilir.
+      // Yoklama zaten veriyi getiriyor ama kanal geri kurulmazsa anlık
+      // güncellemeler (rakip skoru, mesaj) bir daha hiç gelmiyordu.
+      .subscribe((durum) => {
+        if (durum === "CHANNEL_ERROR" || durum === "TIMED_OUT" || durum === "CLOSED") {
+          console.warn("[Bildim] mac kanali dustu:", durum);
+          if (yenidenBaglaRef.current) clearTimeout(yenidenBaglaRef.current);
+          yenidenBaglaRef.current = setTimeout(() => {
+            if (kanalRef.current !== kanal) return; // baska kanal kurulmus
+            try {
+              supabase.removeChannel(kanal);
+              kanalKurRef.current?.();
+            } catch (e) {
+              console.error("[Bildim] kanal yeniden kurulamadi:", e);
+            }
+          }, 2000);
+        }
+      });
     kanalRef.current = kanal;
     return kanal;
   }, [id, balonGoster]);
+
+  // Kanal izleyicisi kanalKur'u çağırabilsin (kanalKur kendi tanımına
+  // referans veremediği için güncel hâli her render'da ref'e yazılır).
+  kanalKurRef.current = kanalKur;
 
   useEffect(() => {
     macYukle();
@@ -189,6 +214,7 @@ export default function MatchPage() {
     return () => {
       if (kanalRef.current) supabase.removeChannel(kanalRef.current);
       kanalRef.current = null;
+      if (yenidenBaglaRef.current) clearTimeout(yenidenBaglaRef.current);
       if (pollRef.current) clearInterval(pollRef.current);
     };
   }, [id, macYukle, kanalKur]);
@@ -285,15 +311,24 @@ export default function MatchPage() {
     if (advanceKilidi.current) return null;
     advanceKilidi.current = true;
     try {
-      const { data, error } = await supabase.rpc("mac_soruyu_atla", { p_match_id: id });
+      // Zaman aşımı şart: sekme arka plandayken açılan RPC soket koptuğu için
+      // ne çözülüyor ne reddediliyordu, kilit sonsuza kadar kapalı kalıyordu.
+      const { data, error } = await zamanAsimiyla(
+        supabase.rpc("mac_soruyu_atla", { p_match_id: id }),
+        10000,
+        "mac_soruyu_atla"
+      );
       if (error) throw error;
       setTimeout(macYukle, GB_MS);
       const satir = Array.isArray(data) ? data[0] : data;
       return satir?.dogru_cevap ?? null;
     } catch (e) {
+      // Kilidi AÇ: atlama olmadı, soru hâlâ sunucuda duruyor. Kapalı bırakılsaydı
+      // oyuncu sekmeden döndüğünde ne ilerleme ne yeniden deneme olurdu.
+      advanceKilidi.current = false;
       console.error("[Bildim] soru atlanamadi:", e);
-      setTimeout(macYukle, GB_MS);
-      return null;
+      macYukle();
+      throw e; // QuestionCard hatayı görüp kendi kilidini de açsın
     }
   }, [id, macYukle]);
 

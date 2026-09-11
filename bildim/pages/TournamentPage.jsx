@@ -10,7 +10,7 @@ import Countdown from "../components/Countdown.jsx";
 import YanlisSatiri from "../components/YanlisSatiri.jsx";
 import QuestionCard from "../components/QuestionCard.jsx";
 import Avatar from "../../src/components/Avatar.jsx";
-import { useGorunurlukTazele } from "../lib/gorunurluk.js";
+import { useGorunurlukTazele, zamanAsimiyla } from "../lib/gorunurluk.js";
 
 export default function TournamentPage() {
   const { user, refreshProfile } = useAuth();
@@ -20,7 +20,12 @@ export default function TournamentPage() {
   const [yukleniyor, setYukleniyor] = useState(true);
   const [hata, setHata] = useState(null);
   const advanceKilidi = useRef(false);
+  // Süre doldu ama ilerletme henüz başarılı olmadı mı? Dönüşte hemen denenir.
+  const bekleyenIlerletme = useRef(false);
   const kanalRef = useRef(null);
+  // Kanal düştüğünde yeniden kurma zamanlayıcısı ve güncel kanalKur referansı
+  const yenidenBaglaRef = useRef(null);
+  const kanalKurRef = useRef(null);
 
   const turnuvaYukle = useCallback(async () => {
     // error okunmazsa turnuva hiç yüklenmemiş gibi görünür ve sebebi
@@ -76,18 +81,41 @@ export default function TournamentPage() {
         { event: "*", schema: "public", table: "tournament_players" },
         () => turnuvaYukle()
       )
-      .subscribe();
+      // Kanal ölürse sessizce kalmasın: Realtime kopmasi (ag dalgalanmasi,
+      // uyku, arka plan) CHANNEL_ERROR/TIMED_OUT/CLOSED olarak bildirilir.
+      // Yoklama zaten veriyi getiriyor ama kanal geri kurulmazsa anlık
+      // güncellemeler (rakip skoru, mesaj) bir daha hiç gelmiyordu.
+      .subscribe((durum) => {
+        if (durum === "CHANNEL_ERROR" || durum === "TIMED_OUT" || durum === "CLOSED") {
+          console.warn("[Bildim] turnuva kanali dustu:", durum);
+          if (yenidenBaglaRef.current) clearTimeout(yenidenBaglaRef.current);
+          yenidenBaglaRef.current = setTimeout(() => {
+            if (kanalRef.current !== kanal) return; // baska kanal kurulmus
+            try {
+              supabase.removeChannel(kanal);
+              kanalKurRef.current?.();
+            } catch (e) {
+              console.error("[Bildim] kanal yeniden kurulamadi:", e);
+            }
+          }, 2000);
+        }
+      });
     kanalRef.current = kanal;
     return kanal;
   }, [turnuvaYukle]);
 
   // İlk yükleme + realtime
+  // Kanal izleyicisi kanalKur'u çağırabilsin (kanalKur kendi tanımına
+  // referans veremediği için güncel hâli her render'da ref'e yazılır).
+  kanalKurRef.current = kanalKur;
+
   useEffect(() => {
     turnuvaYukle();
     kanalKur();
     return () => {
       if (kanalRef.current) supabase.removeChannel(kanalRef.current);
       kanalRef.current = null;
+      if (yenidenBaglaRef.current) clearTimeout(yenidenBaglaRef.current);
     };
   }, [turnuvaYukle, kanalKur]);
 
@@ -95,6 +123,8 @@ export default function TournamentPage() {
   // Ortak soru saati olduğu için istemci ekstra atlama tetiklemez.
   useGorunurlukTazele(() => {
     turnuvaYukle();
+    // Arka planda setTimeout donduğu için bekleyen ilerletme burada çalışır.
+    if (bekleyenIlerletme.current) ilerletmeyiDene();
     try {
       if (kanalRef.current) supabase.removeChannel(kanalRef.current);
       kanalKur();
@@ -110,6 +140,7 @@ export default function TournamentPage() {
       return;
     }
     advanceKilidi.current = false;
+    bekleyenIlerletme.current = false;
     supabase
       .rpc("get_tournament_question", { p_tournament_id: turnuva.id })
       .then(({ data, error }) => {
@@ -134,16 +165,38 @@ export default function TournamentPage() {
     return data?.[0];
   };
 
+  // İlerletme: hata yutulmaz, kilit başarısızlıkta AÇILIR. Eskiden RPC'nin
+  // sonucuna hiç bakılmıyordu; sekme arka plandayken çağrı düşerse tur
+  // ilerlemiyor, advanceKilidi kapalı kaldığı için de yeniden denenmiyordu.
+  const ilerletmeyiDene = useCallback(async () => {
+    if (!turnuva) return;
+    try {
+      const { error } = await zamanAsimiyla(
+        supabase.rpc("advance_tournament", { p_tournament_id: turnuva.id }),
+        10000,
+        "advance_tournament"
+      );
+      if (error) throw error;
+      bekleyenIlerletme.current = false;
+      await turnuvaYukle();
+    } catch (e) {
+      console.error("[Bildim] turnuva ilerletilemedi, yeniden denenecek:", e);
+      advanceKilidi.current = false;
+      turnuvaYukle();
+    }
+  }, [turnuva, turnuvaYukle]);
+
+  // Süre dolunca ilerletme "bekleyen iş" olarak işaretlenir. Rastgele gecikme
+  // aynı anda yüzlerce istemcinin sunucuya yüklenmemesi için. setTimeout arka
+  // planda donduğundan dönüşte bekleyen iş gecikmesiz çalıştırılır.
   const sureDoldu = useCallback(() => {
     if (advanceKilidi.current || !turnuva) return;
     advanceKilidi.current = true;
-    // Aynı anda yüzlerce istemci çağırmasın diye küçük rastgele gecikme
+    bekleyenIlerletme.current = true;
     setTimeout(() => {
-      supabase.rpc("advance_tournament", { p_tournament_id: turnuva.id });
-      // Realtime kaçarsa emniyet: 3 sn sonra yeniden yükle
-      setTimeout(turnuvaYukle, 3000);
+      if (bekleyenIlerletme.current) ilerletmeyiDene();
     }, Math.random() * 1200 + 1100);
-  }, [turnuva, turnuvaYukle]);
+  }, [turnuva, ilerletmeyiDene]);
 
   const lobiyeKatil = async () => {
     setHata(null);

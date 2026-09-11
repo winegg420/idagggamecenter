@@ -1441,3 +1441,84 @@ sorular kapıdan geçiyor.
 scripti 472 soruda **0 hata** ve tüm kategorilerde dengeli dağılım raporladı.
 Ayrıca geçmişe kaydı unutulmuş `20260612000123` de `schema_migrations`'a
 eklendi (uygulanmıştı ama kayıtlı değildi; `db push` onu tekrar çalıştıracaktı).
+
+---
+
+## 11 Eylül 2026 (2) — Süre dolunca donma: asıl kök neden ve tam tarama
+
+**Şikâyet:** "Süre dolunca sayfa takıldı." Sabahki görünürlük düzeltmesi
+(oturum 1) yetmemiş.
+
+**ASIL KÖK NEDEN — iki kilit birden kapalı kalıyordu.** Sabahki düzeltme
+sekmeden dönüşte veriyi tazeliyordu ama kilitlere dokunmuyordu:
+
+1. `QuestionCard.sureDolduMu` — süre dolunca `true` olup `clearInterval`
+   çağırıyordu. Yalnız soru **değişince** sıfırlanıyordu.
+2. `MatchPage.advanceKilidi` (ve grup/hızlı/turnuva eşleri) — aynı şekilde.
+
+Donma zinciri (telefonda arka plan):
+- Arka planda süre doluyor → iki kilit de kapanıyor, interval durduruluyor
+- Atlama RPC'si gidiyor ama soket kopuk → **ne çözülüyor ne reddediliyor**
+  (Supabase isteği askıda kalıyor) ya da hata dönüyor
+- Hata yolundaki `.catch()` **boştu** → kilitler kapalı kalıyor
+- Oyuncu dönüyor: veri tazeleniyor ama sunucuda soru atlanmadığı için **aynı
+  soru** geliyor; soru değişmediğinden kilitler sıfırlanmıyor; interval de
+  durdurulmuştu → **ekran sonsuza kadar donuk**
+
+**Yapılan düzeltmeler:**
+
+- `lib/gorunurluk.js`:
+  - `useGorunurlukTazele` artık **üç** olay dinliyor: `visibilitychange`,
+    `focus`, **`pageshow`**. iOS Safari bfcache'ten dönerken çoğu zaman yalnız
+    `pageshow` üretiyor — tek olay dinlemek mobilde yetmiyordu. Üçü aynı anda
+    tetiklenebildiği için 250 ms'lik tekleme eklendi.
+  - Yeni `zamanAsimiyla(soz, ms, etiket)`: askıda kalan RPC'yi reddeder.
+    Askıda kalan istek, çağıran tarafı süresiz kilitli bıraktığı için donmanın
+    doğrudan sebebiydi.
+- `components/QuestionCard.jsx`:
+  - Atlama başarısız olursa `sureDolduMu` **geri açılıyor** + 1,5 sn bekleme
+    (`YENIDEN_DENE_MS`) konuyor ki 100 ms'lik tik ağı istek yağmuruna tutmasın.
+  - `clearInterval` kaldırıldı ve interval **koşulsuz** kuruluyor. Eskiden
+    "süre dolmadıysa" koşuluna bağlıydı: süresi geçmiş soru gelirse interval
+    hiç kurulmuyor, yeniden deneyecek tik kalmıyordu.
+- `MatchPage` / `GroupMatchPage` / `HizliMacPage` / `TournamentPage`:
+  - İlerletme RPC'leri `zamanAsimiyla` ile 10 sn'ye bağlandı.
+  - Başarısızlıkta `advanceKilidi` **açılıyor**; `MatchPage.sureDoldu` hatayı
+    yeniden fırlatıyor ki QuestionCard da kendi kilidini açsın.
+  - `bekleyenIlerletme` bayrağı: süre dolunca konur, ilerletme başarılı olunca
+    kalkar. `setTimeout` arka planda donduğu için sekmeden dönüşte bekleyen iş
+    **gecikmeyi beklemeden** çalıştırılır.
+  - Grup/hızlı sayfalarındaki `ilerletmeyiDene`'nin **`.catch()`'i bile yoktu**.
+  - `.subscribe()` dönüşü artık denetleniyor: `CHANNEL_ERROR`/`TIMED_OUT`/
+    `CLOSED` gelirse 2 sn sonra kanal yeniden kuruluyor. (patirun ve driftgp
+    bunu zaten yapıyordu, bildim yapmıyordu.)
+- `CalismaPage`: sayaç `Date.now()` tabanlı olduğu için kendiliğinden
+  toparlanıyordu ama dönüşte ilk tiki bekliyordu; tazeleme eklendi.
+
+**Diğer modüllerin taraması (hepsi kontrol edildi):**
+
+| modül | delta clamp | görünürlük | realtime kopması |
+|---|---|---|---|
+| bildim | zamanlayıcı tabanlı | ✓ (bu oturumda) | ✓ (bu oturumda) |
+| kafatopu | ✓ 250 ms | ✓ + 200 ms kalp atışı yedeği | — |
+| patirun | ✓ 0,05 sn | ✗ yok | ✓ zaten var |
+| driftgp | ✓ 1/20 sn (`stepCar`) | ✗ yok | ✓ zaten var |
+| meyvekes | ✓ 0,05 sn | ✓ var | yok (tek oyunculu) |
+| boks | ✓ 0,1 sn | ✓ var | yok |
+| run | ✓ `MAKS_DT` | ✓ var | yok |
+| gladius | ✓ `MAKS_DT` | ✗ (DEMO) | yok |
+
+**Sonuç:** oyun motorlarının tamamında delta sınırı zaten vardı — arka plandan
+dönüşte fizik patlaması riski yok. Donma yalnız bildim'in maç akışındaydı.
+
+**Kalan bilinen açık (düzeltilmedi, kullanıcı kararı bekliyor):** patirun ve
+driftgp'de arka planda geçen süre yarışta "kayıp" sayılıyor; oyuncu geri
+dönünce yarış kaldığı yerden sürüyor ama arkada kalmış oluyor. Multiplayer
+adaleti açısından sorun, ama donma değil ve düzeltmesi yarış motoruna dokunmayı
+gerektiriyor.
+
+**Doğrulama:** `npm run build` hatasız; donma senaryosu izole testle doğrulandı
+(eski kod donuyor, yeni kod dönüşte ilerliyor); `zamanAsimiyla` tarayıcıda
+sınandı (askıda kalan söz reddedildi, normal söz çözüldü); üç-olay tekleme
+tarayıcıda doğrulandı (üç olay → tek tazeleme, 300 ms sonra yeni dönüş → yeni
+tazeleme); sayfa konsolunda hata yok.

@@ -13,7 +13,7 @@ import { useAuth } from "../../src/context/AuthContext.jsx";
 import Avatar from "../../src/components/Avatar.jsx";
 import QuestionCard from "../components/QuestionCard.jsx";
 import { y } from "../lib/yol.js";
-import { useGorunurlukTazele } from "../lib/gorunurluk.js";
+import { useGorunurlukTazele, zamanAsimiyla } from "../lib/gorunurluk.js";
 
 const GRUP_SECIMI = `*,
   katilimcilar:group_match_players(group_match_id, user_id, davet_durumu, skor, joined_at,
@@ -49,8 +49,13 @@ export default function GroupMatchPage() {
   const [balonlar, setBalonlar] = useState({}); // { [user_id]: mesaj }
   const [kaliplarAcik, setKaliplarAcik] = useState(false);
   const advanceKilidi = useRef(false);
+  // Süre doldu ama ilerletme henüz başarılı olmadı mı? Dönüşte hemen denenir.
+  const bekleyenIlerletme = useRef(false);
   const pollRef = useRef(null);
   const kanalRef = useRef(null);
+  // Kanal düştüğünde yeniden kurma zamanlayıcısı ve güncel kanalKur referansı
+  const yenidenBaglaRef = useRef(null);
+  const kanalKurRef = useRef(null);
   // Maç bitişinde sonuç ekranından önce 0.8 sn'lik "Maç bitti!" perdesi
   const [gecisBitti, setGecisBitti] = useState(false);
   const balonTimer = useRef({});
@@ -149,10 +154,32 @@ export default function GroupMatchPage() {
         { event: "INSERT", schema: "public", table: "group_match_messages", filter: `group_match_id=eq.${id}` },
         (payload) => balonGoster(payload.new.user_id, payload.new.mesaj)
       )
-      .subscribe();
+      // Kanal ölürse sessizce kalmasın: Realtime kopmasi (ag dalgalanmasi,
+      // uyku, arka plan) CHANNEL_ERROR/TIMED_OUT/CLOSED olarak bildirilir.
+      // Yoklama zaten veriyi getiriyor ama kanal geri kurulmazsa anlık
+      // güncellemeler (rakip skoru, mesaj) bir daha hiç gelmiyordu.
+      .subscribe((durum) => {
+        if (durum === "CHANNEL_ERROR" || durum === "TIMED_OUT" || durum === "CLOSED") {
+          console.warn("[Bildim] grup mac kanali dustu:", durum);
+          if (yenidenBaglaRef.current) clearTimeout(yenidenBaglaRef.current);
+          yenidenBaglaRef.current = setTimeout(() => {
+            if (kanalRef.current !== kanal) return; // baska kanal kurulmus
+            try {
+              supabase.removeChannel(kanal);
+              kanalKurRef.current?.();
+            } catch (e) {
+              console.error("[Bildim] kanal yeniden kurulamadi:", e);
+            }
+          }, 2000);
+        }
+      });
     kanalRef.current = kanal;
     return kanal;
   }, [id, macYukle, balonGoster]);
+
+  // Kanal izleyicisi kanalKur'u çağırabilsin (kanalKur kendi tanımına
+  // referans veremediği için güncel hâli her render'da ref'e yazılır).
+  kanalKurRef.current = kanalKur;
 
   useEffect(() => {
     macYukle();
@@ -160,6 +187,7 @@ export default function GroupMatchPage() {
     return () => {
       if (kanalRef.current) supabase.removeChannel(kanalRef.current);
       kanalRef.current = null;
+      if (yenidenBaglaRef.current) clearTimeout(yenidenBaglaRef.current);
       if (pollRef.current) clearInterval(pollRef.current);
     };
   }, [id, macYukle, kanalKur]);
@@ -169,6 +197,8 @@ export default function GroupMatchPage() {
   // aktif_soru neyse oradan devam edilir.
   useGorunurlukTazele(() => {
     macYukle();
+    // Arka planda setTimeout donduğu için bekleyen ilerletme burada çalışır.
+    if (bekleyenIlerletme.current) ilerletmeyiDene();
     try {
       if (kanalRef.current) supabase.removeChannel(kanalRef.current);
       kanalKur();
@@ -184,6 +214,7 @@ export default function GroupMatchPage() {
       return;
     }
     advanceKilidi.current = false;
+    bekleyenIlerletme.current = false;
     setCevapladim(false);
     if (pollRef.current) clearInterval(pollRef.current);
     supabase
@@ -201,8 +232,25 @@ export default function GroupMatchPage() {
     }
   }, [mac?.durum, refreshProfile, user.id]);
 
-  const ilerletmeyiDene = useCallback(() => {
-    supabase.rpc("advance_group_match", { p_group_match_id: id }).then(() => macYukle());
+  // İlerletme: hata yutulmaz, kilit başarısızlıkta AÇILIR.
+  // Eskiden .catch() bile yoktu; sekme arka plandayken RPC düşünce ilerleme
+  // hiç olmuyor, advanceKilidi kapalı kaldığı için de bir daha denenmiyordu —
+  // oyuncu döndüğünde ekran donuk kalıyordu.
+  const ilerletmeyiDene = useCallback(async () => {
+    try {
+      const { error } = await zamanAsimiyla(
+        supabase.rpc("advance_group_match", { p_group_match_id: id }),
+        10000,
+        "advance_group_match"
+      );
+      if (error) throw error;
+      bekleyenIlerletme.current = false;
+      await macYukle();
+    } catch (e) {
+      console.error("[Bildim] ilerletme basarisiz, yeniden denenecek:", e);
+      advanceKilidi.current = false; // yeniden denenebilsin
+      macYukle();
+    }
   }, [id, macYukle]);
 
   const cevapla = async (i) => {
@@ -217,10 +265,17 @@ export default function GroupMatchPage() {
     return data?.[0];
   };
 
+  // Süre dolunca ilerletme "bekleyen iş" olarak işaretlenir. Gecikme, aynı anda
+  // yüzlerce istemcinin sunucuya yüklenmemesi için (mevcut davranış). Ama
+  // setTimeout arka planda donduğundan, sekmeden dönüşte bekleyen iş varsa
+  // gecikmeyi beklemeden çalıştırılır (bkz. useGorunurlukTazele).
   const sureDoldu = useCallback(() => {
     if (advanceKilidi.current) return;
     advanceKilidi.current = true;
-    setTimeout(ilerletmeyiDene, Math.random() * 800 + 1000);
+    bekleyenIlerletme.current = true;
+    setTimeout(() => {
+      if (bekleyenIlerletme.current) ilerletmeyiDene();
+    }, Math.random() * 800 + 1000);
   }, [ilerletmeyiDene]);
 
   const cevapVer = async (kabul) => {

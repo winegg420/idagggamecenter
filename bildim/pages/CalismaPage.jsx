@@ -11,6 +11,7 @@ import { hataMesaji } from "../lib/hata.js";
 import { supabase } from "../../src/lib/supabase.js";
 import { kategoriEtiket, kategorileriSirala } from "../lib/kategoriler.js";
 import { y } from "../lib/yol.js";
+import { useGorunurlukTazele } from "../lib/gorunurluk.js";
 
 const SORU_SN = 20;
 const HARFLER = ["A", "B", "C", "D"];
@@ -43,6 +44,8 @@ export default function CalismaPage() {
   const soruBaslangicRef = useRef(Date.now());
   const bittiRef = useRef(false);
   const sonTikRef = useRef(null);
+  // Sayaç tiki: sekmeden dönüşte elle tetiklenebilsin.
+  const tikRef = useRef(null);
 
   useEffect(() => {
     sesKilidiAc();
@@ -186,7 +189,7 @@ export default function CalismaPage() {
   // ---------- Süre sayacı ----------
   useEffect(() => {
     if (asama !== "oyun" || !soru || secim !== null) return;
-    const id = setInterval(() => {
+    const tik = () => {
       const gecen = (Date.now() - soruBaslangicRef.current) / 1000;
       const k = Math.max(0, SORU_SN - gecen);
       setKalan(k);
@@ -199,9 +202,16 @@ export default function CalismaPage() {
       } else if (k > 3) {
         sonTikRef.current = null;
       }
-    }, 100);
+    };
+    tikRef.current = tik;
+    const id = setInterval(tik, 100);
     return () => clearInterval(id);
   }, [asama, soru, secim]);
+
+  // Sekmeden dönünce sayacı beklemeden senkronla. Sayaç zaten Date.now()
+  // tabanlı olduğu için değer doğru; eksik olan, arka planda donan
+  // interval'in ilk tikini beklemeden ekranı güncellemek.
+  useGorunurlukTazele(() => { tikRef.current?.(); }, asama === "oyun");
 
   // Süre dolunca yanlış say ve ilerle
   useEffect(() => {
