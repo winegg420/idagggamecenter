@@ -142,6 +142,11 @@ export default function Layout() {
         <NavLink to={y("/joker")} className={({ isActive }) => (isActive ? "aktif" : "")}>
           <span className="ikon"><Ikon ad="yildiz" boyut={26} /></span>Dükkân
         </NavLink>
+        {/* Meydan (3B buluşma alanı) — sahne lazy yüklenir, sekmeye basılmadan
+            three.js inmez. Altıncı sekme; boyutlar CSS'te daraltıldı. */}
+        <NavLink to={y("/harita")} className={({ isActive }) => (isActive ? "aktif" : "")}>
+          <span className="ikon"><Ikon ad="haritaPini" boyut={26} /></span>Harita
+        </NavLink>
         {/* Oyun portalı sekmesi yalnız hub derlemesinde anlamlı: Quizador'un
             kendi sitesinde "/" zaten Ana Sayfa olduğundan sekme kendini
             tekrar ediyordu. Ayrıca "end" olmadığı için NavLink her yolla

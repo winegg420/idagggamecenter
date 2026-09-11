@@ -1634,3 +1634,54 @@ gerçek 390 px viewport'ta (iframe) yatay kaydırma yok.
 biçiminde **0-1** aralığında dönüyor. Bu yüzden rütbe çipleri "koyu" diye
 işaretlendi ama gerçekte açıklar. Testin `color(` ile başlayan değerleri 255 ile
 çarpan sürümü kullanıldı.
+
+---
+
+## 11 Eylül 2026 (5) — Quizador Meydanı: 3B çok oyunculu buluşma alanı
+
+Yeni bölüm **Harita** (`bildim/harita/`, rehber: o klasördeki `CLAUDE.md`).
+Referans `QUIZADOR_MEYDAN_REFERANS.html` sahnesi düz three.js ile birebir
+taşındı; görev `QUIZADOR_MEYDAN_GOREV.md` FAZ 1-7 tek seferde yapıldı.
+**Veritabanı değişikliği yok; migration/RPC yok; mevcut ekranlar değişmedi.**
+
+**Eklenen:** `HaritaSayfasi.jsx`, `dunya.js`, `kontrol.js`, `coklu.js`,
+`renk.js`, `harita.css`. Değişen: `Layout.jsx` (Harita sekmesi), `App.jsx` +
+`BildimApp.jsx` (birer lazy route satırı), `tema.css` (6/7 sekme daraltması).
+
+**Chunk:** `HaritaSayfasi` 22,2 kB (gzip 8,8) + `harita.css` 4,6 kB;
+`three.module` 733,7 kB (gzip 189,8) ayrı chunk, yalnız lazy rotalarda iniyor
+(driftgp ile ortak). İlk açılış paketlerinde `WebGLRenderer` yok — doğrulandı.
+
+**Doğrulama (dev sunucu + tarayıcı):**
+- Gerçek uygulamada misafir girişiyle: Harita'ya girmeden three/harita chunk'ı
+  yüklenmedi; `/bildim/harita`'da canvas + HUD, sekme çubuğu gizli, "2 kişi
+  burada" (gerçek anonim kullanıcı, test sekmesindeki oyuncuyu gördü), konsol temiz.
+- İki sekme iki oyuncu (`.tmp/harita-test`): presence iki yönde (2 kişi →
+  3 kişi), konum iki yönde alındı ve uzak avatar hedefe lerp ile yakınsadı
+  (B→A `(0, 6,6)` — havuz sınırında durdu, çarpışma doğru; A→B `(7,74, 10,11)`),
+  emoji karşı tarafta göründü.
+- Çıkıp-girme: canvas 1→0→1, sahne nesnesi 166→166, uzak 1→1 — çoğalma yok.
+- Gizli sekmeden konum yayını gitmiyor (kural çalışıyor).
+- 390 px: HUD taşmıyor (topuz sağ alt, emojiler sol alt, hap sağ üst); sekme
+  çubuğu hub derlemesinde 7 sekme × 55 px, etiket taşması yok.
+- Düşük donanım (`?dusuk=1`): gölge kapalı, 30 nesne eksik (13 ağaç + 17 çalı).
+- **Kare maliyeti:** 3,6 ms/kare (16 çekirdekli masaüstü) ≈ 277 FPS tavanı.
+  Orta seviye Android **ölçülmedi** — sahibi telefonda denemeli.
+
+**Yol boyunca çıkan üç şey:**
+1. **three r128 → 0.185 ışık farkı:** yeni sürümde ışıklar fiziksel birim;
+   referans yoğunlukları `π` ile çarpılmasa sahne karanlık çıkıyordu.
+2. **Gerçek hata (bulunup düzeltildi):** `coklu.js`'te "ilk paket hemen gitsin"
+   diye `sonPoz` NaN tutuluyordu; `Math.abs(x - NaN) > 0.01` her zaman false →
+   **hiç konum paketi gitmiyordu.** Testte presence/emoji geçip konum
+   geçmeyince yakalandı; `Number.isFinite` kontrolü eklendi.
+3. **Otomasyon sekmesi hep "gizli":** Chrome RAF'ı durdurdu, sayfa "hazırlanıyor"
+   perdesinde kaldı. Test sayfasına `__test.tick(dt, n)` kancası eklendi;
+   ürün davranışı (gizliyken render/yayın yok) doğru ve korundu.
+
+**Not:** test sırasında 3 anonim (misafir) hesap açıldı (`test_a/b/c`);
+istenirse Supabase Auth panelinden silinebilir. Ayrıca önceki oturumda
+"misafir girişi Supabase'de kapalı" sanılmıştı — değilmiş; `signInAnonymously`
+çalışıyor, o gün butona ref ile tıklama React'e ulaşmamıştı.
+
+**Push edilmedi** (görev metni: "main'e push etme, deploy etme — bitince bildir").

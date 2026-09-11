@@ -32,6 +32,8 @@ const DavetPage = lazy(() => import("../bildim/pages/DavetPage.jsx"));
 const JokerDukkani = lazy(() => import("../bildim/pages/JokerDukkani.jsx"));
 const HizliModPage = lazy(() => import("../bildim/pages/HizliModPage.jsx"));
 const CalismaPage = lazy(() => import("../bildim/pages/CalismaPage.jsx"));
+// Meydan (3B): three.js yalniz bu rotaya girilince iner (ayri chunk)
+const HaritaSayfasi = lazy(() => import("../bildim/harita/HaritaSayfasi.jsx"));
 // Yasal metinler giriş duvarının ÖNÜNDE olmalı (Play Store + reklam ağları).
 const GizlilikPage = lazy(() => import("../bildim/pages/GizlilikPage.jsx"));
 const KosullarPage = lazy(() => import("../bildim/pages/KosullarPage.jsx"));
@@ -104,6 +106,7 @@ export default function BildimApp() {
           <Route path="joker" element={<JokerDukkani />} />
           <Route path="hizli-mod" element={<HizliModPage />} />
           <Route path="calisma" element={<CalismaPage />} />
+          <Route path="harita" element={<HaritaSayfasi />} />
           <Route path="profil" element={<ProfilePage />} />
         </Route>
 

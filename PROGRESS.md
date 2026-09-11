@@ -3453,3 +3453,14 @@ tarayıcı eklentisinden) · Supabase anahtarı (`sb_publishable_…`) canlıda
 doğrulandı — anonim RPC çağrısı "permission denied" döndü, yani anahtar geçerli
 ve sunucuya ulaşıyor · davet linkleri `window.location.origin` kullanıyor, yani
 vercel'den paylaşan vercel linki paylaşıyor.
+
+---
+
+## 11 Eylül 2026 — Quizador Meydanı (3B harita) eklendi
+
+Bildim'e **Harita** sekmesi: three.js ile 3B meydan, Supabase Realtime
+presence + broadcast ile canlı çok oyunculu (konum 8/sn, lerp; emoji 2 sn/1).
+İzole modül `bildim/harita/`, lazy route — three.js yalnız girince iniyor
+(733 kB / gzip 190 kB ayrı chunk). DB değişikliği yok. Ayrıntı ve test
+sonuçları: `bildim/PROGRESS.md` (11 Eylül (5)) ve `bildim/harita/CLAUDE.md`.
+Commit edildi, **push edilmedi** — sahibinin onayını bekliyor.

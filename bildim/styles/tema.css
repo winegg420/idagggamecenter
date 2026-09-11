@@ -4672,3 +4672,20 @@ body.bd-ekle-acik .app { padding-bottom: calc(300px + env(safe-area-inset-bottom
 .bd-zil-baslik { color: var(--bd-metin); font-family: var(--bd-f-baslik); font-weight: 800; }
 .bd-zil-bos { color: var(--bd-metin-2); }
 .bd-zil-ortu { background: rgba(32, 50, 74, 0.35); }
+
+/* ============================================================
+   ALT SEKME — 6 sekme (Harita eklendi)
+   Beş sekmeye göre ayarlanan 10,5 px etiket + 26 px ikon altıncı sekmeyle
+   390 px'te taşıyordu; ikon ve etiket bir kademe daraltıldı. Hub
+   derlemesinde 7 sekme (Merkez) olduğu için ölçüler ona göre de sığar.
+   ============================================================ */
+.app .tabbar { padding-left: 2px; padding-right: 2px; }
+.app .tabbar a {
+  font-size: 9.5px;
+  padding: 4px 1px;
+  gap: 2px;
+  letter-spacing: -0.01em;
+  min-width: 0;
+  flex: 1 1 0;
+}
+.app .tabbar a .ikon svg { width: 22px; height: 22px; }
