@@ -4,8 +4,15 @@
 // bildirim penceresini kullanır. Süreler ve yardımcılar tek yerde dursun ki
 // bir ekranda düzeltilen davranış diğerlerinde eskimesin.
 
-/** Standart geri bildirim penceresi (ms). Cevaptan sonraki soru gelene kadar. */
-export const GB_MS = 1400;
+/**
+ * Standart geri bildirim penceresi (ms): cevaptan sonra doğru/yanlış bu kadar
+ * ekranda kalır, sonra bir sonraki soru gelir.
+ *
+ * 1400 idi; bota karşı oynarken bot anında cevapladığı için soru neredeyse
+ * hemen geçiyor, oyuncu doğru mu yanlış mı yaptığını göremiyordu. Sahibinin
+ * isteği: "2 sn göreyim".
+ */
+export const GB_MS = 2000;
 
 /**
  * Hızlı modlarda pencere kısadır: soru başına 5 sn var ve sunucu bir sonraki

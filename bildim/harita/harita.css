@@ -259,36 +259,77 @@ body.bd-harita-acik { overflow: hidden; }
 .bd-harita-yuvarlak.kus { font-size: 17px; }
 .bd-harita-yuvarlak:active { transform: translateY(3px); box-shadow: 0 1px 0 var(--bd-kart-alt); }
 
-/* ---- dans düğmesi ve tepsisi ---- */
-.bd-harita-emoji.dans { font-size: 22px; }
-.bd-harita-emoji.dans.acik {
-  background: linear-gradient(180deg, var(--bd-vurgu-acik), var(--bd-vurgu));
-  box-shadow: 0 4px 0 var(--bd-vurgu-2);
+/* ---- DANS ----
+   Emoji sırasının içindeki 💃 kaldırıldı: oyuncu onu emoji sanıyordu.
+   Dans emoji değil, karakterin kendisi oynuyor — ayrı ve adı yazan düğme. */
+.bd-harita-sol-dugmeler {
+  display: flex; flex-direction: column; align-items: flex-start; gap: 8px;
+  min-width: 0;
 }
-/* Tepsi akışın DIŞINDA: alt çubuk emoji + topuz düzenini bozmasın */
-.bd-harita-dans-tepsi {
-  position: absolute; left: 18px; bottom: 100%;
-  display: flex; flex-wrap: wrap; gap: 7px;
-  max-width: min(62vw, 320px);
-  margin-bottom: 8px;
-}
-.bd-harita-dans,
-.bd-harita-dans-bos {
+.bd-harita-dans-ac {
   border: 0; cursor: pointer;
+  display: inline-flex; align-items: center; gap: 6px;
+  background: linear-gradient(180deg, #C08BF5, #A855F7);
+  box-shadow: 0 4px 0 #7B3FBF;
+  color: #fff;
+  border-radius: 14px; padding: 9px 15px;
+  font-family: var(--bd-f-baslik); font-weight: 900; font-size: 15px;
+  text-shadow: 0 2px 0 rgba(0, 0, 0, 0.22);
+  transition: transform 0.08s ease, box-shadow 0.08s ease;
+}
+.bd-harita-dans-ac span { font-size: 18px; line-height: 1; }
+.bd-harita-dans-ac:active,
+.bd-harita-dans-ac.acik { transform: translateY(3px); box-shadow: 0 1px 0 #7B3FBF; }
+
+/* Panel: HUD'un üstünde ayrı katman, alt çubuğun düzeninden bağımsız */
+.bd-harita-dans-panel {
+  position: absolute; z-index: 8;
+  left: 14px; right: 14px; bottom: 96px;
+  max-width: 420px; margin: 0 auto;
   background: var(--bd-yuzey-1);
-  box-shadow: 0 4px 0 var(--bd-kart-alt);
-  border-radius: 13px; padding: 8px 13px;
-  font-family: var(--bd-f-baslik); font-weight: 800; font-size: 14px;
+  border-radius: 18px;
+  box-shadow: 0 6px 0 var(--bd-kart-alt), 0 12px 28px rgba(32, 50, 74, 0.22);
+  padding: 12px 14px 14px;
+}
+.bd-harita-dans-panel-ust {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 10px;
+}
+.bd-harita-dans-panel-ust b {
+  font-family: var(--bd-f-baslik); font-size: 17px; color: var(--bd-metin);
+}
+.bd-harita-dans-kapat {
+  border: 0; background: var(--bd-yuzey-2); color: var(--bd-metin-2);
+  width: 30px; height: 30px; border-radius: 50%;
+  font-size: 14px; font-weight: 900; cursor: pointer; line-height: 1; padding: 0;
+}
+.bd-harita-dans-liste {
+  display: flex; flex-wrap: wrap; gap: 8px;
+  max-height: 42vh; overflow-y: auto;
+}
+.bd-harita-dans {
+  border: 0; cursor: pointer;
+  background: var(--bd-yuzey-3, var(--bd-yuzey-2));
+  box-shadow: 0 3px 0 var(--bd-kart-alt);
+  border-radius: 13px; padding: 9px 14px;
+  font-family: var(--bd-f-baslik); font-weight: 800; font-size: 14.5px;
   color: var(--bd-metin);
   transition: transform 0.08s ease, box-shadow 0.08s ease;
 }
-.bd-harita-dans:active,
-.bd-harita-dans-bos:active { transform: translateY(3px); box-shadow: 0 1px 0 var(--bd-kart-alt); }
-.bd-harita-dans-bos { font-size: 13px; color: var(--bd-metin-2); }
+.bd-harita-dans:active { transform: translateY(3px); box-shadow: 0 1px 0 var(--bd-kart-alt); }
+.bd-harita-dans-bos {
+  display: block; width: 100%; margin-top: 10px;
+  border: 0; cursor: pointer; background: none;
+  font-family: var(--bd-f-govde); font-weight: 800; font-size: 13px;
+  color: var(--bd-vurgu);
+  text-align: left; padding: 2px 0;
+}
 
 @media (max-width: 520px) {
   .bd-harita-zum { bottom: 132px; }
   .bd-harita-yuvarlak { width: 36px; height: 36px; font-size: 19px; }
+  .bd-harita-dans-panel { bottom: 88px; }
+  .bd-harita-dans-ac { font-size: 14px; padding: 8px 13px; }
 }
 
 @media (orientation: landscape) and (max-height: 520px) {
@@ -296,8 +337,16 @@ body.bd-harita-acik { overflow: hidden; }
   .bd-harita-zum { flex-direction: row; bottom: 8px; right: 116px; }
   .bd-harita-yuvarlak { width: 32px; height: 32px; font-size: 17px; box-shadow: 0 3px 0 var(--bd-kart-alt); }
   .bd-harita-yuvarlak.kus { font-size: 14px; }
-  .bd-harita-dans-tepsi { left: 14px; max-width: min(52vw, 300px); gap: 5px; margin-bottom: 6px; }
-  .bd-harita-dans, .bd-harita-dans-bos { padding: 6px 10px; font-size: 12.5px; }
+  /* Yatayda panel dar ve alçak: sahne tamamen kapanmasın */
+  .bd-harita-dans-panel {
+    left: 14px; right: auto; bottom: 52px;
+    width: min(62vw, 360px); padding: 9px 11px 11px;
+  }
+  .bd-harita-dans-liste { max-height: 34vh; gap: 5px; }
+  .bd-harita-dans { padding: 6px 10px; font-size: 12.5px; }
+  .bd-harita-dans-ac { font-size: 12.5px; padding: 6px 11px; }
+  .bd-harita-dans-ac span { font-size: 15px; }
+  .bd-harita-sol-dugmeler { flex-direction: row; align-items: center; gap: 6px; }
 }
 
 @media (orientation: landscape) and (max-height: 400px) {
@@ -305,5 +354,5 @@ body.bd-harita-acik { overflow: hidden; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .bd-harita-yuvarlak, .bd-harita-dans, .bd-harita-dans-bos { transition: none; }
+  .bd-harita-yuvarlak, .bd-harita-dans, .bd-harita-dans-ac { transition: none; }
 }

@@ -52,8 +52,13 @@ export function meydanBaglan(o) {
   // Konum yayını için son gönderilen değer + zaman
   let sonPoz = { x: NaN, z: NaN, y: NaN };
   let sonPozZamani = 0;
-  let sonEmojiZamani = 0;
-  let sonDansZamani = 0;
+  // DİKKAT — başlangıç değeri 0 DEĞİL. Hız sınırı performance.now() ile
+  // ölçülüyor ve o sayaç sayfa açılışında 0'dan başlıyor; 0 yazılırsa
+  // "son gönderim sayfa açılışında oldu" sayılıyor ve oyuncunun İLK dansı
+  // (6.5 sn) ile ilk emojisi (2 sn) sessizce yutuluyordu. Meydana girip
+  // hemen dans düğmesine basan oyuncu "hiçbir şey olmuyor" diyordu.
+  let sonEmojiZamani = -Infinity;
+  let sonDansZamani = -Infinity;
   // Uzak oyuncuların emoji/dans hızı (kötü niyetli spam sahneyi boğmasın)
   const uzakEmojiZamani = new Map();
   const uzakDansZamani = new Map();

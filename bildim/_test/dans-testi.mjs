@@ -20,7 +20,7 @@ function sahteAvatar() {
   return g;
 }
 
-const kodlar = ["dns_01", "dns_02", "dns_03", "dns_04", "dns_05", "dns_06", "dns_07"];
+const kodlar = Array.from({ length: 14 }, (_, i) => "dns_" + String(i + 1).padStart(2, "0"));
 let hataSayisi = 0;
 for (const kod of kodlar) {
   const av = sahteAvatar();
@@ -32,10 +32,12 @@ for (const kod of kodlar) {
   while (surdu && kare < 400) {
     surdu = dansKaresi(av, 0.05);
     kare++;
-    if (kare === 10) ilk.push(kollar.children[1].rotation.z, kollar.children[1].rotation.x, kok.rotation.y, kok.rotation.z, av.position.y);
+    if (kare === 10) ilk.push(kollar.children[1].rotation.z, kollar.children[1].rotation.x, kok.rotation.y, kok.rotation.z,
+        kok.position.x, kok.position.y, kafa.rotation.x, bacaklar.children[0].rotation.x, av.position.y);
     if (kare === 25) {
       // 10. ve 25. kare aynıysa dans donuk demektir
-      const simdi = [kollar.children[1].rotation.z, kollar.children[1].rotation.x, kok.rotation.y, kok.rotation.z, av.position.y];
+      const simdi = [kollar.children[1].rotation.z, kollar.children[1].rotation.x, kok.rotation.y, kok.rotation.z,
+        kok.position.x, kok.position.y, kafa.rotation.x, bacaklar.children[0].rotation.x, av.position.y];
       hareketVar = simdi.some((v, i) => Math.abs(v - ilk[i]) > 1e-4);
     }
     enBuyukY = Math.max(enBuyukY, av.position.y);

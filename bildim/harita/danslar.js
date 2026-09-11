@@ -107,6 +107,85 @@ const HAREKETLER = {
     p.kafa.rotation.z = -s * 0.18;
     av.position.y = Math.abs(Math.cos(t * 4.4)) * 0.06;
   },
+
+  // ---- Dalga (kollar sırayla akar) ----
+  dns_08(p, t) {
+    const s = Math.sin(t * 3.4);
+    p.sag.rotation.z = 1.45 + Math.sin(t * 3.4) * 0.5;
+    p.sol.rotation.z = -1.45 - Math.sin(t * 3.4 + Math.PI * 0.6) * 0.5;
+    p.sag.rotation.x = Math.sin(t * 3.4 + 0.8) * 0.4;
+    p.sol.rotation.x = Math.sin(t * 3.4 + 1.6) * 0.4;
+    p.kok.rotation.z = s * 0.12;
+    p.kafa.rotation.z = -s * 0.12;
+  },
+
+  // ---- Kollar havada çırpma (alkış) ----
+  dns_09(p, t, av) {
+    const s = Math.sin(t * 7);
+    p.sag.rotation.z = 1.1 + s * 0.45;
+    p.sol.rotation.z = -1.1 - s * 0.45;
+    p.kollar.rotation.x = -1.1;
+    av.position.y = Math.abs(Math.sin(t * 3.5)) * 0.14;
+    p.kok.rotation.x = 0.08 + s * 0.05;
+  },
+
+  // ---- Çömel-kalk (kazak dansı) ----
+  dns_10(p, t, av) {
+    const f = (t * 1.9) % 1;
+    const c = Math.max(0, Math.sin(f * Math.PI));   // çömelme derinliği
+    p.kok.position.y = -c * 0.75;
+    p.solBacak.rotation.x = -c * 1.2;
+    p.sagBacak.rotation.x = c * 1.2;
+    p.sag.rotation.z = 1.5;
+    p.sol.rotation.z = -1.5;
+    p.kollar.rotation.x = -1.4;
+    av.position.y = 0;
+  },
+
+  // ---- Kafa sallama (rock) ----
+  dns_11(p, t, av) {
+    const s = Math.sin(t * 8);
+    p.kafa.rotation.x = 0.45 + s * 0.4;
+    p.kok.rotation.x = 0.12 + s * 0.1;
+    p.sag.rotation.z = 2.3;
+    p.sol.rotation.z = -2.3;
+    p.sag.rotation.x = Math.sin(t * 8 + 1) * 0.25;
+    av.position.y = Math.abs(Math.sin(t * 4)) * 0.1;
+  },
+
+  // ---- Kayış (moonwalk hissi) ----
+  dns_12(p, t, av) {
+    const s = Math.sin(t * 3.6);
+    p.kok.position.x = s * 0.55;
+    p.kok.rotation.z = -s * 0.14;
+    p.solBacak.rotation.x = Math.sin(t * 3.6) * 0.7;
+    p.sagBacak.rotation.x = -Math.sin(t * 3.6) * 0.7;
+    p.sag.rotation.z = 0.75;
+    p.sol.rotation.z = -0.75;
+    p.kollar.rotation.x = -0.5;
+    av.position.y = Math.abs(Math.cos(t * 3.6)) * 0.07;
+  },
+
+  // ---- Tek ayak fırıl (pirouette) ----
+  dns_13(p, t, av) {
+    p.kok.rotation.y = t * 7.5;
+    p.sag.rotation.z = 2.4;
+    p.sol.rotation.z = -0.6;
+    p.solBacak.rotation.x = -0.9;
+    p.kok.rotation.z = Math.sin(t * 7.5) * 0.06;
+    av.position.y = 0.05 + Math.abs(Math.sin(t * 7.5)) * 0.08;
+  },
+
+  // ---- Zafer kupası (iki kol yukarı, gövde geriye) ----
+  dns_14(p, t, av) {
+    const s = Math.sin(t * 2.6);
+    p.sag.rotation.z = 2.6;
+    p.sol.rotation.z = -2.6;
+    p.kok.rotation.x = -0.22 - s * 0.1;
+    p.kok.rotation.y = Math.sin(t * 1.3) * 0.45;
+    p.kafa.rotation.x = -0.2;
+    av.position.y = Math.abs(s) * 0.25;
+  },
 };
 
 /** Bir dans kodunun oynatıcısı var mı? */

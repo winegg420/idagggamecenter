@@ -10,6 +10,9 @@ import Countdown from "../components/Countdown.jsx";
 import YanlisSatiri from "../components/YanlisSatiri.jsx";
 import QuestionCard from "../components/QuestionCard.jsx";
 import Avatar from "../../src/components/Avatar.jsx";
+import OyuncuKarti from "../components/OyuncuKarti.jsx";
+import { useNavigate } from "react-router-dom";
+import { y } from "../lib/yol.js";
 import { useGorunurlukTazele, zamanAsimiyla } from "../lib/gorunurluk.js";
 
 export default function TournamentPage() {
@@ -19,7 +22,26 @@ export default function TournamentPage() {
   const [soru, setSoru] = useState(null);
   const [yukleniyor, setYukleniyor] = useState(true);
   const [hata, setHata] = useState(null);
+  // Lobide bir oyuncuya dokununca açılan kart
+  const [kartOyuncu, setKartOyuncu] = useState(null);
+  const navigate = useNavigate();
   const advanceKilidi = useRef(false);
+
+  /** Lobideki oyuncuya meydan okuma — kart da buradan kapanır. */
+  const meydanOku = async (hedefId) => {
+    setHata(null);
+    setKartOyuncu(null);
+    try {
+      const { data, error } = await supabase.rpc("create_challenge", {
+        p_rakip: hedefId,
+        p_kategori: null,
+      });
+      if (error) throw error;
+      if (data) navigate(y(`/mac/${data}`));
+    } catch (e) {
+      setHata(hataMesaji(e, "Meydan okuma başlatılamadı."));
+    }
+  };
   // Süre doldu ama ilerletme henüz başarılı olmadı mı? Dönüşte hemen denenir.
   const bekleyenIlerletme = useRef(false);
   const kanalRef = useRef(null);
@@ -273,6 +295,14 @@ export default function TournamentPage() {
           )}
         </div>
         <div className="kart">
+          {kartOyuncu && (
+            <OyuncuKarti
+              userId={kartOyuncu.id}
+              onIzleme={kartOyuncu}
+              onKapat={() => setKartOyuncu(null)}
+              onMeydanOku={kartOyuncu.id === user.id ? undefined : meydanOku}
+            />
+          )}
           <div className="baslik">Lobideki Oyuncular ({oyuncular.length})</div>
           {oyuncular.length === 0 && (
             <div className="bd-bos-durum">
@@ -280,11 +310,33 @@ export default function TournamentPage() {
               <p>Lobi henüz boş — ilk katılan sen ol, turnuva başlayınca haber veririz.</p>
             </div>
           )}
+          {/* Satıra dokunmak oyuncu kartını açar: avatar, rütbe, puan ve
+              (kendisi değilse) meydan okuma düğmesi. */}
           {oyuncular.map((o) => (
-            <div key={o.user_id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "6px 0" }}>
+            <button
+              key={o.user_id}
+              type="button"
+              className="bd-lobi-oyuncu"
+              onClick={() => setKartOyuncu({ id: o.user_id, ...(o.profil ?? {}) })}
+              title={`${o.profil?.gorunen_ad ?? "Oyuncu"} — kartını aç`}
+            >
               <Avatar profile={o.profil} boyut={32} />
-              <span style={{ fontWeight: 600 }}>{o.profil?.gorunen_ad}</span>
-            </div>
+              <span>{o.profil?.gorunen_ad}</span>
+              {o.user_id !== user.id && (
+                <span
+                  className="bd-lobi-kilic"
+                  role="button"
+                  tabIndex={0}
+                  aria-label={`${o.profil?.gorunen_ad ?? "Oyuncu"} oyuncusuna meydan oku`}
+                  onClick={(e) => { e.stopPropagation(); meydanOku(o.user_id); }}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") { e.preventDefault(); e.stopPropagation(); meydanOku(o.user_id); }
+                  }}
+                >
+                  <Ikon ad="kilic" boyut={15} />
+                </span>
+              )}
+            </button>
           ))}
         </div>
       </div>

@@ -12,6 +12,7 @@ import SayanSayi from "../components/SayanSayi.jsx";
 import KonumSecici from "../components/KonumSecici.jsx";
 import Maskot from "../components/Maskot.jsx";
 import { bayrak, haftaBitisi, sureMetni } from "../lib/konum.js";
+import OyuncuKarti from "../components/OyuncuKarti.jsx";
 import { y } from "../lib/yol.js";
 
 const KAPSAMLAR = [
@@ -48,8 +49,12 @@ export default function LeaderboardPage() {
     return () => clearInterval(id);
   }, []);
 
+  // Kartı açık olan oyuncu (satıra dokununca açılır)
+  const [kartOyuncu, setKartOyuncu] = useState(null);
+
   const meydanOku = async (hedefId) => {
     setHata(null);
+    setKartOyuncu(null);
     try {
       const { data, error } = await supabase.rpc("create_challenge", {
         p_rakip: hedefId,
@@ -155,7 +160,25 @@ export default function LeaderboardPage() {
   const satir = (s, vurgu = false) => (
     <div
       key={`${s.user_id}-${vurgu ? "ben" : "liste"}`}
-      className={`bd-lig-satir ${s.user_id === user.id ? "ben" : ""}`}
+      className={`bd-lig-satir tiklanir ${s.user_id === user.id ? "ben" : ""}`}
+      role="button"
+      tabIndex={0}
+      title={`${s.gorunen_ad} — kartını aç`}
+      onClick={() => setKartOyuncu({
+        id: s.user_id,
+        gorunen_ad: s.gorunen_ad,
+        gorunen_avatar: s.gorunen_avatar,
+        puan: s.puan,
+        is_bot: s.bot,
+        sehir: s.sehir,
+        ulke: s.ulke,
+      })}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          setKartOyuncu({ id: s.user_id, gorunen_ad: s.gorunen_ad, gorunen_avatar: s.gorunen_avatar, puan: s.puan, is_bot: s.bot, sehir: s.sehir, ulke: s.ulke });
+        }
+      }}
     >
       <span className="bd-sira">{s.sira}</span>
       <Avatar profile={{ gorunen_ad: s.gorunen_ad, gorunen_avatar: s.gorunen_avatar }} boyut={38} />
@@ -180,7 +203,7 @@ export default function LeaderboardPage() {
           className="bd-ikon-btn"
           title="Meydan oku"
           aria-label={`${s.gorunen_ad} oyuncusuna meydan oku`}
-          onClick={() => meydanOku(s.user_id)}
+          onClick={(e) => { e.stopPropagation(); meydanOku(s.user_id); }}
         >
           <Ikon ad="kilic" boyut={17} />
         </button>
@@ -190,6 +213,15 @@ export default function LeaderboardPage() {
 
   return (
     <div className="bd-lig">
+      {kartOyuncu && (
+        <OyuncuKarti
+          userId={kartOyuncu.id}
+          onIzleme={kartOyuncu}
+          onKapat={() => setKartOyuncu(null)}
+          onMeydanOku={kartOyuncu.id === user.id ? undefined : meydanOku}
+        />
+      )}
+
       <div className="baslik">Lig</div>
 
       {hata && <div className="hata-kutu">{hata}</div>}
@@ -281,9 +313,27 @@ export default function LeaderboardPage() {
                 return (
                   <div
                     key={p.user_id}
-                    className={`bd-podyum-yer yer-${basamak} ${
+                    className={`bd-podyum-yer tiklanir yer-${basamak} ${
                       p.user_id === user.id ? "ben" : ""
                     } ${p.bot ? "bot" : ""}`}
+                    role="button"
+                    tabIndex={0}
+                    title={`${p.gorunen_ad} — kartını aç`}
+                    onClick={() => setKartOyuncu({
+                      id: p.user_id, gorunen_ad: p.gorunen_ad,
+                      gorunen_avatar: p.gorunen_avatar, puan: p.puan,
+                      is_bot: p.bot, sehir: p.sehir, ulke: p.ulke,
+                    })}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        setKartOyuncu({
+                          id: p.user_id, gorunen_ad: p.gorunen_ad,
+                          gorunen_avatar: p.gorunen_avatar, puan: p.puan,
+                          is_bot: p.bot, sehir: p.sehir, ulke: p.ulke,
+                        });
+                      }
+                    }}
                   >
                     <div className="bd-podyum-madalya">
                       {basamak}

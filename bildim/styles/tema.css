@@ -5232,3 +5232,82 @@ body.bd-ekle-acik .app { padding-bottom: calc(300px + env(safe-area-inset-bottom
   .app .topbar .bd-logo { width: 74px; }
   .app .bd-topbar-sag { gap: 4px; }
 }
+
+/* ============================================================
+   OYUNCU KARTI — lig satırına / lobi satırına dokununca açılır
+   ============================================================ */
+.app .bd-lig-satir.tiklanir,
+.app .bd-podyum-yer.tiklanir { cursor: pointer; }
+.app .bd-lig-satir.tiklanir:hover {
+  background: var(--bd-yuzey-2);
+  box-shadow: inset 0 0 0 2px var(--bd-kenar);
+}
+.app .bd-podyum-yer.tiklanir:hover { filter: brightness(1.06); }
+
+/* DİKKAT — ".app" ÖNEKİ YOK. Modal katmanı portal ile doğrudan
+   document.body'ye basılıyor (bkz. Modal.jsx), yani .app'in DIŞINDA.
+   Önekli yazıldığında kural hiç uygulanmıyor ve kapatma düğmesi kartın
+   köşesi yerine ekranın sağ üstüne kaçıyordu. */
+.bd-modal.bd-oyuncu-karti {
+  position: relative;
+  text-align: center;
+  min-width: min(86vw, 330px);
+}
+.bd-oyuncu-kapat {
+  position: absolute; top: 0; right: 0;
+  border: 0; background: var(--bd-yuzey-2); color: var(--bd-metin-2);
+  width: 30px; height: 30px; border-radius: 50%;
+  font-size: 14px; font-weight: 900; cursor: pointer; line-height: 1; padding: 0;
+}
+.bd-oyuncu-ust { display: grid; justify-items: center; gap: 6px; margin-bottom: 14px; }
+.bd-oyuncu-avatar { position: relative; }
+.bd-oyuncu-online {
+  position: absolute; right: 4px; bottom: 4px;
+  width: 15px; height: 15px; border-radius: 50%;
+  background: var(--bd-basari);
+  box-shadow: 0 0 0 3px var(--bd-yuzey-1);
+}
+.bd-oyuncu-ad {
+  font-family: var(--bd-f-baslik); font-weight: 900; font-size: 20px;
+  color: var(--bd-metin);
+  display: inline-flex; align-items: center; gap: 6px;
+}
+.bd-oyuncu-konum {
+  font-size: 13px; font-weight: 800; color: var(--bd-metin-2);
+}
+
+/* Sayılar: puan / maç / kupa / seri */
+.bd-oyuncu-sayilar {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px;
+  margin-bottom: 14px;
+}
+.bd-oyuncu-sayilar div {
+  background: var(--bd-yuzey-2);
+  border-radius: 14px; padding: 9px 4px;
+  display: grid; gap: 2px;
+}
+.bd-oyuncu-sayilar b {
+  font-family: var(--bd-f-baslik); font-size: 16px; color: var(--bd-metin);
+}
+.bd-oyuncu-sayilar span {
+  font-size: 10.5px; font-weight: 800; text-transform: uppercase;
+  letter-spacing: 0.03em; color: var(--bd-metin-3);
+}
+
+/* Turnuva lobisindeki oyuncu satırı */
+.app .bd-lobi-oyuncu {
+  display: flex; align-items: center; gap: 10px;
+  width: 100%; padding: 7px 8px; margin: 2px 0;
+  border: 0; border-radius: 14px;
+  background: none; cursor: pointer; text-align: left;
+  font-family: var(--bd-f-govde); font-weight: 700; font-size: 15px;
+  color: var(--bd-metin);
+}
+.app .bd-lobi-oyuncu:hover { background: var(--bd-yuzey-2); }
+.app .bd-lobi-oyuncu > span:first-of-type { flex: 1; min-width: 0; }
+.app .bd-lobi-kilic {
+  flex: none; display: inline-flex; align-items: center; justify-content: center;
+  width: 32px; height: 32px; border-radius: 50%;
+  background: var(--bd-yuzey-2); color: var(--bd-metin-2);
+}
+.app .bd-lobi-oyuncu:hover .bd-lobi-kilic { color: var(--bd-vurgu); }

@@ -351,7 +351,25 @@ export default function HaritaSayfasi() {
 
     canliRef.current = { dunya, ben, coklu, renk };
 
+    // Meydan yatay çevrilince dönmüyordu. İki sebep birden vardı:
+    //   1) PWA manifest'i "portrait" ile kilitliyordu (düzeltildi).
+    //   2) Telefonda resize/orientationchange olayları GEÇ ya da YANLIŞ
+    //      ölçüyle geliyor; sahne portre ölçüsünde kalınca ekran dönmemiş
+    //      gibi görünüyordu.
+    // ResizeObserver kapsayıcıyı DOĞRUDAN izliyor: ölçü ne zaman, kaç kez
+    // değişirse değişsin sahne peşinden gidiyor.
+    try { screen.orientation?.unlock?.(); } catch { /* desteklemiyor */ }
+
     const boyut = () => dunya.boyutlandir();
+    let olcer = null;
+    if (typeof ResizeObserver !== "undefined") {
+      try {
+        olcer = new ResizeObserver(() => boyut());
+        olcer.observe(kapsayici);
+      } catch (e) {
+        console.error("[Meydan] ResizeObserver kurulamadi:", e);
+      }
+    }
     // Telefon yan çevrilince: orientationchange ANINDA tarayıcı hâlâ eski
     // ölçüyü bildiriyor; tek seferlik boyutlandırma sahneyi yamuk bırakıyor
     // (kullanıcı "yatayda oynanmıyor" diye bildirdi). Olaydan sonra birkaç
@@ -497,6 +515,7 @@ export default function HaritaSayfasi() {
       window.removeEventListener("orientationchange", boyutTekrar);
       window.visualViewport?.removeEventListener?.("resize", boyut);
       for (const g of gecikmeler) clearTimeout(g);
+      try { olcer?.disconnect(); } catch { /* yut */ }
       try { zumGirdi?.yokEt(); } catch (e) { console.error("[Meydan] zum kapat:", e); }
       try { coklu?.kapat(); } catch (e) { console.error("[Meydan] kapat:", e); }
       try { kontrol?.yokEt(); } catch (e) { console.error("[Meydan] kontrol:", e); }
@@ -688,37 +707,50 @@ export default function HaritaSayfasi() {
         </div>
       )}
 
-      <div className="bd-harita-hud bd-harita-alt">
-        {dansAcik && (
-          <div className="bd-harita-dans-tepsi">
-            {danslar.length === 0 ? (
-              <button type="button" className="bd-harita-dans-bos" onClick={() => navigate(y("/gorunum"))}>
-                Hiç dansın yok — <b>Görünüm</b> sayfasından al
-              </button>
-            ) : (
-              danslar.map((d) => (
-                <button key={d.kod} type="button" className="bd-harita-dans" onClick={() => dansEt(d.kod)}>
-                  {d.ad}
-                </button>
-              ))
-            )}
+      {/* ---- DANS PANELİ ----
+          Eskiden emoji sırasının içinde 💃 vardı; oyuncu onu "yeni bir emoji"
+          sanıyordu. Dans emoji değil: karakterin kendisi oynuyor. Bu yüzden
+          ayrı, adı yazan bir düğme ve tam genişlikte bir panel. */}
+      {dansAcik && (
+        <div className="bd-harita-dans-panel" role="dialog" aria-label="Dans seç">
+          <div className="bd-harita-dans-panel-ust">
+            <b>Dans et</b>
+            <button type="button" className="bd-harita-dans-kapat" onClick={() => setDansAcik(false)} aria-label="Kapat">
+              ✕
+            </button>
           </div>
-        )}
-        <div className="bd-harita-emojiler">
+          <div className="bd-harita-dans-liste">
+            {danslar.map((d) => (
+              <button key={d.kod} type="button" className="bd-harita-dans" onClick={() => dansEt(d.kod)}>
+                {d.ad}
+              </button>
+            ))}
+          </div>
+          <button type="button" className="bd-harita-dans-bos" onClick={() => navigate(y("/gorunum?yuva=dans"))}>
+            {danslar.length === 0
+              ? "Hiç dansın yok — Görünüm'den al"
+              : "Dükkândan yeni dans al →"}
+          </button>
+        </div>
+      )}
+
+      <div className="bd-harita-hud bd-harita-alt">
+        <div className="bd-harita-sol-dugmeler">
           <button
             type="button"
-            className={"bd-harita-emoji dans" + (dansAcik ? " acik" : "")}
+            className={"bd-harita-dans-ac" + (dansAcik ? " acik" : "")}
             onClick={() => setDansAcik((a) => !a)}
-            aria-label="Dans et"
             aria-expanded={dansAcik}
           >
-            💃
+            <span aria-hidden="true">🕺</span> Dans
           </button>
+        <div className="bd-harita-emojiler">
           {EMOJILER.map((e) => (
             <button key={e} type="button" className="bd-harita-emoji" onClick={() => emojiAt(e)} aria-label={`Emoji ${e}`}>
               {e}
             </button>
           ))}
+        </div>
         </div>
         <div className="bd-harita-pad" ref={padRef} aria-label="Yürüme topuzu">
           <div className="bd-harita-topuz" ref={topuzRef} />

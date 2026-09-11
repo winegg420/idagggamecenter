@@ -95,6 +95,16 @@ export default function MatchPage() {
   const [yuklemeHatasi, setYuklemeHatasi] = useState(null);
   // Duraklama bitince soruyu yeniden çekmek için sayaç (saat ileri kaydı)
   const [duraklamaTuru, setDuraklamaTuru] = useState(0);
+  // Kendi cevabımızın/atlamamızın zamanı. Sonraki soru bu andan GB_MS
+  // geçmeden ekrana gelmez: bot anında cevaplayınca sunucu soruyu hemen
+  // ilerletiyor ve Realtime paketiyle kart göz açıp kapayana kadar
+  // değişiyordu — oyuncu doğru mu yanlış mı yaptığını göremiyordu.
+  const cevapZamaniRef = useRef(0);
+  // Maç bitti ama son cevabın geri bildirimi hâlâ ekranda mı?
+  // Bota karşı oynarken bot anında cevapladığı için son cevapla birlikte maç
+  // kapanıyor ve doğru mu yanlış mı yaptığımız HİÇ görünmeden sonuç ekranı
+  // açılıyordu. Sonuç ekranı pencere dolana kadar bekler.
+  const [sonucHazir, setSonucHazir] = useState(false);
   // Uygulanmış en ileri damga (bkz. ilerlemeDamgasi)
   const damgaRef = useRef(-1);
   const advanceKilidi = useRef(false);
@@ -284,28 +294,40 @@ export default function MatchPage() {
         : (mac.oyuncu2_soru ?? 0);
   // Senkron maç iki taraf da ekrana gelene kadar başlamaz.
   const senkronBekliyor = mac?.durum === "aktif" && senkron && !mac?.basladi;
+  // Son sorunun geri bildirimi sürerken kart YERİNDE kalmalı: soru state'i
+  // temizlenirse kart sökülür ve doğru cevap hiç görünmez.
+  const sonKartBekliyor = mac?.durum === "bitti" && !sonucHazir;
   useEffect(() => {
+    if (sonKartBekliyor) return undefined;
     if (!mac || mac.durum !== "aktif" || senkronBekliyor) {
       setSoru(null);
-      return;
+      return undefined;
     }
     // Kendi bölümümüz bittiyse soru çekme (sunucu da hata döndürür)
     if (kendiIndeks >= (mac.soru_ids?.length ?? 0)) {
       setSoru(null);
-      return;
+      return undefined;
     }
-    advanceKilidi.current = false;
-    setCevapladim(false);
-    supabase
-      .rpc("get_match_question", { p_match_id: mac.id })
-      .then(({ data, error }) => {
-        if (error) {
-          console.error("[Bildim] soru alinamadi:", error);
-          return;
-        }
-        if (data?.[0]) setSoru(data[0]);
-      });
-  }, [mac?.id, mac?.durum, kendiIndeks, mac?.soru_ids?.length, senkronBekliyor, duraklamaTuru]);
+    // Geri bildirim penceresinin kalanı kadar bekle (ilk soruda 0).
+    const kalanGB = Math.max(0, GB_MS - (Date.now() - cevapZamaniRef.current));
+    let iptal = false;
+    const zamanlayici = setTimeout(() => {
+      if (iptal) return;
+      advanceKilidi.current = false;
+      setCevapladim(false);
+      supabase
+        .rpc("get_match_question", { p_match_id: mac.id })
+        .then(({ data, error }) => {
+          if (iptal) return;
+          if (error) {
+            console.error("[Bildim] soru alinamadi:", error);
+            return;
+          }
+          if (data?.[0]) setSoru(data[0]);
+        });
+    }, kalanGB);
+    return () => { iptal = true; clearTimeout(zamanlayici); };
+  }, [mac?.id, mac?.durum, kendiIndeks, mac?.soru_ids?.length, senkronBekliyor, duraklamaTuru, sonKartBekliyor]);
 
   // ---- NABIZ ----
   // 3 sn'de bir "buradayım" der, "Hazır"a basıldığını iletir ve ekranın ne
@@ -387,6 +409,14 @@ export default function MatchPage() {
 
   useOyunModu(Boolean(soru) && mac?.durum === "aktif");
 
+  useEffect(() => {
+    if (mac?.durum !== "bitti") { setSonucHazir(false); return undefined; }
+    const kalan = Math.max(0, GB_MS - (Date.now() - cevapZamaniRef.current));
+    if (kalan === 0) { setSonucHazir(true); return undefined; }
+    const t = setTimeout(() => setSonucHazir(true), kalan);
+    return () => clearTimeout(t);
+  }, [mac?.durum]);
+
   // Maç bitince puan tazele + (sıklık kuralı uygunsa) geçiş reklamı
   const reklamGosterildiRef = useRef(false);
   useEffect(() => {
@@ -415,6 +445,7 @@ export default function MatchPage() {
       p_cevap: i,
     });
     if (error) throw error;
+    cevapZamaniRef.current = Date.now();
     setCevapladim(true);
 
     // Skor tabelası ANINDA güncellensin: sunucu kazanılan puanla birlikte
@@ -457,9 +488,22 @@ export default function MatchPage() {
         "mac_soruyu_atla"
       );
       if (error) throw error;
-      setTimeout(macYukle, GB_MS);
       const satir = Array.isArray(data) ? data[0] : data;
-      return satir?.dogru_cevap ?? null;
+
+      // BOŞ DÖNÜŞ = sunucu atlamayı kabul etmedi. En sık sebep saat farkı:
+      // istemcinin sayacı 15. saniyede biterken sunucu 17 saniye dolmadan
+      // atlamıyordu; arada kalan ~2 saniyede RPC hata da vermiyor, boş
+      // dönüyordu. Kilit kapalı kaldığı için soru ne ilerliyor ne yeniden
+      // deneniyordu: ekran "Süre doldu"da donuyordu.
+      if (!satir || satir.dogru_cevap == null) {
+        advanceKilidi.current = false;   // kilidi AÇ: tik yeniden denesin
+        macYukle();
+        throw new Error("Soru atlanamadi, yeniden denenecek");
+      }
+
+      cevapZamaniRef.current = Date.now();
+      setTimeout(macYukle, GB_MS);
+      return satir.dogru_cevap;
     } catch (e) {
       // Kilidi AÇ: atlama olmadı, soru hâlâ sunucuda duruyor. Kapalı bırakılsaydı
       // oyuncu sekmeden döndüğünde ne ilerleme ne yeniden deneme olurdu.
@@ -550,7 +594,7 @@ export default function MatchPage() {
     );
   }
 
-  if (mac.durum === "bitti" && !gecisBitti) {
+  if (mac.durum === "bitti" && sonucHazir && !gecisBitti) {
     return (
       <SureDolduGecis
         baslik="Maç bitti!"
@@ -563,7 +607,7 @@ export default function MatchPage() {
     );
   }
 
-  if (mac.durum === "bitti") {
+  if (mac.durum === "bitti" && sonucHazir) {
     const kazandim = mac.kazanan === user.id;
     const berabere = mac.kazanan === null;
     const durumSinifi = kazandim ? "kazandi" : berabere ? "berabere" : "kaybetti";
