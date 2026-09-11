@@ -3428,3 +3428,28 @@ hub projesi için de doğru.
 **Alias tuzağı:** `quizador.vercel.app` ek bir `.vercel.app` alias'ı; ilk otomatik
 deploy'da kendiliğinden geçmedi, `vercel domains add quizador.vercel.app
 quizador-vercel` ile projeye bağlandıktan sonra güncel deployment'a taşındı.
+
+**GÜNCELLEME — Supabase auth adresleri düzeltildi (11 Eylül, sahibi panelden yaptı):**
+Artık **ana site `https://quizador.vercel.app`**; oyunculara yalnız bu link
+veriliyor çünkü `.dev` bazı telefonlarda/operatörlerde açılmıyor.
+
+| Ayar | Eski | Yeni |
+|---|---|---|
+| Site URL | `https://quizador.pages.dev` | **`https://quizador.vercel.app`** |
+| Redirect URLs | 4 kayıt | 5 kayıt (**`https://quizador.vercel.app/**` eklendi**) |
+
+Dışarıdan doğrulandı:
+```bash
+curl -sSI https://zfpnxzybcpkxsotwdsey.supabase.co/auth/v1/callback | grep -i location
+# location: https://quizador.vercel.app?error=invalid_request&...
+```
+Böylece Google ile giriş yapan oyuncu artık `.dev`'e düşmüyor. `pages.dev`
+kayıtları bilerek silinmedi — o adresten giren biri olursa kırılmasın.
+
+**Vercel sitesi denetimi (aynı gün, hepsi temiz):** canonical / og:url / og:image
+→ vercel · manifest `start_url` `/`, `scope` `/`, tema `#CDEEFF` · robots +
+sitemap → vercel · 14 ağ isteğinin tamamı 200 · konsolda hata yok (çıkanlar
+tarayıcı eklentisinden) · Supabase anahtarı (`sb_publishable_…`) canlıda
+doğrulandı — anonim RPC çağrısı "permission denied" döndü, yani anahtar geçerli
+ve sunucuya ulaşıyor · davet linkleri `window.location.origin` kullanıyor, yani
+vercel'den paylaşan vercel linki paylaşıyor.
