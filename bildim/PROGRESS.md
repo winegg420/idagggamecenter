@@ -2201,3 +2201,61 @@ Location başlığı Site URL'i ele veriyor.
 quizador.pages.dev" diyordu; geçmiş kaydı oldukları belirtilip güncel adres
 yazıldı. `PROGRESS.md`'deki tarihsel "quizador" geçişleri **bilerek** duruyor —
 onlar o gün ne olduğunun kaydı.
+
+---
+
+## 2026-09-11 (9) — Harita açılmama hatası + ana sayfa düzeni + coin görselleri
+
+### Harita "Meydan açılamadı" — kök sebep ve ders
+Bölüm 5'teki kupa binası yaması ışıma kodunu **yanlış fonksiyona** soktu.
+Kalıp `for (const b of binalar) {` hem `yakinBina`'da hem `guncelle`'de geçiyor;
+yama betiği `replace()` kullandığı için **ilk eşleşmeye** girdi. `yakinBina`'da
+`zaman` diye bir değişken yok:
+
+```
+ReferenceError: zaman is not defined   (dunya.js › yakinBina)
+```
+
+`yakinBina` **her karede** çağrılıyor → çizim döngüsü **ilk karede** patlıyor →
+"Meydan açılamadı / Sahne çizilemedi".
+
+**Neden masaüstünde görülmedi:** otomasyon sekmesi `document.hidden = true`
+sayılıyor, çizim döngüsü ilk satırda erken dönüyor ve `yakinBina`'ya hiç
+gelmiyor. Telefonda sekme görünür olduğu için herkes hatayı alıyordu.
+
+**Üç ders:**
+1. **Yama betiği eşleşme sayısını doğrulamalı.** Diğer yamalarımda `n !== 1`
+   kontrolü vardı, bu birinde yoktu. Artık hepsinde var.
+2. **Genel hata mesajı hatayı gizler.** "Sahne çizilemedi" bir ReferenceError'ı
+   saatlerce sakladı. Hata kutusu artık gerçek hata metnini de gösteriyor
+   (`hata.ayrinti`), kullanıcı ekran görüntüsüyle iletebiliyor.
+3. **Gizli sekme testi yalancı geçer.** Haritayı sınarken sayfayı AYNI BELGEDE
+   tutup (uygulama içi gezinme) `document.hidden`'ı ezmek ve rAF'ı setTimeout
+   vekiliyle değiştirmek gerekiyor; yeni belgeye gidince yama siliniyor.
+   Doğru yöntem: ana sayfayı aç → yamayı geç → Harita sekmesine tıkla.
+
+### Ana sayfa
+- "Yarım kalan maçın var" artık **kiminle** olduğunu yazıyor, her maç ayrı satır.
+- **Ezeli rakip** kaldırıldı.
+- **Gönderdiğim davetler** (migration 135, `gonderdigim_davetler()`):
+  "X daveti görmedi — bekleniyor". Bota gönderilenler listelenmiyor.
+- **"Rakibin seni bekliyor"** şeridi sayfanın **en üstüne** taşındı (kahraman
+  bölümünün bile önüne): turuncu, nabız atan, "Maça gir" düğmeli. Zil bildirimi
+  ve telefon push'u zaten migration 128'de bağlıydı.
+
+### Dükkân
+`CoinGorseli.jsx` — çizilmiş SVG, dışarıdan resim yok. Miktar büyüdükçe yığın
+büyüyor (3 para → iki katlı → üç katlı → taşan sandık). Boyut **miktara** bakıyor,
+ürün kimliğine değil; katalog değişince kendiliğinden uyuyor.
+
+### Üst çubuk taşması
+Coin hapı + geniş "Quiz Square" logosu yüzünden sağ grup 375px alanda 300px
+istiyor, 247px'e sıkışıyor, avatar 42px dışarı taşıyordu. **Medya sorgusuyla öğe
+gizlemek kırılgan çıktı** (390px'te kural beklendiği gibi uygulanmadı); çözüm
+440px altında **satır sarmak** — sığmayan öğe alt satıra iner, taşma hiçbir
+genişlikte olmaz. 320/360/390/430/540'ta ölçüldü: yatay kaydırma yok.
+
+### Canlı doğrulama
+`quizsquare.vercel.app/harita` gerçek tarayıcıda açıldı: hata kutusu yok, perde
+kalktı, canvas 1920×988 gerçek piksel, konsol temiz, ekranda çim/havuz/fıskiye/
+ağaçlar/binalar ve o an meydanda olan başka bir oyuncu ("2 kişi burada").
