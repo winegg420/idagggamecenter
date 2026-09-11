@@ -1522,3 +1522,68 @@ gerektiriyor.
 sınandı (askıda kalan söz reddedildi, normal söz çözüldü); üç-olay tekleme
 tarayıcıda doğrulandı (üç olay → tek tazeleme, 300 ms sonra yeni dönüş → yeni
 tazeleme); sayfa konsolunda hata yok.
+
+---
+
+## 11 Eylül 2026 (3) — Görsel revizyon: "Şenlik" tasarım dili
+
+Onaylanmış referans: `QUIZADOR_TASARIM_REFERANS.html` (repo kökünde, 8 ekran).
+**Yalnız görsel revizyon** — oyun mantığı, RPC, migration, puanlama değişmedi;
+yeni ekran/özellik/para birimi eklenmedi.
+
+**Dört kural:** açık gökyüzü zemini · beyaz kart + 4px alt kalınlık ·
+kabartmalı buton (basınca 4px iner) · Baloo 2 başlık / Nunito gövde.
+
+**Yöntem — neden "en sona tek katman":** `tema.css` yıllar içinde faz faz
+büyümüş (3.400+ satır), aynı sınıf birkaç yerde tanımlı. Eski kuralları tek tek
+bulup düzenlemek yerine revizyonun tamamı dosyanın **sonuna** yazıldı: kaskadın
+sonunda olduğu için önceki katmanları eziyor, hiçbir eski kural silinmedi
+(geri alınabilir). Token **adları** korundu, yalnız **değerleri** değişti —
+böylece yüzlerce bileşen tek yerden dönüştü.
+
+**Değişen dosyalar:**
+- `bildim/styles/tema.css` — iki `:root` bloğu yeni palete; body/html zemini;
+  FAZ 2-8 katmanları + koyu tema kalıntı temizliği
+- `src/styles.css` — hub token'ları (`--bg/--card/--text/--primary`), `.btn`,
+  `.kart`, body zemini, hub kartı gölgeleri
+- `index.html` — Nunito eklendi, `theme-color` açık maviye
+- `public/manifest.webmanifest`, `public/bildim.webmanifest`, `lib/manifest.js`
+  — PWA renkleri
+- `bildim/components/Layout.jsx` — **tek JSX değişikliği**: sekme dizilimi
+  referansa getirildi (Ana Sayfa / Arkadaşlar / Lig / Dükkân / Profil).
+  Turnuva ve Meydan Oku sekmeden çıktı — ikisi de ana ekrandaki modlar
+  ızgarasında zaten duruyor, sekmede ikinci kez yer kaplıyordu. Yeni rota
+  açılmadı. Bekleyen sayacı sayı yerine kırmızı nokta oldu.
+
+**Yol boyunca çıkan üç tuzak:**
+1. **İkinci `:root` bloğu (satır ~1307).** Baştaki bloğu çevirdim ama butonlar
+   altın kaldı: aynı dosyada ikinci bir `:root` `--bd-vurgu`'yu yeniden
+   tanımlıyordu. İkisi de çevrildi; biri unutulursa buton eski renge döner.
+2. **Ters gradyan.** İkinci bir `body` kuralı (~satır 1333) kremi ÜSTE, maviyi
+   ALTA koyuyordu. Ayrıca `html { background-color:#0B1220; color-scheme:dark }`
+   kuralı gradyanın arkasında koyu bir zemin bırakıyordu (overscroll'da
+   görünür) — ikisi de düzeltildi, `color-scheme` artık `light`.
+3. **Görünmez butonlar.** 12 sınıf zeminini "beyaz, %10-20 saydam" kuruyordu:
+   koyu zeminde kabartma veriyordu, açık zeminde tamamen kayboluyordu
+   (ses düğmeleri, maç çıkış, modal butonları). Hepsi token'a çevrildi.
+
+**Erişilebilirlik — ölçüldü, ikisi düzeltildi, biri bilinçli bırakıldı:**
+- `--bd-metin-3` #9AB0C4 → **#6E86A0** (beyazda 2,24:1 idi)
+- Tabbar pasif sekme #9AB0C4 → **#5C7590** (10,5 px etiket, 2,24:1 idi)
+- **Bırakılan:** turuncu butonda beyaz yazı **2,92:1**, yeşilde **2,38:1**.
+  Referansın kimliği bu; `text-shadow: 0 2px 0 rgba(0,0,0,.22)` okunabilirliği
+  taşıyor ve oyun arayüzlerinde yaygın. 4,5:1'e çıkarmak turuncuyu koyu kahveye
+  çevirir, tasarım bozulur. **Karar sahibinde** — istenirse buton rengi
+  koyulaştırılabilir.
+- Ana metin beyaz kartta 12,99:1, ikincil 5,10:1, kategori çipi 6,09:1 ✓
+- `prefers-reduced-motion: reduce` altında tüm geçiş/animasyonlar kapalı ✓
+
+**Doğrulama:** Her fazdan sonra `npm run build` (hepsi hatasız). Giriş ekranı
+gerçek uygulamada görüldü. Oturum açılamadığı için (misafir girişi Supabase'de
+kapalı) diğer 7 ekran, **uygulamanın derlenmiş gerçek CSS'i + gerçek sınıf
+adlarıyla** kurulan bir önizleme sayfasında doğrulandı (`.tmp/onizleme/`):
+ana ekran, maç, cevap anı, maç sonu, lig, dükkân, arkadaşlar, tabbar — hepsi
+referansla eşleşti. Konsolda hata yok, 390 px'de yatay kaydırma yok,
+Baloo 2 + Nunito yükleniyor.
+
+**Yapılmadı (bilerek):** "Rakip bekleniyor" ekranı (referans 3) — ayrı görev.

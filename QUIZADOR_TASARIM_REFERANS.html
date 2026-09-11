@@ -1,0 +1,682 @@
+<title>Quizador Ekran Seti</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Nunito:wght@600;700;800;900&display=swap">
+<style>
+  :root{
+    --sayfa:#11131a; --sayfa-2:#1a1d26; --kenar:#2b2f3d;
+    --yazi:#e8eaf2; --yazi-sonuk:#9aa0b4;
+    --display:"Baloo 2","Trebuchet MS",system-ui,sans-serif;
+    --govde:"Nunito",system-ui,-apple-system,sans-serif;
+
+    /* B — Şenlik paleti */
+    --b-gok:#cdeeff; --b-gok2:#eaf7ff; --b-krem:#fff6e8;
+    --b-mur:#20324a; --b-mur-sonuk:#5a7089;
+    --b-kart:#ffffff; --b-kart-alt:#d8e6f0; --b-kenar:#d6e6f2;
+    --b-turuncu:#f4701f; --b-turuncu-alt:#c4530f;
+    --b-yesil:#2fbf71; --b-yesil-alt:#1d8a50;
+    --b-kirmizi:#ef4b4b; --b-kirmizi-alt:#b62f2f;
+    --b-mor:#7a4bff; --b-sari:#ffc53d;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--sayfa);color:var(--yazi);font-family:var(--govde);-webkit-font-smoothing:antialiased}
+  .sarmal{padding-inline:16px;padding-block:28px 48px;max-width:1500px;margin:0 auto}
+  .ust h1{font-family:var(--display);font-weight:800;font-size:clamp(26px,5vw,40px);margin:0 0 6px;letter-spacing:-.01em;text-wrap:balance}
+  .ust p{margin:0;color:var(--yazi-sonuk);font-size:15px;max-width:64ch;line-height:1.55}
+
+  .raf{margin-top:30px;display:grid;gap:30px;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));align-items:start}
+  .sunum{display:flex;flex-direction:column;gap:11px;min-width:0}
+  .etiket{display:flex;align-items:baseline;gap:9px;flex-wrap:wrap}
+  .etiket b{font-family:var(--display);font-size:20px;font-weight:800}
+  .etiket em{font-style:normal;color:var(--yazi-sonuk);font-size:13px}
+  .not{color:var(--yazi-sonuk);font-size:13.5px;line-height:1.55;margin:0}
+  .not strong{color:var(--yazi)}
+
+  .telefon{width:100%;max-width:378px;margin-inline:auto;border-radius:34px;padding:9px;
+    background:linear-gradient(160deg,#3a3f52,#15171f);
+    box-shadow:0 24px 50px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.12)}
+  .ekran{border-radius:26px;overflow:hidden;position:relative;height:660px;display:flex;flex-direction:column;
+    background:linear-gradient(180deg,var(--b-gok) 0%,var(--b-gok2) 30%,var(--b-krem) 100%);
+    color:var(--b-mur);font-family:var(--govde)}
+  .kaydir{flex:1;overflow-y:auto;overflow-x:hidden}
+  .kaydir::-webkit-scrollbar{width:0}
+
+  /* --- ortak parçalar --- */
+  .cubuk{display:flex;gap:8px;justify-content:center;padding:14px 12px 10px}
+  .hap{display:inline-flex;align-items:center;gap:6px;padding:5px 12px 5px 6px;border-radius:999px;
+    font-weight:900;font-size:14px;font-variant-numeric:tabular-nums;
+    background:#fff;border:2px solid var(--b-kenar);box-shadow:0 3px 0 #cfe0ee}
+  .hap svg{width:22px;height:22px;flex:none}
+
+  .btn3d{display:flex;align-items:center;justify-content:center;gap:9px;width:100%;border:0;cursor:pointer;
+    font-family:var(--display);font-weight:800;font-size:19px;color:#fff;padding:14px 18px;border-radius:16px;
+    text-shadow:0 2px 0 rgba(0,0,0,.22);transition:transform .08s ease,box-shadow .08s ease;
+    background:linear-gradient(180deg,#ff9a4d,var(--b-turuncu));box-shadow:0 5px 0 var(--b-turuncu-alt),0 9px 14px rgba(32,50,74,.18)}
+  .btn3d:active{transform:translateY(4px);box-shadow:0 1px 0 var(--b-turuncu-alt)}
+  .btn3d svg{width:24px;height:24px;flex:none}
+  .btn3d.yesil{background:linear-gradient(180deg,#57d795,var(--b-yesil));box-shadow:0 5px 0 var(--b-yesil-alt),0 9px 14px rgba(32,50,74,.18)}
+  .btn3d.yesil:active{box-shadow:0 1px 0 var(--b-yesil-alt)}
+  .btn3d.sade{background:#fff;color:var(--b-mur);box-shadow:0 5px 0 var(--b-kart-alt);text-shadow:none}
+  .btn3d.sade:active{box-shadow:0 1px 0 var(--b-kart-alt)}
+  .btn3d.kucuk{font-size:15px;padding:10px 14px;border-radius:13px}
+
+  .bolum{padding:14px 16px 0}
+  .bolum-bas{font-family:var(--display);font-weight:800;font-size:17px;margin:0 0 10px;
+    display:flex;align-items:center;justify-content:space-between}
+  .bolum-bas span{font-family:var(--govde);font-size:11.5px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:var(--b-mur-sonuk)}
+
+  .kart{background:#fff;border-radius:18px;box-shadow:0 4px 0 var(--b-kart-alt);padding:13px}
+
+  .tabbar{display:grid;grid-template-columns:repeat(5,1fr);align-items:center;padding:8px 4px 10px;flex:none;
+    background:#fff;border-top:2px solid #e2edf5}
+  .tab{display:flex;flex-direction:column;align-items:center;gap:3px;font-size:10.5px;font-weight:900;
+    border:0;background:none;cursor:pointer;padding:2px 0;position:relative;color:#9ab0c4}
+  .tab.aktif{color:var(--b-turuncu)}
+  .tab svg{width:26px;height:26px}
+  .tab .nokta{position:absolute;top:-1px;right:calc(50% - 18px);width:9px;height:9px;border-radius:50%;
+    background:#ff4757;border:2px solid #fff}
+
+  /* --- ana ekran --- */
+  .kimlik{display:flex;flex-direction:column;align-items:center;gap:6px;padding:6px 16px 2px}
+  .avatar{width:72px;height:72px;border-radius:50%;display:grid;place-items:center;font-family:var(--display);
+    font-size:30px;font-weight:800;color:#fff;background:linear-gradient(160deg,#ffb45c,#ff7a3d);
+    border:4px solid #fff;box-shadow:0 6px 0 rgba(32,50,74,.15)}
+  .kadi{font-weight:900;font-size:16px;display:flex;align-items:center;gap:7px}
+  .rutbe-etiket{font-size:11px;font-weight:900;letter-spacing:.06em;text-transform:uppercase;
+    padding:3px 9px;border-radius:999px;background:var(--b-mor);color:#fff}
+  .bar{width:100%;max-width:260px;height:14px;border-radius:999px;overflow:hidden;background:#fff;border:2px solid var(--b-kenar)}
+  .bar i{display:block;height:100%;border-radius:999px;background:linear-gradient(90deg,#7ee081,#2fbf71)}
+  .bar-yazi{font-size:11.5px;font-weight:800;color:var(--b-mur-sonuk)}
+  .modlar{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .mod{border:0;cursor:pointer;text-align:left;padding:13px 12px;border-radius:18px;display:flex;
+    flex-direction:column;gap:9px;font-family:var(--govde);font-weight:900;font-size:13.5px;
+    position:relative;transition:transform .08s ease;background:#fff;color:var(--b-mur);box-shadow:0 4px 0 var(--b-kart-alt)}
+  .mod:active{transform:translateY(3px);box-shadow:0 1px 0 var(--b-kart-alt)}
+  .mod .simge{width:44px;height:44px;border-radius:14px;display:grid;place-items:center}
+  .mod .simge svg{width:26px;height:26px}
+  .mod .rozet{position:absolute;top:9px;right:9px;min-width:22px;height:22px;padding:0 6px;border-radius:999px;
+    background:#ff4757;color:#fff;font-size:12px;font-weight:900;display:grid;place-items:center;box-shadow:0 2px 0 rgba(0,0,0,.2)}
+  .genis{grid-column:span 2;flex-direction:row;align-items:center;gap:12px}
+  .sirasende{display:flex;align-items:center;gap:11px;padding:11px 13px;border-radius:16px;font-weight:800;
+    font-size:13.5px;cursor:pointer;background:#fff;color:var(--b-mur);box-shadow:0 4px 0 var(--b-kart-alt)}
+  .sirasende .kim{width:36px;height:36px;border-radius:50%;display:grid;place-items:center;font-weight:900;color:#fff;font-size:15px}
+  .sirasende .skor{margin-left:auto;font-weight:900;font-variant-numeric:tabular-nums;padding:3px 10px;
+    border-radius:999px;font-size:13px;background:#fff3d6;color:#a06a00}
+
+  /* --- maç ekranı --- */
+  .mac-ust{display:flex;align-items:center;gap:10px;padding:12px 14px 10px}
+  .mac-oyuncu{display:flex;align-items:center;gap:8px;flex:1;min-width:0}
+  .mac-oyuncu.sag{flex-direction:row-reverse;text-align:right}
+  .yuz{width:40px;height:40px;border-radius:50%;display:grid;place-items:center;color:#fff;
+    font-family:var(--display);font-weight:800;font-size:18px;border:3px solid #fff;box-shadow:0 3px 0 rgba(32,50,74,.15);flex:none}
+  .mac-ad{font-weight:900;font-size:12.5px;line-height:1.2;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .mac-alt{font-size:11px;font-weight:800;color:var(--b-mur-sonuk)}
+  .mac-skor{font-family:var(--display);font-weight:800;font-size:26px;font-variant-numeric:tabular-nums;
+    background:#fff;border:2px solid var(--b-kenar);border-radius:14px;padding:2px 12px;box-shadow:0 3px 0 #cfe0ee;flex:none}
+
+  .sayac-serit{display:flex;align-items:center;gap:10px;padding:0 16px 10px}
+  .sayac-bar{flex:1;height:12px;border-radius:999px;background:#fff;border:2px solid var(--b-kenar);overflow:hidden}
+  .sayac-bar i{display:block;height:100%;background:linear-gradient(90deg,#7ee081,#2fbf71)}
+  .sayac-bar.az i{background:linear-gradient(90deg,#ffb020,#ef4b4b)}
+  .sayac-sayi{font-family:var(--display);font-weight:800;font-size:20px;min-width:30px;text-align:right;font-variant-numeric:tabular-nums}
+
+  .soru-kutu{margin:0 16px;background:#fff;border-radius:20px;box-shadow:0 5px 0 var(--b-kart-alt);
+    padding:20px 18px;min-height:118px;display:flex;flex-direction:column;justify-content:center;gap:10px;text-align:center}
+  .kategori-chip{align-self:center;font-size:11px;font-weight:900;letter-spacing:.05em;text-transform:uppercase;
+    padding:4px 11px;border-radius:999px;background:#f0e3ff;color:#5a2fd6}
+  .soru-metin{font-family:var(--display);font-weight:700;font-size:19px;line-height:1.32;margin:0;text-wrap:balance}
+
+  .siklar{display:flex;flex-direction:column;gap:9px;padding:14px 16px 0}
+  .sik{display:flex;align-items:center;gap:11px;width:100%;border:0;cursor:pointer;text-align:left;
+    background:#fff;color:var(--b-mur);font-family:var(--govde);font-weight:800;font-size:15px;
+    padding:12px 14px;border-radius:15px;box-shadow:0 4px 0 var(--b-kart-alt);transition:transform .08s ease,box-shadow .08s ease}
+  .sik:active{transform:translateY(3px);box-shadow:0 1px 0 var(--b-kart-alt)}
+  .sik .harf{width:28px;height:28px;border-radius:9px;display:grid;place-items:center;flex:none;
+    background:#eef5fb;color:var(--b-mur-sonuk);font-family:var(--display);font-weight:800;font-size:15px}
+  .sik.dogru{background:linear-gradient(180deg,#57d795,var(--b-yesil));color:#fff;box-shadow:0 4px 0 var(--b-yesil-alt)}
+  .sik.dogru .harf{background:rgba(255,255,255,.25);color:#fff}
+  .sik.yanlis{background:linear-gradient(180deg,#f97070,var(--b-kirmizi));color:#fff;box-shadow:0 4px 0 var(--b-kirmizi-alt)}
+  .sik.yanlis .harf{background:rgba(255,255,255,.25);color:#fff}
+  .sik.silik{opacity:.42}
+  .sik .isaret{margin-left:auto;font-family:var(--display);font-size:19px;font-weight:800}
+
+  .jokerler{display:flex;gap:8px;padding:14px 16px 16px}
+  .joker{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;border:0;cursor:pointer;
+    background:#fff;border-radius:15px;padding:9px 4px;box-shadow:0 4px 0 var(--b-kart-alt);
+    font-weight:900;font-size:11.5px;color:var(--b-mur);font-family:var(--govde)}
+  .joker:active{transform:translateY(3px);box-shadow:0 1px 0 var(--b-kart-alt)}
+  .joker svg{width:24px;height:24px}
+  .joker .adet{font-size:10.5px;color:var(--b-mur-sonuk)}
+  .joker .adet.bedava{color:var(--b-yesil)}
+
+  /* --- bekleme ekranı --- */
+  .bekle{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;padding:24px 22px;text-align:center}
+  .bekle-baslik{font-family:var(--display);font-weight:800;font-size:24px;margin:0;text-wrap:balance}
+  .bekle-alt{margin:0;color:var(--b-mur-sonuk);font-size:14px;font-weight:700;line-height:1.5;max-width:30ch}
+  .vs{display:flex;align-items:center;gap:16px}
+  .vs .yuz{width:74px;height:74px;font-size:30px;border-width:4px}
+  .vs .vs-yazi{font-family:var(--display);font-weight:800;font-size:22px;color:var(--b-mur-sonuk)}
+  .bos-yuz{width:74px;height:74px;border-radius:50%;border:4px dashed #b9cfe0;display:grid;place-items:center;background:#fff}
+  .nokta-sira{display:flex;gap:6px}
+  .nokta-sira i{width:9px;height:9px;border-radius:50%;background:var(--b-turuncu);animation:zipla 1.1s infinite}
+  .nokta-sira i:nth-child(2){animation-delay:.15s}
+  .nokta-sira i:nth-child(3){animation-delay:.3s}
+  @keyframes zipla{0%,60%,100%{transform:translateY(0);opacity:.45}30%{transform:translateY(-7px);opacity:1}}
+  .bekle-alan{width:100%;display:flex;flex-direction:column;gap:9px}
+
+  /* --- sonuç ekranı --- */
+  .sonuc-ust{padding:22px 18px 10px;text-align:center}
+  .sonuc-baslik{font-family:var(--display);font-weight:800;font-size:30px;margin:8px 0 2px;
+    color:var(--b-yesil-alt);text-wrap:balance}
+  .sonuc-alt{margin:0;font-weight:800;font-size:13.5px;color:var(--b-mur-sonuk)}
+  .sonuc-skor{display:flex;align-items:center;justify-content:center;gap:14px;margin:16px 0 4px}
+  .sonuc-skor .yuz{width:60px;height:60px;font-size:24px}
+  .sonuc-skor b{font-family:var(--display);font-size:38px;font-weight:800;font-variant-numeric:tabular-nums}
+  .sonuc-skor .cizgi{color:var(--b-mur-sonuk);font-size:22px;font-weight:800}
+  .dokum{display:flex;gap:6px;justify-content:center;padding:8px 16px 0;flex-wrap:wrap}
+  .dokum i{width:26px;height:26px;border-radius:9px;display:grid;place-items:center;font-style:normal;
+    font-weight:900;font-size:13px;color:#fff;font-family:var(--display)}
+  .dokum i.d{background:var(--b-yesil)} .dokum i.y{background:var(--b-kirmizi)} .dokum i.b{background:#c3d3e0}
+  .kazanc{display:flex;gap:9px;padding:14px 16px 0}
+  .kazanc div{flex:1;background:#fff;border-radius:15px;box-shadow:0 4px 0 var(--b-kart-alt);padding:10px;text-align:center}
+  .kazanc b{display:block;font-family:var(--display);font-size:20px;font-weight:800}
+  .kazanc span{font-size:11px;font-weight:800;color:var(--b-mur-sonuk);text-transform:uppercase;letter-spacing:.04em}
+
+  /* --- lig --- */
+  .sekmeler{display:flex;gap:7px;padding:12px 16px 0}
+  .sekme{flex:1;border:0;cursor:pointer;background:#fff;color:var(--b-mur-sonuk);font-family:var(--govde);
+    font-weight:900;font-size:13px;padding:9px 6px;border-radius:13px;box-shadow:0 3px 0 var(--b-kart-alt)}
+  .sekme.aktif{background:linear-gradient(180deg,#ff9a4d,var(--b-turuncu));color:#fff;box-shadow:0 3px 0 var(--b-turuncu-alt)}
+  .sira-satir{display:flex;align-items:center;gap:11px;background:#fff;border-radius:15px;
+    box-shadow:0 4px 0 var(--b-kart-alt);padding:9px 12px;margin-bottom:8px}
+  .sira-no{width:28px;font-family:var(--display);font-weight:800;font-size:17px;text-align:center;color:var(--b-mur-sonuk)}
+  .sira-satir .yuz{width:36px;height:36px;font-size:15px;border-width:2px}
+  .sira-ad{font-weight:900;font-size:14px;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .sira-puan{font-weight:900;font-variant-numeric:tabular-nums;font-size:14px}
+  .sira-satir.ben{background:linear-gradient(180deg,#fff6e8,#ffeccd);box-shadow:0 4px 0 #e8cfa4}
+  .madalya{font-size:18px}
+
+  /* --- dükkân --- */
+  .paket{display:flex;align-items:center;gap:12px;background:#fff;border-radius:18px;
+    box-shadow:0 4px 0 var(--b-kart-alt);padding:12px;margin-bottom:10px}
+  .paket .gorsel{width:54px;height:54px;border-radius:16px;display:grid;place-items:center;flex:none}
+  .paket .gorsel svg{width:34px;height:34px}
+  .paket .bilgi{flex:1;min-width:0}
+  .paket .bilgi b{display:block;font-family:var(--display);font-size:16px;font-weight:800}
+  .paket .bilgi span{font-size:12px;font-weight:700;color:var(--b-mur-sonuk)}
+  .fiyat{border:0;cursor:pointer;font-family:var(--display);font-weight:800;font-size:15px;color:#fff;
+    padding:9px 14px;border-radius:13px;flex:none;
+    background:linear-gradient(180deg,#57d795,var(--b-yesil));box-shadow:0 4px 0 var(--b-yesil-alt)}
+  .fiyat:active{transform:translateY(3px);box-shadow:0 1px 0 var(--b-yesil-alt)}
+  .fiyat.reklam{background:linear-gradient(180deg,#ff9a4d,var(--b-turuncu));box-shadow:0 4px 0 var(--b-turuncu-alt)}
+
+  /* --- arkadaşlar --- */
+  .arama{display:flex;gap:8px;padding:12px 16px 0}
+  .arama input{flex:1;border:2px solid var(--b-kenar);background:#fff;border-radius:14px;padding:10px 13px;
+    font-family:var(--govde);font-weight:800;font-size:14px;color:var(--b-mur);box-shadow:0 3px 0 #cfe0ee}
+  .arama input::placeholder{color:#9ab0c4}
+  .arkadas{display:flex;align-items:center;gap:11px;background:#fff;border-radius:15px;
+    box-shadow:0 4px 0 var(--b-kart-alt);padding:9px 12px;margin-bottom:8px}
+  .arkadas .yuz{width:38px;height:38px;font-size:16px;border-width:2px}
+  .arkadas .ad{flex:1;min-width:0}
+  .arkadas .ad b{display:block;font-size:14px;font-weight:900;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .arkadas .ad span{font-size:11.5px;font-weight:800;color:var(--b-mur-sonuk)}
+  .cevrimici{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--b-yesil);margin-right:5px}
+  .mini{border:0;cursor:pointer;font-family:var(--display);font-weight:800;font-size:13.5px;color:#fff;
+    padding:8px 13px;border-radius:12px;flex:none;
+    background:linear-gradient(180deg,#ff9a4d,var(--b-turuncu));box-shadow:0 4px 0 var(--b-turuncu-alt)}
+  .mini:active{transform:translateY(3px);box-shadow:0 1px 0 var(--b-turuncu-alt)}
+  .mini.sade{background:#eef5fb;color:var(--b-mur-sonuk);box-shadow:0 4px 0 #d8e6f0}
+
+  .altnot{margin-top:40px;padding:18px;border:1px solid var(--kenar);border-radius:16px;background:var(--sayfa-2);
+    color:var(--yazi-sonuk);font-size:14px;line-height:1.6}
+  .altnot b{color:var(--yazi);font-family:var(--display);font-size:16px;display:block;margin-bottom:6px}
+  .altnot ul{margin:8px 0 0;padding-left:20px}
+  .altnot li{margin-bottom:5px}
+  @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+  <linearGradient id="g-altin" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffe27a"/><stop offset=".5" stop-color="#ffc327"/><stop offset="1" stop-color="#e09000"/></linearGradient>
+  <linearGradient id="g-bilet" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ff8fd0"/><stop offset="1" stop-color="#e8358f"/></linearGradient>
+  <linearGradient id="g-kilic" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffb3a8"/><stop offset="1" stop-color="#ff5b4a"/></linearGradient>
+  <linearGradient id="g-saat" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffe793"/><stop offset="1" stop-color="#ffd23f"/></linearGradient>
+  <linearGradient id="g-kupa" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#d8a8ff"/><stop offset="1" stop-color="#9333ea"/></linearGradient>
+  <linearGradient id="g-terazi" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#8fd0ff"/><stop offset="1" stop-color="#3e8fd0"/></linearGradient>
+  <linearGradient id="g-pas" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#8ff0bb"/><stop offset="1" stop-color="#20a45c"/></linearGradient>
+
+  <symbol id="i-altin" viewBox="0 0 32 32">
+    <ellipse cx="16" cy="19" rx="13" ry="11" fill="#b57400"/>
+    <ellipse cx="16" cy="16" rx="13" ry="11" fill="url(#g-altin)"/>
+    <ellipse cx="16" cy="16" rx="9" ry="7.5" fill="#ffdb63"/>
+    <path d="M13 11.5 L19 20.5 M19 11.5 L13 20.5" stroke="#b57400" stroke-width="2.4" stroke-linecap="round"/>
+  </symbol>
+  <symbol id="i-bilet" viewBox="0 0 32 32">
+    <path d="M4 10a2 2 0 0 1 2-2h20a2 2 0 0 1 2 2v3a3 3 0 0 0 0 6v3a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-3a3 3 0 0 0 0-6z" fill="url(#g-bilet)" stroke="#a81b62" stroke-width="1.6"/>
+    <path d="M16 12.5l1.4 2.9 3.1.4-2.3 2.2.6 3.1-2.8-1.5-2.8 1.5.6-3.1-2.3-2.2 3.1-.4z" fill="#fff"/>
+  </symbol>
+  <symbol id="i-alev" viewBox="0 0 32 32">
+    <path d="M16 2c1 6-5 7-5 13a5 5 0 0 0 10 0c0-2-1-3-1-5 3 2 5 5 5 9a9 9 0 1 1-18 0C7 11 14 9 16 2z" fill="#ff7a3d" stroke="#d1400a" stroke-width="1.5" stroke-linejoin="round"/>
+    <path d="M16 17c1.6 1.4 2.5 2.7 2.5 4.3a2.5 2.5 0 1 1-5 0c0-1.6.9-2.9 2.5-4.3z" fill="#ffd23f"/>
+  </symbol>
+  <symbol id="i-kilic" viewBox="0 0 32 32">
+    <path d="M23 4h5v5L15 22l-5-5z" fill="url(#g-kilic)" stroke="#c03225" stroke-width="1.6" stroke-linejoin="round"/>
+    <path d="M6 26l4-4 4 4-4 4z" fill="#ffd7a0" stroke="#c03225" stroke-width="1.6" stroke-linejoin="round"/>
+    <path d="M11 21l-5 5" stroke="#c03225" stroke-width="2.2" stroke-linecap="round"/>
+  </symbol>
+  <symbol id="i-saat" viewBox="0 0 32 32">
+    <circle cx="16" cy="17" r="12" fill="#c79a00"/>
+    <circle cx="16" cy="15.5" r="12" fill="url(#g-saat)" stroke="#c79a00" stroke-width="1.6"/>
+    <circle cx="16" cy="15.5" r="8.5" fill="#fff5cc"/>
+    <path d="M16 9.5v6.5l4.5 3" stroke="#8a6a00" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  </symbol>
+  <symbol id="i-kupa" viewBox="0 0 32 32">
+    <path d="M9 5h14v8a7 7 0 0 1-14 0z" fill="url(#g-kupa)" stroke="#6d21b0" stroke-width="1.6" stroke-linejoin="round"/>
+    <path d="M9 7H5v3a5 5 0 0 0 5 5M23 7h4v3a5 5 0 0 1-5 5" fill="none" stroke="#6d21b0" stroke-width="1.8" stroke-linecap="round"/>
+    <path d="M14 20h4v4h-4z" fill="#6d21b0"/>
+    <path d="M9 27a7 3 0 0 1 14 0z" fill="url(#g-kupa)" stroke="#6d21b0" stroke-width="1.6" stroke-linejoin="round"/>
+  </symbol>
+  <symbol id="i-terazi" viewBox="0 0 32 32">
+    <rect x="4" y="6" width="11" height="20" rx="3" fill="url(#g-terazi)" stroke="#2b6ba3" stroke-width="1.6"/>
+    <rect x="17" y="6" width="11" height="20" rx="3" fill="#e6f2fb" stroke="#2b6ba3" stroke-width="1.6" stroke-dasharray="3 3"/>
+    <path d="M20 12l5 8M25 12l-5 8" stroke="#2b6ba3" stroke-width="2" stroke-linecap="round"/>
+  </symbol>
+  <symbol id="i-pas" viewBox="0 0 32 32">
+    <path d="M6 7l12 9-12 9z" fill="url(#g-pas)" stroke="#137a45" stroke-width="1.6" stroke-linejoin="round"/>
+    <rect x="20" y="6" width="5" height="20" rx="2" fill="url(#g-pas)" stroke="#137a45" stroke-width="1.6"/>
+  </symbol>
+  <symbol id="i-video" viewBox="0 0 32 32">
+    <rect x="3" y="7" width="20" height="18" rx="4" fill="#ffd7a0" stroke="#c4530f" stroke-width="1.6"/>
+    <path d="M23 14l6-4v12l-6-4z" fill="#ff9a4d" stroke="#c4530f" stroke-width="1.6" stroke-linejoin="round"/>
+    <path d="M11 12l6 4-6 4z" fill="#c4530f"/>
+  </symbol>
+  <linearGradient id="g-grup" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#8fd0ff"/><stop offset="1" stop-color="#3e8fd0"/></linearGradient>
+  <linearGradient id="g-joker" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffa3dd"/><stop offset="1" stop-color="#e0399f"/></linearGradient>
+  <linearGradient id="g-kitap" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#86e8e2"/><stop offset="1" stop-color="#17908c"/></linearGradient>
+  <linearGradient id="g-lig" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#8ff0bb"/><stop offset="1" stop-color="#20a45c"/></linearGradient>
+  <symbol id="i-grup" viewBox="0 0 32 32">
+    <circle cx="11" cy="12" r="5" fill="url(#g-grup)" stroke="#2b6ba3" stroke-width="1.5"/>
+    <circle cx="22" cy="13" r="4" fill="url(#g-grup)" stroke="#2b6ba3" stroke-width="1.5"/>
+    <path d="M3 26c0-4.4 3.6-7 8-7s8 2.6 8 7z" fill="url(#g-grup)" stroke="#2b6ba3" stroke-width="1.5" stroke-linejoin="round"/>
+    <path d="M19.5 20.5c3.6-.6 9.5.7 9.5 5.5h-8" fill="url(#g-grup)" stroke="#2b6ba3" stroke-width="1.5" stroke-linejoin="round"/>
+  </symbol>
+  <symbol id="i-joker" viewBox="0 0 32 32">
+    <path d="M16 3l3.9 8 8.8 1.2-6.4 6.1 1.6 8.7L16 23l-7.9 4 1.6-8.7-6.4-6.1L12.1 11z" fill="url(#g-joker)" stroke="#a81b62" stroke-width="1.7" stroke-linejoin="round"/>
+    <path d="M16 8.5l2.2 4.6 5 .7-3.6 3.4" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" opacity=".85"/>
+  </symbol>
+  <symbol id="i-kitap" viewBox="0 0 32 32">
+    <path d="M5 6h9a4 4 0 0 1 4 4v17a4 4 0 0 0-4-3H5z" fill="url(#g-kitap)" stroke="#0f6b68" stroke-width="1.6" stroke-linejoin="round"/>
+    <path d="M27 6h-9a4 4 0 0 0-4 4v17a4 4 0 0 1 4-3h9z" fill="#d6fbf9" stroke="#0f6b68" stroke-width="1.6" stroke-linejoin="round"/>
+    <path d="M18 13h6M18 17h6" stroke="#0f6b68" stroke-width="1.6" stroke-linecap="round"/>
+  </symbol>
+  <symbol id="i-lig" viewBox="0 0 32 32">
+    <rect x="4" y="17" width="7" height="11" rx="2" fill="url(#g-lig)" stroke="#137a45" stroke-width="1.5"/>
+    <rect x="12.5" y="9" width="7" height="19" rx="2" fill="#ffd23f" stroke="#b58600" stroke-width="1.5"/>
+    <rect x="21" y="13" width="7" height="15" rx="2" fill="url(#g-lig)" stroke="#137a45" stroke-width="1.5"/>
+    <path d="M16 3l1.5 3.1 3.5.5-2.5 2.4.6 3.4-3.1-1.6-3.1 1.6.6-3.4L11 6.6l3.5-.5z" fill="#ffd23f" stroke="#b58600" stroke-width="1.2" stroke-linejoin="round"/>
+  </symbol>
+  <symbol id="t-ev" viewBox="0 0 24 24"><path d="M3 11.2 12 4l9 7.2V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z" fill="currentColor"/></symbol>
+  <symbol id="t-arkadas" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.4" fill="currentColor"/><circle cx="16.5" cy="9" r="2.7" fill="currentColor"/><path d="M2.5 20c0-3.6 2.9-5.8 6.5-5.8s6.5 2.2 6.5 5.8z" fill="currentColor"/><path d="M16 13.4c3 0 5.5 1.7 5.5 4.6H17z" fill="currentColor"/></symbol>
+  <symbol id="t-lig" viewBox="0 0 24 24"><rect x="3" y="13" width="5" height="8" rx="1.4" fill="currentColor"/><rect x="9.5" y="8" width="5" height="13" rx="1.4" fill="currentColor"/><rect x="16" y="11" width="5" height="10" rx="1.4" fill="currentColor"/><path d="M12 2l1.2 2.5 2.8.4-2 2 .5 2.7L12 8.3 9.5 9.6l.5-2.7-2-2 2.8-.4z" fill="currentColor"/></symbol>
+  <symbol id="t-dukkan" viewBox="0 0 24 24"><path d="M3.5 4h17l1.2 4.2a3 3 0 0 1-5.8 1.2 3 3 0 0 1-5.8 0 3 3 0 0 1-5.8-1.2z" fill="currentColor"/><path d="M5 11.5h14V20a1 1 0 0 1-1 1h-4v-5h-4v5H6a1 1 0 0 1-1-1z" fill="currentColor"/></symbol>
+  <symbol id="t-profil" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4" fill="currentColor"/><path d="M4 21c0-4.2 3.6-6.6 8-6.6s8 2.4 8 6.6z" fill="currentColor"/></symbol>
+</defs></svg>
+
+<div class="sarmal">
+  <header class="ust">
+    <h1>Quizador Ekran Seti</h1>
+    <p>Seçtiğin B — Şenlik yönü, oyunun geri kalan ekranlarına uygulandı. Aynı dil her yerde: beyaz kartlar, kabartmalı butonlar, gökyüzü zemini, Baloo 2 başlıkları. Butonlara basabilirsin.</p>
+  </header>
+
+  <div class="raf">
+
+    <!-- 0. ANA EKRAN -->
+    <section class="sunum">
+      <div class="etiket"><b>0 — Ana ekran</b><em>düzeltilmiş</em></div>
+      <div class="telefon"><div class="ekran">
+        <div class="kaydir">
+          <div class="cubuk">
+            <span class="hap"><svg><use href="#i-kupa"/></svg>3.640</span>
+            <span class="hap"><svg><use href="#i-alev"/></svg>5</span>
+            <span class="hap"><svg><use href="#i-terazi"/></svg>8</span>
+          </div>
+          <div class="kimlik">
+            <div class="avatar">İ</div>
+            <div class="kadi">idagureli <span class="rutbe-etiket">Usta</span></div>
+            <div class="bar"><i style="width:64%"></i></div>
+            <div class="bar-yazi">Şampiyon rütbesine 340 puan</div>
+          </div>
+          <div class="bolum">
+            <button class="btn3d"><svg><use href="#i-kilic"/></svg>Hemen Oyna</button>
+          </div>
+          <div class="bolum">
+            <h3 class="bolum-bas">Sıra sende <span>2 maç</span></h3>
+            <div class="sirasende">
+              <span class="kim" style="background:linear-gradient(160deg,#7a4bff,#5a2fd6)">D</span>
+              <span>demicem.824<br><small style="opacity:.65;font-weight:700">Tarih • 4. soru</small></span>
+              <span class="skor">1 – 0</span>
+            </div>
+          </div>
+          <div class="bolum" style="padding-bottom:18px">
+            <h3 class="bolum-bas">Modlar</h3>
+            <div class="modlar">
+              <button class="mod genis"><span class="simge" style="background:#ffe6e2"><svg><use href="#i-kilic"/></svg></span>Meydan Oku</button>
+              <button class="mod"><span class="simge" style="background:#fff3d1"><svg><use href="#i-saat"/></svg></span>Hızlı Mod</button>
+              <button class="mod"><span class="simge" style="background:#dff0ff"><svg><use href="#i-grup"/></svg></span>Grup Maçı</button>
+              <button class="mod"><span class="simge" style="background:#f0e3ff"><svg><use href="#i-kupa"/></svg></span>Turnuva</button>
+              <button class="mod"><span class="simge" style="background:#ffe1f2"><svg><use href="#i-joker"/></svg></span>Joker Dükkânı</button>
+              <button class="mod genis"><span class="simge" style="background:#d9f7f5"><svg><use href="#i-kitap"/></svg></span>Hatalarım<span class="rozet">7</span></button>
+              <button class="mod genis"><span class="simge" style="background:#dcf7e6"><svg><use href="#i-lig"/></svg></span>Lig</button>
+            </div>
+          </div>
+        </div>
+        <nav class="tabbar">
+          <button class="tab aktif"><svg><use href="#t-ev"/></svg>Ana Sayfa</button>
+          <button class="tab"><svg><use href="#t-arkadas"/></svg><span class="nokta"></span>Arkadaşlar</button>
+          <button class="tab"><svg><use href="#t-lig"/></svg>Lig</button>
+          <button class="tab"><svg><use href="#t-dukkan"/></svg>Dükkân</button>
+          <button class="tab"><svg><use href="#t-profil"/></svg>Profil</button>
+        </nav>
+      </div></div>
+      <p class="not"><strong>Düzeltildi:</strong> uydurma altın ve bilet kaldırıldı. Üstteki haplar artık oyunda gerçekten olan üç şey: <strong>puan</strong>, <strong>günlük seri</strong> ve <strong>joker sayın</strong>.</p>
+    </section>
+
+    <!-- 1. MAÇ -->
+    <section class="sunum">
+      <div class="etiket"><b>1 — Maç ekranı</b><em>soru sorulurken</em></div>
+      <div class="telefon"><div class="ekran">
+        <div class="kaydir">
+          <div class="mac-ust">
+            <div class="mac-oyuncu">
+              <span class="yuz" style="background:linear-gradient(160deg,#ffb45c,#ff7a3d)">İ</span>
+              <span><span class="mac-ad">idagureli</span><span class="mac-alt">4/10 soru</span></span>
+            </div>
+            <span class="mac-skor">2–1</span>
+            <div class="mac-oyuncu sag">
+              <span class="yuz" style="background:linear-gradient(160deg,#7a4bff,#5a2fd6)">D</span>
+              <span><span class="mac-ad">demicem.824</span><span class="mac-alt">3/10 soru</span></span>
+            </div>
+          </div>
+          <div class="sayac-serit">
+            <div class="sayac-bar"><i style="width:66%"></i></div>
+            <span class="sayac-sayi">11</span>
+          </div>
+          <div class="soru-kutu">
+            <span class="kategori-chip">Tarih</span>
+            <p class="soru-metin">İstanbul'un fethi hangi padişah döneminde gerçekleşti?</p>
+          </div>
+          <div class="siklar">
+            <button class="sik"><span class="harf">A</span>II. Mehmed</button>
+            <button class="sik"><span class="harf">B</span>I. Selim</button>
+            <button class="sik"><span class="harf">C</span>II. Bayezid</button>
+            <button class="sik"><span class="harf">D</span>I. Süleyman</button>
+          </div>
+          <div class="jokerler">
+            <button class="joker"><svg><use href="#i-terazi"/></svg>50:50<span class="adet bedava">Ücretsiz</span></button>
+            <button class="joker"><svg><use href="#i-saat"/></svg>+10 sn<span class="adet">3 adet</span></button>
+            <button class="joker"><svg><use href="#i-pas"/></svg>Pas<span class="adet">1 adet</span></button>
+          </div>
+        </div>
+      </div></div>
+      <p class="not"><strong>Değişen:</strong> skor üstte tek satırda, sayaç hem çubuk hem rakam (son 5 sn kırmızıya döner), şıklar kabartmalı, jokerler altta sabit.</p>
+    </section>
+
+    <!-- 2. CEVAP -->
+    <section class="sunum">
+      <div class="etiket"><b>2 — Cevap anı</b><em>yanlış cevap verildi</em></div>
+      <div class="telefon"><div class="ekran">
+        <div class="kaydir">
+          <div class="mac-ust">
+            <div class="mac-oyuncu">
+              <span class="yuz" style="background:linear-gradient(160deg,#ffb45c,#ff7a3d)">İ</span>
+              <span><span class="mac-ad">idagureli</span><span class="mac-alt">4/10 soru</span></span>
+            </div>
+            <span class="mac-skor">2–1</span>
+            <div class="mac-oyuncu sag">
+              <span class="yuz" style="background:linear-gradient(160deg,#7a4bff,#5a2fd6)">D</span>
+              <span><span class="mac-ad">demicem.824</span><span class="mac-alt">3/10 soru</span></span>
+            </div>
+          </div>
+          <div class="sayac-serit">
+            <div class="sayac-bar az"><i style="width:18%"></i></div>
+            <span class="sayac-sayi">3</span>
+          </div>
+          <div class="soru-kutu">
+            <span class="kategori-chip">Tarih</span>
+            <p class="soru-metin">İstanbul'un fethi hangi padişah döneminde gerçekleşti?</p>
+          </div>
+          <div class="siklar">
+            <button class="sik dogru"><span class="harf">A</span>II. Mehmed<span class="isaret">✓</span></button>
+            <button class="sik yanlis"><span class="harf">B</span>I. Selim<span class="isaret">✕</span></button>
+            <button class="sik silik"><span class="harf">C</span>II. Bayezid</button>
+            <button class="sik silik"><span class="harf">D</span>I. Süleyman</button>
+          </div>
+          <div class="bolum" style="padding-top:12px">
+            <div class="kart" style="text-align:center;font-weight:800;font-size:13.5px;color:var(--b-mur-sonuk)">
+              Doğru cevap <b style="color:var(--b-yesil-alt)">II. Mehmed</b> — sonraki soru geliyor…
+            </div>
+          </div>
+        </div>
+      </div></div>
+      <p class="not"><strong>Önemli:</strong> doğru şık her zaman yeşile boyanır, seçtiğin yanlışsa kırmızı olur. Süre dolduğunda da aynısı olur — oyuncu neyi kaçırdığını görür.</p>
+    </section>
+
+    <!-- 3. RAKİP BEKLENİYOR -->
+    <section class="sunum">
+      <div class="etiket"><b>3 — Rakip bekleniyor</b><em>senkron arkadaş maçı</em></div>
+      <div class="telefon"><div class="ekran">
+        <div class="cubuk">
+          <span class="hap"><svg><use href="#i-kupa"/></svg>3.640</span>
+          <span class="hap"><svg><use href="#i-alev"/></svg>5</span>
+        </div>
+        <div class="bekle">
+          <div class="vs">
+            <span class="yuz" style="background:linear-gradient(160deg,#ffb45c,#ff7a3d)">İ</span>
+            <span class="vs-yazi">VS</span>
+            <span class="bos-yuz"><span class="nokta-sira"><i></i><i></i><i></i></span></span>
+          </div>
+          <h2 class="bekle-baslik">Rakip bekleniyor…</h2>
+          <p class="bekle-alt">demicem.824 davetini açtığı an maç ikinizde de aynı anda başlayacak.</p>
+          <div class="kart" style="width:100%;text-align:center">
+            <div style="font-size:12px;font-weight:900;letter-spacing:.05em;text-transform:uppercase;color:var(--b-mur-sonuk);margin-bottom:6px">Kategori</div>
+            <div style="font-family:var(--display);font-weight:800;font-size:19px">Tarih • 10 soru</div>
+          </div>
+          <div class="bekle-alan">
+            <button class="btn3d sade kucuk">Daveti tekrar gönder</button>
+            <button class="btn3d sade kucuk" style="color:var(--b-kirmizi)">Maçı iptal et</button>
+          </div>
+          <p class="bekle-alt" style="font-size:12.5px">2 dakika içinde gelmezse maçı sıra tabanlı bırakabilirsin.</p>
+        </div>
+      </div></div>
+      <p class="not"><strong>Yeni ekran:</strong> onayladığın senkron arkadaş maçının başlangıcı. Rakip gelince üç nokta yerine avatarı belirir ve 3-2-1 geri sayım başlar.</p>
+    </section>
+
+    <!-- 4. MAÇ SONU -->
+    <section class="sunum">
+      <div class="etiket"><b>4 — Maç sonu</b><em>kazandın</em></div>
+      <div class="telefon"><div class="ekran">
+        <div class="kaydir">
+          <div class="sonuc-ust">
+            <svg style="width:76px;height:76px"><use href="#i-kupa"/></svg>
+            <h2 class="sonuc-baslik">Kazandın!</h2>
+            <p class="sonuc-alt">Tarih • 10 soru</p>
+          </div>
+          <div class="sonuc-skor">
+            <span class="yuz" style="background:linear-gradient(160deg,#ffb45c,#ff7a3d)">İ</span>
+            <b>7</b><span class="cizgi">–</span><b>5</b>
+            <span class="yuz" style="background:linear-gradient(160deg,#7a4bff,#5a2fd6)">D</span>
+          </div>
+          <div class="dokum">
+            <i class="d">1</i><i class="d">2</i><i class="y">3</i><i class="d">4</i><i class="d">5</i>
+            <i class="b">6</i><i class="d">7</i><i class="d">8</i><i class="y">9</i><i class="d">10</i>
+          </div>
+          <div class="kazanc">
+            <div><b>+120</b><span>Puan</span></div>
+            <div><b>7/10</b><span>Doğru</span></div>
+            <div><b>5</b><span>Seri</span></div>
+          </div>
+          <div class="bolum"><button class="btn3d yesil"><svg><use href="#i-kilic"/></svg>Rövanş iste</button></div>
+          <div class="bolum" style="padding-bottom:16px"><button class="btn3d sade kucuk">Soruları incele</button></div>
+        </div>
+      </div></div>
+      <p class="not"><strong>Değişen:</strong> kupa, skor ve 10 sorunun tek satır dökümü (yeşil doğru, kırmızı yanlış, gri süre doldu). Kazanç üç kutuda. Rövanş ana eylem.</p>
+    </section>
+
+    <!-- 5. LİG -->
+    <section class="sunum">
+      <div class="etiket"><b>5 — Lig</b><em>haftalık sıralama</em></div>
+      <div class="telefon"><div class="ekran">
+        <div class="kaydir">
+          <div class="cubuk">
+            <span class="hap"><svg><use href="#i-kupa"/></svg>Haftalık lig</span>
+            <span class="hap"><svg><use href="#i-saat"/></svg>2g 14s</span>
+          </div>
+          <div class="sekmeler">
+            <button class="sekme aktif">Şehir</button>
+            <button class="sekme">Ülke</button>
+            <button class="sekme">Dünya</button>
+          </div>
+          <div class="bolum" style="padding-bottom:16px">
+            <h3 class="bolum-bas" style="margin-top:4px">Balıkesir <span>842 oyuncu</span></h3>
+            <div class="sira-satir"><span class="sira-no madalya">🥇</span><span class="yuz" style="background:linear-gradient(160deg,#8fd0ff,#3e8fd0)">M</span><span class="sira-ad">merve_k</span><span class="sira-puan">4.120</span></div>
+            <div class="sira-satir"><span class="sira-no madalya">🥈</span><span class="yuz" style="background:linear-gradient(160deg,#7a4bff,#5a2fd6)">D</span><span class="sira-ad">demicem.824</span><span class="sira-puan">3.880</span></div>
+            <div class="sira-satir ben"><span class="sira-no madalya">🥉</span><span class="yuz" style="background:linear-gradient(160deg,#ffb45c,#ff7a3d)">İ</span><span class="sira-ad">idagureli <b style="color:var(--b-turuncu)">(sen)</b></span><span class="sira-puan">3.640</span></div>
+            <div class="sira-satir"><span class="sira-no">4</span><span class="yuz" style="background:linear-gradient(160deg,#57d795,#2fbf71)">A</span><span class="sira-ad">ahmet.42</span><span class="sira-puan">3.110</span></div>
+            <div class="sira-satir"><span class="sira-no">5</span><span class="yuz" style="background:linear-gradient(160deg,#ff8fd0,#e8358f)">Z</span><span class="sira-ad">zeynep</span><span class="sira-puan">2.950</span></div>
+            <div class="sira-satir"><span class="sira-no">6</span><span class="yuz" style="background:linear-gradient(160deg,#ffd76a,#ffb020)">K</span><span class="sira-ad">kaan_55</span><span class="sira-puan">2.740</span></div>
+            <div class="sira-satir"><span class="sira-no">7</span><span class="yuz" style="background:linear-gradient(160deg,#86e8e2,#17908c)">B</span><span class="sira-ad">burak</span><span class="sira-puan">2.510</span></div>
+          </div>
+        </div>
+        <nav class="tabbar">
+          <button class="tab"><svg><use href="#t-ev"/></svg>Ana Sayfa</button>
+          <button class="tab"><svg><use href="#t-arkadas"/></svg>Arkadaşlar</button>
+          <button class="tab aktif"><svg><use href="#t-lig"/></svg>Lig</button>
+          <button class="tab"><svg><use href="#t-dukkan"/></svg>Dükkân</button>
+          <button class="tab"><svg><use href="#t-profil"/></svg>Profil</button>
+        </nav>
+      </div></div>
+      <p class="not"><strong>Değişen:</strong> şehir / ülke / dünya artık kabartmalı sekme. Kendi satırın krem zeminle ayrılıyor, geri sayım üstte hapta.</p>
+    </section>
+
+    <!-- 6. DÜKKÂN -->
+    <section class="sunum">
+      <div class="etiket"><b>6 — Dükkân</b><em>joker ve altın</em></div>
+      <div class="telefon"><div class="ekran">
+        <div class="kaydir">
+          <div class="cubuk">
+            <span class="hap"><svg><use href="#i-terazi"/></svg>4</span>
+            <span class="hap"><svg><use href="#i-saat"/></svg>3</span>
+            <span class="hap"><svg><use href="#i-pas"/></svg>1</span>
+          </div>
+          <div class="bolum">
+            <h3 class="bolum-bas">Bedava joker <span>bugün 2/5</span></h3>
+            <div class="paket">
+              <span class="gorsel" style="background:#ffe8d6"><svg><use href="#i-video"/></svg></span>
+              <span class="bilgi"><b>Reklam izle</b><span>Bir video = +1 adet 50:50</span></span>
+              <button class="fiyat reklam">İzle</button>
+            </div>
+          </div>
+          <div class="bolum">
+            <h3 class="bolum-bas">Joker paketleri</h3>
+            <div class="paket">
+              <span class="gorsel" style="background:#dff0ff"><svg><use href="#i-terazi"/></svg></span>
+              <span class="bilgi"><b>Başlangıç Paketi</b><span>10 karışık joker</span></span>
+              <button class="fiyat">Satın al</button>
+            </div>
+            <div class="paket">
+              <span class="gorsel" style="background:#fff3d1"><svg><use href="#i-saat"/></svg></span>
+              <span class="bilgi"><b>Oyuncu Paketi</b><span>30 karışık joker</span></span>
+              <button class="fiyat">Satın al</button>
+            </div>
+            <div class="paket">
+              <span class="gorsel" style="background:#f0e3ff"><svg><use href="#i-kupa"/></svg></span>
+              <span class="bilgi"><b>Usta Paketi</b><span>100 karışık joker</span></span>
+              <button class="fiyat">Satın al</button>
+            </div>
+          </div>
+          <div class="bolum" style="padding-bottom:16px">
+            <h3 class="bolum-bas">Seri</h3>
+            <div class="paket">
+              <span class="gorsel" style="background:#ffe8d6"><svg><use href="#i-alev"/></svg></span>
+              <span class="bilgi"><b>Seri Kalkanı</b><span>3 adet seri koruma</span></span>
+              <button class="fiyat">Satın al</button>
+            </div>
+          </div>
+        </div>
+        <nav class="tabbar">
+          <button class="tab"><svg><use href="#t-ev"/></svg>Ana Sayfa</button>
+          <button class="tab"><svg><use href="#t-arkadas"/></svg>Arkadaşlar</button>
+          <button class="tab"><svg><use href="#t-lig"/></svg>Lig</button>
+          <button class="tab aktif"><svg><use href="#t-dukkan"/></svg>Dükkân</button>
+          <button class="tab"><svg><use href="#t-profil"/></svg>Profil</button>
+        </nav>
+      </div></div>
+      <p class="not"><strong>Değişen:</strong> her paket tek satır kart — ikon, ne olduğu, fiyat düğmesi. Bedava reklam seçeneği en üstte, satın almadan önce.</p>
+    </section>
+
+    <!-- 7. ARKADAŞLAR -->
+    <section class="sunum">
+      <div class="etiket"><b>7 — Arkadaşlar</b><em>davet ve meydan okuma</em></div>
+      <div class="telefon"><div class="ekran">
+        <div class="kaydir">
+          <div class="cubuk">
+            <span class="hap"><svg><use href="#i-alev"/></svg>5 günlük seri</span>
+          </div>
+          <div class="arama">
+            <input id="q-arkadas-ara" type="text" placeholder="Kullanıcı adı ara" aria-label="Arkadaş ara">
+          </div>
+          <div class="bolum">
+            <h3 class="bolum-bas">İstekler <span>1 yeni</span></h3>
+            <div class="arkadas">
+              <span class="yuz" style="background:linear-gradient(160deg,#86e8e2,#17908c)">B</span>
+              <span class="ad"><b>burak</b><span>Seni arkadaş ekledi</span></span>
+              <button class="mini">Kabul</button>
+            </div>
+          </div>
+          <div class="bolum" style="padding-bottom:16px">
+            <h3 class="bolum-bas">Arkadaşların <span>6 kişi</span></h3>
+            <div class="arkadas">
+              <span class="yuz" style="background:linear-gradient(160deg,#7a4bff,#5a2fd6)">D</span>
+              <span class="ad"><b>demicem.824</b><span><i class="cevrimici"></i>Çevrimiçi</span></span>
+              <button class="mini">Meydan oku</button>
+            </div>
+            <div class="arkadas">
+              <span class="yuz" style="background:linear-gradient(160deg,#8fd0ff,#3e8fd0)">M</span>
+              <span class="ad"><b>merve_k</b><span><i class="cevrimici"></i>Çevrimiçi</span></span>
+              <button class="mini">Meydan oku</button>
+            </div>
+            <div class="arkadas">
+              <span class="yuz" style="background:linear-gradient(160deg,#57d795,#2fbf71)">A</span>
+              <span class="ad"><b>ahmet.42</b><span>2 saat önce</span></span>
+              <button class="mini sade">Davet et</button>
+            </div>
+            <div class="arkadas">
+              <span class="yuz" style="background:linear-gradient(160deg,#ff8fd0,#e8358f)">Z</span>
+              <span class="ad"><b>zeynep</b><span>Dün</span></span>
+              <button class="mini sade">Davet et</button>
+            </div>
+          </div>
+        </div>
+        <nav class="tabbar">
+          <button class="tab"><svg><use href="#t-ev"/></svg>Ana Sayfa</button>
+          <button class="tab aktif"><svg><use href="#t-arkadas"/></svg><span class="nokta"></span>Arkadaşlar</button>
+          <button class="tab"><svg><use href="#t-lig"/></svg>Lig</button>
+          <button class="tab"><svg><use href="#t-dukkan"/></svg>Dükkân</button>
+          <button class="tab"><svg><use href="#t-profil"/></svg>Profil</button>
+        </nav>
+      </div></div>
+      <p class="not"><strong>Değişen:</strong> çevrimiçi arkadaşa "Meydan oku" (anında senkron maç), çevrimdışı olana "Davet et". İstekler ayrı başlıkta, kaybolmuyor.</p>
+    </section>
+
+  </div>
+
+  <div class="altnot">
+    <b>Bu sürümde düzeltilenler</b>
+    <ul>
+      <li><b>Altın ve bilet kaldırıldı</b> — oyunda böyle bir para birimi yok. Yerine puan, günlük seri ve joker sayısı.</li>
+      <li><b>Dükkân gerçek paketlere göre yeniden yapıldı</b> — Başlangıç (10), Oyuncu (30), Usta (100) ve Seri Kalkanı (3). Fiyat kodda yazmıyor, Play Console'dan geliyor; bu yüzden düğmede rakam değil "Satın al" yazıyor.</li>
+      <li><b>Reklam ödülü düzeltildi</b> — bir video = +1 adet 50:50, günde en fazla 5.</li>
+      <li><b>Maç sonu kazançları</b> — altın yerine puan, doğru sayısı ve seri.</li>
+      <li><b>Pas jokeri kaldı</b> — oyunda gerçekten var (maç içi üç jokerden biri, turnuva finali hariç).</li>
+      <li>Hiçbir ekrana yeni özellik eklenmedi; yalnız var olanların görünümü değişti.</li>
+    </ul>
+  </div>
+</div>

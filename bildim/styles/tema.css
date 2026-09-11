@@ -6,31 +6,41 @@
    ============================================================ */
 
 :root {
-  /* ---------- Zemin (gece lacivert, 2 ton) ---------- */
-  --bd-zemin: #0B1220;
-  --bd-zemin-2: #131C31;
+  /* ---------- Zemin — AÇIK GÖKYÜZÜ (Şenlik revizyonu) ----------
+     Koyu tema kaldırıldı. Token ADLARI bilerek korundu: tüm bileşenler bu
+     dosyadan dönüşsün, yüzlerce sınıf tek tek elden geçmesin. */
+  --bd-zemin: #EAF7FF;
+  --bd-zemin-2: #FFF6E8;
+  --bd-gok: #CDEEFF;        /* gradyanın en üst tonu */
 
-  /* ---------- Yüzey (3 ton — kart derinliği) ---------- */
-  --bd-yuzey-1: #18233B;   /* en yakın kart */
-  --bd-yuzey-2: #1F2C4A;   /* yükseltilmiş */
-  --bd-yuzey-3: #27365A;   /* vurgulu / seçili */
+  /* ---------- Yüzey — beyaz kartlar ---------- */
+  --bd-yuzey-1: #FFFFFF;   /* kart */
+  --bd-yuzey-2: #FFFFFF;   /* yükseltilmiş kart (artık aynı) */
+  --bd-yuzey-3: #EEF5FB;   /* seçili / pasif dolgu */
 
-  /* ---------- Anlam renkleri ----------
-     ANA VURGU ALTIN. Mor palet tamamen kaldırıldı; --bd-vurgu* artık altın
-     ailesidir (eski sınıf adları korunsun diye token adları değişmedi). */
-  --bd-vurgu: #F2B23C;
-  --bd-vurgu-2: #C98A22;
-  --bd-vurgu-acik: #F7CB77;
-  --bd-odul: #F2B23C;       /* ödül / puan */
-  --bd-odul-2: #C98A22;
+  /* ---------- Kart altı kalınlık ----------
+     Oyun arayüzlerinin kabartma dili: yumuşak blur gölge değil, düz kalınlık. */
+  --bd-kart-alt: #D8E6F0;
+  --bd-kenar: #D6E6F2;
+
+  /* ---------- Anlam renkleri — ana vurgu TURUNCU ----------
+     Her rengin bir "-2" alt tonu var: kabartmanın alt kalınlığı o renkten. */
+  --bd-vurgu: #F4701F;
+  --bd-vurgu-2: #C4530F;
+  --bd-vurgu-acik: #FF9A4D;
+  --bd-odul: #FFC53D;       /* ödül / puan */
+  --bd-odul-2: #C99A00;
   --bd-basari: #2FBF71;
-  --bd-hata: #E8543F;       /* mercan */
-  --bd-bilgi: #4A9DD9;
+  --bd-basari-2: #1D8A50;
+  --bd-hata: #EF4B4B;
+  --bd-hata-2: #B62F2F;
+  --bd-bilgi: #3E8FD0;
+  --bd-mor: #7A4BFF;        /* rütbe etiketi, turnuva kimliği */
 
-  /* ---------- Metin ---------- */
-  --bd-metin: #EAF0FA;
-  --bd-metin-2: #A8B8D0;    /* koyu zeminde kontrast > 4.5 */
-  --bd-metin-3: #8496B2;
+  /* ---------- Metin — açık zemine göre ---------- */
+  --bd-metin: #20324A;
+  --bd-metin-2: #5A7089;    /* açık zeminde kontrast > 4.5 */
+  --bd-metin-3: #6E86A0;   /* #9AB0C4 idi: beyazda 2.24:1 ile okunmuyordu */
 
   /* ---------- Boşluk ölçeği (FAZ 5a) ----------
      Sadece bu yedi değer kullanılır. Bileşenlerdeki serbest piksel
@@ -49,23 +59,28 @@
   --bd-bosluk-3: var(--bd-b-3);
   --bd-bosluk-4: var(--bd-b-4);
 
-  /* ---------- Yarıçap — karışık kullanılır ---------- */
-  --bd-r-s: 8px;            /* rozet/çip */
-  --bd-r-m: 10px;           /* buton */
-  --bd-r-l: 12px;           /* kart */
+  /* ---------- Yarıçap — oyun hissi için büyüdü ---------- */
+  --bd-r-s: 12px;           /* rozet/çip */
+  --bd-r-m: 15px;           /* buton */
+  --bd-r-l: 18px;           /* kart */
   --bd-r-tam: 999px;
 
-  /* ---------- Gölge: düz siyah, düşük opaklık, kısa yayılım ----------
-     Renkli glow yalnız birincil eylem butonunda (--bd-glow-odul). */
-  --bd-golge-yumusak: 0 2px 6px rgba(0, 0, 0, 0.32);
-  --bd-golge-derin: 0 6px 16px rgba(0, 0, 0, 0.42);
-  --bd-glow-mor: 0 2px 6px rgba(0, 0, 0, 0.32);          /* eski ad; artık düz gölge */
-  --bd-glow-odul: 0 6px 18px rgba(242, 178, 60, 0.28);   /* YALNIZ birincil buton */
+  /* ---------- Gölge — artık DÜZ KALINLIK ----------
+     Şenlik dilinde blur gölge yok; kartın altında 4px koyu bir kalınlık var.
+     Eski gölge adları korundu ki bileşenler tek tek elden geçmesin. */
+  --bd-golge-yumusak: 0 4px 0 var(--bd-kart-alt);
+  --bd-golge-derin: 0 5px 0 var(--bd-kart-alt);
+  --bd-glow-mor: 0 4px 0 var(--bd-kart-alt);             /* eski ad */
+  --bd-glow-odul: 0 5px 0 var(--bd-vurgu-2), 0 9px 14px rgba(32, 50, 74, 0.18);
   --bd-ic-parlaklik: none;
 
-  /* ---------- Tipografi ölçeği ---------- */
-  --bd-f-baslik: "Baloo 2", "Segoe UI", system-ui, sans-serif;
-  --bd-f-govde: system-ui, "Segoe UI", -apple-system, sans-serif;
+  /* ---------- Tipografi ölçeği ----------
+     Başlık Baloo 2, gövde Nunito. --bd-font-* adları da tanımlı (referans
+     dosyada bu adla geçiyor); ikisi aynı değeri gösterir. */
+  --bd-f-baslik: "Baloo 2", "Trebuchet MS", system-ui, sans-serif;
+  --bd-f-govde: "Nunito", system-ui, -apple-system, sans-serif;
+  --bd-font-baslik: var(--bd-f-baslik);
+  --bd-font-govde: var(--bd-f-govde);
   --bd-t-xl: 28px;
   --bd-t-l: 20px;
   --bd-t-m: 17px;
@@ -81,11 +96,16 @@
    ============================================================ */
 
 body {
-  /* Üstte tek büyük altın ışık, altta koyulaşma. Başka renk lekesi yok. */
-  background:
-    radial-gradient(1100px 620px at 50% -260px, rgba(242, 178, 60, 0.1) 0%, transparent 62%),
-    linear-gradient(180deg, var(--bd-zemin-2) 0%, var(--bd-zemin) 62%);
+  /* Açık gökyüzü zemini: gök mavisi -> çok açık mavi -> krem. */
+  background: linear-gradient(180deg, var(--bd-gok) 0%, var(--bd-zemin) 30%, var(--bd-zemin-2) 100%);
   background-attachment: fixed;
+  font-family: var(--bd-f-govde);
+}
+
+/* Başlıklar, skorlar ve butonlar Baloo 2 ile yazılır. */
+h1, h2, h3,
+.bd-katman-baslik, .bd-hero-ad, .bd-mod-ad, .baslik {
+  font-family: var(--bd-f-baslik);
 }
 
 /* İnce nokta dokusu — zemine yüzey hissi verir */
@@ -1283,15 +1303,21 @@ body { overflow-x: clip; }
    ============================================================ */
 
 :root {
-  /* ---- Palet: gece lacivert + altın (mor tamamen kaldırıldı) ---- */
-  --bd-vurgu: #F2B23C;          /* altın — ana vurgu */
-  --bd-vurgu-2: #C98A22;
-  --bd-vurgu-acik: #F7CB77;
-  --bd-odul: #F2B23C;           /* ödül / puan */
-  --bd-odul-2: #C98A22;
+  /* ---- Palet: Şenlik revizyonu — ana vurgu TURUNCU ----
+     DİKKAT: bu blok dosyanın başındaki :root'u eziyor (kaskadda sonra
+     geliyor). Revizyonda ikisi de aynı palete çevrildi; biri unutulursa
+     butonlar eski altın rengine geri döner. */
+  --bd-vurgu: #F4701F;
+  --bd-vurgu-2: #C4530F;
+  --bd-vurgu-acik: #FF9A4D;
+  --bd-odul: #FFC53D;           /* ödül / puan */
+  --bd-odul-2: #C99A00;
   --bd-basari: #2FBF71;
-  --bd-hata: #E8543F;           /* mercan */
-  --bd-bilgi: #4A9DD9;
+  --bd-basari-2: #1D8A50;
+  --bd-hata: #EF4B4B;
+  --bd-hata-2: #B62F2F;
+  --bd-bilgi: #3E8FD0;
+  --bd-mor: #7A4BFF;
 
   /* Chunky buton derinliği */
   --bd-kalinlik: 4px;
@@ -1309,22 +1335,19 @@ body { overflow-x: clip; }
   --kat-edebiyat: #E8543F;
 }
 
-/* ---------- Sahne: derinlikli zemin ---------- */
+/* ---------- Sahne: açık gökyüzü zemini ----------
+   Eskiden altın radial ışık + koyu gradyan vardı; Şenlik revizyonunda
+   yukarıdan aşağı gök mavisi -> çok açık mavi -> krem oldu. Sıralama önemli:
+   --bd-zemin-2 (krem) ALTTA olmalı, üstte değil. */
 body {
-  background:
-    radial-gradient(1100px 640px at 50% -260px, rgba(242, 178, 60, 0.11) 0%, transparent 60%),
-    linear-gradient(180deg, var(--bd-zemin-2) 0%, var(--bd-zemin) 62%);
+  background: linear-gradient(180deg, var(--bd-gok) 0%, var(--bd-zemin) 30%, var(--bd-zemin-2) 100%);
   background-attachment: fixed;
 }
 
-/* Yıldız/nokta dokusu + sayfa kaydıkça hafif kayma (parallax) */
+/* Doku katmanı: koyu zeminde ince beyaz köşegen çizgilerdi. Açık gökyüzü
+   zemininde beyaz çizgi görünmüyor, kirli bir pus bırakıyordu — kaldırıldı. */
 body::before {
-  /* Nokta dokusu yerine ince köşegen çizgi — görsel dosya yok, tamamı CSS */
-  background-image: repeating-linear-gradient(
-    135deg,
-    rgba(255, 255, 255, 0.03) 0 1px,
-    transparent 1px 9px
-  );
+  background-image: none;
   background-size: auto;
   background-position: 0 0;
   transform: translateY(calc(var(--bd-kaydir, 0) * -0.03px));
@@ -2004,10 +2027,10 @@ body::before {
    ============================================================ */
 
 html {
-  background-color: #0B1220;   /* --bd-zemin ile aynı; kök zemin asla beyaz olmasın */
-  color-scheme: dark;          /* tarayıcı varsayılanları da koyu */
+  background-color: var(--bd-zemin);  /* kök zemin gradyanla aynı aileden olsun */
+  color-scheme: light;                /* tarayıcı varsayılanları da açık */
 }
-body { background-color: #0B1220; }
+body { background-color: var(--bd-zemin); }
 
 /* Sabit üst blok kendi kompozisyon katmanında kalsın: blur her karede
    yeniden hesaplanmasın, altındaki içerik flaş yapmasın. */
@@ -3404,3 +3427,1024 @@ body.bd-ekle-acik .app { padding-bottom: calc(300px + env(safe-area-inset-bottom
 .app .bd-dokum-anahtar i.dogru  { background: #0c6132; }
 .app .bd-dokum-anahtar i.yanlis { background: #8e1b1f; }
 .app .bd-dokum-anahtar i.sure   { background: var(--bd-yuzey-3); }
+
+/* ============================================================
+   ŞENLİK KATMANI — görsel revizyon (QUIZADOR_TASARIM_REFERANS.html)
+   ------------------------------------------------------------
+   Bu dosya yıllar içinde faz faz büyüdü; aynı sınıf birkaç yerde
+   tanımlı. Eski kuralları tek tek bulup düzenlemek yerine, revizyonun
+   tamamı EN SONA tek katman olarak yazıldı: kaskadın sonunda olduğu için
+   önceki katmanları ezer, hiçbir eski kural silinmedi (geri alınabilir).
+
+   Dört kural:
+     1. Açık gökyüzü zemini   -> :root ve body'de (yukarıda)
+     2. Beyaz kart + alt kalınlık
+     3. Kabartmalı buton
+     4. Baloo 2 başlık fontu
+   ============================================================ */
+
+/* ---------- 4. KURAL: tipografi ---------- */
+.app,
+.app input, .app textarea, .app select, .app button {
+  font-family: var(--bd-f-govde);
+}
+.app h1, .app h2, .app h3,
+.app .baslik, .app .bd-katman-baslik, .app .bd-hero-ad, .app .bd-mod-ad,
+.app .btn, .app .bd-ana-eylem,
+.app .puan-chip, .app .bd-skor, .app .bd-sayac-sayi {
+  font-family: var(--bd-f-baslik);
+}
+
+/* ---------- 3. KURAL: kabartmalı buton ----------
+   Altında 5px koyu kalınlık; basınca 4px iner, kalınlık 1px'e düşer. */
+.app .btn,
+.app .bd-ana-eylem {
+  font-family: var(--bd-f-baslik);
+  font-weight: 800;
+  font-size: 17px;
+  color: #fff;
+  border: 0;
+  border-radius: var(--bd-r-m);
+  padding: 14px 18px;
+  background: linear-gradient(180deg, var(--bd-vurgu-acik), var(--bd-vurgu));
+  box-shadow: 0 5px 0 var(--bd-vurgu-2), 0 9px 14px rgba(32, 50, 74, 0.18);
+  text-shadow: 0 2px 0 rgba(0, 0, 0, 0.22);
+  transition: transform 0.08s ease, box-shadow 0.08s ease;
+  animation: none;
+}
+.app .btn::after,
+.app .bd-ana-eylem::after { content: none; }
+.app .btn:active:not(:disabled),
+.app .bd-ana-eylem:active:not(:disabled) {
+  transform: translateY(4px);
+  box-shadow: 0 1px 0 var(--bd-vurgu-2);
+  filter: none;
+}
+.app .btn:disabled { filter: grayscale(0.5) opacity(0.65); }
+
+.app .btn.ikincil {
+  background: var(--bd-yuzey-1);
+  color: var(--bd-metin);
+  text-shadow: none;
+  border: 0;
+  box-shadow: 0 5px 0 var(--bd-kart-alt);
+}
+.app .btn.ikincil:active:not(:disabled) { box-shadow: 0 1px 0 var(--bd-kart-alt); }
+
+.app .btn.basari {
+  background: linear-gradient(180deg, #57D795, var(--bd-basari));
+  box-shadow: 0 5px 0 var(--bd-basari-2), 0 9px 14px rgba(32, 50, 74, 0.18);
+}
+.app .btn.basari:active:not(:disabled) { box-shadow: 0 1px 0 var(--bd-basari-2); }
+
+.app .btn.tehlike {
+  background: linear-gradient(180deg, #F97070, var(--bd-hata));
+  box-shadow: 0 5px 0 var(--bd-hata-2), 0 9px 14px rgba(32, 50, 74, 0.18);
+}
+.app .btn.tehlike:active:not(:disabled) { box-shadow: 0 1px 0 var(--bd-hata-2); }
+
+.app .btn.kucuk {
+  width: auto; padding: 10px 14px;
+  font-size: 15px; border-radius: var(--bd-r-s);
+  box-shadow: 0 4px 0 var(--bd-vurgu-2);
+}
+.app .btn.kucuk:active:not(:disabled) { box-shadow: 0 1px 0 var(--bd-vurgu-2); }
+.app .btn.kucuk.ikincil { box-shadow: 0 4px 0 var(--bd-kart-alt); }
+
+/* ---------- 2. KURAL: beyaz kart + alt kalınlık ----------
+   Yumuşak blur gölge yok; kartın altında düz 4px kalınlık var. */
+.app .kart,
+.app .bd-katman,
+.app .bd-turnuva-serit,
+.app .bd-lig-serit,
+.app .bd-gorev-acilir,
+.app .bd-devam-eden,
+.app .sira-satir,
+.app .bd-davet-kart,
+.app .bd-hata-kart,
+.app .bd-paket,
+.app .bd-arkadas-satir {
+  background: var(--bd-yuzey-1);
+  color: var(--bd-metin);
+  border: 0;
+  border-radius: var(--bd-r-l);
+  box-shadow: 0 4px 0 var(--bd-kart-alt);
+  backdrop-filter: none;
+}
+
+/* Açık zeminde koyu tema kalıntıları: beyaz yarı saydam dolgu ve kenarlar
+   artık görünmez/kirli çıkıyor — token'a çevrildi. */
+.app .bd-hap,
+.app .puan-chip,
+.app .bd-cip {
+  background: var(--bd-yuzey-1);
+  border: 2px solid var(--bd-kenar);
+  box-shadow: 0 3px 0 #CFE0EE;
+  color: var(--bd-metin);
+}
+
+/* ---------- Girdi alanları ---------- */
+.app input[type="text"],
+.app input[type="search"],
+.app input[type="number"],
+.app input[type="email"],
+.app textarea,
+.app select {
+  background: var(--bd-yuzey-1);
+  color: var(--bd-metin);
+  border: 2px solid var(--bd-kenar);
+  border-radius: 14px;
+  box-shadow: 0 3px 0 #CFE0EE;
+  font-family: var(--bd-f-govde);
+  font-weight: 800;
+}
+.app input::placeholder, .app textarea::placeholder { color: var(--bd-metin-3); }
+
+/* ---------- 1. KURAL kalıntısı: sayfa ve üst bar ---------- */
+.app { background: transparent; }
+.app .topbar { background: transparent; }
+
+/* Hareket azaltma: tüm geçiş ve animasyonlar kapanır. */
+@media (prefers-reduced-motion: reduce) {
+  .app .btn,
+  .app .bd-ana-eylem,
+  .app .kart,
+  .app .bd-mod,
+  .app .secenek {
+    transition: none !important;
+    animation: none !important;
+  }
+}
+
+/* ---------- GİRİŞ EKRANI ----------
+   Giriş sayfası .app sarmalayıcısının DIŞINDA (henüz oturum yok), bu yüzden
+   yukarıdaki .app kuralları ona ulaşmıyor; aynı dil burada tekrarlanıyor. */
+.giris .buyuk-logo {
+  background: none;
+  color: var(--bd-vurgu);
+  -webkit-text-fill-color: var(--bd-vurgu);
+}
+.giris .slogan {
+  color: var(--bd-metin-2);
+  font-weight: 700;
+}
+.giris .sosyal-btn {
+  border: 0;
+  border-radius: var(--bd-r-m);
+  background: var(--bd-yuzey-1);
+  color: var(--bd-metin);
+  font-family: var(--bd-f-baslik);
+  font-weight: 800;
+  font-size: 16px;
+  box-shadow: 0 5px 0 var(--bd-kart-alt);
+  transition: transform 0.08s ease, box-shadow 0.08s ease;
+}
+.giris .sosyal-btn:active {
+  transform: translateY(4px);
+  background: var(--bd-yuzey-1);
+  box-shadow: 0 1px 0 var(--bd-kart-alt);
+}
+@media (hover: hover) {
+  .giris .sosyal-btn:hover { background: var(--bd-yuzey-3); }
+}
+.giris .btn {
+  font-family: var(--bd-f-baslik);
+  font-weight: 800; font-size: 17px; color: #fff; border: 0;
+  border-radius: var(--bd-r-m); padding: 14px 18px;
+  background: linear-gradient(180deg, var(--bd-vurgu-acik), var(--bd-vurgu));
+  box-shadow: 0 5px 0 var(--bd-vurgu-2), 0 9px 14px rgba(32, 50, 74, 0.18);
+  text-shadow: 0 2px 0 rgba(0, 0, 0, 0.22);
+  transition: transform 0.08s ease, box-shadow 0.08s ease;
+}
+.giris .btn:active:not(:disabled) {
+  transform: translateY(4px);
+  box-shadow: 0 1px 0 var(--bd-vurgu-2);
+}
+.giris .btn.ikincil {
+  background: var(--bd-yuzey-1); color: var(--bd-metin); text-shadow: none;
+  box-shadow: 0 5px 0 var(--bd-kart-alt);
+}
+.giris .btn.ikincil:active:not(:disabled) { box-shadow: 0 1px 0 var(--bd-kart-alt); }
+.giris .kart {
+  border: 0; border-radius: var(--bd-r-l);
+  box-shadow: 0 4px 0 var(--bd-kart-alt);
+}
+.giris input[type="email"], .giris input[type="text"] {
+  background: var(--bd-yuzey-1);
+  color: var(--bd-metin);
+  border: 2px solid var(--bd-kenar);
+  border-radius: 14px;
+  box-shadow: 0 3px 0 #CFE0EE;
+  font-weight: 800;
+}
+/* Açık zeminde okunabilirlik: ince gri metinler bir ton koyulaştı. */
+.giris-not, .giris-yasal { color: var(--bd-metin-2); }
+.giris-yasal a { color: var(--bd-metin-2); }
+.giris-yasal a:hover { color: var(--bd-metin); }
+.ayrac { color: var(--bd-metin-2); font-weight: 800; }
+
+/* ============================================================
+   FAZ 4 — ANA EKRAN (referans: ekran 0)
+   JSX'e dokunulmadı; sınıf adları aynı, yalnız görünüm değişti.
+   ============================================================ */
+
+/* ---------- Üst bar: puan hapı ---------- */
+.app .topbar .puan-chip {
+  background: var(--bd-yuzey-1);
+  border: 2px solid var(--bd-kenar);
+  box-shadow: 0 3px 0 #CFE0EE;
+  color: var(--bd-metin);
+  font-family: var(--bd-f-baslik);
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+.app .logo {
+  background: none;
+  color: var(--bd-vurgu);
+  -webkit-text-fill-color: var(--bd-vurgu);
+  font-family: var(--bd-f-baslik);
+}
+
+/* ---------- Kimlik bloğu (hero) ----------
+   Koyu cam panel + altın ışıktı; beyaz karta ve alt kalınlığa döndü. */
+.app .bd-hero {
+  background: var(--bd-yuzey-1);
+  border: 0;
+  border-radius: var(--bd-r-l);
+  box-shadow: 0 4px 0 var(--bd-kart-alt);
+  backdrop-filter: none;
+}
+.app .bd-hero-isik { display: none; }          /* altın parlama katmanı */
+.app .bd-hero-maskot { filter: none; }
+.app .bd-hero-selam { color: var(--bd-metin-2); font-weight: 700; }
+.app .bd-hero-ad {
+  color: var(--bd-metin);
+  font-family: var(--bd-f-baslik);
+  font-weight: 800;
+}
+.app .bd-hero-puan-sayi {
+  color: var(--bd-metin);
+  font-family: var(--bd-f-baslik);
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+.app .bd-hero-puan-etiket { color: var(--bd-metin-2); font-weight: 800; }
+
+/* Avatar: 4px beyaz kenar + altında düz kalınlık (referans .avatar) */
+.app .bd-hero-halka {
+  background: var(--bd-yuzey-1);
+  border: 4px solid #fff;
+  box-shadow: 0 6px 0 rgba(32, 50, 74, 0.15);
+}
+
+/* Rütbe ilerleme çubuğu: beyaz gövde, kenarlı, yeşil dolgu */
+.app .bd-hero-bar {
+  background: var(--bd-yuzey-1);
+  border: 2px solid var(--bd-kenar);
+  border-radius: var(--bd-r-tam);
+  overflow: hidden;
+}
+.app .bd-hero-bar .dolgu {
+  background: linear-gradient(90deg, #7EE081, var(--bd-basari));
+  border-radius: var(--bd-r-tam);
+}
+.app .bd-hero-ilerleme-yazi { color: var(--bd-metin-2); font-weight: 800; }
+
+/* Rütbe etiketi: mor hap (referans .rutbe-etiket) */
+.app .bd-rutbe-rozet,
+.app .rutbe-rozet {
+  background: var(--bd-mor);
+  color: #fff;
+  border: 0;
+  border-radius: var(--bd-r-tam);
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+/* ---------- Modlar ızgarası ----------
+   Kart BEYAZ kalır; renk yalnız ikon kutusunun pastel zemininde. */
+.app .bd-mod {
+  background: var(--bd-yuzey-1);
+  color: var(--bd-metin);
+  border: 0;
+  border-radius: var(--bd-r-l);
+  box-shadow: 0 4px 0 var(--bd-kart-alt);
+  transition: transform 0.08s ease, box-shadow 0.08s ease;
+  animation: none;
+}
+.app .bd-mod::before, .app .bd-mod::after { content: none; }
+.app .bd-mod:active {
+  transform: translateY(3px);
+  box-shadow: 0 1px 0 var(--bd-kart-alt);
+}
+.app .bd-mod-ad {
+  color: var(--bd-metin);
+  font-family: var(--bd-f-govde);
+  font-weight: 900;
+  font-size: 13.5px;
+}
+.app .bd-mod-ikon {
+  width: 44px; height: 44px;
+  border-radius: 14px;
+  display: grid; place-items: center;
+  box-shadow: none;
+  border: 0;
+}
+/* Pastel zemin + kendi koyu tonunda ikon (kontrast > 4.5) */
+.app .tema-meydan    .bd-mod-ikon { background: #FFE6E2; color: #C33A26; }
+.app .tema-hizli     .bd-mod-ikon { background: #FFF3D1; color: #97701A; }
+.app .tema-grup      .bd-mod-ikon { background: #DFF0FF; color: #1F6EA8; }
+.app .tema-turnuva   .bd-mod-ikon { background: #F0E3FF; color: #5A2FD6; }
+.app .tema-joker     .bd-mod-ikon { background: #FFE1F2; color: #B8206B; }
+.app .tema-hatalarim .bd-mod-ikon { background: #D9F7F5; color: #12706C; }
+.app .tema-lig       .bd-mod-ikon { background: #DCF7E6; color: #14663B; }
+
+/* Bekleyen sayısı rozeti (Hatalarım) */
+.app .bd-mod-rozet {
+  background: #FF4757; color: #fff;
+  border: 0; border-radius: var(--bd-r-tam);
+  font-weight: 900;
+  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.2);
+}
+
+/* ---------- Katman başlıkları ---------- */
+.app .bd-katman-baslik {
+  color: var(--bd-metin);
+  font-family: var(--bd-f-baslik);
+  font-weight: 800;
+}
+
+/* ---------- Bekleyen işler şeritleri ---------- */
+.app .bd-devam-eden,
+.app .bd-turnuva-serit,
+.app .bd-lig-serit,
+.app .bd-gorev-acilir {
+  color: var(--bd-metin);
+}
+.app .bd-devam-eden .bd-skor,
+.app .bd-devam-eden .skor {
+  background: #FFF3D6; color: #A06A00;
+  border-radius: var(--bd-r-tam); font-weight: 900;
+}
+.app .bd-turnuva-etiket,
+.app .bd-lig-serit-hucre { color: var(--bd-metin-2); font-weight: 800; }
+.app .bd-gorev-bar {
+  background: var(--bd-yuzey-3);
+  border-radius: var(--bd-r-tam);
+  overflow: hidden;
+}
+
+/* ============================================================
+   FAZ 5 — MAÇ EKRANI (referans: ekran 1 ve 2)
+   Sayaç/şık mantığına dokunulmadı; yalnız görünüm.
+   ============================================================ */
+
+/* ---------- Üst tabela: ben | skor | rakip ---------- */
+.app .skor-tabela,
+.app .bd-vs {
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+  backdrop-filter: none;
+}
+.app .bd-vs-taraf .isim {
+  color: var(--bd-metin);
+  font-weight: 900;
+  font-size: 12.5px;
+}
+.app .bd-vs-taraf .skor {
+  font-family: var(--bd-f-baslik);
+  font-weight: 800;
+  font-size: 26px;
+  font-variant-numeric: tabular-nums;
+  color: var(--bd-metin);
+  background: var(--bd-yuzey-1);
+  border: 2px solid var(--bd-kenar);
+  border-radius: 14px;
+  padding: 2px 12px;
+  box-shadow: 0 3px 0 #CFE0EE;
+}
+.app .bd-vs-ilerleme { color: var(--bd-metin-2); font-weight: 800; font-size: 11px; }
+.app .bd-vs-taraf.geride { opacity: 0.62; }
+.app .bd-vs-taraf.onde { opacity: 1; }
+.app .bd-vs-rozet {
+  background: var(--bd-yuzey-1);
+  border: 2px solid var(--bd-kenar);
+  box-shadow: 0 3px 0 #CFE0EE;
+  color: var(--bd-metin-2);
+  font-family: var(--bd-f-baslik);
+  font-weight: 800;
+}
+/* Maçtaki avatarlar: beyaz kenar + düz kalınlık */
+.app .bd-vs-taraf .bd-avatar,
+.app .bd-vs-taraf img,
+.app .bd-vs-taraf .avatar {
+  border: 3px solid #fff;
+  box-shadow: 0 3px 0 rgba(32, 50, 74, 0.15);
+}
+
+/* ---------- Soru kartı ---------- */
+.app .bd-soru {
+  background: var(--bd-yuzey-1);
+  border: 0;
+  border-radius: 20px;
+  box-shadow: 0 5px 0 var(--bd-kart-alt);
+  backdrop-filter: none;
+}
+.app .bd-soru-metin {
+  color: var(--bd-metin);
+  font-family: var(--bd-f-baslik);
+  font-weight: 700;
+  font-size: 19px;
+  line-height: 1.32;
+  text-align: center;
+  text-wrap: balance;
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+}
+.app .bd-soru-no { color: var(--bd-metin-2); font-weight: 800; }
+
+/* Kategori çipi: mor pastel (referans .kategori-chip) */
+.app .bd-soru-kategori {
+  background: #F0E3FF;
+  color: #5A2FD6;
+  border: 0;
+  border-radius: var(--bd-r-tam);
+  font-weight: 900;
+  font-size: 11px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  padding: 4px 11px;
+}
+
+/* ---------- Sayaç: ince çubuk + rakam ---------- */
+.app .bd-soru-bar {
+  background: var(--bd-yuzey-1);
+  border: 2px solid var(--bd-kenar);
+  border-radius: var(--bd-r-tam);
+  overflow: hidden;
+  height: 12px;
+}
+.app .bd-soru-bar .dolgu {
+  border-radius: var(--bd-r-tam);
+  background: linear-gradient(90deg, #7EE081, var(--bd-basari));
+}
+/* Son 5 saniye: yeşil -> kırmızı gradyan */
+.app .bd-soru-bar .dolgu.orta,
+.app .bd-soru-bar .dolgu.kritik {
+  background: linear-gradient(90deg, #FFB020, var(--bd-hata));
+}
+.app .bd-sure-sayi {
+  font-family: var(--bd-f-baslik);
+  font-weight: 800;
+  font-size: 20px;
+  font-variant-numeric: tabular-nums;
+  color: var(--bd-metin);
+}
+.app .bd-sure-sayi.kritik { color: var(--bd-hata); }
+.app .bd-sure-halka .iz { stroke: var(--bd-kenar); }
+.app .bd-sure-halka .dolgu { stroke: var(--bd-basari); }
+
+/* ---------- Şıklar: beyaz kabartmalı satırlar ---------- */
+.app .bd-secenek {
+  display: flex; align-items: center; gap: 11px;
+  width: 100%; text-align: left;
+  background: var(--bd-yuzey-1);
+  color: var(--bd-metin);
+  border: 0;
+  border-radius: var(--bd-r-m);
+  box-shadow: 0 4px 0 var(--bd-kart-alt);
+  font-family: var(--bd-f-govde);
+  font-weight: 800;
+  font-size: 15px;
+  padding: 12px 14px;
+  transition: transform 0.08s ease, box-shadow 0.08s ease;
+  backdrop-filter: none;
+}
+.app .bd-secenek::before, .app .bd-secenek::after { content: none; }
+.app .bd-secenek:active:not(:disabled) {
+  transform: translateY(3px);
+  box-shadow: 0 1px 0 var(--bd-kart-alt);
+}
+.app .bd-harf {
+  width: 28px; height: 28px;
+  border-radius: 9px;
+  display: grid; place-items: center;
+  flex: none;
+  background: var(--bd-yuzey-3);
+  color: var(--bd-metin-2);
+  font-family: var(--bd-f-baslik);
+  font-weight: 800;
+  font-size: 15px;
+  border: 0;
+}
+.app .bd-secenek-metin { flex: 1; min-width: 0; }
+.app .bd-isaret {
+  margin-left: auto;
+  font-family: var(--bd-f-baslik);
+  font-weight: 800;
+  display: inline-flex; align-items: center;
+}
+
+/* Doğru / seçilen yanlış / diğerleri */
+.app .bd-secenek.dogru {
+  background: linear-gradient(180deg, #57D795, var(--bd-basari));
+  color: #fff;
+  box-shadow: 0 4px 0 var(--bd-basari-2);
+}
+.app .bd-secenek.dogru .bd-harf { background: rgba(255, 255, 255, 0.25); color: #fff; }
+.app .bd-secenek.yanlis {
+  background: linear-gradient(180deg, #F97070, var(--bd-hata));
+  color: #fff;
+  box-shadow: 0 4px 0 var(--bd-hata-2);
+}
+.app .bd-secenek.yanlis .bd-harf { background: rgba(255, 255, 255, 0.25); color: #fff; }
+.app .bd-secenek.solgun { opacity: 0.42; }
+.app .bd-secenek.elendi { opacity: 0.3; }
+.app .bd-secenek.secili {
+  box-shadow: 0 4px 0 var(--bd-vurgu-2);
+  background: linear-gradient(180deg, var(--bd-vurgu-acik), var(--bd-vurgu));
+  color: #fff;
+}
+.app .bd-secenek.secili .bd-harf { background: rgba(255, 255, 255, 0.25); color: #fff; }
+
+/* ---------- Joker çubuğu: üç beyaz kabartmalı kutu ---------- */
+.app .joker-bar { background: transparent; border: 0; box-shadow: none; }
+.app .joker-bar button,
+.app .bd-joker {
+  background: var(--bd-yuzey-1);
+  color: var(--bd-metin);
+  border: 0;
+  border-radius: var(--bd-r-m);
+  box-shadow: 0 4px 0 var(--bd-kart-alt);
+  font-family: var(--bd-f-govde);
+  font-weight: 900;
+  font-size: 11.5px;
+  transition: transform 0.08s ease, box-shadow 0.08s ease;
+  animation: none;
+}
+.app .joker-bar button:active:not(:disabled),
+.app .bd-joker:active:not(:disabled) {
+  transform: translateY(3px);
+  box-shadow: 0 1px 0 var(--bd-kart-alt);
+}
+.app .joker-bar button:disabled, .app .bd-joker:disabled { opacity: 0.45; }
+.app .joker-bar .bedel { color: var(--bd-metin-2); font-size: 10.5px; font-weight: 800; }
+/* Ücretsiz olan yeşil yazar (referans .joker .adet.bedava) */
+.app .joker-bar .bedel.bedava,
+.app .joker-bar .bedava { color: var(--bd-basari); }
+
+/* ---------- Süre doldu bandı ---------- */
+.app .bd-sure-doldu-bant {
+  background: linear-gradient(180deg, #F97070, var(--bd-hata));
+  color: #fff;
+  border: 0;
+  border-radius: var(--bd-r-m);
+  box-shadow: 0 4px 0 var(--bd-hata-2);
+  font-family: var(--bd-f-baslik);
+  font-weight: 800;
+}
+
+/* ---------- Sohbet balonları ---------- */
+.app .balon {
+  background: var(--bd-yuzey-1);
+  color: var(--bd-metin);
+  border: 0;
+  box-shadow: 0 3px 0 var(--bd-kart-alt);
+  font-weight: 800;
+}
+
+/* ============================================================
+   FAZ 6 — MAÇ SONU (referans: ekran 4)
+   Döküm verisi match_answers'tan geliyor; yeni sorgu yok, yalnız görünüm.
+   ============================================================ */
+
+.app .bd-sonuc-baslik {
+  font-family: var(--bd-f-baslik);
+  font-weight: 800;
+  font-size: 30px;
+  color: var(--bd-metin);
+  text-wrap: balance;
+}
+.app .bd-sonuc-baslik.kazandi { color: var(--bd-basari-2); }
+.app .bd-sonuc-baslik.kaybetti { color: var(--bd-hata-2); }
+.app .bd-sonuc-maskot { filter: none; }
+.app .bd-sonuc-kazanc {
+  background: #FFF3D6;
+  color: #A06A00;
+  border: 0;
+  border-radius: var(--bd-r-tam);
+  font-weight: 900;
+  padding: 4px 12px;
+}
+
+/* Skor satırı: iki avatar arasında büyük rakamlar */
+.app .bd-sonuc-ust .skor-tabela .skor,
+.app .bd-sonuc .skor-tabela .skor {
+  font-family: var(--bd-f-baslik);
+  font-size: 38px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  color: var(--bd-metin);
+}
+
+/* ---------- Tur dökümü: numaralı kutular ---------- */
+.app .bd-sonuc-dokum {
+  background: var(--bd-yuzey-1);
+  border: 0;
+  border-radius: var(--bd-r-l);
+  box-shadow: 0 4px 0 var(--bd-kart-alt);
+}
+.app .bd-dokum-baslik { color: var(--bd-metin-2); font-weight: 800; }
+.app .bd-dokum-baslik b { color: var(--bd-metin); }
+.app .bd-dokum-turlar { display: flex; gap: 6px; justify-content: center; flex-wrap: wrap; }
+.app .bd-tur-nokta {
+  width: 26px; height: 26px;
+  border-radius: 9px;
+  display: grid; place-items: center;
+  font-family: var(--bd-f-baslik);
+  font-weight: 900;
+  font-size: 13px;
+  color: #fff;
+  border: 0;
+}
+.app .bd-tur-nokta.dogru  { background: var(--bd-basari); }
+.app .bd-tur-nokta.yanlis { background: var(--bd-hata); }
+.app .bd-tur-nokta.sure   { background: #C3D3E0; }
+.app .bd-dokum-anahtar { color: var(--bd-metin-2); font-weight: 800; }
+.app .bd-dokum-anahtar i.dogru  { background: var(--bd-basari); }
+.app .bd-dokum-anahtar i.yanlis { background: var(--bd-hata); }
+.app .bd-dokum-anahtar i.sure   { background: #C3D3E0; }
+
+/* ---------- Kazanç kutuları (Puan / Doğru / Seri) ---------- */
+.app .bd-sonuc-kazanclar > div,
+.app .bd-kazanc-kutu {
+  flex: 1;
+  background: var(--bd-yuzey-1);
+  border: 0;
+  border-radius: var(--bd-r-m);
+  box-shadow: 0 4px 0 var(--bd-kart-alt);
+  padding: 10px;
+  text-align: center;
+}
+.app .bd-kazanc-kutu b {
+  display: block;
+  font-family: var(--bd-f-baslik);
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--bd-metin);
+}
+.app .bd-kazanc-kutu span {
+  font-size: 11px; font-weight: 800;
+  color: var(--bd-metin-2);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+/* ---------- Rütbe ilerlemesi ---------- */
+.app .bd-sonuc-rutbe {
+  background: var(--bd-yuzey-1);
+  border: 0;
+  border-radius: var(--bd-r-l);
+  box-shadow: 0 4px 0 var(--bd-kart-alt);
+}
+.app .bd-sonuc-rutbe-ad { color: var(--bd-metin); font-family: var(--bd-f-baslik); font-weight: 800; }
+.app .bd-sonuc-rutbe-kalan { color: var(--bd-metin-2); font-weight: 800; }
+.app .bd-sonuc-rutbe-bar {
+  background: var(--bd-yuzey-3);
+  border: 2px solid var(--bd-kenar);
+  border-radius: var(--bd-r-tam);
+  overflow: hidden;
+}
+.app .bd-sonuc-rutbe-bar .eski,
+.app .bd-sonuc-rutbe-bar .dolgu {
+  background: linear-gradient(90deg, #7EE081, var(--bd-basari));
+}
+
+/* ============================================================
+   FAZ 7 — ALT SEKME ÇUBUĞU (referans: her ekranın altı)
+   Beyaz zemin, üstte 2px kenar, 26px ikon, aktif sekme turuncu.
+   ============================================================ */
+
+.app .tabbar {
+  background: var(--bd-yuzey-1);
+  border-top: 2px solid #E2EDF5;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  box-shadow: none;
+}
+.app .tabbar a {
+  /* Referansta #9ab0c4 idi; 10,5 px etiket beyaz zeminde 2,24:1 ile okunmuyordu.
+     Aktif sekmenin turuncusu ayrimi zaten tasiyor, pasif ton koyulastirildi. */
+  color: #5C7590;
+  font-family: var(--bd-f-govde);
+  font-weight: 900;
+  font-size: 10.5px;
+  gap: 3px;
+}
+.app .tabbar a .ikon { line-height: 0; }
+.app .tabbar a.aktif {
+  color: var(--bd-vurgu);
+  background: transparent;
+}
+.app .tabbar a.aktif::before,
+.app .tabbar a.aktif::after { content: none; }
+
+/* Bekleyen bildirim: sayı yerine kırmızı nokta (referans .tab .nokta) */
+.app .tabbar .rozet.nokta {
+  position: absolute;
+  top: -1px;
+  right: calc(50% - 18px);
+  width: 9px; height: 9px;
+  min-width: 0; padding: 0;
+  border-radius: 50%;
+  background: #FF4757;
+  border: 2px solid #fff;
+  font-size: 0;
+  box-shadow: none;
+}
+
+/* ============================================================
+   FAZ 8 — LİG / DÜKKÂN / ARKADAŞLAR (referans: ekran 5, 6, 7)
+   ============================================================ */
+
+/* ---------- LİG (referans: ekran 5) ---------- */
+/* Kapsam sekmeleri: Şehir / Ülke / Dünya — kabartmalı düğmeler */
+.app .bd-sekme,
+.app .bd-alt-sekme {
+  flex: 1;
+  border: 0;
+  background: var(--bd-yuzey-1);
+  color: var(--bd-metin-2);
+  font-family: var(--bd-f-govde);
+  font-weight: 900;
+  font-size: 13px;
+  padding: 9px 6px;
+  border-radius: 13px;
+  box-shadow: 0 3px 0 var(--bd-kart-alt);
+  transition: transform 0.08s ease, box-shadow 0.08s ease;
+}
+.app .bd-sekme:active, .app .bd-alt-sekme:active {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 var(--bd-kart-alt);
+}
+.app .bd-sekme.aktif,
+.app .bd-alt-sekme.aktif {
+  background: linear-gradient(180deg, var(--bd-vurgu-acik), var(--bd-vurgu));
+  color: #fff;
+  box-shadow: 0 3px 0 var(--bd-vurgu-2);
+  text-shadow: 0 1px 0 rgba(0, 0, 0, 0.18);
+}
+
+/* Sıralama satırları: beyaz kart */
+.app .bd-lig-satir {
+  display: flex; align-items: center; gap: 11px;
+  background: var(--bd-yuzey-1);
+  color: var(--bd-metin);
+  border: 0;
+  border-radius: var(--bd-r-m);
+  box-shadow: 0 4px 0 var(--bd-kart-alt);
+  padding: 9px 12px;
+  margin-bottom: 8px;
+}
+/* Kendi satırın: krem zemin + koyu krem kalınlık */
+.app .bd-lig-satir.ben,
+.app .bd-benim-satir {
+  background: linear-gradient(180deg, #FFF6E8, #FFECCD);
+  box-shadow: 0 4px 0 #E8CFA4;
+  color: var(--bd-metin);
+}
+.app .bd-sira {
+  width: 28px;
+  font-family: var(--bd-f-baslik);
+  font-weight: 800;
+  font-size: 17px;
+  text-align: center;
+  color: var(--bd-metin-2);
+}
+.app .bd-lig-isim { font-weight: 900; font-size: 14px; color: var(--bd-metin); }
+.app .bd-lig-puan {
+  font-weight: 900;
+  font-variant-numeric: tabular-nums;
+  font-size: 14px;
+  color: var(--bd-metin);
+}
+.app .bd-lig-detay, .app .bd-lig-bilgi, .app .bd-konum-etiket { color: var(--bd-metin-2); font-weight: 800; }
+.app .bd-hafta-serit, .app .bd-sehir-serit {
+  background: var(--bd-yuzey-1);
+  border: 0;
+  border-radius: var(--bd-r-l);
+  box-shadow: 0 4px 0 var(--bd-kart-alt);
+  color: var(--bd-metin);
+}
+/* Podyum */
+.app .bd-podyum-yer {
+  background: var(--bd-yuzey-1);
+  border: 0;
+  border-radius: var(--bd-r-m);
+  box-shadow: 0 4px 0 var(--bd-kart-alt);
+  color: var(--bd-metin);
+}
+.app .bd-podyum-kaide {
+  background: var(--bd-yuzey-3);
+  border: 0;
+  border-radius: var(--bd-r-s) var(--bd-r-s) 0 0;
+}
+.app .bd-podyum-ad { color: var(--bd-metin); font-weight: 900; }
+.app .bd-podyum-puan { color: var(--bd-metin-2); font-weight: 800; }
+.app .bd-bot-rozet {
+  background: var(--bd-yuzey-3);
+  color: var(--bd-metin-2);
+  border: 0; border-radius: var(--bd-r-tam); font-weight: 800;
+}
+
+/* ---------- DÜKKÂN (referans: ekran 6) ---------- */
+.app .bd-paket {
+  display: flex; align-items: center; gap: 12px;
+  background: var(--bd-yuzey-1);
+  color: var(--bd-metin);
+  border: 0;
+  border-radius: var(--bd-r-l);
+  box-shadow: 0 4px 0 var(--bd-kart-alt);
+  padding: 12px;
+  margin-bottom: 10px;
+}
+.app .bd-paket-ad {
+  display: block;
+  font-family: var(--bd-f-baslik);
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--bd-metin);
+}
+.app .bd-paket-icerik, .app .bd-paket-bilgi { color: var(--bd-metin-2); font-weight: 700; font-size: 12px; }
+.app .bd-paket-parca {
+  background: var(--bd-yuzey-3);
+  color: var(--bd-metin-2);
+  border: 0; border-radius: var(--bd-r-s); font-weight: 800;
+}
+/* Envanter kutuları */
+.app .bd-envanter-kutu {
+  background: var(--bd-yuzey-1);
+  border: 0;
+  border-radius: var(--bd-r-m);
+  box-shadow: 0 4px 0 var(--bd-kart-alt);
+  color: var(--bd-metin);
+}
+.app .bd-envanter-ad { color: var(--bd-metin-2); font-weight: 800; }
+.app .bd-envanter-adet {
+  font-family: var(--bd-f-baslik);
+  font-weight: 800;
+  color: var(--bd-metin);
+}
+.app .bd-kat-baslik {
+  color: var(--bd-metin);
+  font-family: var(--bd-f-baslik);
+  font-weight: 800;
+}
+.app .bd-bilgi-kutu, .app .bd-gizlilik-not, .app .bd-uyari {
+  background: var(--bd-yuzey-1);
+  color: var(--bd-metin-2);
+  border: 0;
+  border-radius: var(--bd-r-m);
+  box-shadow: 0 4px 0 var(--bd-kart-alt);
+  font-weight: 700;
+}
+
+/* ---------- ARKADAŞLAR (referans: ekran 7) ---------- */
+.app .liste-satir {
+  display: flex; align-items: center; gap: 11px;
+  background: var(--bd-yuzey-1);
+  color: var(--bd-metin);
+  border: 0;
+  border-radius: var(--bd-r-m);
+  box-shadow: 0 4px 0 var(--bd-kart-alt);
+  padding: 9px 12px;
+  margin-bottom: 8px;
+}
+.app .liste-satir .isim { font-weight: 900; font-size: 14px; color: var(--bd-metin); }
+.app .liste-satir .detay { font-size: 11.5px; font-weight: 800; color: var(--bd-metin-2); }
+/* Çevrimiçi noktası */
+.app .cevrimici, .app .bd-cevrimici {
+  display: inline-block;
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--bd-basari);
+  margin-right: 5px;
+}
+.app .bd-davet-kart {
+  background: var(--bd-yuzey-1);
+  color: var(--bd-metin);
+}
+.app .bd-davet-kod, .app .bd-kod-giris input {
+  background: var(--bd-yuzey-3);
+  color: var(--bd-metin);
+  border: 2px solid var(--bd-kenar);
+  border-radius: 14px;
+  font-family: var(--bd-f-baslik);
+  font-weight: 800;
+}
+
+/* ---------- Ortak: başlık ve boş durum ---------- */
+.app .baslik {
+  color: var(--bd-metin);
+  font-family: var(--bd-f-baslik);
+  font-weight: 800;
+}
+.app .bd-bos-durum, .app .bd-bos, .app .bd-lig-bos {
+  color: var(--bd-metin-2);
+  background: transparent;
+  font-weight: 700;
+}
+.app .hata-kutu {
+  background: #FFE6E2;
+  color: #B62F2F;
+  border: 0;
+  border-radius: var(--bd-r-m);
+  box-shadow: 0 3px 0 #F3C9C2;
+  font-weight: 800;
+}
+
+/* ============================================================
+   KOYU TEMA KALINTILARI — son temizlik
+   Bu sınıflar zeminlerini "beyaz, %10-20 saydam" olarak kuruyordu:
+   koyu zeminde açık bir kabartma veriyordu, açık gökyüzü zemininde ise
+   tamamen kayboluyor (buton görünmez oluyor). Hepsi tokena çevrildi.
+   ============================================================ */
+
+.app .bd-ekle,
+.app .bd-ekle-tamam,
+.app .bd-ses-dugme,
+.app .bd-ses-bilgi-dugme,
+.app .bd-ses-kucuk,
+.app .bd-ses-kabul,
+.app .bd-mac-iptal,
+.app .bd-mac-cikis,
+.app .bd-ikon-btn {
+  background: var(--bd-yuzey-1);
+  color: var(--bd-metin);
+  border: 0;
+  box-shadow: 0 3px 0 var(--bd-kart-alt);
+  transition: transform 0.08s ease, box-shadow 0.08s ease;
+}
+.app .bd-ekle:active,
+.app .bd-ses-dugme:active,
+.app .bd-mac-cikis:active,
+.app .bd-ikon-btn:active {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 var(--bd-kart-alt);
+}
+.app .bd-ses-durum,
+.app .bd-ses-cagri,
+.app .bd-ses-bilgi {
+  background: var(--bd-yuzey-1);
+  color: var(--bd-metin);
+  border: 2px solid var(--bd-kenar);
+  box-shadow: 0 3px 0 #CFE0EE;
+}
+/* Ana sayfa ve modal içindeki ikincil butonlar da beyaz saydamdı */
+.app .anasayfa .btn:not(.tehlike):not(.basari),
+.app .bd-modal-katman .btn:not(.tehlike):not(.basari),
+.app .bd-izin-butonlar .btn.ikincil {
+  background: linear-gradient(180deg, var(--bd-vurgu-acik), var(--bd-vurgu));
+  color: #fff;
+  border: 0;
+  box-shadow: 0 5px 0 var(--bd-vurgu-2), 0 9px 14px rgba(32, 50, 74, 0.18);
+}
+.app .bd-izin-butonlar .btn.ikincil {
+  background: var(--bd-yuzey-1);
+  color: var(--bd-metin);
+  text-shadow: none;
+  box-shadow: 0 5px 0 var(--bd-kart-alt);
+}
+
+/* Modal / perde katmanları: koyu cam yerine beyaz kart */
+.app .bd-modal,
+.app .bd-modal-kutu,
+.app .bd-sayfa-modal {
+  background: var(--bd-yuzey-1);
+  color: var(--bd-metin);
+  border: 0;
+  border-radius: var(--bd-r-l);
+  box-shadow: 0 6px 0 var(--bd-kart-alt), 0 18px 40px rgba(32, 50, 74, 0.22);
+  backdrop-filter: none;
+}
+.app .bd-modal-katman {
+  background: rgba(32, 50, 74, 0.45);   /* perde koyu kalır, üstündeki kart beyaz */
+  backdrop-filter: blur(2px);
+}
+
+/* Üst bildirim şeridi ve davet bandı */
+.app .bd-ust-toast,
+.app .bd-davet-bandi {
+  color: #fff;   /* ikisinin de zemini kendi renkli gradyanı */
+}
+
+/* Bildirim zili rozeti */
+.app .bd-zil-rozet {
+  background: #FF4757;
+  color: #fff;
+  border: 2px solid #fff;
+  box-shadow: none;
+}

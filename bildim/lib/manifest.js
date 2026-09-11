@@ -6,7 +6,7 @@ import { useEffect } from "react";
 // <link rel="manifest"> ve theme-color Bildim'e çevrilir; çıkınca geri alınır.
 
 const BILDIM_MANIFEST = "/bildim.webmanifest";
-const BILDIM_TEMA = "#0B1220";
+const BILDIM_TEMA = "#CDEEFF";
 
 function etiketBul(secici, olustur) {
   let e = document.querySelector(secici);

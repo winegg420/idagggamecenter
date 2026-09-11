@@ -123,16 +123,24 @@ export default function Layout() {
         <Outlet />
       </main>
 
+      {/* Sekme dizilimi tasarım referansına getirildi: Ana Sayfa / Arkadaşlar /
+          Lig / Dükkân / Profil. Turnuva ve Meydan Oku sekmeden çıktı — ikisi de
+          ana ekrandaki modlar ızgarasında zaten duruyor, sekmede ikinci kez
+          yer kaplıyordu. Yeni rota açılmadı; hepsi var olan yollar. */}
       <nav className="tabbar">
         <NavLink to={y()} end className={({ isActive }) => (isActive ? "aktif" : "")}>
-          <span className="ikon"><Ikon ad="ev" boyut={22} /></span>Ana Sayfa
+          <span className="ikon"><Ikon ad="ev" boyut={26} /></span>Ana Sayfa
         </NavLink>
-        <NavLink to={y("/turnuva")} className={({ isActive }) => (isActive ? "aktif" : "")}>
-          <span className="ikon"><Ikon ad="kupa" boyut={22} /></span>Turnuva
+        <NavLink to={y("/arkadaslar")} className={({ isActive }) => (isActive ? "aktif" : "")}>
+          <span className="ikon"><Ikon ad="kisiler" boyut={26} /></span>Arkadaşlar
+          {/* Bekleyen meydan okuma/arkadaş isteği: referansta sayı değil nokta */}
+          {bekleyen > 0 && <span className="rozet nokta" aria-label={`${bekleyen} bekleyen`} />}
         </NavLink>
-        <NavLink to={y("/meydan")} className={({ isActive }) => (isActive ? "aktif" : "")}>
-          <span className="ikon"><Ikon ad="kilic" boyut={22} /></span>Meydan Oku
-          {bekleyen > 0 && <span className="rozet">{bekleyen}</span>}
+        <NavLink to={y("/siralama")} className={({ isActive }) => (isActive ? "aktif" : "")}>
+          <span className="ikon"><Ikon ad="grafik" boyut={26} /></span>Lig
+        </NavLink>
+        <NavLink to={y("/joker")} className={({ isActive }) => (isActive ? "aktif" : "")}>
+          <span className="ikon"><Ikon ad="yildiz" boyut={26} /></span>Dükkân
         </NavLink>
         {/* Oyun portalı sekmesi yalnız hub derlemesinde anlamlı: Quizador'un
             kendi sitesinde "/" zaten Ana Sayfa olduğundan sekme kendini
@@ -140,14 +148,11 @@ export default function Layout() {
             eşleşip sekmeyi sürekli "aktif" gösteriyordu — eklendi. */}
         {!BILDIM_MOD && (
           <NavLink to="/" end className={({ isActive }) => (isActive ? "aktif" : "")}>
-            <span className="ikon"><Ikon ad="oyunKolu" boyut={22} /></span>Merkez
+            <span className="ikon"><Ikon ad="oyunKolu" boyut={26} /></span>Merkez
           </NavLink>
         )}
-        <NavLink to={y("/siralama")} className={({ isActive }) => (isActive ? "aktif" : "")}>
-          <span className="ikon"><Ikon ad="grafik" boyut={22} /></span>Sıralama
-        </NavLink>
-        <NavLink to={y("/arkadaslar")} className={({ isActive }) => (isActive ? "aktif" : "")}>
-          <span className="ikon"><Ikon ad="kisiler" boyut={22} /></span>Arkadaşlar
+        <NavLink to={y("/profil")} className={({ isActive }) => (isActive ? "aktif" : "")}>
+          <span className="ikon"><Ikon ad="kisi" boyut={26} /></span>Profil
         </NavLink>
       </nav>
     </div>
