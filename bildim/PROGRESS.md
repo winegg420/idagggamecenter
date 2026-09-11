@@ -2331,3 +2331,59 @@ saniyede bire kısılıyor; çizim döngüsü `dt`yi 0.05'te tavanladığı içi
 
 Canlıda doğrulandı: kuş bakışı tüm meydanı gösteriyor, en yakın zumda kamera
 omuz hizasında, dans oynuyor, konsol temiz.
+
+---
+
+## 2026-09-11 (11) — Davet kodu kopyalama, davet geri çekme, anlık puan
+
+### Davet kodu tek dokunuşta kopyalanıyor
+Kod düz yazıydı; kopyalamak için metni elle seçmek gerekiyordu. Yanındaki
+düğme ise kodu değil uzun davet **linkini** kopyalıyordu. Artık kodun kendisi
+düğme (`bildim/components/DavetKodu.jsx`): dokun, panoya **yalnız kod** düşsün.
+Link paylaşma düğmesi ayrı iş olarak yerinde duruyor. Hem Arkadaşlar hem
+Profil > Ayarlar aynı bileşeni kullanıyor.
+
+**Ölçümle çıkan gerçek sorun:** `navigator.clipboard.writeText` bazı ortamlarda
+ne çözülüyor ne reddediliyor — izin `granted` görünürken bile (bu oturumda
+ölçüldü: 3 sn sonra hâlâ askıda). Beklemeye bırakılsa düğme sonsuza kadar
+sessiz kalırdı. Artık 1.2 sn zaman aşımı var, sonra gizli textarea +
+`execCommand` yoluna düşüyor; o da olmazsa "elle seç" yazıyor ve koddaki metin
+`user-select: all` olduğu için tek dokunuşla seçiliyor.
+
+### Bekleyen daveti geri çekme
+`davet_geri_cek(p_tur, p_kayit_id)` (migration 137). Ana sayfadaki
+"X daveti görmedi — bekleniyor" satırının sağında **Geri çek**.
+
+`mac_iptal` bilerek kullanılmadı: o AKTİF maç için yazıldı ve karşı tarafa
+"rakibin maçı iptal etti" bildirimi bırakıyor — daveti hiç görmemiş oyuncuya
+anlamsız. Yeni RPC yalnız **cevaplanmamış** daveti geri alır (1v1, rövanş,
+grup, hızlı), kaydı silmez `'iptal'` işaretler ve karşı tarafa bırakılmış
+**okunmamış davet bildirimini siler** ki olmayan bir maça tıklamasın.
+Karşı taraf arada kabul ettiyse sunucu reddediyor.
+
+### Puan gecikmesi
+İki ayrı sebep vardı:
+
+1. **Skor sunucudan geç geliyordu.** Tabela `matches.oyuncuN_skor`
+   sütunlarından çiziliyor, istemci bunları Realtime'dan ya da 2 saniyelik
+   yoklamadan öğreniyordu. `submit_match_answer` artık kazanılan puanı ve
+   **güncel iki skoru** da döndürüyor; tabela beklemeden güncelleniyor.
+   Ölçüm: cevaptan **256 ms** sonra tabela hareket ediyor, varılan değer
+   sunucudakiyle birebir (13/13).
+
+2. **Sırasız paket tabelayı geri alıyordu.** Realtime ve yoklama aynı anda
+   çalışıyor; yeni bir güncellemeden SONRA çözülen eski bir yoklama
+   `setMac(data)` ile taze skoru eziyordu — puan "bazen gecikmeli" tam olarak
+   buydu. Artık her satırın bir **ilerleme damgası** var (durum, basladi,
+   aktif_soru, soru sayaçları, skor toplamı — hepsi tek yönlü artan);
+   damgası daha küçük olan anlık görüntü çizime alınmıyor. Duraklama bilerek
+   damgaya girmedi: o hem açılıp hem kapanıyor.
+
+### Test tuzağı (tekrar)
+Otomasyon sekmesi `document.hidden = true` sayılıyor; `SayanSayi` sayacı rAF
+ile çalıştığı için skor ekranda **hiç değişmiyor** gibi görünüyor. Ölçümden
+önce `hidden`/`visibilityState`/`requestAnimationFrame` yamalanmalı ve sayfa
+AYNI BELGEDE (React Router ile) gezilmeli.
+
+Canlıda doğrulandı: kod kopyalama (panoya giden metin tam olarak kodun
+kendisi), davet geri çekme (satır kayboldu, veritabanında `durum='iptal'`).
