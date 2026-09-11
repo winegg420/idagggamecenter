@@ -20,6 +20,9 @@ const POZ_ARALIK_MS = 100;      // saniyede en fazla 10 konum paketi
 // tarafta ara değerleme tamponu boşalmasın, son karede zıplama olmasın.
 const POZ_CANLI_MS = 1000;
 const EMOJI_ARALIK_MS = 2000;   // oyuncu başına 2 saniyede 1 emoji
+// Dans 6 saniye oynuyor (bkz. danslar.js DANS_SURESI); yenisi ancak bittikten
+// sonra başlatılabilsin ki kimse dansı sürekli baştan tetikleyip titretmesin.
+const DANS_ARALIK_MS = 6500;
 const YENIDEN_BAGLAN_MIN = 3000;
 const YENIDEN_BAGLAN_MAX = 15000;
 
@@ -31,6 +34,7 @@ const YENIDEN_BAGLAN_MAX = 15000;
  * @param {(id:string) => void} o.onAyrilma
  * @param {(id:string, poz:{x:number,z:number,y:number}) => void} o.onPoz
  * @param {(id:string, e:string) => void} o.onEmoji
+ * @param {(id:string, kod:string) => void} o.onDans
  * @param {(id:string, gorunum:object|null) => void} o.onGorunum
  * @param {(bagli:boolean, sayi:number) => void} o.onDurum
  */
@@ -49,8 +53,10 @@ export function meydanBaglan(o) {
   let sonPoz = { x: NaN, z: NaN, y: NaN };
   let sonPozZamani = 0;
   let sonEmojiZamani = 0;
-  // Uzak oyuncuların emoji hızı (kötü niyetli spam sahneyi boğmasın)
+  let sonDansZamani = 0;
+  // Uzak oyuncuların emoji/dans hızı (kötü niyetli spam sahneyi boğmasın)
   const uzakEmojiZamani = new Map();
+  const uzakDansZamani = new Map();
 
   function durumBildir(yeni) {
     bagli = yeni;
@@ -123,6 +129,15 @@ export function meydanBaglan(o) {
           if (t - (uzakEmojiZamani.get(payload.id) ?? -Infinity) < EMOJI_ARALIK_MS) return;
           uzakEmojiZamani.set(payload.id, t);
           try { o.onEmoji?.(payload.id, String(payload.e ?? "")); } catch (e) { console.error("[Meydan] onEmoji:", e); }
+        })
+        .on("broadcast", { event: "dans" }, ({ payload }) => {
+          if (!payload || payload.id === ben.id) return;
+          if (!bilinen.has(payload.id)) return;
+          const t = performance.now();
+          if (t - (uzakDansZamani.get(payload.id) ?? -Infinity) < DANS_ARALIK_MS) return;
+          uzakDansZamani.set(payload.id, t);
+          try { o.onDans?.(payload.id, String(payload.d ?? "")); }
+          catch (e) { console.error("[Meydan] onDans:", e); }
         })
         .subscribe(async (durum) => {
           if (kapandi) return;
@@ -215,6 +230,18 @@ export function meydanBaglan(o) {
       return true; // bağlantı yokken de kendi balonu görsün
     },
 
+    /** Dans yayını — 6.5 sn'de bir. Gönderildiyse true (kendi avatarı da oynar). */
+    dansGonder(kod) {
+      const t = performance.now();
+      if (t - sonDansZamani < DANS_ARALIK_MS) return false;
+      sonDansZamani = t;
+      if (bagli && kanal && !kapandi) {
+        try { kanal.send({ type: "broadcast", event: "dans", payload: { id: ben.id, d: kod } }); }
+        catch (err) { console.error("[Meydan] dans:", err); }
+      }
+      return true;   // bağlantı yokken de kendi avatarı dans etsin
+    },
+
     get bagli() { return bagli; },
 
     kapat() {
@@ -227,6 +254,8 @@ export function meydanBaglan(o) {
         kanal = null;
       }
       bilinen.clear();
+      uzakEmojiZamani.clear();
+      uzakDansZamani.clear();
     },
   };
 }

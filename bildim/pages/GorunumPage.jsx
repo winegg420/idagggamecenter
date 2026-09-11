@@ -14,7 +14,7 @@
 // 3B kısım LAZY yüklenir: sayfayı açmayan oyuncu three.js indirmez.
 // ============================================================
 import { useCallback, useEffect, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "../../src/lib/supabase.js";
 import { useAuth } from "../../src/context/AuthContext.jsx";
 import Ikon from "../components/Ikon.jsx";
@@ -31,6 +31,10 @@ const YUVALAR = [
   { kod: "ust", ad: "Üst", ikon: "tisort", renkAlani: "ust_renk" },
   { kod: "ayakkabi", ad: "Ayakkabı", ikon: "kalkan" },
   { kod: "efekt", ad: "Efekt", ikon: "ates" },
+  // Dans GİYİLMEZ: satın alınır, meydanda oynatılır. Bu yüzden dans yuvası
+  // hiçbir zaman `gorunum`a yazılmaz (sunucu da kabul etmez); buradaki
+  // dokunuş yalnız önizlemede dansı oynatır.
+  { kod: "dans", ad: "Dans", ikon: "mikrofon", giyilmez: true },
 ];
 
 // Boyanabilir eşyalar için 8 renklik palet (oyunun kendi tonları)
@@ -43,6 +47,8 @@ const TEN_PALETI = ["#F3C89B", "#E8B384", "#D49A6A", "#B57A4F",
 
 export default function GorunumPage() {
   const navigate = useNavigate();
+  // Dükkândan "Dansları gör" ile gelinince doğrudan o sekme açılsın.
+  const [arama] = useSearchParams();
   const { user, refreshProfile } = useAuth();
   const kapsayiciRef = useRef(null);
   const onizlemeRef = useRef(null);
@@ -51,7 +57,10 @@ export default function GorunumPage() {
   const [sahip, setSahip] = useState([]);
   const [gorunum, setGorunum] = useState(null);
   const [bakiye, setBakiye] = useState(0);
-  const [yuva, setYuva] = useState("sac");
+  const [yuva, setYuva] = useState(() => {
+    const g = arama.get("yuva");
+    return YUVALAR.some((x) => x.kod === g) ? g : "sac";
+  });
   const [hata, setHata] = useState(null);
   const [bilgi, setBilgi] = useState(null);
   const [kaydediliyor, setKaydediliyor] = useState(false);
@@ -127,6 +136,12 @@ export default function GorunumPage() {
     });
   };
 
+  /** Dansı önizlemede oynatır — dükkânda "nasıl duruyor" görülebilsin. */
+  const dansiGoster = (kod) => {
+    setBilgi("Bu dansı Meydan'da 💃 düğmesinden oynatabilirsin.");
+    onizlemeRef.current?.dansOynat(kod);
+  };
+
   const satinAl = async (kod) => {
     setHata(null); setBilgi(null); setAlinan(kod);
     try {
@@ -136,7 +151,10 @@ export default function GorunumPage() {
       setBakiye(Number(r?.bakiye ?? bakiye));
       setSahip((s) => [...s, kod]);
       coinTazele();
-      setBilgi("Eşya alındı, giyebilirsin.");
+      setBilgi(yuva === "dans"
+        ? "Dans alındı — Meydan'da 💃 düğmesinden oynatabilirsin."
+        : "Eşya alındı, giyebilirsin.");
+      if (yuva === "dans") onizlemeRef.current?.dansOynat(kod);
     } catch (e) {
       const m = coinHatasi(e);
       setHata(m);
@@ -243,7 +261,8 @@ export default function GorunumPage() {
 
       {/* ---- eşya ızgarası ---- */}
       <div className="bd-esya-grid">
-        {/* "Yok" seçeneği: yuvayı boşaltır */}
+        {/* "Yok" seçeneği: yuvayı boşaltır (dans giyilmediği için orada yok) */}
+        {!aktifYuva.giyilmez && (
         <button
           className={"bd-esya" + (secili === null ? " secili" : "")}
           onClick={() => setGorunum((g) => {
@@ -255,6 +274,7 @@ export default function GorunumPage() {
           <span className="bd-esya-gorsel"><Ikon ad="carpi" boyut={20} /></span>
           <span className="bd-esya-ad">Yok</span>
         </button>
+        )}
 
         {liste.map((e) => {
           const sahipMi = sahip.includes(e.kod);
@@ -263,7 +283,11 @@ export default function GorunumPage() {
             <button
               key={e.kod}
               className={"bd-esya" + (secili === e.kod ? " secili" : "") + (sahipMi ? "" : " kilitli")}
-              onClick={() => (sahipMi ? yuvaDegistir(e.kod) : alinabilir ? satinAl(e.kod) : null)}
+              onClick={() => {
+                if (!sahipMi) { if (alinabilir) satinAl(e.kod); return; }
+                if (aktifYuva.giyilmez) dansiGoster(e.kod);
+                else yuvaDegistir(e.kod);
+              }}
               disabled={alinan === e.kod}
             >
               <span className="bd-esya-gorsel" style={{ background: e.varsayilan_renk ?? "#DDE7F0" }}>

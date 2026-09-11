@@ -20,6 +20,7 @@ import * as THREE from "three";
 import { roundRect, canvasDoku, isimEtiketi, nesneyiSerbestBirak } from "./ortak.js";
 import { avatarKur, avatarGorunumDegistir, avatarEfektleriGuncelle, avatarYokEt } from "./avatar.js";
 import { esyaBilgisi, esyaOnbelleginiTemizle } from "./esyalar.js";
+import { dansBaslat, dansKaresi, dansiDurdur } from "./danslar.js";
 export { esyaBilgisi };
 
 // roundRect / canvasDoku / isimEtiketi / nesneyiSerbestBirak ORTAK.JS'e taşındı:
@@ -406,6 +407,12 @@ export function dunyaKur(kapsayici, s = {}) {
   /** Yürüme animasyonu: guc 0..1 (0 = duruyor). */
   function yurumeAnimasyonu(av, dt, guc) {
     const u = av.userData;
+    // Dans sürerken yürüme animasyonu çalışmaz. Oyuncu yürümeye başlarsa
+    // dans kesilir (uzak oyuncuda da: hareket hız paketlerinden anlaşılır).
+    if (u.dans) {
+      if (guc > 0.05) dansiDurdur(av);
+      else if (dansKaresi(av, dt)) { avatarEfektleriGuncelle(av, dt); return; }
+    }
     u.yurumeFaz += dt * (guc > 0.05 ? guc * 10 : 2);
     const sal = Math.sin(u.yurumeFaz) * (guc > 0.05 ? 0.5 : 0.04);
     u.bacaklar.children[0].rotation.x = sal;
@@ -505,6 +512,30 @@ export function dunyaKur(kapsayici, s = {}) {
   }
 
   // ---------- süs animasyonları + kamera ----------
+  //
+  // ZUM: kamera oyuncunun arkasında SABİT bir ofsette duruyordu. Artık ofset
+  // "zum" ile ölçekleniyor. Dikey bileşen yataydan HIZLI büyüsün diye ayrı
+  // üsler kullanılıyor: uzaklaştıkça açı da dikleşir, en uçta gerçek bir kuş
+  // bakışı olur. Yaklaşınca kamera omuz hizasına iner.
+  const ZUM_EN_AZ = 0.55, ZUM_EN_COK = 3.0;
+  const ZUM_ANAHTARI = "bildim_harita_zum";
+  let zum = 1;
+  try {
+    const k = Number(localStorage.getItem(ZUM_ANAHTARI));
+    if (Number.isFinite(k) && k > 0) zum = Math.min(ZUM_EN_COK, Math.max(ZUM_EN_AZ, k));
+  } catch { /* özel mod */ }
+  let zumHedef = zum;
+
+  function zumAyarla(v) {
+    if (!Number.isFinite(v)) return zumHedef;
+    zumHedef = Math.min(ZUM_EN_COK, Math.max(ZUM_EN_AZ, v));
+    try { localStorage.setItem(ZUM_ANAHTARI, String(zumHedef)); } catch { /* özel mod */ }
+    return zumHedef;
+  }
+  /** Çarpanla zumlar (parmak arası / tekerlek / düğme hepsi bunu kullanır). */
+  function zumla(carpan) { return zumAyarla(zumHedef * carpan); }
+  function zumOku() { return { zum: zumHedef, enAz: ZUM_EN_AZ, enCok: ZUM_EN_COK }; }
+
   const kamHedef = new THREE.Vector3();
   kamera.position.set(-13, 17, 28);
 
@@ -551,10 +582,14 @@ export function dunyaKur(kapsayici, s = {}) {
       }
     }
 
-    kamHedef.set(ben.position.x - 13, 17, ben.position.z + 17);
+    // Zum yumuşak oturur: düğmeye basınca kamera zıplamasın.
+    zum += (zumHedef - zum) * Math.min(1, dt * (hareketAzalt ? 60 : 7));
+    const yatay = Math.pow(zum, 0.8);    // uzaklık
+    const dikey = Math.pow(zum, 1.25);   // yükseklik (daha hızlı → kuş bakışı)
+    kamHedef.set(ben.position.x - 13 * yatay, 17 * dikey, ben.position.z + 17 * yatay);
     // Hareket azaltmada kamera yumuşatmadan doğrudan takip eder
     kamera.position.lerp(kamHedef, hareketAzalt ? 1 : Math.min(1, dt * 3.2));
-    kamera.lookAt(ben.position.x, 2.2, ben.position.z);
+    kamera.lookAt(ben.position.x, 2.2 * Math.min(1, zum), ben.position.z);
 
     render.render(sahne, kamera);
   }
@@ -584,6 +619,8 @@ export function dunyaKur(kapsayici, s = {}) {
     sahne, kamera, render, engeller, binalar,
     avatarOlustur, avatarSil, avatarAdiDegistir, avatarGorunumu, yurumeAnimasyonu, yumusakDon,
     emojiGoster, carpismaDuzelt, yakinBina, turnuvaKapisi,
+    dansEttir: (av, kod) => dansBaslat(av, kod),
+    zumla, zumAyarla, zumOku,
     guncelle, boyutlandir, yokEt,
   };
 }

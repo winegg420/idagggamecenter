@@ -10,14 +10,14 @@ import { useCoin, coinTazele, coinHatasi } from "../lib/coin.js";
 import CoinGorseli, { coinBoyutu } from "../components/CoinGorseli.jsx";
 import { y } from "../lib/yol.js";
 
-// Dükkân üç sekme: Kıyafet (avatar eşyaları) / Joker / Coin.
+// Dükkân üç sekme: Kıyafet (avatar eşyaları + danslar) / Joker / Coin.
 // Kıyafet sekmesinin içeriği Görünüm sayfasında; buradan oraya köprü var.
 // Reklam ödülü sunucudaki oyun_ayarlari tablosundan gelir; buradaki sayı
 // yalnız metinde gösterilen varsayılandır (RPC gerçek değeri döndürür).
 const ODUL_COIN = 25;
 
 const SEKMELER = [
-  { kod: "kiyafet", ad: "Kıyafet", ikon: "tisort" },
+  { kod: "kiyafet", ad: "Kıyafet & Dans", ikon: "tisort" },
   { kod: "joker",   ad: "Joker",   ikon: "hediye" },
   { kod: "coin",    ad: "Coin",    ikon: "coin" },
 ];
@@ -192,6 +192,13 @@ export default function JokerDukkani() {
             Sahip olmadığın eşyalar orada coin fiyatıyla kilitli görünür.
           </div>
           <Link className="btn" to={y("/gorunum")}>Görünümü aç</Link>
+
+          <div className="bd-kat-baslik" style={{ marginTop: 18 }}><span>Dans hareketleri</span></div>
+          <div className="alt-yazi" style={{ marginBottom: 12 }}>
+            Danslar <b>Görünüm → Dans</b> sekmesinde. Dokununca avatarın önizlemede
+            oynar; aldığın dansı <b>Meydan</b>'da 💃 düğmesinden herkese oynatırsın.
+          </div>
+          <Link className="btn ikincil" to={y("/gorunum?yuva=dans")}>Dansları gör</Link>
         </div>
       )}
 

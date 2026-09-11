@@ -31,11 +31,19 @@ function mat(renk) {
  */
 export function avatarKur({ ad, gorunum, bilgi = {}, etiketRenk = "#20324A", govdeRenk = 0x3aa0ff }) {
   const g = new THREE.Group();
+  // GÖVDE KÖKÜ — isim etiketi DIŞINDA her şey buraya girer.
+  //
+  // Neden ayrı grup: dans hareketleri gövdeyi eğip döndürüyor, ama avatarın
+  // kendi rotation.y'si yürüme yönünü tutuyor (meydanda yumusakDon, Görünüm
+  // önizlemesinde tornavida dönüşü). İkisi aynı nesneye yazarsa dans ile yön
+  // birbirini eziyor. Dans yalnız "kok"u oynatır.
+  const kok = new THREE.Group();
+  g.add(kok);
   const gor = gorunum ?? {};
   const ten = renkSayi(gor.ten || TEN_VARSAYILAN, 0xf3c89b);
 
   // ---- bacaklar ----
-  const bacaklar = new THREE.Group(); g.add(bacaklar);
+  const bacaklar = new THREE.Group(); kok.add(bacaklar);
   for (let sg = -1; sg <= 1; sg += 2) {
     const bac = new THREE.Mesh(new THREE.CylinderGeometry(0.24, 0.22, 1.1, 8), mat(0x3e4a5c));
     bac.position.set(sg * 0.28, 0.55, 0); bac.castShadow = true; bacaklar.add(bac);
@@ -45,27 +53,34 @@ export function avatarKur({ ad, gorunum, bilgi = {}, etiketRenk = "#20324A", gov
   // Üst eşyası varsa gövde onun altında kalır; yine de çizilir ki
   // kıyafetsiz oyuncu görünmez olmasın.
   const govde = new THREE.Mesh(new THREE.CylinderGeometry(0.62, 0.72, 1.5, 12), mat(govdeRenk));
-  govde.position.y = 1.85; govde.castShadow = true; g.add(govde);
+  govde.position.y = 1.85; govde.castShadow = true; kok.add(govde);
 
   // ---- kollar + eller ----
-  const kollar = new THREE.Group(); g.add(kollar);
+  // Her kol AYRI BİR GRUP ve grubun merkezi OMUZDA (y 2.52). Böylece dans
+  // kolu kaldırınca el de kolla birlikte gidiyor; eskiden kol kendi
+  // ortasından dönüyordu ve el havada kalıyordu.
+  // kollar.rotation.x (yürüme salınımı) eskisi gibi çalışır.
+  const kollar = new THREE.Group(); kok.add(kollar);
   for (let s2 = -1; s2 <= 1; s2 += 2) {
+    const taraf = new THREE.Group();
+    taraf.position.set(s2 * 0.78, 2.52, 0);
     const kol = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.16, 1.15, 8), mat(govdeRenk));
-    kol.position.set(s2 * 0.78, 1.95, 0); kol.castShadow = true; kollar.add(kol);
+    kol.position.y = -0.57; kol.castShadow = true; taraf.add(kol);
     const el = new THREE.Mesh(new THREE.SphereGeometry(0.2, 10, 8), mat(ten));
-    el.position.set(s2 * 0.78, 1.36, 0); kollar.add(el);
+    el.position.y = -1.16; taraf.add(el);
+    kollar.add(taraf);
   }
 
   // ---- kafa + gözler ----
   const kafa = new THREE.Mesh(new THREE.SphereGeometry(0.66, 18, 14), mat(ten));
-  kafa.position.y = 3.05; kafa.castShadow = true; g.add(kafa);
+  kafa.position.y = 3.05; kafa.castShadow = true; kok.add(kafa);
   for (let s3 = -1; s3 <= 1; s3 += 2) {
     const goz = new THREE.Mesh(new THREE.SphereGeometry(0.1, 8, 8), mat(0x20324a));
-    goz.position.set(s3 * 0.22, 3.08, 0.58); g.add(goz);
+    goz.position.set(s3 * 0.22, 3.08, 0.58); kok.add(goz);
   }
 
   // ---- eşyalar ----
-  for (const p of gorunumParcalari(gor, bilgi)) g.add(p);
+  for (const p of gorunumParcalari(gor, bilgi)) kok.add(p);
 
   // ---- isim etiketi ----
   let etiket = null;
@@ -75,7 +90,7 @@ export function avatarKur({ ad, gorunum, bilgi = {}, etiketRenk = "#20324A", gov
     g.add(etiket);
   }
 
-  g.userData = { bacaklar, kollar, etiket, ad, yurumeFaz: Math.random() * 6, gorunum: gor };
+  g.userData = { kok, bacaklar, kollar, govde, kafa, etiket, ad, yurumeFaz: Math.random() * 6, gorunum: gor, dans: null };
   return g;
 }
 
@@ -86,13 +101,14 @@ export function avatarKur({ ad, gorunum, bilgi = {}, etiketRenk = "#20324A", gov
 export function avatarGorunumDegistir(avatar, gorunum, bilgi = {}) {
   if (!avatar) return;
   esyalariSerbestBirak(avatar);
-  for (const p of gorunumParcalari(gorunum ?? {}, bilgi)) avatar.add(p);
+  const kok = avatar.userData?.kok ?? avatar;
+  for (const p of gorunumParcalari(gorunum ?? {}, bilgi)) kok.add(p);
   avatar.userData.gorunum = gorunum ?? {};
 }
 
 /** Efektleri döndürür (userData.doner olan eşyalar). */
 export function avatarEfektleriGuncelle(avatar, dt) {
-  for (const c of avatar?.children ?? []) {
+  for (const c of (avatar?.userData?.kok ?? avatar)?.children ?? []) {
     const hiz = c.userData?.doner;
     if (hiz) c.rotation.y += hiz * dt;
   }

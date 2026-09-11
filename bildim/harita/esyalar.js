@@ -408,8 +408,10 @@ export function gorunumParcalari(gorunum, bilgi = {}) {
  * dispose EDİLMEZ — sahne kapanınca `esyaOnbelleginiTemizle` çağrılır.
  */
 export function esyalariSerbestBirak(avatar) {
-  const liste = (avatar?.children ?? []).filter((c) => c.userData?.esyaKod);
-  for (const p of liste) avatar.remove(p);
+  // Eşyalar gövde köküne eklenir (bkz. avatar.js); kök yoksa eski yapı.
+  const kok = avatar?.userData?.kok ?? avatar;
+  const liste = (kok?.children ?? []).filter((c) => c.userData?.esyaKod);
+  for (const p of liste) kok.remove(p);
 }
 
 /** Sahne kapanırken paylaşılan geometri/malzemeleri bırakır. */

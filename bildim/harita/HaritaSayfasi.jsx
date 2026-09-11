@@ -18,6 +18,8 @@ import { kontrolKur } from "./kontrol.js";
 import { meydanBaglan } from "./coklu.js";
 import { renkUret } from "./renk.js";
 import { esyaBilgisi } from "./esyalar.js";
+import { zumKur } from "./zum.js";
+import { dansVarMi } from "./danslar.js";
 import "./harita.css";
 
 const EMOJILER = ["👋", "😂", "🔥", "🤔", "🎉", "⚔️"];
@@ -113,6 +115,8 @@ export default function HaritaSayfasi() {
   const [turnuvaKalan, setTurnuvaKalan] = useState(null);
   const turnuvaKalanRef = useRef(null);
   turnuvaKalanRef.current = turnuvaKalan;
+  // Dans tepsisi açık mı (emoji çubuğunun üstünde açılır)
+  const [dansAcik, setDansAcik] = useState(false);
   const [bilgiAcik, setBilgiAcik] = useState(() => {
     try { return localStorage.getItem(BILGI_ANAHTARI) !== "1"; } catch { return true; }
   });
@@ -134,13 +138,20 @@ export default function HaritaSayfasi() {
         if (error) throw error;
         const r = Array.isArray(data) ? data[0] : data;
         if (!aktif) return;
+        const katalog = Array.isArray(r?.esyalar) ? r.esyalar : [];
+        const sahip = new Set(Array.isArray(r?.sahip) ? r.sahip : []);
         setGorunumVerisi({
           gorunum: r?.gorunum && typeof r.gorunum === "object" ? r.gorunum : {},
-          bilgi: esyaBilgisi(Array.isArray(r?.esyalar) ? r.esyalar : []),
+          bilgi: esyaBilgisi(katalog),
+          // Danslar giyilmez: yalnız SAHİP OLUNANLAR meydanda oynatılabilir.
+          // Oynatıcısı olmayan kod (katalogda var, kodda yok) listelenmez.
+          danslar: katalog
+            .filter((e) => e.yuva === "dans" && sahip.has(e.kod) && dansVarMi(e.kod))
+            .map((e) => ({ kod: e.kod, ad: e.ad })),
         });
       } catch (e) {
         console.error("[Meydan] gorunum alinamadi:", e);
-        if (aktif) setGorunumVerisi({ gorunum: {}, bilgi: {} });
+        if (aktif) setGorunumVerisi({ gorunum: {}, bilgi: {}, danslar: [] });
       }
     })();
     return () => { aktif = false; };
@@ -180,6 +191,9 @@ export default function HaritaSayfasi() {
     const id = setInterval(() => setTurnuvaKalan((k) => (k === null ? null : Math.max(0, k - 1))), 1000);
     return () => clearInterval(id);
   }, [turnuvaKalan === null, turnuvaKalan === 0]);
+
+  // Sahip olunan danslar (dans tepsisi bunları listeler)
+  const danslar = gorunumVerisi?.danslar ?? [];
 
   const ad = profile?.gorunen_ad || "Oyuncu";
   // Ad, sahnenin KURULUM koşulu değil; yalnız avatarın etiketi.
@@ -317,11 +331,22 @@ export default function HaritaSayfasi() {
         const u = uzaklar.get(id);
         if (u && e) dunya.emojiGoster(u.av, e);
       },
+      onDans(id, kod) {
+        const u = uzaklar.get(id);
+        if (!u || !kod) return;
+        try { dunya.dansEttir(u.av, kod); }
+        catch (e) { console.error("[Meydan] uzak dans:", e); }
+      },
       onDurum(b, sayi) {
         if (!aktif) return;
         setBagli(b);
         setKisi(Math.max(1, sayi));
       },
+    });
+
+    // Parmak arası / tekerlek zumu — sahne katmanına bağlanır (HUD'a değil).
+    const zumGirdi = zumKur(kapsayici, (carpan) => {
+      try { dunya.zumla(carpan); } catch (e) { console.error("[Meydan] zum:", e); }
     });
 
     canliRef.current = { dunya, ben, coklu, renk };
@@ -472,6 +497,7 @@ export default function HaritaSayfasi() {
       window.removeEventListener("orientationchange", boyutTekrar);
       window.visualViewport?.removeEventListener?.("resize", boyut);
       for (const g of gecikmeler) clearTimeout(g);
+      try { zumGirdi?.yokEt(); } catch (e) { console.error("[Meydan] zum kapat:", e); }
       try { coklu?.kapat(); } catch (e) { console.error("[Meydan] kapat:", e); }
       try { kontrol?.yokEt(); } catch (e) { console.error("[Meydan] kontrol:", e); }
       for (const u of uzaklar.values()) { try { dunya.avatarSil(u.av); } catch { /* yut */ } }
@@ -566,6 +592,25 @@ export default function HaritaSayfasi() {
     if (c.coklu.emojiGonder(e)) c.dunya.emojiGoster(c.ben, e);
   };
 
+  /** Dans başlat: kendi avatarımız oynar, meydandakilere tek mesaj gider. */
+  const dansEt = (kod) => {
+    const c = canliRef.current;
+    setDansAcik(false);
+    if (!c) return;
+    try {
+      // Hız sınırı coklu'da (6.5 sn); geçtiyse kendi avatarımız da oynar
+      if (c.coklu.dansGonder(kod)) c.dunya.dansEttir(c.ben, kod);
+    } catch (e) {
+      console.error("[Meydan] dans baslatilamadi:", e);
+    }
+  };
+
+  const zumDegistir = (carpan) => {
+    const c = canliRef.current;
+    if (!c) return;
+    try { c.dunya.zumla(carpan); } catch (e) { console.error("[Meydan] zum:", e); }
+  };
+
   const bilgiKapat = () => {
     setBilgiAcik(false);
     try { localStorage.setItem(BILGI_ANAHTARI, "1"); } catch { /* özel mod */ }
@@ -616,6 +661,13 @@ export default function HaritaSayfasi() {
         </span>
       </div>
 
+      {/* ---- zum: iki parmakla da olur, düğmeyle de ---- */}
+      <div className="bd-harita-hud bd-harita-zum">
+        <button type="button" className="bd-harita-yuvarlak" onClick={() => zumDegistir(1 / 1.35)} aria-label="Yakınlaştır">+</button>
+        <button type="button" className="bd-harita-yuvarlak" onClick={() => zumDegistir(1.35)} aria-label="Uzaklaştır">−</button>
+        <button type="button" className="bd-harita-yuvarlak kus" onClick={() => zumDegistir(99)} aria-label="Kuş bakışı" title="Kuş bakışı">🦅</button>
+      </div>
+
       {ipucu && (
         <button
           type="button"
@@ -637,7 +689,31 @@ export default function HaritaSayfasi() {
       )}
 
       <div className="bd-harita-hud bd-harita-alt">
+        {dansAcik && (
+          <div className="bd-harita-dans-tepsi">
+            {danslar.length === 0 ? (
+              <button type="button" className="bd-harita-dans-bos" onClick={() => navigate(y("/gorunum"))}>
+                Hiç dansın yok — <b>Görünüm</b> sayfasından al
+              </button>
+            ) : (
+              danslar.map((d) => (
+                <button key={d.kod} type="button" className="bd-harita-dans" onClick={() => dansEt(d.kod)}>
+                  {d.ad}
+                </button>
+              ))
+            )}
+          </div>
+        )}
         <div className="bd-harita-emojiler">
+          <button
+            type="button"
+            className={"bd-harita-emoji dans" + (dansAcik ? " acik" : "")}
+            onClick={() => setDansAcik((a) => !a)}
+            aria-label="Dans et"
+            aria-expanded={dansAcik}
+          >
+            💃
+          </button>
           {EMOJILER.map((e) => (
             <button key={e} type="button" className="bd-harita-emoji" onClick={() => emojiAt(e)} aria-label={`Emoji ${e}`}>
               {e}

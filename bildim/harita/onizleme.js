@@ -11,6 +11,7 @@
 import * as THREE from "three";
 import { avatarKur, avatarGorunumDegistir, avatarEfektleriGuncelle, avatarYokEt } from "./avatar.js";
 import { esyaOnbelleginiTemizle } from "./esyalar.js";
+import { dansBaslat, dansKaresi, dansiDurdur } from "./danslar.js";
 
 export function onizlemeKur(kapsayici, { gorunum, bilgi }) {
   const W = () => kapsayici.clientWidth || 260;
@@ -52,6 +53,8 @@ export function onizlemeKur(kapsayici, { gorunum, bilgi }) {
     const dt = Math.min((t - sonT) / 1000, 0.05);
     sonT = t;
     if (donsun) avatar.rotation.y += dt * 0.55;
+    // Dükkânda dansa dokununca avatar burada oynar (meydandakiyle aynı kod).
+    if (avatar.userData?.dans) dansKaresi(avatar, dt);
     avatarEfektleriGuncelle(avatar, dt);
     render.render(sahne, kamera);
   };
@@ -84,6 +87,14 @@ export function onizlemeKur(kapsayici, { gorunum, bilgi }) {
         console.error("[Görünüm] avatar kurulamadı:", e);
       }
     },
+    /** Dansı önizlemede oynatır (satın almadan önce de görülebilir). */
+    dansOynat(kod) {
+      try { dansBaslat(avatar, kod); }
+      catch (e) { console.error("[Görünüm] dans oynatilamadi:", e); }
+    },
+    dansDurdur() {
+      try { dansiDurdur(avatar); } catch { /* yut */ }
+    },
     dondur(a) { donsun = a; },
     elleDondur(dx) { avatar.rotation.y += dx; },
 
@@ -92,6 +103,8 @@ export function onizlemeKur(kapsayici, { gorunum, bilgi }) {
      * Avatar öne bakar, kare çerçeve, saydam arka plan.
      */
     async fotograf(boyut = 256) {
+      // Fotoğraf dans ortasında çekilmesin: gövde duruşa döner.
+      try { dansiDurdur(avatar); } catch { /* yut */ }
       const eskiAci = avatar.rotation.y;
       const eskiEn = W(), eskiBoy = H();
       try {

@@ -10,7 +10,8 @@
     "preview": "vite preview",
     "test:bildim": "node bildim/_test/joker-kurallari-test.mjs",
     "uyumluluk": "node araclar/tarayici-uyumluluk.mjs",
-    "postbuild": "node araclar/tarayici-uyumluluk.mjs"
+    "postbuild": "node araclar/tarayici-uyumluluk.mjs",
+    "test:dans": "node bildim/_test/dans-testi.mjs"
   },
   "dependencies": {
     "@react-three/drei": "^10.7.7",

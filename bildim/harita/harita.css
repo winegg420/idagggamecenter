@@ -237,3 +237,73 @@ body.bd-harita-acik { overflow: hidden; }
   color: var(--bd-metin-3) !important;
   word-break: break-word;
 }
+
+/* ============================================================
+   ZUM DÜĞMELERİ — sağ kenar, topuzun üstünde
+   Asıl yol iki parmakla açıp kapamak (zum.js); bu düğmeler fare kullananlar
+   ve tek elle oynayanlar için. "🦅" tek dokunuşta kuş bakışına çıkarır.
+   ============================================================ */
+.bd-harita-zum {
+  right: 18px; bottom: 150px;
+  display: flex; flex-direction: column; gap: 8px;
+}
+.bd-harita-yuvarlak {
+  border: 0; cursor: pointer;
+  width: 40px; height: 40px; border-radius: 50%;
+  background: var(--bd-yuzey-1);
+  box-shadow: 0 4px 0 var(--bd-kart-alt);
+  font-family: var(--bd-f-baslik); font-weight: 900; font-size: 21px;
+  line-height: 1; padding: 0; color: var(--bd-metin);
+  transition: transform 0.08s ease, box-shadow 0.08s ease;
+}
+.bd-harita-yuvarlak.kus { font-size: 17px; }
+.bd-harita-yuvarlak:active { transform: translateY(3px); box-shadow: 0 1px 0 var(--bd-kart-alt); }
+
+/* ---- dans düğmesi ve tepsisi ---- */
+.bd-harita-emoji.dans { font-size: 22px; }
+.bd-harita-emoji.dans.acik {
+  background: linear-gradient(180deg, var(--bd-vurgu-acik), var(--bd-vurgu));
+  box-shadow: 0 4px 0 var(--bd-vurgu-2);
+}
+/* Tepsi akışın DIŞINDA: alt çubuk emoji + topuz düzenini bozmasın */
+.bd-harita-dans-tepsi {
+  position: absolute; left: 18px; bottom: 100%;
+  display: flex; flex-wrap: wrap; gap: 7px;
+  max-width: min(62vw, 320px);
+  margin-bottom: 8px;
+}
+.bd-harita-dans,
+.bd-harita-dans-bos {
+  border: 0; cursor: pointer;
+  background: var(--bd-yuzey-1);
+  box-shadow: 0 4px 0 var(--bd-kart-alt);
+  border-radius: 13px; padding: 8px 13px;
+  font-family: var(--bd-f-baslik); font-weight: 800; font-size: 14px;
+  color: var(--bd-metin);
+  transition: transform 0.08s ease, box-shadow 0.08s ease;
+}
+.bd-harita-dans:active,
+.bd-harita-dans-bos:active { transform: translateY(3px); box-shadow: 0 1px 0 var(--bd-kart-alt); }
+.bd-harita-dans-bos { font-size: 13px; color: var(--bd-metin-2); }
+
+@media (max-width: 520px) {
+  .bd-harita-zum { bottom: 132px; }
+  .bd-harita-yuvarlak { width: 36px; height: 36px; font-size: 19px; }
+}
+
+@media (orientation: landscape) and (max-height: 520px) {
+  /* Yatayda düğmeler yan yana: dikey sütun sahnenin sağını kaplıyordu */
+  .bd-harita-zum { flex-direction: row; bottom: 8px; right: 116px; }
+  .bd-harita-yuvarlak { width: 32px; height: 32px; font-size: 17px; box-shadow: 0 3px 0 var(--bd-kart-alt); }
+  .bd-harita-yuvarlak.kus { font-size: 14px; }
+  .bd-harita-dans-tepsi { left: 14px; max-width: min(52vw, 300px); gap: 5px; margin-bottom: 6px; }
+  .bd-harita-dans, .bd-harita-dans-bos { padding: 6px 10px; font-size: 12.5px; }
+}
+
+@media (orientation: landscape) and (max-height: 400px) {
+  .bd-harita-zum { right: 100px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bd-harita-yuvarlak, .bd-harita-dans, .bd-harita-dans-bos { transition: none; }
+}
