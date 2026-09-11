@@ -1,5 +1,17 @@
 # Cloudflare Pages'e dağıtım
 
+> **GÜNCEL DURUM (11 Eylül 2026) — BU BELGE ARTIK GEÇMİŞ KAYDI.**
+>
+> Asıl site **https://quizsquare.vercel.app** (Vercel). "Quizador" adı
+> bitti: `quizador.vercel.app` ve türevleri kapatıldı, Vercel projesi
+> `quizsquare` olarak yeniden adlandırıldı.
+>
+> Supabase **Site URL** artık `https://quizsquare.vercel.app` (dışarıdan
+> ölçüldü, aşağıdaki curl yöntemiyle).
+>
+> Aşağıdaki `quizador.pages.dev` anlatımı ESKİDİR; Cloudflare tarafı
+> kapatılmayı bekliyor. Yeni kurulum yaparken adresleri buradan kopyalama.
+
 Depo aynı kalıyor. Vercel'deki dağıtım bozulmuyor — aynı depo iki yerde birden
 yayınlanabilir. Cloudflare için gereken dosyalar eklendi ve **yerelde Cloudflare
 Pages çalışma zamanıyla test edildi** (`wrangler pages dev`).
@@ -11,7 +23,7 @@ Pages çalışma zamanıyla test edildi** (`wrangler pages dev`).
 > Bu bölümün eski hâli "izin listesinde yalnız `bildim.vercel.app` var" diyordu.
 > **Artık geçerli değil.** Panel güncellenmiş; aşağısı yeni ölçüm.
 
-Supabase'in **Site URL**'i artık `https://quizador.pages.dev/`. Ölçüm yöntemi
+Supabase'in **Site URL**'i o tarihte `https://quizador.pages.dev/` idi (ARTIK DEĞİL — üstteki nota bak). Ölçüm yöntemi
 (dışarıdan, panele girmeden): `auth/v1/callback` ucuna geçersiz istek atılır,
 Supabase kullanıcıyı Site URL'e düşürür ve `Location` başlığı onu ele verir:
 
@@ -201,7 +213,7 @@ npx wrangler pages dev dist
 
 ## quizador.pages.dev HER ZAMAN en güncel olmalı — nasıl garantiye alınır
 
-**Kural:** Quizador'un asıl sitesi `https://quizador.pages.dev`. Kod deposunda
+**ESKİ KURAL (geçersiz):** O dönem asıl site `https://quizador.pages.dev` idi. Kod deposunda
 ne varsa burada yayında olmalı; hub (Vercel) ikincildir.
 
 ### Önce şunu kontrol et: dağıtım elle mi, otomatik mi?

@@ -28,7 +28,7 @@
 
 | Alan | Ölçülen değer |
 |---|---|
-| Site URL | `https://quizador.pages.dev/` ✔ (yaşayan, çalışan adres) |
+| Site URL | `https://quizsquare.vercel.app` ✔ (11 Eylül 2026'da güncellendi; eskiden `quizador.pages.dev` idi) |
 | `bildim.vercel.app` | **ÖLÜ** — 404. Kimseye verilmemeli, listeden çıkarılabilir. |
 
 Ölçüm yöntemi (panele girmeden, dışarıdan):
@@ -47,7 +47,7 @@ listesi dışarıdan okunamaz — doğrulama yalnız Google dönüşünde yapıl
 (authorize adımı `redirect_to`'yu olduğu gibi taşıyor, ölçüldü), o yüzden
 panelden bakmak gerekir. Listede şunlar olmalı:
 
-- `https://quizador.pages.dev/**` ← asıl site
+- `https://quizsquare.vercel.app/**` ← asıl site (eski `quizador.*` adresleri kapatıldı)
 - `https://idagg-game-center.vercel.app/**` ← hub
 
 Uygulama tarafındaki yedek (`src/lib/girisHedefi.js`) derin bağlantıyı yine de
