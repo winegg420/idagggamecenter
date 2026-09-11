@@ -4689,3 +4689,48 @@ body.bd-ekle-acik .app { padding-bottom: calc(300px + env(safe-area-inset-bottom
   flex: 1 1 0;
 }
 .app .tabbar a .ikon svg { width: 22px; height: 22px; }
+
+/* ============================================================
+   MOD KARTI ALT AÇIKLAMASI
+   "Dereceli Maç" ile "Normal Maç" arasındaki fark karttan okunmalı;
+   yoksa oyuncu hangisinin puan yazdığını bilemiyor.
+   ============================================================ */
+.app .bd-mod-not {
+  display: block;
+  font-family: var(--bd-f-govde);
+  font-weight: 800;
+  font-size: 11px;
+  line-height: 1.3;
+  color: var(--bd-metin-2);
+  margin-top: 2px;
+}
+/* Geniş kartlarda ikon solda, yazılar sağda alt alta */
+.app .bd-mod-genis { align-items: center; }
+.app .bd-mod-genis .bd-mod-ad { display: block; }
+
+/* ============================================================
+   TURNUVA VURGUSU (ana ekran)
+   Günün iki turnuvası oyunun ana olayı. Şerit artık altın çerçeveli ve
+   biraz daha yüksek; canlıyken kenarı nabız atıyor.
+   ============================================================ */
+.app .bd-turnuva-vurgu {
+  border: 2px solid var(--bd-odul);
+  box-shadow: 0 4px 0 var(--bd-odul-2);
+  padding-block: 12px;
+}
+.app .bd-turnuva-vurgu .bd-turnuva-etiket {
+  color: var(--bd-odul-2);
+  font-weight: 900;
+  letter-spacing: 0.06em;
+}
+:root[data-tema="koyu"] .app .bd-turnuva-vurgu .bd-turnuva-etiket { color: var(--bd-odul); }
+.app .bd-turnuva-vurgu.canli {
+  animation: bd-turnuva-nabiz 2.2s ease-in-out infinite;
+}
+@keyframes bd-turnuva-nabiz {
+  0%, 100% { box-shadow: 0 4px 0 var(--bd-odul-2); }
+  50%      { box-shadow: 0 4px 0 var(--bd-odul-2), 0 0 0 4px rgba(255, 197, 61, 0.25); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .app .bd-turnuva-vurgu.canli { animation: none; }
+}

@@ -27,6 +27,9 @@ export default function Home() {
   const [ligDurum, setLigDurum] = useState(null);
   const [gecenHafta, setGecenHafta] = useState(null);
   const [rakipAra, setRakipAra] = useState(false);
+  // Aranan maçın türü: dereceli (puan/lig etkiler, seviyeye göre eşleşme)
+  // ya da normal (puan yok, serbest rakip).
+  const [dereceliAra, setDereceliAra] = useState(true);
   const [siraSendeMaclar, setSiraSendeMaclar] = useState([]);
   // Hatalarım bankasında bekleyen soru sayısı (mod kartı rozeti)
   const [bankaBekleyen, setBankaBekleyen] = useState(0);
@@ -204,8 +207,9 @@ export default function Home() {
 
   // Hemen Oyna: önce tercih edilen kategoride insan rakip aranır (20 sn),
   // bulunamazsa karışığa/bota düşülür. Akış RakipAra bileşeninde.
-  const hemenOyna = () => {
+  const hemenOyna = (dereceli = true) => {
     setMesaj(null);
+    setDereceliAra(dereceli);
     setRakipAra(true);
   };
 
@@ -222,6 +226,7 @@ export default function Home() {
       {rakipAra && (
         <RakipAra
           kategori={profile?.tercih_kategori ?? null}
+          dereceli={dereceliAra}
           onBulundu={(macId) => {
             setRakipAra(false);
             navigate(y(`/mac/${macId}`));
@@ -296,7 +301,7 @@ export default function Home() {
 
         <SeriRozeti />
 
-        <button className="bd-ana-eylem" onClick={hemenOyna}>
+        <button className="bd-ana-eylem" onClick={() => hemenOyna(true)}>
           <Ikon ad="hizli" boyut={22} />
           <span>Hemen oyna</span>
           <Ikon ad="ok" boyut={20} className="bd-ana-eylem-ok" />
@@ -329,7 +334,9 @@ export default function Home() {
 
         {/* Turnuva: yatay bant — sayaç solda, eylem sağda */}
         {/* tema-turnuva: "Lobiye katıl" / "Katıl" turnuva morunu alsın */}
-        <div className="bd-turnuva-serit tema-turnuva">
+        {/* vurgulu: günün iki turnuvası oyunun ana olayı, listede sıradan
+            bir satır gibi durmasın; canlıyken ayrıca nabız atar. */}
+        <div className={`bd-turnuva-serit tema-turnuva bd-turnuva-vurgu${canliTurnuva ? " canli" : ""}`}>
           <div className="bd-turnuva-sol">
             <div className="bd-turnuva-etiket">
               {sonrakiTurnuvaSeans() === "sabah" ? "SABAH TURNUVASI" : "GECE TURNUVASI"}
@@ -444,9 +451,22 @@ export default function Home() {
       <section className="bd-katman bd-giris-3">
         <h2 className="bd-katman-baslik">Modlar</h2>
         <div className="bd-mod-grid">
-          <button className="bd-mod bd-mod-genis tema-meydan" onClick={() => navigate(y("/meydan"))}>
+          {/* İki ayrı mod: dereceli puan/lig etkiler ve seviyene göre rakip
+              bulur; normal maç puan yazmaz, rakip serbesttir. */}
+          <button className="bd-mod bd-mod-genis tema-meydan" onClick={() => hemenOyna(true)}>
             <span className="bd-mod-ikon"><Ikon ad="kilic" boyut={30} /></span>
+            <span className="bd-mod-ad">Dereceli Maç</span>
+            <span className="bd-mod-not">Seviyene göre rakip · puan kazanırsın</span>
+          </button>
+          <button className="bd-mod bd-mod-genis tema-hizli" onClick={() => hemenOyna(false)}>
+            <span className="bd-mod-ikon"><Ikon ad="hizli" boyut={30} /></span>
+            <span className="bd-mod-ad">Normal Maç</span>
+            <span className="bd-mod-not">Serbest rakip · puan yazılmaz</span>
+          </button>
+          <button className="bd-mod bd-mod-genis tema-grup" onClick={() => navigate(y("/meydan"))}>
+            <span className="bd-mod-ikon"><Ikon ad="kisiler" boyut={26} /></span>
             <span className="bd-mod-ad">Meydan Oku</span>
+            <span className="bd-mod-not">Arkadaşına davet gönder</span>
           </button>
           <button className="bd-mod tema-hizli" onClick={() => navigate(y("/hizli-mod"))}>
             <span className="bd-mod-ikon"><Ikon ad="saat" boyut={26} /></span>

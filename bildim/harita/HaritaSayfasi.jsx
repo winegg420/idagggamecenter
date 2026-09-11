@@ -119,8 +119,18 @@ export default function HaritaSayfasi() {
     canliRef.current = { dunya, ben, coklu };
 
     const boyut = () => dunya.boyutlandir();
+    // Telefon yan çevrilince: orientationchange ANINDA tarayıcı hâlâ eski
+    // ölçüyü bildiriyor; tek seferlik boyutlandırma sahneyi yamuk bırakıyor
+    // (kullanıcı "yatayda oynanmıyor" diye bildirdi). Olaydan sonra birkaç
+    // kez daha ölçüyoruz; ayrıca visualViewport varsa onu da dinliyoruz.
+    const gecikmeler = [];
+    const boyutTekrar = () => {
+      boyut();
+      for (const ms of [120, 320, 650]) gecikmeler.push(setTimeout(boyut, ms));
+    };
     window.addEventListener("resize", boyut);
-    window.addEventListener("orientationchange", boyut);
+    window.addEventListener("orientationchange", boyutTekrar);
+    window.visualViewport?.addEventListener?.("resize", boyut);
 
     let sonT = performance.now(), zaman = 0, ilkKare = true;
     const cizim = (t) => {
@@ -185,7 +195,9 @@ export default function HaritaSayfasi() {
       aktif = false;
       cancelAnimationFrame(raf);
       window.removeEventListener("resize", boyut);
-      window.removeEventListener("orientationchange", boyut);
+      window.removeEventListener("orientationchange", boyutTekrar);
+      window.visualViewport?.removeEventListener?.("resize", boyut);
+      for (const g of gecikmeler) clearTimeout(g);
       try { coklu?.kapat(); } catch (e) { console.error("[Meydan] kapat:", e); }
       try { kontrol?.yokEt(); } catch (e) { console.error("[Meydan] kontrol:", e); }
       for (const u of uzaklar.values()) { try { dunya.avatarSil(u.av); } catch { /* yut */ } }

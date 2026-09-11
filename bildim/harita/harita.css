@@ -156,3 +156,55 @@ body.bd-harita-acik { overflow: hidden; }
 @media (prefers-reduced-motion: reduce) {
   .bd-harita-btn, .bd-harita-emoji, .bd-harita-ipucu { transition: none; }
 }
+
+/* ============================================================
+   HARİTA — YATAY EKRAN (telefon yan çevrilince)
+   Dikeyde tasarlanan HUD yatayda ekranın yarısını kaplıyordu: 118px topuz
+   + iki satır emoji, 380px'lik yükseklikte sahneyi eziyordu. Yatayda
+   (yükseklik <= 520px) HUD küçülür ve emojiler tek sıraya iner.
+   ============================================================ */
+@media (orientation: landscape) and (max-height: 520px) {
+  .bd-harita-ust { padding: max(8px, env(safe-area-inset-top)) 12px 8px; }
+  .bd-harita-alt { padding: 8px 14px max(10px, env(safe-area-inset-bottom)); }
+
+  /* Emojiler tek sıra: iki satır yatayda sahnenin altını yiyordu */
+  .bd-harita-emojiler {
+    max-width: none;
+    flex-wrap: nowrap;
+    gap: 5px;
+  }
+  .bd-harita-emoji {
+    width: 34px; height: 34px;
+    border-radius: 11px;
+    font-size: 16px;
+    box-shadow: 0 3px 0 var(--bd-kart-alt);
+  }
+
+  /* Topuz küçülür ama dokunma hedefi yeterli kalır */
+  .bd-harita-pad { width: 86px; height: 86px; }
+  .bd-harita-topuz { width: 38px; height: 38px; margin: -19px 0 0 -19px; }
+
+  /* İpucu ve bilgi kartı sahnenin ortasını kapatmasın */
+  .bd-harita-ipucu {
+    bottom: 62px;
+    font-size: 14px;
+    padding: 7px 12px;
+  }
+  .bd-harita-ipucu small { font-size: 10px; }
+  .bd-harita-bilgi {
+    bottom: 62px;
+    padding: 9px 14px;
+    font-size: 12px;
+    max-width: min(70vw, 380px);
+  }
+  .bd-harita-bilgi b { font-size: 14px; }
+  .bd-harita-hap { font-size: 11.5px; padding: 4px 9px; }
+  .bd-harita-btn { font-size: 12.5px; padding: 6px 10px; }
+}
+
+/* Çok kısa ekranlarda (küçük telefon yatay) bilgi kartı hepten sadeleşir */
+@media (orientation: landscape) and (max-height: 400px) {
+  .bd-harita-bilgi { display: none; }
+  .bd-harita-pad { width: 74px; height: 74px; }
+  .bd-harita-topuz { width: 32px; height: 32px; margin: -16px 0 0 -16px; }
+}

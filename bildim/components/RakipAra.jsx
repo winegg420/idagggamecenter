@@ -15,7 +15,7 @@ const BEKLEME_SN = 8; // bu süre içinde insan rakip aranır, sonra bota düş�
  * Akış: kuyruğa gir → 8 sn insan rakip ara → bulunamazsa bota düş ve bunu
  * ekranda söyle. Rakip bulununca 1 sn "Rakip bulundu: X" gösterilip maça geçilir.
  */
-export default function RakipAra({ kategori, onBulundu, onIptal }) {
+export default function RakipAra({ kategori, dereceli = true, onBulundu, onIptal }) {
   const { user } = useAuth();
   const [kalan, setKalan] = useState(BEKLEME_SN);
   const [hata, setHata] = useState(null);
@@ -76,6 +76,7 @@ export default function RakipAra({ kategori, onBulundu, onIptal }) {
     try {
       const { data, error } = await supabase.rpc("quick_match", {
         p_kategori: kategori ?? null,
+        p_dereceli: dereceli,
       });
       if (error) throw error;
       if (data) bitir(data);
@@ -83,7 +84,7 @@ export default function RakipAra({ kategori, onBulundu, onIptal }) {
       setHata("Maç başlatılamadı. Bağlantını kontrol edip tekrar dene.");
       console.error("[Bildim] quick_match:", e);
     }
-  }, [kategori, bitir]);
+  }, [kategori, dereceli, bitir]);
 
   useEffect(() => {
     let iptal = false;
@@ -93,6 +94,7 @@ export default function RakipAra({ kategori, onBulundu, onIptal }) {
       try {
         const { data, error } = await supabase.rpc("kuyruga_gir", {
           p_kategori: kategori ?? null,
+          p_dereceli: dereceli,
         });
         if (error) throw error;
         if (data) bitir(data);
@@ -125,7 +127,7 @@ export default function RakipAra({ kategori, onBulundu, onIptal }) {
       // ekranı boş bırakıyordu. then'in ikinci argümanı hatayı güvenle yutar.
       if (!bittiRef.current) supabase.rpc("kuyruktan_cik").then(() => {}, () => {});
     };
-  }, [kategori, bitir, sonCare]);
+  }, [kategori, dereceli, bitir, sonCare]);
 
   const govde = (
     <div className="bd-arama-katman" role="dialog" aria-modal="true" aria-label="Rakip aranıyor">
