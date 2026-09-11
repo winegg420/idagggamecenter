@@ -35,14 +35,19 @@ export function cubukBaslat() {
     window.addEventListener("resize", cubukOlc);
     window.addEventListener("orientationchange", cubukOlc);
     window.addEventListener("load", cubukOlc);
-    // Gözlem GÖVDEYE kurulur, <html>'e değil: <html> yüksekliği görünen alana
-    // sabitlenip içerik taşınca büyümüyor, bu yüzden hiç tetiklenmiyordu
-    // (ölçüldü: değişken 0px'te kalıyordu). Gövde içerikle birlikte uzuyor.
+    // İKİ ELEMAN DA gözlenir:
+    //   • <body> — içerik uzayınca değişir,
+    //   • <html> — çubuk belirdiği AN genişliği daralır (390 → 375). Asıl
+    //     yakalamak istediğimiz olay bu. Yalnız gövde gözlenince, veri geç
+    //     gelip çubuk sonradan belirdiğinde tetiklenmiyor ve değişken 0px'te
+    //     kalıyordu (dükkân sayfasında ölçüldü).
     if (typeof ResizeObserver === "function") {
-      new ResizeObserver(cubukOlc).observe(document.body);
+      const gozcu = new ResizeObserver(cubukOlc);
+      gozcu.observe(document.documentElement);
+      gozcu.observe(document.body);
     }
     // İlk boyalar arasında çubuk sonradan belirebilir; birkaç kez daha bak.
-    for (const ms of [0, 300, 1200]) setTimeout(cubukOlc, ms);
+    for (const ms of [0, 300, 1200, 3000]) setTimeout(cubukOlc, ms);
   } catch {
     /* eski tarayıcı: ilk ölçüm yeterli */
   }

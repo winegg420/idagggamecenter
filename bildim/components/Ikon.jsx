@@ -61,6 +61,12 @@ const YOLLAR = {
 
   // --- eylem ---
   kilit: "M6 11h12v10H6zM9 11V7a3 3 0 0 1 6 0v4",
+  // Altin para: dis cember + ic cember + ortada dikey cizgi (para izlenimi).
+  // Coin ekonomisinin tek ikonu; disaridan gorsel indirilmedi.
+  coin: "M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18M12 16a4 4 0 1 0 0-8 4 4 0 0 0 0 8M12 6.5v11",
+  // Kiyafet (gorunum sayfasi ve dukkan sekmesi)
+  tisort: "M8 3 4 5.5 6 9l1.5-.8V21h9V8.2L18 9l2-3.5L16 3a4 4 0 0 1-8 0",
+  palet: "M12 3a9 9 0 0 0 0 18c1 0 1.6-.8 1.6-1.6 0-.4-.2-.8-.5-1.1-.3-.3-.5-.7-.5-1.1 0-.9.7-1.6 1.6-1.6H16a5 5 0 0 0 5-5c0-4-4-7.6-9-7.6M7.5 11h.01M10 7.5h.01M14 7.5h.01M16.5 11h.01",
   onay: "m5 13 4 4L19 7",
   carpi: "M6 6l12 12M18 6 6 18",
   ok: "M5 12h14M13 6l6 6-6 6",

@@ -11,6 +11,7 @@ import Tanitim from "./Tanitim.jsx";
 import { useBildimManifest } from "../lib/manifest.js";
 import BildirimToast from "./BildirimToast.jsx";
 import Ikon from "./Ikon.jsx";
+import CoinHapi from "./CoinHapi.jsx";
 import Avatar from "../../src/components/Avatar.jsx";
 import Logo from "./Logo.jsx";
 import SesDugmesi from "./SesDugmesi.jsx";
@@ -103,6 +104,7 @@ export default function Layout() {
               <TemaDugmesi />
               <SesDugmesi />
               <BildirimZili />
+              <CoinHapi />
               <Link to={y("/profil")} className="bd-puan-link" aria-label="Puanım">
                 <span className="puan-chip">
                   <Ikon ad="yildiz" boyut={15} /> <PuanSayaci deger={profile.puan} />

@@ -4966,3 +4966,55 @@ body.bd-ekle-acik .app { padding-bottom: calc(300px + env(safe-area-inset-bottom
 :root .app .bd-yanlis-satiri,
 :root .app a.bd-yanlis-satiri { color: var(--bd-metin); }
 .app .paylas.wa { background: #117A3B; }
+
+/* ============================================================
+   DÜKKÂN SEKMELERİ + COİN HAPI
+   Dükkân üç sekme: Kıyafet / Joker / Coin.
+   ============================================================ */
+.app .bd-dukkan-sekmeler {
+  display: flex; gap: 6px; margin-bottom: 14px;
+  background: var(--bd-yuzey-1);
+  border-radius: var(--bd-r-tam);
+  padding: 4px;
+  box-shadow: 0 3px 0 var(--bd-kart-alt);
+}
+.app .bd-dukkan-sekme {
+  flex: 1; border: 0; cursor: pointer;
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  padding: 9px 6px; border-radius: var(--bd-r-tam);
+  background: transparent;
+  font-family: var(--bd-f-baslik); font-weight: 800; font-size: 14px;
+  color: var(--bd-metin-2);
+  transition: background 0.12s ease, color 0.12s ease;
+}
+.app .bd-dukkan-sekme.aktif {
+  background: var(--bd-vurgu);
+  color: #fff;
+  box-shadow: 0 3px 0 var(--bd-vurgu-2);
+}
+.app .bd-paket-bonus {
+  background: color-mix(in srgb, var(--bd-basari) 16%, var(--bd-yuzey-1));
+  color: var(--bd-basari-metin);
+  border-radius: var(--bd-r-tam); padding: 1px 8px; font-weight: 900;
+}
+
+/* Üst çubuktaki coin hapı — puan çipiyle aynı dil, altın tonunda */
+.app .bd-coin-hap {
+  display: inline-flex; align-items: center; gap: 5px;
+  text-decoration: none;
+  background: color-mix(in srgb, var(--bd-odul) 20%, var(--bd-yuzey-1));
+  color: var(--bd-odul-metin);
+  border-radius: var(--bd-r-tam);
+  padding: 5px 11px;
+  font-family: var(--bd-f-baslik); font-weight: 900; font-size: 14px;
+  white-space: nowrap;
+}
+:root[data-tema="koyu"] .app .bd-coin-hap {
+  background: color-mix(in srgb, var(--bd-odul) 22%, var(--bd-yuzey-1));
+  color: var(--bd-odul);
+}
+@media (max-width: 380px) {
+  /* Dar telefonda üst çubuk sıkışmasın: coin hapı sayıyı korur, kenarı daraltır */
+  .app .bd-coin-hap { padding: 5px 8px; font-size: 13px; }
+  .app .bd-dukkan-sekme { font-size: 13px; padding: 8px 4px; }
+}

@@ -143,11 +143,28 @@ Deno.serve(async (req) => {
       Deno.env.get("SUPABASE_URL")!,
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
     );
-    const { data, error } = await yonetimDb.rpc("satin_alma_isle", {
-      p_user: user.id,
-      p_urun_id: urun_id,
-      p_play_token: purchase_token,
-    });
+    // Ürün hangi katalogda? Coin paketleri coin_satin_alma_isle'a, eski joker
+    // paketleri mevcut satin_alma_isle'a gider. İkisi de service_role ile
+    // çağrılır; hangi RPC'nin çalışacağına ÜRÜN KİMLİĞİ değil KATALOG karar
+    // verir (istemci ürün türü uyduramasın).
+    const { data: coinPaketi } = await yonetimDb
+      .from("coin_paketleri")
+      .select("urun_id")
+      .eq("urun_id", urun_id)
+      .eq("aktif", true)
+      .maybeSingle();
+
+    const { data, error } = coinPaketi
+      ? await yonetimDb.rpc("coin_satin_alma_isle", {
+        p_user: user.id,
+        p_urun_id: urun_id,
+        p_token: purchase_token,
+      })
+      : await yonetimDb.rpc("satin_alma_isle", {
+        p_user: user.id,
+        p_urun_id: urun_id,
+        p_play_token: purchase_token,
+      });
     if (error) {
       const zaten = /zaten işlendi|duplicate key/i.test(error.message);
       return yanit({ hata: error.message }, zaten ? 409 : 400);
