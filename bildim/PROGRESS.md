@@ -2008,3 +2008,76 @@ kayboluyor (1.27); WhatsApp yeşili 2.87; "Hatalarım" satırı koyu temada 1.10
 **Özgüllük tuzağı:** `.app a.bd-yanlis-satiri` (src/styles.css) ile
 `.app .bd-yanlis-satiri` aynı özgüllükte (0,2,1 / 0,2,0) — sonra gelmek
 yetmedi, `:root` ekleyip özgüllüğü artırmak gerekti.
+
+---
+
+## 2026-09-11 (5) — Quiz Square: marka, coin, avatar, meydan turnuvası, lobi
+
+Altı bölümlük görev. `80445ce` → `4193037`. **Push edilmedi, migration'lar
+canlıya uygulanmadı** (görev öyle istedi).
+
+### 1. Marka: Quizador → Quiz Square
+Alan adı `quizsquare.app`. Marka adı hiçbir dile çevrilmiyor. 3B alanın adı
+mekân adı olduğu için yerelleşiyor: TR "Meydan".
+**Logo ölçüsü tahmin edilmedi**, tarayıcıda Baloo 2 800 ile ölçüldü:
+"Quiz Square" 157.2 birim → viewBox 124→160, oran 3.1→4.0, alt çizgi 120→155.
+`bildim/` klasör adı ve DB tablo/kolon adları bilerek değişmedi.
+`quizador_ana_ekran_kapatildi` localStorage anahtarı da korundu — değiştirmek
+"ana ekrana ekle" önerisini kapatmış herkese yeniden çıkarırdı.
+
+### 2. Coin ekonomisi (migration 131)
+Bakiye `profiles.coin`, her hareket `coin_hareketleri`'nde. **Tüm dengeleme
+sayıları `oyun_ayarlari` tablosunda** — kodda sabit sayı yok.
+
+**Bakiye korumasının iki katı var:** `authenticated` rolünün `profiles`'a
+zaten doğrudan izni yok (test sırasında öğrenildi), üstüne bir de trigger:
+coin ancak işlem-yerel `app.coin_izin` bayrağı açıkken değişir, bayrağı da
+yalnız security definer fonksiyonlar açar.
+
+Aynı maça iki kez coin verilmesini **kısmi tekil indeks** engelliyor
+(`tur='mac'` + referans). Ödül maç bitiş fonksiyonlarının içinde veriliyor;
+istemci "kazandım" diyemiyor.
+
+### 3. Avatar (migration 132)
+`profiles.gorunum` tek doğruluk kaynağı. Bunu gerçekten sağlamak için
+`dunya.js`'teki avatar çizimi `avatar.js`'e taşındı, ortak canvas yardımcıları
+`ortak.js`'e alındı: meydan ve Görünüm önizlemesi **aynı `avatarKur()`**
+fonksiyonunu çağırıyor.
+
+Katalog DB'de (`esyalar`), kodda yalnız her kodun geometri üreticisi
+(`esyalar.js`). 18 eşya geometrik ilkellerden üretiliyor; geometriler ve renk
+başına malzemeler **paylaşılıyor** (40 kişi aynı şapkayı giyse tek geometri).
+
+**Testin yakaladığı iki hata:** (1) `RETURNS TABLE(... kod text)` çıktı adı
+`esyalar.kod` ile çakışıyordu, (2) kısmi kayıt diğer yuvaları siliyordu —
+artık yalnız gönderilen anahtarlar işleniyor.
+
+### 4. Görünümün meydana yansıması
+Görünüm presence yükünde **bir kez** gidiyor (kare kare değil); kıyafet
+değişimi tek `gorunum` broadcast mesajı. Alan taraf sahneyi yıkmadan yalnız
+eşyaları yeniliyor.
+
+### 5. Turnuva meydanda (migration 133)
+Kupa binası 10 dk önce ışıyor, üstünde geri sayım levhası (levha saniyede bir
+değil, **metin değişince** yeniden üretiliyor).
+**Meydan tek yol değil** — klasik düğmeden giriş aynen duruyor.
+Ödül sunucuda doğrulanıyor: `meydan_turnuva_damgasi()` pencereyi sunucu
+saatiyle kontrol ediyor, istemci "meydandaydım" diyemiyor.
+
+### 6. Lobi (migration 134)
+**3-2-1 istemcide üretilmiyor:** maç başlarken soru saati 3 sn ileri kuruluyor,
+iki istemci de aynı anı görüyor. Geri sayım sürerken cevap ve ilerleme yok.
+2 dakika sonra "İptal et" / "Asenkron bırak" seçeneği çıkıyor.
+
+**Görev metniyle çelişki:** görev yalnız arkadaş maçlarının senkron olmasını,
+eşleşmeyle bulunan maçların asenkron kalmasını istiyordu. Bir önceki sözlü
+talimat "bütün maçlar eş zamanlı" olduğu için senkronluk geri alınmadı; karar
+migration başlığına yazıldı.
+
+### Yöntem notu — migration'ları uygulamadan doğrulamak
+Görev canlıya uygulamayı yasakladığı için her migration **gerçek veritabanında
+işlem içinde çalıştırılıp `rollback` edildi**. Söz dizimi + anlam (kolon adı,
+tip, kısıt) böyle doğrulandı; kalıcı etki yok. Aynı yöntemle 65 işlev testi
+yazıldı ve bunlar 6 gerçek hata yakaladı (`joker_islemleri.kaynak` kısıtı,
+`badges` birincil anahtarı, dönüş tipi değişimi, ad çakışması, kısmi kayıt,
+test fikstürlerindeki zorunlu kolonlar).
