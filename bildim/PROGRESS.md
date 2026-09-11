@@ -2387,3 +2387,73 @@ AYNI BELGEDE (React Router ile) gezilmeli.
 
 Canlıda doğrulandı: kod kopyalama (panoya giden metin tam olarak kodun
 kendisi), davet geri çekme (satır kayboldu, veritabanında `durum='iptal'`).
+
+---
+
+## 2026-09-11 (12) — Dans gerçekten oynuyor, geri bildirim penceresi, oyuncu kartı
+
+### "Dansa basınca hiçbir şey olmuyor" — bulunan hata
+`coklu.js` hız sınırları `let sonDansZamani = 0` ile başlıyordu ve karşılaştırma
+`performance.now()` ile yapılıyor. O sayaç **sayfa açılışında 0**'dan başladığı
+için "son dans sayfa açılışında gönderildi" sayılıyor, oyuncunun **ilk dansı
+6,5 saniye boyunca sessizce yutuluyordu**. Meydana girip hemen basan oyuncu
+hiçbir şey görmüyordu. Aynı hata emojide de vardı (ilk 2 sn).
+Düzeltme: başlangıç değeri `-Infinity`.
+
+### Dans emoji değil
+Sahibi: *"ben emoji istemedim, PUBG'deki gibi dans edecek karakter."*
+Emoji sırasındaki 💃 kaldırıldı. Artık ayrı, mor, adı yazan bir **Dans**
+düğmesi ve açılınca dansların adlarını listeleyen bir **panel** var.
+Panel HUD'un ayrı bir katmanı — alt çubuğun emoji/topuz düzenine karışmıyor.
+
+**14 dans** (7 yeni): Selam, Zıplama, Robot, Twist, Fırıldak, Zafer Dansı,
+Şampiyon, Dalga, Alkış, Kazak, Kafa Salla, Kayış, Pirouette, Kupa Kaldır.
+**Ücretsiz:** Selam, Zıplama, Alkış (Zıplama 250 coin'di, ücretsiz sete alındı;
+parasını ödeyenden geri alınmadı). İkisi etkinlik ödülü, kalanı 350–950 coin.
+`npm run test:dans` on dördünü de sahte avatar üstünde doğruluyor.
+
+### "Botla oynarken hemen diğer soruya geçiliyor"
+Bot anında cevaplıyor, sunucu soruyu hemen ilerletiyor ve Realtime paketi
+gelir gelmez kart değişiyordu. Geri bildirim penceresi (`GB_MS`) 1400 → **2000**
+ve asıl düzeltme: **sonraki soru pencere dolmadan ekrana gelmiyor**. Soruyu
+çeken efekt, kendi cevabımızdan bu yana geçen süreyi ölçüp kalanı bekliyor.
+Ölçüldü: durum 0,3 sn'de güncelleniyor, kart 1,68 sn daha duruyor.
+
+**Son soru da kapsandı:** bota karşı son cevapla birlikte maç bitiyordu ve
+sonuç ekranı doğru/yanlışı hiç göstermeden açılıyordu. Sonuç ekranı artık
+pencereyi bekliyor (ölçüm: anında → 4,0 sn).
+
+### "Süre dolup cevap vermeyince ekran takılıyor"
+Kök sebep: istemcinin sayacı **15**. saniyede bitip `mac_soruyu_atla` çağırıyor,
+sunucu ise soruyu **17** saniye dolmadan atlamıyordu. Aradaki ~2 saniyede RPC
+hata bile vermiyor, **boş** dönüyordu; istemci "atlandı" sanıp kilidi kapalı
+bırakıyor, soru ne ilerliyor ne yeniden deneniyordu — ekran donuyordu.
+
+İki taraflı düzeltildi (migration 138): atlama eşiği 15 saniyeye çekildi
+(cevap göndermenin 17 saniyelik ağ payı DEĞİŞMEDİ) ve istemci artık boş dönüşü
+"atlanamadı" sayıp kilidi açıyor, bir sonraki tikte yeniden deniyor.
+
+### Harita yatay
+Kanvas ölçüsü doğru çalışıyor — dev sunucuda ölçüldü: kapsayıcı 797×397'ye
+dönünce `resize` ile kanvas 996×496 oluyor. Ek güvenlik olarak kapsayıcıyı
+**ResizeObserver** doğrudan izliyor (olay gelmese de ölçü peşinden gidiyor) ve
+sayfa açılırken `screen.orientation.unlock()` deneniyor.
+
+**Sahibine söylenecek:** oyun ANA EKRANA EKLİYSE dönmeme sebebi manifest'tir.
+Kilidi `"orientation": "any"` yaptık ama iOS/Android manifest'i **kurulum
+anında** okuyor: kısayolu silip yeniden eklemek (ya da tarayıcıdan açmak)
+gerekiyor.
+
+**Test tuzağı (yeni):** arka plandaki sekmede `ResizeObserver` geri çağrıları da
+`requestAnimationFrame` gibi askıya alınıyor — çizim adımlarına bağlılar.
+Ölçüm yaparken elle `window.dispatchEvent(new Event('resize'))` gerekiyor.
+
+### Oyuncu kartı
+Lig satırına, podyuma ve turnuva lobisindeki isme dokunmak **oyuncu kartını**
+açıyor: 96px avatar, takma ad, rütbe rozeti, konum, puan/maç/kupa/seri ve
+**Meydan oku** düğmesi. Satırların sağındaki kılıç düğmesi kartı açmadan
+doğrudan meydan okuyor (`stopPropagation`).
+
+**Tuzak:** kart `.app` içinde DEĞİL — `Modal` portal ile `document.body`ye
+basıyor. Stili `.app .bd-oyuncu-karti` diye yazınca kural hiç uygulanmadı ve
+kapatma düğmesi ekranın sağ üstüne kaçtı. Önek kaldırıldı.
