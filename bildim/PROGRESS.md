@@ -1947,3 +1947,64 @@ saklanıyor) ve ilk paket gelmeden hiç çizilmiyor.
 Chrome otomasyonunda sekme `document.hidden` sayılıyor: `setInterval` dakikada
 bire düşüyor, süre dolunca ilerletme tetiklenmiyor. Maç ekranı testinde
 "soru geçmedi" gibi görünen durum bu; sunucu yolu ayrı test edildi.
+
+---
+
+## 2026-09-11 (4) — Bütün maçlar eş zamanlı: hazır kapısı, kopma kilidi, hükmen mağlubiyet
+
+`3ba9e98`, migration 130. Kullanıcı: "bütün maçlar eş zamanlı yapılacak, tüm
+eşleştirmelerden rakip beklenecek, iki taraf da hazır tuşuna basacak; rakip
+çıkarsa diğerinin ekranı kilitlenecek; belli sürede dönmezse maçtan ayrılmış
+mağlup sayılacak; maç bitince sayfa kapanmayacak."
+
+### Kapsam
+1v1 (`matches`), grup maçı, hızlı maç. **Turnuvaya dokunulmadı**: zaten ortak
+saatli ve kendi lobisi var (belirli saatte herkes için birlikte başlıyor).
+
+### Kurgu (üç modda da aynı sözleşme)
+Sunucu: `mac_nabiz` / `grup_mac_nabiz` / `hizli_mac_nabiz` — istemci 3 sn'de
+bir çağırır, `p_hazir` ile "Hazır"ı iletir, dönüşte ekranın ne çizeceğini alır.
+İstemci: `bildim/lib/nabiz.js › useMacNabiz` +
+`bildim/components/MacHazirlik.jsx › HazirKapisi, KopukPerde`.
+
+- **Hazır kapısı:** herkes hazır olana kadar `basladi = false`; soru çekilmez.
+  Bot her zaman hazır sayılır.
+- **Kopma kilidi:** 12 sn nabız gelmezse `duraklatildi_at` konur. Süre işlemez,
+  cevap reddedilir (`Rakip bağlantısı koptu — maç duraklatıldı`), `advance_*`
+  erken döner. Dönüşte `soru_baslangic += duraklama` — **bekleyen oyuncu süre
+  kaybetmez** (ölçüldü: 20 sn duraklama, saat tam 20 sn ileri kaydı).
+- **Hükmen mağlubiyet:** 45 sn. 1v1'de `terk_eden` yazılır ve kalan kazanır;
+  grup/hızlıda terk eden çıkarılır, maç kalanlarla sürer.
+
+### Bilinçli karar — arka plandaki sekme nabız atmaz
+`useMacNabiz` `document.hidden` iken çağrı yapmaz. Kullanıcı "ekran
+değiştirirse diğer rakibin ekranı da kilitlenecek" dediği için bu istenen
+davranış; tarayıcı zaten arka planda zamanlayıcıları kıstığından dürüst olan
+da bu. 12 sn'lik pencere kısa bakışlara tolerans bırakıyor.
+
+### Tuzaklar
+- **Duraklama bitince soruyu YENİDEN ÇEKMEK şart.** `soru_baslangic` ileri
+  kaydığı için karttaki sayaç eski (dolmuş) kalıyor. `MatchPage`'de
+  `duraklamaTuru` sayacı hem effect bağımlılığında hem `QuestionCard` key'inde;
+  grup/hızlıda effect zaten `soru_baslangic`e bağlıydı.
+- **Grup/hızlıda `terk_at` her sayıma girmeli:** oyuncu sayısı, kazanan
+  seçimi, gün serisi döngüsü ve `bot_oyna`'nın "herkes cevapladı mı"
+  kontrolü. Biri unutulursa maç terk eden oyuncuyu sonsuza kadar bekler.
+- **Eski `mac_hazir` silinmedi**, `mac_nabiz(id, true)` sarmalayıcısına
+  döndü: sürüm geçişinde eski istemci maçı kilitlemesin.
+
+### Maç bitince oturum açık kalıyor
+Sonuç ekranında sohbet çubuğu + sesli sohbet + tepkiler duruyor. Hızlı maçın
+sohbet altyapısı yok (mesaj tablosu yok); orada yalnız "sayfa açık kalır" notu.
+
+### Bu turda çıkan kontrast hataları (sonuç ekranı)
+Bitmiş maç olmadığı için bu ekran önceki taramalarda hiç görülmemişti:
+"Kazandın!" başlığındaki `background-clip: text` kalıntısı Şenlik katmanı
+gerçek renk verince arkada **dolu altın kutu** olarak kalmış (yeşil yazı
+altın üstünde 2.77); paylaş düğmeleri `color: inherit` yüzünden koyu zeminde
+kayboluyor (1.27); WhatsApp yeşili 2.87; "Hatalarım" satırı koyu temada 1.10;
+"süre doldu" tur noktası 3.33. Hepsi düzeltildi.
+
+**Özgüllük tuzağı:** `.app a.bd-yanlis-satiri` (src/styles.css) ile
+`.app .bd-yanlis-satiri` aynı özgüllükte (0,2,1 / 0,2,0) — sonra gelmek
+yetmedi, `:root` ekleyip özgüllüğü artırmak gerekti.
