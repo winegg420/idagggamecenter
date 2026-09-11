@@ -7,6 +7,7 @@ import { useAuth } from "../../src/context/AuthContext.jsx";
 import Avatar from "../../src/components/Avatar.jsx";
 import Maskot from "../components/Maskot.jsx";
 import { y } from "../lib/yol.js";
+import DavetKodu from "../components/DavetKodu.jsx";
 
 const DOSTLUK_SECIMI = `id, requester, addressee, durum,
   req:profiles!friendships_requester_fkey(id, gorunen_ad, gorunen_avatar, puan),
@@ -153,9 +154,8 @@ export default function FriendsPage() {
         <div className="bd-kat-baslik">
           <span>Davet kodun</span>
         </div>
-        <div className="bd-davet-kod" aria-label="Davet kodun">
-          {profile?.davet_kodu ?? "—"}
-        </div>
+        {/* Kodun kendisi düğme: dokununca YALNIZ kod panoya gider. */}
+        <DavetKodu kod={profile?.davet_kodu} />
         <button className="btn" onClick={linkPaylas} disabled={!davetLinki}>
           {kopyalandi ? "Kopyalandı" : "Davet linkini paylaş"}
         </button>

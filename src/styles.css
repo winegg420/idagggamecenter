@@ -2384,3 +2384,44 @@ body.bd-oyun-modu .bd-joker-cubuk {
 }
 .giris-yasal a { color: var(--text-dim); text-decoration: underline; }
 .giris-yasal a:hover { color: var(--text); }
+
+/* ---------- Davet kodu: kodun kendisi kopyalama düğmesi ----------
+   Eskiden kodu kopyalamak için metni elle seçmek gerekiyordu; yanındaki
+   düğme ise kodu değil uzun davet LİNKİNİ kopyalıyordu. Artık koda
+   dokunmak yeter. Görünüm aynı kalsın diye .bd-davet-kod stilleri
+   korunuyor, üstüne yalnız düğme davranışı ekleniyor. */
+.bd-davet-kod-btn {
+  display: block;
+  width: 100%;
+  cursor: pointer;
+  font-family: inherit;
+  text-align: center;
+  transition: transform 0.08s ease, border-color 0.12s ease, background 0.12s ease;
+}
+.bd-davet-kod-btn:active { transform: translateY(2px); }
+.bd-davet-kod-btn.kopyalandi {
+  border-style: solid;
+  border-color: var(--bd-basari, #2FBF71);
+}
+/* Kopyalama izni yoksa (güvenli olmayan bağlam, odak dışı pencere) oyuncu
+   kodu elle seçebilsin: düğme içindeki metin seçilebilir kalır. */
+.bd-davet-kod-metin {
+  display: block;
+  user-select: all;
+  -webkit-user-select: all;
+}
+/* İpucu satırı: kodun harf aralığını ve boyunu almasın */
+.bd-davet-kod-ipucu {
+  display: block;
+  margin-top: 4px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--bd-metin-2, #5A6B80);
+}
+.bd-davet-kod-btn.kopyalandi .bd-davet-kod-ipucu { color: var(--bd-basari, #2FBF71); }
+
+@media (prefers-reduced-motion: reduce) {
+  .bd-davet-kod-btn { transition: none; }
+}

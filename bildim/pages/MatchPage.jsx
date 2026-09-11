@@ -48,6 +48,29 @@ const KALIPLAR = [
   "HAHAHAHAHA",
 ];
 
+/**
+ * Maç satırının "ne kadar ilerlemiş" damgası.
+ *
+ * Skorlar, soru sayaçları ve "basladi" maç boyunca YALNIZ ARTAR. Satır iki
+ * kaynaktan geliyor: Realtime ve 2 saniyelik yoklama. İkisi birden çalışınca
+ * yanıtlar SIRASIZ gelebiliyor — yeni bir güncellemeden sonra çözülen eski
+ * bir yoklama tabelayı geri alıyor ve puan "gecikmeli" görünüyordu.
+ * Damgası daha küçük olan anlık görüntü artık atılır.
+ *
+ * Duraklama bilerek dışarıda: o hem açılıp hem kapanıyor, tek yönlü değil.
+ */
+function ilerlemeDamgasi(m) {
+  if (!m) return -1;
+  const kapandi = m.durum === "bitti" || m.durum === "iptal" || m.durum === "reddedildi" ? 1 : 0;
+  return (
+    kapandi * 1e9 +
+    (m.basladi ? 1 : 0) * 1e8 +
+    (m.aktif_soru ?? 0) * 1e6 +
+    ((m.oyuncu1_soru ?? 0) + (m.oyuncu2_soru ?? 0)) * 1e4 +
+    (m.oyuncu1_skor ?? 0) + (m.oyuncu2_skor ?? 0)
+  );
+}
+
 export default function MatchPage() {
   const { id } = useParams();
   const { user, refreshProfile } = useAuth();
@@ -72,6 +95,8 @@ export default function MatchPage() {
   const [yuklemeHatasi, setYuklemeHatasi] = useState(null);
   // Duraklama bitince soruyu yeniden çekmek için sayaç (saat ileri kaydı)
   const [duraklamaTuru, setDuraklamaTuru] = useState(0);
+  // Uygulanmış en ileri damga (bkz. ilerlemeDamgasi)
+  const damgaRef = useRef(-1);
   const advanceKilidi = useRef(false);
   const pollRef = useRef(null);
   const kanalRef = useRef(null);
@@ -153,6 +178,11 @@ export default function MatchPage() {
     if (data) {
       const imza = JSON.stringify(data);
       if (imza !== macImzaRef.current) {
+        // Bu yoklama, elimizdekinden ESKİ bir anı gösteriyorsa yazma:
+        // yoksa tabela geri sayıp puan sonradan geliyormuş gibi görünüyor.
+        const damga = ilerlemeDamgasi(data);
+        if (damga < damgaRef.current) return data;
+        damgaRef.current = damga;
         macImzaRef.current = imza;
         setMac(data);
 
@@ -176,7 +206,14 @@ export default function MatchPage() {
       .on(
         "postgres_changes",
         { event: "UPDATE", schema: "public", table: "matches", filter: `id=eq.${id}` },
-        (payload) => setMac((eski) => ({ ...eski, ...payload.new }))
+        (payload) => {
+          // Realtime paketleri de sırasız gelebilir (yeniden bağlanma,
+          // arka plandan dönüş). Geriye giden paket çizime alınmaz.
+          const damga = ilerlemeDamgasi(payload.new);
+          if (damga < damgaRef.current) return;
+          damgaRef.current = damga;
+          setMac((eski) => ({ ...eski, ...payload.new }));
+        }
       )
       .on(
         "postgres_changes",
@@ -379,9 +416,28 @@ export default function MatchPage() {
     });
     if (error) throw error;
     setCevapladim(true);
+
+    // Skor tabelası ANINDA güncellensin: sunucu kazanılan puanla birlikte
+    // güncel iki skoru da döndürüyor (migration 137). Eskiden tabela
+    // Realtime'ı ya da yoklamayı bekliyordu; puan bir tur geç görünüyordu.
+    const satir = data?.[0];
+    if (satir && Number.isFinite(Number(satir.benim_skor))) {
+      setMac((m) => {
+        if (!m) return m;
+        const benimP1 = m.oyuncu1 === user.id;
+        const yeni = {
+          ...m,
+          oyuncu1_skor: benimP1 ? Number(satir.benim_skor) : Number(satir.rakip_skor),
+          oyuncu2_skor: benimP1 ? Number(satir.rakip_skor) : Number(satir.benim_skor),
+        };
+        damgaRef.current = Math.max(damgaRef.current, ilerlemeDamgasi(yeni));
+        return yeni;
+      });
+    }
+
     // Kendi sıramız sunucuda ilerledi; bir sonraki soruyu çekmek için tazele.
     setTimeout(macYukle, GB_MS);
-    return data?.[0];
+    return satir;
   };
 
   // Asenkron maç: süre dolunca YALNIZ kendi sıramız atlanır, rakip beklenmez.

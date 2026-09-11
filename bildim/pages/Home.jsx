@@ -34,6 +34,8 @@ export default function Home() {
   const [yeniKabuller, setYeniKabuller] = useState([]);
   // Gönderdiğim ve hâlâ cevap bekleyen davetler — "isteğim ne durumda?"
   const [bekleyenDavetlerim, setBekleyenDavetlerim] = useState([]);
+  // Geri çekilmekte olan davetin anahtarı (düğme iki kez basılmasın)
+  const [geriCekilen, setGeriCekilen] = useState(null);
   // Hatalarım bankasında bekleyen soru sayısı (mod kartı rozeti)
   const [bankaBekleyen, setBankaBekleyen] = useState(0);
   const [gorevlerAcik, setGorevlerAcik] = useState(false);
@@ -130,6 +132,30 @@ export default function Home() {
       .subscribe();
     return () => supabase.removeChannel(kanal);
   }, [siraYukle]);
+
+  /**
+   * Gönderilmiş ama henüz cevaplanmamış daveti geri çeker.
+   * Karşı taraf arada kabul etmiş olabilir: sunucu o durumda reddeder,
+   * listeyi tazeleyince satır zaten "maçın başladı"ya döner.
+   */
+  const davetiGeriCek = async (d) => {
+    const anahtar = d.tur + d.kayit_id;
+    setGeriCekilen(anahtar);
+    try {
+      const { error } = await supabase.rpc("davet_geri_cek", {
+        p_tur: d.tur,
+        p_kayit_id: d.kayit_id,
+      });
+      if (error) throw error;
+      setBekleyenDavetlerim((liste) =>
+        liste.filter((x) => x.tur + x.kayit_id !== anahtar));
+    } catch (e) {
+      console.error("[Bildim] davet geri cekilemedi:", e);
+    } finally {
+      setGeriCekilen(null);
+      siraYukle();
+    }
+  };
 
   const odulAl = async (questId) => {
     const { error } = await supabase.rpc("claim_quest", { p_quest_id: questId });
@@ -395,6 +421,16 @@ export default function Home() {
                 <><b>{d.gorunen_ad || "Rakibin"}</b> daveti görmedi — bekleniyor</>
               )}
             </span>
+            {/* Fikir değişebilir: cevaplanmamış davet geri alınabilir. */}
+            <button
+              type="button"
+              className="bd-davet-geri"
+              onClick={() => davetiGeriCek(d)}
+              disabled={geriCekilen === d.tur + d.kayit_id}
+              aria-label="Daveti geri çek"
+            >
+              {geriCekilen === d.tur + d.kayit_id ? "…" : "Geri çek"}
+            </button>
           </div>
         ))}
 

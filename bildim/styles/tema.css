@@ -5150,6 +5150,26 @@ body.bd-ekle-acik .app { padding-bottom: calc(300px + env(safe-area-inset-bottom
   50%      { opacity: 0.35; transform: scale(0.7); }
 }
 
+/* Daveti geri çekme düğmesi — satırın sağ ucunda, sessiz duruşlu */
+.app .bd-davet-geri {
+  margin-left: auto;
+  flex: none;
+  border: 2px solid var(--bd-kenar);
+  background: var(--bd-yuzey-2);
+  color: var(--bd-metin-2);
+  border-radius: var(--bd-r-tam);
+  padding: 5px 12px;
+  font-family: var(--bd-f-govde);
+  font-size: 12px; font-weight: 900;
+  cursor: pointer;
+  transition: color 0.12s ease, border-color 0.12s ease;
+}
+.app .bd-davet-geri:hover:not(:disabled) {
+  color: var(--bd-hata);
+  border-color: var(--bd-hata);
+}
+.app .bd-davet-geri:disabled { opacity: 0.6; cursor: default; }
+
 /* "bot" gibi küçük etiketler */
 .app .bd-satir-not {
   display: inline-block; margin-left: 6px;

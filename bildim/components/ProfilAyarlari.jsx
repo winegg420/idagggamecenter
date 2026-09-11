@@ -6,6 +6,7 @@ import { useAuth } from "../../src/context/AuthContext.jsx";
 import { kategoriEtiket, kategorileriSirala } from "../lib/kategoriler.js";
 import { sureMetni } from "../lib/konum.js";
 import { y } from "../lib/yol.js";
+import DavetKodu from "./DavetKodu.jsx";
 
 // 31 karakter avatarı (özgün çizim SVG, tamamı yerel — dış servis yok).
 // Üretici: scratchpad/avatar-uret.mjs. Eski düz siluetler (av1-av8) listeden
@@ -253,7 +254,8 @@ export default function ProfilAyarlari() {
         <div className="bd-kat-baslik">
           <span>Davet kodun</span>
         </div>
-        <div className="bd-davet-kod">{profile.davet_kodu ?? "—"}</div>
+        {/* Kodun kendisi düğme: dokununca YALNIZ kod panoya gider. */}
+        <DavetKodu kod={profile.davet_kodu} />
         <button
           className="btn ikincil"
           style={{ marginTop: 10 }}
