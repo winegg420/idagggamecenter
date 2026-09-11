@@ -1081,16 +1081,22 @@ html,
 body { overflow-x: clip; }
 
 .bd-ust-blok {
-  /* .app 540px ile sınırlı; blok viewport genişliğine taşar, içerik ortada kalır */
-  margin-left: calc(50% - 50vw);
-  margin-right: calc(50% - 50vw);
-  padding-left: calc(50vw - 50%);
-  padding-right: calc(50vw - 50%);
+  /* .app 540px ile sınırlı; blok viewport genişliğine taşar, içerik ortada kalır.
+     `--bd-cubuk` dikey kaydırma çubuğunun genişliği (bildim/lib/kaydirmaCubugu.js):
+     `vw` çubuğu da saydığı için blok içerik alanından o kadar geniş kalıyordu;
+     yarısı iki yandan geri alınınca kenarlar tam 0'a oturuyor. */
+  margin-left: calc(50% - 50vw + var(--bd-cubuk, 0px) / 2);
+  margin-right: calc(50% - 50vw + var(--bd-cubuk, 0px) / 2);
+  padding-left: calc(50vw - 50% - var(--bd-cubuk, 0px) / 2);
+  padding-right: calc(50vw - 50% - var(--bd-cubuk, 0px) / 2);
   background: rgba(11, 18, 32, 0.72);
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
 }
-.bd-ust-blok::after { left: calc(50% - 50vw); right: calc(50% - 50vw); }
+.bd-ust-blok::after {
+  left: calc(50% - 50vw + var(--bd-cubuk, 0px) / 2);
+  right: calc(50% - 50vw + var(--bd-cubuk, 0px) / 2);
+}
 /* Blok zaten zemini veriyor; topbar kendi arka planını bırakır */
 .app .topbar { background: none; backdrop-filter: none; -webkit-backdrop-filter: none; }
 
@@ -1959,9 +1965,12 @@ body::before {
    ============================================================ */
 
 :root {
-  /* Koyu yüzeyde kontrastı >= 4.5 olan bağlantı rengi */
-  --bd-baglanti: #F7CB77;
-  --bd-baglanti-vurgu: #FFE1A3;
+  /* Bu altın tonlar KOYU yüzey için seçilmişti; site açık temaya geçince
+     beyaz üstünde 1.53'e düştü ("Gizlilik Politikası" okunmuyordu).
+     Açık temada koyu turuncu (beyazda 5.46, gökyüzü zeminde 5.00);
+     koyu temada koyu.css altın tonları geri veriyor. */
+  --bd-baglanti: #B3480C;
+  --bd-baglanti-vurgu: #8A3608;
 }
 
 .app a {
@@ -1969,7 +1978,7 @@ body::before {
   text-decoration: underline;
   text-underline-offset: 2px;
   text-decoration-thickness: 1px;
-  text-decoration-color: rgba(247, 203, 119, 0.5);
+  text-decoration-color: color-mix(in srgb, currentColor 55%, transparent);
   transition: color 0.15s, text-decoration-color 0.15s;
 }
 .app a:hover,
@@ -4734,3 +4743,58 @@ body.bd-ekle-acik .app { padding-bottom: calc(300px + env(safe-area-inset-bottom
 @media (prefers-reduced-motion: reduce) {
   .app .bd-turnuva-vurgu.canli { animation: none; }
 }
+
+/* ============================================================
+   KONTRAST KATMANI — açık zeminde okunmayan yazılar
+   Hepsi tarayıcıda ÖLÇÜLDÜ; koyu temadan kalan altın/soluk tonlar açık
+   zeminde WCAG AA eşiğinin altındaydı (küçük yazıda 4.5, 24px+ ya da
+   19px+ kalın yazıda 3.0). Yalnız RENK değişir; yapı ve metin aynı.
+   Renkler token üzerinden verilir; koyu temada koyu.css bunları çevirir.
+   ============================================================ */
+
+:root {
+  /* Altın (#FFC53D / #C99A00) yazı olarak açık zeminde okunmuyor (1.58 / 2.59).
+     Dolgu ve gölge altın kalır; YAZI bu koyu altını kullanır (beyazda 5.07). */
+  --bd-odul-metin: #8A6A00;
+  /* Yeşil #2FBF71 yazı olarak 2.38; koyu yeşil 5.38 */
+  --bd-basari-metin: #177A45;
+  /* Kırmızı #EF4B4B yazı olarak 3.63; koyu kırmızı 6.87 */
+  --bd-hata-metin: #B01F19;
+  /* Turuncu --bd-vurgu (#F4701F) yazı olarak beyazda 2.92; koyu turuncu 4.57 */
+  --bd-vurgu-metin: #C4530F;
+}
+
+/* 1) Logo: ÖLÇÜM YANILTICIYDI. Logo bir SVG wordmark (bildim/components/Logo.jsx)
+   ve rengi `fill="var(--bd-metin)"` ile geliyor; denetim betiği SVG metninin
+   `color` değerini (bağlantı rengini) okuduğu için 1.53 çıkmıştı. Gerçek
+   dolgu her iki temada da okunur; buraya kural yazılmadı. */
+
+/* 3) Görev sayacı "1/3" — altın yerine ikincil metin; ödül hazırsa koyu yeşil */
+.app .bd-gorev-basi .sayac { color: var(--bd-metin-2); }
+.app .bd-gorev-basi .sayac.hazir,
+.app .bd-gorev-basi.hazir .sayac { color: var(--bd-basari-metin); }
+
+/* 4) Haftalık geri sayım "2 gün 8 saat" (#B3C2D8, 1.81) */
+.app .bd-hero-hafta b { color: var(--bd-metin-2); }
+
+/* 5) Profil kategori alt yazıları "781 soru" (#B3C2D8, 1.81) */
+.app .bd-kat-alt { color: var(--bd-metin-2); }
+
+/* 6) "GECE TURNUVASI" etiketi (#C99A00, 2.59) */
+.app .bd-turnuva-etiket,
+.app .bd-turnuva-vurgu .bd-turnuva-etiket { color: var(--bd-odul-metin); }
+
+/* 8) Lig şeridi: şehir/ülke/dünya adları (3.76) ve altın sıra sayıları (1.58) */
+.app .bd-lig-serit-hucre em { color: var(--bd-metin-2); }
+.app .bd-lig-serit-hucre b { color: var(--bd-odul-metin); }
+
+/* 9) "1 turnuva kaldı" gibi küçük etiketler (3.76) */
+.app .etiket { color: var(--bd-metin-2); }
+
+/* 10) Eski --text-dim (#B3C2D8) KOYU zemin için seçilmişti; açık temada
+   1.69-1.81'e düşüyordu (profil istatistikleri, rozet açıklamaları, 64
+   kullanım). Tek satırda okunur ikincil metne bağlanıyor. */
+:root { --text-dim: var(--bd-metin-2); }
+
+/* 11) "1 turnuva kaldı" — daha özgül bir kural (--bd-metin-3, 3.76) kazanıyordu */
+.app .bd-istatistik-hedef .etiket { color: var(--bd-metin-2); }

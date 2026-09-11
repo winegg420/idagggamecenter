@@ -36,14 +36,14 @@ const HIZLI_SECIMI = `*,
 // ayrı gösterecek şekilde ayarlandı — önceden üçü aynı etikete düşüyordu.
 const botZorluk = (isabet) =>
   isabet <= 0.30
-    ? { etiket: "Çok kolay", renk: "var(--bd-basari)" }
+    ? { etiket: "Çok kolay", renk: "var(--bd-basari-metin)" }
     : isabet <= 0.45
-      ? { etiket: "Kolay", renk: "var(--success)" }
+      ? { etiket: "Kolay", renk: "var(--bd-basari-metin)" }
       : isabet <= 0.60
-        ? { etiket: "Orta", renk: "var(--accent)" }
+        ? { etiket: "Orta", renk: "var(--bd-odul-metin)" }
         : isabet <= 0.75
-          ? { etiket: "Zor", renk: "var(--bd-odul-2)" }
-          : { etiket: "Çok zor", renk: "var(--danger)" };
+          ? { etiket: "Zor", renk: "var(--bd-vurgu-metin)" }
+          : { etiket: "Çok zor", renk: "var(--bd-hata-metin)" };
 
 // Kategori etiketleri ortak dosyada (bildim/lib/kategoriler.js)
 

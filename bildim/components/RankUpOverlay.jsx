@@ -44,7 +44,7 @@ export default function RankUpOverlay() {
         </div>
         <div className="buyuk-ikon"><Ikon ad={goster.ikon} boyut={46} /></div>
         <div className="etiket">RÜTBE ATLADIN!</div>
-        <div className="rutbe-adi" style={{ color: goster.renk }}>
+        <div className="rutbe-adi" style={{ color: goster.metinRenk }}>
           {goster.ad}
         </div>
       </div>

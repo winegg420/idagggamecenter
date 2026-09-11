@@ -19,10 +19,15 @@ import "../bildim/styles/tema.css";
 // Koyu tema tema.css'ten SONRA: kaskadda sonra gelip acik temayi ezer.
 import "../bildim/styles/koyu.css";
 import { temaBaslat } from "../bildim/lib/tema.js";
+import { cubukBaslat } from "../bildim/lib/kaydirmaCubugu.js";
 
 // Tema ilk boyadan ONCE uygulanir: koyu tema secen oyuncu bir kare beyaz
 // ekran gormesin.
 temaBaslat();
+
+// Kaydirma cubugu genisligi --bd-cubuk olarak yazilir; 50vw ile tam genislige
+// tasan bloklar cubuk kadar fazla tasmasin (yatay kaydirma).
+cubukBaslat();
 
 // Hata izleme: YALNIZ VITE_SENTRY_DSN tanımlıysa kurulur. Boşsa Sentry paketi
 // hiç yüklenmez ve konsola uyarı basılmaz — DSN'siz çalışmak normal durumdur.

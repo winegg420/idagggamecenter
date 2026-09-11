@@ -55,7 +55,7 @@ export default function RankBadge({ puan, sadeceRozet = false, boyut = 18 }) {
   if (sadeceRozet) return rozet;
 
   return (
-    <span className="rutbe-chip bd-rutbe-chip" style={{ color: r.renk }}>
+    <span className="rutbe-chip bd-rutbe-chip" style={{ color: r.metinRenk }}>
       {rozet}
       {r.ad}
     </span>

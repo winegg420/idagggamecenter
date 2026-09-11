@@ -257,7 +257,7 @@ export default function TournamentPage() {
     return (
       <div>
         <div className="geri-sayim-kart">
-          <div style={{ fontSize: 14, fontWeight: 700, color: "var(--accent)" }}>
+          <div style={{ fontSize: 14, fontWeight: 700, color: "var(--bd-odul-metin)" }}>
             TURNUVA LOBİSİ
           </div>
           <Countdown onSifir={turnuvaYukle} />

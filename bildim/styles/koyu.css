@@ -232,3 +232,27 @@
 @media (prefers-reduced-motion: reduce) {
   .app .bd-tema-dugme { transition: none; }
 }
+
+/* ============================================================
+   KONTRAST KATMANININ KOYU KARŞILIKLARI
+   tema.css'teki kontrast düzeltmeleri AÇIK zemin içindi (koyu altın,
+   koyu turuncu). Koyu zeminde bunlar okunmaz; burada aydınlık tonlara
+   çevriliyor. Diğer düzeltmeler token (--bd-metin-2) üzerinden geldiği
+   için koyu temada kendiliğinden doğru.
+   ============================================================ */
+:root[data-tema="koyu"] {
+  --bd-odul-metin: var(--bd-odul);    /* altın koyu zeminde zaten okunur */
+  --bd-basari-metin: #5FD99B;
+  --bd-hata-metin: #FF8A84;
+  --bd-vurgu-metin: #FF9A4D;
+  --bd-baglanti: #F7CB77;
+  --bd-baglanti-vurgu: #FFE1A3;
+}
+
+/* Koyu temada kalan iki kontrast açığı (denetimde ölçüldü) */
+
+/* Altın puan çipi üzerinde metin açık renk kalıyordu → 1.38 */
+:root[data-tema="koyu"] .app .bd-hero-puan-sayi { color: #20324A; }
+
+/* Seçili kategori kartının adı koyu laciverttiyse koyu kartta kayboluyordu → 1.73 */
+:root[data-tema="koyu"] .app .bd-kat-kart.aktif .bd-kat-ad { color: var(--bd-metin); }

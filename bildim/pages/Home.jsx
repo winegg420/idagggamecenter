@@ -290,7 +290,7 @@ export default function Home() {
           <div className="bd-hero-ilerleme-yazi">
             {sonraki ? (
               <>
-                <b style={{ color: sonraki.renk }}>{sonraki.ad}</b> rütbesine{" "}
+                <b style={{ color: sonraki.metinRenk }}>{sonraki.ad}</b> rütbesine{" "}
                 {sonraki.min - puan} puan
               </>
             ) : (
