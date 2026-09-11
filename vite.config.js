@@ -121,6 +121,27 @@ export default defineConfig(({ mode }) => {
   plugins: [react(), bildimModuEklentisi(uygulamaModu, siteUrl)],
 
   build: {
+    // ============================================================
+    // DERLEME HEDEFİ — iPhone'larda beyaz ekranın sebebi buydu.
+    //
+    // Vite'ın varsayılan hedefi "modules" = safari14. Bu yüzden paketlere
+    // `?.` (optional chaining) ve `??` HAM olarak yazılıyordu (canlı pakette
+    // ölçüldü: 12.693 adet `?.`, 27 adet `??`). Bu iki sözdizimi Safari
+    // 13.1 ile geldi; iOS 13.3 ve altındaki iPhone'lar dosyayı AYRIŞTIRAMIYOR
+    // ve uygulama hiç çalışmadan BEMBEYAZ SAYFA çıkıyor. Hata konsola bile
+    // düşmüyor çünkü kod hiç çalışmıyor.
+    //
+    // safari12 = iOS 12.2 (iPhone 5s/6 dahil hâlâ ayakta olan en eski cihazlar).
+    // esbuild bu hedefte `?.`, `??`, sınıf alanları ve mantıksal atamaları
+    // aşağı çeviriyor. Kullanılan çalışma-zamanı API'lerinin hepsi iOS 12.2'de
+    // var (globalThis, Object.fromEntries, queueMicrotask); daha yenileri
+    // (BroadcastChannel, ResizeObserver) zaten korumalı çağrılıyor.
+    //
+    // DEĞİŞTİRME: hedefi yükseltmek eski iPhone'ları yeniden dışarı atar.
+    // `npm run tarayici-testi` bunu her derlemede denetliyor.
+    target: ["es2019", "safari12", "chrome64", "firefox67", "edge79"],
+    cssTarget: ["safari12", "chrome64", "firefox67", "edge79"],
+
     rollupOptions: {
       output: {
         // Satıcı kodunu ayır: uygulama her deploy'da değişse de bu parçalar

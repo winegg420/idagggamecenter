@@ -33,6 +33,7 @@
 .bd-gorunum-coin {
   position: absolute; top: 12px; right: 12px;
   display: inline-flex; align-items: center; gap: 5px;
+  background: #FFF3D6;
   background: color-mix(in srgb, var(--bd-odul) 22%, var(--bd-yuzey-1));
   color: var(--bd-odul-metin);
   border-radius: var(--bd-r-tam);

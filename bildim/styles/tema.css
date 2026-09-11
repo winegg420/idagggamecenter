@@ -1978,6 +1978,7 @@ body::before {
   text-decoration: underline;
   text-underline-offset: 2px;
   text-decoration-thickness: 1px;
+  text-decoration-color: currentColor;
   text-decoration-color: color-mix(in srgb, currentColor 55%, transparent);
   transition: color 0.15s, text-decoration-color 0.15s;
 }
@@ -2279,6 +2280,7 @@ body::before { will-change: opacity; }
    Zemin %8 tint: ölçüldü, %10 ve üstünde Çaylak (4.45) ve Üstat (4.56) AA'nın
    altına düşüyordu. %8'de en düşük 4.62 ve beş rütbe de geçiyor. */
 .app .bd-hero-ad-blok .bd-rutbe-chip {
+  background: var(--bd-yuzey-2);
   background: color-mix(in srgb, var(--rutbe, var(--bd-metin-3)) 8%, transparent);
   padding: 2px var(--bd-b-2);
   font-weight: 800;
@@ -2963,6 +2965,7 @@ body.bd-ekle-acik .app { padding-bottom: calc(300px + env(safe-area-inset-bottom
 .app .anasayfa .tema-joker .btn:not(.tehlike),
 .app .anasayfa .tema-lig .btn:not(.tehlike),
 .app .anasayfa .tema-hatalarim .btn:not(.tehlike) {
+  background: var(--bd-yuzey-2);
   background: color-mix(in srgb, var(--tema) 18%, var(--bd-yuzey-2));
   color: var(--bd-metin);
   border: 1px solid color-mix(in srgb, var(--tema) 45%, transparent);
@@ -3319,6 +3322,7 @@ body.bd-ekle-acik .app { padding-bottom: calc(300px + env(safe-area-inset-bottom
 /* Maç öncesi seviye — sönük, referans olarak durur. */
 .app .bd-sonuc-rutbe-bar .eski {
   position: absolute; inset: 0 auto 0 0;
+  background: var(--bd-odul);
   background: color-mix(in srgb, var(--rutbe, var(--bd-odul)) 40%, transparent);
 }
 .app .bd-sonuc-rutbe-bar .dolgu {
@@ -3359,7 +3363,9 @@ body.bd-ekle-acik .app { padding-bottom: calc(300px + env(safe-area-inset-bottom
   font-weight: 800;
   letter-spacing: 0.3px;
   text-transform: none;
+  color: var(--bd-metin-2);
   color: color-mix(in srgb, var(--kat, var(--bd-metin-2)) 80%, #EAF0FA);
+  background: var(--bd-yuzey-2);
   background: color-mix(in srgb, var(--kat, var(--bd-metin-2)) 10%, transparent);
 }
 .app .bd-soru-kategori[data-kat="genel_kultur"] { --kat: var(--kat-genel_kultur); }
@@ -4596,7 +4602,9 @@ body.bd-ekle-acik .app { padding-bottom: calc(300px + env(safe-area-inset-bottom
    Ölçüldü: beş rütbede de kontrast >= 4,93:1 (en düşük Efsane). */
 .app .bd-rutbe-chip,
 .app .bd-hero-ad-blok .bd-rutbe-chip {
+  background: var(--bd-yuzey-2);
   background: color-mix(in srgb, var(--rutbe, var(--bd-mor)) 18%, #fff);
+  color: var(--bd-metin);
   color: color-mix(in srgb, var(--rutbe, var(--bd-mor)) 45%, #1A2740);
   border-radius: var(--bd-r-tam);
   padding: 3px 9px;
@@ -4854,6 +4862,7 @@ body.bd-ekle-acik .app { padding-bottom: calc(300px + env(safe-area-inset-bottom
   font-family: var(--bd-f-baslik); font-weight: 900; font-size: 14px;
 }
 .app .bd-hazir-sayac.tamam {
+  background: #E4F7EC;
   background: color-mix(in srgb, var(--bd-basari) 18%, var(--bd-yuzey-1));
   color: var(--bd-basari-metin);
 }
@@ -4887,6 +4896,7 @@ body.bd-ekle-acik .app { padding-bottom: calc(300px + env(safe-area-inset-bottom
   position: fixed; inset: 0; z-index: 120;
   display: grid; place-items: center;
   padding: 20px;
+  background: var(--bd-zemin);
   background: color-mix(in srgb, var(--bd-zemin) 78%, transparent);
   backdrop-filter: blur(6px);
   -webkit-backdrop-filter: blur(6px);
@@ -4993,6 +5003,7 @@ body.bd-ekle-acik .app { padding-bottom: calc(300px + env(safe-area-inset-bottom
   box-shadow: 0 3px 0 var(--bd-vurgu-2);
 }
 .app .bd-paket-bonus {
+  background: #E4F7EC;
   background: color-mix(in srgb, var(--bd-basari) 16%, var(--bd-yuzey-1));
   color: var(--bd-basari-metin);
   border-radius: var(--bd-r-tam); padding: 1px 8px; font-weight: 900;
@@ -5002,6 +5013,7 @@ body.bd-ekle-acik .app { padding-bottom: calc(300px + env(safe-area-inset-bottom
 .app .bd-coin-hap {
   display: inline-flex; align-items: center; gap: 5px;
   text-decoration: none;
+  background: #FFF3D6;
   background: color-mix(in srgb, var(--bd-odul) 20%, var(--bd-yuzey-1));
   color: var(--bd-odul-metin);
   border-radius: var(--bd-r-tam);
@@ -5010,6 +5022,7 @@ body.bd-ekle-acik .app { padding-bottom: calc(300px + env(safe-area-inset-bottom
   white-space: nowrap;
 }
 :root[data-tema="koyu"] .app .bd-coin-hap {
+  background: #FFF3D6;
   background: color-mix(in srgb, var(--bd-odul) 22%, var(--bd-yuzey-1));
   color: var(--bd-odul);
 }
@@ -5025,6 +5038,7 @@ body.bd-ekle-acik .app { padding-bottom: calc(300px + env(safe-area-inset-bottom
 .bd-geri-sayim {
   position: fixed; inset: 0; z-index: 130;
   display: grid; place-items: center;
+  background: var(--bd-zemin);
   background: color-mix(in srgb, var(--bd-zemin) 70%, transparent);
   backdrop-filter: blur(4px);
   -webkit-backdrop-filter: blur(4px);

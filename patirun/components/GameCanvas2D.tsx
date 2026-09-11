@@ -98,8 +98,16 @@ export function GameCanvas2D({
       canvas.height = Math.round(canvas.clientHeight * scale);
     };
     applySize();
-    const ro = new ResizeObserver(applySize);
-    ro.observe(canvas);
+    // ResizeObserver Safari 13.1 ile geldi; eski iPhone'da korumasiz
+    // cagrilirsa oyun hic acilmiyor. Yoksa pencere olayina duseriz.
+    let ro = null;
+    if (typeof ResizeObserver === 'function') {
+      ro = new ResizeObserver(applySize);
+      ro.observe(canvas);
+    } else {
+      window.addEventListener('resize', applySize);
+      window.addEventListener('orientationchange', applySize);
+    }
 
     const nameOf = new Map(runners.map((r) => [r.id, r.name]));
     const nm = (id?: string) => (id ? nameOf.get(id) ?? '???' : '???');
@@ -429,7 +437,11 @@ export function GameCanvas2D({
     raf = requestAnimationFrame(frame);
     return () => {
       cancelAnimationFrame(raf);
-      ro.disconnect();
+      if (ro) ro.disconnect();
+      else {
+        window.removeEventListener('resize', applySize);
+        window.removeEventListener('orientationchange', applySize);
+      }
     };
     // Motor değişince döngü sıfırdan kurulur — bilinçli bağımlılık listesi
     // eslint-disable-next-line react-hooks/exhaustive-deps

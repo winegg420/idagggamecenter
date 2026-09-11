@@ -8,7 +8,9 @@
     "build": "vite build",
     "build:bildim": "vite build --mode bildim",
     "preview": "vite preview",
-    "test:bildim": "node bildim/_test/joker-kurallari-test.mjs"
+    "test:bildim": "node bildim/_test/joker-kurallari-test.mjs",
+    "uyumluluk": "node araclar/tarayici-uyumluluk.mjs",
+    "postbuild": "node araclar/tarayici-uyumluluk.mjs"
   },
   "dependencies": {
     "@react-three/drei": "^10.7.7",

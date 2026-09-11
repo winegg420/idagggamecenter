@@ -2265,6 +2265,7 @@ body.bd-oyun-modu .bd-joker-cubuk {
 }
 .bd-calisma-adet-btn.aktif {
   border-color: #2FBF71;
+  background: #E4F7EC;
   background: color-mix(in srgb, #2FBF71 14%, var(--card));
 }
 
@@ -2274,6 +2275,7 @@ body.bd-oyun-modu .bd-joker-cubuk {
   margin-bottom: 12px; padding: 7px 10px;
   font-size: 10.5px; font-weight: 800; letter-spacing: 1.1px;
   color: #2FBF71;
+  background: #E4F7EC;
   background: color-mix(in srgb, #2FBF71 12%, transparent);
   border: 1px solid color-mix(in srgb, #2FBF71 34%, transparent);
   border-radius: 999px;
@@ -2301,6 +2303,7 @@ body.bd-oyun-modu .bd-joker-cubuk {
 .bd-calisma-rozet {
   padding: 3px 8px; font-size: 10.5px; font-weight: 700;
   color: var(--danger, #E8543F);
+  background: #FCE7E3;
   background: color-mix(in srgb, #E8543F 14%, transparent);
   border-radius: 999px;
 }
@@ -2319,10 +2322,12 @@ body.bd-oyun-modu .bd-joker-cubuk {
 }
 .bd-calisma-geri.iyi {
   color: #2FBF71;
+  background: #E4F7EC;
   background: color-mix(in srgb, #2FBF71 12%, transparent);
 }
 .bd-calisma-geri.uyari {
   color: var(--danger, #E8543F);
+  background: #FCE7E3;
   background: color-mix(in srgb, #E8543F 12%, transparent);
 }
 .bd-calisma-geri.ogrenildi {
