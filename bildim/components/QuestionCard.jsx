@@ -8,6 +8,7 @@ import CevapEfekti from "./CevapEfekti.jsx";
 import { sesTik, sesSureDoldu, sesDogru, sesYanlis, sesDokunus, sesKilidiAc } from "../lib/ses.js";
 import { titret, macPuani } from "../lib/geriBildirim.js";
 import { kategoriAdi } from "../lib/kategoriler.js";
+import { useGorunurlukTazele } from "../lib/gorunurluk.js";
 
 const HARFLER = ["A", "B", "C", "D"];
 const SURE = 15;
@@ -53,6 +54,8 @@ export default function QuestionCard({
   // Ses: son 5 saniyede saniyede bir tik. Efekt içinden okunabilmesi için ref.
   const cevapVerildiRef = useRef(false);
   const sonTikRef = useRef(null);
+  // Sayaç tiki: sekmeden dönüldüğünde dışarıdan elle tetiklenebilsin.
+  const tikRef = useRef(null);
 
   // Yeni soru geldiğinde durumu sıfırla
   useEffect(() => {
@@ -121,10 +124,16 @@ export default function QuestionCard({
           });
       }
     };
+    tikRef.current = tik;
     tik();
     if (!sureDolduMu.current) id = setInterval(tik, 100);
     return () => clearInterval(id);
   }, [soru, onSureDoldu]);
+
+  // Sekmeden dönünce sayacı hemen senkronla. Süre yokken dolduysa tik()
+  // zaman aşımı akışını (doğru cevabı göster + soruyu atla) bir kez tetikler;
+  // sureDolduMu kilidi mükerrer tetiklemeyi zaten engelliyor.
+  useGorunurlukTazele(() => { tikRef.current?.(); }, Boolean(soru));
 
   if (!soru) return null;
 

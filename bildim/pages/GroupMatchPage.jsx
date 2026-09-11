@@ -13,6 +13,7 @@ import { useAuth } from "../../src/context/AuthContext.jsx";
 import Avatar from "../../src/components/Avatar.jsx";
 import QuestionCard from "../components/QuestionCard.jsx";
 import { y } from "../lib/yol.js";
+import { useGorunurlukTazele } from "../lib/gorunurluk.js";
 
 const GRUP_SECIMI = `*,
   katilimcilar:group_match_players(group_match_id, user_id, davet_durumu, skor, joined_at,
@@ -49,6 +50,7 @@ export default function GroupMatchPage() {
   const [kaliplarAcik, setKaliplarAcik] = useState(false);
   const advanceKilidi = useRef(false);
   const pollRef = useRef(null);
+  const kanalRef = useRef(null);
   // Maç bitişinde sonuç ekranından önce 0.8 sn'lik "Maç bitti!" perdesi
   const [gecisBitti, setGecisBitti] = useState(false);
   const balonTimer = useRef({});
@@ -128,8 +130,8 @@ export default function GroupMatchPage() {
     navigate(y("/meydan"));
   }, [id, navigate]);
 
-  useEffect(() => {
-    macYukle();
+  // Kanal kurulumu ayrı fonksiyonda: sekmeden dönüşte ölmüş soket yeniden kurulur.
+  const kanalKur = useCallback(() => {
     const kanal = supabase
       .channel(`grup-mac-${id}`)
       .on(
@@ -148,11 +150,32 @@ export default function GroupMatchPage() {
         (payload) => balonGoster(payload.new.user_id, payload.new.mesaj)
       )
       .subscribe();
+    kanalRef.current = kanal;
+    return kanal;
+  }, [id, macYukle, balonGoster]);
+
+  useEffect(() => {
+    macYukle();
+    kanalKur();
     return () => {
-      supabase.removeChannel(kanal);
+      if (kanalRef.current) supabase.removeChannel(kanalRef.current);
+      kanalRef.current = null;
       if (pollRef.current) clearInterval(pollRef.current);
     };
-  }, [id, macYukle, balonGoster]);
+  }, [id, macYukle, kanalKur]);
+
+  // Sekmeden dönünce: sunucudaki güncel durumu çek + Realtime kanalını yenile.
+  // Ortak soru saati olduğu için istemci ekstra atlama tetiklemez; sunucudaki
+  // aktif_soru neyse oradan devam edilir.
+  useGorunurlukTazele(() => {
+    macYukle();
+    try {
+      if (kanalRef.current) supabase.removeChannel(kanalRef.current);
+      kanalKur();
+    } catch (e) {
+      console.error('[Bildim] realtime yeniden kurulamadi:', e);
+    }
+  }, mac?.durum === 'aktif');
 
   // Soru değişince çek
   useEffect(() => {

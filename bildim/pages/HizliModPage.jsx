@@ -13,6 +13,7 @@ import Avatar from "../../src/components/Avatar.jsx";
 import Ikon from "../components/Ikon.jsx";
 import { kategoriEtiket, kategorileriSirala } from "../lib/kategoriler.js";
 import { y } from "../lib/yol.js";
+import { useGorunurlukTazele } from "../lib/gorunurluk.js";
 
 const TOPLAM_SN = 60;
 const SORU_SN = 5;
@@ -39,6 +40,8 @@ export default function HizliModPage() {
   const [hata, setHata] = useState(null);
 
   const soruBaslangicRef = useRef(Date.now());
+  // Sayaç tiki: sekmeden dönüşte dışarıdan elle tetiklenebilsin.
+  const tikRef = useRef(null);
   const bittiRef = useRef(false);
   const sonTikRef = useRef(null);
 
@@ -177,7 +180,7 @@ export default function HizliModPage() {
   // ---------- Sayaçlar ----------
   useEffect(() => {
     if (asama !== "oyun" || !oturum) return;
-    const id = setInterval(() => {
+    const tik = () => {
       const gecen = (Date.now() - soruBaslangicRef.current) / 1000;
       const ks = Math.max(0, SORU_SN - gecen);
       setKalanSoru(ks);
@@ -189,9 +192,15 @@ export default function HizliModPage() {
       } else if (ks > 2) {
         sonTikRef.current = null;
       }
-    }, 100);
+    };
+    tikRef.current = tik;
+    const id = setInterval(tik, 100);
     return () => clearInterval(id);
   }, [asama, oturum]);
+
+  // Sekmeden dönünce soru sayacını gerçek zamana göre senkronla; arka planda
+  // donan setInterval yüzünden ekran kalmış sayıda takılı kalmasın.
+  useGorunurlukTazele(() => { tikRef.current?.(); }, asama === "oyun");
 
   // Soru süresi dolunca otomatik yanlış say ve ilerle
   useEffect(() => {

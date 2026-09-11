@@ -12,6 +12,7 @@ import QuestionCard from "../components/QuestionCard.jsx";
 import MacYukleniyor from "../components/MacYukleniyor.jsx";
 import { hataMesaji } from "../lib/hata.js";
 import { y } from "../lib/yol.js";
+import { useGorunurlukTazele } from "../lib/gorunurluk.js";
 
 const HIZLI_SECIMI = `*,
   katilimcilar:hizli_oyuncular(hizli_mac_id, user_id, davet_durumu, skor, joined_at,
@@ -28,6 +29,7 @@ export default function HizliMacPage() {
   const [yuklemeHatasi, setYuklemeHatasi] = useState(null);
   const advanceKilidi = useRef(false);
   const pollRef = useRef(null);
+  const kanalRef = useRef(null);
   // Maç bitişinde sonuç ekranından önce 0.8 sn'lik "Maç bitti!" perdesi
   const [gecisBitti, setGecisBitti] = useState(false);
 
@@ -61,8 +63,8 @@ export default function HizliMacPage() {
     navigate(y("/meydan"));
   }, [id, navigate]);
 
-  useEffect(() => {
-    macYukle();
+  // Kanal kurulumu ayrı fonksiyonda: sekmeden dönüşte ölmüş soket yeniden kurulur.
+  const kanalKur = useCallback(() => {
     const kanal = supabase
       .channel(`hizli-mac-${id}`)
       .on(
@@ -76,11 +78,31 @@ export default function HizliMacPage() {
         () => macYukle()
       )
       .subscribe();
+    kanalRef.current = kanal;
+    return kanal;
+  }, [id, macYukle]);
+
+  useEffect(() => {
+    macYukle();
+    kanalKur();
     return () => {
-      supabase.removeChannel(kanal);
+      if (kanalRef.current) supabase.removeChannel(kanalRef.current);
+      kanalRef.current = null;
       if (pollRef.current) clearInterval(pollRef.current);
     };
-  }, [id, macYukle]);
+  }, [id, macYukle, kanalKur]);
+
+  // Sekmeden dönünce: sunucudaki güncel durumu çek + Realtime kanalını yenile.
+  // Ortak soru saati olduğu için istemci ekstra atlama tetiklemez.
+  useGorunurlukTazele(() => {
+    macYukle();
+    try {
+      if (kanalRef.current) supabase.removeChannel(kanalRef.current);
+      kanalKur();
+    } catch (e) {
+      console.error("[Bildim] realtime yeniden kurulamadi:", e);
+    }
+  }, mac?.durum === "aktif");
 
   // Soru değişince çek
   useEffect(() => {

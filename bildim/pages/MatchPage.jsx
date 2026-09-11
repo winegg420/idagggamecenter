@@ -17,6 +17,7 @@ import { TEPKILER, tepkiIkonu } from "../lib/tepkiler.js";
 import MacYukleniyor from "../components/MacYukleniyor.jsx";
 import SesliSohbet from "../components/SesliSohbet.jsx";
 import { useOyunModu } from "../lib/oyunModu.js";
+import { useGorunurlukTazele } from "../lib/gorunurluk.js";
 import { macBittiReklam } from "../lib/reklam.js";
 import { y } from "../lib/yol.js";
 import { GB_MS } from "../lib/geriBildirim.js";
@@ -69,6 +70,7 @@ export default function MatchPage() {
   const [yuklemeHatasi, setYuklemeHatasi] = useState(null);
   const advanceKilidi = useRef(false);
   const pollRef = useRef(null);
+  const kanalRef = useRef(null);
   // Son yüklenen maç satırının imzası — yoklama aynı veriyi getirdiğinde
   // gereksiz yeniden çizimi engeller (bkz. macYukle).
   const macImzaRef = useRef(null);
@@ -160,8 +162,8 @@ export default function MatchPage() {
     return data;
   }, [id, user.id]);
 
-  useEffect(() => {
-    macYukle();
+  // Kanal kurulumu ayrı fonksiyonda: sekmeden dönüşte ölmüş soket yeniden kurulur.
+  const kanalKur = useCallback(() => {
     const kanal = supabase
       .channel(`mac-${id}`)
       .on(
@@ -175,13 +177,32 @@ export default function MatchPage() {
         (payload) => balonGoster(payload.new.user_id, payload.new.mesaj)
       )
       .subscribe();
+    kanalRef.current = kanal;
+    return kanal;
+  }, [id, balonGoster]);
+
+  useEffect(() => {
+    macYukle();
+    kanalKur();
     // Realtime kopsa bile skor akmaya devam etsin (rakip puanı canlı artar)
     pollRef.current = setInterval(macYukle, 2000);
     return () => {
-      supabase.removeChannel(kanal);
+      if (kanalRef.current) supabase.removeChannel(kanalRef.current);
+      kanalRef.current = null;
       if (pollRef.current) clearInterval(pollRef.current);
     };
-  }, [id, macYukle, balonGoster]);
+  }, [id, macYukle, kanalKur]);
+
+  // Sekmeden dönünce: veriyi tazele ve ölmüş olabilecek Realtime kanalını yenile.
+  useGorunurlukTazele(() => {
+    macYukle();
+    try {
+      if (kanalRef.current) supabase.removeChannel(kanalRef.current);
+      kanalKur();
+    } catch (e) {
+      console.error("[Bildim] realtime yeniden kurulamadi:", e);
+    }
+  }, mac?.durum === "aktif");
 
   // Soru değişince çek — ASENKRON: kendi sıra indeksimize bağlı
   const kendiIndeks =

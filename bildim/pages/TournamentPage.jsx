@@ -10,6 +10,7 @@ import Countdown from "../components/Countdown.jsx";
 import YanlisSatiri from "../components/YanlisSatiri.jsx";
 import QuestionCard from "../components/QuestionCard.jsx";
 import Avatar from "../../src/components/Avatar.jsx";
+import { useGorunurlukTazele } from "../lib/gorunurluk.js";
 
 export default function TournamentPage() {
   const { user, refreshProfile } = useAuth();
@@ -19,6 +20,7 @@ export default function TournamentPage() {
   const [yukleniyor, setYukleniyor] = useState(true);
   const [hata, setHata] = useState(null);
   const advanceKilidi = useRef(false);
+  const kanalRef = useRef(null);
 
   const turnuvaYukle = useCallback(async () => {
     // error okunmazsa turnuva hiç yüklenmemiş gibi görünür ve sebebi
@@ -60,26 +62,46 @@ export default function TournamentPage() {
     return secilen;
   }, []);
 
+  // Kanal kurulumu ayrı fonksiyonda: sekmeden dönüşte ölmüş soket yeniden kurulur.
+  const kanalKur = useCallback(() => {
+    const kanal = supabase
+      .channel("turnuva")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "tournaments" },
+        () => turnuvaYukle()
+      )
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "tournament_players" },
+        () => turnuvaYukle()
+      )
+      .subscribe();
+    kanalRef.current = kanal;
+    return kanal;
+  }, [turnuvaYukle]);
+
   // İlk yükleme + realtime
   useEffect(() => {
-    let kanal;
-    turnuvaYukle().then((t) => {
-      kanal = supabase
-        .channel("turnuva")
-        .on(
-          "postgres_changes",
-          { event: "*", schema: "public", table: "tournaments" },
-          () => turnuvaYukle()
-        )
-        .on(
-          "postgres_changes",
-          { event: "*", schema: "public", table: "tournament_players" },
-          () => turnuvaYukle()
-        )
-        .subscribe();
-    });
-    return () => kanal && supabase.removeChannel(kanal);
-  }, [turnuvaYukle]);
+    turnuvaYukle();
+    kanalKur();
+    return () => {
+      if (kanalRef.current) supabase.removeChannel(kanalRef.current);
+      kanalRef.current = null;
+    };
+  }, [turnuvaYukle, kanalKur]);
+
+  // Sekmeden dönünce: sunucudaki güncel durumu çek + Realtime kanalını yenile.
+  // Ortak soru saati olduğu için istemci ekstra atlama tetiklemez.
+  useGorunurlukTazele(() => {
+    turnuvaYukle();
+    try {
+      if (kanalRef.current) supabase.removeChannel(kanalRef.current);
+      kanalKur();
+    } catch (e) {
+      console.error("[Bildim] realtime yeniden kurulamadi:", e);
+    }
+  }, turnuva?.durum === "aktif");
 
   // Aktif soru değiştiğinde soruyu çek
   useEffect(() => {
