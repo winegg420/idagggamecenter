@@ -2259,3 +2259,75 @@ genişlikte olmaz. 320/360/390/430/540'ta ölçüldü: yatay kaydırma yok.
 `quizsquare.vercel.app/harita` gerçek tarayıcıda açıldı: hata kutusu yok, perde
 kalktı, canvas 1920×988 gerçek piksel, konsol temiz, ekranda çim/havuz/fıskiye/
 ağaçlar/binalar ve o an meydanda olan başka bir oyuncu ("2 kişi burada").
+
+---
+
+## 2026-09-11 (10) — Yatay ekran, harita zumu, dans hareketleri
+
+### Telefon yan dönmüyordu
+Sebep tek satır: `public/bildim.webmanifest` içinde `"orientation": "portrait"`.
+Tarayıcıdan girince dönüyordu ama **ana ekrana eklenmiş PWA** manifest'teki
+kilide uyuyor. `"any"` yapıldı. Kodda `screen.orientation.lock` çağrısı yok,
+başka kilit yoktu.
+
+Yatay yerleşim ölçüldü (737×357 viewport): Meydan HUD'unda çakışma yok, hiçbir
+sayfada yatay kaydırma yok (`/`, `/gorunum`, `/joker`, `/profil`).
+
+### Harita zumu
+Kamera oyuncunun arkasında **sabit** ofsetteydi (-13, 17, +17). Artık ofset
+`zum` ile ölçekleniyor, aralık **0.55 – 3.0** (varsayılan 1, localStorage'da
+saklanıyor).
+
+Dikey bileşen yataydan hızlı büyüsün diye ayrı üs kullanıldı:
+`yatay = zum^0.8`, `dikey = zum^1.25`. Uzaklaştıkça açı da dikleşiyor; en uçta
+gerçek bir **kuş bakışı** çıkıyor (tüm meydan tek ekranda). Yakınlaşınca kamera
+omuz hizasına iniyor, bakış noktası da `2.2 × min(1, zum)` ile alçalıyor.
+
+Girdi üç yoldan (`bildim/harita/zum.js`): **iki parmak**, **fare tekerleği**,
+**düğmeler** (+ / − / 🦅). Zum girdisi HUD'a değil SAHNE katmanına bağlı —
+yürüme topuzu HUD'da, ikisi birbirini tetiklemiyor.
+
+### Danslar
+7 hareket: Selam (ücretsiz), Zıplama 250, Robot 450, Twist 500, Fırıldak 650,
+Zafer Dansı 900, Şampiyon (etkinlik ödülü).
+
+**Katalog için yeni tablo AÇILMADI.** Dans, `esyalar` tablosunun bir yuvası
+(`yuva = 'dans'`, migration 136). Böylece satın alma (`esya_satin_al`),
+sahiplik (`oyuncu_esyalari`) ve ücretsiz dağıtım (`ucretsiz_esyalari_ver`)
+olduğu gibi çalıştı; tek satır SQL dışında sunucu kodu yazılmadı.
+Dans **giyilmez**: `gorunum_dogrula`'nın yuva listesinde 'dans' yok, yani bir
+dans kodu `profiles.gorunum`a hiçbir zaman yazılamaz.
+
+Hareketler `bildim/harita/danslar.js` içinde kod — animasyon dosyası indirilmiyor.
+Katalogda olup kodda oynatıcısı olmayan dans istemcide **sessizce listelenmez**.
+
+**İki yapısal değişiklik gerekti (avatar.js):**
+1. **Gövde kökü (`kok`).** Dans gövdeyi eğip döndürüyor, ama avatarın kendi
+   `rotation.y`si yürüme yönünü tutuyor (meydanda `yumusakDon`, Görünüm
+   önizlemesinde tornavida dönüşü). İkisi aynı nesneye yazarsa dans ile yön
+   birbirini eziyor. Artık isim etiketi dışında her şey `kok` altında; dans
+   yalnız onu oynatıyor, etiket dik kalıyor.
+2. **Kollar omuzdan dönüyor.** Kol ve el ayrı meshlerdi; kol kendi ortasından
+   dönünce el havada kalıyordu. Her kol artık omuzda (y 2.52) merkezlenmiş bir
+   grup. `kollar.rotation.x` (yürüme salınımı) aynen çalışıyor.
+
+Yayın: emoji ile aynı kalıp — tek broadcast mesajı, oyuncu başına 6.5 sn hız
+sınırı (dans 6 sn sürüyor). Yürümeye başlayan avatarın dansı kesiliyor; uzak
+oyuncuda da öyle, çünkü hareket hız paketlerinden anlaşılıyor.
+
+Dükkân: **Görünüm → Dans** sekmesi. Dokununca dans 3B önizlemede oynuyor
+(satın almadan önce de görülebilir). Joker Dükkânı'ndaki "Kıyafet & Dans"
+sekmesinden köprü var (`/gorunum?yuva=dans`).
+
+### Test
+`npm run test:dans` (`bildim/_test/dans-testi.mjs`) 7 dansın hepsini sahte
+avatar üstünde oynatıyor ve doğruluyor: süre 6 sn, gövde duruşa dönüyor,
+hareket gerçekten değişiyor, yürüyünce kesiliyor.
+
+**Tarayıcı testinde tuzak:** otomasyon sekmesi arka planda kalınca `setTimeout`
+saniyede bire kısılıyor; çizim döngüsü `dt`yi 0.05'te tavanladığı için dans
+**gerçek zamanda 20 kat yavaş** oynuyor. "Dans bitmiyor" gibi görünen şey buydu
+— birim testi bu yüzden yazıldı, tarayıcıda süre ölçülmez.
+
+Canlıda doğrulandı: kuş bakışı tüm meydanı gösteriyor, en yakın zumda kamera
+omuz hizasında, dans oynuyor, konsol temiz.
