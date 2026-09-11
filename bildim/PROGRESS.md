@@ -2128,3 +2128,33 @@ Storage kovası. Canlı duman testi 7/7.
 `quizador.vercel.app` açıldı: başlık "Quiz Square", kök dolu, konsolda hata
 yok, üst çubukta coin hapı (300), `/gorunum` sayfasında 3B avatar çiziliyor,
 7 yuva sekmesi ve ten paleti çalışıyor. Canlı paketlerde ham `?.` / `??` = 0.
+
+---
+
+## 2026-09-11 (7) — Site adresi: quizsquare.vercel.app
+
+Marka Quiz Square olunca `quizador.vercel.app` linki uyumsuz kaldı.
+
+- Vercel projesine (`quizador-vercel`) **`quizsquare.vercel.app`** alan adı
+  eklendi. **Eski adres alias olarak duruyor** — kimsenin elindeki link
+  kırılmasın diye bilerek kapatılmadı; ikisi de aynı dağıtımı gösteriyor.
+- Production `VITE_SITE_URL` yeni adrese çevrildi → robots.txt Sitemap satırı,
+  sitemap.xml, og:url ve canonical artık quizsquare'i gösteriyor (canlıda
+  doğrulandı).
+- `vite.config.js › VARSAYILAN_SITE` düzeltildi. Bir süre `quizsquare.app`
+  yazıyordu ama **o alan adı satın alınmamış** (nslookup NXDOMAIN); ortam
+  değişkeni silinseydi sitemap ve paylaşım kartları var olmayan bir adresi
+  duyuracaktı.
+
+### Eksik kalan — sahibinin yapması gereken
+1. **Supabase → Authentication → URL Configuration**: Site URL'i
+   `https://quizsquare.vercel.app` yap, Redirect URLs listesine hem yeni hem
+   eski adresi ekle. Yapılmazsa giriş sonrası oyuncu eski adrese düşer
+   (kod bunu tolere ediyor, bkz. `src/lib/girisHedefi.js`, ama adres eskiye
+   döner).
+2. **`quizsquare.app` alan adı** ücretli; alınırsa Vercel'e domain olarak
+   eklenip `VITE_SITE_URL` ve `VARSAYILAN_SITE` güncellenecek.
+
+### Not — oturumlar
+Tarayıcı deposu adrese özel: yeni adrese ilk girişte herkes çıkış yapmış
+görünür, tekrar giriş yapması gerekir. Veri kaybı yok.
