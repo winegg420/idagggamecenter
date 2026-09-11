@@ -8,7 +8,9 @@ body.bd-harita-acik { overflow: hidden; }
 
 .bd-harita {
   position: fixed; inset: 0; z-index: 70;
-  background: #0e1726;
+  /* Sahne gelene kadar görünen zemin. Eskiden koyu lacivertti (#0e1726) ve
+     oyunun açık temasıyla çelişiyordu; artık gökyüzü rengi. */
+  background: #bfe8ff;
   color: var(--bd-metin);
   font-family: var(--bd-f-govde);
   overflow: hidden;
@@ -126,6 +128,24 @@ body.bd-harita-acik { overflow: hidden; }
   font-family: var(--bd-f-baslik); font-weight: 800;
 }
 .bd-harita-yukleniyor div { text-align: center; }
+/* ---- hata kutusu (sahne kurulamadı / çizilemedi / WebGL yok) ---- */
+.bd-harita-hata {
+  background: var(--bd-yuzey-1);
+  border-radius: 18px;
+  box-shadow: 0 5px 0 var(--bd-kart-alt);
+  padding: 18px 22px;
+  max-width: min(88vw, 380px);
+}
+.bd-harita-hata b { display: block; font-size: 20px; color: var(--bd-metin); }
+.bd-harita-hata span {
+  display: block; margin-top: 4px;
+  font-family: var(--bd-f-govde); font-weight: 800; font-size: 13.5px;
+  color: var(--bd-metin-2);
+}
+.bd-harita-hata-dugmeler {
+  display: flex; gap: 9px; justify-content: center; flex-wrap: wrap;
+  margin-top: 14px;
+}
 .bd-harita-yukleniyor b { display: block; font-size: 26px; color: var(--bd-metin); }
 .bd-harita-yukleniyor span { font-family: var(--bd-f-govde); font-weight: 800; color: var(--bd-metin-2); font-size: 14px; }
 

@@ -23,6 +23,19 @@ const EMOJILER = ["👋", "😂", "🔥", "🤔", "🎉", "⚔️"];
 const MAKS_CIZILEN = 40;   // aynı anda çizilen uzak oyuncu sayısı
 const YURUME_HIZI = 9;
 const BILGI_ANAHTARI = "bildim_harita_bilgi";
+const PERDE_SURESI = 8000;   // ilk kare bu sürede gelmezse perde kalkar, hata çıkar
+
+/** Cihaz 3B çizebiliyor mu? Yoksa siyah ekran yerine dürüst mesaj veririz. */
+function webglVarMi() {
+  try {
+    const c = document.createElement("canvas");
+    return Boolean(
+      c.getContext("webgl2") || c.getContext("webgl") || c.getContext("experimental-webgl")
+    );
+  } catch {
+    return false;
+  }
+}
 
 export default function HaritaSayfasi() {
   const navigate = useNavigate();
@@ -36,6 +49,8 @@ export default function HaritaSayfasi() {
   const [kisi, setKisi] = useState(1);
   const [bagli, setBagli] = useState(true);
   const [ipucu, setIpucu] = useState(null); // { ad, alt, rota }
+  const [hata, setHata] = useState(null);   // { mesaj, tekrar:boolean }
+  const [kurulum, setKurulum] = useState(0); // "Tekrar dene" sahneyi yeniden kurar
   const [bilgiAcik, setBilgiAcik] = useState(() => {
     try { return localStorage.getItem(BILGI_ANAHTARI) !== "1"; } catch { return true; }
   });
@@ -48,10 +63,22 @@ export default function HaritaSayfasi() {
   }, []);
 
   const ad = profile?.gorunen_ad || "Oyuncu";
+  // Ad, sahnenin KURULUM koşulu değil; yalnız avatarın etiketi.
+  // Effect bağımlılığına girerse profil bir an boşalınca (oturum tazeleme,
+  // profilim RPC'sinin başarısız dönmesi) sahne yıkılıyor ve bir daha
+  // kurulmuyordu — siyah ekranın sebebi buydu. Artık ref'ten okunuyor.
+  const adRef = useRef(ad);
+  adRef.current = ad;
 
   useEffect(() => {
     const kapsayici = kapsayiciRef.current;
-    if (!kapsayici || !user || !profile) return undefined;
+    if (!kapsayici || !user) return undefined;
+
+    if (!webglVarMi()) {
+      setYukleniyor(false);
+      setHata({ mesaj: "Cihazın 3B grafik desteklemiyor.", tekrar: false });
+      return undefined;
+    }
 
     let dunya = null, kontrol = null, coklu = null;
     let raf = 0, aktif = true;
@@ -66,18 +93,21 @@ export default function HaritaSayfasi() {
     } catch (e) {
       console.error("[Meydan] sahne kurulamadi:", e);
       setYukleniyor(false);
+      setHata({ mesaj: "Sahne kurulamadı.", tekrar: true });
       return undefined;
     }
 
     const renk = renkUret(user.id);
-    const ben = dunya.avatarOlustur(ad, renk.govde, renk.sac, renk.etiket);
+    // Profil henüz gelmediyse avatar geçici "Oyuncu" adıyla kurulur;
+    // ad gelince aşağıdaki effect yalnız etiketi yeniler.
+    const ben = dunya.avatarOlustur(adRef.current, renk.govde, renk.sac, renk.etiket);
     ben.position.set(0, 0, 11);
 
     kontrol = kontrolKur(padRef.current, topuzRef.current);
 
     coklu = meydanBaglan({
       supabase,
-      ben: { id: user.id, ad, renk: renk.govde, sac: renk.sac },
+      ben: { id: user.id, ad: adRef.current, renk: renk.govde, sac: renk.sac },
       onKatilim(id, bilgi) {
         if (uzaklar.has(id)) return;
         const varsayilan = renkUret(id);
@@ -116,7 +146,7 @@ export default function HaritaSayfasi() {
       },
     });
 
-    canliRef.current = { dunya, ben, coklu };
+    canliRef.current = { dunya, ben, coklu, renk };
 
     const boyut = () => dunya.boyutlandir();
     // Telefon yan çevrilince: orientationchange ANINDA tarayıcı hâlâ eski
@@ -133,10 +163,24 @@ export default function HaritaSayfasi() {
     window.visualViewport?.addEventListener?.("resize", boyut);
 
     let sonT = performance.now(), zaman = 0, ilkKare = true;
+
+    // İlk kare hiç gelmezse perde sonsuza kadar kalıyordu ("sahne
+    // hazırlanıyor…" takılması). Sekme gizliyken tarayıcı rAF'ı durdurduğu
+    // için o durumda süre yeniden kurulur, hata gösterilmez.
+    let perdeSaat = 0;
+    const perdeBek = () => {
+      if (!aktif || !ilkKare) return;
+      if (document.hidden) { perdeSaat = setTimeout(perdeBek, 2000); return; }
+      setYukleniyor(false);
+      setHata({ mesaj: "Sahne yüklenemedi.", tekrar: true });
+    };
+    perdeSaat = setTimeout(perdeBek, PERDE_SURESI);
+
     const cizim = (t) => {
       if (!aktif) return;
       raf = requestAnimationFrame(cizim);
       if (document.hidden) { sonT = t; return; }   // sayfa gizliyken render yok
+      try {
       const dt = Math.min((t - sonT) / 1000, 0.05);
       sonT = t; zaman += dt;
 
@@ -186,7 +230,18 @@ export default function HaritaSayfasi() {
       dunya.guncelle(dt, zaman, ben);
       if (ilkKare) {
         ilkKare = false;
+        clearTimeout(perdeSaat);
         setTimeout(() => { if (aktif) setYukleniyor(false); }, 450);
+      }
+      } catch (e) {
+        // Tek bir kare hatası eskiden bütün sahneyi sessizce öldürüyordu ve
+        // oyuncu boş ekran görüyordu. Artık durur ve sebebini söyler.
+        console.error("[Meydan] kare hatasi:", e);
+        aktif = false;
+        cancelAnimationFrame(raf);
+        clearTimeout(perdeSaat);
+        setYukleniyor(false);
+        setHata({ mesaj: "Sahne çizilemedi.", tekrar: true });
       }
     };
     raf = requestAnimationFrame(cizim);
@@ -194,6 +249,7 @@ export default function HaritaSayfasi() {
     return () => {
       aktif = false;
       cancelAnimationFrame(raf);
+      clearTimeout(perdeSaat);
       window.removeEventListener("resize", boyut);
       window.removeEventListener("orientationchange", boyutTekrar);
       window.visualViewport?.removeEventListener?.("resize", boyut);
@@ -205,9 +261,28 @@ export default function HaritaSayfasi() {
       try { dunya?.yokEt(); } catch (e) { console.error("[Meydan] yokEt:", e); }
       canliRef.current = null;
     };
-    // Sahne bir kez kurulur; ad ilk girişte etiketlenir.
+    // Sahne oturum sahibi başına BİR KEZ kurulur. `profile` bilerek yok:
+    // profil bir an boşalınca sahnenin yıkılmasını istemiyoruz.
+    // `kurulum` yalnız "Tekrar dene" düğmesiyle artar.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user?.id, Boolean(profile)]);
+  }, [user?.id, kurulum]);
+
+  // Profil sonradan gelirse sahneyi yıkmadan yalnız isim etiketini yenile.
+  useEffect(() => {
+    const c = canliRef.current;
+    if (!c) return;
+    try {
+      c.dunya.avatarAdiDegistir(c.ben, ad, c.renk.etiket);
+    } catch (e) {
+      console.error("[Meydan] ad guncellenemedi:", e);
+    }
+  }, [ad]);
+
+  const tekrarDene = () => {
+    setHata(null);
+    setYukleniyor(true);
+    setKurulum((k) => k + 1);
+  };
 
   const emojiAt = (e) => {
     const c = canliRef.current;
@@ -225,11 +300,30 @@ export default function HaritaSayfasi() {
     <div className="bd-harita">
       <div className="bd-harita-sahne" ref={kapsayiciRef} />
 
-      {yukleniyor && (
+      {yukleniyor && !hata && (
         <div className="bd-harita-yukleniyor">
           <div>
             <b>Quizador Meydanı</b>
             <span>sahne hazırlanıyor…</span>
+          </div>
+        </div>
+      )}
+
+      {hata && (
+        <div className="bd-harita-yukleniyor" role="alert">
+          <div className="bd-harita-hata">
+            <b>Meydan açılamadı</b>
+            <span>{hata.mesaj}</span>
+            <div className="bd-harita-hata-dugmeler">
+              {hata.tekrar && (
+                <button type="button" className="bd-harita-btn" onClick={tekrarDene}>
+                  Tekrar dene
+                </button>
+              )}
+              <button type="button" className="bd-harita-btn beyaz" onClick={() => navigate(y())}>
+                Oyuna dön
+              </button>
+            </div>
           </div>
         </div>
       )}

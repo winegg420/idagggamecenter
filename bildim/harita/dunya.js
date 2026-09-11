@@ -394,6 +394,25 @@ export function dunyaKur(kapsayici, s = {}) {
     return g;
   }
 
+  /**
+   * Avatarın isim etiketini sahneyi yıkmadan değiştirir.
+   * Profil geç gelirse avatar önce "Oyuncu" adıyla kurulur, ad gelince
+   * yalnız etiket yenilenir — sahne ayakta kalır.
+   */
+  function avatarAdiDegistir(g, ad, etiketRenk) {
+    const u = g?.userData;
+    if (!u || !u.etiket || u.ad === ad) return;
+    const eski = u.etiket;
+    const yeni = isimEtiketi(ad, etiketRenk);
+    yeni.position.copy(eski.position);
+    g.remove(eski);
+    eski.material.map?.dispose();
+    eski.material.dispose();
+    g.add(yeni);
+    u.etiket = yeni;
+    u.ad = ad;
+  }
+
   /** Avatarı sahneden kaldırıp GPU kaynaklarını bırakır. */
   function avatarSil(g) {
     sahne.remove(g);
@@ -525,7 +544,7 @@ export function dunyaKur(kapsayici, s = {}) {
 
   return {
     sahne, kamera, render, engeller, binalar,
-    avatarOlustur, avatarSil, yurumeAnimasyonu, yumusakDon,
+    avatarOlustur, avatarSil, avatarAdiDegistir, yurumeAnimasyonu, yumusakDon,
     emojiGoster, carpismaDuzelt, yakinBina,
     guncelle, boyutlandir, yokEt,
   };
