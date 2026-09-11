@@ -1,4 +1,4 @@
-# Bildim! 🧠⚡
+# Quiz Square 🧠⚡
 
 Türkçe bilgi yarışması uygulaması — her gece 22:00'de eleme usulü **Gece Turnuvası** ve 7/24 **1v1 Meydan Okuma**.
 

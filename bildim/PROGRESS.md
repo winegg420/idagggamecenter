@@ -1,4 +1,4 @@
-# Bildim! — Modül İlerleme Günlüğü
+# Quiz Square — Modül İlerleme Günlüğü
 
 > Bu, `bildim/` modülünün özet günlüğüdür. **Ayrıntılı, oturum-oturum geçmiş** repo kökündeki `PROGRESS.md`'dedir (Bildim başından beri hub'ın çekirdeğiydi; tüm quiz oturumları orada).
 

@@ -4,7 +4,7 @@ Bu dosya, bu depoda çalışan Claude Code (ve diğer AI ajanları) için proje 
 
 ## Proje
 
-**IDA GG Game Center** (GitHub: `idagggamecenter`) — birçok oyunu tek çatı altında toplayan bir oyun portalı (PWA). Site adı artık "Bildim" değil; **Bildim! yalnızca hub içindeki oyunlardan biridir** (bilgi yarışması). Tüm oyunlar tek kimliği (`profiles`: username + avatar) ve tek Supabase projesini paylaşır; her oyun kendi klasöründe **bağımsız geliştirilebilir izole bir modüldür** ve her an ayrı repoya taşınabilir.
+**IDA GG Game Center** (GitHub: `idagggamecenter`) — birçok oyunu tek çatı altında toplayan bir oyun portalı (PWA). Site adı artık "Bildim" değil; **Quiz Square yalnızca hub içindeki oyunlardan biridir** (bilgi yarışması; klasör adı geriye uyum için `bildim/`). Tüm oyunlar tek kimliği (`profiles`: username + avatar) ve tek Supabase projesini paylaşır; her oyun kendi klasöründe **bağımsız geliştirilebilir izole bir modüldür** ve her an ayrı repoya taşınabilir.
 
 **Her modülün kendi `CLAUDE.md` + `PROGRESS.md` dosyası vardır** (o klasörde). Bu kök dosyalar hub geneli içindir; modülde çalışırken önce o modülün `CLAUDE.md`'sini oku.
 

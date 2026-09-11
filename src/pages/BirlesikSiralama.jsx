@@ -10,7 +10,7 @@ import { useAuth } from "../context/AuthContext.jsx";
 import Avatar from "../components/Avatar.jsx";
 
 const SUTUNLAR = [
-  { key: "bildim", ad: "Quizador", ikon: "🧠" },
+  { key: "bildim", ad: "Quiz Square", ikon: "🧠" },
   { key: "kafatopu", ad: "Kafa Topu", ikon: "⚽" },
   { key: "driftgp", ad: "DidaGP", ikon: "🏎️" },
   { key: "meyvekes", ad: "Meyve Kes", ikon: "🍉" },
@@ -113,7 +113,7 @@ export default function BirlesikSiralama() {
         )}
       </section>
 
-      <footer className="gc-footer">Quizador · Genel sıralama 🚀</footer>
+      <footer className="gc-footer">Quiz Square · Genel sıralama 🚀</footer>
     </div>
   );
 }

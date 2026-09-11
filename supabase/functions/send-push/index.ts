@@ -1,4 +1,4 @@
-// Bildim! — push bildirim gönderici
+// Quiz Square — push bildirim gönderici
 // Çağıran: pg_net (cron / trigger), x-cron-secret ile doğrulanır.
 // Gövde: { user_ids?: string[], baslik: string, govde: string, url?: string }
 import { createClient } from "npm:@supabase/supabase-js@2";

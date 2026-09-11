@@ -1,5 +1,5 @@
 // ============================================================
-// QUIZADOR MEYDANI — ÇOK OYUNCULU KATMAN
+// MEYDAN (The Square) — ÇOK OYUNCULU KATMAN
 //
 // Supabase Realtime, tek kanal: "meydan".
 //   presence  → kim meydanda (track ile girilir, sync ile okunur)

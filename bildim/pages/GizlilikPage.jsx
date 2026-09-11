@@ -17,7 +17,7 @@ export default function GizlilikPage() {
 
       <h2>Kısaca</h2>
       <p>
-        Quizador, oyunu oynayabilmen için gereken en az veriyi toplar:{" "}
+        Quiz Square, oyunu oynayabilmen için gereken en az veriyi toplar:{" "}
         <b>e-posta adresin</b>, <b>seçtiğin takma ad</b> ve <b>avatarın</b>,
         ayrıca oyun içi <b>puan, sıralama ve şehir/ülke</b> bilgin. Verilerini satmıyoruz,
         reklam ağlarıyla paylaşmıyoruz.
@@ -112,7 +112,7 @@ export default function GizlilikPage() {
 
       <h2>Çocuklar</h2>
       <p>
-        Quizador 13 yaş altındaki çocuklara yönelik değildir ve bilerek 13 yaş altından veri
+        Quiz Square 13 yaş altındaki çocuklara yönelik değildir ve bilerek 13 yaş altından veri
         toplamayız.
       </p>
 

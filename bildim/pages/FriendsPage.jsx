@@ -85,10 +85,10 @@ export default function FriendsPage() {
 
   const linkPaylas = async () => {
     if (!davetLinki) return;
-    const mesaj = `Quizador'de benimle yarış — bu linkle beni arkadaş ekleyebilirsin: ${davetLinki}`;
+    const mesaj = `Quiz Square'de benimle yarış — bu linkle beni arkadaş ekleyebilirsin: ${davetLinki}`;
     try {
       if (navigator.share) {
-        await navigator.share({ title: "Quizador", text: mesaj });
+        await navigator.share({ title: "Quiz Square", text: mesaj });
       } else {
         await navigator.clipboard.writeText(mesaj);
         setKopyalandi(true);

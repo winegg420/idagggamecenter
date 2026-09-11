@@ -186,7 +186,7 @@ export default function KurulumSihirbazi({ onTamam }) {
           <>
             <div className="bd-konum-baslik">Kendine bir takma ad seç</div>
             <div className="bd-konum-aciklama">
-              Quizador''de <b>gerçek adın hiçbir zaman gösterilmez</b>. Diğer oyuncular
+              Quiz Square'de <b>gerçek adın hiçbir zaman gösterilmez</b>. Diğer oyuncular
               yalnızca burada seçtiğin takma adı görür.
             </div>
             <label className="bd-alan">

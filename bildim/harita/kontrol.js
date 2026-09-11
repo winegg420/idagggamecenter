@@ -1,5 +1,5 @@
 // ============================================================
-// QUIZADOR MEYDANI — KONTROL
+// MEYDAN (The Square) — KONTROL
 // Ekran topuzu (dokunmatik/fare) + WASD / yön tuşları.
 // Her karede oku() çağrılır; {ix, iz} -1..1 arası girdi vektörü döner.
 // ============================================================

@@ -1,7 +1,7 @@
 {
-  "name": "Quizador",
-  "short_name": "Quizador",
-  "description": "Quizador — birçok oyun tek çatı altında.",
+  "name": "Quiz Square",
+  "short_name": "Quiz Square",
+  "description": "Quiz Square — birçok oyun tek çatı altında.",
   "start_url": "/",
   "display": "standalone",
   "orientation": "any",

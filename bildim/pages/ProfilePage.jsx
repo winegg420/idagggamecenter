@@ -263,10 +263,10 @@ export default function ProfilePage() {
           className="btn"
           onClick={async () => {
             const link = `${window.location.origin}/?davet=${user.id}`;
-            const mesaj = `Quizador'de benimle yarışmaya var mısın? Bu linkle gel, ikimiz de +50 puan kazanalım: ${link}`;
+            const mesaj = `Quiz Square'de benimle yarışmaya var mısın? Bu linkle gel, ikimiz de +50 puan kazanalım: ${link}`;
             if (navigator.share) {
               try {
-                await navigator.share({ title: "Quizador", text: mesaj });
+                await navigator.share({ title: "Quiz Square", text: mesaj });
               } catch { /* vazgeçti */ }
             } else {
               await navigator.clipboard.writeText(mesaj);

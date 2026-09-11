@@ -21,6 +21,9 @@ import Logo from "./Logo.jsx";
 // engeli) yalnız o oturum boyunca gizlenir — hata vermez.
 // ============================================================
 
+// NOT: anahtar BİLEREK eski adıyla kaldı. Değiştirilirse "ana ekrana ekle"
+// önerisini daha önce kapatmış herkese yeniden çıkar — marka değişikliği
+// yüzünden kullanıcıyı rahatsız etmenin anlamı yok.
 const ANAHTAR = "quizador_ana_ekran_kapatildi";
 const GECIKME_MS = 2500; // sayfa otursun, kapıda karşılamasın
 

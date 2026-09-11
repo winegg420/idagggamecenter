@@ -1,10 +1,10 @@
-# CLAUDE.md — Bildim! (bilgi yarışması modülü)
+# CLAUDE.md — Quiz Square (bilgi yarışması modülü)
 
 Bu dosya, `bildim/` modülü üzerinde çalışan Claude Code (ve diğer AI ajanları) için rehberdir. Modül, **idaGG Game Center** hub'ının (GitHub: `idagggamecenter`) bir parçasıdır ama kendi içinde bağımsız geliştirilebilir.
 
 ## Modül Özeti
 
-**Bildim!** — Türkçe bilgi yarışması. Gece turnuvası, 1v1 meydan okuma, grup maçı (3-5 kişi), "Hızlı Olan Kazanır" modu, arkadaş sistemi, rütbe/XP, push bildirimi. Hub'ın quiz oyunudur (idaGP, Kafa Topu, Meyve Kes gibi bir oyun kartı).
+**Quiz Square** — Türkçe bilgi yarışması (klasör adı geriye uyum için `bildim/` kaldı). Gece turnuvası, 1v1 meydan okuma, grup maçı (3-5 kişi), "Hızlı Olan Kazanır" modu, arkadaş sistemi, rütbe/XP, push bildirimi. Hub'ın quiz oyunudur (idaGP, Kafa Topu, Meyve Kes gibi bir oyun kartı).
 
 ## Teknoloji
 

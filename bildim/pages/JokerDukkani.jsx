@@ -212,7 +212,7 @@ export default function JokerDukkani() {
 
       {/* ---------- Yasal ---------- */}
       <div className="kart bd-gizlilik-not">
-        Satın alımlar Google Play üzerinden işlenir; ödeme bilgilerin Quizador ile
+        Satın alımlar Google Play üzerinden işlenir; ödeme bilgilerin Quiz Square ile
         paylaşılmaz. Tüketilebilir ürünlerde iade Google Play kurallarına tabidir.
         Ayrıntı için <Link to="/gizlilik">Gizlilik Politikası</Link>.
       </div>

@@ -1,5 +1,5 @@
 // ============================================================
-// QUIZADOR MEYDANI — SAYFA
+// MEYDAN (The Square) — SAYFA
 //
 // Yalnız React yaşam döngüsü ve HUD burada. three.js sahnesi dunya.js'te,
 // girdi kontrol.js'te, Realtime coklu.js'te. Bu dosya üçünü bağlar ve
@@ -420,7 +420,7 @@ export default function HaritaSayfasi() {
       {yukleniyor && !hata && (
         <div className="bd-harita-yukleniyor">
           <div>
-            <b>Quizador Meydanı</b>
+            <b>Meydan</b>
             <span>sahne hazırlanıyor…</span>
           </div>
         </div>

@@ -1,5 +1,5 @@
 /**
- * BİLGE — Quizador'in kuşu.
+ * BİLGE — Quiz Square'in kuşu.
  *
  * Yeniden çizildi: eski hâli yuvarlak-şirin bir baykuştu ve Duolingo'yu
  * hatırlatıyordu. Yeni hâl KÖŞELİ/GEOMETRİK — düz kenarlar, kırık açılar,

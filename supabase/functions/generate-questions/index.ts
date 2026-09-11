@@ -1,4 +1,4 @@
-// Quizador — Claude API ile soru üretimi
+// Quiz Square — Claude API ile soru üretimi
 // Çağrı: POST, header "x-cron-secret: <CRON_SECRET>"
 // Gerekli secret'lar: ANTHROPIC_API_KEY, CRON_SECRET
 // (SUPABASE_URL ve SUPABASE_SERVICE_ROLE_KEY otomatik sağlanır)

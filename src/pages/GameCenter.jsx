@@ -10,7 +10,7 @@ import Avatar from "../components/Avatar.jsx";
 // Portala eklenen oyunlar. Yeni oyun eklemek = buraya bir kart eklemek.
 const OYUNLAR = [
   {
-    ad: "Quizador",
+    ad: "Quiz Square",
     aciklama: "Türkçe bilgi yarışması — turnuva, meydan okuma ve gece yarışı",
     ikon: "🧠",
     yol: "/bildim",
@@ -98,7 +98,7 @@ export default function GameCenter() {
         <div className="gc-brand">
           <span className="gc-brand-mark">🎮</span>
           <div className="gc-brand-text">
-            <span className="gc-brand-name">Quizador</span>
+            <span className="gc-brand-name">Quiz Square</span>
             <span className="gc-brand-sub">GAME CENTER</span>
           </div>
         </div>
@@ -143,7 +143,7 @@ export default function GameCenter() {
       </section>
 
       <footer className="gc-footer">
-        Quizador · Tüm oyunlar tek çatı altında 🚀
+        Quiz Square · Tüm oyunlar tek çatı altında 🚀
         {/* Yasal metinler ana kapıdan da erişilebilir olmalı (mağaza ve reklam ağı şartı). */}
         <div className="gc-footer-yasal">
           <Link to="/gizlilik">Gizlilik politikası</Link>

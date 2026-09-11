@@ -95,7 +95,7 @@ export default function Layout() {
       )}
       <div className="bd-ust-blok">
         <header className="topbar">
-          <Link to={y()} style={{ textDecoration: "none" }} aria-label="Quizador ana sayfa">
+          <Link to={y()} style={{ textDecoration: "none" }} aria-label="Quiz Square ana sayfa">
             <Logo boyut={24} />
           </Link>
           {profile && (
@@ -149,7 +149,7 @@ export default function Layout() {
         <NavLink to={y("/harita")} className={({ isActive }) => (isActive ? "aktif" : "")}>
           <span className="ikon"><Ikon ad="haritaPini" boyut={26} /></span>Harita
         </NavLink>
-        {/* Oyun portalı sekmesi yalnız hub derlemesinde anlamlı: Quizador'un
+        {/* Oyun portalı sekmesi yalnız hub derlemesinde anlamlı: Quiz Square'in
             kendi sitesinde "/" zaten Ana Sayfa olduğundan sekme kendini
             tekrar ediyordu. Ayrıca "end" olmadığı için NavLink her yolla
             eşleşip sekmeyi sürekli "aktif" gösteriyordu — eklendi. */}

@@ -18,8 +18,8 @@ export default function KosullarPage() {
 
       <h2>Kısaca</h2>
       <p>
-        <b>Quizador</b> bilgi yarışması ücretsiz olarak sunulur. Oyun hem kendi
-        adresinde hem de Quizador oyun portalı içinde oynanabilir; bu koşullar
+        <b>Quiz Square</b> bilgi yarışması ücretsiz olarak sunulur. Oyun hem kendi
+        adresinde hem de Quiz Square oyun portalı içinde oynanabilir; bu koşullar
         ikisi için de geçerlidir. Oyunu kullanarak bu koşulları kabul etmiş olursun.
         Kurallara uyduğun sürece hesabın senindir; hile, taciz veya kötüye kullanım
         durumunda hesabın kısıtlanabilir.
@@ -28,7 +28,7 @@ export default function KosullarPage() {
       <h2>1. Taraflar ve kapsam</h2>
       <p>
         Bu koşullar, hizmeti işleten (bundan sonra "biz") ile hizmeti kullanan kişi
-        (bundan sonra "sen") arasındaki sözleşmedir. Kapsam, Quizador sitesi ve
+        (bundan sonra "sen") arasındaki sözleşmedir. Kapsam, Quiz Square sitesi ve
         portalı ile içindeki tüm oyunlardır.
       </p>
 

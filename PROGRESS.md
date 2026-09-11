@@ -1,4 +1,4 @@
-# Bildim! — Proje İlerleme Kaydı
+# Quiz Square — Proje İlerleme Kaydı
 
 ## 2026-07-05 — 3 Revizyon + Ana Sayfa Yeniden Tasarımı
 

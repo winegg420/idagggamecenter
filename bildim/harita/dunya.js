@@ -1,5 +1,5 @@
 // ============================================================
-// QUIZADOR MEYDANI — DÜNYA (saf three.js, React yok)
+// MEYDAN (The Square) — DÜNYA (saf three.js, React yok)
 //
 // QUIZADOR_MEYDAN_REFERANS.html içindeki sahne birebir buraya taşındı:
 // ışık, çim + yamalar, kaldırım taşı meydan, havuz, 7 bina, yollar,
