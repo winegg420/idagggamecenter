@@ -17,6 +17,14 @@
 // notundaki dönüşüm).
 // ============================================================
 import * as THREE from "three";
+import { roundRect, canvasDoku, isimEtiketi, nesneyiSerbestBirak } from "./ortak.js";
+import { avatarKur, avatarGorunumDegistir, avatarEfektleriGuncelle, avatarYokEt } from "./avatar.js";
+import { esyaBilgisi, esyaOnbelleginiTemizle } from "./esyalar.js";
+export { esyaBilgisi };
+
+// roundRect / canvasDoku / isimEtiketi / nesneyiSerbestBirak ORTAK.JS'e taşındı:
+// Görünüm sayfasındaki önizleme de aynı avatarı çiziyor, iki kopya olmamalı.
+export { nesneyiSerbestBirak };
 
 const YARICAP = 30; // binaların meydan merkezine uzaklığı
 const HAVUZ_YARICAP = 6.6;
@@ -37,21 +45,7 @@ function mat(renk) {
   return new THREE.MeshLambertMaterial({ color: renk });
 }
 
-function roundRect(x, a, b, w, h, r) {
-  x.beginPath();
-  x.moveTo(a + r, b);
-  x.arcTo(a + w, b, a + w, b + h, r);
-  x.arcTo(a + w, b + h, a, b + h, r);
-  x.arcTo(a, b + h, a, b, r);
-  x.arcTo(a, b, a + w, b, r);
-  x.closePath();
-}
 
-function canvasDoku(c) {
-  const t = new THREE.CanvasTexture(c);
-  t.colorSpace = THREE.SRGBColorSpace; // canvas metni yıkanmasın
-  return t;
-}
 
 /** Bina tabelası (canvas sprite). */
 function levha(metin, renk) {
@@ -71,36 +65,9 @@ function levha(metin, renk) {
   return s;
 }
 
-/** Avatar üstü isim etiketi (canvas sprite). */
-function isimEtiketi(ad, renk) {
-  const c = document.createElement("canvas");
-  c.width = 320; c.height = 80;
-  const x = c.getContext("2d");
-  x.fillStyle = "#ffffff"; roundRect(x, 8, 8, 304, 58, 24); x.fill();
-  x.fillStyle = "rgba(32,50,74,.16)"; roundRect(x, 8, 62, 304, 8, 4); x.fill();
-  x.font = "900 30px Nunito, sans-serif"; x.fillStyle = renk;
-  x.textAlign = "center"; x.textBaseline = "middle";
-  // Çok uzun adlar etiketten taşmasın
-  const metin = String(ad ?? "").length > 16 ? String(ad).slice(0, 15) + "…" : String(ad ?? "");
-  x.fillText(metin, 160, 37);
-  const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: canvasDoku(c), depthTest: false, depthWrite: false }));
-  s.scale.set(3.6, 0.9, 1);
-  return s;
-}
 
-/** Bir nesnenin altındaki tüm geometry / material / texture'ları serbest bırakır. */
-export function nesneyiSerbestBirak(obj) {
-  obj.traverse((o) => {
-    if (o.geometry) o.geometry.dispose();
-    const m = o.material;
-    if (!m) return;
-    const liste = Array.isArray(m) ? m : [m];
-    for (const mm of liste) {
-      if (mm.map) mm.map.dispose();
-      mm.dispose();
-    }
-  });
-}
+
+
 
 /**
  * Dünyayı kurar ve döngü/yok etme arayüzünü döndürür.
@@ -362,36 +329,31 @@ export function dunyaKur(kapsayici, s = {}) {
    * @param {number} sacRenk    hex sayı
    * @param {string} etiketRenk css rengi
    */
-  function avatarOlustur(ad, govdeRenk, sacRenk, etiketRenk) {
-    const g = new THREE.Group();
-    const bacaklar = new THREE.Group(); g.add(bacaklar);
-    for (let sg = -1; sg <= 1; sg += 2) {
-      const bac = new THREE.Mesh(new THREE.CylinderGeometry(0.24, 0.22, 1.1, 8), mat(0x3e4a5c));
-      bac.position.set(sg * 0.28, 0.55, 0); bac.castShadow = true; bacaklar.add(bac);
-    }
-    const govde = new THREE.Mesh(new THREE.CylinderGeometry(0.62, 0.72, 1.5, 12), mat(govdeRenk));
-    govde.position.y = 1.85; govde.castShadow = true; g.add(govde);
-    const kollar = new THREE.Group(); g.add(kollar);
-    for (let s2 = -1; s2 <= 1; s2 += 2) {
-      const kol = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.16, 1.15, 8), mat(govdeRenk));
-      kol.position.set(s2 * 0.78, 1.95, 0); kol.castShadow = true; kollar.add(kol);
-      const el = new THREE.Mesh(new THREE.SphereGeometry(0.2, 10, 8), mat(0xf3c89b));
-      el.position.set(s2 * 0.78, 1.36, 0); kollar.add(el);
-    }
-    const kafa = new THREE.Mesh(new THREE.SphereGeometry(0.66, 18, 14), mat(0xf3c89b));
-    kafa.position.y = 3.05; kafa.castShadow = true; g.add(kafa);
-    const sac = new THREE.Mesh(
-      new THREE.SphereGeometry(0.69, 18, 12, 0, Math.PI * 2, 0, Math.PI * 0.58), mat(sacRenk)
-    );
-    sac.position.y = 3.08; sac.castShadow = true; g.add(sac);
-    for (let s3 = -1; s3 <= 1; s3 += 2) {
-      const goz = new THREE.Mesh(new THREE.SphereGeometry(0.1, 8, 8), mat(0x20324a));
-      goz.position.set(s3 * 0.22, 3.08, 0.58); g.add(goz);
-    }
-    const et = isimEtiketi(ad, etiketRenk); et.position.y = 4.15; g.add(et);
-    g.userData = { bacaklar, kollar, etiket: et, ad, yurumeFaz: Math.random() * 6 };
+  /**
+   * Avatar kurar. GÖVDE VE EŞYALAR avatar.js'te — Görünüm sayfasındaki
+   * önizleme de aynı fonksiyonu çağırır, iki çizim yolu yok.
+   *
+   * @param {string} ad
+   * @param {number} govdeRenk  görünüm kaydı yoksa kullanılacak gövde rengi
+   * @param {number} sacRenk    geriye uyum; görünüm kaydı varsa yok sayılır
+   * @param {string} etiketRenk
+   * @param {object} gorunum    profiles.gorunum
+   * @param {object} esyaBilgi  esyaBilgisi(katalog)
+   */
+  function avatarOlustur(ad, govdeRenk, sacRenk, etiketRenk, gorunum = null, esyaBilgi = {}) {
+    // Görünüm kaydı yoksa eski davranış: düz gövde + basit saç.
+    const gor = gorunum ?? {
+      sac: "sac_01",
+      sac_renk: "#" + Number(sacRenk ?? 0x5a3a22).toString(16).padStart(6, "0"),
+    };
+    const g = avatarKur({ ad, gorunum: gor, bilgi: esyaBilgi, etiketRenk, govdeRenk });
     sahne.add(g);
     return g;
+  }
+
+  /** Kıyafet değişimi — sahne yıkılmadan (bkz. avatar.js). */
+  function avatarGorunumu(av, gorunum, esyaBilgi = {}) {
+    avatarGorunumDegistir(av, gorunum, esyaBilgi);
   }
 
   /**
@@ -413,10 +375,14 @@ export function dunyaKur(kapsayici, s = {}) {
     u.ad = ad;
   }
 
-  /** Avatarı sahneden kaldırıp GPU kaynaklarını bırakır. */
+  /**
+   * Avatarı sahneden kaldırıp GPU kaynaklarını bırakır.
+   * Eşya geometrileri PAYLAŞILDIĞI için onlar burada dispose EDİLMEZ;
+   * sahne kapanınca esyaOnbelleginiTemizle() bırakır (bkz. yokEt).
+   */
   function avatarSil(g) {
     sahne.remove(g);
-    nesneyiSerbestBirak(g);
+    avatarYokEt(g);
   }
 
   /** Yürüme animasyonu: guc 0..1 (0 = duruyor). */
@@ -428,6 +394,8 @@ export function dunyaKur(kapsayici, s = {}) {
     u.bacaklar.children[1].rotation.x = -sal;
     u.kollar.rotation.x = -sal * 0.55;
     av.position.y = guc > 0.05 ? Math.abs(Math.sin(u.yurumeFaz)) * 0.09 : 0;
+    // Parıltı halkası / yıldızlar gibi efektler dönsün (bkz. avatar.js)
+    avatarEfektleriGuncelle(av, dt);
   }
 
   /** Yumuşak dönüş — en kısa yaydan hedef açıya. */
@@ -537,6 +505,9 @@ export function dunyaKur(kapsayici, s = {}) {
     balonlar.length = 0;
     nesneyiSerbestBirak(sahne);
     sahne.clear();
+    // Eşya geometrileri/malzemeleri avatarlar arasında paylaşılıyordu;
+    // sahne kapanınca burada bırakılır (bkz. esyalar.js).
+    esyaOnbelleginiTemizle();
     render.dispose();
     render.forceContextLoss?.();
     if (render.domElement.parentNode) render.domElement.parentNode.removeChild(render.domElement);
@@ -544,7 +515,7 @@ export function dunyaKur(kapsayici, s = {}) {
 
   return {
     sahne, kamera, render, engeller, binalar,
-    avatarOlustur, avatarSil, avatarAdiDegistir, yurumeAnimasyonu, yumusakDon,
+    avatarOlustur, avatarSil, avatarAdiDegistir, avatarGorunumu, yurumeAnimasyonu, yumusakDon,
     emojiGoster, carpismaDuzelt, yakinBina,
     guncelle, boyutlandir, yokEt,
   };

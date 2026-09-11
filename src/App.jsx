@@ -53,6 +53,7 @@ const HizliModPage = lazy(() => import("../bildim/pages/HizliModPage.jsx"));
 const CalismaPage = lazy(() => import("../bildim/pages/CalismaPage.jsx"));
 // Meydan (3B): three.js yalniz bu rotaya girilince iner (ayri chunk)
 const HaritaSayfasi = lazy(() => import("../bildim/harita/HaritaSayfasi.jsx"));
+const GorunumPage = lazy(() => import("../bildim/pages/GorunumPage.jsx"));
 
 export default function App() {
   const { session, loading } = useAuth();
@@ -180,6 +181,7 @@ export default function App() {
         <Route path="hizli-mod" element={<HizliModPage />} />
         <Route path="calisma" element={<CalismaPage />} />
         <Route path="harita" element={<HaritaSayfasi />} />
+        <Route path="gorunum" element={<GorunumPage />} />
         <Route path="profil" element={<ProfilePage />} />
       </Route>
 

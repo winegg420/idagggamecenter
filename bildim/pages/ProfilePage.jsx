@@ -128,6 +128,20 @@ export default function ProfilePage() {
 
       <UstalikIzgarasi />
 
+      {/* ---------- Görünüm (avatar kişiselleştirme) ---------- */}
+      <Link to={y("/gorunum")} className="kart bd-profil-hatalarim">
+        <span className="bd-mod-ikon" style={{ background: "var(--bd-vurgu)" }}>
+          <Ikon ad="tisort" boyut={20} />
+        </span>
+        <div className="bd-profil-hatalarim-metin">
+          <div className="ad">Görünüm</div>
+          <div className="alt-yazi">
+            Saç, şapka, gözlük, kıyafet ve efektleri buradan değiştir.
+          </div>
+        </div>
+        <span className="ok" aria-hidden="true">›</span>
+      </Link>
+
       {/* ---------- Hatalarım bankası ---------- */}
       {banka && (
         <Link to={y("/calisma")} className="kart bd-profil-hatalarim">

@@ -1,0 +1,123 @@
+/* ============================================================
+   GÖRÜNÜM SAYFASI
+   3B önizleme + yuva sekmeleri + eşya ızgarası + renk paleti.
+   Sınıflar .bd-gorunum- önekli; Şenlik dilini izler.
+   ============================================================ */
+
+.bd-gorunum-ust {
+  position: relative;
+  margin-bottom: 14px;
+}
+
+.bd-gorunum-sahne-kutu {
+  position: relative;
+  border-radius: 22px;
+  overflow: hidden;
+  background: linear-gradient(180deg, #CDEEFF, #EAF7FF 60%, #FFF6E8);
+  box-shadow: 0 5px 0 var(--bd-kart-alt);
+  height: 300px;
+}
+:root[data-tema="koyu"] .bd-gorunum-sahne-kutu {
+  background: linear-gradient(180deg, #1B2A44, #131C31);
+}
+.bd-gorunum-sahne { position: absolute; inset: 0; }
+.bd-gorunum-sahne canvas { display: block; }
+
+.bd-gorunum-sahnesiz {
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 8px; padding: 20px; text-align: center;
+  font-weight: 800; font-size: 13px; color: var(--bd-metin-2);
+}
+
+.bd-gorunum-coin {
+  position: absolute; top: 12px; right: 12px;
+  display: inline-flex; align-items: center; gap: 5px;
+  background: color-mix(in srgb, var(--bd-odul) 22%, var(--bd-yuzey-1));
+  color: var(--bd-odul-metin);
+  border-radius: var(--bd-r-tam);
+  padding: 5px 12px;
+  font-family: var(--bd-f-baslik); font-weight: 900; font-size: 14px;
+}
+:root[data-tema="koyu"] .bd-gorunum-coin { color: var(--bd-odul); }
+
+/* ---- yuva sekmeleri ---- */
+.bd-gorunum-yuvalar {
+  display: flex; gap: 6px; overflow-x: auto; padding-bottom: 4px;
+  margin-bottom: 12px;
+  scrollbar-width: none;
+}
+.bd-gorunum-yuvalar::-webkit-scrollbar { display: none; }
+.bd-gorunum-yuva {
+  flex: none; border: 0; cursor: pointer;
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 8px 13px; border-radius: var(--bd-r-tam);
+  background: var(--bd-yuzey-1);
+  box-shadow: 0 3px 0 var(--bd-kart-alt);
+  font-family: var(--bd-f-baslik); font-weight: 800; font-size: 13.5px;
+  color: var(--bd-metin-2);
+  white-space: nowrap;
+}
+.bd-gorunum-yuva.aktif {
+  background: var(--bd-vurgu); color: #fff;
+  box-shadow: 0 3px 0 var(--bd-vurgu-2);
+}
+
+/* ---- eşya ızgarası ---- */
+.bd-esya-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(94px, 1fr));
+  gap: 10px; margin-bottom: 14px;
+}
+.bd-esya {
+  border: 0; cursor: pointer; text-align: center;
+  display: flex; flex-direction: column; align-items: center; gap: 5px;
+  padding: 10px 6px; border-radius: 16px;
+  background: var(--bd-yuzey-1);
+  box-shadow: 0 4px 0 var(--bd-kart-alt);
+  font-family: var(--bd-f-govde); font-weight: 800; font-size: 12px;
+  color: var(--bd-metin);
+  transition: transform 0.08s ease, box-shadow 0.08s ease;
+}
+.bd-esya:active { transform: translateY(3px); box-shadow: 0 1px 0 var(--bd-kart-alt); }
+.bd-esya.secili {
+  outline: 3px solid var(--bd-vurgu);
+  outline-offset: -3px;
+}
+.bd-esya.kilitli .bd-esya-ad { color: var(--bd-metin-2); }
+.bd-esya-gorsel {
+  width: 46px; height: 46px; border-radius: 14px;
+  display: grid; place-items: center;
+  background: #DDE7F0; color: #fff;
+}
+.bd-esya.kilitli .bd-esya-gorsel { filter: grayscale(0.55) brightness(0.9); }
+.bd-esya-ad { line-height: 1.25; }
+.bd-esya-fiyat {
+  display: inline-flex; align-items: center; gap: 3px;
+  font-family: var(--bd-f-baslik); font-weight: 900; font-size: 11.5px;
+  color: var(--bd-odul-metin);
+}
+:root[data-tema="koyu"] .bd-esya-fiyat { color: var(--bd-odul); }
+
+/* ---- renk paleti ---- */
+.bd-palet-kart { margin-bottom: 12px; }
+.bd-palet { display: flex; gap: 9px; flex-wrap: wrap; }
+.bd-palet-renk {
+  width: 36px; height: 36px; border-radius: 50%;
+  border: 3px solid var(--bd-yuzey-1);
+  box-shadow: 0 3px 0 var(--bd-kart-alt);
+  cursor: pointer; padding: 0;
+}
+.bd-palet-renk.secili {
+  border-color: var(--bd-vurgu);
+  transform: scale(1.08);
+}
+
+.bd-gorunum-eylemler {
+  display: flex; flex-direction: column; gap: 10px;
+  max-width: 340px; margin: 18px auto 0;
+}
+
+@media (max-width: 400px) {
+  .bd-gorunum-sahne-kutu { height: 260px; }
+  .bd-esya-grid { grid-template-columns: repeat(auto-fill, minmax(86px, 1fr)); }
+}
