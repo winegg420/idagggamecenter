@@ -3409,3 +3409,22 @@ Vercel kendi derleyecek ve **env eklenmeden site Supabase'e bağlanamaz**
 yukarıdaki dört env'i production'a eklemek. Bağlanana kadar Quizador'un Vercel
 kopyası **her sürümde elle** deploy edilmeli, yoksa Cloudflare güncel olur ama
 Vercel adresi geride kalır.
+
+**GÜNCELLEME — Git bağlantısı kuruldu (11 Eylül):** `quizador-vercel` artık
+depoya bağlı; `main`'e push otomatik production deploy tetikliyor. Eklenen
+production env'leri: `VITE_MOD=bildim`, `VITE_SITE_URL=https://quizador.vercel.app`,
+`VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`.
+
+**Anahtar notu:** anon anahtarı yerel `.env`'deki ESKİ JWT (`eyJ…`, 208 karakter)
+değil, hub projesinin kullandığı **yeni `sb_publishable_…`** (46 karakter) olarak
+eklendi — ikisi karıştırılırsa site Supabase'e bağlanamaz.
+
+**Çıktı dizini tuzağı:** projenin panel ayarı "Output Directory: `public` if it
+exists, or `.`" idi. Repoda `public/` (PWA varlıkları) olduğu için Vercel kendi
+derlemesinde onu çıktı sanıp yanlış içerik yayınlayacaktı. `vercel.json`'a
+`framework: vite`, `buildCommand`, `outputDirectory: dist` yazıldı; aynı değerler
+hub projesi için de doğru.
+
+**Alias tuzağı:** `quizador.vercel.app` ek bir `.vercel.app` alias'ı; ilk otomatik
+deploy'da kendiliğinden geçmedi, `vercel domains add quizador.vercel.app
+quizador-vercel` ile projeye bağlandıktan sonra güncel deployment'a taşındı.
