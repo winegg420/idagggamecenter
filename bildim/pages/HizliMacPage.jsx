@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Ikon from "../components/Ikon.jsx";
 import SenRozeti from "../components/SenRozeti.jsx";
 import YanlisSatiri from "../components/YanlisSatiri.jsx";
@@ -13,9 +13,11 @@ import MacYukleniyor from "../components/MacYukleniyor.jsx";
 import { hataMesaji } from "../lib/hata.js";
 import { y } from "../lib/yol.js";
 import { useGorunurlukTazele, zamanAsimiyla } from "../lib/gorunurluk.js";
+import { useMacNabiz } from "../lib/nabiz.js";
+import { HazirKapisi, KopukPerde } from "../components/MacHazirlik.jsx";
 
 const HIZLI_SECIMI = `*,
-  katilimcilar:hizli_oyuncular(hizli_mac_id, user_id, davet_durumu, skor, joined_at,
+  katilimcilar:hizli_oyuncular(hizli_mac_id, user_id, davet_durumu, skor, joined_at, hazir, terk_at,
     profil:profiles(id, gorunen_ad, gorunen_avatar))`;
 
 export default function HizliMacPage() {
@@ -136,7 +138,9 @@ export default function HizliMacPage() {
 
   // Soru değişince çek
   useEffect(() => {
-    if (!mac || mac.durum !== "aktif" || mac.aktif_soru < 0) {
+    // Hazır kapısı açılmadan ve duraklatılmışken soru gösterilmez.
+    if (!mac || mac.durum !== "aktif" || mac.aktif_soru < 0
+      || !(mac.basladi ?? true) || mac.duraklatildi_at) {
       setSoru(null);
       return;
     }
@@ -150,7 +154,26 @@ export default function HizliMacPage() {
       .then(({ data, error }) => {
         if (!error && data?.[0]) setSoru(data[0]);
       });
-  }, [mac?.id, mac?.durum, mac?.aktif_soru, mac?.soru_baslangic]);
+  }, [mac?.id, mac?.durum, mac?.aktif_soru, mac?.soru_baslangic, mac?.basladi, mac?.duraklatildi_at]);
+
+  // ---- NABIZ ---- (hazır kapısı + varlık bildirimi, bkz. lib/nabiz.js)
+  const nabizParam = useMemo(() => ({ p_hizli_mac_id: id }), [id]);
+  const { nabiz, hazirla } = useMacNabiz("hizli_mac_nabiz", nabizParam, Boolean(mac));
+  const duraklatildi = Boolean(nabiz?.duraklatildi) && mac?.durum === "aktif";
+
+  const oncekiNabizRef = useRef(null);
+  useEffect(() => {
+    if (!nabiz) return;
+    const onceki = oncekiNabizRef.current;
+    oncekiNabizRef.current = nabiz;
+    if (!onceki) return;
+    if (onceki.basladi !== nabiz.basladi
+      || onceki.duraklatildi !== nabiz.duraklatildi
+      || onceki.durum !== nabiz.durum
+      || onceki.toplam_oyuncu !== nabiz.toplam_oyuncu) {
+      macYukle();
+    }
+  }, [nabiz, macYukle]);
 
   // Maç bitince puan tazele
   useEffect(() => {
@@ -231,7 +254,7 @@ export default function HizliMacPage() {
   const katilimcilar = mac.katilimcilar ?? [];
   const benimKayit = katilimcilar.find((k) => k.user_id === user.id);
   const siraliSkor = [...katilimcilar]
-    .filter((k) => k.davet_durumu === "kabul")
+    .filter((k) => k.davet_durumu === "kabul" && !k.terk_at)
     .sort((a, b) => b.skor - a.skor);
 
   if (mac.durum === "bekliyor") {
@@ -285,6 +308,34 @@ export default function HizliMacPage() {
     );
   }
 
+  // Hazır kapısı: herkes kabul etti ama yarış, HERKES "Hazır"a basana kadar
+  // başlamaz — ilk soru kimsenin sırtından geçmesin.
+  if (mac.durum === "aktif" && !(mac.basladi ?? true)) {
+    return (
+      <HazirKapisi
+        benHazir={Boolean(nabiz?.ben_hazir)}
+        hazirSayisi={nabiz?.hazir_sayisi ?? 0}
+        toplamOyuncu={nabiz?.toplam_oyuncu ?? siraliSkor.length}
+        bekleyenAdlar={nabiz?.bekleyenler ?? []}
+        onHazir={hazirla}
+        onCik={() => navigate(y("/meydan"))}
+        tabela={
+          <div className="kart" style={{ maxWidth: 340, margin: "0 auto 16px" }}>
+            {siraliSkor.map((k) => (
+              <div key={k.user_id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "6px 0" }}>
+                <Avatar profile={k.profil} boyut={34} />
+                <span style={{ flex: 1, fontWeight: 600, textAlign: "left" }}>
+                  {k.profil?.gorunen_ad}{k.user_id === user.id && <SenRozeti />}
+                </span>
+                <span className="alt-yazi">{k.hazir ? "hazır" : "bekleniyor…"}</span>
+              </div>
+            ))}
+          </div>
+        }
+      />
+    );
+  }
+
   if (mac.durum === "iptal") {
     return (
       <div className="buyuk-mesaj">
@@ -335,6 +386,10 @@ export default function HizliMacPage() {
         <div style={{ maxWidth: 340, margin: "12px auto 0" }}>
           <YanlisSatiri macTur="hizli" macId={id} />
         </div>
+        {/* Yarış bitti ama sayfa kapanmaz; çıkmaya oyuncu karar verir. */}
+        <div className="bd-oturum-notu">
+          Yarış bitti ama sayfa açık kalır — sonuçları incele, çıkmak sana kalmış.
+        </div>
         <button className="btn ikincil" style={{ marginTop: 16, maxWidth: 340, margin: "16px auto 0" }} onClick={() => navigate(y("/meydan"))}>
           Meydan okumalara dön
         </button>
@@ -345,6 +400,11 @@ export default function HizliMacPage() {
   // Aktif maç
   return (
     <div>
+      {/* Bir oyuncu ekrandan ayrıldı: ekran kilitlenir, süre durur. */}
+      {duraklatildi && (
+        <KopukPerde bekleyenAdlar={nabiz?.bekleyenler ?? []} gecenSn={nabiz?.duraklama_sn ?? 0} />
+      )}
+
       <div className="durum-bandi canli" style={{ marginBottom: 12 }}>
         Hızlı Olan Kazanır · İlk doğru cevap +10
       </div>

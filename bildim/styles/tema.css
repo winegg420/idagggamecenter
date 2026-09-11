@@ -4836,3 +4836,133 @@ body.bd-ekle-acik .app { padding-bottom: calc(300px + env(safe-area-inset-bottom
    bildirim geldiğinde çıktığı için ilk taramada görünmemişti. */
 .app .bd-zil-rozet,
 .app .bd-mod-rozet { background: #D31F30; color: #fff; }
+
+/* ============================================================
+   EŞ ZAMANLI MAÇ — HAZIR KAPISI VE KOPMA PERDESİ
+   Üç mod da (1v1 / grup / hızlı) bu parçaları kullanır.
+   ============================================================ */
+.app .bd-hazir-durum {
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+  margin: 4px 0 16px;
+}
+.app .bd-hazir-sayac {
+  display: inline-block;
+  background: var(--bd-yuzey-2, #EAF3FA);
+  color: var(--bd-metin-2);
+  border-radius: var(--bd-r-tam);
+  padding: 4px 14px;
+  font-family: var(--bd-f-baslik); font-weight: 900; font-size: 14px;
+}
+.app .bd-hazir-sayac.tamam {
+  background: color-mix(in srgb, var(--bd-basari) 18%, var(--bd-yuzey-1));
+  color: var(--bd-basari-metin);
+}
+.app .bd-hazir-dugmeler {
+  display: flex; flex-direction: column; gap: 10px;
+  max-width: 320px; margin: 0 auto;
+}
+.app .bd-hazir-btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  font-size: 17px;
+}
+.app .bd-hazir-beklemede {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  padding: 11px 16px; border-radius: 16px;
+  background: var(--bd-yuzey-1);
+  box-shadow: 0 4px 0 var(--bd-kart-alt);
+  font-weight: 800; font-size: 14px; color: var(--bd-metin-2);
+}
+.app .bd-hazir-nokta {
+  width: 9px; height: 9px; border-radius: 50%; flex: none;
+  background: var(--bd-basari);
+  animation: bd-hazir-nabiz 1.3s ease-in-out infinite;
+}
+@keyframes bd-hazir-nabiz {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%      { opacity: 0.45; transform: scale(0.75); }
+}
+
+/* ---- kopma perdesi: maç ekranının üstünü kilitler ---- */
+.bd-kopuk-perde {
+  position: fixed; inset: 0; z-index: 120;
+  display: grid; place-items: center;
+  padding: 20px;
+  background: color-mix(in srgb, var(--bd-zemin) 78%, transparent);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+.bd-kopuk-kutu {
+  background: var(--bd-yuzey-1);
+  border-radius: 22px;
+  box-shadow: 0 6px 0 var(--bd-kart-alt);
+  padding: 24px 22px;
+  max-width: min(90vw, 380px);
+  text-align: center;
+  font-family: var(--bd-f-govde);
+}
+.bd-kopuk-kutu b { color: var(--bd-metin); }
+.bd-kopuk-kutu > b {
+  display: block; margin-bottom: 6px;
+  font-family: var(--bd-f-baslik); font-size: 21px;
+}
+.bd-kopuk-kutu > span {
+  display: block; font-size: 13.5px; font-weight: 800; line-height: 1.5;
+  color: var(--bd-metin-2);
+}
+.bd-kopuk-sayac {
+  margin-top: 10px;
+  color: var(--bd-vurgu-metin) !important;
+  font-size: 12.5px !important;
+}
+.bd-kopuk-halka {
+  display: block; width: 38px; height: 38px; margin: 0 auto 12px;
+  border-radius: 50%;
+  border: 4px solid color-mix(in srgb, var(--bd-vurgu) 30%, transparent);
+  border-top-color: var(--bd-vurgu);
+  animation: bd-kopuk-don 0.9s linear infinite;
+}
+@keyframes bd-kopuk-don { to { transform: rotate(360deg); } }
+
+/* ---- maç bitti ama oturumda kalınıyor ---- */
+.app .bd-oturum-notu {
+  margin: 18px auto 0; max-width: 360px;
+  padding: 10px 14px; border-radius: 14px;
+  background: var(--bd-yuzey-1);
+  box-shadow: 0 3px 0 var(--bd-kart-alt);
+  font-size: 12.5px; font-weight: 800; line-height: 1.5;
+  color: var(--bd-metin-2); text-align: center;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .app .bd-hazir-nokta, .bd-kopuk-halka { animation: none; }
+}
+
+/* 13) MAÇ SONUÇ EKRANI — kontrast (bitmiş maç olmadığı için önceki
+   taramalarda bu ekran hiç görülmemişti):
+   a) "Kazandın!" başlığı eskiden ALTIN GRADYAN yazıydı (background-clip:text
+      + color:transparent). Şenlik katmanı gerçek bir renk verince clip
+      kalıntısı arkada DOLU ALTIN KUTU olarak kaldı; yeşil yazı altın üstünde
+      2.77'ye düştü. Kutu kaldırıldı, yazı sayfa zemininde okunuyor.
+   b) Paylaş düğmeleri `color: inherit` alıyordu: koyu zeminli WhatsApp/X
+      düğmelerinde yazı lacivert kalıp kayboluyordu (1.27).
+   c) "süre doldu" tur noktası: soluk zeminde ikincil metin 3.33 idi. */
+.app .bd-sonuc-baslik.kazandi,
+.app .bd-sonuc-baslik.kaybetti {
+  background: none;
+  -webkit-background-clip: border-box;
+  background-clip: border-box;
+  filter: none;
+}
+.app .paylas.x,
+.app .paylas.wa { color: #fff; }
+.app .bd-tur-nokta.sure { color: var(--bd-metin); }
+
+/* 14) "Hatalarım" satırı ve WhatsApp paylaş düğmesi
+   d) .bd-yanlis-satiri rengini hub token'ı üzerinden alıyor ama koyu temada
+      açık zemin rengiyle kalıyordu (1.10). Tema duyarlı token'a bağlandı.
+   e) WhatsApp yeşili beyaz yazıyla 2.87 idi; marka yeşili bir tık koyulaştı. */
+/* :root ile özgüllük artırıldı: src/styles.css'teki .app a.bd-yanlis-satiri
+   (0,2,1) aynı özgüllükte olduğu için sıra değil özgüllük gerekiyordu. */
+:root .app .bd-yanlis-satiri,
+:root .app a.bd-yanlis-satiri { color: var(--bd-metin); }
+.app .paylas.wa { background: #117A3B; }

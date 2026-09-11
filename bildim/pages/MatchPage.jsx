@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import SenRozeti from "../components/SenRozeti.jsx";
 import SayanSayi from "../components/SayanSayi.jsx";
 import SureDolduGecis from "../components/SureDolduGecis.jsx";
@@ -18,6 +18,8 @@ import MacYukleniyor from "../components/MacYukleniyor.jsx";
 import SesliSohbet from "../components/SesliSohbet.jsx";
 import { useOyunModu } from "../lib/oyunModu.js";
 import { useGorunurlukTazele, zamanAsimiyla } from "../lib/gorunurluk.js";
+import { useMacNabiz } from "../lib/nabiz.js";
+import { HazirKapisi, KopukPerde } from "../components/MacHazirlik.jsx";
 import { macBittiReklam } from "../lib/reklam.js";
 import { y } from "../lib/yol.js";
 import { GB_MS } from "../lib/geriBildirim.js";
@@ -68,9 +70,8 @@ export default function MatchPage() {
   // düzen kayması yüzünden şıkka tıklanamıyordu).
   const ilkGirisRef = useRef(null);
   const [yuklemeHatasi, setYuklemeHatasi] = useState(null);
-  // Senkron maç kapısı: rakip ekranda mı, ne kadardır bekliyoruz
-  const [rakipHazir, setRakipHazir] = useState(false);
-  const [bekleme, setBekleme] = useState(0);
+  // Duraklama bitince soruyu yeniden çekmek için sayaç (saat ileri kaydı)
+  const [duraklamaTuru, setDuraklamaTuru] = useState(0);
   const advanceKilidi = useRef(false);
   const pollRef = useRef(null);
   const kanalRef = useRef(null);
@@ -267,40 +268,35 @@ export default function MatchPage() {
         }
         if (data?.[0]) setSoru(data[0]);
       });
-  }, [mac?.id, mac?.durum, kendiIndeks, mac?.soru_ids?.length, senkronBekliyor]);
+  }, [mac?.id, mac?.durum, kendiIndeks, mac?.soru_ids?.length, senkronBekliyor, duraklamaTuru]);
 
-  // ---- SENKRON KAPISI ----
-  // Maç, İKİ TARAF DA ekranda olana kadar başlamaz: rakip erken girip önden
-  // gidemesin, geç kalan da başlamış bir maçın ortasına düşmesin. Nabız 3
-  // sn'de bir atılır; sunucu 12 sn'lik pencereye bakar. Bot her zaman hazır.
+  // ---- NABIZ ----
+  // 3 sn'de bir "buradayım" der, "Hazır"a basıldığını iletir ve ekranın ne
+  // çizeceğini (kapı / kilit / oyun) sunucudan öğrenir. Sekme arka planda
+  // olduğunda BİLEREK atılmaz — rakip o an ekranımızın kilitlenmesini görür.
+  const nabizParam = useMemo(() => ({ p_match_id: id }), [id]);
+  const { nabiz, hazirla } = useMacNabiz("mac_nabiz", nabizParam, Boolean(mac));
+
+  const duraklatildi = Boolean(nabiz?.duraklatildi) && mac?.durum === "aktif";
+  const duraklamaSn = nabiz?.duraklama_sn ?? 0;
+
+  // Sunucu durumu değişince maç satırını tazele (maç başladı / hükmen bitti).
+  const oncekiNabizRef = useRef(null);
   useEffect(() => {
-    if (!senkronBekliyor) return undefined;
-    let calisiyor = true;
-    const nabiz = async () => {
-      try {
-        const { data, error } = await zamanAsimiyla(
-          supabase.rpc("mac_hazir", { p_match_id: id }),
-          10000,
-          "mac_hazir"
-        );
-        if (error) throw error;
-        const r = Array.isArray(data) ? data[0] : data;
-        if (!calisiyor || !r) return;
-        setRakipHazir(Boolean(r.rakip_hazir));
-        if (r.basladi) macYukle();
-      } catch (e) {
-        console.error("[Bildim] hazir nabzi:", e);
-      }
-    };
-    nabiz();
-    const nabizId = setInterval(nabiz, 3000);
-    const sayacId = setInterval(() => setBekleme((s) => s + 1), 1000);
-    return () => {
-      calisiyor = false;
-      clearInterval(nabizId);
-      clearInterval(sayacId);
-    };
-  }, [senkronBekliyor, id, macYukle]);
+    if (!nabiz) return;
+    const onceki = oncekiNabizRef.current;
+    oncekiNabizRef.current = nabiz;
+    if (!onceki) return;
+    // Maç başladı, duraklama bitti ya da maç sonlandı: hepsi yeni veri ister.
+    if (onceki.basladi !== nabiz.basladi
+      || onceki.duraklatildi !== nabiz.duraklatildi
+      || onceki.durum !== nabiz.durum) {
+      macYukle();
+      // Duraklama bittiğinde soru saati İLERİ kaydırılmıştır; soruyu yeniden
+      // çekmezsek kart eski (dolmuş) sayaçla kalır.
+      if (onceki.duraklatildi && !nabiz.duraklatildi) setDuraklamaTuru((n) => n + 1);
+    }
+  }, [nabiz, macYukle]);
 
   const maciIptalEt = async () => {
     try {
@@ -414,47 +410,41 @@ export default function MatchPage() {
     );
   }
 
-  // Senkron kapısı: iki taraf da ekrana gelene kadar soru gösterilmez.
+  // Senkron kapısı: HERKES "Hazır"a basana kadar soru gösterilmez.
+  // Rakip ekranda olsa bile onay vermeden maç başlamaz (kullanıcı isteği).
   if (senkronBekliyor) {
     return (
-      <div className="buyuk-mesaj">
-        <Maskot poz="dusunuyor" boyut={104} className="bd-sonuc-maskot" />
-        <h2>{rakipHazir ? "Maç başlıyor…" : "Rakip bekleniyor"}</h2>
-        <p className="alt-yazi" style={{ marginBottom: 14 }}>
-          Bu maç <b>eş zamanlı</b> oynanır: <b>{rakipProfil?.gorunen_ad}</b> ekrana
-          gelince ikiniz aynı soruyu aynı anda göreceksiniz. Kimse öne geçemez.
-        </p>
-        <div className="skor-tabela bd-vs" style={{ maxWidth: 360, margin: "0 auto 16px" }}>
-          <div className="taraf bd-vs-taraf">
-            <Avatar profile={benimProfil} boyut={44} />
-            <div className="isim">{benimProfil?.gorunen_ad}<SenRozeti /></div>
-            <div className="bd-vs-ilerleme">hazır</div>
+      <HazirKapisi
+        benHazir={Boolean(nabiz?.ben_hazir)}
+        hazirSayisi={(nabiz?.ben_hazir ? 1 : 0) + (nabiz?.rakip_hazir ? 1 : 0)}
+        toplamOyuncu={2}
+        bekleyenAdlar={
+          nabiz && !nabiz.rakip_hazir && rakipProfil?.gorunen_ad
+            ? [rakipProfil.gorunen_ad]
+            : []
+        }
+        onHazir={hazirla}
+        // Henüz tek cevap yok: mac_iptal puansız iptal eder ve rakibe haber
+        // verir. Maçı ortada asılı bırakmaktan iyisi bu.
+        onCik={maciIptalEt}
+        tabela={
+          <div className="skor-tabela bd-vs" style={{ maxWidth: 360, margin: "0 auto 16px" }}>
+            <div className="taraf bd-vs-taraf">
+              <Avatar profile={benimProfil} boyut={44} />
+              <div className="isim">{benimProfil?.gorunen_ad}<SenRozeti /></div>
+              <div className="bd-vs-ilerleme">{nabiz?.ben_hazir ? "hazır" : "bekleniyor…"}</div>
+            </div>
+            <div className="vs bd-vs-rozet">VS</div>
+            <div className="taraf bd-vs-taraf">
+              <Avatar profile={rakipProfil} boyut={44} />
+              <div className="isim">{rakipProfil?.gorunen_ad}</div>
+              <div className="bd-vs-ilerleme">
+                {nabiz?.rakip_hazir ? "hazır" : nabiz?.rakip_baglantili ? "ekranda" : "bekleniyor…"}
+              </div>
+            </div>
           </div>
-          <div className="vs bd-vs-rozet">VS</div>
-          <div className="taraf bd-vs-taraf">
-            <Avatar profile={rakipProfil} boyut={44} />
-            <div className="isim">{rakipProfil?.gorunen_ad}</div>
-            <div className="bd-vs-ilerleme">{rakipHazir ? "hazır" : "bekleniyor…"}</div>
-          </div>
-        </div>
-        {bekleme >= 45 && !rakipHazir && (
-          <p className="alt-yazi" style={{ marginBottom: 12 }}>
-            {Math.floor(bekleme / 60) > 0 ? `${Math.floor(bekleme / 60)} dk ` : ""}
-            {bekleme % 60} sn'dir bekliyorsun. Rakibin sonra da girebilir — maç
-            burada seni bekler.
-          </p>
-        )}
-        <div style={{ display: "flex", flexDirection: "column", gap: 10, maxWidth: 320, margin: "0 auto" }}>
-          <button className="btn ikincil" onClick={() => navigate(y("/meydan"))}>
-            Sonra dönerim
-          </button>
-          {bekleme >= 45 && !rakipHazir && (
-            <button className="btn ikincil" onClick={maciIptalEt}>
-              Maçı iptal et
-            </button>
-          )}
-        </div>
-      </div>
+        }
+      />
     );
   }
 
@@ -499,6 +489,13 @@ export default function MatchPage() {
         <h2 className={`bd-sonuc-baslik ${kazandim ? "kazandi" : berabere ? "" : "kaybetti"}`}>
           {berabere ? "Berabere!" : kazandim ? "Kazandın!" : "Kaybettin"}
         </h2>
+        {mac.terk_eden && (
+          <p className="alt-yazi" style={{ marginTop: -4 }}>
+            {mac.terk_eden === user.id
+              ? "Maçtan ayrıldığın için hükmen mağlup sayıldın."
+              : `${rakipProfil?.gorunen_ad} maçı terk etti — hükmen kazandın.`}
+          </p>
+        )}
         {kazandim && <span className="bd-sonuc-kazanc">+20 puan</span>}
         <div className="skor-tabela" style={{ marginTop: 20 }}>
           <div className="taraf">
@@ -589,6 +586,61 @@ export default function MatchPage() {
             Meydan okumalara dön
           </button>
         </div>
+
+        {/* MAÇ BİTTİ AMA OTURUM KAPANMAZ.
+            Sayfa kendiliğinden kapanmıyor; oyuncular isterlerse burada kalıp
+            konuşmaya devam eder, çıkmaya kendileri karar verir. Sohbet ve
+            sesli sohbet bu yüzden sonuç ekranında da duruyor. */}
+        <div className="bd-oturum-notu">
+          Maç bitti ama oturum açık: istersen burada kalıp
+          {rakipBot ? " sohbet edebilirsin" : ` ${rakipProfil?.gorunen_ad} ile konuşmaya devam edebilirsin`}.
+          Çıkmak sana kalmış.
+        </div>
+
+        <SesliSohbet macId={id} benimId={user.id} />
+
+        {(balonlar[user.id] || balonlar[rakipProfil?.id]) && (
+          <div className="balon-satir">
+            <div className="balon-yuva">
+              {balonlar[user.id] && (
+                <div className="balon">{balonIcerik(balonlar[user.id])}</div>
+              )}
+            </div>
+            <div className="balon-yuva sag">
+              {balonlar[rakipProfil?.id] && (
+                <div className="balon rakip">{balonIcerik(balonlar[rakipProfil?.id])}</div>
+              )}
+            </div>
+          </div>
+        )}
+
+        <div className="sohbet-bar">
+          {TEPKILER.map((t) => (
+            <button
+              key={t.deger}
+              onClick={() => mesajGonder(t.deger)}
+              aria-label={t.etiket}
+              title={t.etiket}
+            >
+              <Ikon ad={t.ad} boyut={18} />
+            </button>
+          ))}
+          <button
+            className={kaliplarAcik ? "acik" : ""}
+            onClick={() => setKaliplarAcik((a) => !a)}
+          >
+            <Ikon ad="sohbet" boyut={18} />
+          </button>
+        </div>
+        {kaliplarAcik && (
+          <div className="kalip-liste">
+            {KALIPLAR.map((k) => (
+              <button key={k} onClick={() => mesajGonder(k)}>
+                {k}
+              </button>
+            ))}
+          </div>
+        )}
       </div>
     );
   }
@@ -639,6 +691,15 @@ export default function MatchPage() {
 
   return (
     <div>
+      {/* Rakip oyundan çıktı / ekran değiştirdi: ekran kilitlenir, maç durur.
+          Süre işlemediği için burada bekleyen oyuncu bir şey kaybetmez. */}
+      {duraklatildi && (
+        <KopukPerde
+          bekleyenAdlar={rakipProfil?.gorunen_ad ? [rakipProfil.gorunen_ad] : []}
+          gecenSn={duraklamaSn}
+        />
+      )}
+
       {/* Maç ekranında alt menü gizli; çıkış sol üstte */}
       <button
         className="bd-mac-cikis"
@@ -730,7 +791,7 @@ export default function MatchPage() {
           // Soruyu çeken effect de `kendiIndeks`e bağlı (yukarıda); key artık
           // onunla aynı kaynağa bakıyor. Grup ve Hızlı maç GERÇEKTEN senkron
           // olduğu için oralarda `aktif_soru` doğrudur, dokunulmadı.
-          key={`${mac.id}-${kendiIndeks}`}
+          key={`${mac.id}-${kendiIndeks}-${duraklamaTuru}`}
           soru={soru}
           onCevapla={cevapla}
           onSureDoldu={sureDoldu}

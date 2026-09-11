@@ -256,3 +256,9 @@
 
 /* Seçili kategori kartının adı koyu laciverttiyse koyu kartta kayboluyordu → 1.73 */
 :root[data-tema="koyu"] .app .bd-kat-kart.aktif .bd-kat-ad { color: var(--bd-metin); }
+
+/* "Hatalarım" satırı koyu temada açık zemin rengiyle kalıyordu (kontrast 1.10).
+   tema.css'teki düzeltme cascade'de kaybolduğu için burada tema özgül
+   seçiciyle kesinleştiriliyor. */
+:root[data-tema="koyu"] .app a.bd-yanlis-satiri,
+:root[data-tema="koyu"] .app .bd-yanlis-satiri { color: var(--bd-metin); }
