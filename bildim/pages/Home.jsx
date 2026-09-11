@@ -31,6 +31,8 @@ export default function Home() {
   // ya da normal (puan yok, serbest rakip).
   const [dereceliAra, setDereceliAra] = useState(true);
   const [siraSendeMaclar, setSiraSendeMaclar] = useState([]);
+  // Meydan okuman kabul edildi — rakip maçta seni bekliyor (en üstte, vurgulu)
+  const [yeniKabuller, setYeniKabuller] = useState([]);
   // Hatalarım bankasında bekleyen soru sayısı (mod kartı rozeti)
   const [bankaBekleyen, setBankaBekleyen] = useState(0);
   const [gorevlerAcik, setGorevlerAcik] = useState(false);
@@ -66,24 +68,46 @@ export default function Home() {
     };
   }, []);
 
-  // Asenkron maçlar: sırası BENDE olan yarım kalmış müsabakalar
+  // Sırası BENDE olan yarım kalmış müsabakalar + YENİ KABUL EDİLEN meydan
+  // okumalar. İkincisi ayrı tutulur: meydan okuduğun kişi kabul edip maça
+  // girdiğinde bunu HEMEN görmen gerekiyor (kullanıcı "maçı aramaktan
+  // bulamadım, rakip benden önce başladı" dedi). Bot maçlarının üstüne,
+  // en yenisi en başa gelir.
   const siraYukle = useCallback(async () => {
     try {
       const { data, error } = await supabase
         .from("matches")
-        .select("id, oyuncu1, oyuncu2, oyuncu1_soru, oyuncu2_soru, soru_ids")
+        .select(
+          `id, oyuncu1, oyuncu2, oyuncu1_soru, oyuncu2_soru, soru_ids, kabul_at, senkron, basladi,
+           p1:profiles!matches_oyuncu1_fkey(gorunen_ad, is_bot),
+           p2:profiles!matches_oyuncu2_fkey(gorunen_ad, is_bot)`
+        )
         .eq("durum", "aktif")
         .or("oyuncu1.eq." + user.id + ",oyuncu2.eq." + user.id)
-        .limit(10);
+        .limit(20);
       if (error) throw error;
-      const benim = (data ?? []).filter((m) => {
-        const benP1 = m.oyuncu1 === user.id;
-        const benimSoru = benP1 ? (m.oyuncu1_soru ?? 0) : (m.oyuncu2_soru ?? 0);
-        return benimSoru < (m.soru_ids?.length ?? 20);
-      });
-      setSiraSendeMaclar(benim);
+      const benim = (data ?? [])
+        .map((m) => {
+          const benP1 = m.oyuncu1 === user.id;
+          const benimSoru = benP1 ? (m.oyuncu1_soru ?? 0) : (m.oyuncu2_soru ?? 0);
+          const rakip = benP1 ? m.p2 : m.p1;
+          return { ...m, benimSoru, rakipAd: rakip?.gorunen_ad, rakipBot: Boolean(rakip?.is_bot) };
+        })
+        .filter((m) => m.benimSoru < (m.soru_ids?.length ?? 20));
+
+      // Yeni kabul: karşı taraf kabul etti, ben daha tek soru bile oynamadım.
+      // İlk cevapla birlikte kendiliğinden normal listeye düşer.
+      const yeni = benim
+        .filter((m) => m.kabul_at && m.benimSoru === 0 && !m.rakipBot)
+        .sort((a, b) => new Date(b.kabul_at) - new Date(a.kabul_at));
+      const yeniIdler = new Set(yeni.map((m) => m.id));
+
+      setYeniKabuller(yeni);
+      setSiraSendeMaclar(benim.filter((m) => !yeniIdler.has(m.id)));
     } catch {
-      setSiraSendeMaclar([]); // sessiz geç — ana sayfa akışını bozmasın
+      // sessiz geç — ana sayfa akışını bozmasın
+      setYeniKabuller([]);
+      setSiraSendeMaclar([]);
     }
   }, [user.id]);
 
@@ -318,6 +342,19 @@ export default function Home() {
           haftalık lig durumu. */}
       <section className="bd-katman bd-giris-2">
         <h2 className="bd-katman-baslik">Seni bekleyenler</h2>
+
+        {/* EN ÜSTTE: meydan okuman kabul edildi, rakip maçta bekliyor.
+            Bot maçlarının önüne geçer; en yeni kabul en başta. Ayrı renk
+            (bd-yeni-mac) çünkü bu iş zaman baskılı — rakip ekranda. */}
+        {yeniKabuller.map((m) => (
+          <Link key={m.id} to={y("/mac/") + m.id} className="bd-devam-eden bd-yeni-mac">
+            <span className="bd-yeni-mac-nokta" aria-hidden="true" />
+            <span>
+              <b>{m.rakipAd || "Rakibin"}</b> meydan okumanı kabul etti — maça gir!
+            </span>
+            <span className="ok" aria-hidden="true">›</span>
+          </Link>
+        ))}
 
         {/* Yarım kalan maçlar — sıra sendeyse en görünür yerde dursun */}
         {siraSendeMaclar.length > 0 && (

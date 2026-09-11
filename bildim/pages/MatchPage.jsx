@@ -68,6 +68,9 @@ export default function MatchPage() {
   // düzen kayması yüzünden şıkka tıklanamıyordu).
   const ilkGirisRef = useRef(null);
   const [yuklemeHatasi, setYuklemeHatasi] = useState(null);
+  // Senkron maç kapısı: rakip ekranda mı, ne kadardır bekliyoruz
+  const [rakipHazir, setRakipHazir] = useState(false);
+  const [bekleme, setBekleme] = useState(0);
   const advanceKilidi = useRef(false);
   const pollRef = useRef(null);
   const kanalRef = useRef(null);
@@ -230,11 +233,21 @@ export default function MatchPage() {
     }
   }, mac?.durum === "aktif");
 
-  // Soru değişince çek — ASENKRON: kendi sıra indeksimize bağlı
-  const kendiIndeks =
-    mac && mac.oyuncu1 === user.id ? (mac.oyuncu1_soru ?? 0) : (mac?.oyuncu2_soru ?? 0);
+  // Soru değişince çek.
+  // SENKRON maçta indeks ORTAK (`aktif_soru`): iki oyuncu da aynı soruda.
+  // Eski (asenkron) maçlarda herkes kendi `oyuncuN_soru` indeksinde.
+  const senkron = Boolean(mac?.senkron);
+  const kendiIndeks = !mac
+    ? 0
+    : senkron
+      ? (mac.aktif_soru ?? 0)
+      : mac.oyuncu1 === user.id
+        ? (mac.oyuncu1_soru ?? 0)
+        : (mac.oyuncu2_soru ?? 0);
+  // Senkron maç iki taraf da ekrana gelene kadar başlamaz.
+  const senkronBekliyor = mac?.durum === "aktif" && senkron && !mac?.basladi;
   useEffect(() => {
-    if (!mac || mac.durum !== "aktif") {
+    if (!mac || mac.durum !== "aktif" || senkronBekliyor) {
       setSoru(null);
       return;
     }
@@ -254,7 +267,49 @@ export default function MatchPage() {
         }
         if (data?.[0]) setSoru(data[0]);
       });
-  }, [mac?.id, mac?.durum, kendiIndeks, mac?.soru_ids?.length]);
+  }, [mac?.id, mac?.durum, kendiIndeks, mac?.soru_ids?.length, senkronBekliyor]);
+
+  // ---- SENKRON KAPISI ----
+  // Maç, İKİ TARAF DA ekranda olana kadar başlamaz: rakip erken girip önden
+  // gidemesin, geç kalan da başlamış bir maçın ortasına düşmesin. Nabız 3
+  // sn'de bir atılır; sunucu 12 sn'lik pencereye bakar. Bot her zaman hazır.
+  useEffect(() => {
+    if (!senkronBekliyor) return undefined;
+    let calisiyor = true;
+    const nabiz = async () => {
+      try {
+        const { data, error } = await zamanAsimiyla(
+          supabase.rpc("mac_hazir", { p_match_id: id }),
+          10000,
+          "mac_hazir"
+        );
+        if (error) throw error;
+        const r = Array.isArray(data) ? data[0] : data;
+        if (!calisiyor || !r) return;
+        setRakipHazir(Boolean(r.rakip_hazir));
+        if (r.basladi) macYukle();
+      } catch (e) {
+        console.error("[Bildim] hazir nabzi:", e);
+      }
+    };
+    nabiz();
+    const nabizId = setInterval(nabiz, 3000);
+    const sayacId = setInterval(() => setBekleme((s) => s + 1), 1000);
+    return () => {
+      calisiyor = false;
+      clearInterval(nabizId);
+      clearInterval(sayacId);
+    };
+  }, [senkronBekliyor, id, macYukle]);
+
+  const maciIptalEt = async () => {
+    try {
+      await supabase.rpc("mac_iptal", { p_match_id: id });
+    } catch (e) {
+      console.error("[Bildim] mac iptal edilemedi:", e);
+    }
+    navigate(y("/meydan"));
+  };
 
   // Rakip bir soru ilerlediyse (yani cevap verdiyse) avatarı bir kez atsın
   useEffect(() => {
@@ -355,6 +410,50 @@ export default function MatchPage() {
         <div className="emoji"><Ikon ad="saat" boyut={44} /></div>
         <h2>Cevap bekleniyor</h2>
         <p className="alt-yazi">{rakipProfil?.gorunen_ad} henüz kabul etmedi.</p>
+      </div>
+    );
+  }
+
+  // Senkron kapısı: iki taraf da ekrana gelene kadar soru gösterilmez.
+  if (senkronBekliyor) {
+    return (
+      <div className="buyuk-mesaj">
+        <Maskot poz="dusunuyor" boyut={104} className="bd-sonuc-maskot" />
+        <h2>{rakipHazir ? "Maç başlıyor…" : "Rakip bekleniyor"}</h2>
+        <p className="alt-yazi" style={{ marginBottom: 14 }}>
+          Bu maç <b>eş zamanlı</b> oynanır: <b>{rakipProfil?.gorunen_ad}</b> ekrana
+          gelince ikiniz aynı soruyu aynı anda göreceksiniz. Kimse öne geçemez.
+        </p>
+        <div className="skor-tabela bd-vs" style={{ maxWidth: 360, margin: "0 auto 16px" }}>
+          <div className="taraf bd-vs-taraf">
+            <Avatar profile={benimProfil} boyut={44} />
+            <div className="isim">{benimProfil?.gorunen_ad}<SenRozeti /></div>
+            <div className="bd-vs-ilerleme">hazır</div>
+          </div>
+          <div className="vs bd-vs-rozet">VS</div>
+          <div className="taraf bd-vs-taraf">
+            <Avatar profile={rakipProfil} boyut={44} />
+            <div className="isim">{rakipProfil?.gorunen_ad}</div>
+            <div className="bd-vs-ilerleme">{rakipHazir ? "hazır" : "bekleniyor…"}</div>
+          </div>
+        </div>
+        {bekleme >= 45 && !rakipHazir && (
+          <p className="alt-yazi" style={{ marginBottom: 12 }}>
+            {Math.floor(bekleme / 60) > 0 ? `${Math.floor(bekleme / 60)} dk ` : ""}
+            {bekleme % 60} sn'dir bekliyorsun. Rakibin sonra da girebilir — maç
+            burada seni bekler.
+          </p>
+        )}
+        <div style={{ display: "flex", flexDirection: "column", gap: 10, maxWidth: 320, margin: "0 auto" }}>
+          <button className="btn ikincil" onClick={() => navigate(y("/meydan"))}>
+            Sonra dönerim
+          </button>
+          {bekleme >= 45 && !rakipHazir && (
+            <button className="btn ikincil" onClick={maciIptalEt}>
+              Maçı iptal et
+            </button>
+          )}
+        </div>
       </div>
     );
   }
@@ -499,7 +598,9 @@ export default function MatchPage() {
   const benimSoru = benP1 ? (mac.oyuncu1_soru ?? 0) : (mac.oyuncu2_soru ?? 0);
   // Son 3 soru: tabelanın kenarlığı altına döner
   const sonDuzluk = toplamSoru - benimSoru <= 3;
-  if (mac.durum === "aktif" && benimSoru >= toplamSoru) {
+  // Bu ekran YALNIZ eski asenkron maçlara ait: senkron maçta iki taraf aynı
+  // anda bitirir, maç da o anda sonuçlanır.
+  if (!senkron && mac.durum === "aktif" && benimSoru >= toplamSoru) {
     return (
       <div className="buyuk-mesaj">
         <Maskot poz="selam" boyut={104} className="bd-sonuc-maskot" />
@@ -530,8 +631,9 @@ export default function MatchPage() {
 
   // Aktif maç
   // İlk render'da bir kez karar ver: rakip öndeyse bilgi kartını göster.
+  // Senkron maçta kimse öne geçemez; bu kart yalnız eski maçlarda anlamlı.
   if (ilkGirisRef.current === null) {
-    ilkGirisRef.current = ilerleme.rakip > ilerleme.ben && benimSoru === 0;
+    ilkGirisRef.current = !senkron && ilerleme.rakip > ilerleme.ben && benimSoru === 0;
   }
   const rakipOnde = ilkGirisRef.current;
 
@@ -580,9 +682,9 @@ export default function MatchPage() {
           <div className="skor"><SayanSayi deger={benimSkor} /></div>
           <div className="bd-vs-ilerleme">{ilerleme.ben}/{toplamSoru}</div>
         </div>
-        {/* Asenkron: rozet KENDİ sıramızı gösterir, ortak sayacı değil */}
+        {/* Senkronda ortak soru numarası; eski maçlarda KENDİ sıramız */}
         <div className="vs bd-vs-rozet">
-          {Math.min(benimSoru + 1, toplamSoru)}/{toplamSoru}
+          {Math.min((senkron ? kendiIndeks : benimSoru) + 1, toplamSoru)}/{toplamSoru}
         </div>
         <div
           className={`taraf bd-vs-taraf ${
@@ -640,7 +742,9 @@ export default function MatchPage() {
 
       {cevapladim && (
         <div className="alt-yazi" style={{ textAlign: "center", marginTop: 14 }}>
-          Sıradaki soru geliyor…
+          {senkron
+            ? `${rakipProfil?.gorunen_ad} cevaplayınca soru geçecek…`
+            : "Sıradaki soru geliyor…"}
         </div>
       )}
 

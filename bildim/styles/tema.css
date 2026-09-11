@@ -4798,3 +4798,41 @@ body.bd-ekle-acik .app { padding-bottom: calc(300px + env(safe-area-inset-bottom
 
 /* 11) "1 turnuva kaldı" — daha özgül bir kural (--bd-metin-3, 3.76) kazanıyordu */
 .app .bd-istatistik-hedef .etiket { color: var(--bd-metin-2); }
+
+/* ============================================================
+   YENİ KABUL EDİLEN MEYDAN OKUMA (ana sayfa, en üst)
+   Meydan okuduğun kişi kabul edip maça girdiğinde rakip EKRANDA bekliyor;
+   bu satır zaman baskılı, sıradan bir "yarım kalan maç" gibi durmamalı.
+   Kullanıcı bildirimi görmeyip maçı bulamadığı için eklendi.
+   ============================================================ */
+.app .bd-yeni-mac {
+  background: linear-gradient(135deg, #FFE9D6, #FFF6EC);
+  border: 2px solid var(--bd-vurgu);
+  box-shadow: 0 4px 0 var(--bd-vurgu-2);
+  color: var(--bd-metin);
+}
+.app .bd-yeni-mac b { color: var(--bd-vurgu-metin); }
+.app .bd-yeni-mac .ok { color: var(--bd-vurgu-metin); }
+.app .bd-yeni-mac-nokta {
+  width: 10px; height: 10px; border-radius: 50%; flex: none;
+  background: var(--bd-vurgu);
+  box-shadow: 0 0 0 4px rgba(244, 112, 31, 0.22);
+  animation: bd-yeni-mac-nabiz 1.4s ease-in-out infinite;
+}
+@keyframes bd-yeni-mac-nabiz {
+  0%, 100% { box-shadow: 0 0 0 4px rgba(244, 112, 31, 0.22); }
+  50%      { box-shadow: 0 0 0 8px rgba(244, 112, 31, 0.06); }
+}
+:root[data-tema="koyu"] .app .bd-yeni-mac {
+  background: linear-gradient(135deg, #3A2415, #2A1C12);
+  border-color: var(--bd-vurgu);
+}
+@media (prefers-reduced-motion: reduce) {
+  .app .bd-yeni-mac-nokta { animation: none; }
+}
+
+/* 12) Sayaç rozetleri (bildirim zili, mod kartı): beyaz yazı #FF4757 üstünde
+   3.34 idi. Kırmızı kimliği korunur, bir tık koyulaşır (5.24). Rozet yeni
+   bildirim geldiğinde çıktığı için ilk taramada görünmemişti. */
+.app .bd-zil-rozet,
+.app .bd-mod-rozet { background: #D31F30; color: #fff; }
