@@ -2081,3 +2081,50 @@ tip, kısıt) böyle doğrulandı; kalıcı etki yok. Aynı yöntemle 65 işlev 
 yazıldı ve bunlar 6 gerçek hata yakaladı (`joker_islemleri.kaynak` kısıtı,
 `badges` birincil anahtarı, dönüş tipi değişimi, ad çakışması, kısmi kayıt,
 test fikstürlerindeki zorunlu kolonlar).
+
+---
+
+## 2026-09-11 (6) — iPhone'da beyaz ekran + migration'lar canlıya alındı
+
+### iPhone'da site açılmıyordu — sebep ve kanıt
+Arkadaşının iPhone'unda site bembeyaz açılıyordu. **Tahmin edilmedi, canlı
+paket indirilip ölçüldü:** yayındaki `index-Bbwt29PY.js` içinde `?.`
+(optional chaining) **12.693 adet**, `??` **27 adet** HAM hâlde duruyordu.
+
+Bu iki sözdizimi **Safari 13.1** ile geldi. iOS 13.3 ve altındaki iPhone'lar
+dosyayı ayrıştıramıyor → uygulama hiç başlamadan beyaz sayfa. **Hata konsola
+bile düşmüyor**, çünkü kod çalışmaya başlamıyor — bu yüzden fark edilmemiş.
+
+Sebep: Vite'ın varsayılan `build.target` değeri `"modules"` = safari14.
+Kimse daha eskisini düşünmemiş.
+
+**Düzeltme:** `build.target` ve `build.cssTarget` açıkça
+`["es2019","safari12",...]`. safari12 = iOS 12.2 (iPhone 5s/6 dahil hâlâ
+ayakta olan en eski cihazlar). Ölçüm: ham `?.` 12.693 → **0**.
+
+### İkinci kat: color-mix()
+`color-mix()` iOS 16.2+ ister; eski Safari o **bildirimi düşürür**. Tam ekran
+perdelerde (kopma kilidi, 3-2-1 geri sayım) zemin düşünce perde **görünmez
+ama tıklamayı engellemeye devam ediyordu**. 19 yere düz renkli yedek eklendi.
+
+### "Bir daha açılmamazlık yapmasın" — otomatik denetim
+`araclar/tarayici-uyumluluk.mjs` + `package.json` `postbuild`: **her
+`npm run build` sonrası kendiliğinden çalışır.**
+- Safari 12.1 üstü sözdizimi bulursa **derlemeyi çökertir** (exit 1)
+- Korumasız yeni API ve yedeksiz `color-mix` için uyarır
+- Yanlış pozitifleri eler: küçültücünün `x ? .5 : 1` → `x?.5:1` yazması ve
+  metin içindeki `"???"` dizgileri
+
+**Denetimin kendisi de sınandı:** hedef geçici olarak `es2022` yapıldı →
+derleme exit 1 ile düştü, 55 dosyada optional chaining raporlandı; hedef geri
+alınınca temiz geçti.
+
+### Migration'lar canlıya uygulandı
+131–134 sırayla uygulandı. Sonuç: 11 ayar, 18 eşya, 4 coin paketi, 39 oyuncuya
+başlangıç coini, 176 eşya sahipliği, `matches`'a 4 yeni kolon, `avatarlar`
+Storage kovası. Canlı duman testi 7/7.
+
+### Canlı doğrulama
+`quizador.vercel.app` açıldı: başlık "Quiz Square", kök dolu, konsolda hata
+yok, üst çubukta coin hapı (300), `/gorunum` sayfasında 3B avatar çiziliyor,
+7 yuva sekmesi ve ten paleti çalışıyor. Canlı paketlerde ham `?.` / `??` = 0.
