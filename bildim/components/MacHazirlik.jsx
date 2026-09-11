@@ -9,6 +9,9 @@ import Ikon from "./Ikon.jsx";
 /** Rakip dönmezse maçın hükmen biteceği süre (sunucudaki değerle aynı). */
 export const TERK_SN = 45;
 
+/** Bu süre sonunda "Asenkron bırak" seçeneği çıkar (oyun_ayarlari ile aynı). */
+export const LOBI_BEKLEME_SN = 120;
+
 /**
  * Maç başlamadan önceki ekran.
  *
@@ -28,6 +31,8 @@ export function HazirKapisi({
   bekleyenAdlar = [],
   onHazir,
   onCik,
+  onAsenkron = null,
+  bekleyenSn = 0,
   tabela = null,
 }) {
   const hepsiHazir = toplamOyuncu > 0 && hazirSayisi >= toplamOyuncu;
@@ -51,6 +56,19 @@ export function HazirKapisi({
         )}
       </div>
 
+      {/* Rakip 2 dakikadır gelmedi: oyuncu seçsin — iptal mi, sıra tabanlı
+          (asenkron) oyun mu. Beklemeye mahkûm bırakılmıyor. */}
+      {onAsenkron && bekleyenSn >= LOBI_BEKLEME_SN && !hepsiHazir && (
+        <div className="bd-lobi-secenek">
+          <b>Rakibin {Math.floor(bekleyenSn / 60)} dakikadır gelmedi.</b>
+          <span>
+            İstersen maçı <b>sıra tabanlı</b> bırak: sen kendi bölümünü şimdi
+            oynarsın, rakibin kendi zamanında oynar.
+          </span>
+          <button className="btn kucuk" onClick={onAsenkron}>Asenkron bırak</button>
+        </div>
+      )}
+
       <div className="bd-hazir-dugmeler">
         {!benHazir ? (
           <button className="btn bd-hazir-btn" onClick={onHazir}>
@@ -63,7 +81,26 @@ export function HazirKapisi({
             Hazırsın — diğerleri bekleniyor
           </div>
         )}
-        <button className="btn ikincil" onClick={onCik}>Vazgeç</button>
+        <button className="btn ikincil" onClick={onCik}>
+          {bekleyenSn >= LOBI_BEKLEME_SN ? "İptal et" : "Vazgeç"}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Maç başlarken 3-2-1 geri sayımı.
+ * Sayıyı SUNUCU belirler: soru saati geri sayım kadar ileri kurulur, iki
+ * istemci de aynı anı görür. Burada yalnız kalan saniye çizilir.
+ */
+export function GeriSayim({ kalan }) {
+  const n = Math.max(1, Math.ceil(kalan));
+  return (
+    <div className="bd-geri-sayim" role="status" aria-live="assertive">
+      <div className="bd-geri-sayim-kutu">
+        <span className="bd-geri-sayim-sayi" key={n}>{n}</span>
+        <span className="bd-geri-sayim-not">Hazır ol!</span>
       </div>
     </div>
   );

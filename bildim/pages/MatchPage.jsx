@@ -19,7 +19,7 @@ import SesliSohbet from "../components/SesliSohbet.jsx";
 import { useOyunModu } from "../lib/oyunModu.js";
 import { useGorunurlukTazele, zamanAsimiyla } from "../lib/gorunurluk.js";
 import { useMacNabiz } from "../lib/nabiz.js";
-import { HazirKapisi, KopukPerde } from "../components/MacHazirlik.jsx";
+import { HazirKapisi, KopukPerde, GeriSayim } from "../components/MacHazirlik.jsx";
 import { macBittiReklam } from "../lib/reklam.js";
 import { y } from "../lib/yol.js";
 import { GB_MS } from "../lib/geriBildirim.js";
@@ -280,6 +280,37 @@ export default function MatchPage() {
   const duraklatildi = Boolean(nabiz?.duraklatildi) && mac?.durum === "aktif";
   const duraklamaSn = nabiz?.duraklama_sn ?? 0;
 
+  // 3-2-1: maç başladı ama soru saati henüz gelmedi (sunucu 3 sn ileri kurdu).
+  // Sunucu saatiyle kendi saatimiz arasındaki farkı nabızdan öğreniyoruz;
+  // cihaz saati yanlışsa bile geri sayım doğru çalışır.
+  const [geriSayim, setGeriSayim] = useState(null);
+  useEffect(() => {
+    if (!nabiz?.basladi || !nabiz?.baslangic || !nabiz?.sunucu_zamani) {
+      setGeriSayim(null);
+      return undefined;
+    }
+    const fark = new Date(nabiz.sunucu_zamani).getTime() - Date.now();
+    const bitis = new Date(nabiz.baslangic).getTime();
+    const hesapla = () => {
+      const kalan = (bitis - (Date.now() + fark)) / 1000;
+      setGeriSayim(kalan > 0.05 ? kalan : null);
+    };
+    hesapla();
+    const id = setInterval(hesapla, 100);
+    return () => clearInterval(id);
+  }, [nabiz?.basladi, nabiz?.baslangic, nabiz?.sunucu_zamani]);
+
+  /** Rakip gelmiyor: maçı sıra tabanlı (asenkron) bırak. */
+  const asenkronaGec = async () => {
+    try {
+      const { error } = await supabase.rpc("mac_asenkrona_gec", { p_match_id: id });
+      if (error) throw error;
+      await macYukle();
+    } catch (e) {
+      console.error("[Bildim] asenkrona gecilemedi:", e);
+    }
+  };
+
   // Sunucu durumu değişince maç satırını tazele (maç başladı / hükmen bitti).
   const oncekiNabizRef = useRef(null);
   useEffect(() => {
@@ -427,6 +458,9 @@ export default function MatchPage() {
         // Henüz tek cevap yok: mac_iptal puansız iptal eder ve rakibe haber
         // verir. Maçı ortada asılı bırakmaktan iyisi bu.
         onCik={maciIptalEt}
+        // Bot maçında asenkron seçeneği anlamsız (bot zaten hep hazır).
+        onAsenkron={rakipBot ? null : asenkronaGec}
+        bekleyenSn={nabiz?.lobi_saniye ?? 0}
         tabela={
           <div className="skor-tabela bd-vs" style={{ maxWidth: 360, margin: "0 auto 16px" }}>
             <div className="taraf bd-vs-taraf">
@@ -691,6 +725,9 @@ export default function MatchPage() {
 
   return (
     <div>
+      {/* 3-2-1: iki oyuncuda da AYNI ANDA biter, ilk soru gecikmesiz açılır. */}
+      {geriSayim !== null && <GeriSayim kalan={geriSayim} />}
+
       {/* Rakip oyundan çıktı / ekran değiştirdi: ekran kilitlenir, maç durur.
           Süre işlemediği için burada bekleyen oyuncu bir şey kaybetmez. */}
       {duraklatildi && (

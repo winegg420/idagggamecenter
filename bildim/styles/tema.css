@@ -5018,3 +5018,49 @@ body.bd-ekle-acik .app { padding-bottom: calc(300px + env(safe-area-inset-bottom
   .app .bd-coin-hap { padding: 5px 8px; font-size: 13px; }
   .app .bd-dukkan-sekme { font-size: 13px; padding: 8px 4px; }
 }
+
+/* ============================================================
+   3-2-1 GERİ SAYIM + LOBİDE ASENKRON SEÇENEĞİ
+   ============================================================ */
+.bd-geri-sayim {
+  position: fixed; inset: 0; z-index: 130;
+  display: grid; place-items: center;
+  background: color-mix(in srgb, var(--bd-zemin) 70%, transparent);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+.bd-geri-sayim-kutu { text-align: center; }
+.bd-geri-sayim-sayi {
+  display: block;
+  font-family: var(--bd-f-baslik); font-weight: 800;
+  font-size: 96px; line-height: 1;
+  color: var(--bd-vurgu);
+  text-shadow: 0 6px 0 var(--bd-vurgu-2);
+  animation: bd-sayim-zipla 0.9s ease-out;
+}
+.bd-geri-sayim-not {
+  display: block; margin-top: 8px;
+  font-family: var(--bd-f-baslik); font-weight: 800; font-size: 18px;
+  color: var(--bd-metin-2);
+}
+@keyframes bd-sayim-zipla {
+  0%   { transform: scale(1.6); opacity: 0; }
+  25%  { transform: scale(1);   opacity: 1; }
+  100% { transform: scale(1);   opacity: 1; }
+}
+
+.app .bd-lobi-secenek {
+  max-width: 340px; margin: 0 auto 14px;
+  padding: 12px 16px; border-radius: 16px;
+  background: var(--bd-yuzey-1);
+  border: 2px solid var(--bd-odul);
+  box-shadow: 0 4px 0 var(--bd-odul-2);
+  font-size: 13px; font-weight: 800; line-height: 1.5;
+  color: var(--bd-metin-2); text-align: center;
+}
+.app .bd-lobi-secenek > b { display: block; color: var(--bd-metin); margin-bottom: 4px; }
+.app .bd-lobi-secenek .btn { margin-top: 10px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .bd-geri-sayim-sayi { animation: none; }
+}
