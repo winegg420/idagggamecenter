@@ -3372,3 +3372,40 @@ ayrıntılar `CLOUDFLARE_DAGITIM.md`'de.
 | `quizador.pages.dev` | Quizador (Cloudflare) | 200, ama pages.dev engellenebiliyor |
 | `idagg-game-center.vercel.app` | Hub (8 oyun) | 200 |
 | `bildim.vercel.app` | — | **404, ölü** |
+
+---
+
+## 11 Eylül 2026 — quizador.vercel.app neden eski kaldı (çözüldü)
+
+**Belirti:** Şenlik revizyonu push edilip Cloudflare'a deploy olduktan sonra da
+oyuncular siyah arayüz görüyordu.
+
+**Sebep iki katmanlıydı:**
+1. `quizador-vercel` projesi **Git'e bağlı değil** (11 Eylül 00:01 commit'inde
+   "bekleyen iş" olarak not düşülmüştü). `main`'e push otomatik deploy
+   tetiklemiyor; yalnız Cloudflare ve hub projesi güncelleniyordu.
+2. Elle deploy yapılsa bile yetmiyordu: **`quizador.vercel.app` alias'ı eski bir
+   deployment'a bağlıydı.** Yeni deployment `quizador-vercel.vercel.app`'e
+   gidiyor, asıl adres 13 saat önceki derlemede kalıyordu.
+
+**Yapılan (11 Eylül):**
+```bash
+VITE_MOD=bildim VITE_SITE_URL=https://quizador.vercel.app npm run build
+# dist -> .vercel/output/static + config.json (Build Output API v3, rewrite: /(.*) -> /index.html)
+npx vercel deploy --prebuilt --prod
+npx vercel alias set <yeni-deployment> quizador.vercel.app
+```
+Üç adres de doğrulandı — hepsi `index-BjZyNGmG.css` + `theme-color #CDEEFF`:
+`quizador.vercel.app` · `quizador.pages.dev` · `idagg-game-center.vercel.app`.
+
+**DİKKAT — bu proje env değişkeni kullanmıyor.** `vercel env ls production`
+boş döndü; dağıtım `--prebuilt` olduğu için derleme yerelde yapılıyor ve
+`VITE_MOD` / Supabase anahtarları yerel `.env`'den geliyor. Git'e bağlanırsa
+Vercel kendi derleyecek ve **env eklenmeden site Supabase'e bağlanamaz**
+(gereken: `VITE_MOD=bildim`, `VITE_SITE_URL=https://quizador.vercel.app`,
+`VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`).
+
+**Kalıcı çözüm için yapılacak (sahibin kararı):** projeyi depoya bağlamak +
+yukarıdaki dört env'i production'a eklemek. Bağlanana kadar Quizador'un Vercel
+kopyası **her sürümde elle** deploy edilmeli, yoksa Cloudflare güncel olur ama
+Vercel adresi geride kalır.
