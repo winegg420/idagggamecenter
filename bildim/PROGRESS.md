@@ -1815,3 +1815,64 @@ nabız atıyor; `prefers-reduced-motion` ile animasyon kapanıyor.
 
 **Doğrulama:** `npm run build` temiz; yukarıdaki DB testleri geçti; 844×390
 yatay testte taşma yok.
+
+---
+
+## 2026-09-11 (2) — Harita siyah ekran + kontrast/yatay kaydırma
+
+`56d04b0` ve `5597e21`. Görev metinleri repo kökünde:
+`QUIZADOR_HARITA_HATASI.md`, `QUIZADOR_KONTRAST_TASMA.md`.
+
+### Harita siyah ekran — kök sebep
+`HaritaSayfasi.jsx` effect'i `[user?.id, Boolean(profile)]`'e bağlıydı ve
+gövdesi `if (!kapsayici || !user || !profile) return` ile başlıyordu. `profile`
+bir an boşalınca (oturum tazeleme, `profilim` RPC'sinin hata dönmesi) temizleme
+çalışıp `dunya.yokEt()` sahneyi yıkıyor, effect yeniden kurulurken erken
+dönüyordu: canvas DOM'da kalıyor, rAF duruyor, **konsolda hiçbir hata olmuyor**.
+Çok oyunculu kısım bir kez bağlandığı için "1 kişi burada" yazıyor ve hata
+"sahne yok ama her şey normal" gibi görünüyordu.
+
+Düzeltmeler:
+- Sahne yalnız `user?.id` ile kurulur; ad `adRef` üzerinden okunur.
+- Profil sonradan gelirse **sahne yıkılmaz**, yalnız isim etiketi yenilenir
+  (`dunya.js › avatarAdiDegistir`).
+- Çizim döngüsü try/catch; bir kare hatası artık sessizce öldürmüyor.
+- İlk kare 8 sn'de gelmezse perde kalkıyor, "Tekrar dene" hata kutusu çıkıyor.
+  Sekme gizliyken süre yeniden kuruluyor — otomasyon/arka plan sekmesinde
+  rAF durduğu için yanlış alarm verilmiyor.
+- WebGL yoksa dürüst mesaj; `.bd-harita` zemini gökyüzü rengi.
+
+**Not (tuzak):** Chrome otomasyonunda sekme `document.hidden = true` sayılıyor,
+rAF hiç çalışmıyor. "Sahne hazırlanıyor…" takılması orada ürün hatası değil;
+sahnenin gerçekten çizdiği `dunya.js`'i doğrudan yükleyip `readPixels` ile
+doğrulandı (7 bina, gerçek piksel).
+
+### Yatay kaydırma — gerçek düzeltme
+`.bd-ust-blok` `calc(50% - 50vw)` ile tam genişliğe taşıyor; `vw` dikey
+kaydırma çubuğunu da saydığı için blok içerik alanından çubuk kadar (≈15px)
+genişti. Daha önce `overflow-x: clip` ile **gizlenmişti**. Artık çubuk
+genişliği ölçülüp `--bd-cubuk`'a yazılıyor (`bildim/lib/kaydirmaCubugu.js`) ve
+taşma geri alınıyor → blok tam 0..1185, `scrollWidth = clientWidth`.
+
+**Tuzak:** ölçüm gözlemi `<html>`'e kurulunca hiç tetiklenmiyor — `<html>`
+yüksekliği görünen alana sabit kalıyor, içerik taşsa da büyümüyor. Gözlem
+`document.body`'ye kurulmalı.
+
+### Kontrast
+Site açık temaya geçerken koyu zemin için seçilmiş altın/soluk tonlar kaldı.
+Düzeltilenler: bağlantı rengi, görev sayacı, haftalık geri sayım, profil
+kategori alt yazıları, lig şeridi, küçük etiketler, turnuva etiketi, bot
+zorluk etiketleri, "TURNUVA LOBİSİ", rütbe adları ve eski `--text-dim`
+(tek satırda 64 kullanım).
+
+Yeni metin tokenları: `--bd-odul-metin`, `--bd-basari-metin`,
+`--bd-vurgu-metin`, `--bd-hata-metin` (koyu temada `koyu.css` çeviriyor).
+Rütbe adları `ranks.js › metinRenk` ile
+`color-mix(in srgb, <renk> 50%, var(--bd-metin))` — kimlik korunuyor, açık
+temada koyulaşıyor (≥4.6), koyu temada açılıyor (≥7.2).
+
+**Denetim betiği hakkında iki yanlış pozitif** (görev metnindeki liste bu
+yüzden şişkindi): (1) betik SVG metninin `color`'ını okuyor, logo aslında
+`fill="var(--bd-metin)"` ile çiziliyor ve okunur; (2) yarı saydam arka
+planları kompozit etmiyor ve `color(srgb 0..1)` biçimini yanlış ayrıştırıyor.
+Düzeltilmiş betikle 9 sayfa + bir maç ekranı, **açık ve koyu temada** boş dizi.
