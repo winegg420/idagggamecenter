@@ -31,6 +31,7 @@ const YENIDEN_BAGLAN_MAX = 15000;
  * @param {(id:string) => void} o.onAyrilma
  * @param {(id:string, poz:{x:number,z:number,y:number}) => void} o.onPoz
  * @param {(id:string, e:string) => void} o.onEmoji
+ * @param {(id:string, gorunum:object|null) => void} o.onGorunum
  * @param {(bagli:boolean, sayi:number) => void} o.onDurum
  */
 export function meydanBaglan(o) {
@@ -108,6 +109,13 @@ export function meydanBaglan(o) {
           if (!bilinen.has(payload.id)) return;            // presence'ta olmayanı çizme
           try { o.onPoz?.(payload.id, payload); } catch (e) { console.error("[Meydan] onPoz:", e); }
         })
+        .on("broadcast", { event: "gorunum" }, ({ payload }) => {
+          // Oyuncu kıyafet değiştirdi: tek mesaj, avatar sahnede yenilenir.
+          if (!payload || payload.id === ben.id) return;
+          if (!bilinen.has(payload.id)) return;
+          try { o.onGorunum?.(payload.id, payload.g ?? null); }
+          catch (e) { console.error("[Meydan] onGorunum:", e); }
+        })
         .on("broadcast", { event: "emoji" }, ({ payload }) => {
           if (!payload || payload.id === ben.id) return;
           if (!bilinen.has(payload.id)) return;
@@ -121,7 +129,11 @@ export function meydanBaglan(o) {
           if (durum === "SUBSCRIBED") {
             yenidenBekleme = YENIDEN_BAGLAN_MIN;
             try {
-              await kanal.track({ id: ben.id, ad: ben.ad, renk: ben.renk, sac: ben.sac });
+              // Görünüm presence yükünde BİR KEZ gider; kare kare değil.
+              await kanal.track({
+                id: ben.id, ad: ben.ad, renk: ben.renk, sac: ben.sac,
+                gorunum: ben.gorunum ?? null,
+              });
             } catch (e) {
               console.error("[Meydan] track:", e);
             }
@@ -176,6 +188,19 @@ export function meydanBaglan(o) {
           payload: { id: ben.id, x: +x.toFixed(2), z: +z.toFixed(2), y: +y.toFixed(3), t },
         });
       } catch (e) { console.error("[Meydan] poz:", e); }
+    },
+
+    /**
+     * Kıyafet değişimini duyurur — TEK MESAJ. Konum gibi kare kare gitmez.
+     * Presence yükü de güncellenir ki sonradan gelenler doğru görsün.
+     */
+    async gorunumGonder(gorunum) {
+      ben.gorunum = gorunum ?? null;
+      if (!bagli || !kanal || kapandi) return;
+      try {
+        kanal.send({ type: "broadcast", event: "gorunum", payload: { id: ben.id, g: ben.gorunum } });
+        await kanal.track({ id: ben.id, ad: ben.ad, renk: ben.renk, sac: ben.sac, gorunum: ben.gorunum });
+      } catch (e) { console.error("[Meydan] gorunum:", e); }
     },
 
     /** Emoji yayını — 2 sn'de bir. Gönderildiyse true (yerel balon da o zaman çıkar). */

@@ -17,6 +17,7 @@ import { dunyaKur } from "./dunya.js";
 import { kontrolKur } from "./kontrol.js";
 import { meydanBaglan } from "./coklu.js";
 import { renkUret } from "./renk.js";
+import { esyaBilgisi } from "./esyalar.js";
 import "./harita.css";
 
 const EMOJILER = ["👋", "😂", "🔥", "🤔", "🎉", "⚔️"];
@@ -93,6 +94,9 @@ export default function HaritaSayfasi() {
   const [ipucu, setIpucu] = useState(null); // { ad, alt, rota }
   const [hata, setHata] = useState(null);   // { mesaj, tekrar:boolean }
   const [kurulum, setKurulum] = useState(0); // "Tekrar dene" sahneyi yeniden kurar
+  // Kendi görünümüm + eşya kataloğu. Sahne bunlar gelmeden kurulmaz ki
+  // avatar önce çıplak çizilip sonra giyinmesin.
+  const [gorunumVerisi, setGorunumVerisi] = useState(null); // { gorunum, bilgi }
   const [bilgiAcik, setBilgiAcik] = useState(() => {
     try { return localStorage.getItem(BILGI_ANAHTARI) !== "1"; } catch { return true; }
   });
@@ -102,6 +106,28 @@ export default function HaritaSayfasi() {
   useEffect(() => {
     document.body.classList.add("bd-harita-acik");
     return () => document.body.classList.remove("bd-harita-acik");
+  }, []);
+
+  // Katalog + kendi görünümüm. Migration uygulanmadıysa boş görünümle
+  // devam edilir (eski davranış: düz gövde + basit saç).
+  useEffect(() => {
+    let aktif = true;
+    (async () => {
+      try {
+        const { data, error } = await supabase.rpc("esya_katalogum");
+        if (error) throw error;
+        const r = Array.isArray(data) ? data[0] : data;
+        if (!aktif) return;
+        setGorunumVerisi({
+          gorunum: r?.gorunum && typeof r.gorunum === "object" ? r.gorunum : {},
+          bilgi: esyaBilgisi(Array.isArray(r?.esyalar) ? r.esyalar : []),
+        });
+      } catch (e) {
+        console.error("[Meydan] gorunum alinamadi:", e);
+        if (aktif) setGorunumVerisi({ gorunum: {}, bilgi: {} });
+      }
+    })();
+    return () => { aktif = false; };
   }, []);
 
   const ad = profile?.gorunen_ad || "Oyuncu";
@@ -114,7 +140,7 @@ export default function HaritaSayfasi() {
 
   useEffect(() => {
     const kapsayici = kapsayiciRef.current;
-    if (!kapsayici || !user) return undefined;
+    if (!kapsayici || !user || !gorunumVerisi) return undefined;
 
     if (!webglVarMi()) {
       setYukleniyor(false);
@@ -146,21 +172,27 @@ export default function HaritaSayfasi() {
     const renk = renkUret(user.id);
     // Profil henüz gelmediyse avatar geçici "Oyuncu" adıyla kurulur;
     // ad gelince aşağıdaki effect yalnız etiketi yeniler.
-    const ben = dunya.avatarOlustur(adRef.current, renk.govde, renk.sac, renk.etiket);
+    const ben = dunya.avatarOlustur(
+      adRef.current, renk.govde, renk.sac, renk.etiket,
+      gorunumVerisi.gorunum, gorunumVerisi.bilgi
+    );
     ben.position.set(0, 0, 11);
 
     kontrol = kontrolKur(padRef.current, topuzRef.current);
 
     coklu = meydanBaglan({
       supabase,
-      ben: { id: user.id, ad: adRef.current, renk: renk.govde, sac: renk.sac },
+      ben: { id: user.id, ad: adRef.current, renk: renk.govde, sac: renk.sac,
+             gorunum: gorunumVerisi.gorunum },
       onKatilim(id, bilgi) {
         if (uzaklar.has(id)) return;
         const varsayilan = renkUret(id);
         const govde = typeof bilgi?.renk === "number" ? bilgi.renk : varsayilan.govde;
         const sac = typeof bilgi?.sac === "number" ? bilgi.sac : varsayilan.sac;
+        // Uzak oyuncunun görünümü presence yükünde geldi (kare kare değil).
         const av = dunya.avatarOlustur(
-          String(bilgi?.ad || "Oyuncu"), govde, sac, "#" + govde.toString(16).padStart(6, "0")
+          String(bilgi?.ad || "Oyuncu"), govde, sac, "#" + govde.toString(16).padStart(6, "0"),
+          bilgi?.gorunum ?? null, gorunumVerisi.bilgi
         );
         const eski = sonKonum.get(id);
         if (eski) {
@@ -211,6 +243,13 @@ export default function HaritaSayfasi() {
           u.av.rotation.y = donus;
           u.av.visible = true;
         }
+      },
+      onGorunum(id, g) {
+        // Kıyafet değişimi: SAHNE YIKILMAZ, yalnız eşyalar yenilenir.
+        const u = uzaklar.get(id);
+        if (!u) return;
+        try { dunya.avatarGorunumu(u.av, g ?? {}, gorunumVerisi.bilgi); }
+        catch (e) { console.error("[Meydan] uzak gorunum:", e); }
       },
       onEmoji(id, e) {
         const u = uzaklar.get(id);
@@ -382,7 +421,36 @@ export default function HaritaSayfasi() {
     // profil bir an boşalınca sahnenin yıkılmasını istemiyoruz.
     // `kurulum` yalnız "Tekrar dene" düğmesiyle artar.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user?.id, kurulum]);
+  }, [user?.id, kurulum, gorunumVerisi]);
+
+  // Sekmeye dönünce görünümü tazele: oyuncu BAŞKA SEKMEDE kıyafet değiştirmiş
+  // olabilir. Değiştiyse kendi avatarımız sahneyi yıkmadan güncellenir ve
+  // meydandakilere TEK broadcast mesajı gider (kare kare değil).
+  useEffect(() => {
+    if (!gorunumVerisi) return undefined;
+    const tazele = async () => {
+      if (document.hidden) return;
+      try {
+        const { data, error } = await supabase.rpc("esya_katalogum");
+        if (error) throw error;
+        const r = Array.isArray(data) ? data[0] : data;
+        const yeni = r?.gorunum && typeof r.gorunum === "object" ? r.gorunum : {};
+        const c = canliRef.current;
+        if (!c || JSON.stringify(yeni) === JSON.stringify(gorunumVerisi.gorunum)) return;
+        gorunumVerisi.gorunum = yeni;   // sahneyi yeniden kurmadan güncelle
+        c.dunya.avatarGorunumu(c.ben, yeni, gorunumVerisi.bilgi);
+        c.coklu.gorunumGonder(yeni);
+      } catch (e) {
+        console.error("[Meydan] gorunum tazelenemedi:", e);
+      }
+    };
+    document.addEventListener("visibilitychange", tazele);
+    window.addEventListener("focus", tazele);
+    return () => {
+      document.removeEventListener("visibilitychange", tazele);
+      window.removeEventListener("focus", tazele);
+    };
+  }, [gorunumVerisi]);
 
   // Profil sonradan gelirse sahneyi yıkmadan yalnız isim etiketini yenile.
   useEffect(() => {
