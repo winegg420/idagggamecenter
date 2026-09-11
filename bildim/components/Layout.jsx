@@ -14,6 +14,7 @@ import Ikon from "./Ikon.jsx";
 import Avatar from "../../src/components/Avatar.jsx";
 import Logo from "./Logo.jsx";
 import SesDugmesi from "./SesDugmesi.jsx";
+import TemaDugmesi from "./TemaDugmesi.jsx";
 import { y, BILDIM_MOD } from "../lib/yol.js";
 
 export default function Layout() {
@@ -99,6 +100,7 @@ export default function Layout() {
           </Link>
           {profile && (
             <div className="bd-topbar-sag">
+              <TemaDugmesi />
               <SesDugmesi />
               <BildirimZili />
               <Link to={y("/profil")} className="bd-puan-link" aria-label="Puanım">

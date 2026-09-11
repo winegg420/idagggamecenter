@@ -58,6 +58,8 @@ export default function QuestionCard({
   const sonTikRef = useRef(null);
   // Sayaç tiki: sekmeden dönüldüğünde dışarıdan elle tetiklenebilsin.
   const tikRef = useRef(null);
+  // Atlama başarısız olduysa en erken bu ana kadar yeniden denenmez.
+  const yenidenDeneRef = useRef(0);
 
   // Yeni soru geldiğinde durumu sıfırla
   useEffect(() => {

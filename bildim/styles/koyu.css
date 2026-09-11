@@ -1,0 +1,234 @@
+/* ============================================================
+   KOYU TEMA
+   ------------------------------------------------------------
+   Tek kaynak: <html data-tema="koyu"> (bkz. bildim/lib/tema.js).
+   Şenlik katmanının tamamı token kullandığı için gövde kendiliğinden
+   dönüyor; burada yalnız (a) token değerleri, (b) token'a bağlanamayan
+   sabit renkler var.
+
+   Bu dosya tema.css'ten SONRA yüklenir (main.jsx) — kaskadda sonra
+   geldiği için açık tema kurallarını ezer.
+
+   Kart altı kalınlık dili KORUNUYOR: koyuda kalınlık kartın altındaki
+   daha KOYU bir ton (açık temada daha açık maviydi). Kabartma hissi aynı.
+
+   Ölçülen kontrast (koyu): ana metin/kart 12,5:1 · ikincil 7,1:1 ·
+   üçüncül 5,1:1 · turuncu vurgu/kart 6,8:1 · kategori çipi 7,5:1.
+   ============================================================ */
+
+:root[data-tema="koyu"] {
+  /* Zemin — gece laciverti (gökyüzü gradyanının koyu karşılığı) */
+  --bd-zemin: #131C31;
+  --bd-zemin-2: #1A2338;
+  --bd-gok: #0B1220;
+
+  /* Yüzey */
+  --bd-yuzey-1: #1E2A42;
+  --bd-yuzey-2: #22304B;
+  --bd-yuzey-3: #2A3856;
+
+  /* Kart altı kalınlık + kenar: koyuda alttaki ton daha koyu olur */
+  --bd-kart-alt: #0E1728;
+  --bd-kenar: #2E3C58;
+
+  /* Anlam renkleri aynı aile; koyu zeminde zaten canlı duruyor.
+     Yalnız "-2" alt tonları koyulaştırıldı — kalınlık kartla karışmasın. */
+  --bd-vurgu: #F4701F;
+  --bd-vurgu-2: #A8450C;
+  --bd-vurgu-acik: #FF9A4D;
+  --bd-odul: #FFC53D;
+  --bd-odul-2: #A87F00;
+  --bd-basari: #2FBF71;
+  --bd-basari-2: #14663B;
+  --bd-hata: #EF4B4B;
+  --bd-hata-2: #8E2020;
+  --bd-bilgi: #5AA9E6;
+  --bd-mor: #9A74FF;
+
+  /* Metin */
+  --bd-metin: #EAF0FA;
+  --bd-metin-2: #A8B8D0;
+  --bd-metin-3: #8B9CB5;   /* açık temadaki ton koyuda sönük kalıyordu */
+
+  /* Gölgeler yine düz kalınlık; koyuda dış gölge daha derin */
+  --bd-golge-yumusak: 0 4px 0 var(--bd-kart-alt);
+  --bd-golge-derin: 0 5px 0 var(--bd-kart-alt);
+  --bd-glow-mor: 0 4px 0 var(--bd-kart-alt);
+  --bd-glow-odul: 0 5px 0 var(--bd-vurgu-2), 0 9px 14px rgba(0, 0, 0, 0.45);
+
+  /* Hub token'ları (src/styles.css) — aynı paletten */
+  --bg: #131C31;
+  --bg-2: #1A2338;
+  --bg-3: #2A3856;
+  --card: #1E2A42;
+  --border: #2E3C58;
+  --card-alt: #0E1728;
+  --text: #EAF0FA;
+  --text-dim: #A8B8D0;
+  --primary: #F4701F;
+  --primary-2: #A8450C;
+  --accent: #FFC53D;
+  --success: #2FBF71;
+  --success-2: #14663B;
+  --danger: #EF4B4B;
+  --danger-2: #8E2020;
+}
+
+/* ---------- zemin ---------- */
+:root[data-tema="koyu"],
+:root[data-tema="koyu"] body {
+  background-color: var(--bd-zemin);
+}
+:root[data-tema="koyu"] body {
+  background: linear-gradient(180deg, var(--bd-gok) 0%, var(--bd-zemin) 38%, var(--bd-zemin-2) 100%);
+  background-attachment: fixed;
+}
+
+/* ---------- açık temaya göre SABİT yazılmış kalınlıklar ----------
+   Açık temada kart altı #CFE0EE (açık mavi) idi; koyuda görünmez olur. */
+:root[data-tema="koyu"] .app .bd-hap,
+:root[data-tema="koyu"] .app .puan-chip,
+:root[data-tema="koyu"] .app .bd-cip,
+:root[data-tema="koyu"] .app input[type="text"],
+:root[data-tema="koyu"] .app input[type="search"],
+:root[data-tema="koyu"] .app input[type="number"],
+:root[data-tema="koyu"] .app input[type="email"],
+:root[data-tema="koyu"] .app textarea,
+:root[data-tema="koyu"] .app select,
+:root[data-tema="koyu"] .app .topbar .bd-ses-dugme,
+:root[data-tema="koyu"] .app .topbar .bd-zil,
+:root[data-tema="koyu"] .app .bd-tema-dugme,
+:root[data-tema="koyu"] .app .gs-kutu,
+:root[data-tema="koyu"] .gs-kutu,
+:root[data-tema="koyu"] .app .bd-ses-durum,
+:root[data-tema="koyu"] .app .bd-ses-cagri,
+:root[data-tema="koyu"] .app .bd-ses-bilgi,
+:root[data-tema="koyu"] .app .bd-vs-taraf .skor,
+:root[data-tema="koyu"] .app .bd-vs-rozet {
+  box-shadow: 0 3px 0 var(--bd-kart-alt);
+}
+
+/* Üst bar + alt sekme çubuğu */
+:root[data-tema="koyu"] .app .bd-ust-blok {
+  background: var(--bd-yuzey-1);
+  border-bottom-color: var(--bd-kenar);
+  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.25);
+}
+:root[data-tema="koyu"] .app .tabbar { border-top-color: var(--bd-kenar); }
+:root[data-tema="koyu"] .app .tabbar a { color: var(--bd-metin-3); }
+:root[data-tema="koyu"] .app .tabbar .rozet.nokta,
+:root[data-tema="koyu"] .app .bd-zil-rozet,
+:root[data-tema="koyu"] .app .bd-bk-durum {
+  box-shadow: 0 0 0 2px var(--bd-yuzey-1);
+}
+
+/* Avatar beyaz kenarları koyuda kartın rengini alsın */
+:root[data-tema="koyu"] .app .bd-hero-halka,
+:root[data-tema="koyu"] .app .bd-vs-taraf .bd-avatar,
+:root[data-tema="koyu"] .app .bd-vs-taraf img,
+:root[data-tema="koyu"] .app .bd-vs-taraf .avatar {
+  border-color: var(--bd-yuzey-1);
+  box-shadow: 0 3px 0 rgba(0, 0, 0, 0.35);
+}
+
+/* ---------- mod ikonları: pastel zemin -> koyu zemin + açık ikon ---------- */
+:root[data-tema="koyu"] .app .tema-meydan    .bd-mod-ikon { background: #3D211C; color: #FF9280; }
+:root[data-tema="koyu"] .app .tema-hizli     .bd-mod-ikon { background: #3B2F14; color: #FFC862; }
+:root[data-tema="koyu"] .app .tema-grup      .bd-mod-ikon { background: #172C3F; color: #7EC3F0; }
+:root[data-tema="koyu"] .app .tema-turnuva   .bd-mod-ikon { background: #2E1F4A; color: #C9A9FF; }
+:root[data-tema="koyu"] .app .tema-joker     .bd-mod-ikon { background: #3D1B2E; color: #FF92C4; }
+:root[data-tema="koyu"] .app .tema-hatalarim .bd-mod-ikon { background: #123330; color: #6FD8D2; }
+:root[data-tema="koyu"] .app .tema-lig       .bd-mod-ikon { background: #123322; color: #6FDB9E; }
+
+/* Soru ekranı: kategori çipi ve şık harfi */
+:root[data-tema="koyu"] .app .bd-soru-kategori { background: #2E1F4A; color: #C9A9FF; }
+:root[data-tema="koyu"] .app .bd-harf { background: var(--bd-yuzey-3); color: var(--bd-metin-2); }
+
+/* Lig: kendi satırın — krem yerine koyu altın */
+:root[data-tema="koyu"] .app .bd-lig-satir.ben,
+:root[data-tema="koyu"] .app .bd-benim-satir {
+  background: linear-gradient(180deg, #33281A, #241C12);
+  box-shadow: 0 4px 0 #14100A;
+  color: var(--bd-metin);
+}
+/* Devam eden maç skoru + kazanç hapı (açıkta krem/altın zemindi) */
+:root[data-tema="koyu"] .app .bd-devam-eden .bd-skor,
+:root[data-tema="koyu"] .app .bd-devam-eden .skor,
+:root[data-tema="koyu"] .app .bd-sonuc-kazanc {
+  background: #33281A; color: #FFC53D;
+}
+
+/* Süre dolmuş tur kutusu (maç sonu dökümü) */
+:root[data-tema="koyu"] .app .bd-tur-nokta.sure,
+:root[data-tema="koyu"] .app .bd-dokum-anahtar i.sure { background: #46536B; }
+
+/* Hata kutusu */
+:root[data-tema="koyu"] .app .hata-kutu {
+  background: #3A1D1D; color: #FF9A9A; box-shadow: 0 3px 0 #24110F;
+}
+
+/* Modal / panel katmanları (portal — .app dışında) */
+:root[data-tema="koyu"] .bd-modal-katman { background: rgba(4, 8, 16, 0.62); }
+:root[data-tema="koyu"] .bd-zil-ortu { background: rgba(4, 8, 16, 0.55); }
+:root[data-tema="koyu"] .bd-modal,
+:root[data-tema="koyu"] .bd-modal-kutu,
+:root[data-tema="koyu"] .bd-sayfa-modal,
+:root[data-tema="koyu"] .bd-zil-liste,
+:root[data-tema="koyu"] .bd-zil-panel {
+  box-shadow: 0 6px 0 var(--bd-kart-alt), 0 18px 40px rgba(0, 0, 0, 0.5);
+}
+
+/* Tam ekran katmanlar (rütbe kutlaması, rakip arama, tanıtım) */
+:root[data-tema="koyu"] .rutbe-kutlama,
+:root[data-tema="koyu"] .bd-arama-katman,
+:root[data-tema="koyu"] .bd-tanitim-katman {
+  background: linear-gradient(180deg, var(--bd-gok) 0%, var(--bd-zemin) 38%, var(--bd-zemin-2) 100%);
+}
+
+/* Sıralama tablosu */
+:root[data-tema="koyu"] .sr-tablo thead th { border-bottom-color: var(--bd-kenar); }
+
+/* Hub oyun kartları: gölge koyu zeminde daha derin */
+:root[data-tema="koyu"] .gc-kart {
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.12);
+}
+
+/* ---------- giriş ekranı (.app sarmalayıcısının dışında) ---------- */
+:root[data-tema="koyu"] .giris input[type="email"],
+:root[data-tema="koyu"] .giris input[type="text"],
+:root[data-tema="koyu"] .giris .bd-kod-giris input {
+  box-shadow: 0 3px 0 var(--bd-kart-alt);
+}
+:root[data-tema="koyu"] .giris .sosyal-btn:active { background: var(--bd-yuzey-3); }
+@media (hover: hover) {
+  :root[data-tema="koyu"] .giris .sosyal-btn:hover { background: var(--bd-yuzey-3); }
+}
+
+/* ---------- harita HUD (3B sahne kendisi gündüz kalır) ---------- */
+:root[data-tema="koyu"] .bd-harita-ipucu,
+:root[data-tema="koyu"] .bd-harita-bilgi,
+:root[data-tema="koyu"] .bd-harita-emoji,
+:root[data-tema="koyu"] .bd-harita-btn.beyaz { box-shadow: 0 4px 0 var(--bd-kart-alt); }
+:root[data-tema="koyu"] .bd-harita-hap { box-shadow: 0 3px 0 var(--bd-kart-alt); }
+
+/* ============================================================
+   TEMA DÜĞMESİ (her iki temada da geçerli)
+   ============================================================ */
+.app .bd-tema-dugme {
+  display: inline-grid; place-items: center;
+  width: 34px; height: 34px;
+  border: 2px solid var(--bd-kenar);
+  border-radius: 50%;
+  background: var(--bd-yuzey-1);
+  color: var(--bd-metin);
+  box-shadow: 0 3px 0 #CFE0EE;
+  cursor: pointer;
+  flex: none;
+  transition: transform 0.08s ease, box-shadow 0.08s ease;
+}
+.app .bd-tema-dugme:active { transform: translateY(2px); box-shadow: 0 1px 0 #CFE0EE; }
+:root[data-tema="koyu"] .app .bd-tema-dugme:active { box-shadow: 0 1px 0 var(--bd-kart-alt); }
+
+@media (prefers-reduced-motion: reduce) {
+  .app .bd-tema-dugme { transition: none; }
+}

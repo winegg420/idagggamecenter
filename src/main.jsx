@@ -16,6 +16,13 @@ import { hataIzlemeKur } from "./lib/hataIzleme.js";
 import "./styles.css";
 // Bildim görsel dili (tema tokenları) — global stillerden SONRA yüklenir
 import "../bildim/styles/tema.css";
+// Koyu tema tema.css'ten SONRA: kaskadda sonra gelip acik temayi ezer.
+import "../bildim/styles/koyu.css";
+import { temaBaslat } from "../bildim/lib/tema.js";
+
+// Tema ilk boyadan ONCE uygulanir: koyu tema secen oyuncu bir kare beyaz
+// ekran gormesin.
+temaBaslat();
 
 // Hata izleme: YALNIZ VITE_SENTRY_DSN tanımlıysa kurulur. Boşsa Sentry paketi
 // hiç yüklenmez ve konsola uyarı basılmaz — DSN'siz çalışmak normal durumdur.

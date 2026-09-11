@@ -1685,3 +1685,80 @@ istenirse Supabase Auth panelinden silinebilir. Ayrıca önceki oturumda
 çalışıyor, o gün butona ref ile tıklama React'e ulaşmamıştı.
 
 **Push edilmedi** (görev metni: "main'e push etme, deploy etme — bitince bildir").
+
+---
+
+## 11 Eylül 2026 (6) — Açık/koyu tema + botlar 4 zorluk seviyesine indi
+
+### ACİL DÜZELTME: maç ekranı canlıda çöküyordu
+
+Tema işi sırasında bulundu. Aynı gün yapılan donma düzeltmesinde
+(`9d86474`) `QuestionCard`'a `yenidenDeneRef` eklenmişti ama **tanım satırı
+dosyaya hiç girmemişti** — node ile yapılan `replace` satır sonu farkı
+yüzünden sessizce tutmamış, ben de doğrularken yalnız *kullanım* satırlarını
+grep'leyip tanımı kontrol etmemiştim.
+
+Sonuç: `ReferenceError: yenidenDeneRef is not defined` → soru bileşeni
+mount olurken patlıyor, **maç ekranı bomboş açılıyordu**. Canlı paket
+incelenerek doğrulandı (minify edilmiş kodda ad korunmuştu — tanımsız global
+olduğu için minifier yeniden adlandıramamış). `const yenidenDeneRef = useRef(0)`
+eklendi; maç ekranı yeniden çalışıyor, konsol temiz.
+
+**Ders:** üretilen kodu grep'le doğrularken *kullanımı* değil *tanımı* ara;
+en iyisi derleyip ekranı gerçekten açmak.
+
+### Açık/koyu tema
+
+- `bildim/lib/tema.js` — üç durum: `cihaz` (varsayılan) / `acik` / `koyu`.
+  Tercih `localStorage`, uygulanan tema `<html data-tema>`. Düğmeye dokununca
+  seçim kalıcı olur; dokunulmadıysa cihazın gece modu izlenir (canlı değişir).
+  `temaBaslat()` React'ten **önce** `main.jsx`'te çağrılır — koyu tema seçen
+  oyuncu bir kare beyaz ekran görmesin.
+- `bildim/components/TemaDugmesi.jsx` — üst barda ay/güneş (yeni `ay`/`gunes`
+  ikonları `Ikon.jsx`'e eklendi).
+- `bildim/styles/koyu.css` — `:root[data-tema="koyu"]` altında token'lar +
+  token'a bağlanamayan sabitler (pastel mod ikonları, kategori çipi, lig
+  "kendi satırın" kremi, kart altı `#CFE0EE` kalınlıkları, modal perdeleri,
+  harita HUD). tema.css'ten sonra yüklenir.
+- `theme-color` ve `color-scheme` de temayla değişiyor.
+- Ölçülen kontrast (koyu): ana metin/kart **12,5:1**, ikincil 7,1:1,
+  üçüncül 5,1:1, turuncu vurgu/kart 6,8:1, kategori çipi 7,5:1.
+  Üçüncül metin `#9AB0C4` koyuda sönük kaldığı için `#8B9CB5` oldu.
+- 3B meydan sahnesi bilerek gündüz kalıyor; yalnız HUD tema değiştiriyor.
+
+### Botlar: 5 dağınık → 4 net seviye
+
+Migration `…125_bot_zorluk_seviyeleri`:
+
+| seviye | ad | isabet | puan |
+|---|---|---|---|
+| kolay | ToyBot | %42 | 50 |
+| orta | ÇaylakBot | %58 | 250 |
+| zor | ÜstatBot | %75 | 1110 |
+| çok zor | EfsaneBot | %90 | 1450 |
+
+Önce: AcemiBot %45, ÇaylakBot %45, KurtBot %65, BilgeBot %65, UstaBot %85 —
+beş bot, üç isabet, "KurtBot" hangi seviye belli değil.
+
+Beşinci bot **silinmedi** (19 maç, 347 cevap, 6 turnuvada geçiyor; silinirse
+geçmiş bozulur). Yeni `profiles.bot_aktif` bayrağı false yapıldı; bot seçen üç
+RPC'ye (`quick_match`, `turnuva_lobi_botlari`, `bot_join_tournament`) filtre
+eklendi.
+
+Migration `…126_emekli_bot_ligden_gizle`: canlı testte lig 3.'sü olarak
+"ÇaylakBot (emekli)" göründü — oyuncu iç işleyişi okumasın diye ad "BilgeBot"
+yapıldı ve `lig_siralama` emekli botları atlıyor (aktif botlar listede kalır).
+
+**Üç kısıt ardı ardına çıktı, üçü de migration yorumlarına yazıldı:**
+1. `gorunen_ad` **üretilmiş (generated)** kolon — `takma_ad`'dan hesaplanıyor,
+   doğrudan yazılamıyor.
+2. `takma_ad` üzerinde **küçük/büyük harf duyarsız UNIQUE indeks** var
+   (`idx_profiles_takma_ad_ci`) — emekli bota eski adı "ÇaylakBot" geri
+   verilemedi, o ad artık aktif orta bota ait.
+3. `create or replace function` dönüş tipini **ve parametre varsayılanlarını**
+   değiştiremiyor — `lig_siralama` imzası birebir korunmak zorundaydı
+   (`user_id/gorunen_ad/gorunen_avatar`, `default 'global'/'hafta'`).
+
+**Doğrulama:** build temiz; ana ekran, lig, dükkân, maç ekranı iki temada da
+görüldü; tema geçişi anında; lig listesinde emekli bot yok; maç `EfsaneBot`
+ile açıldı (aktif bot seçimi doğru); konsolda hata yok.
