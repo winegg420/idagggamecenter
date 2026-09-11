@@ -4405,7 +4405,7 @@ body.bd-ekle-acik .app { padding-bottom: calc(300px + env(safe-area-inset-bottom
 }
 /* Ana sayfa ve modal içindeki ikincil butonlar da beyaz saydamdı */
 .app .anasayfa .btn:not(.tehlike):not(.basari),
-.app .bd-modal-katman .btn:not(.tehlike):not(.basari),
+.bd-modal-katman .btn:not(.tehlike):not(.basari),
 .app .bd-izin-butonlar .btn.ikincil {
   background: linear-gradient(180deg, var(--bd-vurgu-acik), var(--bd-vurgu));
   color: #fff;
@@ -4420,9 +4420,9 @@ body.bd-ekle-acik .app { padding-bottom: calc(300px + env(safe-area-inset-bottom
 }
 
 /* Modal / perde katmanları: koyu cam yerine beyaz kart */
-.app .bd-modal,
-.app .bd-modal-kutu,
-.app .bd-sayfa-modal {
+.bd-modal,
+.bd-modal-kutu,
+.bd-sayfa-modal {
   background: var(--bd-yuzey-1);
   color: var(--bd-metin);
   border: 0;
@@ -4430,7 +4430,7 @@ body.bd-ekle-acik .app { padding-bottom: calc(300px + env(safe-area-inset-bottom
   box-shadow: 0 6px 0 var(--bd-kart-alt), 0 18px 40px rgba(32, 50, 74, 0.22);
   backdrop-filter: none;
 }
-.app .bd-modal-katman {
+.bd-modal-katman {
   background: rgba(32, 50, 74, 0.45);   /* perde koyu kalır, üstündeki kart beyaz */
   backdrop-filter: blur(2px);
 }
@@ -4448,3 +4448,227 @@ body.bd-ekle-acik .app { padding-bottom: calc(300px + env(safe-area-inset-bottom
   border: 2px solid #fff;
   box-shadow: none;
 }
+
+/* ============================================================
+   KOYU KALINTI TEMİZLİĞİ — 2. tur
+   ------------------------------------------------------------
+   Şenlik revizyonundan sonra canlıda ölçülen 9 alan: bu sınıflar zeminini
+   TOKEN'dan değil SABİT koyu renkten alıyordu (rgba(11,18,32,…),
+   rgba(24,35,59,…), rgba(0,0,0,…)), bu yüzden palet değişiminden
+   etkilenmediler ve açık gökyüzü zemininin üstünde koyu leke olarak kaldılar.
+   Aşağıdaki blok hepsini token'a bağlar.
+   ============================================================ */
+
+/* ---------- 1. Üst bar — her sayfada görünüyor ---------- */
+.app .bd-ust-blok,
+.app .bd-ust-blok:has(.bd-davet-bandi),
+.app .bd-ust-blok:has(.bd-ust-toast) {
+  background: var(--bd-yuzey-1);
+  border-bottom: 2px solid var(--bd-kenar);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  box-shadow: 0 2px 0 rgba(32, 50, 74, 0.04);
+}
+/* Blok altındaki koyu yumuşak geçiş katmanı: açık zeminde kirli bir is
+   bırakıyordu, kaldırıldı. */
+.app .bd-ust-blok::after { content: none; }
+.app .topbar {
+  background: transparent;
+  color: var(--bd-metin);
+}
+/* Üst bardaki yuvarlak düğmeler beyaz zeminde kayboluyordu */
+.app .topbar .bd-ses-dugme,
+.app .topbar .bd-zil,
+.app .bd-profil-link,
+.app .bd-puan-link {
+  color: var(--bd-metin);
+}
+.app .topbar .bd-ses-dugme,
+.app .topbar .bd-zil {
+  background: var(--bd-yuzey-1);
+  border: 2px solid var(--bd-kenar);
+  box-shadow: 0 3px 0 #CFE0EE;
+}
+
+/* ---------- 2. Günlük seri çubuğu ---------- */
+.app .bd-seri {
+  background: var(--bd-yuzey-1);
+  border: 0;
+  border-radius: var(--bd-r-l);
+  box-shadow: 0 4px 0 var(--bd-kart-alt);
+  color: var(--bd-metin);
+}
+.app .bd-seri.aktif,
+.app .bd-seri.bekliyor { border: 0; }
+.app .bd-seri-sayi { color: var(--bd-vurgu); font-family: var(--bd-f-baslik); font-weight: 800; }
+.app .bd-seri-etiket, .app .bd-seri-govde span { color: var(--bd-metin-2); font-weight: 800; }
+/* Isı varyantları: koyu dolgu yerine turuncu yoğunluğu */
+.app .bd-seri.isi-yok .bd-seri-alev   { color: var(--bd-metin-3); }
+.app .bd-seri.isi-sonuk .bd-seri-alev { color: #E08A3A; }
+.app .bd-seri.isi-orta .bd-seri-alev  { color: var(--bd-vurgu); filter: none; }
+.app .bd-seri.isi-yuksek .bd-seri-alev,
+.app .bd-seri.aktif .bd-seri-alev     { color: var(--bd-vurgu); filter: none; }
+.app .bd-seri.isi-yok .bd-seri-sayi   { color: var(--bd-metin-3); }
+
+/* ---------- 3 + 6. Bölüm başlıkları (görevler / meydan oku paneli) ---------- */
+.app .bd-gorev-basi,
+.app .bd-panel-basi {
+  background: var(--bd-yuzey-1);
+  border: 0;
+  border-radius: var(--bd-r-l);
+  box-shadow: 0 4px 0 var(--bd-kart-alt);
+  color: var(--bd-metin);
+}
+.app .bd-gorev-basi .bd-gorev-hazir { color: var(--bd-basari); font-weight: 900; }
+
+/* ---------- 4. Lig kapsam sekmeleri ---------- */
+.app .bd-sekme-ust,
+.app .bd-sekme-alt {
+  background: transparent;
+  box-shadow: none;
+  border: 0;
+}
+.app .bd-sekme-ust > *,
+.app .bd-sekme-alt > * {
+  background: var(--bd-yuzey-1);
+  color: var(--bd-metin-2);
+  border: 0;
+  border-radius: var(--bd-r-s);
+  box-shadow: 0 3px 0 var(--bd-kart-alt);
+  font-weight: 900;
+}
+.app .bd-sekme-ust > .aktif,
+.app .bd-sekme-alt > .aktif {
+  background: linear-gradient(180deg, var(--bd-vurgu-acik), var(--bd-vurgu));
+  color: #fff;
+  box-shadow: 0 3px 0 var(--bd-vurgu-2);
+  text-shadow: 0 1px 0 rgba(0, 0, 0, 0.18);
+}
+
+/* ---------- 5. Profil istatistik kutuları ---------- */
+.app .bd-istatistik,
+.app .bd-istatistik-hedef {
+  background: var(--bd-yuzey-1);
+  border: 0;
+  border-radius: var(--bd-r-l);
+  box-shadow: 0 4px 0 var(--bd-kart-alt);
+  color: var(--bd-metin);
+}
+.app .bd-istatistik-sayi, .app .bd-istatistik b {
+  color: var(--bd-metin);
+  font-family: var(--bd-f-baslik);
+  font-weight: 800;
+}
+.app .bd-istatistik-etiket, .app .bd-istatistik span {
+  color: var(--bd-metin-2);
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+/* ---------- 7. Turnuva geri sayım kutusu ---------- */
+.app .gs-kutu, .gs-kutu {
+  background: var(--bd-yuzey-1);
+  border: 2px solid var(--bd-kenar);
+  box-shadow: 0 3px 0 var(--bd-kart-alt);
+  color: var(--bd-metin);
+  border-radius: var(--bd-r-s);
+}
+.app .gs-kutu .deger, .gs-kutu .deger {
+  color: var(--bd-metin);
+  font-family: var(--bd-f-baslik);
+}
+.app .gs-kutu .etiket, .gs-kutu .etiket { color: var(--bd-metin-2); font-weight: 800; }
+
+/* ---------- 8. Rütbe çipi ----------
+   Eskiden rütbe renginin %8 tint'iydi: açık zeminde neredeyse görünmüyordu.
+   Artık dolu bir pastel etiket. Rütbe rengi KORUNUYOR (--rutbe), yalnız
+   zemin %18 tint'e çıkarıldı ve metin aynı renkten koyulaştırıldı.
+   Ölçüldü: beş rütbede de kontrast >= 4,93:1 (en düşük Efsane). */
+.app .bd-rutbe-chip,
+.app .bd-hero-ad-blok .bd-rutbe-chip {
+  background: color-mix(in srgb, var(--rutbe, var(--bd-mor)) 18%, #fff);
+  color: color-mix(in srgb, var(--rutbe, var(--bd-mor)) 45%, #1A2740);
+  border-radius: var(--bd-r-tam);
+  padding: 3px 9px;
+  font-weight: 900;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+/* ---------- 9. Çalışma: soru sayısı düğmeleri ---------- */
+.app .bd-calisma-adet-btn, .bd-calisma-adet-btn {
+  background: var(--bd-yuzey-1);
+  color: var(--bd-metin-2);
+  border: 0;
+  box-shadow: 0 3px 0 var(--bd-kart-alt);
+}
+.app .bd-calisma-adet-btn.aktif, .bd-calisma-adet-btn.aktif {
+  background: linear-gradient(180deg, var(--bd-vurgu-acik), var(--bd-vurgu));
+  color: #fff;
+  border: 0;
+  box-shadow: 0 3px 0 var(--bd-vurgu-2);
+}
+
+/* ---------- Genel taramada çıkan kalan 10 kalıntı ----------
+   Kaskadın sonunda hâlâ koyu zeminle biten seçiciler. İkiye ayrıldı:
+   TAM EKRAN KATMANLAR sayfa gradyanını alır (arkasında sayfa yok, kendileri
+   sayfa yerine geçiyor); KART/ŞERİT/TABLO ise beyaz + alt kalınlık. */
+
+/* Tam ekran katmanlar: rütbe kutlaması, rakip arama, tanıtım.
+   DİKKAT: .app öneki YOK — RakipAra createPortal ile doğrudan document.body'ye
+   render ediliyor, .app sarmalayıcısının dışında kalıyor. Önekli yazılırsa
+   kural hiç tutmuyor ve katman koyu kalıyor. */
+.rutbe-kutlama,
+.bd-arama-katman,
+.bd-tanitim-katman {
+  background: linear-gradient(180deg, var(--bd-gok) 0%, var(--bd-zemin) 30%, var(--bd-zemin-2) 100%);
+  color: var(--bd-metin);
+}
+.rutbe-kutlama .icerik { color: var(--bd-metin); }
+
+/* Kart / şerit / tablo */
+.app .bd-turnuva-bant,
+.app .bd-lig-tek-satir,
+.app .bd-bekleyen-kurulum,
+.app .bd-gelen-davetler:not(:empty),
+.app .anasayfa .bd-mod.btn:not(.tehlike) {
+  background: var(--bd-yuzey-1);
+  color: var(--bd-metin);
+  border: 0;
+  border-radius: var(--bd-r-l);
+  box-shadow: 0 4px 0 var(--bd-kart-alt);
+  backdrop-filter: none;
+}
+/* Üst blok, toast katmanı varken de beyaz kalsın */
+.app .bd-ust-blok:has(.bd-toast-kat) {
+  background: var(--bd-yuzey-1);
+}
+
+/* Sıralama tablosu: koyu yapışkan başlık -> beyaz, altında kenar */
+.sr-tablo thead th {
+  background: var(--bd-yuzey-1);
+  color: var(--bd-metin);
+  border-bottom: 2px solid var(--bd-kenar);
+}
+.sr-tablo tbody tr:nth-child(2n) { background: var(--bd-yuzey-3); }
+
+/* Bildirim rozetlerinin koyu halkası (koyu zeminde ayrışsın diyeydi) beyaz oldu */
+.app .bd-zil-rozet,
+.app .tabbar .rozet {
+  box-shadow: 0 0 0 2px #fff;
+}
+.app .bd-bk-durum { box-shadow: 0 0 0 2px #fff; }
+
+/* Bildirim zili paneli de portal ile body'ye render ediliyor (.app dışı) */
+.bd-zil-liste, .bd-zil-panel {
+  background: var(--bd-yuzey-1);
+  color: var(--bd-metin);
+  border: 0;
+  border-radius: var(--bd-r-l);
+  box-shadow: 0 6px 0 var(--bd-kart-alt), 0 18px 40px rgba(32, 50, 74, 0.22);
+}
+.bd-zil-baslik { color: var(--bd-metin); font-family: var(--bd-f-baslik); font-weight: 800; }
+.bd-zil-bos { color: var(--bd-metin-2); }
+.bd-zil-ortu { background: rgba(32, 50, 74, 0.35); }

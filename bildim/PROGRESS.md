@@ -1587,3 +1587,50 @@ referansla eşleşti. Konsolda hata yok, 390 px'de yatay kaydırma yok,
 Baloo 2 + Nunito yükleniyor.
 
 **Yapılmadı (bilerek):** "Rakip bekleniyor" ekranı (referans 3) — ayrı görev.
+
+---
+
+## 11 Eylül 2026 (4) — Koyu tema kalıntıları: 9 bildirilen + 11 taramadan
+
+Şenlik revizyonundan sonra canlıda 9 alan koyu kalmıştı. Sebep tek: bu sınıflar
+zeminini **token'dan değil sabit koyu renkten** alıyordu
+(`rgba(11,18,32,…)`, `rgba(24,35,59,…)`, `rgba(0,0,0,…)`), bu yüzden palet
+değişiminden hiç etkilenmediler.
+
+**Düzeltilen 9 (bildirilen):** `.bd-ust-blok` (+`.topbar`, ses/zil düğmeleri) ·
+`.bd-seri` (ısı varyantları turuncu yoğunluğuna çevrildi) · `.bd-gorev-basi` ·
+`.bd-sekme-ust`/`.bd-sekme-alt` · `.bd-istatistik`/`.bd-istatistik-hedef` ·
+`.bd-panel-basi` · `.gs-kutu` · `.bd-rutbe-chip` · `.bd-calisma-adet-btn.aktif`
+
+**Taramada çıkan 11 ek kalıntı:** `.rutbe-kutlama`, `.bd-arama-katman`,
+`.bd-tanitim-katman`, `.bd-turnuva-bant`, `.bd-lig-tek-satir`,
+`.bd-bekleyen-kurulum`, `.bd-gelen-davetler`, `.bd-ust-blok:has(.bd-toast-kat)`,
+`.sr-tablo thead th`, `.anasayfa .bd-mod.btn`, `.bd-zil-liste`.
+Tam ekran katmanlar sayfa gradyanını aldı, kart/şerit/tablo beyaz + alt kalınlık.
+
+**Öğrenilen — `.app` öneki portal'lara ULAŞMAZ:**
+`RakipAra`, `Modal` ve `BildirimZili` `createPortal(…, document.body)` ile
+render ediliyor, yani `.app` sarmalayıcısının **dışında**. Bu üçünün kuralları
+`.app` önekiyle yazıldığında hiç tutmuyor ve katman koyu kalıyor — ilk denemede
+tam da bu oldu (`.app .bd-arama-katman` yazmıştım, ekran siyah kaldı).
+Portal'a giden sınıflar **öneksiz** yazılmalı: `.bd-arama-katman`,
+`.bd-tanitim-katman`, `.bd-modal-katman`, `.bd-modal`, `.bd-zil-liste`,
+`.rutbe-kutlama`. Yeni bir tam ekran katman eklenirse aynı tuzak geçerli.
+
+**Rütbe çipi:** eskiden rütbe renginin %8 tint'iydi, açık zeminde görünmüyordu.
+Rütbe rengi (`--rutbe`) korundu; zemin %18 tint, metin aynı renkten %45
+karışımla koyulaştırıldı. Oran veriden seçildi: %50'de Efsane 4,40 ile AA'nın
+altında kalıyordu, %45'te en düşük **4,95:1**. Canlı ölçüm: Çaylak 5,98 ·
+Bilge 5,40 · Üstat 5,89 · Kahin 5,82 · Efsane 4,95 — beşi de geçiyor.
+
+**Doğrulama:** `npm run build` hatasız. Statik kaskad taraması (derlenmiş CSS'te
+her seçicinin SON background'ı) → **0 koyu kalıntı**. Düzeltilen 20 bileşen,
+uygulamanın derlenmiş gerçek CSS'i + gerçek sınıf adlarıyla kurulan sayfada
+görsel olarak doğrulandı. Konsol testi → **boş dizi**. Konsolda hata yok,
+gerçek 390 px viewport'ta (iframe) yatay kaydırma yok.
+
+**Not — verilen konsol testinde yanlış pozitif:** test `backgroundColor`'ı hep
+0-255 varsayıp 255'e bölüyor; `color-mix()` sonucu ise `color(srgb 0.91 0.92 0.94)`
+biçiminde **0-1** aralığında dönüyor. Bu yüzden rütbe çipleri "koyu" diye
+işaretlendi ama gerçekte açıklar. Testin `color(` ile başlayan değerleri 255 ile
+çarpan sürümü kullanıldı.
