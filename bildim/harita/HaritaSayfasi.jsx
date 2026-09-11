@@ -25,6 +25,18 @@ const MAKS_CIZILEN = 40;   // aynı anda çizilen uzak oyuncu sayısı
 const YURUME_HIZI = 9;
 const BILGI_ANAHTARI = "bildim_harita_bilgi";
 const PERDE_SURESI = 8000;   // ilk kare bu sürede gelmezse perde kalkar, hata çıkar
+// Kupa binası turnuvadan bu kadar önce açılır (sunucudaki meydan_kapi_dakika
+// ile aynı olmalı; ayar değişirse buradaki yalnız kapının ERKEN görünmesini
+// etkiler, ödülü sunucu kararlaştırır).
+const KAPI_MS = 10 * 60 * 1000;
+
+/** Geri sayımı levhaya yazılacak kısa metne çevirir. */
+function turnuvaMetni(kalanSn) {
+  if (kalanSn <= 0) return "TURNUVA BAŞLADI";
+  const dk = Math.floor(kalanSn / 60);
+  const sn = kalanSn % 60;
+  return `TURNUVA ${dk}:${String(sn).padStart(2, "0")}`;
+}
 
 // ---- uzak oyuncu ara değerlemesi ----
 // Paketler ağdan DÜZGÜN ARALIKLARLA gelmez: 100 ms'de bir gönderilse de
@@ -97,6 +109,10 @@ export default function HaritaSayfasi() {
   // Kendi görünümüm + eşya kataloğu. Sahne bunlar gelmeden kurulmaz ki
   // avatar önce çıplak çizilip sonra giyinmesin.
   const [gorunumVerisi, setGorunumVerisi] = useState(null); // { gorunum, bilgi }
+  // Kupa binasının kapısı: turnuvaya kalan süre (sn) — null ise kapı kapalı.
+  const [turnuvaKalan, setTurnuvaKalan] = useState(null);
+  const turnuvaKalanRef = useRef(null);
+  turnuvaKalanRef.current = turnuvaKalan;
   const [bilgiAcik, setBilgiAcik] = useState(() => {
     try { return localStorage.getItem(BILGI_ANAHTARI) !== "1"; } catch { return true; }
   });
@@ -129,6 +145,41 @@ export default function HaritaSayfasi() {
     })();
     return () => { aktif = false; };
   }, []);
+
+  // Kupa binası turnuvadan KAPI_DK dakika önce açılır. Saati sunucudan
+  // okuyoruz; istemci saatine güvenilmez (cihaz saati yanlış olabilir).
+  useEffect(() => {
+    let aktif = true;
+    const bak = async () => {
+      try {
+        const { data, error } = await supabase
+          .from("tournaments")
+          .select("id, baslangic, durum")
+          .in("durum", ["lobi", "aktif"])
+          .order("baslangic", { ascending: true })
+          .limit(1);
+        if (error) throw error;
+        const t = (data ?? [])[0];
+        if (!aktif) return;
+        if (!t) { setTurnuvaKalan(null); return; }
+        if (t.durum === "aktif") { setTurnuvaKalan(0); return; }
+        const kalanMs = new Date(t.baslangic).getTime() - Date.now();
+        setTurnuvaKalan(kalanMs <= KAPI_MS ? Math.max(0, Math.round(kalanMs / 1000)) : null);
+      } catch (e) {
+        console.error("[Meydan] turnuva durumu alinamadi:", e);
+      }
+    };
+    bak();
+    const id = setInterval(bak, 20000);
+    return () => { aktif = false; clearInterval(id); };
+  }, []);
+
+  // Kapı açıkken geri sayım saniyede bir iner (sunucuya tekrar gitmeden).
+  useEffect(() => {
+    if (turnuvaKalan === null || turnuvaKalan <= 0) return undefined;
+    const id = setInterval(() => setTurnuvaKalan((k) => (k === null ? null : Math.max(0, k - 1))), 1000);
+    return () => clearInterval(id);
+  }, [turnuvaKalan === null, turnuvaKalan === 0]);
 
   const ad = profile?.gorunen_ad || "Oyuncu";
   // Ad, sahnenin KURULUM koşulu değil; yalnız avatarın etiketi.
@@ -452,6 +503,17 @@ export default function HaritaSayfasi() {
     };
   }, [gorunumVerisi]);
 
+  // Kapı durumu sahneye yansıtılır: bina ışır, üstünde geri sayım belirir.
+  useEffect(() => {
+    const c = canliRef.current;
+    if (!c?.dunya?.turnuvaKapisi) return;
+    try {
+      c.dunya.turnuvaKapisi(turnuvaKalan === null ? null : turnuvaMetni(turnuvaKalan));
+    } catch (e) {
+      console.error("[Meydan] turnuva kapisi:", e);
+    }
+  }, [turnuvaKalan, yukleniyor]);
+
   // Profil sonradan gelirse sahneyi yıkmadan yalnız isim etiketini yenile.
   useEffect(() => {
     const c = canliRef.current;
@@ -467,6 +529,23 @@ export default function HaritaSayfasi() {
     setHata(null);
     setYukleniyor(true);
     setKurulum((k) => k + 1);
+  };
+
+  /**
+   * Binaya giriş. Turnuva binasıysa ÖNCE sunucuya damga bastırılır:
+   * ödül istemciye değil, o RPC'nin pencere kontrolüne bağlıdır.
+   * Damga başarısız olsa da oyuncu lobiye girer — ödül kaybı yaşanmaz,
+   * yalnız etkinlik teşviki verilmez.
+   */
+  const binayaGir = async (rota) => {
+    if (rota === "/turnuva" && turnuvaKalanRef.current !== null) {
+      try {
+        await supabase.rpc("meydan_turnuva_damgasi");
+      } catch (e) {
+        console.error("[Meydan] turnuva damgasi basilamadi:", e);
+      }
+    }
+    navigate(y(rota));
   };
 
   const emojiAt = (e) => {
@@ -527,7 +606,7 @@ export default function HaritaSayfasi() {
         <button
           type="button"
           className="bd-harita-hud bd-harita-ipucu"
-          onClick={() => navigate(y(ipucu.rota))}
+          onClick={() => binayaGir(ipucu.rota)}
         >
           {ipucu.ad}
           <small>{ipucu.alt} — girmek için dokun</small>

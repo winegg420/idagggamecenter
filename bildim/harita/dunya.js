@@ -233,7 +233,25 @@ export function dunyaKur(kapsayici, s = {}) {
     sahne.add(g);
 
     engeller.push({ x: cfg.x, z: cfg.z, r: Math.max(w, dp) * 0.62 });
-    binalar.push({ ad: cfg.ad, alt: cfg.alt, rota: cfg.rota, x: cfg.x, z: cfg.z, g });
+
+    // TURNUVA BİNASI: kapı açılınca ışıyan halka + geri sayım levhası.
+    // Normalde ikisi de görünmez; kapiAc() açar (bkz. turnuvaKapisi).
+    let isima = null, sayacLevha = null;
+    if (cfg.rota === "/turnuva") {
+      isima = new THREE.Mesh(
+        new THREE.TorusGeometry(Math.max(w, dp) * 0.72, 0.22, 10, 40),
+        new THREE.MeshBasicMaterial({ color: 0xa855f7, transparent: true, opacity: 0.85 })
+      );
+      isima.rotation.x = Math.PI / 2;
+      isima.position.y = 0.35;
+      isima.visible = false;
+      g.add(isima);
+    }
+
+    binalar.push({
+      ad: cfg.ad, alt: cfg.alt, rota: cfg.rota, x: cfg.x, z: cfg.z, g,
+      isima, sayacLevha, yukseklik: h,
+    });
   }
 
   BINALAR.forEach((b, i) => {
@@ -439,9 +457,52 @@ export function dunyaKur(kapsayici, s = {}) {
   }
 
   /** En yakın binayı döndürür (8 birim içinde), yoksa null. */
+  /**
+   * Turnuva kapısı: turnuvadan önce kupa binası ışımaya başlar ve üstünde
+   * geri sayım belirir. `metin` null verilirse kapı kapanır.
+   *
+   * Levha canvas sprite olduğu için her saniye YENİDEN ÜRETİLMEZ; yalnız
+   * metin değişince (saniyede bir) doku yenilenir.
+   */
+  let sonSayacMetni = null;
+  function turnuvaKapisi(metin) {
+    const b = binalar.find((x) => x.rota === "/turnuva");
+    if (!b) return;
+    const acik = Boolean(metin);
+    if (b.isima) b.isima.visible = acik;
+
+    if (!acik) {
+      if (b.sayacLevha) {
+        b.g.remove(b.sayacLevha);
+        b.sayacLevha.material.map?.dispose();
+        b.sayacLevha.material.dispose();
+        b.sayacLevha = null;
+      }
+      sonSayacMetni = null;
+      return;
+    }
+    if (metin === sonSayacMetni) return;
+    sonSayacMetni = metin;
+    if (b.sayacLevha) {
+      b.g.remove(b.sayacLevha);
+      b.sayacLevha.material.map?.dispose();
+      b.sayacLevha.material.dispose();
+    }
+    const lv = levha(metin, "#7C3AED");
+    lv.position.set(0, b.yukseklik + 7.2, 0);
+    lv.scale.set(6.2, 1.55, 1);
+    b.g.add(lv);
+    b.sayacLevha = lv;
+  }
+
   function yakinBina(poz) {
     let yakin = null, enYakin = 8;
     for (const b of binalar) {
+      // Turnuva binasının ışıma halkası nabız atsın (kapı açıkken)
+      if (b.isima?.visible) {
+        b.isima.material.opacity = 0.55 + Math.sin(zaman * 3.2) * 0.3;
+        b.isima.scale.setScalar(1 + Math.sin(zaman * 3.2) * 0.04);
+      }
       const u = Math.hypot(poz.x - b.x, poz.z - b.z);
       if (u < enYakin) { enYakin = u; yakin = b; }
     }
@@ -516,7 +577,7 @@ export function dunyaKur(kapsayici, s = {}) {
   return {
     sahne, kamera, render, engeller, binalar,
     avatarOlustur, avatarSil, avatarAdiDegistir, avatarGorunumu, yurumeAnimasyonu, yumusakDon,
-    emojiGoster, carpismaDuzelt, yakinBina,
+    emojiGoster, carpismaDuzelt, yakinBina, turnuvaKapisi,
     guncelle, boyutlandir, yokEt,
   };
 }
