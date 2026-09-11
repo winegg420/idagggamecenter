@@ -1762,3 +1762,56 @@ yapıldı ve `lig_siralama` emekli botları atlıyor (aktif botlar listede kalı
 **Doğrulama:** build temiz; ana ekran, lig, dükkân, maç ekranı iki temada da
 görüldü; tema geçişi anında; lig listesinde emekli bot yok; maç `EfsaneBot`
 ile açıldı (aktif bot seçimi doğru); konsolda hata yok.
+
+---
+
+## 2026-09-11 — Dereceli/normal maç ayrımı, seviyeli eşleşme, yatay harita, modal kaydırma
+
+Kullanıcının beş maddelik isteği (`46b3dfe`).
+
+### 1. Dereceli maç ↔ normal maç ayrıldı
+Migration `20260612000127_dereceli_mac_ve_seviyeli_eslesme.sql`:
+- `matches.dereceli` + `matchmaking_queue.dereceli` (varsayılan `true`, eski
+  satırlar dereceli sayılır).
+- `kuyruga_gir` / `quick_match` artık `p_dereceli` alıyor ve **yalnız aynı
+  türdeki** rakiplerle eşleştiriyor; dereceli oyuncu normal kuyruğa düşmüyor.
+- `mac_sonuclandir`: normal maçta **puan ve galibiyet serisi yazılmıyor**
+  (rozet veriliyor). Gün serisi (`seri_guncelle`) `trg_matches_bitti`
+  üzerinden yine işliyor — oyuncu o gün oynadı, doğrusu bu.
+- Arayüz: `Home.jsx`'te "Dereceli Maç" / "Normal Maç" ayrı kartlar,
+  alt açıklamaları (`.bd-mod-not`) hangisinin puan yazdığını söylüyor;
+  `RakipAra` `dereceli` prop'unu iki RPC'ye de geçiriyor.
+
+### 2. Seviyeye göre bot / seviyeye göre eşleşme
+- `seviye_basamagi(puan)` ve `seviyeye_gore_bot(puan)` eklendi. Dereceli maçta
+  bot oyuncunun seviyesinden seçiliyor; normal maçta rastgele kalıyor
+  (normal maç "serbest" mod, bilinçli tercih).
+- Uygun seviyede rakip yoksa **daha düşük** basamağa iniliyor, yukarı
+  çıkılmıyor (kullanıcının açık isteği).
+- Uçtan uca doğrulandı (işlem geri alınarak): 0→ToyBot(0.42),
+  250→ÇaylakBot(0.58), 800→ÜstatBot(0.75), 2000 ve 6000→EfsaneBot(0.90);
+  `matches.dereceli = true`. Normal maçta `dereceli=false`, rakip rastgele.
+- Puan doğrulaması: dereceli galibiyet 100→120; normal galibiyet 100→100.
+
+### 3. Harita yatay ekranda oynanabilir
+- `harita.css`'e `@media (orientation: landscape) and (max-height: 520px)`
+  (ve 400px) katmanı: topuz 118→86/74px, emojiler tek sıra, ipucu/bilgi
+  kartı sahnenin ortasını kapatmıyor. **Kural:** bu kurallar `tema.css`'e
+  yazılamaz — `harita.css` lazy chunk olduğu için sonradan yüklenip
+  tema.css'i eziyor, ters yönde çalışmıyor.
+- `HaritaSayfasi.jsx`: `orientationchange` anında tarayıcı hâlâ eski ölçüyü
+  bildirdiği için 120/320/650 ms'de tekrar boyutlanıyor; `visualViewport`
+  resize'ı da dinleniyor.
+
+### 4. Modal kapanınca sayfa en üste atmıyor
+`Modal.jsx` artık gövdeyi `position: fixed; top: -<scrollY>px` ile olduğu
+yerde dondurup kapanışta `scrollTo` ile geri veriyor. Eskiden yalnız
+`overflow: hidden` vardı ve tarayıcı sayfayı başa çekiyordu ("yarım kalan
+maçı iptal ettim, en yukarı attı" şikâyeti). Ölçüldü: 2698 → modal → 2698.
+
+### 5. Turnuva vurgusu
+Ana ekrandaki turnuva şeridi altın çerçeveli (`--bd-odul`), canlıyken kenarı
+nabız atıyor; `prefers-reduced-motion` ile animasyon kapanıyor.
+
+**Doğrulama:** `npm run build` temiz; yukarıdaki DB testleri geçti; 844×390
+yatay testte taşma yok.
