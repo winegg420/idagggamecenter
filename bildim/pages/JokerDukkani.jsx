@@ -7,6 +7,7 @@ import { JOKER_BILGI, envanterNesne } from "../lib/jokerler.js";
 import { h5AdsYapilandirildi, odulluVideoGoster } from "../lib/h5ads.js";
 import { desteklenirMi, fiyatlariAl, satinAl, tuket } from "../lib/playFatura.js";
 import { useCoin, coinTazele, coinHatasi } from "../lib/coin.js";
+import CoinGorseli, { coinBoyutu } from "../components/CoinGorseli.jsx";
 import { y } from "../lib/yol.js";
 
 // Dükkân üç sekme: Kıyafet (avatar eşyaları) / Joker / Coin.
@@ -313,7 +314,13 @@ export default function JokerDukkani() {
           {coinPaketleri.map((p) => {
             const f = fiyatlar[p.urun_id];
             return (
-              <div key={p.urun_id} className="bd-paket">
+              <div key={p.urun_id} className="bd-paket bd-coin-paket">
+                {/* Görsel çizilmiş (bildim/components/CoinGorseli.jsx):
+                    miktar büyüdükçe yığın büyüyor, hazinede sandık çıkıyor.
+                    Dışarıdan resim indirilmiyor. */}
+                <span className="bd-coin-gorsel">
+                  <CoinGorseli boyut={coinBoyutu(Number(p.coin) + Number(p.bonus || 0))} genislik={58} />
+                </span>
                 <div className="bd-paket-bilgi">
                   <div className="bd-paket-ad">{f?.ad ?? p.ad}</div>
                   <div className="bd-paket-icerik">

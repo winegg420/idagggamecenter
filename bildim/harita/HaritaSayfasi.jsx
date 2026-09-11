@@ -216,17 +216,28 @@ export default function HaritaSayfasi() {
     } catch (e) {
       console.error("[Meydan] sahne kurulamadi:", e);
       setYukleniyor(false);
-      setHata({ mesaj: "Sahne kurulamadı.", tekrar: true });
+      setHata({ mesaj: "Sahne kurulamadı.", ayrinti: String(e?.message ?? e), tekrar: true });
       return undefined;
     }
 
     const renk = renkUret(user.id);
     // Profil henüz gelmediyse avatar geçici "Oyuncu" adıyla kurulur;
     // ad gelince aşağıdaki effect yalnız etiketi yeniler.
-    const ben = dunya.avatarOlustur(
-      adRef.current, renk.govde, renk.sac, renk.etiket,
-      gorunumVerisi.gorunum, gorunumVerisi.bilgi
-    );
+    // Try İÇİNDE: eşya üreticilerinden biri patlarsa sahne kurulumu gibi
+    // ele alınsın, React ağacını komple düşürmesin.
+    let ben;
+    try {
+      ben = dunya.avatarOlustur(
+        adRef.current, renk.govde, renk.sac, renk.etiket,
+        gorunumVerisi.gorunum, gorunumVerisi.bilgi
+      );
+    } catch (e) {
+      console.error("[Meydan] avatar kurulamadi:", e);
+      try { dunya.yokEt(); } catch { /* yut */ }
+      setYukleniyor(false);
+      setHata({ mesaj: "Avatarın çizilemedi.", ayrinti: String(e?.message ?? e), tekrar: true });
+      return undefined;
+    }
     ben.position.set(0, 0, 11);
 
     kontrol = kontrolKur(padRef.current, topuzRef.current);
@@ -448,7 +459,7 @@ export default function HaritaSayfasi() {
         cancelAnimationFrame(raf);
         clearTimeout(perdeSaat);
         setYukleniyor(false);
-        setHata({ mesaj: "Sahne çizilemedi.", tekrar: true });
+        setHata({ mesaj: "Sahne çizilemedi.", ayrinti: String(e?.message ?? e), tekrar: true });
       }
     };
     raf = requestAnimationFrame(cizim);
@@ -578,6 +589,9 @@ export default function HaritaSayfasi() {
           <div className="bd-harita-hata">
             <b>Meydan açılamadı</b>
             <span>{hata.mesaj}</span>
+            {/* Gerçek hata metni: genel mesaj bir ReferenceError'ı saatlerce
+                gizledi. Ekranda görünürse kullanıcı doğrudan iletebiliyor. */}
+            {hata.ayrinti && <span className="bd-harita-hata-ayrinti">{hata.ayrinti}</span>}
             <div className="bd-harita-hata-dugmeler">
               {hata.tekrar && (
                 <button type="button" className="bd-harita-btn" onClick={tekrarDene}>

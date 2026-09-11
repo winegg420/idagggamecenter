@@ -498,11 +498,6 @@ export function dunyaKur(kapsayici, s = {}) {
   function yakinBina(poz) {
     let yakin = null, enYakin = 8;
     for (const b of binalar) {
-      // Turnuva binasının ışıma halkası nabız atsın (kapı açıkken)
-      if (b.isima?.visible) {
-        b.isima.material.opacity = 0.55 + Math.sin(zaman * 3.2) * 0.3;
-        b.isima.scale.setScalar(1 + Math.sin(zaman * 3.2) * 0.04);
-      }
       const u = Math.hypot(poz.x - b.x, poz.z - b.z);
       if (u < enYakin) { enYakin = u; yakin = b; }
     }
@@ -515,6 +510,17 @@ export function dunyaKur(kapsayici, s = {}) {
 
   /** Her karede çağrılır: su, jetler, balonlar, bulutlar, kamera. */
   function guncelle(dt, zaman, ben) {
+    // Turnuva binasının ışıma halkası nabız atsın (kapı açıkken).
+    // BURADA olmalı: `zaman` yalnız bu fonksiyonun parametresi. Bir ara
+    // yanlışlıkla yakinBina() içine girmişti; yakinBina her karede
+    // çağrıldığı için çizim döngüsü ilk karede ReferenceError ile
+    // patlıyor ve ekranda "Meydan açılamadı" çıkıyordu.
+    for (const b of binalar) {
+      if (!b.isima || !b.isima.visible) continue;
+      b.isima.material.opacity = 0.55 + Math.sin(zaman * 3.2) * 0.3;
+      b.isima.scale.setScalar(1 + Math.sin(zaman * 3.2) * 0.04);
+    }
+
     if (!hareketAzalt) {
       su.position.y = 1.24 + Math.sin(zaman * 1.6) * 0.03;
       dalga.scale.setScalar(1 + ((zaman % 2.2) / 2.2) * 2.6);

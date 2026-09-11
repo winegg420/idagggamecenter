@@ -228,3 +228,12 @@ body.bd-harita-acik { overflow: hidden; }
   .bd-harita-pad { width: 74px; height: 74px; }
   .bd-harita-topuz { width: 32px; height: 32px; margin: -16px 0 0 -16px; }
 }
+
+/* Hata kutusundaki teknik ayrıntı — kullanıcı ekran görüntüsüyle iletebilsin */
+.bd-harita-hata-ayrinti {
+  display: block; margin-top: 8px;
+  font-family: ui-monospace, Menlo, Consolas, monospace;
+  font-size: 11px !important; font-weight: 600 !important;
+  color: var(--bd-metin-3) !important;
+  word-break: break-word;
+}

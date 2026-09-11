@@ -12,7 +12,6 @@ import RakipAra from "../components/RakipAra.jsx";
 import Ikon from "../components/Ikon.jsx";
 import RankBadge from "../components/RankBadge.jsx";
 import SeriRozeti from "../components/SeriRozeti.jsx";
-import EzeliRakip from "../components/EzeliRakip.jsx";
 import Maskot from "../components/Maskot.jsx";
 import { y } from "../lib/yol.js";
 
@@ -33,6 +32,8 @@ export default function Home() {
   const [siraSendeMaclar, setSiraSendeMaclar] = useState([]);
   // Meydan okuman kabul edildi — rakip maçta seni bekliyor (en üstte, vurgulu)
   const [yeniKabuller, setYeniKabuller] = useState([]);
+  // Gönderdiğim ve hâlâ cevap bekleyen davetler — "isteğim ne durumda?"
+  const [bekleyenDavetlerim, setBekleyenDavetlerim] = useState([]);
   // Hatalarım bankasında bekleyen soru sayısı (mod kartı rozeti)
   const [bankaBekleyen, setBankaBekleyen] = useState(0);
   const [gorevlerAcik, setGorevlerAcik] = useState(false);
@@ -103,6 +104,16 @@ export default function Home() {
       const yeniIdler = new Set(yeni.map((m) => m.id));
 
       setYeniKabuller(yeni);
+
+      // Gönderdiğim davetler ayrı RPC'den gelir (karşı tarafın satırını
+      // okumak gerekiyor; RLS yüzünden düz select yetmez).
+      try {
+        const { data: dv, error: dvHata } = await supabase.rpc("gonderdigim_davetler");
+        if (dvHata) throw dvHata;
+        setBekleyenDavetlerim(dv ?? []);
+      } catch {
+        setBekleyenDavetlerim([]);   // migration bekliyor olabilir
+      }
       setSiraSendeMaclar(benim.filter((m) => !yeniIdler.has(m.id)));
     } catch {
       // sessiz geç — ana sayfa akışını bozmasın
@@ -247,6 +258,21 @@ export default function Home() {
   return (
     <div className="anasayfa">
 
+      {/* ======== EN ÜST: RAKİP SENİ BEKLİYOR ========
+          Meydan okuman kabul edildi ve karşı taraf ŞU AN maç ekranında
+          bekliyor. Sayfanın en görünür yeri burası: kahraman bölümünün bile
+          önünde, çünkü bu iş saniyeler içinde yapılmalı. */}
+      {yeniKabuller.map((m) => (
+        <Link key={m.id} to={y("/mac/") + m.id} className="bd-rakip-bekliyor">
+          <span className="bd-rakip-bekliyor-nokta" aria-hidden="true" />
+          <span className="bd-rakip-bekliyor-metin">
+            <b>{m.rakipAd || "Rakibin"}</b> meydan okumanı kabul etti
+            <small>Maç ekranında seni bekliyor — hemen gir</small>
+          </span>
+          <span className="bd-rakip-bekliyor-btn">Maça gir</span>
+        </Link>
+      ))}
+
       {rakipAra && (
         <RakipAra
           kategori={profile?.tercih_kategori ?? null}
@@ -343,31 +369,34 @@ export default function Home() {
       <section className="bd-katman bd-giris-2">
         <h2 className="bd-katman-baslik">Seni bekleyenler</h2>
 
-        {/* EN ÜSTTE: meydan okuman kabul edildi, rakip maçta bekliyor.
-            Bot maçlarının önüne geçer; en yeni kabul en başta. Ayrı renk
-            (bd-yeni-mac) çünkü bu iş zaman baskılı — rakip ekranda. */}
-        {yeniKabuller.map((m) => (
-          <Link key={m.id} to={y("/mac/") + m.id} className="bd-devam-eden bd-yeni-mac">
-            <span className="bd-yeni-mac-nokta" aria-hidden="true" />
+
+        {/* Yarım kalan maçlar — HER MAÇ AYRI SATIR ve KİMİNLE olduğu yazılı.
+            Eskiden tek satırda "3 maçta sıra sende" yazıyordu; oyuncu hangi
+            maça gireceğini bilmiyordu. */}
+        {siraSendeMaclar.map((m) => (
+          <Link key={m.id} to={y("/mac/") + m.id} className="bd-devam-eden">
+            <Ikon ad="saat" boyut={17} />
             <span>
-              <b>{m.rakipAd || "Rakibin"}</b> meydan okumanı kabul etti — maça gir!
+              <b>{m.rakipAd || "Rakibin"}</b> ile maçın yarım — sıra sende
+              {m.rakipBot && <span className="bd-satir-not">bot</span>}
             </span>
             <span className="ok" aria-hidden="true">›</span>
           </Link>
         ))}
 
-        {/* Yarım kalan maçlar — sıra sendeyse en görünür yerde dursun */}
-        {siraSendeMaclar.length > 0 && (
-          <Link to={y("/mac/") + siraSendeMaclar[0].id} className="bd-devam-eden">
-            <Ikon ad="saat" boyut={17} />
+        {/* Gönderdiğim davetler: karşı taraf henüz cevaplamadı. */}
+        {bekleyenDavetlerim.map((d) => (
+          <div key={d.tur + d.kayit_id} className="bd-devam-eden bd-davet-bekliyor">
+            <span className="bd-bekleme-nokta" aria-hidden="true" />
             <span>
-              {siraSendeMaclar.length === 1
-                ? "Yarım kalan maçın var — sıra sende!"
-                : siraSendeMaclar.length + " maçta sıra sende!"}
+              {d.tur === "grup" || d.tur === "hizli" ? (
+                <>Davetin gönderildi — <b>{d.bekleyen_sayisi} kişi</b> bekleniyor</>
+              ) : (
+                <><b>{d.gorunen_ad || "Rakibin"}</b> daveti görmedi — bekleniyor</>
+              )}
             </span>
-            <span className="ok" aria-hidden="true">›</span>
-          </Link>
-        )}
+          </div>
+        ))}
 
         {/* Turnuva: yatay bant — sayaç solda, eylem sağda */}
         {/* tema-turnuva: "Lobiye katıl" / "Katıl" turnuva morunu alsın */}
@@ -404,8 +433,6 @@ export default function Home() {
           </div>
           {mesaj && <div className="hata-kutu" style={{ flexBasis: "100%" }}>{mesaj}</div>}
         </div>
-
-        <EzeliRakip />
 
         {/* Günlük Görevler — tema-joker: "+N al" butonu joker magentasını alır */}
         {gorevler.length > 0 && (
