@@ -25,6 +25,48 @@ const YURUME_HIZI = 9;
 const BILGI_ANAHTARI = "bildim_harita_bilgi";
 const PERDE_SURESI = 8000;   // ilk kare bu sürede gelmezse perde kalkar, hata çıkar
 
+// ---- uzak oyuncu ara değerlemesi ----
+// Paketler ağdan DÜZGÜN ARALIKLARLA gelmez: 100 ms'de bir gönderilse de
+// 40 ms'de ikisi birden, sonra 300 ms hiç gelmez. Paket doğrudan hedefe
+// yazılıp kare başına lerp edilince avatar duraklayıp sıçrıyordu
+// ("ışınlanıyor, internet kopuyor gibi" — iki kişiyle bile).
+//
+// Çözüm klasik "entity interpolation": paketler GÖNDERENİN zaman damgasıyla
+// tamponlanır ve uzak oyuncu biraz GEÇMİŞTE çizilir. O anın iki yanında
+// gerçek paket bulunduğu için aradaki hareket düz bir çizgide üretilir.
+//
+// Ölçüm (12 tur, 20 sn, .tmp/ara-degerleme-testi3.mjs) — hız sapması:
+//   iyi ağ   3.27 → 0.05      kötü ağ 7.53 → 0.43
+//   duraklama %8.09 → %0.07   en büyük hız 40.3 → 13.5 (gerçek hız 9.0)
+const TAMPON_MAKS = 24;
+const OFSET_ORNEK = 60;      // saat farkı kestirimi için son N paket
+const GECIKME_EN_AZ = 140;
+const GECIKME_EN_COK = 420;
+const TAHMIN_EN_COK_MS = 300; // tampon kuruyunca en fazla bu kadar ileri say
+const ADIM_KATI = 1.8;        // bir karede en fazla yürüme hızının bu katı
+
+/** İki açı arasındaki en kısa yaylı fark (ara değerleme için). */
+function aciFark(hedef, aci) {
+  return ((hedef - aci + Math.PI * 3) % (Math.PI * 2)) - Math.PI;
+}
+
+/**
+ * Uzak oyuncunun saatiyle bizimki arasındaki farkı kestirir ve o oyuncu için
+ * gereken ara değerleme gecikmesini verir.
+ *
+ * Ofset = gözlenen en küçük (varış - gönderim): en az gecikmeli paket, saat
+ * farkının en temiz ölçümüdür. Gecikme = gözlenen jitter yayılımı kadar;
+ * iyi ağda küçük (daha az gecikme), kötü ağda büyük (daha az sıçrama).
+ */
+function ofsetVeGecikme(ornekler) {
+  let enAz = Infinity, enCok = -Infinity;
+  for (const o of ornekler) { if (o < enAz) enAz = o; if (o > enCok) enCok = o; }
+  const gecikme = ornekler.length > 8
+    ? Math.min(GECIKME_EN_COK, Math.max(GECIKME_EN_AZ, (enCok - enAz) * 1.15 + 60))
+    : GECIKME_EN_AZ;
+  return { ofset: enAz, gecikme };
+}
+
 /** Cihaz 3B çizebiliyor mu? Yoksa siyah ekran yerine dürüst mesaj veririz. */
 function webglVarMi() {
   try {
@@ -82,7 +124,11 @@ export default function HaritaSayfasi() {
 
     let dunya = null, kontrol = null, coklu = null;
     let raf = 0, aktif = true;
-    const uzaklar = new Map(); // id -> { av, hedef:{x,z,y} }
+    const uzaklar = new Map(); // id -> { av, tampon:[{t,x,z,y}], yerlesti }
+    // Presence bir an titrerse (kanal düşüp kalkması) oyuncu ayrılıp yeniden
+    // katılmış sayılıyor ve avatarı meydanın rastgele bir kenarında doğuyordu.
+    // Son bilinen konum saklanıp geri dönüşte oraya konuyor.
+    const sonKonum = new Map(); // id -> {x, z, y}
     let ipucuSon = null;
     let sonSiralama = 0;
 
@@ -116,24 +162,55 @@ export default function HaritaSayfasi() {
         const av = dunya.avatarOlustur(
           String(bilgi?.ad || "Oyuncu"), govde, sac, "#" + govde.toString(16).padStart(6, "0")
         );
-        // İlk konum paketi gelene kadar meydan kenarında dursun
-        const a = Math.random() * Math.PI * 2;
-        av.position.set(Math.cos(a) * 9, 0, Math.sin(a) * 9);
-        uzaklar.set(id, { av, hedef: { x: av.position.x, z: av.position.z, y: 0 } });
+        const eski = sonKonum.get(id);
+        if (eski) {
+          // Kısa bir kopmadan dönüyor: bıraktığı yerde belirsin
+          av.position.set(eski.x, 0, eski.z);
+          av.rotation.y = eski.y;
+        } else {
+          // İlk konum paketi gelene kadar ÇİZİLMEZ. Eskiden meydan kenarında
+          // rastgele bir noktaya konuyor, ilk paketle oraya zıplıyordu.
+          av.position.set(0, 0, 0);
+          av.visible = false;
+        }
+        uzaklar.set(id, {
+          av,
+          tampon: [],            // {t,x,z,y} — t GÖNDERENİN saatinde
+          ornekler: [],          // varış - gönderim farkları (saat kestirimi)
+          sonHiz: { x: 0, z: 0 },
+          yerlesti: Boolean(eski),
+        });
       },
       onAyrilma(id) {
         const u = uzaklar.get(id);
         if (!u) return;
+        if (u.yerlesti) {
+          sonKonum.set(id, { x: u.av.position.x, z: u.av.position.z, y: u.av.rotation.y });
+        }
         dunya.avatarSil(u.av);
         uzaklar.delete(id);
       },
       onPoz(id, p) {
         const u = uzaklar.get(id);
         if (!u) return;
-        // Doğrudan uygulanmaz; hedef olarak tutulur, karede lerp edilir
-        u.hedef.x = Number(p.x) || 0;
-        u.hedef.z = Number(p.z) || 0;
-        u.hedef.y = Number(p.y) || 0;
+        const x = Number(p.x), z = Number(p.z), donus = Number(p.y);
+        if (!Number.isFinite(x) || !Number.isFinite(z) || !Number.isFinite(donus)) return;
+        const varis = performance.now();
+        // Eski sürüm damga göndermiyor olabilir: varış zamanına düş
+        const gt = Number.isFinite(Number(p.t)) ? Number(p.t) : varis;
+        const son = u.tampon[u.tampon.length - 1];
+        if (son && gt <= son.t) return;   // sıra bozucu / yinelenen paketi at
+        u.ornekler.push(varis - gt);
+        if (u.ornekler.length > OFSET_ORNEK) u.ornekler.shift();
+        u.tampon.push({ t: gt, x, z, y: donus });
+        if (u.tampon.length > TAMPON_MAKS) u.tampon.shift();
+        // İlk paket: avatarı oraya koy ve görünür yap (kayarak gitmesin)
+        if (!u.yerlesti) {
+          u.yerlesti = true;
+          u.av.position.set(x, 0, z);
+          u.av.rotation.y = donus;
+          u.av.visible = true;
+        }
       },
       onEmoji(id, e) {
         const u = uzaklar.get(id);
@@ -197,16 +274,55 @@ export default function HaritaSayfasi() {
       dunya.yurumeAnimasyonu(ben, dt, guc);
       coklu.pozGonder(ben.position.x, ben.position.z, ben.rotation.y);
 
-      // ---- uzak oyuncular: hedefe ara değerle yaklaş
-      const k = Math.min(1, dt * 10);
+      // ---- uzak oyuncular: gönderenin saatinde biraz geçmişteki konum
       for (const u of uzaklar.values()) {
         const av = u.av;
-        const dx = u.hedef.x - av.position.x, dz = u.hedef.z - av.position.z;
-        const uz = Math.hypot(dx, dz);
-        av.position.x += dx * k;
-        av.position.z += dz * k;
-        dunya.yumusakDon(av, u.hedef.y, dt, 10);
-        dunya.yurumeAnimasyonu(av, dt, uz > 0.08 ? Math.min(1, uz) : 0);
+        if (!u.yerlesti) continue;
+        const tp = u.tampon;
+        if (!tp.length) continue;
+
+        const { ofset, gecikme } = ofsetVeGecikme(u.ornekler);
+        const gecmis = t - ofset - gecikme;   // gönderenin saatinde an
+        // Görüntüleme anını geride bırakmış paketleri at (biri elde kalsın)
+        while (tp.length >= 2 && tp[1].t <= gecmis) tp.shift();
+
+        let hx, hz, hy;
+        if (tp.length >= 2 && tp[0].t <= gecmis) {
+          // İki gerçek paket arasındayız: aradaki hareketi düz üret
+          const a = tp[0], b = tp[1];
+          const aralik = b.t - a.t || 1;
+          const oran = Math.min(1, Math.max(0, (gecmis - a.t) / aralik));
+          hx = a.x + (b.x - a.x) * oran;
+          hz = a.z + (b.z - a.z) * oran;
+          hy = a.y + aciFark(b.y, a.y) * oran;
+          u.sonHiz.x = (b.x - a.x) / (aralik / 1000);
+          u.sonHiz.z = (b.z - a.z) / (aralik / 1000);
+        } else {
+          // Tampon kurudu: son bilinen hızla kısa süre devam et. Olduğu
+          // yerde donup sonra sıçramaktan çok daha az göze batıyor.
+          const s = tp[tp.length - 1];
+          const ileri = Math.min(TAHMIN_EN_COK_MS, Math.max(0, gecmis - s.t)) / 1000;
+          hx = s.x + u.sonHiz.x * ileri;
+          hz = s.z + u.sonHiz.z * ileri;
+          hy = s.y;
+        }
+
+        // Hiçbir karede ışınlanma olmasın: adım yürüme hızıyla sınırlı
+        const onceX = av.position.x, onceZ = av.position.z;
+        const adimX = hx - onceX, adimZ = hz - onceZ;
+        const adim = Math.hypot(adimX, adimZ);
+        const enFazla = YURUME_HIZI * ADIM_KATI * dt;
+        if (adim > enFazla && adim > 0) {
+          av.position.x = onceX + (adimX / adim) * enFazla;
+          av.position.z = onceZ + (adimZ / adim) * enFazla;
+        } else {
+          av.position.x = hx;
+          av.position.z = hz;
+        }
+        dunya.yumusakDon(av, hy, dt, 14);
+        // Yürüme animasyonunun şiddeti gerçek hızdan gelir
+        const hiz = dt > 0 ? Math.hypot(av.position.x - onceX, av.position.z - onceZ) / dt : 0;
+        dunya.yurumeAnimasyonu(av, dt, hiz > 0.4 ? Math.min(1, hiz / YURUME_HIZI) : 0);
       }
       // 40'tan fazla oyuncu varsa yalnız en yakın 40'ı çiz (yarım saniyede bir sırala)
       if (uzaklar.size > MAKS_CIZILEN && zaman - sonSiralama > 0.5) {
@@ -214,10 +330,11 @@ export default function HaritaSayfasi() {
         const sirali = [...uzaklar.values()].sort(
           (a, b) => a.av.position.distanceToSquared(ben.position) - b.av.position.distanceToSquared(ben.position)
         );
-        sirali.forEach((u, i) => { u.av.visible = i < MAKS_CIZILEN; });
+        // yerlesti: ilk konum paketi gelmemiş avatar hiç çizilmez
+        sirali.forEach((u, i) => { u.av.visible = u.yerlesti && i < MAKS_CIZILEN; });
       } else if (uzaklar.size <= MAKS_CIZILEN && sonSiralama !== 0) {
         sonSiralama = 0;
-        for (const u of uzaklar.values()) u.av.visible = true;
+        for (const u of uzaklar.values()) u.av.visible = u.yerlesti;
       }
 
       // ---- bina ipucu (yalnız değişince state yazılır)

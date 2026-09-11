@@ -15,7 +15,10 @@
 //   • Tüm Supabase çağrıları try-catch içinde; hiçbiri sahneyi düşürmez.
 // ============================================================
 
-const POZ_ARALIK_MS = 125;      // saniyede en fazla 8 konum paketi
+const POZ_ARALIK_MS = 100;      // saniyede en fazla 10 konum paketi
+// Oyuncu dursa bile bu aralıkta bir "hâlâ buradayım" paketi gider: alıcı
+// tarafta ara değerleme tamponu boşalmasın, son karede zıplama olmasın.
+const POZ_CANLI_MS = 1000;
 const EMOJI_ARALIK_MS = 2000;   // oyuncu başına 2 saniyede 1 emoji
 const YENIDEN_BAGLAN_MIN = 3000;
 const YENIDEN_BAGLAN_MAX = 15000;
@@ -159,12 +162,18 @@ export function meydanBaglan(o) {
       const ilkPaket = !Number.isFinite(sonPoz.x);
       const degisti = ilkPaket ||
         Math.abs(x - sonPoz.x) > 0.01 || Math.abs(z - sonPoz.z) > 0.01 || Math.abs(y - sonPoz.y) > 0.02;
-      if (!degisti) return;
+      // Durduğunda da saniyede bir paket: karşı taraftaki ara değerleme
+      // tamponu kurumasın (kuruyunca son adım zıplama gibi görünüyordu).
+      if (!degisti && t - sonPozZamani < POZ_CANLI_MS) return;
       sonPoz = { x, z, y }; sonPozZamani = t;
       try {
         kanal.send({
           type: "broadcast", event: "poz",
-          payload: { id: ben.id, x: +x.toFixed(2), z: +z.toFixed(2), y: +y.toFixed(3) },
+          // t: GÖNDEREN saatiyle damga. Alıcı varış zamanını kullanamaz —
+          // ağ gecikmesindeki değişim hareketin kendisine karışır ve avatar
+          // sıçrar (ölçüldü: varış damgasıyla hız sapması 16.0, gönderen
+          // damgasıyla 0.4). Saatler farklı; alıcı farkı kendi kestiriyor.
+          payload: { id: ben.id, x: +x.toFixed(2), z: +z.toFixed(2), y: +y.toFixed(3), t },
         });
       } catch (e) { console.error("[Meydan] poz:", e); }
     },
