@@ -11,6 +11,7 @@ import YanlisSatiri from "../components/YanlisSatiri.jsx";
 import QuestionCard from "../components/QuestionCard.jsx";
 import Avatar from "../../src/components/Avatar.jsx";
 import OyuncuKarti from "../components/OyuncuKarti.jsx";
+import AvatarCerceve from "../components/AvatarCerceve.jsx";
 import { useNavigate } from "react-router-dom";
 import { y } from "../lib/yol.js";
 import { useGorunurlukTazele, zamanAsimiyla } from "../lib/gorunurluk.js";
@@ -320,7 +321,7 @@ export default function TournamentPage() {
               onClick={() => setKartOyuncu({ id: o.user_id, ...(o.profil ?? {}) })}
               title={`${o.profil?.gorunen_ad ?? "Oyuncu"} — kartını aç`}
             >
-              <Avatar profile={o.profil} boyut={32} />
+              <AvatarCerceve profile={o.profil} boyut={32} userId={o.user_id} />
               <span>{o.profil?.gorunen_ad}</span>
               {o.user_id !== user.id && (
                 <span

@@ -5311,3 +5311,155 @@ body.bd-ekle-acik .app { padding-bottom: calc(300px + env(safe-area-inset-bottom
   background: var(--bd-yuzey-2); color: var(--bd-metin-2);
 }
 .app .bd-lobi-oyuncu:hover .bd-lobi-kilic { color: var(--bd-vurgu); }
+
+/* ============================================================
+   NADİRLİK ÇERÇEVESİ — giyilen en değerli eşyanın rengi
+   Tek yer: AvatarCerceve bileşeni. Ekranlar kendi çerçevesini yazmaz.
+   Parıltı VURGU düzeyinde tutulur (neon değil).
+   ============================================================ */
+.bd-cerceve {
+  position: relative;
+  display: inline-flex;
+  flex: none;
+  border-radius: 50%;
+  /* Halka avatarın DIŞINA çiziliyor; satır yüksekliğini büyütmesin diye
+     box-shadow kullanıldı (border kutuyu büyütürdü). */
+}
+.bd-cerceve .avatar { border-color: transparent; }
+
+.bd-cerceve-sirali .avatar { box-shadow: 0 0 0 3px #9AB0C4; }
+
+.bd-cerceve-ozel .avatar {
+  box-shadow: 0 0 0 3px #7A4BFF, 0 0 12px rgba(122, 75, 255, 0.45);
+}
+
+.bd-cerceve-etkinlik .avatar {
+  box-shadow: 0 0 0 3px #FFC53D, 0 0 12px rgba(255, 197, 61, 0.45);
+}
+/* Etkinlik: yavaş dönen kesikli halka */
+.bd-cerceve-etkinlik::after {
+  content: "";
+  position: absolute;
+  inset: -7px;
+  border-radius: 50%;
+  border: 2px dashed rgba(255, 197, 61, 0.85);
+  animation: bd-cerceve-don 9s linear infinite;
+  pointer-events: none;
+}
+@keyframes bd-cerceve-don {
+  to { transform: rotate(360deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bd-cerceve-etkinlik::after { animation: none; }
+}
+
+/* ============================================================
+   BASILABİLİR HER ŞEY — kabartma + çok hafif küçülme
+
+   DİKKAT: `transform` YENİDEN YAZILMIYOR. Her öğenin kendi kabartma
+   değeri var (kimi translateY(3px), kimi 4px); tek bir transform kuralı
+   yazmak o değerleri ezerdi. Bunun yerine BAĞIMSIZ `scale` özelliği
+   kullanılıyor: tarayıcı bunu mevcut transform'un üstüne biniyor, yani
+   kabartma aynen korunuyor. Desteklemeyen eski tarayıcıda satır sessizce
+   yok sayılır (kabartma yine çalışır).
+   ============================================================ */
+.app .btn:active:not(:disabled),
+.app .bd-ana-eylem:active:not(:disabled),
+.app .bd-mod:active,
+.app .bd-envanter-kutu:active,
+.app .bd-paket:active,
+.app .bd-coin-paket:active,
+.app .bd-dukkan-sekme:active,
+.app .bd-sekme:active,
+.app .bd-gorunum-yuva:active,
+.app .bd-esya:active,
+.app .bd-ikon-btn:active,
+.app .bd-lobi-oyuncu:active,
+.app .bd-davet-geri:active,
+.app .bd-davet-kod-btn:active,
+.bd-harita-btn:active,
+.bd-harita-emoji:active,
+.bd-harita-dans:active,
+.bd-harita-dans-ac:active,
+.bd-harita-yuvarlak:active {
+  scale: 0.98;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .app .btn:active:not(:disabled),
+  .app .bd-ana-eylem:active:not(:disabled),
+  .app .bd-mod:active,
+  .app .bd-envanter-kutu:active,
+  .app .bd-paket:active,
+  .app .bd-coin-paket:active,
+  .app .bd-dukkan-sekme:active,
+  .app .bd-sekme:active,
+  .app .bd-gorunum-yuva:active,
+  .app .bd-esya:active,
+  .app .bd-ikon-btn:active,
+  .app .bd-lobi-oyuncu:active,
+  .app .bd-davet-geri:active,
+  .app .bd-davet-kod-btn:active,
+  .bd-harita-btn:active,
+  .bd-harita-emoji:active,
+  .bd-harita-dans:active,
+  .bd-harita-dans-ac:active,
+  .bd-harita-yuvarlak:active {
+    scale: none;
+    transform: none;
+  }
+}
+
+/* ============================================================
+   AVATAR VİTRİNİ — profil ve dükkânın başındaki büyük avatar
+   Şenlik dili: beyaz kart + 0 4px 0 alt kalınlık. Cam/neon YOK.
+   ============================================================ */
+.app .bd-vitrin { padding: 14px; }
+.bd-vitrin-sahne {
+  position: relative;
+  height: 260px;
+  border-radius: 18px;
+  background: linear-gradient(180deg, var(--bd-gok, #CDEEFF), var(--bd-yuzey-2));
+  overflow: hidden;
+  touch-action: pan-y;      /* dikey kaydırma çalışsın, yatay sürükleme bize */
+  cursor: grab;
+  display: grid;
+  place-items: center;
+}
+.bd-vitrin-sahne:active { cursor: grabbing; }
+.bd-vitrin-sahne canvas { display: block; }
+/* Nadirlik vitrinde de belli olsun — kenar rengi (parıltı yok, sakin dursun) */
+.bd-vitrin-sirali { box-shadow: inset 0 0 0 3px #9AB0C4; }
+.bd-vitrin-ozel { box-shadow: inset 0 0 0 3px #7A4BFF; }
+.bd-vitrin-etkinlik { box-shadow: inset 0 0 0 3px #FFC53D; }
+.bd-vitrin-sahnesiz {
+  font-family: var(--bd-f-govde); font-weight: 800; font-size: 13px;
+  color: var(--bd-metin-2); text-align: center; padding: 0 18px;
+}
+.bd-vitrin-alt {
+  display: grid; justify-items: center; gap: 7px;
+  margin-top: 12px;
+}
+.bd-vitrin-ad {
+  font-family: var(--bd-f-baslik); font-weight: 900; font-size: 20px;
+  color: var(--bd-metin);
+}
+.bd-vitrin-rozetler {
+  display: flex; align-items: center; gap: 8px;
+  flex-wrap: wrap; justify-content: center;
+}
+.bd-nadirlik-etiket {
+  font-family: var(--bd-f-govde); font-weight: 900; font-size: 11px;
+  text-transform: uppercase; letter-spacing: 0.04em;
+  border-radius: var(--bd-r-tam, 999px); padding: 3px 10px;
+  color: #fff;
+}
+.bd-nadirlik-etiket.sirali { background: #9AB0C4; }
+.bd-nadirlik-etiket.ozel { background: #7A4BFF; }
+.bd-nadirlik-etiket.etkinlik { background: #FFC53D; color: #4A3600; }
+
+/* Dar ekranda vitrin biraz kısalsın: kartlar ekranı tamamen doldurmasın */
+@media (max-width: 420px) {
+  .bd-vitrin-sahne { height: 230px; }
+}

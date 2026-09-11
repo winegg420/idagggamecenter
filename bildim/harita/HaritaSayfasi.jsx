@@ -20,12 +20,15 @@ import { renkUret } from "./renk.js";
 import { esyaBilgisi } from "./esyalar.js";
 import { zumKur } from "./zum.js";
 import { dansVarMi } from "./danslar.js";
+import { yonDurumu, yonOzeti, yatayaGec, dikeyeDon } from "./yon.js";
 import "./harita.css";
 
 const EMOJILER = ["👋", "😂", "🔥", "🤔", "🎉", "⚔️"];
 const MAKS_CIZILEN = 40;   // aynı anda çizilen uzak oyuncu sayısı
 const YURUME_HIZI = 9;
 const BILGI_ANAHTARI = "bildim_harita_bilgi";
+// Kurulu uygulamada yatay uyarısı bir kez gösterilir
+const YATAY_UYARI_ANAHTARI = "bildim_harita_yatay_uyari";
 const PERDE_SURESI = 8000;   // ilk kare bu sürede gelmezse perde kalkar, hata çıkar
 // Kupa binası turnuvadan bu kadar önce açılır (sunucudaki meydan_kapi_dakika
 // ile aynı olmalı; ayar değişirse buradaki yalnız kapının ERKEN görünmesini
@@ -117,9 +120,44 @@ export default function HaritaSayfasi() {
   turnuvaKalanRef.current = turnuvaKalan;
   // Dans tepsisi açık mı (emoji çubuğunun üstünde açılır)
   const [dansAcik, setDansAcik] = useState(false);
+  // Ekran yönü: teşhis satırı, yatay kilit durumu ve uyarı
+  const [yon, setYon] = useState(() => yonDurumu());
+  const [yatayKilitli, setYatayKilitli] = useState(false);
+  const [yonUyari, setYonUyari] = useState(null);
+  // Kurulu uygulamada manifest kilidi anlatılsın (bir kez)
+  const [yatayBilgi, setYatayBilgi] = useState(false);
   const [bilgiAcik, setBilgiAcik] = useState(() => {
     try { return localStorage.getItem(BILGI_ANAHTARI) !== "1"; } catch { return true; }
   });
+
+  // ---- EKRAN YÖNÜ TEŞHİSİ ----
+  // Sahibi telefonunda konsola bakıp ekran görüntüsü gönderebilsin diye
+  // durum hem konsola yazılır hem HUD'da küçük gri bir satırda görünür.
+  useEffect(() => {
+    const d = yonDurumu();
+    setYon(d);
+    console.log("[Meydan] yon", {
+      ekran: d.ekran, aci: d.aci, kurulu: d.kurulu,
+      tamEkran: d.tamEkran, pencere: d.pencere,
+    });
+    // KURULU uygulamada ve ekran DİKEYKEN bir kez açıklama göster:
+    // manifest kilidi kurulum anında okunduğu için kısayol yenilenmeli.
+    try {
+      const gosterildi = localStorage.getItem(YATAY_UYARI_ANAHTARI) === "1";
+      const dikey = !d.ekran || String(d.ekran).startsWith("portrait");
+      if (d.kurulu && dikey && !gosterildi) setYatayBilgi(true);
+    } catch { /* özel mod */ }
+
+    const tazele = () => setYon(yonDurumu());
+    window.addEventListener("orientationchange", tazele);
+    window.addEventListener("resize", tazele);
+    document.addEventListener("fullscreenchange", tazele);
+    return () => {
+      window.removeEventListener("orientationchange", tazele);
+      window.removeEventListener("resize", tazele);
+      document.removeEventListener("fullscreenchange", tazele);
+    };
+  }, []);
 
   // Alt sekme çubuğu, davet bandı ve toast gizlensin (soru ekranıyla aynı mod)
   useOyunModu(true);
@@ -630,6 +668,26 @@ export default function HaritaSayfasi() {
     try { c.dunya.zumla(carpan); } catch (e) { console.error("[Meydan] zum:", e); }
   };
 
+  /** Yatay <-> dikey. Kilit yalnız tam ekranda ve Android'de çalışır. */
+  const yonDegistir = async () => {
+    setYonUyari(null);
+    if (yatayKilitli) {
+      await dikeyeDon();
+      setYatayKilitli(false);
+      setYon(yonDurumu());
+      return;
+    }
+    const sonuc = await yatayaGec(kapsayiciRef.current?.parentElement ?? document.documentElement);
+    setYatayKilitli(sonuc.oldu);
+    if (!sonuc.oldu) setYonUyari(sonuc.mesaj ?? "Yatay moda geçilemedi.");
+    setYon(yonDurumu());
+  };
+
+  const yatayBilgiKapat = () => {
+    setYatayBilgi(false);
+    try { localStorage.setItem(YATAY_UYARI_ANAHTARI, "1"); } catch { /* özel mod */ }
+  };
+
   const bilgiKapat = () => {
     setBilgiAcik(false);
     try { localStorage.setItem(BILGI_ANAHTARI, "1"); } catch { /* özel mod */ }
@@ -685,6 +743,15 @@ export default function HaritaSayfasi() {
         <button type="button" className="bd-harita-yuvarlak" onClick={() => zumDegistir(1 / 1.35)} aria-label="Yakınlaştır">+</button>
         <button type="button" className="bd-harita-yuvarlak" onClick={() => zumDegistir(1.35)} aria-label="Uzaklaştır">−</button>
         <button type="button" className="bd-harita-yuvarlak kus" onClick={() => zumDegistir(99)} aria-label="Kuş bakışı" title="Kuş bakışı">🦅</button>
+        <button
+          type="button"
+          className={"bd-harita-yuvarlak kus" + (yatayKilitli ? " acik" : "")}
+          onClick={yonDegistir}
+          aria-label={yatayKilitli ? "Dikey moda dön" : "Yatay moda geç"}
+          title={yatayKilitli ? "Dikey moda dön" : "Yatay moda geç"}
+        >
+          ⟳
+        </button>
       </div>
 
       {ipucu && (
@@ -702,8 +769,25 @@ export default function HaritaSayfasi() {
         <div className="bd-harita-bilgi">
           <b>Meydandasın</b>
           Yürümek için sağ alttaki topuzu sürükle (veya WASD / yön tuşları). Binalara yaklaşınca kapı açılır.
-          <br />
+          {/* Teşhis: ekran yönü durumu — sahibi ekran görüntüsüyle iletebilsin */}
+          <span className="bd-harita-yon-tesis">{yonOzeti(yon)}</span>
           <button type="button" className="bd-harita-btn" onClick={bilgiKapat}>Anladım</button>
+        </div>
+      )}
+
+      {yonUyari && (
+        <div className="bd-harita-yon-uyari" role="alert" onClick={() => setYonUyari(null)}>
+          {yonUyari}
+        </div>
+      )}
+
+      {yatayBilgi && (
+        <div className="bd-harita-bilgi bd-harita-yatay-bilgi">
+          <b>Yatay oynamak için</b>
+          Ana ekrandaki kısayolu silip yeniden ekle, ya da telefonun otomatik
+          döndürme ayarını aç. (Kurulu uygulama ekran kilidini kurulum anında
+          hatırlıyor.)
+          <button type="button" className="bd-harita-btn" onClick={yatayBilgiKapat}>Anladım</button>
         </div>
       )}
 

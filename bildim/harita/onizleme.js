@@ -13,7 +13,16 @@ import { avatarKur, avatarGorunumDegistir, avatarEfektleriGuncelle, avatarYokEt 
 import { esyaOnbelleginiTemizle } from "./esyalar.js";
 import { dansBaslat, dansKaresi, dansiDurdur } from "./danslar.js";
 
-export function onizlemeKur(kapsayici, { gorunum, bilgi }) {
+/**
+ * @param {HTMLElement} kapsayici
+ * @param {object} o
+ * @param {object} o.gorunum
+ * @param {object} o.bilgi
+ * @param {number} [o.hiz]  otomatik dönüş hızı (rad/sn). Vitrin 20 saniyede
+ *                          bir tur ister (2π/20 ≈ 0.314); Görünüm sayfası
+ *                          eski hızında kalsın diye varsayılan değişmedi.
+ */
+export function onizlemeKur(kapsayici, { gorunum, bilgi, hiz = 0.55 }) {
   const W = () => kapsayici.clientWidth || 260;
   const H = () => kapsayici.clientHeight || 320;
 
@@ -46,13 +55,19 @@ export function onizlemeKur(kapsayici, { gorunum, bilgi }) {
   let avatar = avatarKur({ ad: null, gorunum, bilgi });
   sahne.add(avatar);
 
-  let raf = 0, aktif = true, sonT = performance.now(), donsun = true;
+  // Hareket azaltma isteyen oyuncuda otomatik dönüş kapalı başlar; oyuncu
+  // yine de parmağıyla döndürebilir.
+  let donsun = true;
+  try {
+    donsun = !window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  } catch { /* matchMedia yoksa dönsün */ }
+  let raf = 0, aktif = true, sonT = performance.now();
   const kare = (t) => {
     if (!aktif) return;
     raf = requestAnimationFrame(kare);
     const dt = Math.min((t - sonT) / 1000, 0.05);
     sonT = t;
-    if (donsun) avatar.rotation.y += dt * 0.55;
+    if (donsun) avatar.rotation.y += dt * hiz;
     // Dükkânda dansa dokununca avatar burada oynar (meydandakiyle aynı kod).
     if (avatar.userData?.dans) dansKaresi(avatar, dt);
     avatarEfektleriGuncelle(avatar, dt);

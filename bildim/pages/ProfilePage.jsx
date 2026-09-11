@@ -7,6 +7,8 @@ import { Link } from "react-router-dom";
 import { supabase } from "../../src/lib/supabase.js";
 import { useAuth } from "../../src/context/AuthContext.jsx";
 import Avatar from "../../src/components/Avatar.jsx";
+import AvatarCerceve from "../components/AvatarCerceve.jsx";
+import AvatarVitrin from "../components/AvatarVitrin.jsx";
 import RankBadge from "../components/RankBadge.jsx";
 import SayanSayi from "../components/SayanSayi.jsx";
 import KonumSecici from "../components/KonumSecici.jsx";
@@ -80,8 +82,11 @@ export default function ProfilePage() {
 
   return (
     <div>
+      {/* Vitrin: meydan sahnesini YÜKLEMEZ (bkz. AvatarVitrin başlığı). */}
+      <AvatarVitrin ad={profile.gorunen_ad} puan={profile.puan ?? 0} />
+
       <div className="bd-profil-ust">
-        <Avatar profile={profile} boyut={92} />
+        <AvatarCerceve profile={profile} boyut={92} userId={user?.id} />
 
         {/* Görünen ad artık takma addır; gerçek kullanıcı adı gösterilmez.
             Takma ad düzenlemesi aşağıdaki ProfilAyarlari kartındadır. */}

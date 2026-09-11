@@ -11,7 +11,7 @@
 // ============================================================
 import { useEffect, useState } from "react";
 import { supabase } from "../../src/lib/supabase.js";
-import Avatar from "../../src/components/Avatar.jsx";
+import AvatarCerceve from "./AvatarCerceve.jsx";
 import Modal from "./Modal.jsx";
 import Ikon from "./Ikon.jsx";
 import RankBadge from "./RankBadge.jsx";
@@ -64,7 +64,7 @@ export default function OyuncuKarti({ userId, onIzleme = null, onKapat, onMeydan
 
         <div className="bd-oyuncu-ust">
           <div className="bd-oyuncu-avatar">
-            <Avatar profile={p ?? {}} boyut={96} />
+            <AvatarCerceve profile={p ?? {}} boyut={96} userId={userId} />
             {online && <span className="bd-oyuncu-online" title="Şu an oyunda" />}
           </div>
           <div className="bd-oyuncu-ad">

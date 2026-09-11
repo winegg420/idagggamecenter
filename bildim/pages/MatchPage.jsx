@@ -7,6 +7,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "../../src/lib/supabase.js";
 import { useAuth } from "../../src/context/AuthContext.jsx";
 import Avatar from "../../src/components/Avatar.jsx";
+import AvatarCerceve from "../components/AvatarCerceve.jsx";
 import QuestionCard from "../components/QuestionCard.jsx";
 import BildirimIzniSor from "../components/BildirimIzniSor.jsx";
 import MacSonuEklentisi from "../components/MacSonuEklentisi.jsx";
@@ -875,7 +876,7 @@ export default function MatchPage() {
             benimSkor > rakipSkor ? "onde" : benimSkor < rakipSkor ? "geride" : ""
           }`}
         >
-          <Avatar profile={benimProfil} boyut={44} />
+          <AvatarCerceve profile={benimProfil} boyut={44} userId={user.id} />
           <div className="isim">{benimProfil?.gorunen_ad}<SenRozeti /></div>
           <div className="skor"><SayanSayi deger={benimSkor} /></div>
           <div className="bd-vs-ilerleme">{ilerleme.ben}/{toplamSoru}</div>
@@ -889,7 +890,7 @@ export default function MatchPage() {
             rakipSkor > benimSkor ? "onde" : rakipSkor < benimSkor ? "geride" : ""
           } ${rakipNabiz ? "bd-nabiz" : ""}`}
         >
-          <Avatar profile={rakipProfil} boyut={44} />
+          <AvatarCerceve profile={rakipProfil} boyut={44} userId={benP1 ? mac.oyuncu2 : mac.oyuncu1} />
           <div className="isim">{rakipProfil?.gorunen_ad}</div>
           <div className="skor"><SayanSayi deger={rakipSkor} /></div>
           <div className="bd-vs-ilerleme">{ilerleme.rakip}/{toplamSoru}</div>

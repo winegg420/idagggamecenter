@@ -9,6 +9,8 @@ import { desteklenirMi, fiyatlariAl, satinAl, tuket } from "../lib/playFatura.js
 import { useCoin, coinTazele, coinHatasi } from "../lib/coin.js";
 import CoinGorseli, { coinBoyutu } from "../components/CoinGorseli.jsx";
 import { y } from "../lib/yol.js";
+import AvatarVitrin from "../components/AvatarVitrin.jsx";
+import { useAuth } from "../../src/context/AuthContext.jsx";
 
 // Dükkân üç sekme: Kıyafet (avatar eşyaları + danslar) / Joker / Coin.
 // Kıyafet sekmesinin içeriği Görünüm sayfasında; buradan oraya köprü var.
@@ -23,6 +25,7 @@ const SEKMELER = [
 ];
 
 export default function JokerDukkani() {
+  const { profile } = useAuth();
   const [envanter, setEnvanter] = useState({ elli: 0, sure: 0, pas: 0, seri_koruma: 0 });
   const [reklam, setReklam] = useState({ bugun: 0, tavan: 5 });
   const [paketler, setPaketler] = useState([]);
@@ -184,6 +187,10 @@ export default function JokerDukkani() {
       {bilgi && <div className="bd-bilgi-kutu">{bilgi}</div>}
 
       {/* ---------- KIYAFET ---------- */}
+      {sekme === "kiyafet" && (
+        <AvatarVitrin ad={profile?.gorunen_ad} puan={profile?.puan ?? 0} baslik="Şu anki görünümün" />
+      )}
+
       {sekme === "kiyafet" && (
         <div className="kart">
           <div className="bd-kat-baslik"><span>Kıyafet ve görünüm</span></div>

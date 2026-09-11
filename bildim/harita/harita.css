@@ -222,12 +222,61 @@ body.bd-harita-acik { overflow: hidden; }
   .bd-harita-btn { font-size: 12.5px; padding: 6px 10px; }
 }
 
+/* YATAYDA HUD %80 ÖLÇEK — dikey düzen yatayda sahneyi eziyordu.
+   Topuz sağ altta, dans/emoji sol altta kalır; yalnız küçülürler. */
+@media (orientation: landscape) and (max-height: 480px) {
+  .bd-harita-alt { padding: 6px 10px max(8px, env(safe-area-inset-bottom)); }
+  .bd-harita-pad { width: 78px; height: 78px; }
+  .bd-harita-topuz { width: 34px; height: 34px; margin: -17px 0 0 -17px; }
+  .bd-harita-emoji { width: 30px; height: 30px; font-size: 15px; border-radius: 10px; }
+  .bd-harita-emojiler { gap: 4px; }
+  .bd-harita-dans-ac { font-size: 12px; padding: 5px 10px; }
+  .bd-harita-yuvarlak { width: 30px; height: 30px; font-size: 16px; }
+
+  /* Üst haplar TEK SATIRDA kalsın; sığmazsa yatay kaydırılsın (sarmasın) */
+  .bd-harita-ust {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    gap: 6px;
+  }
+  .bd-harita-ust::-webkit-scrollbar { display: none; }
+  .bd-harita-ust > * { flex: none; }
+}
+
 /* Çok kısa ekranlarda (küçük telefon yatay) bilgi kartı hepten sadeleşir */
 @media (orientation: landscape) and (max-height: 400px) {
   .bd-harita-bilgi { display: none; }
   .bd-harita-pad { width: 74px; height: 74px; }
   .bd-harita-topuz { width: 32px; height: 32px; margin: -16px 0 0 -16px; }
 }
+
+/* ---- ekran yönü: teşhis satırı, uyarı ve kurulu uygulama bilgisi ---- */
+.bd-harita-yon-tesis {
+  display: block; margin: 8px 0 2px;
+  font-family: ui-monospace, Menlo, Consolas, monospace;
+  font-size: 10.5px; font-weight: 600;
+  color: var(--bd-metin-3);
+  word-break: break-word;
+}
+.bd-harita-yon-uyari {
+  position: absolute; z-index: 9;
+  left: 50%; transform: translateX(-50%); top: 62px;
+  max-width: min(86vw, 380px);
+  background: var(--bd-yuzey-1);
+  border-radius: 14px;
+  box-shadow: 0 4px 0 var(--bd-kart-alt);
+  padding: 10px 14px;
+  font-family: var(--bd-f-govde); font-weight: 800; font-size: 13px;
+  color: var(--bd-metin-2);
+  text-align: center; cursor: pointer;
+}
+.bd-harita-yuvarlak.acik {
+  background: linear-gradient(180deg, var(--bd-vurgu-acik), var(--bd-vurgu));
+  color: #fff;
+}
+.bd-harita-yatay-bilgi { bottom: auto; top: 50%; transform: translate(-50%, -50%); }
 
 /* Hata kutusundaki teknik ayrıntı — kullanıcı ekran görüntüsüyle iletebilsin */
 .bd-harita-hata-ayrinti {

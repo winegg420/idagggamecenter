@@ -20,6 +20,7 @@ import { useAuth } from "../../src/context/AuthContext.jsx";
 import Ikon from "../components/Ikon.jsx";
 import { hataMesaji } from "../lib/hata.js";
 import { coinTazele, coinHatasi } from "../lib/coin.js";
+import { nadirligiUnut } from "../lib/nadirlik.js";
 import { y } from "../lib/yol.js";
 import "./gorunum.css";
 
@@ -195,6 +196,8 @@ export default function GorunumPage() {
       const { data, error } = await supabase.rpc("gorunum_kaydet", { p_gorunum: gorunum });
       if (error) throw error;
       if (data && typeof data === "object") setGorunum(data);
+      // Çerçeve nadirliği önbellekte: kıyafet değişti, eskisini unut.
+      nadirligiUnut(user?.id);
       await fotografiYukle();
       setBilgi("Görünümün kaydedildi.");
     } catch (e) {

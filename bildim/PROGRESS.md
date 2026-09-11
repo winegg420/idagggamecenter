@@ -2457,3 +2457,71 @@ doğrudan meydan okuyor (`stopPropagation`).
 **Tuzak:** kart `.app` içinde DEĞİL — `Modal` portal ile `document.body`ye
 basıyor. Stili `.app .bd-oyuncu-karti` diye yazınca kural hiç uygulanmadı ve
 kapatma düğmesi ekranın sağ üstüne kaçtı. Önek kaldırıldı.
+
+---
+
+## 2026-09-11 (13) — Nadirlik çerçevesi, avatar vitrini, buton hissi, yatay ekran
+
+Dışarıdan gelen tasarım raporundan **yalnız üç madde** alındı; Tailwind,
+Framer Motion, neumorphism, glassmorphism, neon ve eğimli 3B kartlar
+reddedildi. Şenlik dili (açık gökyüzü zemin, beyaz kart + `0 4px 0` alt
+kalınlık, kabartmalı buton, Baloo 2 / Nunito) aynen duruyor. Yeni paket yok.
+
+### Nadirlik çerçevesi
+`AvatarCerceve` bileşeni tek yer; ana sayfa, profil, oyuncu kartı, lig satırı
+ve podyumu, maç üst şeridi ve turnuva lobisi onu kullanıyor. Renkler:
+sıradan `#9AB0C4` düz kenar · özel `#7A4BFF` + hafif mor parıltı · etkinlik
+`#FFC53D` + altın parıltı + 9 saniyede bir dönen kesikli halka. Parıltı
+`0 0 0 3px` + `0 0 12px rgba(...,.45)` düzeyinde — vurgu, neon değil.
+
+**Tıkandığımız yer:** başka oyuncunun `gorunum`u istemciye KAPALI. `profiles`
+üzerinde `authenticated` rolüne **kolon kolon** select verilmiş (gizlilik
+beyaz listesi: gorunen_ad, puan, sehir… ) ve `gorunum` o listede yok.
+Ham kaydı açmak yerine yalnız SONUCU döndüren `oyuncu_nadirlikleri(uuid[])`
+RPC'si yazıldı (**migration 140 — canlıya UYGULANMADI, sahibinde**).
+İstemci çağrıları aynı karede toplayıp tek istek atıyor ve önbelleğe alıyor;
+RPC yoksa bir kez uyarıp herkesi gri çerçeveye düşürüyor — hiçbir ekran
+bozulmuyor. Kendi avatarımız migration olmadan da doğru çerçeveyi alıyor
+(kendi görünümümüz `esya_katalogum`dan geliyor).
+
+### Avatar vitrini
+Profilin en üstünde ve dükkânın Kıyafet sekmesinde 260px'lik kart (dar
+ekranda 230px), içinde 20 saniyede bir tur dönen 3B avatar; parmakla
+sürüklenince elle döner, bırakınca kaldığı yerden devam eder. Altında takma
+ad, rütbe rozeti ve nadirlik etiketi. `prefers-reduced-motion` altında
+otomatik dönüş kapalı (elle döndürme açık).
+
+**Performans:** vitrin `onizleme.js` kullanıyor — o modül `dunya.js`'i import
+ETMİYOR, yani zemin/bina/ağaç kodu profile sızmıyor. Derleme çıktısı:
+`onizleme` 2.41 kB ayrı parça, `ProfilePage` 18.76 kB, `JokerDukkani`
+12.10 kB; `binalar` dizesi yalnız `HaritaSayfasi` parçasında.
+Bellek: profil ↔ ana sayfa 5 tur gidip gelme sonrası yığın 31 MB → 31 MB,
+sayfada artık canvas kalmıyor (sahne `yokEt` ile bırakılıyor).
+
+### Butona basınca küçülme
+`transform` YENİDEN YAZILMADI. Her öğenin kendi kabartması var (kimi
+`translateY(3px)`, kimi 4px); tek bir transform kuralı bunları ezerdi.
+Bunun yerine **bağımsız `scale` özelliği** kullanıldı (`scale: .98`) —
+tarayıcı onu mevcut transform'un üstüne biniyor, kabartma aynen kalıyor.
+Ölçüldü: `.app .bd-mod:active` hâlâ `translateY(3px)`, yeni kural yalnız
+`scale: 0.98` ekliyor. Desteklemeyen eski tarayıcı satırı yok sayıyor.
+`prefers-reduced-motion` altında `scale: none; transform: none`.
+
+### Yatay ekran — teşhis, düğme, düzen
+Ölçüm tarafı zaten çalışıyordu; sorun cihazın hiç dönmemesi. Eklenenler:
+1. **Teşhis:** harita açılırken `[Meydan] yon {...}` konsola yazılıyor ve
+   aynı özet bilgi kutusunda gri tek satır olarak görünüyor
+   (`landscape-primary · 0° · tarayıcı · pencere · 1536×791`).
+2. **"Yatay moda geç" düğmesi** (⟳): önce tam ekran, sonra
+   `screen.orientation.lock("landscape")`. İkinci basışta `unlock()` +
+   `exitFullscreen()`. Desteklemeyen cihazda (iOS Safari) hata vermiyor,
+   "Cihazın bunu desteklemiyor — otomatik döndürmeyi aç" uyarısı çıkıyor.
+3. **Yatay düzen:** `(orientation: landscape) and (max-height: 480px)`
+   altında HUD %80 ölçek, üst haplar tek satırda ve gerekirse yatay
+   kaydırılabilir, kamera görüş açısı 42° → 48°.
+4. **Kurulu uygulama uyarısı:** `display-mode: standalone` ve ekran dikeyse
+   bir kez kutu çıkıyor: kısayolu silip yeniden ekle ya da otomatik
+   döndürmeyi aç. (Manifest kilidi kurulum anında okunuyor.)
+
+Ölçüm (737×357): dans düğmesi 10–89, emoji 95–295, zum 485–637, topuz
+653–727 — çakışma yok, yatay kaydırma yok. 390px'te de taşma yok.

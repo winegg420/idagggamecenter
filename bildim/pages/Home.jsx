@@ -5,6 +5,7 @@ import { supabase } from "../../src/lib/supabase.js";
 import { useAuth } from "../../src/context/AuthContext.jsx";
 import Countdown from "../components/Countdown.jsx";
 import Avatar from "../../src/components/Avatar.jsx";
+import AvatarCerceve from "../components/AvatarCerceve.jsx";
 import { sonrakiTurnuvaSeans } from "../lib/zaman.js";
 import { rutbeBul, sonrakiRutbe } from "../lib/ranks.js";
 import { bayrak, haftaBitisi, sureMetni } from "../lib/konum.js";
@@ -350,7 +351,7 @@ export default function Home() {
             <RankBadge puan={puan} />
           </div>
           <div className="bd-hero-halka" style={{ "--halka": rutbe.renk }}>
-            <Avatar profile={profile} boyut={54} />
+            <AvatarCerceve profile={profile} boyut={54} userId={user.id} />
           </div>
         </div>
 

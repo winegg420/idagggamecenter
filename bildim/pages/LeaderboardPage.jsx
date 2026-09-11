@@ -13,6 +13,7 @@ import KonumSecici from "../components/KonumSecici.jsx";
 import Maskot from "../components/Maskot.jsx";
 import { bayrak, haftaBitisi, sureMetni } from "../lib/konum.js";
 import OyuncuKarti from "../components/OyuncuKarti.jsx";
+import AvatarCerceve from "../components/AvatarCerceve.jsx";
 import { y } from "../lib/yol.js";
 
 const KAPSAMLAR = [
@@ -181,7 +182,11 @@ export default function LeaderboardPage() {
       }}
     >
       <span className="bd-sira">{s.sira}</span>
-      <Avatar profile={{ gorunen_ad: s.gorunen_ad, gorunen_avatar: s.gorunen_avatar }} boyut={38} />
+      <AvatarCerceve
+        profile={{ gorunen_ad: s.gorunen_ad, gorunen_avatar: s.gorunen_avatar }}
+        boyut={38}
+        userId={s.user_id}
+      />
       <div className="bd-lig-bilgi">
         <div className="bd-lig-isim">
           {s.gorunen_ad}
@@ -338,9 +343,10 @@ export default function LeaderboardPage() {
                     <div className="bd-podyum-madalya">
                       {basamak}
                     </div>
-                    <Avatar
+                    <AvatarCerceve
                       profile={{ gorunen_ad: p.gorunen_ad, gorunen_avatar: p.gorunen_avatar }}
                       boyut={basamak === 1 ? 62 : 50}
+                      userId={p.user_id}
                     />
                     {/* Botlar podyumda gerçek oyuncuların önüne geçmesin:
                         sıra ve puanları AYNEN duruyor, yalnız görsel olarak

@@ -87,7 +87,10 @@ export function dunyaKur(kapsayici, s = {}) {
   sahne.background = new THREE.Color(0xbfe8ff);
   sahne.fog = new THREE.Fog(0xcdeeff, 60, 135);
 
-  const kamera = new THREE.PerspectiveCamera(42, W / H, 0.5, 400);
+  // GÖRÜŞ AÇISI: dikeyde 42°, yatayda 48°. Telefon yan çevrilince ekran
+  // alçalıyor ve sahne dar bir şeritten bakılıyormuş gibi görünüyordu.
+  const fov = () => (W > H ? 48 : 42);
+  const kamera = new THREE.PerspectiveCamera(fov(), W / H, 0.5, 400);
   const render = new THREE.WebGLRenderer({ antialias: !dusukDonanim, powerPreference: "high-performance" });
   render.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
   render.setSize(W, H);
@@ -597,7 +600,9 @@ export function dunyaKur(kapsayici, s = {}) {
   function boyutlandir() {
     W = kapsayici.clientWidth || window.innerWidth;
     H = kapsayici.clientHeight || window.innerHeight;
-    kamera.aspect = W / H; kamera.updateProjectionMatrix();
+    kamera.aspect = W / H;
+    kamera.fov = fov();          // yön değişince görüş açısı da güncellenir
+    kamera.updateProjectionMatrix();
     render.setSize(W, H);
   }
 
