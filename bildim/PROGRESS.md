@@ -1334,3 +1334,42 @@ tek kelimelik şıklar (~85 karakter) — 5 saniyede rahat okunuyor.
 tarafına dokunulmadı. Havuzun %81'i uygun olduğu için şu an sorun yok, ama
 üretilen sorular zamanla uzarsa hızlı mod havuzu daralır. Gerekirse
 `generate-questions` prompt'una "kısa soru" hedefi eklenebilir.
+
+---
+
+## 11 Eylül 2026 — Sekmeden dönünce maç ekranının donması
+
+**Sorun:** Maç sürerken başka sekmeye/ekrana geçip dönünce oyun donuyordu:
+sayaç ilerlemiyor, soru değişmiyor, rakip skoru güncellenmiyordu.
+
+**Kök neden:** Projede hiç `visibilitychange` dinleyicisi yoktu. Sekme arka
+plana geçince tarayıcı `setInterval`'leri donduruyor/kısıyor (soru sayacı
+100 ms, maç yoklamaları 2–2.5 sn) ve Supabase Realtime WebSocket'ini koparıyor;
+dönüldüğünde sayaç eksi değerde takılı, kanal ölü kalıyordu.
+
+**Karar:** Soru atlanabilir — oyuncu dönünce sıradaki sorudan devam eder.
+Sunucu tarafı zaten buna uygun olduğu için **DB/RPC'ye dokunulmadı**; düzeltme
+tamamen istemcide.
+
+**Yapılanlar:**
+- Yeni `bildim/lib/gorunurluk.js` → `useGorunurlukTazele(fn, aktif)` hook'u.
+  `visibilitychange` + `focus` dinler, sekme görünür olunca `fn()` çağırır.
+- `components/QuestionCard.jsx`: sayaç `tik`'i `tikRef`'e yazıldı; dönüşte elle
+  çağrılıyor. Süresi dolmuşsa zaman aşımı akışı (doğru cevabı göster + atla)
+  bir kez tetikleniyor — `sureDolduMu` kilidi mükerrer tetiklemeyi engelliyor.
+- `MatchPage` / `GroupMatchPage` / `HizliMacPage` / `TournamentPage`: kanal
+  kurulumu `kanalKur()` fonksiyonuna çıkarıldı, kanal `kanalRef`'te tutuluyor.
+  Dönüşte yükleme fonksiyonu bir kez çağrılıp kanal yeniden kuruluyor.
+- `HizliModPage`: Realtime yok; dönüşte soru sayacı gerçek zamana göre
+  senkronlanıyor.
+- Grup/hızlı/turnuvada soru saati ortak (`soru_baslangic`) olduğu için istemci
+  ekstra atlama tetiklemiyor; sunucudaki güncel `aktif_soru` neyse oradan devam.
+
+**Bilinen sınır (ileriye):** `HizliModPage`'de toplam 60 sn'lik sayaç gerçek
+zamandan değil, tik başına `-0.1` ile azalıyor. Sekme arka plandayken bu sayaç
+da donuyor, yani oyuncu 60 sn'den fazla oynamış olabilir. Takılmaya yol açmadığı
+ve oyun mantığını değiştireceği için bu turda dokunulmadı; gerekirse oturum
+başlangıç zaman damgası eklenerek düzeltilebilir.
+
+**Doğrulama:** `npm run build` hatasız. Dev sunucusunda `/bildim` açıldı,
+konsolda hata yok. Maç içi sekme testi kullanıcı tarafından yapılacak.
