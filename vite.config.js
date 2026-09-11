@@ -111,10 +111,15 @@ export default defineConfig(({ mode }) => {
   //   • gerçek ortam değişkeni → Cloudflare Pages paneli (öncelikli)
   const env = { ...loadEnv(mode, process.cwd(), ""), ...process.env };
   const uygulamaModu = env.VITE_MOD || "";
-  // Quiz Square'in kendi alan adı. VITE_SITE_URL verilmezse bu kullanılır:
-  // robots/sitemap ve og:url artık "adres bilinmiyor" diye boş kalmaz.
-  // Farklı bir adrese (önizleme, test) çıkarken ortam değişkeni ezer.
-  const VARSAYILAN_SITE = "https://quizsquare.app";
+  // Quiz Square'in yayın adresi. VITE_SITE_URL verilmezse bu kullanılır:
+  // robots/sitemap ve og:url "adres bilinmiyor" diye boş kalmaz.
+  //
+  // DİKKAT — burada ÇALIŞAN bir adres olmalı. Bir süre `quizsquare.app`
+  // yazıyordu ama o alan adı HENÜZ SATIN ALINMADI (nslookup: NXDOMAIN);
+  // ortam değişkeni silinseydi sitemap ve paylaşım kartları var olmayan bir
+  // adresi duyuracaktı. Gerçek alan adı alınınca hem burası hem Vercel'deki
+  // VITE_SITE_URL güncellenmeli.
+  const VARSAYILAN_SITE = "https://quizsquare.vercel.app";
   const siteUrl = (env.VITE_SITE_URL || (uygulamaModu === "bildim" ? VARSAYILAN_SITE : ""))
     .replace(/\/+$/, "");
   return {
