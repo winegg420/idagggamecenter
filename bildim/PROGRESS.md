@@ -1373,3 +1373,71 @@ başlangıç zaman damgası eklenerek düzeltilebilir.
 
 **Doğrulama:** `npm run build` hatasız. Dev sunucusunda `/bildim` açıldı,
 konsolda hata yok. Maç içi sekme testi kullanıcı tarafından yapılacak.
+
+---
+
+## 11 Eylül 2026 — Soru havuzu genişletme: +472 global soru (TR + EN)
+
+**Amaç:** Her kategoriye kaliteli yeni soru eklemek. Kapsam kararı: **global**
+(her ülkedeki oyuncuya sorulabilir) + İngilizce çevirisi aynı migration'da.
+Dağılım "zayıf kategoriye ağırlık" ilkesiyle yapıldı.
+
+**Eklenen (migration `20260612000124_soru_global_parti_17.sql`):**
+
+| kategori | eklenen | kategori | eklenen |
+|---|---|---|---|
+| spor | 65 | sinema | 44 |
+| sanat | 59 | genel_kultur | 42 |
+| edebiyat | 52 | tarih | 40 |
+| bilim | 51 | cografya | 23 |
+| muzik | 51 | **toplam** | **472** |
+| teknoloji | 45 | | |
+
+Canlı havuz: 8.765 → **9.237 aktif soru**. Global soruların EN çeviri eksiği: **0**.
+
+**Süreç — her soru üç kapıdan geçti:**
+1. `generate-questions/kalite.ts` içindeki `nedenGecersiz()` (mevcut üretim
+   süzgeci) — **hem Türkçesine hem İngilizce çevirisine** uygulandı.
+2. Mükerrer denetimi: canlı havuzdaki 11.982 sorunun ve 7.210 EN çevirisinin
+   tamamına karşı normalize edilmiş metin karşılaştırması.
+3. Doğru şık konum dengesi (aşağıda).
+
+Araçlar `.tmp/` altında: `soru-denetim.mjs` (denetim + ayıklama),
+`kurtar.mjs` (yalnız uzunluk dengesi yüzünden elenenleri teşhisle listeler),
+`dengele.mjs` (şık konumu dengeleme), `migration-uret.mjs`.
+
+**Öğrenilenler / kararlar:**
+
+- **En sık elenme nedeni "doğru şık diğerlerinden belirgin uzun" oldu.** İlk
+  sinema partisinde 68 sorudan 37'si buna takıldı. Bunlar *atılacak* değil
+  *düzeltilecek* hatalar: çeldiricileri uzatınca 20/20 geçti. Bu yüzden
+  `kurtar.mjs` yazıldı. Kural olarak benimsendi: **doğru şık, yanlış şıkların
+  ortalamasından en fazla 3 karakter uzun olsun** (en güvenlisi: doğru cevap
+  kısa, çeldiriciler uzun; ya da hepsi eşit uzunlukta / sayı).
+- **Doğru şık konumu ciddi bir açıktı.** İlk taslakta müzik kategorisinde
+  doğru cevabın **%70'i B şıkkındaydı** — "hep B'yi seç" stratejisi oyunu
+  bilgisiz kazandırırdı. `dengele.mjs` şık sırasını (TR ve EN birlikte)
+  takas ederek her kategoride 0/1/2/3 dağılımını eşitliyor. Yeni partilerde
+  bu adım **atlanmamalı**.
+- **Mevcut havuz kavram/tanım ağırlıklı** ("X nedir?"). Bu parti olgusal ve
+  zamansız sorulara (tarih, isim, sayı, kural) ağırlık verdi — hem tamamlayıcı
+  oldu hem mükerrer riski düştü.
+- **EN mükerrer, TR mükerrerden daha sık çıktı.** Türkçesi farklı iki soru aynı
+  İngilizce cümleye çevrilebiliyor; özellikle edebiyatta "Who wrote the novel
+  'X'?" kalıbı doyduğu için 59 sorudan 23'ü buna takıldı. Çözüm: İngilizce
+  soru kalıbını da çeşitlendirmek ("Which writer is behind…", "…is a play by
+  which writer?").
+- **Negatif sayılar şık olarak kullanılmamalı:** `normalize()` tireyi sildiği
+  için `["0","5","-5","10"]` şıklarında `-5` ile `5` aynı sayılıyor ve soru
+  "şıklar birbirinin aynısı" diye eleniyor.
+- Son elemede 6 soru daha çıkarıldı: 2 olumsuz kalıp (`olmayan` — mevcut
+  `OLUMSUZ` regex'i bu eki yakalamıyor) ve 4 tartışmalı/değişken eşikli soru
+  (uzun metraj süresi, saha hakem sayısı vb.).
+
+**İleriye not:** `OLUMSUZ` regex'ine `olmayan` eklenebilir; şu an bu kalıptaki
+sorular kapıdan geçiyor.
+
+**Doğrulama:** Migration canlıya uygulandı (472 soru + 472 çeviri), denetim
+scripti 472 soruda **0 hata** ve tüm kategorilerde dengeli dağılım raporladı.
+Ayrıca geçmişe kaydı unutulmuş `20260612000123` de `schema_migrations`'a
+eklendi (uygulanmıştı ama kayıtlı değildi; `db push` onu tekrar çalıştıracaktı).
