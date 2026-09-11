@@ -1876,3 +1876,74 @@ yüzden şişkindi): (1) betik SVG metninin `color`'ını okuyor, logo aslında
 `fill="var(--bd-metin)"` ile çiziliyor ve okunur; (2) yarı saydam arka
 planları kompozit etmiyor ve `color(srgb 0..1)` biçimini yanlış ayrıştırıyor.
 Düzeltilmiş betikle 9 sayfa + bir maç ekranı, **açık ve koyu temada** boş dizi.
+
+---
+
+## 2026-09-11 (3) — Eş zamanlı maç, kabul bildirimi, haritada ışınlanma
+
+`9d807ce` ve `dd9515c`. Kullanıcının üç şikâyeti.
+
+### 1. Meydan okuma kabul edilince haber yoktu
+`respond_challenge` yalnız `durum`u 'aktif' yapıyordu; meydan okuyana hiçbir
+sinyal gitmiyordu. Rakip maça giriyor, meydan okuyan maçı ana sayfada
+bulamıyordu ("rakip benden önce başladı").
+
+- `respond_challenge` → `bildirim_yaz(..., 'meydan_kabul', ...)` + `kabul_at`.
+- Ana sayfada en üstte turuncu çerçeveli, nabız atan ayrı satır
+  (`.bd-yeni-mac`). **Bot maçlarının önünde**, en yeni kabul en başta.
+- Satır kendiliğinden temizlenir: oyuncu o maçta ilk soruyu cevaplayınca
+  (`benimSoru > 0`) normal "yarım kalan maç" listesine düşer. Ayrı bir
+  "okundu" alanı tutmaya gerek kalmadı.
+
+### 2. Maçlar artık eş zamanlı (migration 128)
+Eski akış **bilerek asenkrondu** (`oyuncu1_soru` / `oyuncu2_soru`, ayrı
+`oyuncuN_baslangic`). Kullanıcı bunu istemiyor: aynı anda oynanacak, soru
+aynı anda geçecek, önden gitmek yok.
+
+Kurgu:
+- `matches.senkron` (yeni maçlarda true) + `basladi` kapısı.
+- `mac_hazir(id)` nabzı (istemci 3 sn, sunucu 12 sn pencere). **Maç iki taraf
+  da ekrana gelene kadar başlamaz**; bot her zaman hazır sayılır.
+- Ortak indeks `aktif_soru` + ortak saat `soru_baslangic`. Puan ortak saate
+  göre — hız avantajı adil.
+- Soru **ikisi de cevaplayınca ya da 16 sn dolunca** ikisi için birden geçer
+  (`advance_match` senkron dalı).
+- `submit_match_answer` senkronda ortak indeksi ilerletmez ve aynı soruya
+  ikinci cevabı reddeder (çift puan kapandı).
+
+**Bot tuzağı:** senkronda bot indeks olarak `aktif_soru` kullansaydı, cron her
+7 sn'de aynı soruyu yeniden cevaplayıp puan yazardı (`on conflict do nothing`
+satırı engeller ama skor UPDATE'i yine çalışır). Çözüm: bot kendi
+`oyuncuN_soru` indeksini kullanmaya devam eder, ek koşul `= m.aktif_soru`.
+Bot ayrıca senkronda `soru_baslangic`i **sıfırlamaz** — ortak saati bozardı.
+
+**Geriye uyum:** o an açık olan maçlar `senkron = false` yapıldı; eski
+kurallarıyla bitiyorlar. Asenkron ekranları (`Senin bölümün bitti`, "rakip
+önde" kartı) `!senkron` ile korundu.
+
+**Terk edilme (migration 129):** senkronda soruyu ilerleten taraf istemci.
+İkisi de sekmeyi kapatırsa maç sonsuza kadar aktif kalıyordu. `senkron_mac_temizle()`
+saatlik cron'a eklendi: hiç başlamamış 1 saatlik maç iptal, başlamış ama 10
+dakikadır duran maç o anki skorlarla biter.
+
+### 3. Haritada ışınlanma
+Gelen konum paketi doğrudan hedefe yazılıp kare başına lerp ediliyordu.
+Paketler düzgün aralıklarla gelmediği için avatar duraklayıp sıçrıyordu.
+
+**Kritik ayrıntı:** ilk denemede paketleri **varış zamanıyla** damgaladım ve
+sonuç daha kötü çıktı (hız sapması 7.35 → 16.0). Ağ gecikmesindeki değişim
+hareketin kendisine karışıyor. Doğrusu **gönderenin saat damgası** + alıcının
+saat farkı kestirimi (gözlenen en küçük gecikme).
+
+Son hâli: uyarlanır gecikme (140-420 ms, gözlenen jitter kadar) + tampon
+kuruyunca 300 ms tahmin + kare başına adım kelepçesi (yürüme hızının 1.8 katı).
+Ölçüm (`.tmp/ara-degerleme-testi3.mjs`): hız sapması iyi ağda 3.27 → 0.05,
+kötü ağda 7.53 → 0.43; duraklama %8.09 → %0.07.
+
+Ayrıca: presence titrerse avatar rastgele kenarda doğmuyor (son konum
+saklanıyor) ve ilk paket gelmeden hiç çizilmiyor.
+
+### Not — otomasyon tuzağı (tekrar)
+Chrome otomasyonunda sekme `document.hidden` sayılıyor: `setInterval` dakikada
+bire düşüyor, süre dolunca ilerletme tetiklenmiyor. Maç ekranı testinde
+"soru geçmedi" gibi görünen durum bu; sunucu yolu ayrı test edildi.
