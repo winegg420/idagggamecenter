@@ -2158,3 +2158,46 @@ Marka Quiz Square olunca `quizador.vercel.app` linki uyumsuz kaldı.
 ### Not — oturumlar
 Tarayıcı deposu adrese özel: yeni adrese ilk girişte herkes çıkış yapmış
 görünür, tekrar giriş yapması gerekir. Veri kaybı yok.
+
+---
+
+## 2026-09-11 (8) — "Quizador" adı tamamen kapatıldı
+
+Sahibi: *"QUİZADOR SİTESİ ARTIK YOK O ISIM BITTI."* Eski adı taşıyan her şey
+kaldırıldı. **Tek yayın adresi: https://quizsquare.vercel.app**
+
+### Vercel
+- Proje `quizador-vercel` → **`quizsquare`** olarak yeniden adlandırıldı.
+- `quizador.vercel.app` ve `quizador-vercel.vercel.app` **projeden silindi**.
+
+**İki tuzak vardı, ikisi de ölçümle yakalandı:**
+
+1. **`vercel alias rm` YETMİYOR.** Alias'ı siliyor ama alan adı projeye kayıtlı
+   kalıyor; bir sonraki dağıtımda otomatik yeniden bağlanıyor. Adresler 404
+   olduktan sonra bir push attım ve **200'e geri döndüler**. Doğrusu alan adını
+   PROJEDEN silmek:
+   `DELETE /v9/projects/{proje}/domains/{alan}` (CLI'da bu alt komut yok;
+   `vercel domains rm` hesap düzeyine bakıyor ve `.vercel.app` alt alan adlarını
+   bulamıyor). Token: `%APPDATA%/com.vercel.cli/Data/auth.json`.
+
+2. **`vercel redeploy` kaynak dağıtımın alias listesini geri getiriyor.** Elle
+   redeploy yapılırsa alan adları yeniden kontrol edilmeli.
+
+### Cloudflare
+`quizador` Pages projesi silindi (quizador.pages.dev kapandı). Cloudflare Pages
+projeleri **yeniden adlandırılamıyor**, tek yol silmekti. Site zaten Vercel'de
+çalıştığı için ikinci yayın noktasının faydası yoktu. Sahibi onayladı.
+
+### Supabase
+Site URL zaten `https://quizsquare.vercel.app` olarak güncellenmiş. **Dışarıdan
+ölçüldü** (panele girmeden), yöntem `GIRIS_SAGLAYICILARI.md`'de:
+```
+curl -sSI https://<proje>.supabase.co/auth/v1/callback | grep -i location
+```
+Location başlığı Site URL'i ele veriyor.
+
+### Belgeler
+`CLOUDFLARE_DAGITIM.md` ve `GIRIS_SAGLAYICILARI.md` "asıl site
+quizador.pages.dev" diyordu; geçmiş kaydı oldukları belirtilip güncel adres
+yazıldı. `PROGRESS.md`'deki tarihsel "quizador" geçişleri **bilerek** duruyor —
+onlar o gün ne olduğunun kaydı.
