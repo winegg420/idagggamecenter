@@ -373,11 +373,17 @@ export default function Home() {
 
         <SeriRozeti />
 
-        <button className="bd-ana-eylem" onClick={() => hemenOyna(true)}>
+        {/* İKİ AYRI MOD (sahibinin kararı):
+            · Hemen oyna   → puansız keyfi maç. Ne coin ne lig puanı.
+            · Dereceli Maç → 3. katmanda, coin + lig puanı yazar.
+            Kural sunucuda da zorlanıyor (migration 162): `matches.dereceli`
+            false ise `mac_sonuclandir` coin çağrısını hiç yapmıyor. */}
+        <button className="bd-ana-eylem" onClick={() => hemenOyna(false)}>
           <Ikon ad="hizli" boyut={22} />
           <span>Hemen oyna</span>
           <Ikon ad="ok" boyut={20} className="bd-ana-eylem-ok" />
         </button>
+        <div className="bd-ana-eylem-not">Puansız — keyfine bak, hiçbir şey kaybetmezsin</div>
         {mesaj && <div className="hata-kutu" style={{ marginTop: 10 }}>{mesaj}</div>}
       </section>
       {/* KATMAN 1 BİTTİ.
@@ -534,18 +540,22 @@ export default function Home() {
       {/* ============ KATMAN 3 — BAŞKA NASIL OYNANIR ============
           SADELEŞTİRME. Izgarada dokuz düğme vardı; üçü
           başka bir yolun kopyasıydı ve kaldırıldı:
-            · "Dereceli Maç"  → yukarıdaki "Hemen oyna" ile aynı çağrı.
             · "Joker Dükkânı" → alt sekmede zaten var.
             · "Lig"           → alt sekmede zaten var.
           Hiçbir ekran erişilemez olmadı; yalnız ikinci kapılar kapandı.
-          Başlık da somutlaştı ("Modlar" → ne olduğunu söyleyen bir cümle). */}
+          Başlık da somutlaştı ("Modlar" → ne olduğunu söyleyen bir cümle).
+
+          "Dereceli Maç" GERİ GELDİ: bir süre "Hemen oyna" ile aynı çağrıyı
+          yaptığı için kaldırılmıştı. Artık iki mod gerçekten farklı —
+          yukarıdaki düğme puansız, buradaki puanlı. Puansız maça giden
+          yol da, puanlı maça giden yol da açık olmalı. */}
       <section className="bd-katman bd-giris-3">
         <h2 className="bd-katman-baslik">Başka nasıl oynanır</h2>
         <div className="bd-mod-grid">
-          <button className="bd-mod bd-mod-genis tema-hizli" onClick={() => hemenOyna(false)}>
-            <span className="bd-mod-ikon"><Ikon ad="hizli" boyut={30} /></span>
-            <span className="bd-mod-ad">Normal Maç</span>
-            <span className="bd-mod-not">Serbest rakip · puan yazılmaz</span>
+          <button className="bd-mod bd-mod-genis tema-lig" onClick={() => hemenOyna(true)}>
+            <span className="bd-mod-ikon"><Ikon ad="kupa" boyut={30} /></span>
+            <span className="bd-mod-ad">Dereceli Maç</span>
+            <span className="bd-mod-not">Lig puanını ve coin'ini etkiler · seviyene yakın rakip</span>
           </button>
           <button className="bd-mod bd-mod-genis tema-grup" onClick={() => navigate(y("/meydan"))}>
             <span className="bd-mod-ikon"><Ikon ad="kisiler" boyut={26} /></span>

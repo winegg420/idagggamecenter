@@ -18,3 +18,6 @@ supabase/.branches
 
 # wrangler pages dev yerel önbelleği
 .wrangler/
+
+# Gecici calisma dosyalari (repoya girmez)
+.tmp/

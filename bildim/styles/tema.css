@@ -1450,6 +1450,16 @@ body::before {
   box-shadow: 0 2px 0 #b97e07;
 }
 
+/* Ana düğmenin altındaki tek satırlık açıklama: "Hemen oyna" ile
+   "Dereceli Maç" arasındaki fark oyuncuya yazıyla söylenmeli. */
+.bd-ana-eylem-not {
+  margin-top: 8px;
+  text-align: center;
+  font-size: 13px;
+  line-height: 1.35;
+  color: var(--bd-metin-2, #4A5568);
+}
+
 /* ============================================================
    3.1 TİPOGRAFİ
    ============================================================ */
