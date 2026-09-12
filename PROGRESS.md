@@ -3706,3 +3706,131 @@ döndürme derdi yok).
 ikinci turda da 10 doku (bellek büyümüyor). İki hesap iki sekmede
 birbirinin doğru karakterini görüyor. 390 px'de yatay kaydırma yok,
 7 ekranda konsol hatası 0. `npm run build` temiz.
+
+---
+
+## 12 Eylül 2026 — Revizyon Paketi 3 (dört madde)
+
+### 1. Dereceli maç ayrı seçenek, puansız maç tamamen ödülsüz
+Sadeleştirme paketinde "Dereceli Maç" düğmesi kaldırılmıştı; sahibi iki
+modun ayrı durmasını istedi. Artık:
+
+| Düğme | Yer | Davranış |
+|---|---|---|
+| Hemen oyna | kahraman bölümü | `dereceli = false` — coin yok, lig puanı yok |
+| Dereceli Maç | "Başka nasıl oynanır" | `dereceli = true` — coin + lig puanı |
+
+Farkı oyuncuya yazıyla söyleniyor ("Puansız — keyfine bak…" /
+"Lig puanını ve coin'ini etkiler…"). "Normal Maç" düğmesi yerini
+"Dereceli Maç"a bıraktı (ikisi aynı çağrıyı yapacaktı). Joker Dükkânı ve
+Lig geri gelmedi — alt sekmede duruyorlar.
+
+**Kök sorun sunucudaydı:** `mac_sonuclandir` içinde `coin_mac_odulu`
+çağrısı `dereceli` kontrolünden ÖNCE duruyordu. Yani "puansız maç" coin
+farmlamanın en ucuz yoluydu. Migration 162 iki katmanda kapattı:
+çağrı kontrolün altına indi ve `coin_mac_odulu` referans bir maç id'siyse
+maçın kendi `dereceli` alanına bakıyor. İstemci zorlasa bile geçemez.
+
+Canlı DB'de rollback'li ölçüm: `dereceli=false` → coin 155→155, puan 0→0,
+coin hareketi 0. `dereceli=true` → coin 155→180, puan 0→20, hareket 1.
+
+### 2. Meydanda zıplama
+Yeni modül `bildim/harita/ziplama.js` — **saf mantık**, three.js/DOM/ağ
+bilmiyor. Yükseklik (1.9) ve süre (0.62 sn) `oyun_ayarlari`'nda değil
+burada: oyun dengesi değil, his meselesi (sahibinin kararı).
+
+Mimari şart gereği üç katman ayrı:
+- **mantık** `ziplama.js` (parabolik eğri, "havadayken tekrar yok")
+- **ağ** `coklu.js` — poz paketine `h` alanı eklendi
+- **çizim** `dunya.js` — `yurumeAnimasyonu(av, dt, guc, zipla)` verilen
+  yüksekliği uyguluyor. Modeller değişince yalnız bu katman değişir.
+
+Girdi: PC'de boşluk tuşu (kenar tetikleme — basılı tutmak işe yaramaz),
+mobilde sağ alttaki eylem satırında "Zıpla" düğmesi. Yön topuzu solda
+kaldı. Zıplarken yürüme animasyonu ve dans kesiliyor, sprite idle'a
+dönüyor. Uzak oyuncularda yükseklik de ara değerlemeye giriyor; paketinde
+`h` olmayan eski sürüm 0 sayılıyor. Kamera dikeyde zaten hiç oynamıyor,
+`prefers-reduced-motion` altında zıplama kalıyor.
+
+### 3. Arayüz çoklu dil — Aşama 1
+`bildim/lib/dil.js` (düz JS sözlük + `t()`, kütüphane yok) ve React
+kancası `bildim/lib/dilKanca.js`. Kural sıralı: **profil tercihi >
+bu tarayıcıdaki seçim (localStorage) > `navigator.language`**
+("tr" ile başlıyorsa Türkçe, başka her şey İngilizce). **IP/ülkeye
+bakılmıyor** — Almanya'daki Türk Türkçe, Türkiye'deki yabancı İngilizce
+görsün diye.
+
+Çevrilen ekranlar (Aşama 1 kapsamı): `src/pages/Login.jsx` ve
+`bildim/components/KurulumSihirbazi.jsx`. Giriş ekranının üstüne TR/EN
+değiştirici eklendi. Sözlükte olmayan anahtar Türkçe metnin kendisine
+düşüyor, yani yarım çeviri boş ekran üretmiyor.
+
+**Sorular da oyuncunun dilinde (migration 163).** `question_translations`
+tablosu ve 7.682 İngilizce çeviri vardı ama **hiçbir fonksiyon bu tabloya
+bakmıyordu** (ölçüldü: 0). `soru_sec` yalnız `q.dil = oyuncunun dili`
+diyor, kaynağı İngilizce soru olmadığı için İngilizce oyuncu her zaman
+Türkçe havuza düşüyordu. Artık:
+- bir soru ancak maçtaki **her** oyuncunun dilinde okunabiliyorsa
+  seçiliyor; "bulamazsan Türkçesini ver" geri düşüşü kaldırıldı
+- `soru_dilinde()` metni tek yerden veriyor; soru döndüren tüm RPC'ler
+  (1v1, grup, hızlı, turnuva, hızlı mod, çalışma, Soru Değiştir jokeri)
+  onu çağırıyor
+- turnuva havuzuna yalnız İngilizce çevirisi olan sorular giriyor
+  (turnuva sorusu herkese aynı anda sorulur, kimin gireceği belli değil)
+
+### 4. İngilizce çeviri denetimi
+7.682 çevirinin tamamı dört yöntemle tarandı. **Bildirilen "Cami →
+Mosque" hatası canlı veritabanında yok** — o soruda şık zaten "Jami"
+yazıyor (şıklar: Farid ud-Din Attar / Saadi / Hafiz / Jami). Özel
+isimler genel olarak doğru: Çehov→Chekhov, Sadi→Saadi, Hafız→Hafez,
+Basra Körfezi→Persian Gulf, Sur→Tyre, Sancak→Sandžak, Ağrı Dağı→Mount
+Ararat.
+
+Tarama **başka iki gerçek hata** buldu (migration 164, canlıya uygulandı).
+İkisi de "özel isim çevrildi" değil, **çeldirici içeriği kayması**:
+1. `'Parazit' filmi hangi ülkenin yapımıdır?` — TR şık "Endonezya",
+   EN şık "The Philippines" yazıyordu → **Indonesia** oldu.
+2. `El Nino olayı neyi etkiler?` — dört şıktan üçü Türkçesiyle ilgisizdi
+   ("Only Turkey / Only the poles / Nothing") → şıklar yeniden yazıldı.
+3. Tutarlılık: aynı şair 1 soruda "Hafiz", 7 soruda "Hafez" → hepsi
+   **Hafez**.
+
+Doğru cevap her üçünde de yerindeydi, yani puanlama bozulmamıştı.
+
+**Yöntem notu (sonraki denetimler için):** naif "büyük harfle başlıyorsa
+özel isimdir" kuralı işe yaramıyor — Türkçede cümle ve şık zaten büyük
+harfle başlıyor, canlı korpusta soruların **%89,7'sini** işaretledi.
+Güvenilir işaret, cümlenin ORTASINDA büyük harf: büyük harf dizisi
+tabanlı kural yanlış pozitifi **%8,3'e** indirdi.
+
+**Kalıcı kural:** `kalite.ts` içine `ceviriNedenGecersiz()` eklendi.
+Özel isim çeviride korunmuş mu diye bakıyor; uluslararası yazım farkına
+tolerans var (Cami→Jami geçer, Cami→Mosque reddedilir), tırnak içi eser
+adları ve ülke/kıta adları kuralın dışında. Üretim istemine de aynı kural
+yazıldı. `npx supabase functions deploy generate-questions` **403
+dönüyor** (makinedeki CLI belirteci başka hesaba ait — bkz. eski notlar);
+kod depoda, dağıtım bekliyor.
+
+### Doğrulama
+- `npm run build` temiz; tarayıcı uyumluluk denetimi TEMİZ.
+- Testler: `kalite-test.mjs` 38/38, yeni `bildim/_test/ziplama-test.mjs`,
+  `ziplama-ag-test.mjs` (h paketle gidiyor, hız sınırı yutmuyor),
+  `dil-test.mjs` (dil kuralının üç katmanı).
+- Canlı sitede: iki ayrı düğme görünüyor, giriş ekranı tarayıcı diline
+  göre açılıyor, TR/EN değiştirici çalışıyor (ekran tamamen İngilizceye
+  dönüyor), 390 px'de yatay kaydırma yok, konsol hatası 0.
+- Meydan HUD'u ölçüldü: topuz solda (x=18), Zıpla (x=1327) ve Dans
+  (x=1420) sağda.
+- **Yapılamayan:** 3B sahnenin kendisi otomasyon tarayıcısında
+  çalışmıyor — sekme arka planda kaldığı için `document.hidden = true`,
+  `requestAnimationFrame` duruyor ve sahne "hazırlanıyor" perdesinde
+  kalıyor. Zıplamanın görsel doğrulaması ve iki sekmeli canlı deneme bu
+  yüzden yapılamadı; yerine mantık ve ağ katmanı testle doğrulandı,
+  dağıtılan paketin içinde `h:+_.toFixed(2)` ve `Number(b.h)` olduğu
+  görüldü.
+
+### Migration'lar
+162 `puansiz_mac_odulsuz` · 163 `oyuncu_dilinde_soru` ·
+164 `ceviri_denetimi_duzeltmeleri` — üçü de canlıya uygulandı ve
+`supabase_migrations.schema_migrations`'a yazıldı (161 de geriye dönük
+kaydedildi; uygulanmıştı ama kaydı yoktu).

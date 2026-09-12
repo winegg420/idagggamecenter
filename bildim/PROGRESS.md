@@ -2610,3 +2610,24 @@ ediyor. Gerçek soru havuzu: ortalama 89 karakter, en uzun 171.
 (`bot_gecikme_tavan`, `bot_gecikme_taban`, `bot_okuma_yuku_referans`,
 `bot_kisa_soru_carpani`). Daha da hızlandırmak gerekirse tavanı düşürmek
 yeterli.
+
+## 12 Eylül 2026 — Revizyon Paketi 3
+
+- **İki maç modu ayrıldı.** "Hemen oyna" artık puansız (`dereceli=false`),
+  "Dereceli Maç" ayrı düğme olarak geri geldi. Puansız maç ne coin ne lig
+  puanı verir; kural sunucuda iki katmanda zorlanıyor (migration 162).
+- **Meydanda zıplama.** Yeni `harita/ziplama.js` saf mantık; ağ `coklu.js`
+  poz paketindeki `h` alanı, çizim `dunya.js`. Boşluk tuşu + mobil düğme.
+  Yükseklik/süre koddaki tek sabitte (his meselesi, oyun ayarı değil).
+- **Dil altyapısı.** `lib/dil.js` (sözlük + `t()`) ve `lib/dilKanca.js`.
+  Aşama 1 kapsamı yalnız giriş ekranları. Kural: profil > localStorage >
+  `navigator.language`; IP'ye bakılmaz.
+- **Sorular oyuncunun dilinde** (migration 163). `question_translations`
+  tablosuna bakan fonksiyon yoktu; artık `soru_dilinde()` tek kaynak ve
+  çevirisi olmayan soru o oyuncuya hiç sorulmuyor.
+- **Çeviri denetimi.** 7.682 çeviri tarandı; bildirilen Cami→Mosque hatası
+  canlıda yok. İki gerçek içerik hatası bulunup düzeltildi (migration 164).
+  `kalite.ts` içine "özel isimler asla çevrilmez" kapısı eklendi.
+
+Yeni testler: `_test/ziplama-test.mjs`, `_test/ziplama-ag-test.mjs`,
+`_test/dil-test.mjs`.
