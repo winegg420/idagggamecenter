@@ -88,13 +88,18 @@ body.bd-harita-acik { overflow: hidden; }
   margin-top: 2px;
 }
 
-/* ---- alt: emojiler (sol) + topuz (sağ) ---- */
+/* ---- alt: TOPUZ (sol) + dans/emoji (sağ) ----
+   Standart mobil oyun düzeni: hareket solda, eylem düğmeleri sağda. Eskiden
+   tersiydi (topuz sağda); baş parmak alışkanlığına aykırıydı. DOM sırası
+   bilerek değişmedi (ekran okuyucu önce düğmeleri okusun); yer değişimi
+   row-reverse ile yapılıyor, dokunma alanı boyutları aynı kaldı. */
 .bd-harita-alt {
   bottom: 0; left: 0; right: 0;
-  display: flex; align-items: flex-end; justify-content: space-between; gap: 12px;
+  display: flex; flex-direction: row-reverse;
+  align-items: flex-end; justify-content: space-between; gap: 12px;
   padding: 16px 18px max(20px, env(safe-area-inset-bottom));
 }
-.bd-harita-emojiler { display: flex; gap: 7px; flex-wrap: wrap; max-width: 200px; }
+.bd-harita-emojiler { display: flex; gap: 7px; flex-wrap: wrap; max-width: 200px; justify-content: flex-end; }
 .bd-harita-emoji {
   border: 0; cursor: pointer;
   width: 44px; height: 44px; border-radius: 14px;
@@ -223,7 +228,7 @@ body.bd-harita-acik { overflow: hidden; }
 }
 
 /* YATAYDA HUD %80 ÖLÇEK — dikey düzen yatayda sahneyi eziyordu.
-   Topuz sağ altta, dans/emoji sol altta kalır; yalnız küçülürler. */
+   Topuz sol altta, dans/emoji sağ altta kalır; yalnız küçülürler. */
 @media (orientation: landscape) and (max-height: 480px) {
   .bd-harita-alt { padding: 6px 10px max(8px, env(safe-area-inset-bottom)); }
   .bd-harita-pad { width: 78px; height: 78px; }
@@ -288,12 +293,14 @@ body.bd-harita-acik { overflow: hidden; }
 }
 
 /* ============================================================
-   ZUM DÜĞMELERİ — sağ kenar, topuzun üstünde
+   ZUM DÜĞMELERİ — sol kenar, topuzun üstünde
    Asıl yol iki parmakla açıp kapamak (zum.js); bu düğmeler fare kullananlar
    ve tek elle oynayanlar için. "🦅" tek dokunuşta kuş bakışına çıkarır.
    ============================================================ */
+/* Zum düğmeleri topuzun ÜSTÜNDE, sol kenarda: sağ alt artık dans ve emoji
+   düğmelerinin (iki sıra) yeri, orada üst üste binerlerdi. */
 .bd-harita-zum {
-  right: 18px; bottom: 150px;
+  left: 18px; right: auto; bottom: 150px;
   display: flex; flex-direction: column; gap: 8px;
 }
 .bd-harita-yuvarlak {
@@ -311,8 +318,9 @@ body.bd-harita-acik { overflow: hidden; }
 /* ---- DANS ----
    Emoji sırasının içindeki 💃 kaldırıldı: oyuncu onu emoji sanıyordu.
    Dans emoji değil, karakterin kendisi oynuyor — ayrı ve adı yazan düğme. */
+/* Sınıf adı geriye uyum için "sol" kaldı; düğmeler artık SAĞ ALTTA. */
 .bd-harita-sol-dugmeler {
-  display: flex; flex-direction: column; align-items: flex-start; gap: 8px;
+  display: flex; flex-direction: column; align-items: flex-end; gap: 8px;
   min-width: 0;
 }
 .bd-harita-dans-ac {
@@ -383,19 +391,21 @@ body.bd-harita-acik { overflow: hidden; }
 
 @media (orientation: landscape) and (max-height: 520px) {
   /* Yatayda düğmeler yan yana: dikey sütun sahnenin sağını kaplıyordu */
-  .bd-harita-zum { flex-direction: row; bottom: 8px; right: 116px; }
+  /* Topuz sol altta: zum düğmeleri onun sağına, sahnenin önüne değil. */
+  .bd-harita-zum { flex-direction: row; bottom: 8px; left: 110px; right: auto; }
   .bd-harita-yuvarlak { width: 32px; height: 32px; font-size: 17px; box-shadow: 0 3px 0 var(--bd-kart-alt); }
   .bd-harita-yuvarlak.kus { font-size: 14px; }
   /* Yatayda panel dar ve alçak: sahne tamamen kapanmasın */
+  /* Dans düğmesi sağ altta: panel de sağdan açılsın. */
   .bd-harita-dans-panel {
-    left: 14px; right: auto; bottom: 52px;
+    right: 14px; left: auto; bottom: 52px;
     width: min(62vw, 360px); padding: 9px 11px 11px;
   }
   .bd-harita-dans-liste { max-height: 34vh; gap: 5px; }
   .bd-harita-dans { padding: 6px 10px; font-size: 12.5px; }
   .bd-harita-dans-ac { font-size: 12.5px; padding: 6px 11px; }
   .bd-harita-dans-ac span { font-size: 15px; }
-  .bd-harita-sol-dugmeler { flex-direction: row; align-items: center; gap: 6px; }
+  .bd-harita-sol-dugmeler { flex-direction: row; align-items: center; justify-content: flex-end; gap: 6px; }
 }
 
 @media (orientation: landscape) and (max-height: 400px) {

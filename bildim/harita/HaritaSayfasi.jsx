@@ -768,7 +768,7 @@ export default function HaritaSayfasi() {
       {bilgiAcik && (
         <div className="bd-harita-bilgi">
           <b>Meydandasın</b>
-          Yürümek için sağ alttaki topuzu sürükle (veya WASD / yön tuşları). Binalara yaklaşınca kapı açılır.
+          Yürümek için sol alttaki topuzu sürükle (veya WASD / yön tuşları). Binalara yaklaşınca kapı açılır.
           {/* Teşhis: ekran yönü durumu — sahibi ekran görüntüsüyle iletebilsin */}
           <span className="bd-harita-yon-tesis">{yonOzeti(yon)}</span>
           <button type="button" className="bd-harita-btn" onClick={bilgiKapat}>Anladım</button>
