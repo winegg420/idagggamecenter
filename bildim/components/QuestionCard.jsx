@@ -24,7 +24,7 @@ const YENIDEN_DENE_MS = 1500;
  * onSureDoldu() -> süre bitince çağrılır (advance tetikler)
  */
 export default function QuestionCard({
-  soru,
+  soru: soruProp,
   onCevapla,
   onSureDoldu,
   jokerler,
@@ -60,6 +60,14 @@ export default function QuestionCard({
   const tikRef = useRef(null);
   // Atlama başarısız olduysa en erken bu ana kadar yeniden denenmez.
   const yenidenDeneRef = useRef(0);
+
+  // SORU DEĞİŞTİR jokeri: soru YERİNDE değişir, indeks aynı kalır. Kart
+  // sökülmediği için (key indekse bağlı) yeni soruyu burada tutuyoruz;
+  // aşağıdaki sıfırlama effect'i question_id değiştiği an sayacı, seçimi ve
+  // 50:50 kapatmalarını temizliyor.
+  const [degisenSoru, setDegisenSoru] = useState(null);
+  const soru = degisenSoru ?? soruProp;
+  useEffect(() => { setDegisenSoru(null); }, [soruProp]);
 
   // Yeni soru geldiğinde durumu sıfırla
   useEffect(() => {
@@ -208,10 +216,9 @@ export default function QuestionCard({
     if (!sonuc) return;
     if (sonuc.tur === "elli" && Array.isArray(sonuc.kapali)) {
       setKapali(sonuc.kapali);
-    } else if (sonuc.tur === "pas") {
-      cevapVerildiRef.current = true;
-      setSecim(-1);
-      setSonuc({ dogru: false, dogru_cevap: sonuc.dogru_cevap });
+    } else if (sonuc.tur === "soru_degistir" && sonuc.soru) {
+      // Soru atlanmaz: yerine yenisi gelir, süre baştan başlar.
+      setDegisenSoru(sonuc.soru);
       onPas?.(sonuc);
     }
     // 'sure' etkisi sunucuda soru_baslangic'ı uzatır; sayaç bir sonraki

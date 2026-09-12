@@ -15,10 +15,12 @@ import { titret } from "../lib/geriBildirim.js";
  * onEtki(sonuc): { tur, kapali? , uzatildi?, atlandi?, dogru_cevap? }
  */
 export default function JokerCubugu({ macTur, macId, soruIndex, onEtki, kilit }) {
-  const [envanter, setEnvanter] = useState({ elli: 0, sure: 0, pas: 0, seri_koruma: 0 });
+  const [envanter, setEnvanter] = useState({ elli: 0, sure: 0, soru_degistir: 0, seri_koruma: 0 });
   const [durum, setDurum] = useState(null); // { sinir, kullanilan, ucretsiz_elli_kaldi }
   const [hata, setHata] = useState(null);
   const [calisan, setCalisan] = useState(null);
+  // Soru Değiştir maç başına tek: kullanıldığında düğme aynı maç boyunca kapalı.
+  const [soruDegistirdim, setSoruDegistirdim] = useState(false);
   const hataRef = useRef(null);
 
   // Joker çubuğu ekranın EN ALTINDA duruyor; hata notu düğmelerin altına
@@ -72,6 +74,7 @@ export default function JokerCubugu({ macTur, macId, soruIndex, onEtki, kilit })
       if (error) throw error;
       sesJoker();
       titret(10);
+      if (tur === "soru_degistir") setSoruDegistirdim(true);
       onEtki?.(data);
       await yukle();
     } catch (e) {
@@ -85,7 +88,10 @@ export default function JokerCubugu({ macTur, macId, soruIndex, onEtki, kilit })
     if (kilit) return "Bu soruyu zaten cevapladın";
     if (finalYasak) return "Turnuva finalinde joker kullanılamaz";
     if (sinirDoldu) return `Bu maçta en fazla ${durum.sinir} joker`;
-    if (macTur === "turnuva" && tur === "pas") return "Turnuvada pas kullanılamaz";
+    // Turnuva herkese AYNI soruyu sorar ve elemelidir: soru değiştirilemez.
+    if (macTur === "turnuva" && tur === "soru_degistir") return "Turnuvada soru değiştirilemez";
+    // Maç başına tek hak: sunucu da aynı kuralı uygular.
+    if (tur === "soru_degistir" && soruDegistirdim) return "Bu maçta soruyu bir kez değiştirebilirsin";
     const ucretsiz = tur === "elli" && durum.ucretsiz_elli_kaldi;
     if (!ucretsiz && (envanter[tur] ?? 0) <= 0) return "Jokerin kalmadı";
     return null;

@@ -14,9 +14,12 @@ export const JOKER_BILGI = {
     ikon: "saat",
     macIci: true,
   },
-  pas: {
-    ad: "Pas",
-    aciklama: "Soruyu atlar (puan yok)",
+  // "Pas" idi: yanlış cevabın cezası olmadığı için soruyu atlamak her zaman
+  // rastgele bir şıkka basmaktan kötüydü, joker işlevsizdi. Artık soru
+  // atlanmaz; yerine yeni bir soru gelir ve süre baştan başlar.
+  soru_degistir: {
+    ad: "Soru Değiştir",
+    aciklama: "Soruyu değiştirir, süre baştan başlar",
     ikon: "ileriAtla",
     macIci: true,
   },
@@ -28,7 +31,7 @@ export const JOKER_BILGI = {
   },
 };
 
-export const MAC_ICI_JOKERLER = ["elli", "sure", "pas"];
+export const MAC_ICI_JOKERLER = ["elli", "sure", "soru_degistir"];
 
 export function jokerAdi(tur) {
   return JOKER_BILGI[tur]?.ad ?? tur;
@@ -41,7 +44,7 @@ export function jokerIkon(tur) {
 
 /** RPC'den gelen envanter dizisini { tur: adet } nesnesine çevirir. */
 export function envanterNesne(satirlar) {
-  const cikti = { elli: 0, sure: 0, pas: 0, seri_koruma: 0 };
+  const cikti = { elli: 0, sure: 0, soru_degistir: 0, seri_koruma: 0 };
   for (const s of satirlar ?? []) cikti[s.tur] = s.adet ?? 0;
   return cikti;
 }

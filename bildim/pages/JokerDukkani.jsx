@@ -26,7 +26,7 @@ const SEKMELER = [
 
 export default function JokerDukkani() {
   const { profile } = useAuth();
-  const [envanter, setEnvanter] = useState({ elli: 0, sure: 0, pas: 0, seri_koruma: 0 });
+  const [envanter, setEnvanter] = useState({ elli: 0, sure: 0, soru_degistir: 0, seri_koruma: 0 });
   const [reklam, setReklam] = useState({ bugun: 0, tavan: 5 });
   const [paketler, setPaketler] = useState([]);
   const [fiyatlar, setFiyatlar] = useState({});
