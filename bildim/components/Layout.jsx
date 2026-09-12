@@ -47,15 +47,21 @@ export default function Layout() {
   // sayfasına yönlendirilir. ENGELLEME YOK — hesap açılışta rastgele bir
   // bedava karakterle geliyor (bkz. migration 158), oyuncu isterse
   // dokunmadan oynamaya devam eder.
+  //
+  // KURULUM BİTMEDEN YÖNLENDİRME YOK: takma ad / avatar / şehir sihirbazı
+  // tam ekran bir modal katmanıdır (bd-modal-katman, position:fixed). Görünüm
+  // sayfası altında açılırsa kartlar görünür ama tıklama sihirbaza gider —
+  // oyuncu "karakter seçemiyorum" der. Önce sihirbaz bitsin.
   useEffect(() => {
     if (!profile) return;
+    if (!profile.takma_ad_secildi || !profile.avatar_onayli || !profile.ulke) return;
     let gosterildi = true;
     try { gosterildi = localStorage.getItem("bildim_karakter_secildi") === "1"; }
     catch { /* özel mod: yönlendirme yapılmaz */ }
     if (gosterildi) return;
     try { localStorage.setItem("bildim_karakter_secildi", "1"); } catch { /* yut */ }
     navigate(y("/gorunum"));
-  }, [profile?.id]);
+  }, [profile?.id, profile?.takma_ad_secildi, profile?.avatar_onayli, profile?.ulke]);
 
   // Turnuva saatleri sunucudan (oyun_ayarlari) okunur; geri sayımlar ve
   // meydandaki kupa binası bu değerleri kullanır.

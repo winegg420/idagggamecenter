@@ -40,6 +40,11 @@ export default function KarakterPage() {
   const [parcalar, setParcalar] = useState([]);
   const [parcaSahip, setParcaSahip] = useState([]);
   const [bakiye, setBakiye] = useState(0);
+  // secili.kozmetik SADECE OYUNCUNUN AÇIK SEÇİMLERİDİR — karakterin kendi
+  // varsayılan kombini burada tutulmaz. Sebep: gorunum_kaydet gönderilen her
+  // parçanın sahipliğini soruyor; varsayılanı da yollayınca "Bu parçaya sahip
+  // değilsin: esofman" diye reddediyordu ve Kaydet 400 dönüyordu. Varsayılanlar
+  // çizim anında kozmetikCoz ile tamamlanıyor, kaydedilmeleri gerekmiyor.
   const [secili, setSecili] = useState(null);        // { karakter, kozmetik }
   const [acikYuva, setAcikYuva] = useState(null);
   const [onay, setOnay] = useState(null);            // satın alma onayı
@@ -60,7 +65,8 @@ export default function KarakterPage() {
       setParcaSahip(k.parca_sahip ?? []);
       setBakiye(Number(k.bakiye ?? 0));
       const g = k.gorunum ?? {};
-      setSecili({ karakter: karakterId(g), kozmetik: kozmetikCoz(g) });
+      const ham = g.kozmetik && typeof g.kozmetik === "object" ? g.kozmetik : {};
+      setSecili({ karakter: karakterId(g), kozmetik: ham });
     } catch (e) {
       setHata(hataMesaji(e, "Görünüm yüklenemedi."));
     } finally {
@@ -90,6 +96,8 @@ export default function KarakterPage() {
   }
 
   const def = getCharacter(secili.karakter);
+  // Ekranda gösterilen kombin: açık seçimler + karakterin varsayılanları.
+  const koz = kozmetikCoz({ karakter: secili.karakter, kozmetik: secili.kozmetik });
   const onizleme = avatarUri({ karakter: secili.karakter, kozmetik: secili.kozmetik }, "idle");
 
   // Karakter değiştirmek SERBEST: sahip olunanlar arasında sınırsız geçiş.
@@ -214,7 +222,7 @@ export default function KarakterPage() {
       {YUVALAR.map(({ yuva, ad }) => {
         const acik = acikYuva === yuva;
         const liste = parcalar.filter((p) => p.yuva === yuva);
-        const simdiki = secili.kozmetik[yuva] ?? "yok";
+        const simdiki = koz[yuva] ?? "yok";
         return (
           <div className="kart bd-yuva-kart" key={yuva}>
             <button
@@ -278,7 +286,7 @@ export default function KarakterPage() {
                       <button
                         key={r}
                         type="button"
-                        className={"bd-renk " + (secili.kozmetik[renkAlani(yuva)] === r ? "aktif" : "")}
+                        className={"bd-renk " + (koz[renkAlani(yuva)] === r ? "aktif" : "")}
                         style={{ background: r }}
                         aria-label={"Renk " + r}
                         onClick={() => renkSec(yuva, r)}

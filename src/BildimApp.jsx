@@ -34,6 +34,10 @@ const HizliModPage = lazy(() => import("../bildim/pages/HizliModPage.jsx"));
 const CalismaPage = lazy(() => import("../bildim/pages/CalismaPage.jsx"));
 // Meydan (3B): three.js yalniz bu rotaya girilince iner (ayri chunk)
 const HaritaSayfasi = lazy(() => import("../bildim/harita/HaritaSayfasi.jsx"));
+// Görünüm = 2B karakter sayfası (three.js indirmez). Eski 3B görünüm sayfası
+// /gorunum-3b altında duruyor; menülerden bağlantısı YOK, elle adres yazan
+// görsün diye rota bırakıldı.
+const KarakterPage = lazy(() => import("../bildim/pages/KarakterPage.jsx"));
 const GorunumPage = lazy(() => import("../bildim/pages/GorunumPage.jsx"));
 // Yasal metinler giriş duvarının ÖNÜNDE olmalı (Play Store + reklam ağları).
 const GizlilikPage = lazy(() => import("../bildim/pages/GizlilikPage.jsx"));
@@ -108,7 +112,8 @@ export default function BildimApp() {
           <Route path="hizli-mod" element={<HizliModPage />} />
           <Route path="calisma" element={<CalismaPage />} />
           <Route path="harita" element={<HaritaSayfasi />} />
-          <Route path="gorunum" element={<GorunumPage />} />
+          <Route path="gorunum" element={<KarakterPage />} />
+          <Route path="gorunum-3b" element={<GorunumPage />} />
           <Route path="profil" element={<ProfilePage />} />
         </Route>
 
