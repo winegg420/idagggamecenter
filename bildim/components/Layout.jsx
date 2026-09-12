@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { useAuth } from "../../src/context/AuthContext.jsx";
 import { supabase } from "../../src/lib/supabase.js";
 import RankUpOverlay from "./RankUpOverlay.jsx";
-import PuanSayaci from "./PuanSayaci.jsx";
+
 import BildirimZili from "./BildirimZili.jsx";
 import KurulumSihirbazi from "./KurulumSihirbazi.jsx";
 import DavetBandi from "./DavetBandi.jsx";
@@ -14,8 +14,8 @@ import Ikon from "./Ikon.jsx";
 import CoinHapi from "./CoinHapi.jsx";
 import Avatar from "../../src/components/Avatar.jsx";
 import Logo from "./Logo.jsx";
-import SesDugmesi from "./SesDugmesi.jsx";
-import TemaDugmesi from "./TemaDugmesi.jsx";
+// SADELEŞTİRME: tema ve ses düğmeleri üst bardan Profil sayfasına
+// taşındı (sadeleştirme). Bileşenler silinmedi; geri istenirse tek satır.
 import { y, BILDIM_MOD } from "../lib/yol.js";
 import { cihazBildir } from "../lib/cihaz.js";
 import { ayarlar } from "../lib/ayarlar.js";
@@ -120,19 +120,17 @@ export default function Layout() {
           <Link to={y()} style={{ textDecoration: "none" }} aria-label="Quiz Square ana sayfa">
             <Logo boyut={24} />
           </Link>
+          {/* SADELEŞTİRME (12 Eylül 2026).
+              Üst barda beş kontrol vardı: tema · ses · zil · coin · puan
+              · avatar. Tema ve ses AYARDIR, her ekranda görünmesi gerekmez
+              — ikisi de Profil sayfasında zaten duruyor (bileşenler
+              silinmedi, yalnız bu barda çizilmiyor). Puan çipi de kalktı:
+              aynı sayı hemen altındaki kartta büyük büyük yazıyor.
+              Kalan üç öğe: bildirim, coin, profil. */}
           {profile && (
             <div className="bd-topbar-sag">
-              <TemaDugmesi />
-              <SesDugmesi />
               <BildirimZili />
               <CoinHapi />
-              <Link to={y("/profil")} className="bd-puan-link" aria-label="Puanım">
-                <span className="puan-chip">
-                  <Ikon ad="yildiz" boyut={15} /> <PuanSayaci deger={profile.puan} />
-                </span>
-              </Link>
-              {/* Profil kapısı: takma ad, avatar ve şehir buradan değişiyor.
-                  Önce yalnız puan çipinden ulaşılıyordu; kimse bulamıyordu. */}
               <Link to={y("/profil")} className="bd-profil-link" aria-label="Profilim ve ayarlar" title="Profilim">
                 <Avatar profile={profile} boyut={34} />
               </Link>
@@ -148,17 +146,21 @@ export default function Layout() {
         <Outlet />
       </main>
 
-      {/* Sekme dizilimi tasarım referansına getirildi: Ana Sayfa / Arkadaşlar /
-          Lig / Dükkân / Profil. Turnuva ve Meydan Oku sekmeden çıktı — ikisi de
-          ana ekrandaki modlar ızgarasında zaten duruyor, sekmede ikinci kez
-          yer kaplıyordu. Yeni rota açılmadı; hepsi var olan yollar. */}
+      {/* SADELEŞTİRME (12 Eylül 2026) — yedi sekme ALTIYA indi.
+          Kaldırılan tek sekme "Merkez": Quiz Square kendi sitesinde "/"
+          zaten Ana Sayfa olduğu için sekme kendini tekrar ediyordu.
+          "Harita" → "Meydan": oyun içindeki adı bu.
+          ARKADAŞLAR SEKMESİ KALDI — bu oyunda arkadaşlar ikincil ekran
+          değil: oyuncular yalnız arkadaşlarıyla maç yapabiliyor, biri
+          oyunu sırf bunun için oynuyor olabilir.
+          Yeni rota açılmadı; hepsi var olan yollar. */}
       <nav className="tabbar">
         <NavLink to={y()} end className={({ isActive }) => (isActive ? "aktif" : "")}>
           <span className="ikon"><Ikon ad="ev" boyut={26} /></span>Ana Sayfa
         </NavLink>
         <NavLink to={y("/arkadaslar")} className={({ isActive }) => (isActive ? "aktif" : "")}>
           <span className="ikon"><Ikon ad="kisiler" boyut={26} /></span>Arkadaşlar
-          {/* Bekleyen meydan okuma/arkadaş isteği: referansta sayı değil nokta */}
+          {/* Bekleyen meydan okuma/arkadaş isteği: sayı değil nokta */}
           {bekleyen > 0 && <span className="rozet nokta" aria-label={`${bekleyen} bekleyen`} />}
         </NavLink>
         <NavLink to={y("/siralama")} className={({ isActive }) => (isActive ? "aktif" : "")}>
@@ -167,20 +169,11 @@ export default function Layout() {
         <NavLink to={y("/joker")} className={({ isActive }) => (isActive ? "aktif" : "")}>
           <span className="ikon"><Ikon ad="yildiz" boyut={26} /></span>Dükkân
         </NavLink>
-        {/* Meydan (3B buluşma alanı) — sahne lazy yüklenir, sekmeye basılmadan
-            three.js inmez. Altıncı sekme; boyutlar CSS'te daraltıldı. */}
+        {/* Meydan (3B buluşma alanı) — sahne lazy yüklenir, sekmeye
+            basılmadan three.js inmez. */}
         <NavLink to={y("/harita")} className={({ isActive }) => (isActive ? "aktif" : "")}>
-          <span className="ikon"><Ikon ad="haritaPini" boyut={26} /></span>Harita
+          <span className="ikon"><Ikon ad="haritaPini" boyut={26} /></span>Meydan
         </NavLink>
-        {/* Oyun portalı sekmesi yalnız hub derlemesinde anlamlı: Quiz Square'in
-            kendi sitesinde "/" zaten Ana Sayfa olduğundan sekme kendini
-            tekrar ediyordu. Ayrıca "end" olmadığı için NavLink her yolla
-            eşleşip sekmeyi sürekli "aktif" gösteriyordu — eklendi. */}
-        {!BILDIM_MOD && (
-          <NavLink to="/" end className={({ isActive }) => (isActive ? "aktif" : "")}>
-            <span className="ikon"><Ikon ad="oyunKolu" boyut={26} /></span>Merkez
-          </NavLink>
-        )}
         <NavLink to={y("/profil")} className={({ isActive }) => (isActive ? "aktif" : "")}>
           <span className="ikon"><Ikon ad="kisi" boyut={26} /></span>Profil
         </NavLink>

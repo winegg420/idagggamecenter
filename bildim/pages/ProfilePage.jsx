@@ -13,6 +13,7 @@ import RankBadge from "../components/RankBadge.jsx";
 import SayanSayi from "../components/SayanSayi.jsx";
 import KonumSecici from "../components/KonumSecici.jsx";
 import ProfilAyarlari from "../components/ProfilAyarlari.jsx";
+import TemaDugmesi from "../components/TemaDugmesi.jsx";
 import UstalikIzgarasi from "../components/UstalikIzgarasi.jsx";
 import { bayrak, konumKilidiKalan, sureMetni } from "../lib/konum.js";
 import { rutbeBul, sonrakiRutbe } from "../lib/ranks.js";
@@ -268,6 +269,17 @@ export default function ProfilePage() {
         >
           {ses ? "Kapat" : "Aç"}
         </button>
+      </div>
+
+      {/* SADELEŞTİRME — tema düğmesi üst bardan kalktı ama
+          KAYBOLMADI. Ayar, ayarların olduğu yere taşındı; oyuncu kontrolü
+          elinde tutuyor. Bileşen aynı bileşen. */}
+      <div className="kart bd-ayar-satir">
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontWeight: 700, fontSize: 14 }}>Görünüm</div>
+          <div className="alt-yazi">Açık ve koyu tema arasında geç</div>
+        </div>
+        <TemaDugmesi />
       </div>
 
       <div className="kart" style={{ textAlign: "center" }}>

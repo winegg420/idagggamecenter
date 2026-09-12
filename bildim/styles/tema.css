@@ -5463,3 +5463,162 @@ body.bd-ekle-acik .app { padding-bottom: calc(300px + env(safe-area-inset-bottom
 @media (max-width: 420px) {
   .bd-vitrin-sahne { height: 230px; }
 }
+
+/* ============================================================
+   SADELEŞTİRME KATMANI — 12 Eylül 2026
+   apple-design denemesinden (dal: tasarim/apple-design) YALNIZ ÜÇ ŞEY
+   alındı: yerleşim sadeleştirmesi, tipografi/kontrast disiplini ve
+   erişilebilirlik. Denemenin nötr gri paleti, düzleşmiş butonları ve
+   sekme kesintileri REDDEDİLDİ — Şenlik dili aynen duruyor: açık
+   gökyüzü zemin, beyaz kart + alt kalınlık, kabartmalı turuncu buton,
+   Baloo 2 başlık / Nunito gövde.
+   ============================================================ */
+
+/* ---- Profil sayfasındaki ayar satırı (tema/ses üst bardan buraya) ---- */
+.bd-ayar-satir { display: flex; align-items: center; gap: var(--bd-b-3); }
+.bd-ayar-satir .bd-tema-dugme { flex: none; }
+
+/* ============================================================
+   MAÇ EKRANI — tek iş: soruyu cevaplamak
+   Altta yedi tepki + bir sohbet düğmesi vardı; hepsi cevap vermekle
+   yarışıyordu. Artık tek düğme, panel onun üstünde açılıyor.
+   Panel Şenlik dilinde: beyaz kart + alt kalınlık, turuncu vurgu.
+   ============================================================ */
+.app .sohbet-bar.bd-tepki-tek { justify-content: center; gap: 0; overflow: visible; }
+.app .sohbet-bar.bd-tepki-tek button {
+  width: 44px; height: 44px; min-height: 44px;   /* dokunma hedefi */
+}
+.bd-tepki-panel {
+  display: flex; flex-wrap: wrap; justify-content: center;
+  gap: var(--bd-b-2);
+  margin: 0 auto var(--bd-b-2);
+  padding: var(--bd-b-3);
+  max-width: 340px;
+  background: var(--bd-yuzey-1);
+  border-radius: var(--bd-r-l);
+  box-shadow: 0 5px 0 var(--bd-kart-alt);
+  transform-origin: bottom center;
+  animation: bd-tepki-ac 180ms cubic-bezier(0.2, 0.9, 0.3, 1.2) both;
+}
+@keyframes bd-tepki-ac {
+  from { transform: translateY(8px) scale(0.96); opacity: 0; }
+  to   { transform: translateY(0) scale(1); opacity: 1; }
+}
+.bd-tepki-panel button {
+  width: 44px; height: 44px;                      /* dokunma hedefi */
+  display: grid; place-items: center;
+  border: 0; border-radius: var(--bd-r-m);
+  background: var(--bd-yuzey-3);
+  color: var(--bd-metin);
+  cursor: pointer;
+  box-shadow: 0 3px 0 var(--bd-kart-alt);
+  transition: transform 0.08s ease, box-shadow 0.08s ease;
+}
+.bd-tepki-panel button:active {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 var(--bd-kart-alt);
+}
+.bd-tepki-panel button.acik {
+  background: var(--bd-vurgu);
+  color: #fff;
+  box-shadow: 0 3px 0 var(--bd-vurgu-2);
+}
+
+/* ============================================================
+   GİRİŞ EKRANI — hiyerarşi
+   Beş seçenek eşit ağırlıkta beyaz kabartma kutuydu; göz nereden
+   başlayacağını bilmiyordu. Öğe sayısı aynı kaldı, ağırlıkları değişti:
+   BİR birincil eylem dolu turuncu, gerisi sessiz beyaz.
+   ============================================================ */
+.giris .sosyal-btn:first-of-type {
+  background: linear-gradient(180deg, var(--bd-vurgu-acik), var(--bd-vurgu));
+  color: #fff;
+  border-color: transparent;
+  box-shadow: 0 5px 0 var(--bd-vurgu-2), 0 9px 14px rgba(32, 50, 74, 0.18);
+  text-shadow: 0 2px 0 rgba(0, 0, 0, 0.22);
+}
+.giris .sosyal-btn:first-of-type:active {
+  transform: translateY(4px);
+  box-shadow: 0 1px 0 var(--bd-vurgu-2);
+}
+/* Diğer seçenekler geri çekilir: daha ince kalınlık, daha sakin metin */
+.giris .sosyal-btn:not(:first-of-type) {
+  box-shadow: 0 3px 0 var(--bd-kart-alt);
+  color: var(--bd-metin-2);
+  font-weight: 700;
+}
+.giris .sosyal-btn:not(:first-of-type):active {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 var(--bd-kart-alt);
+}
+
+/* ============================================================
+   SORU KARTI — kalın renkli çerçeveler inceldi
+   2px renkli çerçeve yerine 1px + hafif dolgu: durum yine okunuyor
+   ama kart daha sakin. Kabartma (alt kalınlık) korundu.
+   ============================================================ */
+.app .bd-secenek { border-width: 1px; }
+.app .bd-secenek.secili {
+  border-color: var(--bd-vurgu);
+  background: rgba(244, 112, 31, 0.10);
+}
+.app .bd-secenek.dogru {
+  border-color: var(--bd-basari);
+  background: rgba(47, 191, 113, 0.14);
+}
+.app .bd-secenek.yanlis {
+  border-color: var(--bd-hata);
+  background: rgba(239, 75, 75, 0.12);
+}
+
+/* ---- Ücretsiz 50:50 kutusunun okunurluğu ----
+   Dolu altın blok üstünde koyu kahve metin 3.1:1 ile kalıyordu.
+   Zemin beyaza döndü, vurgu çerçeveye ve rozete taşındı: metin
+   kart metniyle aynı kontrastta (16:1). */
+.app .bd-joker.ucretsiz:not(:disabled) {
+  background: var(--bd-yuzey-1);
+  border: 2px solid var(--bd-vurgu);
+  color: var(--bd-metin);
+  box-shadow: 0 4px 0 var(--bd-vurgu-2);
+}
+.app .bd-joker.ucretsiz:not(:disabled) .bd-joker-ad { color: var(--bd-metin); }
+.app .bd-joker.ucretsiz:not(:disabled) .bd-joker-adet,
+.app .bd-joker-adet.bedava {
+  background: var(--bd-vurgu);
+  color: #fff;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+}
+
+/* ============================================================
+   TURNUVA LOBİSİ — hizalama
+   Adlar sağa savruluyor, kılıç ikonu boşlukta duruyordu. Ad avatarın
+   yanına yaslanır, eylem sağ kenara sabitlenir, ara boşluk esner.
+   ============================================================ */
+.app .bd-lobi-oyuncu {
+  display: flex;
+  align-items: center;
+  gap: var(--bd-b-3);
+  width: 100%;
+  text-align: left;
+  min-height: 44px;                               /* dokunma hedefi */
+  padding: var(--bd-b-2) var(--bd-b-1);
+}
+.app .bd-lobi-oyuncu > span:not(.bd-lobi-kilic) {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-align: left;
+  font-weight: 800;
+}
+.app .bd-lobi-kilic {
+  flex: none;
+  width: 34px; height: 34px;
+  display: grid; place-items: center;
+  border-radius: var(--bd-r-s);
+  background: rgba(244, 112, 31, 0.12);
+  color: var(--bd-vurgu-2);
+}
+
