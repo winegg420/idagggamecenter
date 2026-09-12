@@ -5680,3 +5680,89 @@ body.bd-ekle-acik .app { padding-bottom: calc(300px + env(safe-area-inset-bottom
   color: var(--bd-metin-2);
 }
 
+/* ============================================================
+   3. ERİŞİLEBİLİRLİK KATMANI
+   ============================================================ */
+
+/* ---- Hareket azaltma ----
+   Oyun ÇALIŞMAYA DEVAM EDER; yalnız hareket durur. Renk ve opaklık
+   değişimleri kalır (doğru/yanlış geri bildirimi kaybolmasın). */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0s !important;
+    animation-delay: 0s !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0s !important;
+    transition-delay: 0s !important;
+    scroll-behavior: auto !important;
+  }
+  /* Kabartma "ezilme" hareketi de dursun — tepki renkte kalır */
+  .btn:active,
+  .app .bd-secenek:active,
+  .app .bd-joker:active:not(:disabled),
+  .app .sohbet-bar button:active,
+  .bd-tepki-panel button:active,
+  .app .bd-mod:active,
+  .tabbar a:active,
+  .giris .sosyal-btn:active {
+    transform: none !important;
+  }
+  .bd-tepki-panel { animation: none !important; }
+}
+
+/* ---- Saydamlık azaltma ----
+   Blur'lu/yarı saydam yüzeyler opak karşılıklarına döner. */
+@media (prefers-reduced-transparency: reduce) {
+  .tabbar,
+  .app .bd-ust-blok,
+  .app .topbar,
+  .bd-modal-katman,
+  .bd-tepki-panel,
+  .app .bd-harita-hud {
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+  }
+  .tabbar, .app .topbar, .bd-tepki-panel { background: var(--bd-yuzey-1); }
+  .bd-modal-katman { background: rgba(16, 26, 44, 0.72); }
+}
+
+/* ---- Dokunma hedefleri en az 44x44 ----
+   Küçük ikon düğmeleri görsel olarak küçük kalabilir; tıklama alanı
+   ::after ile büyütülür, yerleşim bozulmaz. */
+.app .tabbar a,
+.app .bd-ust-dugme,
+.app .bd-tema-dugme,
+.app .bd-ses-dugme,
+.app .bd-zil,
+.app .bd-harita-yuvarlak,
+.app .sohbet-bar button,
+.app .bd-lobi-kilic {
+  position: relative;
+}
+.app .bd-ust-dugme::after,
+.app .bd-tema-dugme::after,
+.app .bd-ses-dugme::after,
+.app .bd-zil::after,
+.app .sohbet-bar button::after,
+.app .bd-lobi-kilic::after {
+  content: "";
+  position: absolute;
+  left: 50%; top: 50%;
+  width: max(44px, 100%); height: max(44px, 100%);
+  transform: translate(-50%, -50%);
+}
+.app .tabbar a { min-height: 44px; }
+.btn.kucuk { min-height: 36px; }
+
+/* ---- Klavye odağı: turuncu halka, her yerde görünür ---- */
+:focus-visible {
+  outline: 3px solid var(--bd-vurgu);
+  outline-offset: 2px;
+  border-radius: var(--bd-r-s);
+}
+.app .bd-secenek:focus-visible,
+.app .bd-mod:focus-visible,
+.btn:focus-visible {
+  outline: 3px solid var(--bd-vurgu-2);
+  outline-offset: 3px;
+}
