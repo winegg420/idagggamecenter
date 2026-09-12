@@ -2573,3 +2573,40 @@ Ayrıntılı döküm kök `PROGRESS.md`'de. Modülü ilgilendiren özet:
 - `components/ProfilAyarlari.jsx`: "Meydanda ikramlar" (rahatsız etme).
 - `components/MeydanaDonus.jsx` (yeni): maç sonu dönüş şeridi.
 - `lib/facebookArkadas.js` (yeni): FB arkadaş önerisi + paylaşım diyaloğu.
+
+## 12 Eylül 2026 (3) — Bot cevap hızı
+
+**Şikâyet:** hızlı maçta gizli bot ("onurcan16") hiçbir soruyu 5 sn içinde
+cevaplamıyordu; oyuncu her cevaptan sonra bekliyor ve sıkılıyordu.
+
+**Kök neden — üç gecikme üst üste biniyordu:**
+1. Migration 150 gizli botlara lig bandına göre **8-14 sn** cevap penceresi
+   vermişti (bronz botlar 9-14 sn). "Gerçekçi" ama oynanamaz.
+2. `bot_gecikme_sn` bunun üstüne sabit **1.0 sn** kavrama payı ekliyordu.
+3. `bot_oyna` cron'u **7 saniyede bir** çalışıyordu: gecikme dolsa bile bot
+   ortalama +3.5 sn, en kötü +7 sn sonra basıyordu. Toplamda bronz bot
+   pratikte **13-21 sn**'de cevaplıyordu.
+
+**Çözüm (migration `20260612000161_bot_cevap_hizi.sql`):**
+- `soru_okuma_yuku(uuid)` (yeni): soru metni + şıkların karakter toplamı.
+- `bot_gecikme_sn` 5 argümanlı sürüm: gecikme artık **soru uzunluğuna bağlı**
+  (kısa soruda pencerenin %55'i, uzun soruda tamamı) ve `bot_gecikme_tavan`
+  (8 sn) ile sınırlı. 4 argümanlı eski sürüm yeni mantığa bağlandı.
+- `ayar_ondalik(text, numeric)` (yeni): `ayar_sayi` bigint döndüğü için
+  ondalıklı çarpanlar (0.55) okunamıyordu.
+- Gizli bot pencereleri sıkıştırıldı: bronz 3.0-6.0 · gümüş 2.8-5.6 ·
+  altın 2.6-5.3 · elmas 2.3-4.9 · efsane 2.0-4.4 sn. Bot başına sapma
+  korundu (hepsi aynı olursa sahte durur).
+- `bot_oyna` dört gecikme çağrısı da (1v1, turnuva, grup, hızlı maç)
+  soru uzunluğuyla besleniyor.
+- Cron **7 sn → 2 sn**.
+
+**Ölçüm (canlı):** onurcan16 (bronz) kısa soruda 3.3-4.7 sn, ortalama
+soruda 4.5-6.3 sn, en uzun soruda en kötü 7.0 sn. Cron tikiyle birlikte
+oyuncunun göreceği **en kötü bekleme 10 sn** — tavan ayarı bunu garanti
+ediyor. Gerçek soru havuzu: ortalama 89 karakter, en uzun 171.
+
+**Karar:** rakamlar koda gömülmedi; `oyun_ayarlari` içinde
+(`bot_gecikme_tavan`, `bot_gecikme_taban`, `bot_okuma_yuku_referans`,
+`bot_kisa_soru_carpani`). Daha da hızlandırmak gerekirse tavanı düşürmek
+yeterli.
