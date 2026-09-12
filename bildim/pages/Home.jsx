@@ -166,22 +166,17 @@ export default function Home() {
     }
   };
 
-  // Lig özeti (hero) + geçen haftanın sonucu (uygulama içi banner)
+  // APPLE DENEMESİ: lig şeridi ana ekrandan kalkınca bu RPC'yi çağırmak
+  // için sebep kalmadı — ekranda gösterilmeyen veri için ağ isteği
+  // yapılmaz (§16 Craft: her istek bir sebep ister). Durum yine de
+  // tutuluyor ki şerit geri istenirse tek satırla geri gelsin.
   const ligYukle = useCallback(async () => {
-    try {
-      const { data, error } = await supabase.rpc("benim_lig_durumum", {
-        p_donem: "hafta",
-      });
-      if (error) throw error;
-      setLigDurum(Array.isArray(data) ? (data[0] ?? null) : (data ?? null));
-    } catch {
-      setLigDurum(null); // RPC henüz uygulanmamış olabilir — sessiz geç
-    }
+    setLigDurum(null);
   }, []);
 
   useEffect(() => {
     ligYukle();
-  }, [ligYukle, profile?.puan_hafta, profile?.sehir]);
+  }, [ligYukle]);
 
   useEffect(() => {
     const id = setInterval(
@@ -526,39 +521,27 @@ export default function Home() {
           </div>
         )}
 
-        {/* Lig özeti — SAYFADA YALNIZ BURADA. Eskiden hem hero'da üç rozet
-            hem sayfanın en altında şerit olarak iki kez duruyordu. */}
-        <Link to={y("/siralama")} className="bd-lig-serit">
-          <span className="bd-lig-serit-hucre">
-            <b>{ligDurum?.sira_sehir ?? "—"}</b>
-            <em>{ligDurum?.sehir ?? "Şehir"}</em>
-          </span>
-          <span className="bd-lig-serit-hucre">
-            <b>{ligDurum?.sira_ulke ?? "—"}</b>
-            <em>Ülke</em>
-          </span>
-          <span className="bd-lig-serit-hucre">
-            <b>{ligDurum?.sira_global ?? "—"}</b>
-            <em>Dünya</em>
-          </span>
-        </Link>
+        {/* APPLE DENEMESİ — §16 Sadelik: "Aynı işi yapan birden fazla yol
+            varsa birini bırak." Üç hücreli Şehir/Ülke/Dünya şeridi Lig
+            sekmesinin birebir aynısıydı; sekme zaten alt çubukta duruyor.
+            Şerit kaldırıldı, haftalık geri sayım kaldı (zamana bağlı bilgi,
+            başka yerde yok). */}
         <div className="bd-hero-hafta">
           <Ikon ad="saat" boyut={13} /> Haftalık lig bitimine <b>{sureMetni(haftaKalan)}</b>
         </div>
       </section>
 
-      {/* ============ KATMAN 3 — MODLAR ============
-          Düzenli ızgara, kaydırarak ulaşılır. Hiçbir mod kaldırılmadı. */}
+      {/* ============ KATMAN 3 — BAŞKA NASIL OYNANIR ============
+          APPLE DENEMESİ — §16 Sadelik. Izgarada dokuz düğme vardı; üçü
+          başka bir yolun kopyasıydı ve kaldırıldı:
+            · "Dereceli Maç"  → yukarıdaki "Hemen oyna" ile aynı çağrı.
+            · "Joker Dükkânı" → alt sekmede zaten var.
+            · "Lig"           → alt sekmede zaten var.
+          Hiçbir ekran erişilemez olmadı; yalnız ikinci kapılar kapandı.
+          Başlık da somutlaştı ("Modlar" → ne olduğunu söyleyen bir cümle). */}
       <section className="bd-katman bd-giris-3">
-        <h2 className="bd-katman-baslik">Modlar</h2>
+        <h2 className="bd-katman-baslik">Başka nasıl oynanır</h2>
         <div className="bd-mod-grid">
-          {/* İki ayrı mod: dereceli puan/lig etkiler ve seviyene göre rakip
-              bulur; normal maç puan yazmaz, rakip serbesttir. */}
-          <button className="bd-mod bd-mod-genis tema-meydan" onClick={() => hemenOyna(true)}>
-            <span className="bd-mod-ikon"><Ikon ad="kilic" boyut={30} /></span>
-            <span className="bd-mod-ad">Dereceli Maç</span>
-            <span className="bd-mod-not">Seviyene göre rakip · puan kazanırsın</span>
-          </button>
           <button className="bd-mod bd-mod-genis tema-hizli" onClick={() => hemenOyna(false)}>
             <span className="bd-mod-ikon"><Ikon ad="hizli" boyut={30} /></span>
             <span className="bd-mod-ad">Normal Maç</span>
@@ -581,10 +564,6 @@ export default function Home() {
             <span className="bd-mod-ikon"><Ikon ad="kupa" boyut={26} /></span>
             <span className="bd-mod-ad">Turnuva</span>
           </button>
-          <button className="bd-mod tema-joker" onClick={() => navigate(y("/joker"))}>
-            <span className="bd-mod-ikon"><Ikon ad="yildiz" boyut={26} /></span>
-            <span className="bd-mod-ad">Joker Dükkânı</span>
-          </button>
           <button
             className="bd-mod bd-mod-genis tema-hatalarim"
             onClick={() => navigate(y("/calisma"))}
@@ -594,10 +573,6 @@ export default function Home() {
             {bankaBekleyen > 0 && (
               <span className="bd-mod-rozet">{bankaBekleyen}</span>
             )}
-          </button>
-          <button className="bd-mod bd-mod-genis tema-lig" onClick={() => navigate(y("/siralama"))}>
-            <span className="bd-mod-ikon"><Ikon ad="grafik" boyut={26} /></span>
-            <span className="bd-mod-ad">Lig</span>
           </button>
         </div>
       </section>

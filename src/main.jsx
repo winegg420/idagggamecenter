@@ -18,6 +18,9 @@ import "./styles.css";
 import "../bildim/styles/tema.css";
 // Koyu tema tema.css'ten SONRA: kaskadda sonra gelip acik temayi ezer.
 import "../bildim/styles/koyu.css";
+// DENEME DALI: Apple tasarım katmanı (bkz. bildim/styles/apple.css).
+// Bu satırı silmek eski "Şenlik" tasarımını olduğu gibi geri getirir.
+import "../bildim/styles/apple.css";
 import { temaBaslat } from "../bildim/lib/tema.js";
 import { cubukBaslat } from "../bildim/lib/kaydirmaCubugu.js";
 

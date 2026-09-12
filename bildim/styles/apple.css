@@ -1,0 +1,498 @@
+/* ============================================================
+   APPLE TASARIM KATMANI  —  deneme dalı (tasarim/apple-design)
+   Kaynak: emilkowalski/skills → apple-design (WWDC "Designing Fluid
+   Interfaces", "The Details of UI Typography", "Principles of Great Design")
+
+   Bu dosya tema.css'i SİLMEZ, ÜZERİNE YAZAR. Bütün eski sınıf adları
+   yerinde duruyor; tek yaptığımız onların değerlerini Apple diline
+   çevirmek. Dosyayı main.jsx'ten çıkarmak eski "Şenlik" tasarımını
+   olduğu gibi geri getirir — geri dönüş tek satır.
+
+   Neyi neden değiştirdik (skill bölümleri):
+     §1  Tepki       — geri bildirim basılma ANINDA, 100 ms
+     §4  Yay         — CSS linear() ile kritik sönümlemeli yay
+     §7  Mekân       — giriş/çıkış aynı yoldan, kaynağına çapalı
+     §12 Malzeme     — saydam kroma, içerik altından akar
+     §14 Erişim      — hareket/saydamlık/kontrast tercihleri
+     §15 Tipografi   — sistem yazı tipi, boyuta özel tracking/leading
+     §16 İlkeler     — sadelik: her ekranda tek birincil eylem
+   ============================================================ */
+
+:root {
+  /* ---------- §4 YAY EĞRİLERİ ----------
+     Kütüphane yok (yeni paket kurulmayacak). Apple'ın damping/response
+     çiftinden türetilen yay eğrileri CSS linear() olarak önceden
+     hesaplandı. Kritik sönümleme (damping 1.0) = aşma yok, varsayılan.
+     Zıplama yalnız momentum taşıyan hareketlerde (sheet, fırlatma). */
+  --yay-sakin: linear(0, 0.0366, 0.1209, 0.2258, 0.3351, 0.4396, 0.5344, 0.6176, 0.6889, 0.7488, 0.7985, 0.8393, 0.8725, 0.8992, 0.9206, 0.9377, 0.9513, 0.962, 0.9704, 0.977, 0.9822, 0.9862, 0.9894, 0.9918, 0.9937, 0.9951, 0.9963, 0.9971, 0.9978, 0.9983, 0.9987, 0.999, 0.9992, 0.9994, 0.9996, 0.9997, 0.9997, 0.9998, 0.9999, 0.9999, 1);
+  --yay-hizli: var(--yay-sakin);
+  --yay-zipla: linear(0, 0.067, 0.2145, 0.3861, 0.5495, 0.689, 0.7991, 0.8806, 0.9375, 0.9746, 0.997, 1.009, 1.0141, 1.0151, 1.0138, 1.0115, 1.0088, 1.0064, 1.0044, 1.0028, 1.0016, 1.0008, 1.0003, 1, 0.9998, 0.9998, 0.9998, 0.9998, 0.9998, 0.9999, 0.9999, 0.9999, 1, 1, 1, 1, 1, 1, 1, 1, 1);
+  --yay-sure: 760ms;
+  --yay-sure-hizli: 570ms;
+  --yay-sure-zipla: 780ms;
+  --tepki-sure: 100ms;
+
+  /* ---------- §15 TİPOGRAFİ ----------
+     Platformun sistem yazı tipi önce gelir: optik boyutlandırma, tracking
+     tabloları ve okunabilirlik ayarı zaten içinde. Baloo/Nunito bırakıldı. */
+  --bd-f-baslik: -apple-system, BlinkMacSystemFont, "SF Pro Display",
+                 "Segoe UI Variable Display", "Segoe UI", system-ui, sans-serif;
+  --bd-f-govde: -apple-system, BlinkMacSystemFont, "SF Pro Text",
+                "Segoe UI Variable Text", "Segoe UI", system-ui, sans-serif;
+  --bd-font-baslik: var(--bd-f-baslik);
+  --bd-font-govde: var(--bd-f-govde);
+
+  /* Ölçek rem tabanlı: kullanıcı yazı boyutunu büyütünce yerleşim de büyür. */
+  --bd-t-xl: 2rem;
+  --bd-t-l: 1.375rem;
+  --bd-t-m: 1.0625rem;
+  --bd-t-govde: 1rem;
+  --bd-t-kucuk: 0.8125rem;
+  --bd-t-mini: 0.6875rem;
+
+  /* Boyuta özel tracking: tek bir letter-spacing her boyutta yanlıştır. */
+  --iz-display: -0.022em;
+  --iz-baslik: -0.014em;
+  --iz-govde: 0em;
+  --iz-kucuk: 0.006em;
+  --iz-mini: 0.04em;
+
+  /* ---------- RENK — nötr zemin, tek vurgu ----------
+     Şenlik paletinde turuncu + altın + mor + yeşil aynı ekrandaydı.
+     Renk anlam taşıdığında dikkat çeker; her yerde olduğunda hiçbir
+     yerde çekmez. Kontrastlar WCAG AA'ya göre seçildi. */
+  --bd-zemin: #F2F2F7;
+  --bd-zemin-2: #F2F2F7;
+  --bd-gok: #F2F2F7;
+  --bd-yuzey-1: #FFFFFF;
+  --bd-yuzey-2: #FFFFFF;
+  --bd-yuzey-3: #EFEFF4;
+  --bd-kenar: rgba(60, 60, 67, 0.12);
+  --bd-kart-alt: rgba(60, 60, 67, 0.10);
+
+  --bd-vurgu: #0A66E0;
+  --bd-vurgu-2: #084FB0;
+  --bd-vurgu-acik: #2F86F5;
+  --bd-vurgu-metin: #0057D9;
+  --bd-odul: #B8860B;
+  --bd-odul-2: #8A6508;
+  --bd-basari: #1D8A50;
+  --bd-basari-2: #146138;
+  --bd-hata: #C4282C;
+  --bd-hata-2: #96181C;
+  --bd-bilgi: #0057D9;
+  --bd-mor: #5A45C8;
+
+  --bd-metin: #1C1C1E;
+  --bd-metin-2: #55555A;
+  --bd-metin-3: #6B6B70;
+
+  /* ---------- §12 MALZEME ---------- */
+  --cam-acik: rgba(255, 255, 255, 0.72);
+  --cam-koyu: rgba(242, 242, 247, 0.82);
+  --cam-blur: saturate(180%) blur(20px);
+  --cam-kenar: rgba(255, 255, 255, 0.55);
+
+  /* ---------- Yarıçap ve gölge ---------- */
+  --bd-r-s: 10px;
+  --bd-r-m: 12px;
+  --bd-r-l: 16px;
+  --bd-r-tam: 999px;
+  --bd-golge-yumusak: 0 1px 2px rgba(0, 0, 0, 0.05), 0 0 0 0.5px rgba(0, 0, 0, 0.05);
+  --bd-golge-derin: 0 8px 28px rgba(0, 0, 0, 0.12), 0 0 0 0.5px rgba(0, 0, 0, 0.06);
+  --bd-glow-mor: var(--bd-golge-yumusak);
+  --bd-glow-odul: var(--bd-golge-yumusak);
+  --bd-ic-parlaklik: none;
+
+  /* src/styles.css tokenları da aynı palete bağlanır */
+  --bg: var(--bd-zemin);
+  --bg-2: var(--bd-zemin);
+  --bg-3: var(--bd-yuzey-3);
+  --card: var(--bd-yuzey-1);
+  --border: var(--bd-kenar);
+  --card-alt: var(--bd-kart-alt);
+  --text: var(--bd-metin);
+  --text-dim: var(--bd-metin-2);
+  --primary: var(--bd-vurgu);
+  --primary-2: var(--bd-vurgu-2);
+  --accent: var(--bd-odul);
+  --success: var(--bd-basari);
+  --success-2: var(--bd-basari-2);
+  --danger: var(--bd-hata);
+  --danger-2: var(--bd-hata-2);
+  --radius: var(--bd-r-m);
+}
+
+/* ============================================================
+   ZEMİN — hareketsiz, düz, dokusuz
+   Şenlikte üç renkli sabit gradyan + eğik çizgi dokusu vardı. §14: tam
+   ekran hareketli/desenli zeminlerden kaçın. §16 sadelik: zemin
+   içeriğin arkasında durmalı, onunla yarışmamalı.
+   ============================================================ */
+body {
+  background: var(--bd-zemin);
+  background-attachment: scroll;
+  font-family: var(--bd-f-govde);
+  color: var(--bd-metin);
+  letter-spacing: var(--iz-govde);
+}
+body::before { content: none; }
+
+h1, h2, h3,
+.bd-katman-baslik, .bd-hero-ad, .bd-mod-ad, .baslik {
+  font-family: var(--bd-f-baslik);
+  font-weight: 700;
+  letter-spacing: var(--iz-baslik);
+  line-height: 1.14;
+}
+.baslik { font-size: var(--bd-t-l); margin-bottom: 0.75rem; }
+.alt-yazi {
+  color: var(--bd-metin-2);
+  font-size: var(--bd-t-kucuk);
+  letter-spacing: var(--iz-kucuk);
+  line-height: 1.45;
+}
+
+/* ============================================================
+   §1 TEPKİ + §4 YAY — buton
+   Eskiden buton 4px aşağı "eziliyordu" (oyun kabartması). Apple'da
+   tepki ölçekte: basılma ANINDA (100 ms), bırakma yaya devreder.
+   ============================================================ */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem;
+  border: none; cursor: pointer;
+  border-radius: var(--bd-r-m);
+  padding: 0.875rem 1.125rem;
+  font-family: var(--bd-f-govde);
+  font-size: var(--bd-t-m);
+  font-weight: 600;
+  letter-spacing: var(--iz-govde);
+  color: #fff;
+  background: var(--bd-vurgu);
+  box-shadow: none;
+  text-shadow: none;
+  width: 100%;
+  transition: transform var(--yay-sure-hizli) var(--yay-hizli),
+              background-color var(--tepki-sure) ease-out,
+              opacity var(--tepki-sure) ease-out;
+}
+.btn:active {
+  transform: scale(0.97);
+  background: var(--bd-vurgu-2);
+  transition: transform var(--tepki-sure) ease-out,
+              background-color var(--tepki-sure) ease-out;
+}
+.btn:disabled { filter: none; opacity: 0.35; cursor: not-allowed; }
+.btn.ikincil {
+  background: rgba(10, 102, 224, 0.10);
+  color: var(--bd-vurgu-metin);
+  box-shadow: none;
+}
+.btn.ikincil:active { background: rgba(10, 102, 224, 0.18); transform: scale(0.97); }
+.btn.basari { background: var(--bd-basari); box-shadow: none; }
+.btn.basari:active { background: var(--bd-basari-2); box-shadow: none; }
+.btn.tehlike { background: var(--bd-hata); box-shadow: none; }
+.btn.tehlike:active { background: var(--bd-hata-2); box-shadow: none; }
+.btn.kucuk {
+  width: auto; padding: 0.4375rem 0.875rem;
+  font-size: var(--bd-t-kucuk); border-radius: var(--bd-r-s);
+}
+
+/* ============================================================
+   KART — düz kalınlık yerine hairline + yumuşak gölge (§12)
+   ============================================================ */
+.kart, .bd-yuzey, .bd-yuzey-2 {
+  background: var(--bd-yuzey-1);
+  border: 0;
+  border-radius: var(--bd-r-l);
+  box-shadow: var(--bd-golge-yumusak);
+  padding: 1rem;
+  margin-bottom: 0.75rem;
+}
+.liste-satir {
+  background: var(--bd-yuzey-1);
+  border: 0;
+  border-radius: var(--bd-r-m);
+  box-shadow: var(--bd-golge-yumusak);
+}
+.liste-satir .isim { font-weight: 600; letter-spacing: var(--iz-govde); }
+.liste-satir .detay { color: var(--bd-metin-2); }
+
+/* ============================================================
+   §12 SAYDAM KROMA — alt sekme çubuğu ve üst bar
+   İçerik altından akar; opak bir şerit ekranı yemez. Üstteki açık
+   kenar malzemenin ışığı yakalamasıdır. Metin cam üstünde: daha
+   yüksek kontrast, biraz daha ağır, hafif tracking (vibrancy kuralı).
+   ============================================================ */
+.tabbar {
+  background: var(--cam-acik);
+  -webkit-backdrop-filter: var(--cam-blur);
+  backdrop-filter: var(--cam-blur);
+  border-top: 0.5px solid var(--cam-kenar);
+  box-shadow: 0 -0.5px 0 rgba(0, 0, 0, 0.06);
+  padding: 0.375rem 0 max(0.375rem, env(safe-area-inset-bottom));
+}
+.tabbar a {
+  color: var(--bd-metin-2);
+  font-size: var(--bd-t-mini);
+  font-weight: 600;
+  letter-spacing: var(--iz-mini);
+  gap: 3px;
+  transition: color var(--tepki-sure) ease-out, transform var(--tepki-sure) ease-out;
+}
+.tabbar a.aktif { color: var(--bd-vurgu-metin); }
+.tabbar a:active { transform: scale(0.92); }
+.tabbar a .ikon { font-size: 22px; }
+
+.bd-ust, .bd-ustbar, .ust-bar, .bd-baslik-bar {
+  background: var(--cam-acik);
+  -webkit-backdrop-filter: var(--cam-blur);
+  backdrop-filter: var(--cam-blur);
+  border-bottom: 0.5px solid rgba(0, 0, 0, 0.06);
+}
+
+/* §12 Kenar efekti: sert 1px çizgi yerine içeriğin krom altına
+   girdiği yerde küçük bir solma. */
+.app::after {
+  content: "";
+  position: fixed;
+  left: 0; right: 0;
+  bottom: calc(60px + env(safe-area-inset-bottom));
+  height: 20px;
+  pointer-events: none;
+  z-index: 49;
+  background: linear-gradient(to top, var(--bd-zemin), transparent);
+}
+
+/* ============================================================
+   SORU KARTI ve ŞIKLAR
+   §1 tepki basılma anında · §16 sadelik: 2px renkli çerçeve yerine
+   hairline, seçim durumu dolguyla anlatılır.
+   ============================================================ */
+.bd-soru-metin {
+  font-family: var(--bd-f-baslik);
+  font-size: 1.3125rem;
+  font-weight: 600;
+  line-height: 1.25;
+  letter-spacing: var(--iz-baslik);
+}
+.secenekler { gap: 0.5rem; }
+.secenek {
+  padding: 0.9375rem 1rem;
+  background: var(--bd-yuzey-1);
+  border: 0.5px solid var(--bd-kenar);
+  border-radius: var(--bd-r-m);
+  font-size: var(--bd-t-m);
+  font-weight: 500;
+  letter-spacing: var(--iz-govde);
+  box-shadow: var(--bd-golge-yumusak);
+  transition: transform var(--yay-sure-hizli) var(--yay-hizli),
+              background-color 0.12s ease-out, border-color 0.12s ease-out;
+}
+.secenek .harf {
+  background: var(--bd-yuzey-3);
+  color: var(--bd-metin-2);
+  border-radius: var(--bd-r-s);
+  font-weight: 600;
+}
+.secenek:not(:disabled):active {
+  transform: scale(0.98);
+  background: var(--bd-yuzey-3);
+  border-color: var(--bd-kenar);
+  transition: transform var(--tepki-sure) ease-out, background-color var(--tepki-sure) ease-out;
+}
+.secenek.secili { border-color: var(--bd-vurgu); background: rgba(10, 102, 224, 0.08); }
+.secenek.dogru {
+  border-color: var(--bd-basari);
+  background: rgba(29, 138, 80, 0.12);
+  color: var(--bd-basari-2);
+}
+.secenek.dogru .harf { background: var(--bd-basari); color: #fff; }
+.secenek.yanlis {
+  border-color: var(--bd-hata);
+  background: rgba(196, 40, 44, 0.10);
+  color: var(--bd-hata-2);
+}
+.secenek.yanlis .harf { background: var(--bd-hata); color: #fff; }
+
+/* ============================================================
+   §7 MEKÂN + §12 MALZEME — modal / sheet
+   Modal kaynağından değil, altından gelir ve altına gider (aynı yol).
+   "Materialize, don't just fade": blur + ölçek birlikte animasyonlanır,
+   yüzey gerçek bir malzeme gibi gelir.
+   ============================================================ */
+.bd-modal-katman {
+  background: rgba(0, 0, 0, 0.28);
+  -webkit-backdrop-filter: blur(2px);
+  backdrop-filter: blur(2px);
+  animation: perde-ac 240ms ease-out both;
+}
+@keyframes perde-ac { from { opacity: 0; } to { opacity: 1; } }
+
+.bd-modal, .bd-sihirbaz {
+  border-radius: 20px;
+  box-shadow: var(--bd-golge-derin);
+  background: var(--bd-yuzey-1);
+  transform-origin: bottom center;
+  animation: sheet-gel var(--yay-sure-zipla) var(--yay-zipla) both;
+}
+@keyframes sheet-gel {
+  from { transform: translateY(18px) scale(0.97); opacity: 0; }
+  to   { transform: translateY(0) scale(1); opacity: 1; }
+}
+
+/* ============================================================
+   SEKMELER — segmented control
+   ============================================================ */
+.bd-sekme-ust, .bd-sekme-alt, .bd-dukkan-sekmeler {
+  background: rgba(118, 118, 128, 0.10);
+  border-radius: var(--bd-r-s);
+  padding: 2px;
+  gap: 2px;
+  border: 0;
+  box-shadow: none;
+}
+.bd-sekme, .bd-alt-sekme, .bd-dukkan-sekme {
+  border-radius: 8px;
+  font-size: var(--bd-t-kucuk);
+  font-weight: 600;
+  letter-spacing: var(--iz-kucuk);
+  color: var(--bd-metin-2);
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+  transition: background-color var(--tepki-sure) ease-out, color var(--tepki-sure) ease-out,
+              transform var(--yay-sure-hizli) var(--yay-hizli);
+}
+.bd-sekme.aktif, .bd-alt-sekme.aktif, .bd-dukkan-sekme.aktif {
+  background: var(--bd-yuzey-1);
+  color: var(--bd-metin);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.10);
+}
+.bd-sekme:active, .bd-alt-sekme:active, .bd-dukkan-sekme:active { transform: scale(0.96); }
+
+/* Durum bantları — düz, sessiz */
+.durum-bandi {
+  border-radius: var(--bd-r-s);
+  font-weight: 600;
+  font-size: var(--bd-t-kucuk);
+  letter-spacing: var(--iz-kucuk);
+  border: 0;
+}
+.durum-bandi.canli { background: rgba(29, 138, 80, 0.12); color: var(--bd-basari-2); }
+.durum-bandi.elendi { background: rgba(196, 40, 44, 0.10); color: var(--bd-hata-2); }
+.durum-bandi.altin-soru { background: rgba(184, 134, 11, 0.14); color: #7A5A08; }
+.durum-bandi.odul-azaldi { background: var(--bd-yuzey-3); color: var(--bd-metin-2); }
+
+/* ============================================================
+   §14 ERİŞİLEBİLİRLİK — üç bağımsız tercih
+   ============================================================ */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  /* Hareket azaltılınca geri bildirim KAYBOLMAZ, sadece yer değiştirmez:
+     ölçek yerine ton değişimi kalır (§14). */
+  .btn:active, .secenek:not(:disabled):active,
+  .tabbar a:active, .bd-sekme:active { transform: none !important; }
+  .bd-modal, .bd-sihirbaz { animation: perde-ac 160ms ease both; }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .tabbar, .bd-ust, .bd-ustbar, .ust-bar, .bd-baslik-bar {
+    background: var(--bd-yuzey-1);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+  .bd-modal-katman { -webkit-backdrop-filter: none; backdrop-filter: none; background: rgba(0, 0, 0, 0.45); }
+}
+
+@media (prefers-contrast: more) {
+  :root {
+    --bd-metin-2: #3A3A3E;
+    --bd-metin-3: #3A3A3E;
+    --bd-kenar: rgba(0, 0, 0, 0.45);
+  }
+  .tabbar, .bd-ust { background: var(--bd-yuzey-1); -webkit-backdrop-filter: none; backdrop-filter: none; }
+  .kart, .secenek, .liste-satir { border: 1px solid var(--bd-kenar); }
+}
+
+/* Odak halkası — klavye kullanıcısı için net */
+:focus-visible {
+  outline: 2px solid var(--bd-vurgu);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+/* ============================================================
+   KABARTMA DİLİNİ SÖNDÜR
+   Şenlik dilinde 113 ayrı yerde `box-shadow: 0 Npx 0 <renk>` var:
+   bulanıksız, düz bir "kalınlık". Bu oyun kabartmasıdır; Apple'da
+   derinlik yüzeyin BÜYÜKLÜĞÜYLE orantılı yumuşak gölge ve hairline
+   ile anlatılır (§12). Tek tek 113 sınıfı ezmek yerine kabuğun içini
+   sıfırlayıp gerçek derinliği aşağıda geri veriyoruz.
+   ============================================================ */
+.app *:not(.tabbar):not(.bd-modal):not(.bd-sihirbaz):not(.avatar) {
+  box-shadow: none;
+  text-shadow: none;
+}
+
+/* Derinlik geri geliyor — ama ölçülü */
+.app .kart,
+.app .bd-yuzey,
+.app .bd-yuzey-2,
+.app .liste-satir,
+.app .secenek,
+.app .bd-kat-kart,
+.app .bd-mod,
+.app .bd-paket,
+.app .bd-envanter-kutu,
+.app .bd-joker {
+  box-shadow: var(--bd-golge-yumusak);
+}
+.app .bd-modal, .app .bd-sihirbaz, .app .bd-modal-kutu, .app .bd-sayfa-modal {
+  box-shadow: var(--bd-golge-derin);
+}
+
+/* Yuvarlak üst bar düğmeleri: kabartma yerine sessiz daire */
+.app .bd-ust-dugme, .app .bd-yuvarlak-btn, .app .bd-zil, .app .bd-tema-dugme,
+.app .bd-ses-dugme {
+  background: rgba(118, 118, 128, 0.10);
+  border: 0;
+}
+
+/* Renkli çerçeveli "dikkat" kutuları sakinleşir: kalın altın halka yerine
+   ince kenar + hafif dolgu (§16 sadelik, §12 malzeme ağırlığı) */
+.app .bd-geri-sayim-kart,
+.app .geri-sayim-kart,
+.app .bd-turnuva-serit,
+.app .bd-hafta-serit {
+  border: 0.5px solid var(--bd-kenar);
+  background: var(--bd-yuzey-1);
+  border-radius: var(--bd-r-l);
+}
+
+/* Gradyanlı dolgular düzleşir (buton/rozet) */
+.app .bd-ana-eylem, .app .bd-rakip-bekliyor-btn {
+  background: var(--bd-vurgu);
+  color: #fff;
+}
+
+/* §15 Sayı ve etiket tipografisi: rakamlar tabular, etiketler küçük ve
+   sakin. Şenlikte her sayı devasa ve turuncuydu. */
+.app .bd-hero-puan-sayi, .app .skor, .app .bd-sira, .app .bd-vs-taraf .skor {
+  font-variant-numeric: tabular-nums;
+  letter-spacing: var(--iz-display);
+  font-weight: 700;
+  color: var(--bd-metin);
+}
+.app .bd-hero-puan-etiket, .app .bd-kat-baslik span:last-child {
+  color: var(--bd-metin-2);
+  letter-spacing: var(--iz-mini);
+}
+
+/* Profil sayfasındaki ayar satırı (tema/ses) — tek hizada */
+.bd-ayar-satir { display: flex; align-items: center; gap: 0.75rem; }
