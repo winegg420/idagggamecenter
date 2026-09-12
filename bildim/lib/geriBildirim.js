@@ -8,11 +8,11 @@
  * Standart geri bildirim penceresi (ms): cevaptan sonra doğru/yanlış bu kadar
  * ekranda kalır, sonra bir sonraki soru gelir.
  *
- * 1400 idi; bota karşı oynarken bot anında cevapladığı için soru neredeyse
- * hemen geçiyor, oyuncu doğru mu yanlış mı yaptığını göremiyordu. Sahibinin
- * isteği: "2 sn göreyim".
+ * 2000 idi; bota karşı oynarken bekleme fazla geliyordu — doğru/yanlış zaten
+ * ilk anda görünüyor, kalan süre boş bekleme oluyordu. Sahibinin kararı:
+ * oyuncu bekletilmeyecek, 1 sn yeter.
  */
-export const GB_MS = 2000;
+export const GB_MS = 1000;
 
 /**
  * Hızlı modlarda pencere kısadır: soru başına 5 sn var ve sunucu bir sonraki
