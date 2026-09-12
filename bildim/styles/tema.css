@@ -5622,3 +5622,61 @@ body.bd-ekle-acik .app { padding-bottom: calc(300px + env(safe-area-inset-bottom
   color: var(--bd-vurgu-2);
 }
 
+/* ============================================================
+   2. TİPOGRAFİ DİSİPLİNİ
+   Tek bir letter-spacing her boyutta yanlıştır: büyüyen metin harf
+   arası açık görünür, küçülen metin sıkışır. Satır yüksekliği de
+   boyutla ters çalışır — büyük başlıkta sıkı, gövdede rahat.
+   ============================================================ */
+.app .bd-hero-ad,
+.app .bd-hero-puan-sayi,
+.app .bd-katman-baslik,
+.app .bd-sonuc-baslik,
+.app .buyuk-mesaj h2,
+.giris h1 {
+  letter-spacing: -0.02em;
+  line-height: 1.08;
+}
+.app .baslik, .app .bd-kat-baslik > span:first-child, .app h2, .app h3 {
+  letter-spacing: -0.01em;
+  line-height: 1.2;
+}
+.app .bd-soru-metin { letter-spacing: -0.01em; line-height: 1.3; }
+.app .alt-yazi, .app .detay { line-height: 1.45; letter-spacing: 0.004em; }
+/* Küçük büyük-harfli etiketler: okunabilirlik için aralık AÇILIR */
+.app .bd-hero-puan-etiket,
+.app .bd-katman-baslik,
+.app .bd-sayac-etiket,
+.app .tabbar a,
+.app .rutbe-chip {
+  letter-spacing: 0.05em;
+}
+
+/* ---- Tabular rakamlar ----
+   Puan, coin, skor, sıralama ve geri sayım değişirken düzen
+   zıplamasın: rakamlar eşit genişlikte. */
+.app .bd-hero-puan-sayi,
+.app .puan-chip,
+.app .bd-coin-hap,
+.app .coin-chip,
+.app .skor,
+.app .bd-sira,
+.app .bd-sayac-kutu,
+.app .bd-sayac-sayi,
+.app .geri-sayim-kart b,
+.app .bd-soru-no,
+.app .bd-sure-sayi,
+.app .bd-vs-ilerleme,
+.app .bd-lig-serit-hucre b,
+.app .bd-joker-adet {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
+}
+
+/* ---- Kontrast (WCAG AA) ----
+   Yardımcı metin tonu beyaz kart üstünde 4.5:1 eşiğinin altına
+   düşmesin. --bd-metin-3 sınırdaydı; küçük metinde artık kullanılmıyor. */
+.app .alt-yazi, .app .detay, .app .bd-mod-not, .app .bd-joker-not {
+  color: var(--bd-metin-2);
+}
+
