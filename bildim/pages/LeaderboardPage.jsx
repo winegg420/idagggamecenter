@@ -16,7 +16,19 @@ import OyuncuKarti from "../components/OyuncuKarti.jsx";
 import AvatarCerceve from "../components/AvatarCerceve.jsx";
 import { y } from "../lib/yol.js";
 
+// Lig adları — sunucudaki `lig` kolonuyla birebir (bkz. migration 151).
+export const LIG_ADLARI = {
+  bronz: "Bronz",
+  gumus: "Gümüş",
+  altin: "Altın",
+  elmas: "Elmas",
+  efsane: "Efsane",
+};
+
 const KAPSAMLAR = [
+  // Kademeli lig: oyuncunun kendi 25 kişilik grubu. İlk sekme bu —
+  // haftalık yükselme/düşme burada oynanıyor.
+  { id: "lig", etiket: "LİGİM", ikon: "kupa" },
   { id: "sehir", etiket: "ŞEHİR", ikon: "sehir" },
   { id: "ulke", etiket: "ÜLKE", ikon: "bayrak" },
   { id: "global", etiket: "DÜNYA", ikon: "dunya" },
@@ -31,7 +43,9 @@ const DONEMLER = [
 export default function LeaderboardPage() {
   const { user, profile } = useAuth();
   const navigate = useNavigate();
-  const [kapsam, setKapsam] = useState("global");
+  const [kapsam, setKapsam] = useState("lig");
+  // Kendi lig grubumun üst bilgisi (lig adı, grup boyu, sınırlar, sezon sonu)
+  const [grupBilgi, setGrupBilgi] = useState(null);
   const [donem, setDonem] = useState("hafta");
   const [liste, setListe] = useState([]);
   const [sehirSirasi, setSehirSirasi] = useState(null);
@@ -110,7 +124,17 @@ export default function LeaderboardPage() {
       setHata(null);
       setSehirSirasi(null);
       try {
-        if (kapsam === "arkadas") {
+        if (kapsam === "lig") {
+          // Grup tablosu: TOPLAM oyuncu sayısı bilerek dönmüyor, oyuncu
+          // yalnız kendi grubunu görür.
+          const { data, error } = await supabase.rpc("lig_grubum");
+          if (error) throw error;
+          const satirlar = data ?? [];
+          if (aktif) {
+            setListe(satirlar);
+            setGrupBilgi(satirlar[0] ?? null);
+          }
+        } else if (kapsam === "arkadas") {
           const satirlar = await arkadasListesi();
           if (aktif) setListe(satirlar);
         } else {
@@ -150,12 +174,20 @@ export default function LeaderboardPage() {
     };
   }, [kapsam, donem, konumVar, arkadasListesi]);
 
+  // Kendi sıram ve sezon bitişine kalan süre (kademeli lig şeridi için)
+  const benimSiram = liste.find((s) => s.ben || s.user_id === user.id)?.sira ?? null;
+  const kalanSezon = grupBilgi?.sezon_bitis
+    ? new Date(grupBilgi.sezon_bitis).getTime() - Date.now()
+    : 0;
+
   const benimSatirimHam = liste.find((s) => s.ben || s.user_id === user.id);
   // Kendi satırın zaten ilk 100'de görünüyorsa altta İKİNCİ KEZ sabitleme.
   const benimSatirim =
     benimSatirimHam && benimSatirimHam.sira > 100 ? benimSatirimHam : null;
   const ilk100 = liste.filter((s) => s.sira <= 100);
-  const podyum = ilk100.slice(0, 3);
+  // Kademeli ligde podyum yok: 25 kişilik grup düz bir tablo olarak okunur,
+  // yükselme/düşme sınırları çizgiyle belli edilir.
+  const podyum = kapsam === "lig" ? [] : ilk100.slice(0, 3);
   const kalanlar = ilk100.slice(3);
 
   const satir = (s, vurgu = false) => (
@@ -244,19 +276,35 @@ export default function LeaderboardPage() {
         ))}
       </div>
 
-      <div className="bd-sekme-alt">
-        {DONEMLER.map((d) => (
-          <button
-            key={d.id}
-            className={`bd-alt-sekme ${donem === d.id ? "aktif" : ""}`}
-            onClick={() => setDonem(d.id)}
-          >
-            {d.etiket}
-          </button>
-        ))}
-      </div>
+      {/* Dönem sekmeleri yalnız gurur tablolarında anlamlı: kademeli lig
+          zaten haftalık. */}
+      {kapsam !== "lig" && (
+        <div className="bd-sekme-alt">
+          {DONEMLER.map((d) => (
+            <button
+              key={d.id}
+              className={`bd-alt-sekme ${donem === d.id ? "aktif" : ""}`}
+              onClick={() => setDonem(d.id)}
+            >
+              {d.etiket}
+            </button>
+          ))}
+        </div>
+      )}
 
-      {donem === "hafta" && (
+      {/* Kademeli lig şeridi: "Gümüş Lig · 7/25 · ↑ ilk 5 · ↓ son 5 · süre" */}
+      {kapsam === "lig" && grupBilgi && (
+        <div className="bd-hafta-serit bd-lig-serit">
+          <b>{LIG_ADLARI[grupBilgi.lig] ?? grupBilgi.lig} Lig</b> ·{" "}
+          {benimSiram ?? "—"}/{grupBilgi.grup_boyu}
+          <span className="bd-lig-kural">
+            ↑ ilk {grupBilgi.yukselen} yükselir · ↓ son {grupBilgi.dusen} düşer ·{" "}
+            {sureMetni(kalanSezon)} kaldı
+          </span>
+        </div>
+      )}
+
+      {kapsam !== "lig" && donem === "hafta" && (
         <div className="bd-hafta-serit">
           <Ikon ad="saat" boyut={15} /> Hafta bitimine <b>{sureMetni(kalanHafta)}</b> kaldı — ilk 3 rozet kazanır.
         </div>
@@ -266,8 +314,10 @@ export default function LeaderboardPage() {
         <div className="bd-sehir-serit">
           {bayrak(sehirSirasi.ulke)} <b>{sehirSirasi.sehir}</b>{" "}
           {donem === "hafta" ? "bu hafta" : "tüm zamanlarda"} ülkende{" "}
+          {/* Oyuncu sayısı BİLEREK yazılmıyor: oyunun kalabalığı hiçbir
+              ekranda açık edilmiyor (bkz. kademeli lig kuralları). */}
           <b>{sehirSirasi.sira}.</b> sırada ({sehirSirasi.sehir_sayisi} şehir içinde) ·{" "}
-          {sehirSirasi.oyuncu_sayisi} oyuncu · {sehirSirasi.toplam_puan} puan
+          {sehirSirasi.toplam_puan} puan
         </div>
       )}
 
@@ -368,7 +418,23 @@ export default function LeaderboardPage() {
           )}
 
           <div className="bd-lig-liste">
-            {(podyum.length === 3 ? kalanlar : ilk100).map((s) => satir(s))}
+            {(podyum.length === 3 ? kalanlar : ilk100).map((s) => {
+              // Kademeli ligde sınır çizgileri: kimin yükseleceği ve
+              // kimin düşeceği listeye bakınca görünsün.
+              if (kapsam !== "lig" || !grupBilgi) return satir(s);
+              const dusmeSiniri = grupBilgi.grup_boyu - grupBilgi.dusen;
+              return (
+                <div key={`yuva-${s.user_id}`}>
+                  {satir(s)}
+                  {s.sira === grupBilgi.yukselen && (
+                    <div className="bd-lig-cizgi yukselme">↑ yükselme sınırı</div>
+                  )}
+                  {s.sira === dusmeSiniri && dusmeSiniri > grupBilgi.yukselen && (
+                    <div className="bd-lig-cizgi dusme">↓ düşme sınırı</div>
+                  )}
+                </div>
+              );
+            })}
           </div>
         </>
       )}
