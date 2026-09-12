@@ -2,28 +2,31 @@ import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabase.js";
 import Logo from "../../bildim/components/Logo.jsx";
 import { girisHedefiniKaydet } from "../lib/girisHedefi.js";
+import { useDil } from "../../bildim/lib/dilKanca.js";
+import { DILLER } from "../../bildim/lib/dil.js";
 
 // Supabase'in İngilizce hata metinlerini oyuncuya anlaşılır Türkçeye çevirir.
 // Sağlayıcı panelde kapalıysa dönen mesaj ("provider is not enabled") teknik
 // kaçıyordu; oyuncu düğmenin bozuk olduğunu sanıyordu.
-function girisHatasi(e, saglayiciAd) {
+// `ceviri` = useDil()'den gelen t(); metinler oyuncunun dilinde döner.
+function girisHatasi(e, saglayiciAd, ceviri) {
   const m = String(e?.message ?? e ?? "");
   if (/provider is not enabled|Unsupported provider/i.test(m)) {
-    return `${saglayiciAd} girişi şu an kapalı. Google veya e-posta ile devam edebilirsin.`;
+    return ceviri("{ad} girişi şu an kapalı. Google veya e-posta ile devam edebilirsin.", { ad: saglayiciAd });
   }
   if (/Anonymous sign-ins are disabled/i.test(m)) {
-    return "Misafir girişi şu an kapalı. Google veya e-posta ile devam edebilirsin.";
+    return ceviri("Misafir girişi şu an kapalı. Google veya e-posta ile devam edebilirsin.");
   }
   if (/rate limit|too many/i.test(m)) {
-    return "Çok fazla deneme yapıldı. Birkaç dakika sonra tekrar dene.";
+    return ceviri("Çok fazla deneme yapıldı. Birkaç dakika sonra tekrar dene.");
   }
   if (/redirect|not allowed/i.test(m)) {
-    return "Giriş adresi doğrulanamadı. Sayfayı yenileyip tekrar dene.";
+    return ceviri("Giriş adresi doğrulanamadı. Sayfayı yenileyip tekrar dene.");
   }
   if (/network|fetch|Failed to fetch/i.test(m)) {
-    return "Bağlantı kurulamadı. İnternetini kontrol edip tekrar dene.";
+    return ceviri("Bağlantı kurulamadı. İnternetini kontrol edip tekrar dene.");
   }
-  return m || "Giriş yapılamadı. Tekrar dene.";
+  return m || ceviri("Giriş yapılamadı. Tekrar dene.");
 }
 
 const SAGLAYICI_AD = {
@@ -68,6 +71,8 @@ async function acikSaglayicilariOku() {
 }
 
 export default function Login() {
+  // DİL: profil tercihi > bu tarayıcıdaki seçim > tarayıcı dili (IP'ye bakılmaz)
+  const { dil, ceviri, dilDegistir } = useDil();
   const [email, setEmail] = useState("");
   const [gonderildi, setGonderildi] = useState(false);
   const [hata, setHata] = useState(null);
@@ -93,7 +98,7 @@ export default function Login() {
    */
   const facebookGiris = () => {
     if (acikListe && !acikListe.facebook) {
-      setHata("Facebook girişi henüz açılmadı. Google veya e-posta ile devam edebilirsin.");
+      setHata(ceviri("Facebook girişi henüz açılmadı. Google veya e-posta ile devam edebilirsin."));
       return;
     }
     sosyalGiris("facebook");
@@ -127,7 +132,7 @@ export default function Login() {
       });
       if (error) throw error;
     } catch (e) {
-      setHata(girisHatasi(e, SAGLAYICI_AD[provider] ?? provider));
+      setHata(girisHatasi(e, SAGLAYICI_AD[provider] ?? provider, ceviri));
     } finally {
       setBekleyen(null);
     }
@@ -143,7 +148,7 @@ export default function Login() {
       const { error } = await supabase.auth.signInAnonymously();
       if (error) throw error;
     } catch (e) {
-      setHata(girisHatasi(e, "Misafir"));
+      setHata(girisHatasi(e, "Misafir", ceviri));
     } finally {
       setBekleyen(null);
     }
@@ -162,7 +167,7 @@ export default function Login() {
       if (error) throw error;
       setGonderildi(true);
     } catch (err) {
-      setHata(girisHatasi(err, "E-posta"));
+      setHata(girisHatasi(err, "E-posta", ceviri));
     } finally {
       setBekleyen(null);
     }
@@ -170,11 +175,27 @@ export default function Login() {
 
   return (
     <div className="giris">
+      {/* TR / EN değiştirici — en üstte, giriş yapmadan da erişilebilir.
+          Seçim localStorage'a, giriş yapılmışsa profile de yazılır. */}
+      <div className="giris-dil" role="group" aria-label={ceviri("Dil")}>
+        {DILLER.map((d) => (
+          <button
+            key={d}
+            type="button"
+            className={"giris-dil-btn" + (dil === d ? " aktif" : "")}
+            aria-pressed={dil === d}
+            onClick={() => dilDegistir(d)}
+          >
+            {d.toUpperCase()}
+          </button>
+        ))}
+      </div>
+
       <div className="buyuk-logo"><Logo boyut={44} /></div>
       <div className="slogan">
-        Her gün 13:00 ve 21:50'de (Türkiye saati) büyük turnuva.
+        {ceviri("Her gün 13:00 ve 21:50'de (Türkiye saati) büyük turnuva.")}
         <br />
-        7/24 meydan okumalar. Sen de yerini al.
+        {ceviri("7/24 meydan okumalar. Sen de yerini al.")}
       </div>
 
       {hata && <div className="hata-kutu">{hata}</div>}
@@ -185,7 +206,7 @@ export default function Login() {
         onClick={() => sosyalGiris("google")}
       >
         <svg width="18" height="18" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.27-4.74 3.27-8.1z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84A11 11 0 0 0 12 23z"/><path fill="#FBBC05" d="M5.84 14.1A6.6 6.6 0 0 1 5.49 12c0-.73.13-1.43.35-2.1V7.06H2.18a11 11 0 0 0 0 9.88l3.66-2.84z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15A10.96 10.96 0 0 0 12 1 11 11 0 0 0 2.18 7.06l3.66 2.84C6.71 7.31 9.14 5.38 12 5.38z"/></svg>
-        {bekleyen === "google" ? "Yönlendiriliyor…" : "Google ile devam et"}
+        {bekleyen === "google" ? ceviri("Yönlendiriliyor…") : ceviri("Google ile devam et")}
       </button>
       <button
         className="sosyal-btn"
@@ -193,7 +214,7 @@ export default function Login() {
         onClick={facebookGiris}
       >
         <svg width="18" height="18" viewBox="0 0 24 24"><path fill="#1877F2" d="M24 12.07C24 5.4 18.63 0 12 0S0 5.4 0 12.07C0 18.1 4.39 23.09 10.13 24v-8.44H7.08v-3.49h3.05V9.41c0-3.02 1.79-4.7 4.53-4.7 1.31 0 2.69.24 2.69.24v2.97h-1.52c-1.49 0-1.95.93-1.95 1.89v2.26h3.32l-.53 3.49h-2.79V24C19.61 23.09 24 18.1 24 12.07z"/></svg>
-        {bekleyen === "facebook" ? "Yönlendiriliyor…" : "Facebook ile devam et"}
+        {bekleyen === "facebook" ? ceviri("Yönlendiriliyor…") : ceviri("Facebook ile devam et")}
       </button>
       {saglayiciAcik("twitter") && (
       <button
@@ -202,59 +223,60 @@ export default function Login() {
         onClick={() => sosyalGiris("twitter")}
       >
         <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M18.24 2.25h3.31l-7.23 8.26L22.83 21.75h-6.66l-5.22-6.82-5.97 6.82H1.66l7.73-8.84L1.17 2.25h6.83l4.72 6.24 5.52-6.24zm-1.16 17.52h1.83L7.02 4.13H5.06l12.02 15.64z"/></svg>
-        {bekleyen === "twitter" ? "Yönlendiriliyor…" : "X (Twitter) ile devam et"}
+        {bekleyen === "twitter" ? ceviri("Yönlendiriliyor…") : ceviri("X (Twitter) ile devam et")}
       </button>
       )}
 
-      <div className="ayrac">veya</div>
+      <div className="ayrac">{ceviri("veya")}</div>
 
       {gonderildi ? (
         <div className="kart" style={{ maxWidth: 340, textAlign: "center" }}>
-          Giriş bağlantısı <b>{email}</b> adresine gönderildi. E-postanı kontrol et.
+          {ceviri("Giriş bağlantısı {eposta} adresine gönderildi. E-postanı kontrol et.", { eposta: email })}
         </div>
       ) : (
         <form onSubmit={epostaGiris} style={{ width: "100%", maxWidth: 340, display: "flex", flexDirection: "column", gap: 10 }}>
           <input
             type="email"
-            placeholder="E-posta adresin"
+            placeholder={ceviri("E-posta adresin")}
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
           />
           <button type="submit" className="btn ikincil" disabled={bekleyen !== null}>
-            {bekleyen === "eposta" ? "Gönderiliyor…" : "E-posta ile giriş bağlantısı al"}
+            {bekleyen === "eposta" ? ceviri("Gönderiliyor…") : ceviri("E-posta ile giriş bağlantısı al")}
           </button>
         </form>
       )}
 
-      <div className="ayrac">hesap açmadan</div>
+      <div className="ayrac">{ceviri("hesap açmadan")}</div>
 
       <button
         className="sosyal-btn"
         disabled={bekleyen !== null}
         onClick={misafirGiris}
       >
-        {bekleyen === "misafir" ? "Giriş yapılıyor…" : "Misafir olarak dene"}
+        {bekleyen === "misafir" ? ceviri("Giriş yapılıyor…") : ceviri("Misafir olarak dene")}
       </button>
+      {/* Kapalı sağlayıcıyı vaat etmeyelim: liste GERÇEKTEN açık olan
+          sağlayıcılardan üretilir (panelden okunur). */}
       <div className="giris-not">
-        Misafir hesabı bu cihaza bağlıdır. Puanların kaybolmasın diye daha sonra
-        {" "}
-        {/* Kapalı sağlayıcıyı vaat etmeyelim: metin GERÇEKTEN açık olan
-            sağlayıcılardan üretilir (panelden okunur). */}
-        {["google", "facebook", "twitter"]
-          .filter(saglayiciAcik)
-          .map((s) => SAGLAYICI_AD[s] ?? s)
-          .join(", ")}{" "}
-        veya
-        e-posta hesabını bağlayabilirsin.
+        {ceviri(
+          "Misafir hesabı bu cihaza bağlıdır. Puanların kaybolmasın diye daha sonra {liste} veya e-posta hesabını bağlayabilirsin.",
+          {
+            liste: ["google", "facebook", "twitter"]
+              .filter(saglayiciAcik)
+              .map((s) => SAGLAYICI_AD[s] ?? s)
+              .join(", "),
+          }
+        )}
       </div>
 
       {/* Yasal metinler giriş duvarının ÖNÜNDE erişilebilir olmalı
           (Google Play ve reklam ağları şartı). */}
       <div className="giris-yasal">
-        <a href="/gizlilik">Gizlilik politikası</a>
+        <a href="/gizlilik">{ceviri("Gizlilik politikası")}</a>
         <span aria-hidden="true">·</span>
-        <a href="/kosullar">Kullanım koşulları</a>
+        <a href="/kosullar">{ceviri("Kullanım koşulları")}</a>
       </div>
     </div>
   );

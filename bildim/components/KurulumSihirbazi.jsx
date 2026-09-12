@@ -5,6 +5,7 @@ import { supabase } from "../../src/lib/supabase.js";
 import { useAuth } from "../../src/context/AuthContext.jsx";
 import Avatar from "../../src/components/Avatar.jsx";
 import { bayrak } from "../lib/konum.js";
+import { useDil } from "../lib/dilKanca.js";
 
 // 31 karakter avatarı (özgün çizim SVG, tamamı yerel — dış servis yok).
 // Üretici: scratchpad/avatar-uret.mjs. Eski düz siluetler (av1-av8) listeden
@@ -51,6 +52,8 @@ const HAZIR_AVATARLAR = [
  */
 export default function KurulumSihirbazi({ onTamam }) {
   const { user, profile, refreshProfile } = useAuth();
+  // Yeni oyuncunun ilk gördüğü ekran: dil kuralı Login ile aynı (bkz. dil.js)
+  const { ceviri } = useDil();
   const [adim, setAdim] = useState(1);
   const [takmaAd, setTakmaAd] = useState(profile?.takma_ad ?? "");
   const [secilenAvatar, setSecilenAvatar] = useState(null);
@@ -90,7 +93,7 @@ export default function KurulumSihirbazi({ onTamam }) {
         if (error) throw error;
         if (aktif) setUlkeler(data ?? []);
       } catch (e) {
-        if (aktif) setHata(hataMesaji(e, "Ülke listesi yüklenemedi."));
+        if (aktif) setHata(hataMesaji(e, ceviri("Ülke listesi yüklenemedi.")));
       }
     })();
     return () => {
@@ -111,7 +114,7 @@ export default function KurulumSihirbazi({ onTamam }) {
         if (error) throw error;
         if (aktif) setSehirler(data ?? []);
       } catch (e) {
-        if (aktif) setHata(hataMesaji(e, "Şehir listesi yüklenemedi."));
+        if (aktif) setHata(hataMesaji(e, ceviri("Şehir listesi yüklenemedi.")));
       }
     })();
     return () => {
@@ -128,7 +131,7 @@ export default function KurulumSihirbazi({ onTamam }) {
       await refreshProfile(user.id);
       setAdim(2);
     } catch (e) {
-      setHata(hataMesaji(e, "Takma ad kaydedilemedi."));
+      setHata(hataMesaji(e, ceviri("Takma ad kaydedilemedi.")));
     } finally {
       setCalisiyor(false);
     }
@@ -143,7 +146,7 @@ export default function KurulumSihirbazi({ onTamam }) {
       await refreshProfile(user.id);
       setAdim(3);
     } catch (e) {
-      setHata(hataMesaji(e, "Avatar kaydedilemedi."));
+      setHata(hataMesaji(e, ceviri("Avatar kaydedilemedi.")));
     } finally {
       setCalisiyor(false);
     }
@@ -152,7 +155,7 @@ export default function KurulumSihirbazi({ onTamam }) {
   const konumKaydet = async () => {
     setHata(null);
     if (!sehir.trim()) {
-      setHata("Şehir seçmelisin.");
+      setHata(ceviri("Şehir seçmelisin."));
       return;
     }
     setCalisiyor(true);
@@ -165,7 +168,7 @@ export default function KurulumSihirbazi({ onTamam }) {
       await refreshProfile(user.id);
       onTamam?.();
     } catch (e) {
-      setHata(hataMesaji(e, "Konum kaydedilemedi."));
+      setHata(hataMesaji(e, ceviri("Konum kaydedilemedi.")));
     } finally {
       setCalisiyor(false);
     }
@@ -174,7 +177,7 @@ export default function KurulumSihirbazi({ onTamam }) {
   const serbestSehir = sehirler.length === 0;
 
   return (
-    <Modal etiket="Kurulum">
+    <Modal etiket={ceviri("Kurulum")}>
       <div className="bd-modal bd-sihirbaz">
         <div className="bd-adim-cizgi" aria-hidden="true">
           {[1, 2, 3].map((a) => (
@@ -184,25 +187,24 @@ export default function KurulumSihirbazi({ onTamam }) {
 
         {adim === 1 && (
           <>
-            <div className="bd-konum-baslik">Kendine bir takma ad seç</div>
+            <div className="bd-konum-baslik">{ceviri("Kendine bir takma ad seç")}</div>
             <div className="bd-konum-aciklama">
-              Quiz Square'de <b>gerçek adın hiçbir zaman gösterilmez</b>. Diğer oyuncular
-              yalnızca burada seçtiğin takma adı görür.
+              {ceviri("Quiz Square'de gerçek adın hiçbir zaman gösterilmez. Diğer oyuncular yalnızca burada seçtiğin takma adı görür.")}
             </div>
             <label className="bd-alan">
-              <span>Takma ad (3-16 karakter)</span>
+              <span>{ceviri("Takma ad (3-16 karakter)")}</span>
               <input
                 type="text"
                 maxLength={16}
                 autoFocus
                 value={takmaAd}
-                placeholder="ör. BilgeKartal"
+                placeholder={ceviri("ör. BilgeKartal")}
                 onChange={(e) => setTakmaAd(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && takmaAd.trim().length >= 3 && adKaydet()}
               />
             </label>
             <div className="alt-yazi">
-              Harf, rakam ve alt çizgi kullanabilirsin. Sonradan günde bir kez değiştirilebilir.
+              {ceviri("Harf, rakam ve alt çizgi kullanabilirsin. Sonradan günde bir kez değiştirilebilir.")}
             </div>
             {hata && <div className="hata-kutu">{hata}</div>}
             <div className="bd-konum-butonlar">
@@ -211,7 +213,7 @@ export default function KurulumSihirbazi({ onTamam }) {
                 disabled={calisiyor || takmaAd.trim().length < 3}
                 onClick={adKaydet}
               >
-                {calisiyor ? "Kaydediliyor…" : "Devam"}
+                {calisiyor ? ceviri("Kaydediliyor…") : ceviri("Devam")}
               </button>
             </div>
           </>
@@ -219,10 +221,9 @@ export default function KurulumSihirbazi({ onTamam }) {
 
         {adim === 2 && (
           <>
-            <div className="bd-konum-baslik">Avatarını seç</div>
+            <div className="bd-konum-baslik">{ceviri("Avatarını seç")}</div>
             <div className="bd-konum-aciklama">
-              Hazır bir avatar seç ya da Google fotoğrafını kullanmayı onayla.
-              Onaylamazsan fotoğrafın <b>kimseye gösterilmez</b>.
+              {ceviri("Hazır bir avatar seç ya da Google fotoğrafını kullanmayı onayla. Onaylamazsan fotoğrafın kimseye gösterilmez.")}
             </div>
 
             <div className="bd-avatar-grid">
@@ -230,8 +231,8 @@ export default function KurulumSihirbazi({ onTamam }) {
                 <button
                   key={a.url}
                   className={`bd-avatar-sec ${secilenAvatar === a.url ? "aktif" : ""}`}
-                  aria-label={`${a.ad} avatarını seç`}
-                  title={a.ad}
+                  aria-label={ceviri("{ad} avatarını seç", { ad: ceviri(a.ad) })}
+                  title={ceviri(a.ad)}
                   onClick={() => setSecilenAvatar(a.url)}
                 >
                   <img src={a.url} alt="" />
@@ -247,7 +248,7 @@ export default function KurulumSihirbazi({ onTamam }) {
                 disabled={calisiyor || !secilenAvatar}
                 onClick={() => avatarKaydet(secilenAvatar)}
               >
-                Bu avatarı kullan
+                {ceviri("Bu avatarı kullan")}
               </button>
             </div>
 
@@ -264,7 +265,7 @@ export default function KurulumSihirbazi({ onTamam }) {
                   referrerPolicy="no-referrer"
                   style={{ width: 24, height: 24, borderRadius: "50%" }}
                 />
-                Google fotoğrafımı kullan
+                {ceviri("Google fotoğrafımı kullan")}
               </button>
             )}
             <button
@@ -273,21 +274,20 @@ export default function KurulumSihirbazi({ onTamam }) {
               disabled={calisiyor}
               onClick={() => avatarKaydet(null)}
             >
-              Avatarsız devam et
+              {ceviri("Avatarsız devam et")}
             </button>
           </>
         )}
 
         {adim === 3 && (
           <>
-            <div className="bd-konum-baslik">Hangi şehir için yarışıyorsun?</div>
+            <div className="bd-konum-baslik">{ceviri("Hangi şehir için yarışıyorsun?")}</div>
             <div className="bd-konum-aciklama">
-              Şehir ve ülke liglerinde bu bilgiyle yarışırsın.{" "}
-              <b>Günde yalnızca bir kez değiştirebilirsin.</b>
+              {ceviri("Şehir ve ülke liglerinde bu bilgiyle yarışırsın. Günde yalnızca bir kez değiştirebilirsin.")}
             </div>
 
             <label className="bd-alan">
-              <span>Ülke</span>
+              <span>{ceviri("Ülke")}</span>
               <select
                 value={ulke}
                 onChange={(e) => {
@@ -304,18 +304,18 @@ export default function KurulumSihirbazi({ onTamam }) {
             </label>
 
             <label className="bd-alan">
-              <span>Şehir</span>
+              <span>{ceviri("Şehir")}</span>
               {serbestSehir ? (
                 <input
                   type="text"
-                  placeholder="Şehrini yaz"
+                  placeholder={ceviri("Şehrini yaz")}
                   maxLength={40}
                   value={sehir}
                   onChange={(e) => setSehir(e.target.value)}
                 />
               ) : (
                 <select value={sehir} onChange={(e) => setSehir(e.target.value)}>
-                  <option value="">— Seç —</option>
+                  <option value="">{ceviri("— Seç —")}</option>
                   {sehirler.map((s) => (
                     <option key={s.ad} value={s.ad}>
                       {s.ad}
@@ -329,7 +329,7 @@ export default function KurulumSihirbazi({ onTamam }) {
 
             <div className="bd-konum-butonlar">
               <button className="btn" disabled={calisiyor} onClick={konumKaydet}>
-                {calisiyor ? "Kaydediliyor…" : "Oyuna başla"}
+                {calisiyor ? ceviri("Kaydediliyor…") : ceviri("Oyuna başla")}
               </button>
             </div>
           </>
