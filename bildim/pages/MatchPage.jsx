@@ -12,6 +12,7 @@ import QuestionCard from "../components/QuestionCard.jsx";
 import BildirimIzniSor from "../components/BildirimIzniSor.jsx";
 import MacSonuEklentisi from "../components/MacSonuEklentisi.jsx";
 import MacSonuDokum from "../components/MacSonuDokum.jsx";
+import MeydanaDonus from "../components/MeydanaDonus.jsx";
 import Maskot from "../components/Maskot.jsx";
 import Ikon from "../components/Ikon.jsx";
 import { TEPKILER, tepkiIkonu } from "../lib/tepkiler.js";
@@ -668,6 +669,8 @@ export default function MatchPage() {
             <div className="bd-vs-ilerleme">{ilerleme.rakip}/{toplamSoru}</div>
           </div>
         </div>
+        {/* Meydandan girilmişse maç bitince oraya dönülür (harita/donus.js) */}
+        <MeydanaDonus />
         <MacSonuDokum macId={id} kazanilanPuan={kazandim ? 20 : 0} />
         <MacSonuEklentisi
           macTur="1v1"

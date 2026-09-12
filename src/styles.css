@@ -315,6 +315,13 @@ input:focus { border-color: var(--primary); }
   letter-spacing: 0.02em;
 }
 .bd-soru.bd-altin-soru { box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.65), 0 10px 24px rgba(245, 158, 11, 0.18); }
+/* Maç sonu "Meydana dön" şeridi (yalnız meydandan girilen maçlarda) */
+.bd-meydan-donus {
+  display: flex; flex-wrap: wrap; gap: 8px; justify-content: center;
+  align-items: center; margin: 14px auto 4px; max-width: 340px;
+}
+.bd-meydan-donus .btn { flex: none; }
+
 /* ---- Kademeli lig şeridi ve yükselme/düşme sınır çizgileri ---- */
 .bd-hafta-serit.bd-lig-serit { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 8px; }
 .bd-lig-serit .bd-lig-kural { font-size: 12px; opacity: 0.85; }

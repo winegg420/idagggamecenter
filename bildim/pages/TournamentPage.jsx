@@ -8,6 +8,7 @@ import { supabase } from "../../src/lib/supabase.js";
 import { useAuth } from "../../src/context/AuthContext.jsx";
 import Countdown from "../components/Countdown.jsx";
 import YanlisSatiri from "../components/YanlisSatiri.jsx";
+import MeydanaDonus from "../components/MeydanaDonus.jsx";
 import QuestionCard from "../components/QuestionCard.jsx";
 import Avatar from "../../src/components/Avatar.jsx";
 import OyuncuKarti from "../components/OyuncuKarti.jsx";
@@ -257,7 +258,11 @@ export default function TournamentPage() {
           </div>
         )}
         {turnuva?.durum === "bitti" && (
-          <YanlisSatiri macTur="turnuva" macId={turnuva.id} />
+          <>
+            {/* Meydandan girilmişse turnuva bitince oraya dönülür */}
+            <MeydanaDonus />
+            <YanlisSatiri macTur="turnuva" macId={turnuva.id} />
+          </>
         )}
         <div className="geri-sayim-kart">
           <div style={{ fontSize: 14, fontWeight: 700, color: "var(--accent)" }}>

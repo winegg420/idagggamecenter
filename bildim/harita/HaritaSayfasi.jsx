@@ -22,6 +22,7 @@ import { zumKur } from "./zum.js";
 import { dansVarMi } from "./danslar.js";
 import { yonDurumu, yonOzeti, yatayaGec, dikeyeDon } from "./yon.js";
 import { turnuvaSaatleriniAyarla } from "../lib/zaman.js";
+import { donusKaydet, donusOku, donusTemizle } from "./donus.js";
 import "./harita.css";
 
 const EMOJILER = ["👋", "😂", "🔥", "🤔", "🎉", "⚔️"];
@@ -299,7 +300,16 @@ export default function HaritaSayfasi() {
       setHata({ mesaj: "Avatarın çizilemedi.", ayrinti: String(e?.message ?? e), tekrar: true });
       return undefined;
     }
-    ben.position.set(0, 0, 11);
+    // Meydandan bir maça girip dönen oyuncu AYRILDIĞI noktada doğar.
+    // Kayıt burada TÜKETİLİR: bir sonraki çıkışta yenisi yazılır.
+    const donus = donusOku();
+    if (donus) {
+      ben.position.set(donus.x, 0, donus.z);
+      ben.rotation.y = donus.aci ?? 0;
+      donusTemizle();
+    } else {
+      ben.position.set(0, 0, 11);
+    }
 
     kontrol = kontrolKur(padRef.current, topuzRef.current);
 
@@ -628,6 +638,13 @@ export default function HaritaSayfasi() {
     }
   }, [ad]);
 
+  /** Avatarın o anki yerini dönüş kaydına yazar (görselden bağımsız). */
+  const konumuHatirla = () => {
+    const c = canliRef.current;
+    if (!c?.ben) return;
+    donusKaydet({ x: c.ben.position.x, z: c.ben.position.z, aci: c.ben.rotation.y });
+  };
+
   const tekrarDene = () => {
     setHata(null);
     setYukleniyor(true);
@@ -641,6 +658,8 @@ export default function HaritaSayfasi() {
    * yalnız etkinlik teşviki verilmez.
    */
   const binayaGir = async (rota) => {
+    // Maç/turnuva bitince buraya, tam bu noktaya dönülecek (donus.js).
+    konumuHatirla();
     if (rota === "/turnuva" && turnuvaKalanRef.current !== null) {
       try {
         await supabase.rpc("meydan_turnuva_damgasi");
@@ -729,7 +748,7 @@ export default function HaritaSayfasi() {
                   Tekrar dene
                 </button>
               )}
-              <button type="button" className="bd-harita-btn beyaz" onClick={() => navigate(y())}>
+              <button type="button" className="bd-harita-btn beyaz" onClick={() => { donusTemizle(); navigate(y()); }}>
                 Oyuna dön
               </button>
             </div>
@@ -738,7 +757,9 @@ export default function HaritaSayfasi() {
       )}
 
       <div className="bd-harita-hud bd-harita-ust">
-        <button type="button" className="bd-harita-btn beyaz" onClick={() => navigate(y())}>
+        {/* Ana menüye çıkış: meydana dönüş kaydı burada temizlenir —
+            haritadan çıkan oyuncu maç sonunda buraya çekilmesin. */}
+        <button type="button" className="bd-harita-btn beyaz" onClick={() => { donusTemizle(); navigate(y()); }}>
           ‹ Oyuna dön
         </button>
         <span className="bd-harita-hap" role="status">
