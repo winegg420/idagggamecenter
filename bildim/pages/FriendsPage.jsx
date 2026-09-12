@@ -11,8 +11,8 @@ import DavetKodu from "../components/DavetKodu.jsx";
 import { facebookArkadasOnerileri, facebookDavetAc } from "../lib/facebookArkadas.js";
 
 const DOSTLUK_SECIMI = `id, requester, addressee, durum,
-  req:profiles!friendships_requester_fkey(id, gorunen_ad, gorunen_avatar, puan),
-  add:profiles!friendships_addressee_fkey(id, gorunen_ad, gorunen_avatar, puan)`;
+  req:profiles!friendships_requester_fkey(id, gorunen_ad, gorunen_avatar, gorunum, puan),
+  add:profiles!friendships_addressee_fkey(id, gorunen_ad, gorunen_avatar, gorunum, puan)`;
 
 export default function FriendsPage() {
   const { user, profile } = useAuth();

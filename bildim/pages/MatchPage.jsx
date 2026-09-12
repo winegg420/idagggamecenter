@@ -34,8 +34,8 @@ import { GB_MS } from "../lib/geriBildirim.js";
 // (bota doğrudan yeni maç, gerçek oyuncuya istek). Ekstra sorgu açmamak için
 // zaten çekilen profil satırına eklendi.
 const MAC_SECIMI = `*,
-  p1:profiles!matches_oyuncu1_fkey(id, gorunen_ad, gorunen_avatar, acik_bot),
-  p2:profiles!matches_oyuncu2_fkey(id, gorunen_ad, gorunen_avatar, acik_bot)`;
+  p1:profiles!matches_oyuncu1_fkey(id, gorunen_ad, gorunen_avatar, gorunum, acik_bot),
+  p2:profiles!matches_oyuncu2_fkey(id, gorunen_ad, gorunen_avatar, gorunum, acik_bot)`;
 
 // Tepkiler artık SVG ikon (bkz. lib/tepkiler.js). Sunucuya giden metin aynı.
 // Balonda gösterim: mesaj bir tepki emojisiyse ikonu, değilse metni çiz.

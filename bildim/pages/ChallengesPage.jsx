@@ -21,8 +21,8 @@ const SUREN_TAVAN = 200;  // güvenlik tavanı; pratikte hiç dolmaz
 const BITEN_LIMIT = 20;
 
 const MAC_SECIMI = `*,
-  p1:profiles!matches_oyuncu1_fkey(id, gorunen_ad, gorunen_avatar, puan, acik_bot),
-  p2:profiles!matches_oyuncu2_fkey(id, gorunen_ad, gorunen_avatar, puan, acik_bot)`;
+  p1:profiles!matches_oyuncu1_fkey(id, gorunen_ad, gorunen_avatar, gorunum, puan, acik_bot),
+  p2:profiles!matches_oyuncu2_fkey(id, gorunen_ad, gorunen_avatar, gorunum, puan, acik_bot)`;
 
 const GRUP_SECIMI = `*,
   katilimcilar:group_match_players(group_match_id, user_id, davet_durumu, skor,

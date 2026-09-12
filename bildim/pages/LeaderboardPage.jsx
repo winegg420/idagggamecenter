@@ -97,8 +97,8 @@ export default function LeaderboardPage() {
     });
     const kolon =
       donem === "hafta"
-        ? "id, gorunen_ad, gorunen_avatar, puan, puan_hafta, sampiyonluk, sehir, ulke"
-        : "id, gorunen_ad, gorunen_avatar, puan, sampiyonluk, sehir, ulke";
+        ? "id, gorunen_ad, gorunen_avatar, gorunum, puan, puan_hafta, sampiyonluk, sehir, ulke"
+        : "id, gorunen_ad, gorunen_avatar, gorunum, puan, sampiyonluk, sehir, ulke";
     const { data, error: hata2 } = await supabase
       .from("profiles")
       .select(kolon)
@@ -110,6 +110,7 @@ export default function LeaderboardPage() {
       user_id: p.id,
       gorunen_ad: p.gorunen_ad,
       gorunen_avatar: p.gorunen_avatar,
+      gorunum: p.gorunum,
       puan: donem === "hafta" ? (p.puan_hafta ?? 0) : p.puan,
       sehir: p.sehir,
       ulke: p.ulke,
@@ -201,6 +202,7 @@ export default function LeaderboardPage() {
         id: s.user_id,
         gorunen_ad: s.gorunen_ad,
         gorunen_avatar: s.gorunen_avatar,
+        gorunum: s.gorunum,
         puan: s.puan,
         is_bot: s.bot,
         sehir: s.sehir,
@@ -215,7 +217,7 @@ export default function LeaderboardPage() {
     >
       <span className="bd-sira">{s.sira}</span>
       <AvatarCerceve
-        profile={{ gorunen_ad: s.gorunen_ad, gorunen_avatar: s.gorunen_avatar }}
+        profile={{ gorunen_ad: s.gorunen_ad, gorunen_avatar: s.gorunen_avatar, gorunum: s.gorunum }}
         boyut={38}
         userId={s.user_id}
       />
@@ -376,7 +378,7 @@ export default function LeaderboardPage() {
                     title={`${p.gorunen_ad} — kartını aç`}
                     onClick={() => setKartOyuncu({
                       id: p.user_id, gorunen_ad: p.gorunen_ad,
-                      gorunen_avatar: p.gorunen_avatar, puan: p.puan,
+                      gorunen_avatar: p.gorunen_avatar, gorunum: p.gorunum, puan: p.puan,
                       is_bot: p.bot, sehir: p.sehir, ulke: p.ulke,
                     })}
                     onKeyDown={(e) => {
@@ -384,7 +386,7 @@ export default function LeaderboardPage() {
                         e.preventDefault();
                         setKartOyuncu({
                           id: p.user_id, gorunen_ad: p.gorunen_ad,
-                          gorunen_avatar: p.gorunen_avatar, puan: p.puan,
+                          gorunen_avatar: p.gorunen_avatar, gorunum: p.gorunum, puan: p.puan,
                           is_bot: p.bot, sehir: p.sehir, ulke: p.ulke,
                         });
                       }
@@ -394,7 +396,7 @@ export default function LeaderboardPage() {
                       {basamak}
                     </div>
                     <AvatarCerceve
-                      profile={{ gorunen_ad: p.gorunen_ad, gorunen_avatar: p.gorunen_avatar }}
+                      profile={{ gorunen_ad: p.gorunen_ad, gorunen_avatar: p.gorunen_avatar, gorunum: p.gorunum }}
                       boyut={basamak === 1 ? 62 : 50}
                       userId={p.user_id}
                     />

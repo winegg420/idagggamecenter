@@ -5766,3 +5766,21 @@ body.bd-ekle-acik .app { padding-bottom: calc(300px + env(safe-area-inset-bottom
   outline: 3px solid var(--bd-vurgu-2);
   outline-offset: 3px;
 }
+
+/* ============================================================
+   2B KARAKTER AVATARI
+   Vektör karakter kare tuvalde (200x200) ve kafası üstte duruyor;
+   yuvarlak avatar çerçevesine oturması için hafif büyütülüp yukarı
+   hizalanır. Fotoğraf avatarları eski davranışta kalır.
+   ============================================================ */
+.avatar.avatar-karakter {
+  background: var(--bd-yuzey-3);
+  overflow: hidden;
+}
+.avatar.avatar-karakter img {
+  width: 132%;
+  height: 132%;
+  object-fit: contain;
+  object-position: 50% 22%;
+  margin: -16% 0 0 -16%;
+}

@@ -19,7 +19,7 @@ import { HazirKapisi, KopukPerde } from "../components/MacHazirlik.jsx";
 
 const GRUP_SECIMI = `*,
   katilimcilar:group_match_players(group_match_id, user_id, davet_durumu, skor, joined_at, hazir, terk_at,
-    profil:profiles(id, gorunen_ad, gorunen_avatar))`;
+    profil:profiles(id, gorunen_ad, gorunen_avatar, gorunum))`;
 
 // Tepkiler artık SVG ikon (bkz. lib/tepkiler.js). Sunucuya giden metin aynı.
 // Balonda gösterim: mesaj bir tepki emojisiyse ikonu, değilse metni çiz.

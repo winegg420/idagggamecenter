@@ -22,7 +22,7 @@ const ALANLAR =
   // `is_bot` BİLEREK YOK: gizli botlar gerçek oyuncudan ayırt edilmemeli
   // (kolon `authenticated` rolüne kapalı, bkz. migration 155). İstemci
   // yalnız `acik_bot` görür — adında "Bot" geçen, zaten belli olan botlar.
-  "id, gorunen_ad, gorunen_avatar, puan, sampiyonluk, toplam_mac, sehir, ulke, acik_bot, last_seen, seri_gun";
+  "id, gorunen_ad, gorunen_avatar, gorunum, puan, sampiyonluk, toplam_mac, sehir, ulke, acik_bot, last_seen, seri_gun";
 
 /**
  * @param {object} o

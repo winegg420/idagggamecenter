@@ -78,7 +78,7 @@ export default function TournamentPage() {
       try {
         const { data: ply, error } = await supabase
           .from("tournament_players")
-          .select("*, profil:profiles(gorunen_ad, gorunen_avatar, puan)")
+          .select("*, profil:profiles(gorunen_ad, gorunen_avatar, gorunum, puan)")
           .eq("tournament_id", secilen.id)
           .order("joined_at");
         if (error) throw error;

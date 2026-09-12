@@ -18,7 +18,7 @@ import { HazirKapisi, KopukPerde } from "../components/MacHazirlik.jsx";
 
 const HIZLI_SECIMI = `*,
   katilimcilar:hizli_oyuncular(hizli_mac_id, user_id, davet_durumu, skor, joined_at, hazir, terk_at,
-    profil:profiles(id, gorunen_ad, gorunen_avatar))`;
+    profil:profiles(id, gorunen_ad, gorunen_avatar, gorunum))`;
 
 export default function HizliMacPage() {
   const { id } = useParams();
