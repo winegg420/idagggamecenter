@@ -117,7 +117,7 @@ export default function Login() {
     <div className="giris">
       <div className="buyuk-logo"><Logo boyut={44} /></div>
       <div className="slogan">
-        Her gün 10:00 ve 22:00'de büyük turnuva.
+        Her gün 13:00 ve 21:50'de (Türkiye saati) büyük turnuva.
         <br />
         7/24 meydan okumalar. Sen de yerini al.
       </div>

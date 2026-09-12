@@ -18,6 +18,8 @@ import SesDugmesi from "./SesDugmesi.jsx";
 import TemaDugmesi from "./TemaDugmesi.jsx";
 import { y, BILDIM_MOD } from "../lib/yol.js";
 import { cihazBildir } from "../lib/cihaz.js";
+import { ayarlar } from "../lib/ayarlar.js";
+import { turnuvaSaatleriniAyarla } from "../lib/zaman.js";
 
 export default function Layout() {
   const { profile, user } = useAuth();
@@ -39,6 +41,18 @@ export default function Layout() {
     if (!user) return;
     cihazBildir();
   }, [user?.id]);
+
+  // Turnuva saatleri sunucudan (oyun_ayarlari) okunur; geri sayımlar ve
+  // meydandaki kupa binası bu değerleri kullanır.
+  useEffect(() => {
+    ayarlar()
+      .then((o) => {
+        if (o?.turnuva_saat_sabah && o?.turnuva_saat_aksam) {
+          turnuvaSaatleriniAyarla(o.turnuva_saat_sabah, o.turnuva_saat_aksam);
+        }
+      })
+      .catch((e) => console.error("[Bildim] turnuva saatleri okunamadi:", e));
+  }, []);
 
   useEffect(() => {
     if (!user) return;

@@ -1,11 +1,44 @@
-// Günde iki turnuva: 10:00 (sabah) ve 22:00 (akşam), Europe/Istanbul.
-// Türkiye yıl boyu UTC+3 kullanır: 10:00 TSİ = 07:00 UTC, 22:00 TSİ = 19:00 UTC.
+// Günde iki turnuva. Saatler SABİT ve TÜRKİYE saatine göre (oyuncunun
+// yerel saatine göre DEĞİL): yerel saate göre olsaydı zaten ince olan
+// oyuncu havuzu saat dilimlerine bölünür, turnuvalar boş kalırdı.
+//
+// Tek kaynak sunucudaki oyun_ayarlari (turnuva_saat_sabah/aksam). Buradaki
+// değerler yalnız sunucuya ulaşılamadığında kullanılan varsayılan.
+// Türkiye yıl boyu UTC+3: 13:00 TSİ = 10:00 UTC, 21:50 TSİ = 18:50 UTC.
+const VARSAYILAN = { sabah: [10, 0], aksam: [18, 50] };   // UTC
+let saatler = VARSAYILAN;
+
+/** Sunucudan gelen "13:00" / "21:50" (TSİ) değerlerini UTC'ye çevirip saklar. */
+export function turnuvaSaatleriniAyarla(sabahTsi, aksamTsi) {
+  const cevir = (metin, yedek) => {
+    try {
+      const [s, d] = String(metin).split(":").map(Number);
+      if (!Number.isFinite(s) || !Number.isFinite(d)) return yedek;
+      const utcSaat = (s - 3 + 24) % 24;   // TSİ = UTC+3
+      return [utcSaat, d];
+    } catch {
+      return yedek;
+    }
+  };
+  saatler = {
+    sabah: cevir(sabahTsi, VARSAYILAN.sabah),
+    aksam: cevir(aksamTsi, VARSAYILAN.aksam),
+  };
+}
+
+/** Gösterim için TSİ metni ("13:00"). */
+export function turnuvaSaatMetni(seans) {
+  const [s, d] = saatler[seans] ?? VARSAYILAN[seans];
+  const tsi = (s + 3) % 24;
+  return `${String(tsi).padStart(2, "0")}:${String(d).padStart(2, "0")}`;
+}
+
 export function sonrakiTurnuvaZamani() {
   const simdi = new Date();
   const sabah = new Date(simdi);
-  sabah.setUTCHours(7, 0, 0, 0);
+  sabah.setUTCHours(saatler.sabah[0], saatler.sabah[1], 0, 0);
   const aksam = new Date(simdi);
-  aksam.setUTCHours(19, 0, 0, 0);
+  aksam.setUTCHours(saatler.aksam[0], saatler.aksam[1], 0, 0);
   if (simdi < sabah) return sabah;
   if (simdi < aksam) return aksam;
   sabah.setUTCDate(sabah.getUTCDate() + 1);
@@ -14,7 +47,10 @@ export function sonrakiTurnuvaZamani() {
 
 // Sıradaki turnuva sabah mı akşam mı?
 export function sonrakiTurnuvaSeans() {
-  return sonrakiTurnuvaZamani().getUTCHours() === 7 ? "sabah" : "aksam";
+  const z = sonrakiTurnuvaZamani();
+  return z.getUTCHours() === saatler.sabah[0] && z.getUTCMinutes() === saatler.sabah[1]
+    ? "sabah"
+    : "aksam";
 }
 
 export function geriSayim(hedef) {

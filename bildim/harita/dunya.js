@@ -21,6 +21,7 @@ import { roundRect, canvasDoku, isimEtiketi, nesneyiSerbestBirak } from "./ortak
 import { avatarKur, avatarGorunumDegistir, avatarEfektleriGuncelle, avatarYokEt } from "./avatar.js";
 import { esyaBilgisi, esyaOnbelleginiTemizle } from "./esyalar.js";
 import { dansBaslat, dansKaresi, dansiDurdur } from "./danslar.js";
+import { turnuvaSaatMetni } from "../lib/zaman.js";
 export { esyaBilgisi };
 
 // roundRect / canvasDoku / isimEtiketi / nesneyiSerbestBirak ORTAK.JS'e taşındı:
@@ -36,7 +37,9 @@ export const BINALAR = [
   { ad: "Meydan Oku", alt: "1v1 düello",        duvar: "#FF5B4A", cati: "#C03225", rota: "/meydan" },
   { ad: "Hızlı Mod",  alt: "60 saniye",         duvar: "#FFB020", cati: "#C98A22", rota: "/hizli-mod" },
   { ad: "Grup Maçı",  alt: "3-5 kişi",          duvar: "#4A9DD9", cati: "#2B6BA3", rota: "/meydan" },
-  { ad: "Turnuva",    alt: "her gece 21.00",    duvar: "#A855F7", cati: "#6D21B0", rota: "/turnuva" },
+  // Alt yazı sunucudaki turnuva saatlerinden okunur (bkz. lib/zaman.js);
+  // saat değişirse levha da değişir.
+  { ad: "Turnuva",    alt: null,                duvar: "#A855F7", cati: "#6D21B0", rota: "/turnuva" },
   { ad: "Dükkân",     alt: "joker ve paketler", duvar: "#EC4899", cati: "#A81B62", rota: "/joker" },
   { ad: "Lig",        alt: "haftalık sıralama", duvar: "#2FBF71", cati: "#137A45", rota: "/siralama" },
   { ad: "Hatalarım",  alt: "çalışma odası",     duvar: "#20A4A0", cati: "#0F6B68", rota: "/calisma" },
@@ -253,7 +256,10 @@ export function dunyaKur(kapsayici, s = {}) {
     }
 
     binalar.push({
-      ad: cfg.ad, alt: cfg.alt, rota: cfg.rota, x: cfg.x, z: cfg.z, g,
+      // alt null ise turnuva binası: saatler ayar tablosundan gelir
+      ad: cfg.ad,
+      alt: cfg.alt ?? `her gün ${turnuvaSaatMetni("sabah")} ve ${turnuvaSaatMetni("aksam")}`,
+      rota: cfg.rota, x: cfg.x, z: cfg.z, g,
       isima, sayacLevha, yukseklik: h,
     });
   }

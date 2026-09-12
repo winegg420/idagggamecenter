@@ -21,6 +21,7 @@ import { esyaBilgisi } from "./esyalar.js";
 import { zumKur } from "./zum.js";
 import { dansVarMi } from "./danslar.js";
 import { yonDurumu, yonOzeti, yatayaGec, dikeyeDon } from "./yon.js";
+import { turnuvaSaatleriniAyarla } from "../lib/zaman.js";
 import "./harita.css";
 
 const EMOJILER = ["👋", "😂", "🔥", "🤔", "🎉", "⚔️"];
@@ -201,17 +202,25 @@ export default function HaritaSayfasi() {
     let aktif = true;
     const bak = async () => {
       try {
-        const { data, error } = await supabase
+        // Aktif turnuva varsa kapı hemen açık.
+        const { data: aktifler, error: aHata } = await supabase
           .from("tournaments")
-          .select("id, baslangic, durum")
-          .in("durum", ["lobi", "aktif"])
-          .order("baslangic", { ascending: true })
+          .select("id")
+          .eq("durum", "aktif")
           .limit(1);
-        if (error) throw error;
-        const t = (data ?? [])[0];
+        if (aHata) throw aHata;
         if (!aktif) return;
-        if (!t) { setTurnuvaKalan(null); return; }
-        if (t.durum === "aktif") { setTurnuvaKalan(0); return; }
+        if ((aktifler ?? []).length > 0) { setTurnuvaKalan(0); return; }
+
+        // Sıradaki turnuvanın TAM ANI sunucudan gelir (saatler
+        // oyun_ayarlari'nda; lobi satırında `baslangic` henüz boş olduğu
+        // için oradan okumak yanlış sonuç veriyordu).
+        const { data, error } = await supabase.rpc("sonraki_turnuva_ani");
+        if (error) throw error;
+        const t = Array.isArray(data) ? data[0] : data;
+        if (!aktif) return;
+        if (!t?.baslangic) { setTurnuvaKalan(null); return; }
+        turnuvaSaatleriniAyarla(t.saat_sabah, t.saat_aksam);
         const kalanMs = new Date(t.baslangic).getTime() - Date.now();
         setTurnuvaKalan(kalanMs <= KAPI_MS ? Math.max(0, Math.round(kalanMs / 1000)) : null);
       } catch (e) {
