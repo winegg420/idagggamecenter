@@ -3610,3 +3610,34 @@ eşleşmede 0 Bronz/Gümüş bot), coin (açık bot 12 · gizli bot 25 · bot
 galibiyetinde lig puanı 8), sezon kapanışı (2 grupta 10 yükselme, botların
 ligi değişmedi, yeni hafta grupları yeniden kuruldu, 6 ödül), ikram akışı
 (-5 coin · redde iade · "rahatsız etme" reddi · zaman aşımında iade).
+
+---
+
+## 12 Eylül 2026 (3) — Gizli bot sistemi: gizlilik ve inandırıcılık
+
+Paket 2'nin 1. ve 2. maddeleri (geçmiş sıfırlama + 80 gizli bot) zaten
+149–150 ile uygulanmıştı. Bu tur, botları **gerçekten gizli** yapan
+eksikleri kapattı (migration 155):
+
+- **Gizlilik açığı kapatıldı.** `is_bot`, `bot_isabet`, `bot_seviye`
+  kolonları `authenticated` rolüne açıktı: oyuncu profil sorgusuyla
+  rakibinin bot olduğunu görebiliyordu. Kolonlar çekildi; yerine üretilmiş
+  `acik_bot` kolonu geldi (yalnız adında "Bot" geçen açık botlar için
+  true). İstemcideki dört dosya (`OyuncuKarti`, `ChallengesPage`, `Home`,
+  `MatchPage`) buna geçirildi.
+- **Arama ekranındaki sızıntı.** "Uygun rakip bulunamadı — BilgeBot ile
+  oynuyorsun" metni ve "Bot ile hemen oyna" düğmesi kalktı.
+- **Eşleşme gecikmesi.** `quick_match` bot kurmadan önce sunucuda 2–5 sn
+  bekletiyor (arama başına sabit, oyuncuya bağlı). İstemci atlayamaz.
+- **Yeni hesap bandı 20–45.** Eskiden 1. seviye botlar düşüyordu, oyun ölü
+  görünüyordu. Bant hesabı artık tek yerde (`bot_seviye_araligi`) — lig
+  sınırı geldiğinde oraya eklenecek.
+- **Tekrar engeli.** Son 8 rakip elenerek seçim yapılıyor; art arda aynı
+  bot gelmiyor (10 maçlık testte 10 farklı rakip).
+- **Görünüm çeşitliliği.** 80 botun hepsi aynı varsayılan görünümdeydi.
+  Görünüm bot adından deterministik türetildi: 80 farklı görüntü,
+  ~%20 sade / %80 giyinik / %17 özel dokunuş, etkinlik eşyası yok.
+
+**İsim listesi düzeltmesi:** sahibin listesinde `cileksi` iki kez yazılmış
+ve başlıklar "Kadın (26) / Erkek (31)" diyor; gerçekte **25 kadın + 32
+erkek = 57** (toplam doğru). Tekilleştirilmiş hâli uygulandı.
