@@ -315,6 +315,11 @@ input:focus { border-color: var(--primary); }
   letter-spacing: 0.02em;
 }
 .bd-soru.bd-altin-soru { box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.65), 0 10px 24px rgba(245, 158, 11, 0.18); }
+/* Aynı rakiple aynı gün çok maç: ödül azaldı uyarısı (maç yine oynanır). */
+.durum-bandi.odul-azaldi {
+  background: rgba(148, 163, 184, 0.16); color: var(--text-2, inherit);
+  border: 1px solid rgba(148, 163, 184, 0.45);
+}
 
 .buyuk-mesaj { text-align: center; padding: 40px 20px; }
 .buyuk-mesaj .emoji { font-size: 64px; margin-bottom: 12px; }

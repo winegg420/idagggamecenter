@@ -258,6 +258,28 @@ export default function MatchPage() {
   // referans veremediği için güncel hâli her render'da ref'e yazılır).
   kanalKurRef.current = kanalKur;
 
+  // ÇİFT BAZLI ÖDÜL DURUMU — aynı rakiple aynı gün çok maç yapınca ödül
+  // azalır (bkz. migration 145). Oyuncu bunu maç başlarken görmeli.
+  const [ciftDurum, setCiftDurum] = useState(null);
+  useEffect(() => {
+    if (!mac || !user) return;
+    const rakip = mac.oyuncu1 === user.id ? mac.oyuncu2 : mac.oyuncu1;
+    if (!rakip) return;
+    let aktif = true;
+    (async () => {
+      try {
+        const { data, error } = await supabase.rpc("cift_mac_durumu", { p_rakip: rakip });
+        if (error) throw error;
+        const d = Array.isArray(data) ? data[0] : data;
+        if (aktif) setCiftDurum(d ?? null);
+      } catch (e) {
+        // Bilgi bandı gösterilemezse oyun akışı bozulmaz.
+        console.error("[Bildim] cift mac durumu alinamadi:", e);
+      }
+    })();
+    return () => { aktif = false; };
+  }, [mac?.id, user?.id]);
+
   useEffect(() => {
     macYukle();
     kanalKur();
@@ -864,6 +886,16 @@ export default function MatchPage() {
           >
             <Ikon ad="carpi" boyut={16} />
           </button>
+        </div>
+      )}
+
+      {/* ÖDÜL UYARISI — aynı rakiple aynı gün çok maç yapılınca ödül azalır.
+          Maç yine oynanır; oyuncu bunu BAŞTAN bilsin diye yazılır. */}
+      {ciftDurum && Number(ciftDurum.carpan) < 1 && (
+        <div className="durum-bandi odul-azaldi">
+          {Number(ciftDurum.carpan) === 0
+            ? `Bugün bu rakiple ${ciftDurum.sira}. maçın — bu bir dostluk maçı, puan ve coin vermez.`
+            : `Bugün bu rakiple ${ciftDurum.sira}. maçın — ödül yarıya düşecek.`}
         </div>
       )}
 

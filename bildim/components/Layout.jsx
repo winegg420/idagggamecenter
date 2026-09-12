@@ -17,6 +17,7 @@ import Logo from "./Logo.jsx";
 import SesDugmesi from "./SesDugmesi.jsx";
 import TemaDugmesi from "./TemaDugmesi.jsx";
 import { y, BILDIM_MOD } from "../lib/yol.js";
+import { cihazBildir } from "../lib/cihaz.js";
 
 export default function Layout() {
   const { profile, user } = useAuth();
@@ -32,6 +33,12 @@ export default function Layout() {
       return true; // özel mod: tanıtımı zorlamayalım
     }
   });
+
+  // Cihaz kimliği oturum başına bir kez bildirilir (sıralı maç koruması).
+  useEffect(() => {
+    if (!user) return;
+    cihazBildir();
+  }, [user?.id]);
 
   useEffect(() => {
     if (!user) return;
