@@ -3834,3 +3834,49 @@ kod depoda, dağıtım bekliyor.
 164 `ceviri_denetimi_duzeltmeleri` — üçü de canlıya uygulandı ve
 `supabase_migrations.schema_migrations`'a yazıldı (161 de geriye dönük
 kaydedildi; uygulanmıştı ama kaydı yoktu).
+
+### Ek — Edge Function dağıtıldı (aynı gün, panelden)
+
+`npx supabase functions deploy` 403 veriyor (makinedeki CLI belirteci
+`idafroditproject@gmail.com` hesabına ait, proje `winegg420`'de). **Çözüm:
+Supabase panelindeki kod düzenleyici.** Dashboard → Edge Functions →
+generate-questions → **Code** sekmesinde `index.ts` ve `kalite.ts` doğrudan
+düzenlenip "Deploy updates" ile dağıtılabiliyor. CLI'ye hiç gerek yok.
+
+Dağıtımdan önce panel içeriği depoyla karşılaştırıldı: canlıdaki sürüm
+**commit `6b0b595`** ile bire bir aynıydı (index.ts 7.226, kalite.ts 3.576
+karakter). Yani panelden elle düzenlenmiş bir şey yoktu, üzerine yazmak
+güvenliydi — ama fonksiyon **üç commit geride kalmıştı**. Dağıtımla birlikte
+şunlar da canlıya çıktı:
+- `86f1927` şık uzunluğu dengesi kalite kapısı (yayınlanmamıştı)
+- `80445ce` marka adı Quizador → Quiz Square
+- `a953d61` özel isim çeviri kuralı (bu paketin işi)
+
+Dosyalar panele elle yazılmadı: sayfa `raw.githubusercontent.com`'dan
+`main` dalındaki dosyaları çekip Monaco düzenleyicisine yazdı, böylece
+kopyalama hatası riski sıfır. Dağıtım sonrası sayfa yeniden yüklenip
+sunucudan gelen içerik doğrulandı: index.ts 8.645, kalite.ts 15.024
+karakter — depodakiyle aynı; `ÖZEL İSİMLER ASLA ÇEVRİLMEZ` ve
+`ceviriNedenGecersiz` canlıda.
+
+**Dağıtım sırasında çıkan asıl sorun — SORU ÜRETİMİ 24 SAATTİR ÇALIŞMIYOR:**
+panelde "son 24 saatte 24 hata, hepsi 500" görünüyordu. `bildim-soru-uret`
+cron'u saatte bir (dakika 30) çalışıyor, yani **her çağrı başarısız**.
+Fonksiyon elle çağrıldığında sebep çıktı:
+
+```
+{"hata":"ANTHROPIC_API_KEY tanımlı değil","hedefKategori":"spor", ...}
+```
+
+Panelde **Edge Function Secrets** listesinde `ANTHROPIC_API_KEY` YOK
+(var olanlar: CRON_SECRET, VAPID_*, SUPABASE_*). Anahtar silinmiş ya da hiç
+girilmemiş. Kodda sorun yok; yeni dağıtım da aynı hatayı verir çünkü sebep
+eksik gizli anahtar.
+
+**Yapılması gereken (yalnız sahibi yapabilir):** Dashboard → Edge Functions
+→ Secrets → Name `ANTHROPIC_API_KEY`, Value = Anthropic API anahtarı → Save.
+Anahtar girildikten sonra bir sonraki saat başı 30'da cron kendiliğinden
+çalışır; hemen denemek için fonksiyonu `x-cron-secret` başlığıyla POST etmek
+yeterli. Havuz durumu şu an: cografya 1.707, tarih 903, edebiyat 887,
+sinema 853, muzik 850, bilim 844, sanat 843, teknoloji 838, genel_kultur 800,
+spor 765.
