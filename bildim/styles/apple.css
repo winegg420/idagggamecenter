@@ -496,3 +496,118 @@ h1, h2, h3,
 
 /* Profil sayfasındaki ayar satırı (tema/ses) — tek hizada */
 .bd-ayar-satir { display: flex; align-items: center; gap: 0.75rem; }
+
+/* ============================================================
+   MAÇ EKRANI — tek iş: soruyu cevaplamak
+   §16 Sadelik: tepkiler tek düğmenin arkasında. Panel §7'ye uygun
+   olarak düğmesinden doğar (transform-origin alt), aynı yoldan kapanır.
+   ============================================================ */
+.sohbet-bar.bd-tepki-tek { justify-content: center; gap: 0; }
+.bd-tepki-panel {
+  display: flex; flex-wrap: wrap; justify-content: center;
+  gap: 0.5rem;
+  margin: 0 auto 0.5rem;
+  padding: 0.625rem;
+  max-width: 340px;
+  background: var(--cam-acik);
+  -webkit-backdrop-filter: var(--cam-blur);
+  backdrop-filter: var(--cam-blur);
+  border: 0.5px solid var(--cam-kenar);
+  border-radius: var(--bd-r-l);
+  box-shadow: var(--bd-golge-derin);
+  transform-origin: bottom center;
+  animation: tepki-ac var(--yay-sure-hizli) var(--yay-hizli) both;
+}
+@keyframes tepki-ac {
+  from { transform: translateY(8px) scale(0.96); opacity: 0; }
+  to   { transform: translateY(0) scale(1); opacity: 1; }
+}
+.bd-tepki-panel button {
+  width: 44px; height: 44px;
+  display: grid; place-items: center;
+  border: 0; border-radius: var(--bd-r-m);
+  background: rgba(118, 118, 128, 0.10);
+  color: var(--bd-metin);
+  cursor: pointer;
+  transition: transform var(--tepki-sure) ease-out, background-color var(--tepki-sure) ease-out;
+}
+.bd-tepki-panel button:active { transform: scale(0.92); background: rgba(118, 118, 128, 0.20); }
+
+/* Skor tabelası sakinleşir: iki ad, iki sayı, arada ince ayraç */
+.app .skor-tabela, .app .bd-vs {
+  background: var(--bd-yuzey-1);
+  border-radius: var(--bd-r-l);
+  box-shadow: var(--bd-golge-yumusak);
+}
+.app .bd-vs .vs, .app .skor-tabela .vs {
+  color: var(--bd-metin-3);
+  font-weight: 600;
+  letter-spacing: var(--iz-mini);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bd-tepki-panel { animation: none; }
+}
+
+/* ============================================================
+   GİRİŞ EKRANI
+   §16 Sadelik + hiyerarşi: beş eylem eşit ağırlıktaydı, hepsi beyaz
+   kabartma kutuydu; göz nereden başlayacağını bilmiyordu. Artık BİR
+   birincil eylem dolu, gerisi geri çekildi.
+   ============================================================ */
+.giris { background: var(--bd-zemin); }
+.giris h1, .giris .logo-metin { letter-spacing: var(--iz-display); }
+
+.sosyal-btn {
+  width: 100%;
+  display: inline-flex; align-items: center; justify-content: center; gap: 0.625rem;
+  padding: 0.875rem 1rem;
+  border-radius: var(--bd-r-m);
+  border: 0.5px solid var(--bd-kenar);
+  background: var(--bd-yuzey-1);
+  color: var(--bd-metin);
+  font-family: var(--bd-f-govde);
+  font-size: var(--bd-t-m);
+  font-weight: 500;
+  letter-spacing: var(--iz-govde);
+  cursor: pointer;
+  transition: transform var(--yay-sure-hizli) var(--yay-hizli),
+              background-color var(--tepki-sure) ease-out;
+}
+.sosyal-btn:active { transform: scale(0.97); background: var(--bd-yuzey-3); }
+
+/* İlk sağlayıcı birincil eylem: dolu, tek renkli, en ağır. */
+.giris .sosyal-btn:first-of-type {
+  background: var(--bd-vurgu);
+  color: #fff;
+  border-color: transparent;
+  font-weight: 600;
+}
+.giris .sosyal-btn:first-of-type:active { background: var(--bd-vurgu-2); }
+
+.giris input[type="email"], .giris input[type="text"] {
+  width: 100%;
+  padding: 0.875rem 1rem;
+  border-radius: var(--bd-r-m);
+  border: 0.5px solid var(--bd-kenar);
+  background: var(--bd-yuzey-1);
+  font-family: var(--bd-f-govde);
+  font-size: var(--bd-t-m);
+  color: var(--bd-metin);
+}
+.giris .ayrac {
+  color: var(--bd-metin-3);
+  font-size: var(--bd-t-kucuk);
+  letter-spacing: var(--iz-mini);
+  text-transform: lowercase;
+}
+.giris-not, .giris-yasal { color: var(--bd-metin-2); font-size: var(--bd-t-kucuk); }
+.giris-yasal a { color: var(--bd-vurgu-metin); }
+
+/* ============================================================
+   PROFİL / AYAR YIĞINI
+   Sekiz ayrı yüzen kart yerine sakin bir yığın: gölge yok, aralar dar,
+   ince ayraç. (Gerçek iOS "grouped list" için işaretleme değişikliği
+   gerekiyordu; bu, işaretlemeye dokunmadan alınabilen en yakın hâl.)
+   ============================================================ */
+.sayfa .kart { margin-bottom: 0.5rem; }

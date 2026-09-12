@@ -266,6 +266,8 @@ export default function MatchPage() {
   // ÇİFT BAZLI ÖDÜL DURUMU — aynı rakiple aynı gün çok maç yapınca ödül
   // azalır (bkz. migration 145). Oyuncu bunu maç başlarken görmeli.
   const [ciftDurum, setCiftDurum] = useState(null);
+  // APPLE DENEMESİ: tepki paneli açık mı (soru ekranı tek işe odaklansın)
+  const [tepkiAcik, setTepkiAcik] = useState(false);
   useEffect(() => {
     if (!mac || !user) return;
     const rakip = mac.oyuncu1 === user.id ? mac.oyuncu2 : mac.oyuncu1;
@@ -991,24 +993,43 @@ export default function MatchPage() {
           aynı anda maçtayken çizilir, aksi halde hiç görünmez. */}
       <SesliSohbet macId={id} benimId={user.id} />
 
-      <div className="sohbet-bar">
-        {TEPKILER.map((t) => (
-          <button
-            key={t.deger}
-            onClick={() => mesajGonder(t.deger)}
-            aria-label={t.etiket}
-            title={t.etiket}
-          >
-            <Ikon ad={t.ad} boyut={18} />
-          </button>
-        ))}
+      {/* APPLE DENEMESİ — §16 Sadelik + §1 Tepki.
+          Soru ekranının altında yedi tepki düğmesi + bir sohbet düğmesi
+          duruyordu: sekiz dokunma hedefi, hepsi cevap vermekle yarışıyor.
+          Ekranın tek işi soruyu cevaplamak; tepkiler bir katman aşağı
+          indi. Tek düğme paneli açıyor, panelde aynı tepkiler ve aynı
+          kalıplar var — hiçbir özellik kaybolmadı. */}
+      <div className="sohbet-bar bd-tepki-tek">
         <button
-          className={kaliplarAcik ? "acik" : ""}
-          onClick={() => setKaliplarAcik((a) => !a)}
+          className={tepkiAcik ? "acik" : ""}
+          aria-expanded={tepkiAcik}
+          aria-label="Tepki gönder"
+          onClick={() => setTepkiAcik((a) => !a)}
         >
           <Ikon ad="sohbet" boyut={18} />
         </button>
       </div>
+      {tepkiAcik && (
+        <div className="bd-tepki-panel" role="group" aria-label="Tepkiler">
+          {TEPKILER.map((t) => (
+            <button
+              key={t.deger}
+              onClick={() => { mesajGonder(t.deger); setTepkiAcik(false); }}
+              aria-label={t.etiket}
+              title={t.etiket}
+            >
+              <Ikon ad={t.ad} boyut={20} />
+            </button>
+          ))}
+          <button
+            className={kaliplarAcik ? "acik" : ""}
+            onClick={() => setKaliplarAcik((a) => !a)}
+            aria-label="Hazır cümleler"
+          >
+            <Ikon ad="sohbet" boyut={20} />
+          </button>
+        </div>
+      )}
       {kaliplarAcik && (
         <div className="kalip-liste">
           {KALIPLAR.map((k) => (
