@@ -2525,3 +2525,28 @@ tarayıcı onu mevcut transform'un üstüne biniyor, kabartma aynen kalıyor.
 
 Ölçüm (737×357): dans düğmesi 10–89, emoji 95–295, zum 485–637, topuz
 653–727 — çakışma yok, yatay kaydırma yok. 390px'te de taşma yok.
+
+---
+
+## 12 Eylül 2026 — Revizyon Paketi 1
+
+Ayrıntılı döküm kök `PROGRESS.md`'de (12 Eylül 2026). Modülü ilgilendiren
+özet:
+
+- `lib/geriBildirim.js`: `GB_MS` 2000 → 1000; `macPuani` artık sabit 10
+  (hız bonusu kalktı).
+- `lib/jokerler.js`: `pas` → `soru_degistir` ("Soru Değiştir"). Soru
+  atlanmaz, yerine yenisi gelir, süre baştan başlar. Maç başına 1 hak,
+  turnuvada yasak. Sunucu tarafı kişiye özel `soru_degisimleri` tablosu.
+- `components/QuestionCard.jsx`: soru YERİNDE değişebiliyor (`degisenSoru`),
+  `className` propu (altın soru çerçevesi).
+- `components/JokerCubugu.jsx`: Soru Değiştir tek kullanım kilidi.
+- `pages/TournamentPage.jsx`: ALTIN SORU bandı + çerçeve.
+- `pages/MatchPage.jsx`: aynı rakiple ödül azalma uyarısı (`cift_mac_durumu`).
+- `lib/ayarlar.js` (yeni): `oyun_ayarlari` istemci önbelleği — coin/reklam/
+  joker rakamları koda gömülmüyor.
+- `lib/cihaz.js` (yeni): cihaz kimliği; aynı cihazdan iki hesap arasında
+  sıralı maç ödülü verilmiyor.
+- `lib/reklam.js`: geçiş reklamı muafiyeti ilk 3 MAÇ yerine ilk 3 GÜN.
+- `harita/harita.css`: topuz SOL ALTA, dans/emoji SAĞ ALTA (`row-reverse`);
+  zum düğmeleri topuzun üstüne, dans paneli sağa.

@@ -3464,3 +3464,67 @@ presence + broadcast ile canlı çok oyunculu (konum 8/sn, lerp; emoji 2 sn/1).
 (733 kB / gzip 190 kB ayrı chunk). DB değişikliği yok. Ayrıntı ve test
 sonuçları: `bildim/PROGRESS.md` (11 Eylül (5)) ve `bildim/harita/CLAUDE.md`.
 Commit edildi, **push edilmedi** — sahibinin onayını bekliyor.
+
+---
+
+## 12 Eylül 2026 — Quiz Square Revizyon Paketi 1 (11 madde)
+
+Onaylanmış oyun kararlarının kod tarafı. Her madde ayrı commit, 8 yeni
+migration (141–148) **canlıya uygulandı**.
+
+1. **Geri bildirim penceresi 2 sn → 1 sn** (`GB_MS`). Bota karşı oynarken
+   bekleme fazla geliyordu; doğru/yanlış zaten ilk anda görünüyor.
+   `GB_HIZLI_MS = 700` sunucu mantığına bağlı olduğu için değişmedi.
+2. **Botlar anında cevaplıyor** (141): gecikme 2–7 sn yerine 0.3–0.8 sn;
+   kolon varsayılanları da düştü. `bot_gecikme_sn()` fonksiyonuna
+   dokunulmadı. *Not: ileride eklenecek "gizli insansı botlar" gerçekçi
+   sürede cevaplamalı — onlar için ayrı bir alan gerekecek.*
+3. **Pas → Soru Değiştir** (142). Neden: yanlışın cezası olmadığı için pas
+   geçmek her zaman rastgele şıkka basmaktan kötüydü. Yeni davranış: soru
+   atlanmaz, yerine yenisi gelir, süre baştan başlar, indeks değişmez,
+   **rakibin sorusu etkilenmez** (kişiye özel `soru_degisimleri` tablosu +
+   `soru_id_coz` / `soru_baslangic_coz` / `soru_son_baslangic` çözücüleri).
+   Maç başına 1 hak; turnuvada yasak (herkes aynı soruyu görüyor).
+   Envanterdeki Pas'lar 1'e 1 dönüştü, coin iadesi yok.
+4. **Hız bonusu kalktı** (143): doğru = 10, yanlış = 0. Bütün modlar.
+   Cevap süresi kaydedilmeye devam ediyor (istatistik + bot kalibrasyonu).
+5. **Turnuvada altın soru** (144): normal maç berabere bitebilir (ikisi de
+   beraberlik coini alır). Turnuvada sorular bitip hayatta kalanlar eşitse
+   maçta kullanılmamış yeni bir soru eklenir, biri kazanana kadar sürer.
+   Altın soruda joker kapalı; ekranda ayrı başlık ve renk.
+6. **Sıralı maç limiti** (145): aynı çiftin aynı günkü 1–5. maçı tam,
+   6–10. yarım, 11+ sıfır ödül ("dostluk maçı"). Maç yine oynanır —
+   oyuncular yalnız arkadaşlarıyla oynuyor olabilir, limit onları
+   cezalandırmamalı. Sessiz korumalar: aynı cihaz/IP'den iki hesap arasında
+   ödül yok (`oyuncu_cihazlari`), haftalık maçlarının %70'inden fazlası tek
+   kişiyle olan oyuncu `kotuye_kullanim_isaretleri` tablosuna yazılır
+   (otomatik ceza yok).
+7. **Ezeli rakip yalnız arkadaşlarla** (146). Sahibinin sözü: "tanımadığımız
+   insanlarla aramızdaki istatistiği tutmayalım, bu hiçbir oyunda yok."
+   Mevcut kayıtlar silinmedi, yalnız özet arkadaşla sınırlandı.
+8. **Haritada yön topuzu sol alta**, dans/emoji sağ alta (`row-reverse`).
+   Standart mobil düzen: hareket solda, eylem sağda. Zum düğmeleri topuzun
+   üstüne, dans paneli sağa taşındı; dokunma alanı boyutları değişmedi.
+9. **Soru zorluğu** (147): `questions.zorluk` (1–5, varsayılan 3) +
+   `dogru_sayisi`/`cevap_sayisi` sayaçları + kategori-zorluk indeksi.
+   Turnuvada bant: 1–5. soru 1-2, 6–10 → 3, 11+ → 4-5 (yetmezse genişler).
+   082'de pasife alınan 53 aşırı basit soru zorluk 1 ile geri açıldı;
+   turnuva dışı seçimlerde `zorluk >= 2` filtresi var. Günlük pg_cron işi
+   en az 30 cevap almış soruların zorluğunu doğru oranına göre atıyor.
+10. **Coin rakamları `oyun_ayarlari`'nda** (148): galibiyet 25, beraberlik
+    10, günlük görev 15, turnuva 150/75/40 + katılım 10, meydandan turnuva
+    20, reklam 25 (günde 5), başlangıç 500, günlük tavan 400. Günlük seri
+    artık coin de veriyor (5/10/15/25). Joker birim fiyatları 40/60/80 ve
+    paketler 400/1.000/3.000; tek joker alma RPC'si + dükkân bölümü eklendi.
+    İstemci `bildim/lib/ayarlar.js` ile tablodan okuyor. Geçiş reklamı artık
+    **ilk 3 gün** muaf (önceden ilk 3 maç).
+11. **Yatay ekran**: teşhis satırı, "yatay moda geç" düğmesi, yatay ölçek ve
+    FOV 42→48 zaten yerindeydi; eksik olan topuzun konumuydu (madde 8 ile
+    çözüldü). Kurulu PWA'da manifest kilidi kurulum anında okunduğu için
+    bilgi kutusu ("kısayolu silip yeniden ekle") duruyor.
+
+**Doğrulama:** `npm run build` temiz; `soru_degisimleri` akışı (yeni soru,
+dizide olmayan, sayaç sıfır, rakip etkilenmiyor) ve altın soru akışı
+(3→4 soru, `altin_soru=t`, joker sınırı 0) canlı veritabanında
+rollback'li işlemlerle test edildi. Canlıda hız bonusu içeren fonksiyon
+kalmadı (0).
