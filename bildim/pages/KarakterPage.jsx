@@ -5,8 +5,9 @@
 // yok, her şey SVG olarak kodla çizilir (bildim/karakter/).
 //
 // Düzen: üstte yatay kaydırmalı karakter şeridi (sahip olunanlar renkli,
-// olmayanlar soluk + fiyat), ortada büyük önizleme + karakterin tanıtım
-// cümlesi, altta yuva listesi (açılır) ve renk seçici.
+// olmayanlar soluk + fiyat), ortada büyük önizleme (YALNIZ AD), altta yuva
+// listesi (açılır) ve renk seçici. Tanıtım cümlesi YOK: PatiRun'dan gelen
+// metinler yarış oyununa aitti, bilgi yarışmasında anlamsız kalıyordu.
 //
 // SUNUCUYA GÜVEN: satın alma ve giyme kararını sunucu verir
 // (karakter_satin_al / esya_satin_al / gorunum_kaydet). Buradaki
@@ -204,7 +205,6 @@ export default function KarakterPage() {
       <div className="kart bd-kar-onizleme">
         <img src={onizleme} alt={def.name} className="bd-kar-buyuk" />
         <div className="bd-kar-baslik">{def.name}</div>
-        <div className="alt-yazi">{def.bio}</div>
         <button className="btn" disabled={calisiyor} onClick={kaydet}>
           {calisiyor ? "Kaydediliyor…" : "Kaydet"}
         </button>
