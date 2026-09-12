@@ -144,3 +144,93 @@ Redirect URLs eksiktir.
   (X e-posta vermezse kayıt yine tamamlanır).
 - `src/lib/girisHedefi.js` — giriş sonrası derin bağlantı geri yüklenir.
 - Yasal metinler giriş duvarının önünde: `/gizlilik`, `/kosullar`.
+
+---
+
+## Facebook girişi — sahibinin yapacakları (12 Eylül 2026)
+
+Kod tarafı hazır; aşağıdakiler **Meta panelinde** yapılacak. Onay gelmeden
+de giriş çalışır, yalnız "Facebook arkadaşların" bölümü görünmez.
+
+### 1. Meta uygulaması
+
+1. <https://developers.facebook.com/apps> → **Create App** → tür:
+   **Consumer / Authenticate and request data from users with Facebook Login**.
+2. Uygulamaya **Facebook Login** ürününü ekle (Web).
+3. **App ID** ve **App Secret**: Settings → Basic.
+4. Settings → Basic → **Privacy Policy URL** ve **Terms of Service URL**
+   zorunlu: `https://quizsquare.vercel.app/gizlilik` ve `/kosullar`.
+5. **App Mode**'u Live'a al (Development modda yalnız uygulama
+   yöneticileri giriş yapabilir).
+
+### 2. Yönlendirme adresi (redirect URL)
+
+Facebook Login → Settings → **Valid OAuth Redirect URIs**:
+
+```
+https://zfpnxzybcpkxsotwdsey.supabase.co/auth/v1/callback
+```
+
+Bu adresi **birebir** gir. Sitenin kendi adresi (`quizsquare.vercel.app`)
+buraya yazılmaz — Facebook önce Supabase'e döner, Supabase siteye.
+
+### 3. Supabase'e girilecek alanlar
+
+Supabase → Authentication → Providers → **Facebook**:
+
+| Alan | Değer |
+|---|---|
+| Enable Sign in with Facebook | açık |
+| Facebook client ID | Meta **App ID** |
+| Facebook secret | Meta **App Secret** |
+
+Ayrıca Authentication → URL Configuration → **Redirect URLs** listesinde
+`https://quizsquare.vercel.app/**` bulunmalı (zaten var).
+
+### 4. Aynı e-postayla ikinci hesap açılmasın
+
+Supabase → Authentication → **Providers / Settings** altındaki
+**"Allow manual linking" / hesap birleştirme** ayarı açık olmalı. Aynı
+**doğrulanmış** e-postaya sahip Google ve Facebook kimlikleri tek hesapta
+birleşir; ikinci profil açılmaz. Oyuncu zaten giriş yapmışken hesabına
+Facebook eklemek isterse `supabase.auth.linkIdentity({ provider: "facebook" })`
+kullanılır (kod tarafında hazır çağrı yok, gerekirse eklenir).
+
+### 5. Arkadaş listesi — KISIT
+
+Facebook **2014'ten beri tam arkadaş listesi vermiyor**. `/me/friends`
+yalnız **uygulamayı da kullanan** arkadaşları döndürür ve `user_friends`
+izni **App Review** ister.
+
+- ✅ Yapıldı: "Facebook arkadaşların Quiz Square'de" listesi — eşleşenler
+  arkadaş önerisi olarak çıkar (`bildim/lib/facebookArkadas.js`,
+  `facebook_arkadas_onerileri` RPC).
+- ❌ Yapılamaz: "tüm FB arkadaşlarını davet et". Onun yerine **Facebook'ta
+  paylaş** düğmesi davet bağlantısını paylaşım diyaloğuyla yayar.
+
+**App Review adımı:** App Review → Permissions and Features →
+`user_friends` → Request. İş doğrulaması (Business Verification) istenir.
+
+**Onay gelince:** `.env` dosyasına
+
+```
+VITE_FB_ARKADAS=1
+```
+
+yaz ve yeniden dağıt. İzin istenir, arkadaş bölümü kendiliğinden dolar.
+Onay gelmeden bu satır **yazılmamalı**: izin istenirse Facebook girişi
+hata verir.
+
+### 6. Kod tarafında ne var
+
+- `src/pages/Login.jsx` — Facebook düğmesi Google'ın altında, aynı stilde.
+  Sağlayıcının Supabase'de gerçekten açık olup olmadığı `/auth/v1/settings`
+  ucundan okunur; kapalıysa düğme hiç çizilmez (oyuncu ham JSON hata
+  sayfasına düşmez).
+- `src/context/AuthContext.jsx` — Facebook ile girildiğinde `provider_token`
+  oturumluk saklanır ve FB kimliği profile yazılır (yalnız eşleştirme için;
+  hiçbir yerde gösterilmez).
+- `bildim/lib/facebookArkadas.js` — arkadaş önerisi ve paylaşım diyaloğu.
+  İzin yoksa **sessizce** boş döner.
+- Migration `20260612000154_facebook_arkadaslari.sql` — `profiles.facebook_id`
+  + `facebook_kimligi_kaydet` + `facebook_arkadas_onerileri`.

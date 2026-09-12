@@ -1,9 +1,11 @@
 import { createContext, useContext, useEffect, useState, useCallback } from "react";
 import { supabase, supabaseHazir } from "../lib/supabase.js";
+import { fbBelirteciSakla, fbKimligiKaydet, facebookOturumuMu } from "../../bildim/lib/facebookArkadas.js";
 
 const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
+  // (Facebook yardımcıları: arkadaş önerisi için belirteç + kimlik)
   const [session, setSession] = useState(null);
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -80,6 +82,13 @@ export function AuthProvider({ children }) {
           refreshProfile(session.user.id);
           davetTalep(session.user.id);
           davetKoduUygula(session.user.id);
+          // Facebook ile girildiyse: belirteci oturumluk sakla (arkadaş
+          // önerisi için gerekli) ve FB kimliğini profile yaz. Belirteç
+          // YALNIZ girişin hemen ardından geliyor, sonra kayboluyor.
+          if (session.provider_token && facebookOturumuMu(session.user)) {
+            fbBelirteciSakla(session.provider_token);
+          }
+          if (facebookOturumuMu(session.user)) fbKimligiKaydet(session.user);
         } else setProfile(null);
         // Oturum yoksa da yükleme kapanmalı: kapalı oturumla açılışta
         // "Yükleniyor…" ekranında takılı kalınmasın.

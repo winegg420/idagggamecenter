@@ -8,6 +8,7 @@ import Avatar from "../../src/components/Avatar.jsx";
 import Maskot from "../components/Maskot.jsx";
 import { y } from "../lib/yol.js";
 import DavetKodu from "../components/DavetKodu.jsx";
+import { facebookArkadasOnerileri, facebookDavetAc } from "../lib/facebookArkadas.js";
 
 const DOSTLUK_SECIMI = `id, requester, addressee, durum,
   req:profiles!friendships_requester_fkey(id, gorunen_ad, gorunen_avatar, puan),
@@ -48,6 +49,32 @@ export default function FriendsPage() {
   }, [yukle]);
 
   // Kullanıcı adıyla arama KALDIRILDI (gerçek ad sızdırıyordu).
+  // Facebook arkadaş önerileri. İzin/belirteç yoksa boş kalır, bölüm gizlenir.
+  const [fbOnerileri, setFbOnerileri] = useState([]);
+  useEffect(() => {
+    let aktif = true;
+    facebookArkadasOnerileri()
+      .then((l) => { if (aktif) setFbOnerileri(l); })
+      .catch((e) => console.error("[Bildim] facebook onerileri:", e));
+    return () => { aktif = false; };
+  }, []);
+
+  /** Öneriden arkadaşlık isteği gönder. */
+  const fbArkadasEkle = async (hedefId) => {
+    setHata(null);
+    setCalisiyor(true);
+    try {
+      const { error } = await supabase.rpc("send_friend_request", { p_target: hedefId });
+      if (error) throw error;
+      setFbOnerileri((l) => l.filter((o) => o.user_id !== hedefId));
+      setBilgi("Arkadaşlık isteği gönderildi.");
+    } catch (e) {
+      setHata(hataMesaji(e, "İstek gönderilemedi."));
+    } finally {
+      setCalisiyor(false);
+    }
+  };
+
   // Arkadaş eklemenin tek yolu davet kodu / davet linki.
   const kodlaEkle = async (girilen) => {
     setHata(null);
@@ -159,7 +186,43 @@ export default function FriendsPage() {
         <button className="btn" onClick={linkPaylas} disabled={!davetLinki}>
           {kopyalandi ? "Kopyalandı" : "Davet linkini paylaş"}
         </button>
+        {/* Facebook'ta "tüm arkadaşlarını davet et" MÜMKÜN DEĞİL (2014'ten
+            beri kapalı); onun yerine paylaşım diyaloğu açılır. */}
+        <button
+          className="btn ikincil"
+          disabled={!davetLinki}
+          onClick={() => facebookDavetAc(davetLinki)}
+        >
+          Facebook'ta paylaş
+        </button>
       </div>
+
+      {/* ---------- Facebook arkadaşların ----------
+          `user_friends` izni App Review ister; onay yoksa liste boş döner
+          ve bu bölüm HİÇ ÇİZİLMEZ (giriş akışı etkilenmez). */}
+      {fbOnerileri.length > 0 && (
+        <div className="kart">
+          <div className="bd-kat-baslik">
+            <span>Facebook arkadaşların Quiz Square'de</span>
+          </div>
+          {fbOnerileri.map((o) => (
+            <div key={o.user_id} className="liste-satir">
+              <Avatar profile={o} boyut={38} />
+              <div className="bilgi">
+                <div className="isim">{o.gorunen_ad}</div>
+                <div className="detay">Facebook arkadaşın</div>
+              </div>
+              <button
+                className="btn kucuk"
+                disabled={calisiyor}
+                onClick={() => fbArkadasEkle(o.user_id)}
+              >
+                Ekle
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
 
       <div className="kart">
         <div className="bd-kat-baslik">
