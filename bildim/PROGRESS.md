@@ -2550,3 +2550,26 @@ Ayrıntılı döküm kök `PROGRESS.md`'de (12 Eylül 2026). Modülü ilgilendir
 - `lib/reklam.js`: geçiş reklamı muafiyeti ilk 3 MAÇ yerine ilk 3 GÜN.
 - `harita/harita.css`: topuz SOL ALTA, dans/emoji SAĞ ALTA (`row-reverse`);
   zum düğmeleri topuzun üstüne, dans paneli sağa.
+
+---
+
+## 12 Eylül 2026 (2) — Revizyon Paketi 2
+
+Ayrıntılı döküm kök `PROGRESS.md`'de. Modülü ilgilendiren özet:
+
+- `pages/LeaderboardPage.jsx`: "LİGİM" sekmesi (varsayılan) — kendi
+  25 kişilik grubun, yükselme/düşme çizgileri, sezon geri sayımı.
+  Toplam oyuncu sayısı hiçbir yerde gösterilmiyor.
+- `lib/zaman.js`: turnuva saatleri artık sunucudan (13:00 / 21:50 TSİ).
+- `harita/donus.js` (yeni): maç bitince meydana dönüş konumu.
+- `harita/etkilesim.js` (yeni): ikram mantığı, ağ ve coin — görselden
+  tamamen bağımsız.
+- `harita/ikramGorsel.js` (yeni): kahve jesti ve uçan balonlar (yalnız 3B).
+- `harita/meydanBotlari.js` (yeni): nöbetteki botların tohumdan türeyen
+  gezinmesi.
+- `harita/dunya.js`: `avatarSec()` (ışın izlemeyle avatar seçimi), turnuva
+  binası alt yazısı ayar tablosundan.
+- `harita/coklu.js`: `ikram` ve `ikram_yanit` broadcast olayları.
+- `components/ProfilAyarlari.jsx`: "Meydanda ikramlar" (rahatsız etme).
+- `components/MeydanaDonus.jsx` (yeni): maç sonu dönüş şeridi.
+- `lib/facebookArkadas.js` (yeni): FB arkadaş önerisi + paylaşım diyaloğu.

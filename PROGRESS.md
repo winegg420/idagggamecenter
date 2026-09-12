@@ -3528,3 +3528,85 @@ dizide olmayan, sayaç sıfır, rakip etkilenmiyor) ve altın soru akışı
 (3→4 soru, `altin_soru=t`, joker sınırı 0) canlı veritabanında
 rollback'li işlemlerle test edildi. Canlıda hız bonusu içeren fonksiyon
 kalmadı (0).
+
+---
+
+## 12 Eylül 2026 (2) — Revizyon Paketi 2 (7 madde)
+
+Bot sistemi, lig sistemi ve meydan etkileşimleri. Her madde ayrı commit,
+6 yeni migration (149–154) **canlıya uygulandı**. Sıra bilerek korundu:
+geçmiş silinmeden botlar eklenseydi eski test istatistikleri yeni
+sistemle karışırdı.
+
+1. **Geçmiş sıfırlandı** (149). Oyun henüz kitleye açılmadı; tablodaki her
+   şey test verisiydi. **4.392 satır silindi**: 103 maç + 2.185 cevap,
+   13 turnuva, 9 grup maçı, 3 hızlı maç, 64 kategori ustalığı, yanlış
+   bankası (473), görülen sorular (688), rozet/görev/çalışma kayıtları;
+   33 profilin puan/seri/maç sayaçları sıfırlandı. **Korunanlar:** hesaplar,
+   arkadaşlıklar, **14.000 coin**, coin/satın alma hareketleri, joker
+   envanterleri, sahip olunan eşyalar, soru havuzu ve soru istatistikleri.
+   `truncate cascade` bilerek kullanılmadı — bilinçli sırayla `delete`,
+   sayılar `raise notice` ile.
+2. **Gizli bot sistemi — 80 bot** (150). İki katman: `acik` (mevcut 5 bot;
+   anında cevaplar, coin %50) ve `gizli` (yeni 80; gerçekçi süre, **tam
+   coin** — coin farkı olsaydı oyuncu botu coinden anlardı). Seviye 1–100
+   sürekli; bronz 20/gümüş 20/altın 18/elmas 14/efsane 8 bot, her birinin
+   isabeti ve süre penceresi **kendine özel** (ada bağlı sapma), isabet
+   tavanı 0.95. Eşleşme %80 seviye ±10 / %20 rastgele, **her ikisinde de
+   lig sınırı** (kendi lig ±1) — Efsane oyuncusuna Bronz botu düşmez;
+   gizli bot yalnız gerçek oyuncu yoksa devreye girer. Botlar lig
+   sıralamasında görünür ama lig puanları %40'a inik; arkadaşlık isteklerini
+   kabul etmezler (1–2 gün sonra sessizce silinir); her turnuvaya yalnız
+   %20'si ve her seferinde farklıları girer; meydana turnuva saatine yakın
+   1–2 bot çıkar. İsimler/ülkeler/cinsiyet sahibinin listesinden
+   (36 kadın, 44 erkek). Avatar kuralı yorumda — avatar sistemi gelince
+   uygulanacak (%30 başlangıç / %50 sıradan / %20 özel, etkinlik eşyası
+   asla, seviye-görünüm uyumu).
+3. **Kademeli lig** (151). Bronz→Gümüş→Altın→Elmas→Efsane, 25 kişilik
+   gruplar; lig başına sınır yok, sınır grupta. Hafta sonunda grubun ilk 5'i
+   yükselir, son 5'i düşer — 400 kişi arasında birinci olmaya gerek yok.
+   Sezon pazartesi 00:00 TSİ (pg_cron 20:45 UTC, `haftayi_kapat`tan önce).
+   Grup doldurma: önce gerçek oyuncular, bot yalnız boşluğu kapatır, grup
+   başına en fazla 15 bot ve asla yarıdan fazlası değil; gerçek oyuncu azsa
+   grup 15 kişilik açılır. **Botlar lig değiştirmez.** Pasif oyuncu 1 hafta
+   düşmez, 2 hafta üst üste pasifse bir lig düşer. Efsane'nin üstü yok
+   (ilk 5 kalır + rozet). Ödüller 100/50/25 … 250/125/60, hepsi
+   `oyun_ayarlari`'nda. Ekranda "Bronz Lig · 7/25", yükselme/düşme çizgileri,
+   sezon geri sayımı; **toplam oyuncu sayısı hiçbir yerde yok**. Gizli
+   botlar sıralamada robot rozeti almıyor.
+4. **Turnuva saatleri 13:00 / 21:50 TSİ** (152), sabit ve yerel saatten
+   bağımsız — yerel saate göre olsaydı ince oyuncu havuzu bölünürdü.
+   Değerler `oyun_ayarlari`'nda; yeni `sonraki_turnuva_ani()` RPC'si geri
+   sayımları ve meydandaki kupa binasını besliyor. **Yan fayda:** kupa
+   binası lobi satırının boş `baslangic` alanını okuduğu için sürekli
+   "TURNUVA BAŞLADI" gösteriyordu, o hata da düzeldi.
+5. **Maç bitince meydana dönüş.** Meydandan giren oyuncu maç bitince
+   haritaya döner ve **ayrıldığı noktada** doğar (x, z, dönüş açısı;
+   sessionStorage). Ana menüden girenler normal akışta kalır. Mantık
+   `bildim/harita/donus.js`'te — 3B modelden bağımsız.
+6. **Meydanda oyuncuya dokunma**: meydan oku / kahve (5 coin) / balon
+   (5 coin). Kahvede iki karakter karşı karşıya gelip 15 sn fincan kaldırır,
+   aralarda kahkaha atar; balonda veren elini uzatır, 3–5 balon alanın
+   üzerinde yükselip kaybolur. Coin **sunucuda** düşer, reddedilirse ya da
+   20 sn yanıtsız kalırsa iade edilir; "Rahatsız etme" ayarı profil
+   ayarlarında (varsayılan kapalı = ikramlar açık). **Mimari şartı
+   uygulandı:** mantık/ağ/coin `etkilesim.js`, görsel `ikramGorsel.js`,
+   meydan botlarının gezinmesi `meydanBotlari.js` — hiçbiri diğerini
+   bilmiyor, karakterler baştan değişirse yalnız görsel dosya yeniden
+   yazılır.
+7. **Facebook ile giriş** (154). Düğme Google'ın altında; sağlayıcının
+   Supabase'de açık olup olmadığı `/auth/v1/settings`'ten okunuyor, kapalıysa
+   düğme çizilmiyor (ham JSON hata sayfası yok). **Kısıt bilerek yazıldı:**
+   FB 2014'ten beri tam arkadaş listesi vermiyor; `/me/friends` yalnız
+   uygulamayı kullanan arkadaşları döndürüyor ve `user_friends` App Review
+   istiyor. Yapılan: eşleşen oyuncular arkadaş önerisi. Yapılmayan: "tüm FB
+   arkadaşlarını davet et" — yerine paylaşım diyaloğu. Onay gelmeden de
+   çalışır (izin yoksa bölüm sessizce gizlenir). Meta/App Review adımları
+   `GIRIS_SAGLAYICILARI.md`'de.
+
+**Doğrulama:** `npm run build` her bölümde temiz. Canlı veritabanında
+rollback'li işlemlerle test edildi: lig sınırı (Efsane oyuncuya 200
+eşleşmede 0 Bronz/Gümüş bot), coin (açık bot 12 · gizli bot 25 · bot
+galibiyetinde lig puanı 8), sezon kapanışı (2 grupta 10 yükselme, botların
+ligi değişmedi, yeni hafta grupları yeniden kuruldu, 6 ödül), ikram akışı
+(-5 coin · redde iade · "rahatsız etme" reddi · zaman aşımında iade).
