@@ -550,16 +550,15 @@ export default function Home() {
           <button className="bd-mod bd-mod-genis tema-grup" onClick={() => navigate(y("/meydan"))}>
             <span className="bd-mod-ikon"><Ikon ad="kisiler" boyut={26} /></span>
             <span className="bd-mod-ad">Meydan Oku</span>
-            <span className="bd-mod-not">Arkadaşına davet gönder</span>
+            {/* "Grup Maçı" düğmesi buradan kalktı: aynı sayfaya (/meydan)
+                gidiyordu, grup maçı kurma zaten o sayfanın içinde. */}
+            <span className="bd-mod-not">Arkadaşına davet gönder · tekli ya da grup</span>
           </button>
           <button className="bd-mod tema-hizli" onClick={() => navigate(y("/hizli-mod"))}>
             <span className="bd-mod-ikon"><Ikon ad="saat" boyut={26} /></span>
             <span className="bd-mod-ad">Hızlı Mod</span>
           </button>
-          <button className="bd-mod tema-grup" onClick={() => navigate(y("/meydan"))}>
-            <span className="bd-mod-ikon"><Ikon ad="kisiler" boyut={26} /></span>
-            <span className="bd-mod-ad">Grup Maçı</span>
-          </button>
+
           <button className="bd-mod tema-turnuva" onClick={() => navigate(y("/turnuva"))}>
             <span className="bd-mod-ikon"><Ikon ad="kupa" boyut={26} /></span>
             <span className="bd-mod-ad">Turnuva</span>
