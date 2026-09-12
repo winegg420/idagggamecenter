@@ -55,6 +55,18 @@ export function gorunumNadirligi(gorunum, katalogHaritasi) {
     if (!n) continue;
     if ((NADIRLIK_SIRA[n] ?? 0) > (NADIRLIK_SIRA[enIyi] ?? 0)) enIyi = n;
   }
+  // 2B karakter sistemi: parçalar `kozmetik` altında ANAHTARLA tutulur
+  // (hat: "fedora"); katalog anahtarı ise `k2_<yuva>_<anahtar>` kodudur.
+  // Çerçeve rengi iki sistemin en yüksek nadirliğinden gelir.
+  const koz = gorunum.kozmetik;
+  if (koz && typeof koz === "object") {
+    for (const [yuva, deger] of Object.entries(koz)) {
+      if (yuva.endsWith("Color") || !deger || deger === "yok") continue;
+      const n = katalogHaritasi.get(`k2_${yuva}_${deger}`);
+      if (!n) continue;
+      if ((NADIRLIK_SIRA[n] ?? 0) > (NADIRLIK_SIRA[enIyi] ?? 0)) enIyi = n;
+    }
+  }
   return enIyi;
 }
 
