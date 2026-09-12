@@ -435,7 +435,8 @@ h1, h2, h3,
    ile anlatılır (§12). Tek tek 113 sınıfı ezmek yerine kabuğun içini
    sıfırlayıp gerçek derinliği aşağıda geri veriyoruz.
    ============================================================ */
-.app *:not(.tabbar):not(.bd-modal):not(.bd-sihirbaz):not(.avatar) {
+.app *:not(.tabbar):not(.bd-modal):not(.bd-sihirbaz):not(.avatar),
+.giris *:not(.avatar) {
   box-shadow: none;
   text-shadow: none;
 }
@@ -611,3 +612,154 @@ h1, h2, h3,
    gerekiyordu; bu, işaretlemeye dokunmadan alınabilen en yakın hâl.)
    ============================================================ */
 .sayfa .kart { margin-bottom: 0.5rem; }
+
+/* ============================================================
+   MAÇ İÇİ JOKER ÇUBUĞU
+   Ücretsiz 50:50 kutusu dolu altın bir bloktu; üstündeki "ÜCRETSİZ"
+   etiketi okunmuyordu. Apple'da "bedava" bilgisi rengi bağırarak değil,
+   etikette söyler: yüzey sakin kalır, vurgu ince bir çerçeve + net metin.
+   ============================================================ */
+.app .bd-joker {
+  background: var(--bd-yuzey-1);
+  color: var(--bd-metin);
+  border: 0.5px solid var(--bd-kenar);
+  border-radius: var(--bd-r-m);
+  font-family: var(--bd-f-govde);
+  font-weight: 600;
+  font-size: var(--bd-t-kucuk);
+  letter-spacing: var(--iz-kucuk);
+  box-shadow: var(--bd-golge-yumusak);
+  transition: transform var(--yay-sure-hizli) var(--yay-hizli),
+              background-color var(--tepki-sure) ease-out;
+}
+.app .bd-joker:active:not(:disabled) {
+  transform: scale(0.96);
+  background: var(--bd-yuzey-3);
+  box-shadow: var(--bd-golge-yumusak);
+}
+.app .bd-joker:disabled { opacity: 0.4; }
+.app .bd-joker.ucretsiz:not(:disabled) {
+  background: var(--bd-yuzey-1);
+  border-color: var(--bd-vurgu);
+  color: var(--bd-metin);
+  box-shadow: var(--bd-golge-yumusak);
+}
+.app .bd-joker.ucretsiz:not(:disabled) .bd-joker-adet,
+.app .bd-joker-adet.bedava {
+  background: rgba(10, 102, 224, 0.12);
+  color: var(--bd-vurgu-metin);
+  font-weight: 700;
+  letter-spacing: var(--iz-mini);
+}
+.app .bd-joker-adet {
+  color: var(--bd-metin-2);
+  background: var(--bd-yuzey-3);
+  font-variant-numeric: tabular-nums;
+}
+.app .bd-joker-ad { color: var(--bd-metin); font-weight: 600; }
+.app .bd-joker-not { color: var(--bd-metin-2); }
+
+/* Sayaç halkası ve ilerleme çubuğu — tek vurgu rengi ailesi */
+.app .bd-soru-bar { background: var(--bd-yuzey-3); border-radius: 999px; overflow: hidden; }
+.app .bd-soru-no { color: var(--bd-metin-2); letter-spacing: var(--iz-mini); font-weight: 600; }
+
+/* ============================================================
+   TURNUVA LOBİ LİSTESİ — hizalama
+   §7 Craft: adlar sağa savrulmuş, kılıç ikonu boşlukta duruyordu
+   (bu, tasarımdan önce de böyleydi). Ad avatarın yanına yaslanır,
+   eylem sağ kenara sabitlenir; aradaki boşluk esner.
+   ============================================================ */
+.app .bd-lobi-oyuncu {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  width: 100%;
+  text-align: left;
+  padding: 0.5rem 0.25rem;
+  background: transparent;
+  border: 0;
+  border-bottom: 0.5px solid var(--bd-kenar);
+  cursor: pointer;
+}
+.app .bd-lobi-oyuncu:last-child { border-bottom: 0; }
+.app .bd-lobi-oyuncu > span:not(.bd-lobi-kilic) {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 500;
+  font-size: var(--bd-t-m);
+  color: var(--bd-metin);
+}
+.app .bd-lobi-kilic {
+  flex: none;
+  width: 32px; height: 32px;
+  display: grid; place-items: center;
+  border-radius: var(--bd-r-s);
+  background: rgba(10, 102, 224, 0.10);
+  color: var(--bd-vurgu-metin);
+}
+.app .bd-lobi-oyuncu:active { background: var(--bd-yuzey-3); }
+
+/* Geri sayım kutuları: krem dolgu yerine nötr, rakamlar tabular */
+.app .geri-sayim-kart, .app .bd-geri-sayim-kart { background: var(--bd-yuzey-1); }
+.app .geri-sayim-kart > div, .app .bd-sayac-kutu {
+  font-variant-numeric: tabular-nums;
+  letter-spacing: var(--iz-display);
+}
+
+/* ============================================================
+   SORU ŞIKLARI (gerçek sınıf: .bd-secenek)
+   §1 Tepki: geri bildirim BASILMA anında. Şıkta doğru/yanlış rengi
+   sunucudan gelene kadar sadece bastığın şık işaretlenir.
+   ============================================================ */
+.app .bd-secenekler { display: flex; flex-direction: column; gap: 0.5rem; }
+.app .bd-secenek {
+  display: flex; align-items: center; gap: 0.75rem;
+  text-align: left;
+  padding: 0.9375rem 1rem;
+  background: var(--bd-yuzey-1);
+  border: 0.5px solid var(--bd-kenar);
+  border-radius: var(--bd-r-m);
+  color: var(--bd-metin);
+  font-family: var(--bd-f-govde);
+  font-size: var(--bd-t-m);
+  font-weight: 500;
+  letter-spacing: var(--iz-govde);
+  line-height: 1.3;
+  box-shadow: var(--bd-golge-yumusak);
+  cursor: pointer;
+  transition: transform var(--yay-sure-hizli) var(--yay-hizli),
+              background-color 0.12s ease-out, border-color 0.12s ease-out,
+              opacity 0.12s ease-out;
+}
+.app .bd-secenek:not(:disabled):active {
+  transform: scale(0.98);
+  background: var(--bd-yuzey-3);
+  transition: transform var(--tepki-sure) ease-out, background-color var(--tepki-sure) ease-out;
+}
+.app .bd-secenek .bd-harf {
+  width: 30px; height: 30px; flex: none;
+  display: grid; place-items: center;
+  background: var(--bd-yuzey-3);
+  color: var(--bd-metin-2);
+  border-radius: var(--bd-r-s);
+  font-weight: 600; font-size: var(--bd-t-kucuk);
+}
+.app .bd-secenek.secili { border-color: var(--bd-vurgu); background: rgba(10, 102, 224, 0.08); }
+.app .bd-secenek.dogru {
+  border-color: var(--bd-basari); background: rgba(29, 138, 80, 0.12); color: var(--bd-basari-2);
+}
+.app .bd-secenek.dogru .bd-harf { background: var(--bd-basari); color: #fff; }
+.app .bd-secenek.yanlis {
+  border-color: var(--bd-hata); background: rgba(196, 40, 44, 0.10); color: var(--bd-hata-2);
+}
+.app .bd-secenek.yanlis .bd-harf { background: var(--bd-hata); color: #fff; }
+.app .bd-secenek.solgun { opacity: 0.5; }
+.app .bd-secenek.elendi { opacity: 0.25; }
+.app .bd-secenek-metin { flex: 1; min-width: 0; }
+
+/* Giriş ekranı kabuğun (.app) dışında; derinlik orada da ölçülü olsun */
+.giris .sosyal-btn, .giris input, .giris .btn { box-shadow: var(--bd-golge-yumusak); }
+.giris .sosyal-btn:first-of-type { box-shadow: none; }

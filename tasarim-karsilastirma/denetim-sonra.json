@@ -1,0 +1,17 @@
+{
+  "kontrast": [],
+  "yatay": {
+    "/bildim": false,
+    "/bildim/siralama": false,
+    "/bildim/arkadaslar": false,
+    "/bildim/joker": false,
+    "/bildim/profil": false,
+    "/bildim/turnuva": false
+  },
+  "hareket": {
+    "dugmeVar": true,
+    "gecisSuresi": "0s",
+    "oynaDugmesi": true
+  },
+  "konsol": []
+}

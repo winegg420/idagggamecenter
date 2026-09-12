@@ -1,0 +1,42 @@
+{
+  "olcumler": {
+    "giris": {
+      "tiklanabilir": 7,
+      "yatayKaydirma": false
+    },
+    "ana-sayfa": {
+      "tiklanabilir": 19,
+      "yatayKaydirma": false
+    },
+    "lig": {
+      "tiklanabilir": 16,
+      "yatayKaydirma": false
+    },
+    "arkadaslar": {
+      "tiklanabilir": 14,
+      "yatayKaydirma": false
+    },
+    "dukkan": {
+      "tiklanabilir": 20,
+      "yatayKaydirma": false
+    },
+    "profil": {
+      "tiklanabilir": 35,
+      "yatayKaydirma": false
+    },
+    "turnuva": {
+      "tiklanabilir": 52,
+      "yatayKaydirma": false
+    },
+    "rakip-arama": {
+      "tiklanabilir": 9,
+      "yatayKaydirma": false
+    },
+    "macBaslatmaDokunus": 1,
+    "mac": {
+      "tiklanabilir": 11,
+      "yatayKaydirma": false
+    }
+  },
+  "konsolHatalari": []
+}
