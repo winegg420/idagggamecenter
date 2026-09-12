@@ -11,17 +11,31 @@
 export function kontrolKur(pad, topuz) {
   const tuslar = {};
   let padAktif = false, padX = 0, padZ = 0;
+  // Boşluk tuşu BASILI TUTULARAK değil, her basışta bir kez zıplatır.
+  // Bayrak `ziplandiMi()` ile okunup temizlenir (kenar tetikleme).
+  let ziplamaIstegi = false;
 
   const keydown = (e) => {
     // Yazı alanındayken oyuncuyu yürütme (HUD'da input yok ama ileride olabilir)
     if (e.target && /^(INPUT|TEXTAREA)$/.test(e.target.tagName)) return;
+    // Boşluk: zıplama. Tekrar tetiklemede (tuş basılı tutulunca) sayılmaz;
+    // sayfa da kaymasın diye varsayılan davranış engellenir.
+    if (e.code === "Space" || e.key === " ") {
+      if (!e.repeat) ziplamaIstegi = true;
+      e.preventDefault();
+      return;
+    }
     tuslar[e.key.toLowerCase()] = true;
     // Yön tuşları sayfayı kaydırmasın
     if (e.key.startsWith("Arrow")) e.preventDefault();
   };
   const keyup = (e) => { tuslar[e.key.toLowerCase()] = false; };
   // Pencere odağı gidince basılı kalan tuş kalmasın (sekme değişimi, alt-tab)
-  const sifirla = () => { for (const k in tuslar) tuslar[k] = false; padBirak(); };
+  const sifirla = () => {
+    for (const k in tuslar) tuslar[k] = false;
+    ziplamaIstegi = false;
+    padBirak();
+  };
 
   window.addEventListener("keydown", keydown);
   window.addEventListener("keyup", keyup);
@@ -62,6 +76,15 @@ export function kontrolKur(pad, topuz) {
       if (tuslar["a"] || tuslar["arrowleft"]) ix -= 1;
       if (tuslar["d"] || tuslar["arrowright"]) ix += 1;
       return { ix: ix + padX, iz: iz + padZ };
+    },
+    /**
+     * Son karede boşluk tuşuna basıldı mı? Okuyunca bayrak temizlenir,
+     * böylece bir basış yalnız bir zıplama üretir.
+     */
+    ziplandiMi() {
+      if (!ziplamaIstegi) return false;
+      ziplamaIstegi = false;
+      return true;
     },
     yokEt() {
       window.removeEventListener("keydown", keydown);

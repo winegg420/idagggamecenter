@@ -418,14 +418,30 @@ export function dunyaKur(kapsayici, s = {}) {
     karakterYokEt(g);
   }
 
-  /** Yürüme animasyonu: guc 0..1 (0 = duruyor). */
-  function yurumeAnimasyonu(av, dt, guc) {
+  /**
+   * Yürüme animasyonu: guc 0..1 (0 = duruyor).
+   * @param {number} [zipla] zıplama yüksekliği (0 = yerde). Yüksekliği
+   *   ziplama.js hesaplar; burası yalnız uygular — modeller değişse de
+   *   zıplama mantığı yerinde kalsın diye (bkz. ziplama.js başlığı).
+   */
+  function yurumeAnimasyonu(av, dt, guc, zipla = 0) {
     const u = av.userData;
     // Dans sürerken yürüme animasyonu çalışmaz. Oyuncu yürümeye başlarsa
     // dans kesilir (uzak oyuncuda da: hareket hız paketlerinden anlaşılır).
     if (u.dans) {
-      if (guc > 0.05) dansiDurdur(av);
+      if (guc > 0.05 || zipla > 0) dansiDurdur(av);
       else if (dansKaresi(av, dt)) { return; }
+    }
+    // ZIPLARKEN YÜRÜME KESİLİR: bacaklar hafif toplanır, sprite "idle"a
+    // döner, adım salınımı hiç işlemez.
+    if (zipla > 0) {
+      u.bacaklar.children[0].rotation.x = -0.35;
+      u.bacaklar.children[1].rotation.x = -0.2;
+      u.kollar.rotation.x = -0.5;
+      av.position.y = zipla;
+      karakterPozGuncelle(av, false);
+      karakterYonGuncelle(av, kamera);
+      return;
     }
     u.yurumeFaz += dt * (guc > 0.05 ? guc * 10 : 2);
     const sal = Math.sin(u.yurumeFaz) * (guc > 0.05 ? 0.5 : 0.04);

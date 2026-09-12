@@ -16,6 +16,7 @@ import { hataMesaji } from "../lib/hata.js";
 import { y } from "../lib/yol.js";
 import { dunyaKur } from "./dunya.js";
 import { kontrolKur } from "./kontrol.js";
+import { ziplamaKur } from "./ziplama.js";
 import { meydanBaglan } from "./coklu.js";
 import { renkUret } from "./renk.js";
 import { esyaBilgisi } from "./esyalar.js";
@@ -346,6 +347,8 @@ export default function HaritaSayfasi() {
     }
 
     kontrol = kontrolKur(padRef.current, topuzRef.current);
+    // Zıplama durumu SAF MANTIK (bkz. ziplama.js) — sahneden bağımsız.
+    const ziplama = ziplamaKur();
 
     coklu = meydanBaglan({
       supabase,
@@ -410,6 +413,8 @@ export default function HaritaSayfasi() {
         if (!u) return;
         const x = Number(p.x), z = Number(p.z), donus = Number(p.y);
         if (!Number.isFinite(x) || !Number.isFinite(z) || !Number.isFinite(donus)) return;
+        // h = zıplama yüksekliği. Eski sürüm göndermiyor olabilir → 0.
+        const h = Number.isFinite(Number(p.h)) ? Number(p.h) : 0;
         const varis = performance.now();
         // Eski sürüm damga göndermiyor olabilir: varış zamanına düş
         const gt = Number.isFinite(Number(p.t)) ? Number(p.t) : varis;
@@ -417,7 +422,7 @@ export default function HaritaSayfasi() {
         if (son && gt <= son.t) return;   // sıra bozucu / yinelenen paketi at
         u.ornekler.push(varis - gt);
         if (u.ornekler.length > OFSET_ORNEK) u.ornekler.shift();
-        u.tampon.push({ t: gt, x, z, y: donus });
+        u.tampon.push({ t: gt, x, z, y: donus, h });
         if (u.tampon.length > TAMPON_MAKS) u.tampon.shift();
         // İlk paket: avatarı oraya koy ve görünür yap (kayarak gitmesin)
         if (!u.yerlesti) {
@@ -456,7 +461,7 @@ export default function HaritaSayfasi() {
       try { dunya.zumla(carpan); } catch (e) { console.error("[Meydan] zum:", e); }
     });
 
-    canliRef.current = { dunya, ben, coklu, renk, uzaklar, botlar };
+    canliRef.current = { dunya, ben, coklu, renk, uzaklar, botlar, ziplama };
 
     // ---- MEYDAN BOTLARI ----
     // Sunucu turnuva saatine yakın 1-2 gizli botu nöbete yazıyor
@@ -574,6 +579,10 @@ export default function HaritaSayfasi() {
       // ---- kendi hareketim
       const { ix, iz } = kontrol.oku();
       const guc = Math.min(Math.hypot(ix, iz), 1);
+      // Boşluk tuşu ya da HUD düğmesi: havadayken ikinci zıplama yok
+      // (kural ziplama.js içinde, burada değil).
+      if (kontrol.ziplandiMi()) ziplama.basla();
+      const yukseklik = ziplama.ilerlet(dt);
       if (guc > 0.05) {
         const yon = Math.atan2(ix, iz);
         ben.position.x += Math.sin(yon) * guc * YURUME_HIZI * dt;
@@ -581,8 +590,8 @@ export default function HaritaSayfasi() {
         dunya.carpismaDuzelt(ben.position, 0.8);
         dunya.yumusakDon(ben, yon, dt, 12);
       }
-      dunya.yurumeAnimasyonu(ben, dt, guc);
-      coklu.pozGonder(ben.position.x, ben.position.z, ben.rotation.y);
+      dunya.yurumeAnimasyonu(ben, dt, guc, yukseklik);
+      coklu.pozGonder(ben.position.x, ben.position.z, ben.rotation.y, yukseklik);
 
       // ---- uzak oyuncular: gönderenin saatinde biraz geçmişteki konum
       for (const u of uzaklar.values()) {
@@ -596,7 +605,7 @@ export default function HaritaSayfasi() {
         // Görüntüleme anını geride bırakmış paketleri at (biri elde kalsın)
         while (tp.length >= 2 && tp[1].t <= gecmis) tp.shift();
 
-        let hx, hz, hy;
+        let hx, hz, hy, hh;
         if (tp.length >= 2 && tp[0].t <= gecmis) {
           // İki gerçek paket arasındayız: aradaki hareketi düz üret
           const a = tp[0], b = tp[1];
@@ -605,6 +614,9 @@ export default function HaritaSayfasi() {
           hx = a.x + (b.x - a.x) * oran;
           hz = a.z + (b.z - a.z) * oran;
           hy = a.y + aciFark(b.y, a.y) * oran;
+          // Zıplama yüksekliği de aynı iki paket arasında düz üretilir;
+          // parabolün kendisi gönderende hesaplanıyor (bkz. ziplama.js).
+          hh = (a.h ?? 0) + ((b.h ?? 0) - (a.h ?? 0)) * oran;
           u.sonHiz.x = (b.x - a.x) / (aralik / 1000);
           u.sonHiz.z = (b.z - a.z) / (aralik / 1000);
         } else {
@@ -615,6 +627,8 @@ export default function HaritaSayfasi() {
           hx = s.x + u.sonHiz.x * ileri;
           hz = s.z + u.sonHiz.z * ileri;
           hy = s.y;
+          // Tampon kuruduğunda havada asılı kalmasın: yere indir.
+          hh = 0;
         }
 
         // Hiçbir karede ışınlanma olmasın: adım yürüme hızıyla sınırlı
@@ -632,7 +646,7 @@ export default function HaritaSayfasi() {
         dunya.yumusakDon(av, hy, dt, 14);
         // Yürüme animasyonunun şiddeti gerçek hızdan gelir
         const hiz = dt > 0 ? Math.hypot(av.position.x - onceX, av.position.z - onceZ) / dt : 0;
-        dunya.yurumeAnimasyonu(av, dt, hiz > 0.4 ? Math.min(1, hiz / YURUME_HIZI) : 0);
+        dunya.yurumeAnimasyonu(av, dt, hiz > 0.4 ? Math.min(1, hiz / YURUME_HIZI) : 0, hh);
       }
       // 40'tan fazla oyuncu varsa yalnız en yakın 40'ı çiz (yarım saniyede bir sırala)
       if (uzaklar.size > MAKS_CIZILEN && zaman - sonSiralama > 0.5) {
@@ -895,6 +909,16 @@ export default function HaritaSayfasi() {
     if (c.coklu.emojiGonder(e)) c.dunya.emojiGoster(c.ben, e);
   };
 
+  /**
+   * Zıpla — mobil düğmesi. PC'de aynı işi boşluk tuşu yapıyor (kontrol.js).
+   * Havadaysa `basla()` zaten false döner; ikinci zıplama yok.
+   */
+  const zipla = () => {
+    const c = canliRef.current;
+    if (!c) return;
+    try { c.ziplama.basla(); } catch (e) { console.error("[Meydan] ziplama:", e); }
+  };
+
   /** Dans başlat: kendi avatarımız oynar, meydandakilere tek mesaj gider. */
   const dansEt = (kod) => {
     const c = canliRef.current;
@@ -1108,14 +1132,28 @@ export default function HaritaSayfasi() {
 
       <div className="bd-harita-hud bd-harita-alt">
         <div className="bd-harita-sol-dugmeler">
-          <button
-            type="button"
-            className={"bd-harita-dans-ac" + (dansAcik ? " acik" : "")}
-            onClick={() => setDansAcik((a) => !a)}
-            aria-expanded={dansAcik}
-          >
-            <span aria-hidden="true">🕺</span> Dans
-          </button>
+          {/* Zıpla ve Dans aynı satırda: ikisi de EYLEM düğmesi ve HUD'un
+              yüksekliği büyümesin (yatay ekranda sahneyi eziyordu).
+              Yön topuzu solda, eylemler sağda — .bd-harita-alt row-reverse. */}
+          <div className="bd-harita-eylem-satiri">
+            <button
+              type="button"
+              className="bd-harita-zipla"
+              onClick={zipla}
+              aria-label="Zıpla"
+              title="Zıpla — boşluk tuşu"
+            >
+              <span aria-hidden="true">⤴</span> Zıpla
+            </button>
+            <button
+              type="button"
+              className={"bd-harita-dans-ac" + (dansAcik ? " acik" : "")}
+              onClick={() => setDansAcik((a) => !a)}
+              aria-expanded={dansAcik}
+            >
+              <span aria-hidden="true">🕺</span> Dans
+            </button>
+          </div>
         <div className="bd-harita-emojiler">
           {EMOJILER.map((e) => (
             <button key={e} type="button" className="bd-harita-emoji" onClick={() => emojiAt(e)} aria-label={`Emoji ${e}`}>

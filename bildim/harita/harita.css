@@ -179,7 +179,11 @@ body.bd-harita-acik { overflow: hidden; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .bd-harita-btn, .bd-harita-emoji, .bd-harita-ipucu { transition: none; }
+  .bd-harita-btn, .bd-harita-emoji, .bd-harita-ipucu,
+  .bd-harita-zipla, .bd-harita-dans-ac { transition: none; }
+  /* Zıplamanın KENDİSİ kalır (oyun eylemi, süsleme değil); yalnız
+     düğmenin basılma geçişi kapanır. Kamera zaten dikeyde hiç
+     oynamıyor — bkz. dunya.js kamHedef: ben.position.x/z. */
 }
 
 /* ============================================================
@@ -235,7 +239,9 @@ body.bd-harita-acik { overflow: hidden; }
   .bd-harita-topuz { width: 34px; height: 34px; margin: -17px 0 0 -17px; }
   .bd-harita-emoji { width: 30px; height: 30px; font-size: 15px; border-radius: 10px; }
   .bd-harita-emojiler { gap: 4px; }
-  .bd-harita-dans-ac { font-size: 12px; padding: 5px 10px; }
+  .bd-harita-dans-ac,
+  .bd-harita-zipla { font-size: 12px; padding: 5px 10px; }
+  .bd-harita-eylem-satiri { gap: 6px; }
   .bd-harita-yuvarlak { width: 30px; height: 30px; font-size: 16px; }
 
   /* Üst haplar TEK SATIRDA kalsın; sığmazsa yatay kaydırılsın (sarmasın) */
@@ -378,6 +384,26 @@ body.bd-harita-acik { overflow: hidden; }
 .bd-harita-dans-ac span { font-size: 18px; line-height: 1; }
 .bd-harita-dans-ac:active,
 .bd-harita-dans-ac.acik { transform: translateY(3px); box-shadow: 0 1px 0 #7B3FBF; }
+
+/* Eylem düğmeleri (Zıpla + Dans) tek satır — HUD yükselmesin */
+.bd-harita-eylem-satiri {
+  display: flex; align-items: center; gap: 8px;
+  flex-wrap: wrap; justify-content: flex-end;
+}
+/* ZIPLA — marka turuncusu, kabartmalı ("Şenlik" dili). */
+.bd-harita-zipla {
+  border: 0; cursor: pointer;
+  display: inline-flex; align-items: center; gap: 6px;
+  background: linear-gradient(180deg, var(--bd-vurgu-acik), var(--bd-vurgu));
+  box-shadow: 0 4px 0 var(--bd-vurgu-2);
+  color: #fff;
+  border-radius: 14px; padding: 9px 15px;
+  font-family: var(--bd-f-baslik); font-weight: 900; font-size: 15px;
+  text-shadow: 0 2px 0 rgba(0, 0, 0, 0.22);
+  transition: transform 0.08s ease, box-shadow 0.08s ease;
+}
+.bd-harita-zipla span { font-size: 18px; line-height: 1; }
+.bd-harita-zipla:active { transform: translateY(3px); box-shadow: 0 1px 0 var(--bd-vurgu-2); }
 
 /* Panel: HUD'un üstünde ayrı katman, alt çubuğun düzeninden bağımsız */
 .bd-harita-dans-panel {

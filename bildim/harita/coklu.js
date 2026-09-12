@@ -32,7 +32,8 @@ const YENIDEN_BAGLAN_MAX = 15000;
  * @param {{id:string, ad:string, renk:number, sac:number}} o.ben
  * @param {(id:string, bilgi:object) => void} o.onKatilim
  * @param {(id:string) => void} o.onAyrilma
- * @param {(id:string, poz:{x:number,z:number,y:number}) => void} o.onPoz
+ * @param {(id:string, poz:{x:number,z:number,y:number,h:number}) => void} o.onPoz
+ *        y = dönüş açısı, h = zıplama yüksekliği (yoksa 0)
  * @param {(id:string, e:string) => void} o.onEmoji
  * @param {(id:string, kod:string) => void} o.onDans
  * @param {(id:string, gorunum:object|null) => void} o.onGorunum
@@ -194,8 +195,13 @@ export function meydanBaglan(o) {
   kanalKur();
 
   return {
-    /** Konum yayını — yalnız değiştiyse ve 125 ms geçtiyse gider. */
-    pozGonder(x, z, y) {
+    /**
+     * Konum yayını — yalnız değiştiyse ve 125 ms geçtiyse gider.
+     * @param {number} y  DÖNÜŞ AÇISI (yaw). Tarihsel ad; yükseklik değil.
+     * @param {number} [h] ZIPLAMA YÜKSEKLİĞİ (0 = yerde). Eski sürümler bu
+     *   alanı göndermiyor; alıcı yokluğunda 0 sayar (bkz. HaritaSayfasi).
+     */
+    pozGonder(x, z, y, h = 0) {
       if (!bagli || !kanal || kapandi) return;
       if (document.hidden) return; // arka planda yayın yok
       const t = performance.now();
@@ -206,11 +212,14 @@ export function meydanBaglan(o) {
       // yoksa ilk paket hiç gitmez ve sonrakiler de hep "değişmedi" sayılır.
       const ilkPaket = !Number.isFinite(sonPoz.x);
       const degisti = ilkPaket ||
-        Math.abs(x - sonPoz.x) > 0.01 || Math.abs(z - sonPoz.z) > 0.01 || Math.abs(y - sonPoz.y) > 0.02;
+        Math.abs(x - sonPoz.x) > 0.01 || Math.abs(z - sonPoz.z) > 0.01 || Math.abs(y - sonPoz.y) > 0.02 ||
+        // Zıplama 0.62 sn sürüyor; hız sınırı yüzünden yutulmasın diye
+        // yükseklik değişimi de "değişti" sayılır.
+        Math.abs(h - (sonPoz.h ?? 0)) > 0.02;
       // Durduğunda da saniyede bir paket: karşı taraftaki ara değerleme
       // tamponu kurumasın (kuruyunca son adım zıplama gibi görünüyordu).
       if (!degisti && t - sonPozZamani < POZ_CANLI_MS) return;
-      sonPoz = { x, z, y }; sonPozZamani = t;
+      sonPoz = { x, z, y, h }; sonPozZamani = t;
       try {
         kanal.send({
           type: "broadcast", event: "poz",
@@ -218,7 +227,7 @@ export function meydanBaglan(o) {
           // ağ gecikmesindeki değişim hareketin kendisine karışır ve avatar
           // sıçrar (ölçüldü: varış damgasıyla hız sapması 16.0, gönderen
           // damgasıyla 0.4). Saatler farklı; alıcı farkı kendi kestiriyor.
-          payload: { id: ben.id, x: +x.toFixed(2), z: +z.toFixed(2), y: +y.toFixed(3), t },
+          payload: { id: ben.id, x: +x.toFixed(2), z: +z.toFixed(2), y: +y.toFixed(3), h: +h.toFixed(2), t },
         });
       } catch (e) { console.error("[Meydan] poz:", e); }
     },
