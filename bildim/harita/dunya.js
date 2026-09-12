@@ -626,10 +626,34 @@ export function dunyaKur(kapsayici, s = {}) {
     if (render.domElement.parentNode) render.domElement.parentNode.removeChild(render.domElement);
   }
 
+  // ---- Avatar seçimi (dokunulan oyuncu) ----
+  // Görsel katmanın tek katkısı: ekran koordinatını avatara çevirmek.
+  // Menünün ne yaptığı ve coin işleri etkilesim.js'te.
+  const _isin = new THREE.Raycaster();
+  const _nokta = new THREE.Vector2();
+
+  /**
+   * Ekrandaki noktada avatar var mı?
+   * @param {number} nx -1..1 (yatay), @param {number} ny -1..1 (dikey)
+   * @param {THREE.Object3D[]} adaylar tıklanabilir avatar kökleri
+   * @returns {THREE.Object3D|null}
+   */
+  function avatarSec(nx, ny, adaylar) {
+    if (!adaylar || adaylar.length === 0) return null;
+    _nokta.set(nx, ny);
+    _isin.setFromCamera(_nokta, kamera);
+    const kesisen = _isin.intersectObjects(adaylar, true);
+    if (kesisen.length === 0) return null;
+    let n = kesisen[0].object;
+    const kume = new Set(adaylar);
+    while (n && !kume.has(n)) n = n.parent;
+    return n ?? null;
+  }
+
   return {
     sahne, kamera, render, engeller, binalar,
     avatarOlustur, avatarSil, avatarAdiDegistir, avatarGorunumu, yurumeAnimasyonu, yumusakDon,
-    emojiGoster, carpismaDuzelt, yakinBina, turnuvaKapisi,
+    emojiGoster, carpismaDuzelt, yakinBina, turnuvaKapisi, avatarSec,
     dansEttir: (av, kod) => dansBaslat(av, kod),
     zumla, zumAyarla, zumOku,
     guncelle, boyutlandir, yokEt,

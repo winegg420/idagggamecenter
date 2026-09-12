@@ -7,11 +7,12 @@
 //
 // Lazy yüklenir: Harita'ya girmeyen oyuncu three.js indirmez.
 // ============================================================
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../../src/lib/supabase.js";
 import { useAuth } from "../../src/context/AuthContext.jsx";
 import { useOyunModu } from "../lib/oyunModu.js";
+import { hataMesaji } from "../lib/hata.js";
 import { y } from "../lib/yol.js";
 import { dunyaKur } from "./dunya.js";
 import { kontrolKur } from "./kontrol.js";
@@ -23,6 +24,9 @@ import { dansVarMi } from "./danslar.js";
 import { yonDurumu, yonOzeti, yatayaGec, dikeyeDon } from "./yon.js";
 import { turnuvaSaatleriniAyarla } from "../lib/zaman.js";
 import { donusKaydet, donusOku, donusTemizle } from "./donus.js";
+import { MENU, ikramGonder, ikramYanitla, bekleyenIkramlar, IKRAM_SURE_SN, ZAMAN_ASIMI_SN } from "./etkilesim.js";
+import { kahveBasla, balonBasla, ikramKaresi, ikramlariTemizle } from "./ikramGorsel.js";
+import { meydanBotlariniAl, botKonumu, botJesti } from "./meydanBotlari.js";
 import "./harita.css";
 
 const EMOJILER = ["👋", "😂", "🔥", "🤔", "🎉", "⚔️"];
@@ -118,6 +122,12 @@ export default function HaritaSayfasi() {
   const [gorunumVerisi, setGorunumVerisi] = useState(null); // { gorunum, bilgi }
   // Kupa binasının kapısı: turnuvaya kalan süre (sn) — null ise kapı kapalı.
   const [turnuvaKalan, setTurnuvaKalan] = useState(null);
+  // Dokunulan oyuncu (menü) ve gelen ikram teklifi
+  const [secilenOyuncu, setSecilenOyuncu] = useState(null);
+  const [gelenIkram, setGelenIkram] = useState(null);
+  const [ikramNotu, setIkramNotu] = useState(null);
+  const [ikramCalisiyor, setIkramCalisiyor] = useState(false);
+  const bekleyenIkramRef = useRef(null);   // gönderdiğim teklif { id, tur, alan }
   const turnuvaKalanRef = useRef(null);
   turnuvaKalanRef.current = turnuvaKalan;
   // Dans tepsisi açık mı (emoji çubuğunun üstünde açılır)
@@ -240,6 +250,28 @@ export default function HaritaSayfasi() {
     return () => clearInterval(id);
   }, [turnuvaKalan === null, turnuvaKalan === 0]);
 
+  // Broadcast paketi kaybolabilir: bekleyen teklifler ayrıca yoklanır.
+  // (Sunucu 20 sn sonra zaten iptal edip coini iade ediyor.)
+  useEffect(() => {
+    let aktif = true;
+    const bak = async () => {
+      if (document.hidden) return;
+      try {
+        const liste = await bekleyenIkramlar();
+        if (!aktif || liste.length === 0) return;
+        const t = liste[0];
+        setGelenIkram((o) => o ?? {
+          id: t.id, tur: t.tur, gonderenId: t.gonderen, gonderenAd: t.gonderen_ad,
+        });
+      } catch (e) {
+        console.error("[Meydan] bekleyen ikramlar:", e);
+      }
+    };
+    bak();
+    const id = setInterval(bak, 6000);
+    return () => { aktif = false; clearInterval(id); };
+  }, []);
+
   // Sahip olunan danslar (dans tepsisi bunları listeler)
   const danslar = gorunumVerisi?.danslar ?? [];
 
@@ -264,6 +296,8 @@ export default function HaritaSayfasi() {
     let dunya = null, kontrol = null, coklu = null;
     let raf = 0, aktif = true;
     const uzaklar = new Map(); // id -> { av, tampon:[{t,x,z,y}], yerlesti }
+    // Nöbetteki meydan botları: id -> { av, tohum, sonJest }
+    const botlar = new Map();
     // Presence bir an titrerse (kanal düşüp kalkması) oyuncu ayrılıp yeniden
     // katılmış sayılıyor ve avatarı meydanın rastgele bir kenarında doğuyordu.
     // Son bilinen konum saklanıp geri dönüşte oraya konuyor.
@@ -317,6 +351,22 @@ export default function HaritaSayfasi() {
       supabase,
       ben: { id: user.id, ad: adRef.current, renk: renk.govde, sac: renk.sac,
              gorunum: gorunumVerisi.gorunum },
+      // İkram teklifi geldi: kural ve coin sunucuda, burası yalnız haber.
+      onIkram(p) {
+        if (p?.alan !== user.id) return;
+        setGelenIkram({ id: p.ikram, tur: p.tur, gonderenId: p.id, gonderenAd: p.ad });
+      },
+      // Gönderdiğim teklife yanıt geldi
+      onIkramYanit(p) {
+        const bekleyen = bekleyenIkramRef.current;
+        if (!bekleyen || p?.ikram !== bekleyen.id) return;
+        bekleyenIkramRef.current = null;
+        if (!p.kabul) {
+          setIkramNotu("Teklifin kabul edilmedi — coinin iade edildi.");
+          return;
+        }
+        ikramOynat(bekleyen.tur, user.id, bekleyen.alan);
+      },
       onKatilim(id, bilgi) {
         if (uzaklar.has(id)) return;
         const varsayilan = renkUret(id);
@@ -406,7 +456,66 @@ export default function HaritaSayfasi() {
       try { dunya.zumla(carpan); } catch (e) { console.error("[Meydan] zum:", e); }
     });
 
-    canliRef.current = { dunya, ben, coklu, renk };
+    canliRef.current = { dunya, ben, coklu, renk, uzaklar, botlar };
+
+    // ---- MEYDAN BOTLARI ----
+    // Sunucu turnuva saatine yakın 1-2 gizli botu nöbete yazıyor
+    // (meydan_bot_nobeti). Konumları tohumdan türediği için herkes aynı
+    // botu aynı yerde görür; presence'a ihtiyaç yok.
+    const botlariTazele = async () => {
+      const liste = await meydanBotlariniAl();
+      const gelen = new Set(liste.map((b) => b.user_id));
+      for (const [id, b] of botlar) {
+        if (!gelen.has(id)) {
+          try { dunya.avatarSil(b.av); } catch { /* yut */ }
+          botlar.delete(id);
+        }
+      }
+      for (const b of liste) {
+        if (botlar.has(b.user_id)) continue;
+        const r = renkUret(b.user_id);
+        try {
+          const av = dunya.avatarOlustur(
+            String(b.gorunen_ad || "Oyuncu"), r.govde, r.sac, r.etiket,
+            b.gorunum ?? null, gorunumVerisi.bilgi
+          );
+          av.userData.ad = String(b.gorunen_ad || "Oyuncu");
+          botlar.set(b.user_id, { av, tohum: b.tohum, sonJest: -1 });
+        } catch (e) {
+          console.error("[Meydan] bot avatari kurulamadi:", e);
+        }
+      }
+    };
+    botlariTazele();
+    const botSaat = setInterval(botlariTazele, 60000);
+
+    // ---- OYUNCUYA DOKUNMA ----
+    // Sahnede bir avatara dokununca menü açılır (meydan oku / kahve / balon).
+    // Sürükleme (kamera döndürme, zum) tıklama SAYILMAZ: 8 px eşik.
+    let basimX = 0, basimY = 0, basimId = null;
+    const basildi = (e) => { basimId = e.pointerId; basimX = e.clientX; basimY = e.clientY; };
+    const birakildi = (e) => {
+      if (e.pointerId !== basimId) return;
+      basimId = null;
+      if (Math.hypot(e.clientX - basimX, e.clientY - basimY) > 8) return;
+      const c = canliRef.current;
+      if (!c) return;
+      const kutu = kapsayici.getBoundingClientRect();
+      const nx = ((e.clientX - kutu.left) / kutu.width) * 2 - 1;
+      const ny = -((e.clientY - kutu.top) / kutu.height) * 2 + 1;
+      const adaylar = [...c.uzaklar.entries()].map(([id, u]) => {
+        u.av.userData.oyuncuId = id;
+        return u.av;
+      });
+      const secilen = c.dunya.avatarSec(nx, ny, adaylar);
+      if (!secilen) return;
+      setSecilenOyuncu({
+        id: secilen.userData.oyuncuId,
+        ad: secilen.userData.ad ?? "Oyuncu",
+      });
+    };
+    kapsayici.addEventListener("pointerdown", basildi);
+    kapsayici.addEventListener("pointerup", birakildi);
 
     // Meydan yatay çevrilince dönmüyordu. İki sebep birden vardı:
     //   1) PWA manifest'i "portrait" ile kilitliyordu (düzeltildi).
@@ -545,6 +654,29 @@ export default function HaritaSayfasi() {
         setIpucu(yakin ? { ad: yakin.ad, alt: yakin.alt, rota: yakin.rota } : null);
       }
 
+      // Meydan botlarını tohumdan türeyen rotada yürüt (yarı pasif).
+      if (botlar.size > 0) {
+        const sn = Date.now() / 1000;
+        for (const [, b] of botlar) {
+          const k = botKonumu(b.tohum, sn);
+          b.av.position.x = k.x;
+          b.av.position.z = k.z;
+          dunya.yumusakDon(b.av, k.aci, dt);
+          dunya.yurumeAnimasyonu(b.av, dt, 0.8);
+          const j = botJesti(b.tohum, sn);
+          const pencere = Math.floor(sn / 40);
+          if (j && b.sonJest !== pencere) {
+            b.sonJest = pencere;
+            try {
+              if (j.tur === "dans" && dansVarMi(j.deger)) dunya.dansEttir(b.av, j.deger);
+              else dunya.emojiGoster(b.av, j.deger);
+            } catch (e) { console.error("[Meydan] bot jesti:", e); }
+          }
+        }
+      }
+
+      // İkram gösterileri (kahve jesti / uçan balonlar) — yalnız görsel
+      try { ikramKaresi(dt); } catch (e) { console.error("[Meydan] ikram karesi:", e); }
       dunya.guncelle(dt, zaman, ben);
       if (ilkKare) {
         ilkKare = false;
@@ -573,11 +705,17 @@ export default function HaritaSayfasi() {
       window.visualViewport?.removeEventListener?.("resize", boyut);
       for (const g of gecikmeler) clearTimeout(g);
       try { olcer?.disconnect(); } catch { /* yut */ }
+      kapsayici.removeEventListener("pointerdown", basildi);
+      kapsayici.removeEventListener("pointerup", birakildi);
       try { zumGirdi?.yokEt(); } catch (e) { console.error("[Meydan] zum kapat:", e); }
       try { coklu?.kapat(); } catch (e) { console.error("[Meydan] kapat:", e); }
       try { kontrol?.yokEt(); } catch (e) { console.error("[Meydan] kontrol:", e); }
       for (const u of uzaklar.values()) { try { dunya.avatarSil(u.av); } catch { /* yut */ } }
       uzaklar.clear();
+      clearInterval(botSaat);
+      for (const b of botlar.values()) { try { dunya.avatarSil(b.av); } catch { /* yut */ } }
+      botlar.clear();
+      try { ikramlariTemizle(); } catch (e) { console.error("[Meydan] ikram temizle:", e); }
       try { dunya?.yokEt(); } catch (e) { console.error("[Meydan] yokEt:", e); }
       canliRef.current = null;
     };
@@ -637,6 +775,86 @@ export default function HaritaSayfasi() {
       console.error("[Meydan] ad guncellenemedi:", e);
     }
   }, [ad]);
+
+  /**
+   * İkram gösterisini oynatır. Hangi avatarın kim olduğunu burada çözüp
+   * görsel katmana (ikramGorsel.js) veriyoruz; o katman kimlik bilmez.
+   */
+  const ikramOynat = useCallback((tur, verenId, alanId) => {
+    const c = canliRef.current;
+    if (!c) return;
+    const av = (id) => (id === user.id ? c.ben : c.uzaklar.get(id)?.av);
+    const veren = av(verenId);
+    const alan = av(alanId);
+    if (!veren || !alan) return;
+    try {
+      if (tur === "kahve") kahveBasla(c.dunya.sahne, veren, alan, IKRAM_SURE_SN);
+      else balonBasla(c.dunya.sahne, veren, alan, IKRAM_SURE_SN);
+    } catch (e) {
+      console.error("[Meydan] ikram gorseli:", e);
+    }
+  }, [user.id]);
+
+  /** Menüden seçim: meydan oku / kahve / balon. */
+  const menuSec = useCallback(async (kod) => {
+    const hedef = secilenOyuncu;
+    if (!hedef) return;
+    setIkramNotu(null);
+    if (kod === "meydan") {
+      setSecilenOyuncu(null);
+      konumuHatirla();
+      try {
+        const { data, error } = await supabase.rpc("create_challenge", {
+          p_rakip: hedef.id, p_kategori: null,
+        });
+        if (error) throw error;
+        if (data) navigate(y(`/mac/${data}`));
+      } catch (e) {
+        console.error("[Meydan] meydan okuma:", e);
+        setIkramNotu(hataMesaji(e, "Meydan okuma başlatılamadı."));
+      }
+      return;
+    }
+
+    setIkramCalisiyor(true);
+    try {
+      const sonuc = await ikramGonder(hedef.id, kod);
+      bekleyenIkramRef.current = { id: sonuc.id, tur: kod, alan: hedef.id };
+      canliRef.current?.coklu?.ikramGonder({
+        ikram: sonuc.id, tur: kod, alan: hedef.id, ad: adRef.current,
+      });
+      setSecilenOyuncu(null);
+      setIkramNotu("Teklif gönderildi, yanıt bekleniyor…");
+      // Yanıtsız kalırsa sunucu iptal edip coini iade ediyor.
+      setTimeout(() => {
+        if (bekleyenIkramRef.current?.id === sonuc.id) {
+          bekleyenIkramRef.current = null;
+          setIkramNotu("Yanıt gelmedi — coinin iade edildi.");
+        }
+      }, ZAMAN_ASIMI_SN * 1000);
+    } catch (e) {
+      console.error("[Meydan] ikram gonderilemedi:", e);
+      setIkramNotu(hataMesaji(e, "İkram gönderilemedi."));
+    } finally {
+      setIkramCalisiyor(false);
+    }
+  }, [secilenOyuncu, navigate]);
+
+  /** Gelen teklife yanıt. */
+  const ikramYanit = useCallback(async (kabul) => {
+    const t = gelenIkram;
+    if (!t) return;
+    setGelenIkram(null);
+    try {
+      const sonuc = await ikramYanitla(t.id, kabul);
+      canliRef.current?.coklu?.ikramYanitGonder({ ikram: t.id, kabul: sonuc === "kabul" });
+      if (sonuc === "kabul") ikramOynat(t.tur, t.gonderenId, user.id);
+      else if (sonuc === "zaman_asimi") setIkramNotu("Teklifin süresi dolmuştu.");
+    } catch (e) {
+      console.error("[Meydan] ikram yaniti:", e);
+      setIkramNotu(hataMesaji(e, "Yanıt gönderilemedi."));
+    }
+  }, [gelenIkram, ikramOynat, user.id]);
 
   /** Avatarın o anki yerini dönüş kaydına yazar (görselden bağımsız). */
   const konumuHatirla = () => {
@@ -802,6 +1020,46 @@ export default function HaritaSayfasi() {
           {/* Teşhis: ekran yönü durumu — sahibi ekran görüntüsüyle iletebilsin */}
           <span className="bd-harita-yon-tesis">{yonOzeti(yon)}</span>
           <button type="button" className="bd-harita-btn" onClick={bilgiKapat}>Anladım</button>
+        </div>
+      )}
+
+      {/* ---- OYUNCU MENÜSÜ ----
+          Avatara dokununca açılır. Seçeneklerin listesi ve fiyatları
+          etkilesim.js'te (MENU); burada yalnız çizim var. */}
+      {secilenOyuncu && (
+        <div className="bd-harita-kisi-menu" role="dialog" aria-label="Oyuncu menüsü">
+          <div className="bd-harita-kisi-ad">{secilenOyuncu.ad}</div>
+          {MENU.map((m) => (
+            <button
+              key={m.kod}
+              type="button"
+              className="bd-harita-btn beyaz"
+              disabled={ikramCalisiyor}
+              onClick={() => menuSec(m.kod)}
+            >
+              {m.ad}{m.coin > 0 ? ` · ${m.coin} coin` : ""}
+            </button>
+          ))}
+          <button type="button" className="bd-harita-dans-kapat" aria-label="Kapat"
+                  onClick={() => setSecilenOyuncu(null)}>✕</button>
+        </div>
+      )}
+
+      {/* ---- GELEN İKRAM ---- */}
+      {gelenIkram && (
+        <div className="bd-harita-ikram" role="alert">
+          <b>{gelenIkram.gonderenAd || "Bir oyuncu"}</b>{" "}
+          sana {gelenIkram.tur === "kahve" ? "kahve" : "balon"} ikram etmek istiyor.
+          <div className="bd-harita-ikram-dugmeler">
+            <button type="button" className="bd-harita-btn" onClick={() => ikramYanit(true)}>Kabul et</button>
+            <button type="button" className="bd-harita-btn beyaz" onClick={() => ikramYanit(false)}>Teşekkürler</button>
+          </div>
+        </div>
+      )}
+
+      {ikramNotu && (
+        <div className="bd-harita-yon-uyari" role="status" onClick={() => setIkramNotu(null)}>
+          {ikramNotu}
         </div>
       )}
 

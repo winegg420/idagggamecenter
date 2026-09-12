@@ -61,6 +61,32 @@ export default function ProfilAyarlari() {
   const [kopyalandi, setKopyalandi] = useState(false);
   const [calisiyor, setCalisiyor] = useState(false);
 
+  // Meydanda ikram alma tercihi (varsayılan AÇIK = rahatsiz_etme false).
+  // Karar sunucuda: ikram_gonder kapalıysa reddediyor (bkz. migration 153).
+  const [rahatsizEtme, setRahatsizEtme] = useState(Boolean(profile?.rahatsiz_etme));
+  const [ikramCalisiyor, setIkramCalisiyor] = useState(false);
+  const [ikramHata, setIkramHata] = useState(null);
+
+  useEffect(() => {
+    setRahatsizEtme(Boolean(profile?.rahatsiz_etme));
+  }, [profile?.rahatsiz_etme]);
+
+  const rahatsizEtmeDegistir = async () => {
+    setIkramHata(null);
+    setIkramCalisiyor(true);
+    const yeni = !rahatsizEtme;
+    try {
+      const { data, error } = await supabase.rpc("rahatsiz_etme_ayarla", { p_kapali: yeni });
+      if (error) throw error;
+      setRahatsizEtme(Boolean(data));
+      refreshProfile?.(profile?.id);
+    } catch (e) {
+      setIkramHata(hataMesaji(e, "Ayar kaydedilemedi."));
+    } finally {
+      setIkramCalisiyor(false);
+    }
+  };
+
   useEffect(() => {
     supabase
       .rpc("get_categories")
@@ -133,6 +159,30 @@ export default function ProfilAyarlari() {
       <div className="kart bd-gizlilik-not">
         <b>Gerçek adın hiçbir zaman gösterilmez.</b> Diğer oyuncular yalnızca takma
         adını ve seçtiğin avatarı görür.
+      </div>
+
+      {/* ---------- Meydanda rahatsız etme ---------- */}
+      <div className="kart">
+        <div className="bd-kat-baslik"><span>Meydanda ikramlar</span></div>
+        <div className="bd-konum-ozet">
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontWeight: 800 }}>
+              {rahatsizEtme ? "Kapalı — kimse ikram gönderemez" : "Açık — kahve ve balon alabilirsin"}
+            </div>
+            <div className="alt-yazi">
+              Meydanda başka oyuncular sana kahve ya da balon ikram edebilir.
+              Rahatsız olursan burayı kapat; meydan okumalar etkilenmez.
+            </div>
+          </div>
+          <button
+            className={`btn kucuk ${rahatsizEtme ? "" : "ikincil"}`}
+            disabled={ikramCalisiyor}
+            onClick={rahatsizEtmeDegistir}
+          >
+            {rahatsizEtme ? "Aç" : "Kapat"}
+          </button>
+        </div>
+        {ikramHata && <div className="hata-kutu" style={{ marginTop: 8 }}>{ikramHata}</div>}
       </div>
 
       {/* ---------- Takma ad ---------- */}

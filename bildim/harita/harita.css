@@ -257,6 +257,47 @@ body.bd-harita-acik { overflow: hidden; }
   .bd-harita-topuz { width: 32px; height: 32px; margin: -16px 0 0 -16px; }
 }
 
+/* ---- OYUNCU MENÜSÜ ve İKRAM TEKLİFİ ----
+   Görsel katmandan bağımsız: menünün içeriği etkilesim.js'ten gelir,
+   burası yalnız yerleşim. Ekranın ortasında, HUD'un üstünde durur. */
+.bd-harita-kisi-menu {
+  position: absolute; z-index: 9;
+  left: 50%; top: 50%; transform: translate(-50%, -50%);
+  display: flex; flex-direction: column; gap: 8px;
+  min-width: min(78vw, 260px);
+  background: var(--bd-yuzey-1);
+  border-radius: 18px;
+  box-shadow: 0 6px 0 var(--bd-kart-alt), 0 12px 28px rgba(32, 50, 74, 0.22);
+  padding: 14px 14px 12px;
+}
+.bd-harita-kisi-ad {
+  font-family: var(--bd-f-baslik); font-weight: 900; font-size: 17px;
+  color: var(--bd-metin); text-align: center; margin-bottom: 2px;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.bd-harita-kisi-menu .bd-harita-dans-kapat { position: absolute; top: 8px; right: 8px; }
+
+.bd-harita-ikram {
+  position: absolute; z-index: 10;
+  left: 50%; bottom: 170px; transform: translateX(-50%);
+  max-width: min(88vw, 360px);
+  background: var(--bd-yuzey-1);
+  border-radius: 16px;
+  box-shadow: 0 5px 0 var(--bd-kart-alt);
+  padding: 12px 16px;
+  font-family: var(--bd-f-govde); font-weight: 800; font-size: 13.5px;
+  color: var(--bd-metin-2); text-align: center; line-height: 1.5;
+}
+.bd-harita-ikram b { color: var(--bd-metin); }
+.bd-harita-ikram-dugmeler {
+  display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-top: 10px;
+}
+
+@media (orientation: landscape) and (max-height: 520px) {
+  .bd-harita-ikram { bottom: 64px; font-size: 12px; padding: 9px 12px; }
+  .bd-harita-kisi-menu { min-width: min(60vw, 230px); padding: 10px 12px 10px; }
+}
+
 /* ---- ekran yönü: teşhis satırı, uyarı ve kurulu uygulama bilgisi ---- */
 .bd-harita-yon-tesis {
   display: block; margin: 8px 0 2px;

@@ -135,6 +135,19 @@ export function meydanBaglan(o) {
           uzakEmojiZamani.set(payload.id, t);
           try { o.onEmoji?.(payload.id, String(payload.e ?? "")); } catch (e) { console.error("[Meydan] onEmoji:", e); }
         })
+        // İKRAM: teklif ve yanıt duyuruları. Coin ve kural SUNUCUDA
+        // (bkz. migration 153); burada yalnız "haberdar et" var, paket
+        // kaybolursa sunucu zaten 20 sn'de iptal edip iade ediyor.
+        .on("broadcast", { event: "ikram" }, ({ payload }) => {
+          if (!payload?.id || payload.id === ben.id) return;
+          try { o.onIkram?.(payload); }
+          catch (e) { console.error("[Meydan] onIkram:", e); }
+        })
+        .on("broadcast", { event: "ikram_yanit" }, ({ payload }) => {
+          if (!payload?.id || payload.id === ben.id) return;
+          try { o.onIkramYanit?.(payload); }
+          catch (e) { console.error("[Meydan] onIkramYanit:", e); }
+        })
         .on("broadcast", { event: "dans" }, ({ payload }) => {
           if (!payload || payload.id === ben.id) return;
           if (!bilinen.has(payload.id)) return;
@@ -245,6 +258,30 @@ export function meydanBaglan(o) {
         catch (err) { console.error("[Meydan] dans:", err); }
       }
       return true;   // bağlantı yokken de kendi avatarı dans etsin
+    },
+
+    /** İkram teklifini duyurur (sunucu kaydı zaten oluşturuldu). */
+    ikramGonder(veri) {
+      if (!bagli || !kanal || kapandi) return false;
+      try {
+        kanal.send({ type: "broadcast", event: "ikram", payload: { id: ben.id, ...veri } });
+        return true;
+      } catch (err) {
+        console.error("[Meydan] ikram:", err);
+        return false;
+      }
+    },
+
+    /** İkram yanıtını duyurur (kabul/red). */
+    ikramYanitGonder(veri) {
+      if (!bagli || !kanal || kapandi) return false;
+      try {
+        kanal.send({ type: "broadcast", event: "ikram_yanit", payload: { id: ben.id, ...veri } });
+        return true;
+      } catch (err) {
+        console.error("[Meydan] ikram yanit:", err);
+        return false;
+      }
     },
 
     get bagli() { return bagli; },
