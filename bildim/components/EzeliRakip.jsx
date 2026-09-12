@@ -6,7 +6,12 @@ import { supabase } from "../../src/lib/supabase.js";
 import Avatar from "../../src/components/Avatar.jsx";
 import { y } from "../lib/yol.js";
 
-/** "Ezeli rakibin" kartı — en çok karşılaştığın oyuncu (en az 3 maç). */
+/**
+ * "Ezeli rakibin" kartı — en çok karşılaştığın ARKADAŞIN (en az 3 maç).
+ *
+ * Rastgele eşleşilen tanımadık oyuncularla karşılıklı skor tutulmaz
+ * (bkz. migration 146): tanımadığın biriyle "ezeli rakiplik" anlamsız.
+ */
 export default function EzeliRakip() {
   const navigate = useNavigate();
   const [rakip, setRakip] = useState(null);
