@@ -306,6 +306,15 @@ input:focus { border-color: var(--primary); }
 }
 .durum-bandi.canli { background: rgba(34, 197, 94, 0.15); color: var(--success); border: 1px solid rgba(34,197,94,0.4); }
 .durum-bandi.elendi { background: rgba(239, 68, 68, 0.15); color: var(--danger); border: 1px solid rgba(239,68,68,0.4); }
+/* ALTIN SORU — turnuvada beraberliği bozan ek soru. Bilerek "canlı"dan
+   ayrı bir renk: oyuncu bunun sıradan bir soru olmadığını anlamalı. */
+.durum-bandi.altin-soru {
+  background: linear-gradient(180deg, rgba(250, 204, 21, 0.22), rgba(245, 158, 11, 0.22));
+  color: #92400e; border: 1px solid rgba(245, 158, 11, 0.55);
+  display: inline-flex; align-items: center; gap: 6px;
+  letter-spacing: 0.02em;
+}
+.bd-soru.bd-altin-soru { box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.65), 0 10px 24px rgba(245, 158, 11, 0.18); }
 
 .buyuk-mesaj { text-align: center; padding: 40px 20px; }
 .buyuk-mesaj .emoji { font-size: 64px; margin-bottom: 12px; }

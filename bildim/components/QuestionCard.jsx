@@ -38,6 +38,8 @@ export default function QuestionCard({
   // Soru üstündeki kategori etiketi. Maç ekranındaki TEK renk dokunuşu;
   // verilmezse etiket hiç çizilmez (kategorisi olmayan modlar).
   kategori = null,
+  // Ek sınıf (ör. turnuvada altın soru çerçevesi).
+  className = "",
 }) {
   const [kalan, setKalan] = useState(SURE);
   const [secim, setSecim] = useState(null);
@@ -253,7 +255,7 @@ export default function QuestionCard({
   return (
     <div
       key={`${soru.question_id}-${soru.soru_index}`}
-      className={`bd-soru bd-soru-giris ${dogruCevapVerdim ? "bd-dogru-cevap" : ""} ${yanlisCevapVerdim ? "bd-yanlis-cevap" : ""} ${sonDuzluk ? "bd-son-saniyeler" : ""} ${sarsil ? "bd-sarsil" : ""}`}
+      className={`bd-soru bd-soru-giris ${dogruCevapVerdim ? "bd-dogru-cevap" : ""} ${yanlisCevapVerdim ? "bd-yanlis-cevap" : ""} ${sonDuzluk ? "bd-son-saniyeler" : ""} ${sarsil ? "bd-sarsil" : ""} ${className}`}
     >
       <Konfeti aktif={dogruCevapVerdim} />
       <CevapEfekti dogru={dogruCevapVerdim} puan={puan} seri={seri} />

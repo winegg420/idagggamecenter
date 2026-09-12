@@ -350,11 +350,20 @@ export default function TournamentPage() {
 
   return (
     <div>
-      <div className="durum-bandi canli">
-        <span className="canli-nokta" />
-        CANLI · {hayatta.length} oyuncu hayatta · Soru {turnuva.aktif_soru + 1}/
-        {turnuva.soru_ids?.length ?? "?"}
-      </div>
+      {/* ALTIN SORU: sorular bitti, hayatta kalanlar eşit. Eleme turnuvası
+          berabere bitemez — biri kazanana kadar yeni soru gelir. */}
+      {soru?.altin ? (
+        <div className="durum-bandi altin-soru">
+          <Ikon ad="yildiz" boyut={15} /> ALTIN SORU · {hayatta.length} oyuncu
+          başa baş — biri bilene kadar sürer
+        </div>
+      ) : (
+        <div className="durum-bandi canli">
+          <span className="canli-nokta" />
+          CANLI · {hayatta.length} oyuncu hayatta · Soru {turnuva.aktif_soru + 1}/
+          {turnuva.soru_ids?.length ?? "?"}
+        </div>
+      )}
 
       {elendim && (
         <div className="durum-bandi elendi">
@@ -368,6 +377,7 @@ export default function TournamentPage() {
       {soru && !elendim && !izleyiciyim ? (
         <QuestionCard
           key={`${turnuva.id}-${turnuva.aktif_soru}`}
+          className={soru.altin ? "bd-altin-soru" : ""}
           soru={soru}
           onCevapla={cevapla}
           onSureDoldu={sureDoldu}
