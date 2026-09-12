@@ -1,4 +1,4 @@
-import { Outlet, NavLink, Link } from "react-router-dom";
+import { Outlet, NavLink, Link, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { useAuth } from "../../src/context/AuthContext.jsx";
 import { supabase } from "../../src/lib/supabase.js";
@@ -23,6 +23,7 @@ import { turnuvaSaatleriniAyarla } from "../lib/zaman.js";
 
 export default function Layout() {
   const { profile, user } = useAuth();
+  const navigate = useNavigate();
   const [bekleyen, setBekleyen] = useState(0);
 
   // Bildim rotalarında PWA kimliği Bildim'in kendi manifesti olsun
@@ -41,6 +42,20 @@ export default function Layout() {
     if (!user) return;
     cihazBildir();
   }, [user?.id]);
+
+  // İLK GİRİŞ: karakterini henüz seçmemiş oyuncu bir kez Görünüm
+  // sayfasına yönlendirilir. ENGELLEME YOK — hesap açılışta rastgele bir
+  // bedava karakterle geliyor (bkz. migration 158), oyuncu isterse
+  // dokunmadan oynamaya devam eder.
+  useEffect(() => {
+    if (!profile) return;
+    let gosterildi = true;
+    try { gosterildi = localStorage.getItem("bildim_karakter_secildi") === "1"; }
+    catch { /* özel mod: yönlendirme yapılmaz */ }
+    if (gosterildi) return;
+    try { localStorage.setItem("bildim_karakter_secildi", "1"); } catch { /* yut */ }
+    navigate(y("/gorunum"));
+  }, [profile?.id]);
 
   // Turnuva saatleri sunucudan (oyun_ayarlari) okunur; geri sayımlar ve
   // meydandaki kupa binası bu değerleri kullanır.

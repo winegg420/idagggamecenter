@@ -122,3 +122,127 @@
   .bd-gorunum-sahne-kutu { height: 260px; }
   .bd-esya-grid { grid-template-columns: repeat(auto-fill, minmax(86px, 1fr)); }
 }
+
+/* ============================================================
+   2B KARAKTER GÖRÜNÜM SAYFASI
+   Şenlik dili: beyaz kart + alt kalınlık, turuncu vurgu.
+   ============================================================ */
+.bd-karakter-sayfa { padding-bottom: 12px; }
+
+/* ---- Karakter şeridi (yatay kaydırmalı) ---- */
+.bd-kar-serit {
+  display: flex; gap: 10px;
+  overflow-x: auto; scrollbar-width: none;
+  padding: 4px 2px 10px;
+  scroll-snap-type: x proximity;
+}
+.bd-kar-serit::-webkit-scrollbar { display: none; }
+.bd-kar-kart {
+  flex: 0 0 auto; width: 96px;
+  display: flex; flex-direction: column; align-items: center; gap: 2px;
+  padding: 8px 6px 10px;
+  border: 2px solid var(--bd-kenar);
+  border-radius: var(--bd-r-l);
+  background: var(--bd-yuzey-1);
+  box-shadow: 0 4px 0 var(--bd-kart-alt);
+  cursor: pointer;
+  scroll-snap-align: start;
+  transition: transform 0.08s ease, box-shadow 0.08s ease, border-color 0.12s;
+}
+.bd-kar-kart:active { transform: translateY(3px); box-shadow: 0 1px 0 var(--bd-kart-alt); }
+.bd-kar-kart.aktif { border-color: var(--bd-vurgu); box-shadow: 0 4px 0 var(--bd-vurgu-2); }
+.bd-kar-kart.kilitli img { filter: grayscale(0.85); opacity: 0.55; }
+.bd-kar-kart img { width: 76px; height: 76px; object-fit: contain; }
+.bd-kar-ad {
+  font-size: 11.5px; font-weight: 800; color: var(--bd-metin);
+  text-align: center; line-height: 1.2;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%;
+}
+.bd-kar-fiyat {
+  display: inline-flex; align-items: center; gap: 3px;
+  font-size: 11px; font-weight: 800; color: var(--bd-odul-2);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---- Büyük önizleme ---- */
+.bd-kar-onizleme { text-align: center; }
+.bd-kar-buyuk {
+  width: 168px; height: 168px; object-fit: contain;
+  display: block; margin: 0 auto 6px;
+}
+.bd-kar-baslik {
+  font-family: var(--bd-f-baslik); font-size: 20px; font-weight: 800;
+  color: var(--bd-metin); margin-bottom: 4px;
+}
+.bd-kar-onizleme .btn { margin-top: 12px; }
+
+/* ---- Yuvalar ---- */
+.bd-yuva-kart { padding: 0; overflow: hidden; }
+.bd-yuva-baslik {
+  width: 100%; min-height: 48px;
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  padding: 12px 16px;
+  background: transparent; border: 0; cursor: pointer;
+  font-family: var(--bd-f-baslik); font-size: 16px; font-weight: 800;
+  color: var(--bd-metin); text-align: left;
+}
+.bd-parca-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(86px, 1fr));
+  gap: 8px; padding: 0 12px 12px;
+}
+.bd-parca {
+  display: flex; flex-direction: column; align-items: center; gap: 2px;
+  padding: 6px 4px 8px;
+  border: 2px solid var(--bd-kenar); border-radius: var(--bd-r-m);
+  background: var(--bd-yuzey-1); cursor: pointer;
+  box-shadow: 0 3px 0 var(--bd-kart-alt);
+  transition: transform 0.08s ease, box-shadow 0.08s ease, border-color 0.12s;
+}
+.bd-parca:active { transform: translateY(2px); box-shadow: 0 1px 0 var(--bd-kart-alt); }
+.bd-parca.aktif { border-color: var(--bd-vurgu); box-shadow: 0 3px 0 var(--bd-vurgu-2); }
+.bd-parca.kilitli img { filter: grayscale(0.85); opacity: 0.55; }
+.bd-parca img { width: 62px; height: 62px; object-fit: contain; }
+.bd-parca-ad {
+  font-size: 11px; font-weight: 800; color: var(--bd-metin);
+  text-align: center; line-height: 1.2;
+}
+.bd-parca-fiyat {
+  display: inline-flex; align-items: center; gap: 3px;
+  font-size: 10.5px; font-weight: 800; color: var(--bd-odul-2);
+  font-variant-numeric: tabular-nums;
+}
+.bd-parca.n-ozel { border-color: #A855F7; }
+.bd-parca.n-etkinlik, .bd-kar-kart.n-etkinlik { border-color: var(--bd-odul); }
+.bd-parca.n-etkinlik .bd-parca-fiyat { color: var(--bd-metin-2); }
+
+/* ---- Renk seçici (ücretsiz) ---- */
+.bd-renk-satir {
+  display: flex; flex-wrap: wrap; gap: 8px;
+  padding: 0 12px 14px;
+}
+.bd-renk {
+  width: 30px; height: 30px; border-radius: 50%;
+  border: 2px solid var(--bd-kenar); cursor: pointer; padding: 0;
+  box-shadow: 0 2px 0 var(--bd-kart-alt);
+}
+.bd-renk.aktif { border-color: var(--bd-metin); transform: scale(1.08); }
+.bd-renk::after { content: ""; position: absolute; inset: -7px; }
+.bd-renk { position: relative; }
+
+/* ---- Avatar vitrini (2B) ---- */
+.bd-vitrin-sahne {
+  display: grid; place-items: center;
+  min-height: 190px;
+  background: linear-gradient(180deg, var(--bd-gok), var(--bd-yuzey-1));
+  border-radius: var(--bd-r-l);
+}
+.bd-vitrin-gorsel { width: 180px; height: 180px; object-fit: contain; }
+.bd-vitrin-alt { text-align: center; margin-top: 10px; }
+.bd-vitrin-ad {
+  font-family: var(--bd-f-baslik); font-size: 18px; font-weight: 800;
+  color: var(--bd-metin);
+}
+.bd-vitrin-rozetler {
+  display: flex; gap: 8px; justify-content: center; align-items: center;
+  flex-wrap: wrap; margin-top: 8px;
+}

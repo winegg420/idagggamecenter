@@ -10,6 +10,7 @@ import { useCoin, coinTazele, coinHatasi } from "../lib/coin.js";
 import CoinGorseli, { coinBoyutu } from "../components/CoinGorseli.jsx";
 import { y } from "../lib/yol.js";
 import AvatarVitrin from "../components/AvatarVitrin.jsx";
+import GorunumDukkani from "../components/GorunumDukkani.jsx";
 import { useAuth } from "../../src/context/AuthContext.jsx";
 import { ayarlar } from "../lib/ayarlar.js";
 
@@ -21,7 +22,7 @@ const ODUL_COIN_VARSAYILAN = 25;
 const TEK_JOKER_VARSAYILAN = { elli: 40, sure: 60, soru_degistir: 80 };
 
 const SEKMELER = [
-  { kod: "kiyafet", ad: "Kıyafet & Dans", ikon: "tisort" },
+  { kod: "kiyafet", ad: "Görünüm", ikon: "tisort" },
   { kod: "joker",   ad: "Joker",   ikon: "hediye" },
   { kod: "coin",    ad: "Coin",    ikon: "coin" },
 ];
@@ -231,23 +232,11 @@ export default function JokerDukkani() {
         <AvatarVitrin ad={profile?.gorunen_ad} puan={profile?.puan ?? 0} baslik="Şu anki görünümün" />
       )}
 
-      {sekme === "kiyafet" && (
-        <div className="kart">
-          <div className="bd-kat-baslik"><span>Kıyafet ve görünüm</span></div>
-          <div className="alt-yazi" style={{ marginBottom: 12 }}>
-            Şapka, gözlük, kıyafet ve efektler <b>Görünüm</b> sayfasından takılır.
-            Sahip olmadığın eşyalar orada coin fiyatıyla kilitli görünür.
-          </div>
-          <Link className="btn" to={y("/gorunum")}>Görünümü aç</Link>
-
-          <div className="bd-kat-baslik" style={{ marginTop: 18 }}><span>Dans hareketleri</span></div>
-          <div className="alt-yazi" style={{ marginBottom: 12 }}>
-            Danslar <b>Görünüm → Dans</b> sekmesinde. Dokununca avatarın önizlemede
-            oynar; aldığın dansı <b>Meydan</b>'da 💃 düğmesinden herkese oynatırsın.
-          </div>
-          <Link className="btn ikincil" to={y("/gorunum?yuva=dans")}>Dansları gör</Link>
-        </div>
-      )}
+      {/* GÖRÜNÜM SEKMESİ — karakterler ve kozmetik parçalar.
+          Her kart parçanın ÖNİZLEMESİNİ gösterir (o parçayı takmış
+          avatar); sahip olunanda "Sahipsin", etkinlik parçasında kilit.
+          Satın alma kararı sunucuda (karakter_satin_al / esya_satin_al). */}
+      {sekme === "kiyafet" && <GorunumDukkani />}
 
       {/* ---------- Envanter ---------- */}
       {sekme === "joker" && (
