@@ -140,6 +140,12 @@ Deno.serve(async (req) => {
       "Çeldiriciler gerçekten makul olmalı: açıkça saçma ya da alakasız " +
       "seçenek koyma. " +
       "Cevap sorunun metninde geçmesin. " +
+      // Bir soruda şıklar "Attar / Sadi / Hafız / Cami" (dördü de İranlı
+      // şair) idi; otomatik çeviri "Cami"yi ibadethane sanıp "Mosque"
+      // yazınca şık anlamsızlaştı. Kural hem üretimde hem çeviride geçerli.
+      "ÖZEL İSİMLER ASLA ÇEVRİLMEZ: kişi, yer, eser ve marka adlarını " +
+      "uluslararası yazımıyla bırak (şair Cami → Jami, Mosque DEĞİL; " +
+      "Kaz Dağları → Kaz Mountains, Goose Mountains DEĞİL). " +
       "'Aşağıdakilerden hangisi yanlıştır/değildir' gibi OLUMSUZ kalıplar KULLANMA. " +
       "Zamana bağlı bilgi sorma (şu anki, günümüzde, en son, kaç yaşında gibi) — " +
       "cevap yıllar sonra da aynı kalmalı. " +

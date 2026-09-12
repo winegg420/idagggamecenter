@@ -160,3 +160,209 @@ export function nedenGecersiz(q: Soru): string | null {
   if (uzunlukEleVeriyorMu(q)) return "doğru şık diğerlerinden belirgin uzun";
   return null;
 }
+
+
+/* ============================================================
+   ÖZEL İSİMLER ASLA ÇEVRİLMEZ
+   ============================================================
+
+   NEDEN: bir soruda şıklar "Feridüddin Attar / Sadi / Hafız / Cami" —
+   dördü de İranlı şair. Otomatik çeviri "Cami"yi ibadethane sanıp
+   "Mosque" yazarsa şık anlamsızlaşır ve soru bozulur. Doğrusu "Jami".
+
+   KURAL: kişi, yer, eser ve marka adları ULUSLARARASI YAZIMIYLA bırakılır.
+     Cami (şair) → Jami   · Mosque DEĞİL
+     Sadi → Saadi · Hafız → Hafez · Yunus Emre → Yunus Emre (aynen)
+     Kaz Dağları → Kaz Mountains / Mount Ida · Goose Mountains DEĞİL
+
+   ULUSLARARASI YAZIM İLE ÇEVİRİ NASIL AYIRT EDİLİYOR:
+   yazım farkı küçüktür (Cami→Jami 1 harf, Sadi→Saadi 1 harf), çeviri ise
+   bambaşka bir kelimedir (Cami→Mosque 6 harf). Bu yüzden kapı ADLARI
+   DÜZENLEME UZAKLIĞIYLA eşleştiriyor; eşleşme yoksa ad kaybolmuş sayılır.
+
+   ÇEVRİLMESİ DOĞRU OLANLAR (ülke, kıta, ay, "Dağları/Gölü" gibi tür
+   sözcükleri) `CEVRILEBILIR` kümesinde; onlar denetlenmez.
+   ============================================================ */
+
+/** Karşılaştırma biçimi: aksan ve noktalama sadeleştirilir. */
+export function adSade(s: string): string {
+  return String(s ?? "")
+    .toLocaleLowerCase("tr")
+    .replace(/[çğıöşü]/g, (x) => ({ ç: "c", ğ: "g", ı: "i", ö: "o", ş: "s", ü: "u" }[x] ?? x))
+    .normalize("NFD").replace(/[̀-ͯ]/g, "")
+    .replace(/[^a-z0-9]/g, "");
+}
+
+/**
+ * Çevrilmesi DOĞRU olan büyük harfli kelimeler: coğrafi tür sözcükleri,
+ * ülke/kıta/okyanus adları, aylar ve cümle başında büyüyen sıradan
+ * kelimeler. Bunlar "özel isim korunmalı" kuralının dışındadır.
+ */
+export const CEVRILEBILIR = new Set([
+  // Tür sözcükleri — "Kaz DAĞLARI" → "Kaz MOUNTAINS" doğrudur
+  "dagi", "daglari", "golu", "nehri", "irmagi", "denizi", "okyanusu",
+  "korfezi", "bogazi", "adasi", "adalari", "ovasi", "yaylasi", "vadisi",
+  "yarimadasi", "camii", "sarayi", "kalesi", "koprusu", "meydani",
+  "savasi", "devrimi", "imparatorlugu", "krallik", "cumhuriyeti",
+  "universitesi", "muzesi", "kulesi", "kilisesi", "manastiri",
+  // Kıta, okyanus, yön
+  "avrupa", "asya", "afrika", "amerika", "okyanusya", "antarktika",
+  "kuzey", "guney", "dogu", "bati", "orta", "atlas", "pasifik", "hint", "arktik",
+  // Sık geçen ülke adları (çevirisi doğru olan)
+  "turkiye", "almanya", "fransa", "ingiltere", "italya", "ispanya",
+  "portekiz", "hollanda", "belcika", "avusturya", "isvicre", "isvec",
+  "norvec", "danimarka", "finlandiya", "polonya", "macaristan", "yunanistan",
+  "rusya", "ukrayna", "cin", "japonya", "hindistan", "misir", "brezilya",
+  "arjantin", "meksika", "kanada", "avustralya", "yenizelanda", "guneykore",
+  "iran", "irak", "suriye", "lubnan", "israil", "sili", "peru", "kolombiya",
+  // Aylar
+  "ocak", "subat", "mart", "nisan", "mayis", "haziran", "temmuz",
+  "agustos", "eylul", "ekim", "kasim", "aralik",
+  // Cümle/şık başında büyüyen sıradan kelimeler ve soru kalıpları.
+  // Metnin İLK kelimesi de denetleniyor ("Kaz Dağları hangi ilde…" —
+  // ilk kelime atlansaydı asıl özel isim gözden kaçardı), bu yüzden
+  // Türkçe soru başlangıçları burada tek tek elenir.
+  "bir", "bu", "su", "ve", "ile", "her", "hic", "tum", "cok", "az",
+  "evet", "hayir", "dogru", "yanlis", "hepsi", "hicbiri", "diger", "hicbir",
+  "hangi", "hangisi", "hangisidir", "kim", "kimdir", "kime", "kimin",
+  "ne", "nedir", "neye", "neyi", "nerede", "neresi", "neresidir", "kac",
+  "asagidaki", "asagidakilerden", "yukaridaki", "ilk", "son", "en",
+  "insan", "dunya", "dunyanin", "yil", "yilinda", "eski", "yeni", "buyuk",
+  "kucuk", "once", "sonra", "nasil", "niye", "neden", "kimler", "kaci",
+]);
+
+/** Levenshtein düzenleme uzaklığı (küçük dizeler için yeterli). */
+export function duzenlemeUzakligi(a: string, b: string): number {
+  const m = a.length, n = b.length;
+  if (m === 0) return n;
+  if (n === 0) return m;
+  let onceki = Array.from({ length: n + 1 }, (_, j) => j);
+  for (let i = 1; i <= m; i++) {
+    const simdi = [i];
+    for (let j = 1; j <= n; j++) {
+      simdi[j] = Math.min(
+        onceki[j] + 1,
+        simdi[j - 1] + 1,
+        onceki[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1),
+      );
+    }
+    onceki = simdi;
+  }
+  return onceki[n];
+}
+
+/**
+ * Metindeki özel ad adaylarını döndürür.
+ *
+ * NİYE BU KADAR TEMKİNLİ: Türkçede cümlenin ve şıkkın İLK harfi zaten
+ * büyüktür. "Büyük harfle başlıyorsa özel isimdir" demek işe yaramıyor —
+ * canlı havuzun 7.682 çevirisine uygulandığında soruların %89,7'sini
+ * işaretledi (Tek, Yalnız, Ses, Renk, Futbolda…). Ölçüldü, tahmin değil.
+ *
+ * GÜVENİLİR İŞARET: Türkçe yazımda cümlenin ORTASINDA büyük harf yalnız
+ * özel isimde olur. Bu yüzden aday, içinde ilk sıradan sonra gelen büyük
+ * harfli bir kelime bulunan BÜYÜK HARF DİZİSİDİR:
+ *   "Kaz Dağları hangi ilde…"  → dizi [Kaz, Dağları], 2. kelime büyük
+ *                                 → dizinin tamamı özel ad; "Kaz" korunmalı
+ *   "Hangi ilde yer alır?"     → [Hangi] tek başına → cümle başı, aday değil
+ *
+ * @param tekBasinaAd şık listesinde en az bir kesin özel ad varsa true
+ *   gelir; o zaman tek kelimelik şıklar da ad sayılır. Böylece
+ *   "Attar / Sadi / Hafız / Cami" dizisinde "Cami" de denetlenir.
+ */
+export function ozelIsimAdaylari(metin: string, tekBasinaAd = false): string[] {
+  // TIRNAK İÇİ ESER ADLARI DENETLENMEZ. Eserin YERLEŞİK İngilizce adı
+  // vardır ve onu kullanmak doğrudur: 'Mantıku't-Tayr' → 'The Conference
+  // of the Birds', 'Suç ve Ceza' → 'Crime and Punishment'. Kişi ve yer
+  // adları tırnak içinde yazılmadığı için kural onlarda çalışmaya devam
+  // eder — asıl korunması gereken de onlar.
+  const tirnaksiz = String(metin ?? "").replace(/['"“”‘’«»]([^'"“”‘’«»]{2,})['"“”‘’«»]/gu, " ");
+  const kelimeler = tirnaksiz.split(/[^\p{L}\p{N}'’-]+/u).filter(Boolean);
+  const buyuk = kelimeler.map((k) => k[0] === k[0].toLocaleUpperCase("tr") && /\p{L}/u.test(k[0]));
+
+  const adaylar: string[] = [];
+  let i = 0;
+  while (i < kelimeler.length) {
+    if (!buyuk[i]) { i++; continue; }
+    let j = i;
+    while (j + 1 < kelimeler.length && buyuk[j + 1]) j++;
+    // Dizi cümle ortasında mı, yoksa yalnız baştaki tek kelime mi?
+    const kesinAd = i > 0 || j > i || tekBasinaAd;
+    if (kesinAd) {
+      for (let k = i; k <= j; k++) {
+        const kelime = kelimeler[k];
+        if (kelime.length < 3) continue;
+        if (CEVRILEBILIR.has(adSade(kelime))) continue;
+        adaylar.push(kelime);
+      }
+    }
+    i = j + 1;
+  }
+  return adaylar;
+}
+
+/** Şıklardan en az biri kesin özel ad mı? (çok kelimeli ya da iç büyük harf) */
+export function siklardaKesinAdVarMi(secenekler: string[]): boolean {
+  return secenekler.some((s) => ozelIsimAdaylari(String(s ?? ""), false).length > 0);
+}
+
+/** Ad çeviride korunmuş mu? Uluslararası yazım farkına tolerans var. */
+export function adKorunmusMu(ad: string, hedefKelimeler: string[]): boolean {
+  const a = adSade(ad);
+  if (a.length < 3) return true;
+  // Uzunluğa göre tolerans: kısa adda 1, uzun adda 2 harf fark kabul.
+  const tolerans = a.length <= 5 ? 1 : 2;
+  for (const h of hedefKelimeler) {
+    if (h.length < 2) continue;
+    if (h.includes(a) || a.includes(h)) return true;
+    if (duzenlemeUzakligi(a, h) <= tolerans) return true;
+  }
+  return false;
+}
+
+/**
+ * Bir çeviriyi denetler: kaynaktaki özel adlar çeviride duruyor mu?
+ * Geçerliyse null, değilse Türkçe sebep döner.
+ *
+ * @param serbest bu soruya özel, çevrilmesi doğru olan ek adlar
+ */
+export function ceviriNedenGecersiz(
+  kaynak: Soru,
+  ceviri: { soru: string; secenekler: string[] },
+  serbest: Set<string> = new Set(),
+): string | null {
+  if (!ceviri || typeof ceviri.soru !== "string") return "çeviri yok";
+  if (!Array.isArray(ceviri.secenekler)) return "çeviri şıkları yok";
+  if (ceviri.secenekler.length !== kaynak.secenekler.length) {
+    return "çeviride şık sayısı kaynakla aynı değil";
+  }
+  if (!ceviri.soru.trim()) return "çeviri sorusu boş";
+  if (ceviri.secenekler.some((s) => !String(s ?? "").trim())) return "çeviride boş şık";
+
+  const hedefKelimeler = [ceviri.soru, ...ceviri.secenekler]
+    .join(" ")
+    .split(/[^\p{L}\p{N}'’-]+/u)
+    .filter(Boolean)
+    .map(adSade)
+    .filter(Boolean);
+
+  // Şıklardan biri kesin özel adsa (ör. "Feridüddin Attar"), o soruda
+  // şıkların hepsi aynı türdendir: tek kelimelik olanlar da ad sayılır.
+  const sikler = kaynak.secenekler.map((s) => String(s ?? ""));
+  const hepsiAd = siklardaKesinAdVarMi(sikler);
+
+  const parcalar: Array<[string, boolean]> = [
+    [kaynak.soru, false],
+    ...sikler.map((s) => [s, hepsiAd] as [string, boolean]),
+  ];
+
+  for (const [metin, tekBasinaAd] of parcalar) {
+    for (const ad of ozelIsimAdaylari(metin, tekBasinaAd)) {
+      if (serbest.has(adSade(ad))) continue;
+      if (!adKorunmusMu(ad, hedefKelimeler)) {
+        return `özel isim çevrilmiş ya da kaybolmuş: "${ad}"`;
+      }
+    }
+  }
+  return null;
+}

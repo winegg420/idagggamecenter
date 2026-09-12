@@ -20,7 +20,7 @@ const cikti = await build({
   loader: { ".ts": "ts" },
 });
 const kod = cikti.outputFiles[0].text;
-const { nedenGecersiz, normalize, KATEGORILER } = await import(
+const { nedenGecersiz, normalize, KATEGORILER, ceviriNedenGecersiz } = await import(
   "data:text/javascript;base64," + Buffer.from(kod).toString("base64")
 );
 
@@ -114,6 +114,58 @@ bekle("genel enum'da OLMAMALI", !KATEGORILER.includes("genel"));
 for (const k of ["sinema", "muzik", "teknoloji", "genel_kultur"]) {
   bekle(`${k} enum'da OLMALI`, KATEGORILER.includes(k));
 }
+
+// --- ÖZEL İSİMLER ASLA ÇEVRİLMEZ -------------------------------------------
+// Bildirilen gerçek hata: şıklar dört İranlı şairdi, çeviri "Cami"yi
+// ibadethane sanıp "Mosque" yazmıştı. Doğrusu "Jami".
+const sairler = soru("'Mantıku't-Tayr' kime aittir?",
+  ["Feridüddin Attar", "Sadi", "Hafız", "Cami"], 0);
+bekle("Cami -> Mosque REDDEDILMELI", ceviriNedenGecersiz(sairler, {
+  soru: "Who wrote 'The Conference of the Birds'?",
+  secenekler: ["Farid ud-Din Attar", "Saadi", "Hafez", "Mosque"],
+}) !== null);
+bekle("Cami -> Jami GECMELI", ceviriNedenGecersiz(sairler, {
+  soru: "Who wrote 'The Conference of the Birds'?",
+  secenekler: ["Farid ud-Din Attar", "Saadi", "Hafez", "Jami"],
+}) === null);
+
+// Yer adı: tür sözcüğü (Dağları → Mountains) çevrilir, adın kendisi kalır.
+const kaz = soru("Kaz Dağları hangi ilde yer alır?",
+  ["Balıkesir", "İzmir", "Bursa", "Manisa"], 0);
+bekle("Goose Mountains REDDEDILMELI", ceviriNedenGecersiz(kaz, {
+  soru: "In which province are the Goose Mountains?",
+  secenekler: ["Balikesir", "Izmir", "Bursa", "Manisa"],
+}) !== null);
+bekle("Kaz Mountains GECMELI", ceviriNedenGecersiz(kaz, {
+  soru: "In which province are the Kaz Mountains?",
+  secenekler: ["Balikesir", "Izmir", "Bursa", "Manisa"],
+}) === null);
+
+// Ülke/kıta adları BİLEREK çevrilir; kural onlara takılmamalı.
+bekle("ulke adlari GECMELI", ceviriNedenGecersiz(
+  soru("Mozart hangi ülkede doğmuştur?", ["Avusturya", "Almanya", "İtalya", "Fransa"], 0),
+  {
+    soru: "In which country was Mozart born?",
+    secenekler: ["Austria", "Germany", "Italy", "France"],
+  },
+) === null);
+
+// Tırnak içi eser adının YERLEŞİK İngilizce karşılığı kullanılabilir.
+bekle("eser adi cevirisi GECMELI", ceviriNedenGecersiz(
+  soru("'Suç ve Ceza' romanını kim yazmıştır?", ["Çehov", "Gogol", "Dostoyevski", "Turgenyev"], 2),
+  {
+    soru: "Who wrote the novel 'Crime and Punishment'?",
+    secenekler: ["Chekhov", "Gogol", "Dostoevsky", "Turgenev"],
+  },
+) === null);
+
+// Biçim denetimleri
+bekle("sik sayisi farkli REDDEDILMELI",
+  ceviriNedenGecersiz(kaz, { soru: "x", secenekler: ["a", "b", "c"] }) !== null);
+bekle("bos sik REDDEDILMELI", ceviriNedenGecersiz(kaz, {
+  soru: "In which province are the Kaz Mountains?",
+  secenekler: ["Balikesir", "", "Bursa", "Manisa"],
+}) !== null);
 
 console.log(`\nSonuc: ${gecti} gecti, ${kaldi} kaldi`);
 process.exit(kaldi === 0 ? 0 : 1);
