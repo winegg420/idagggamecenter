@@ -12,8 +12,11 @@ const BEKLEME_SN = 8; // bu süre içinde insan rakip aranır, sonra bota düş�
  * Tam ekran katman olarak `document.body`'ye portal ile basılır — daha önce
  * ana sayfanın içinde konumlandığı için hiç görünmüyordu.
  *
- * Akış: kuyruğa gir → 8 sn insan rakip ara → bulunamazsa bota düş ve bunu
- * ekranda söyle. Rakip bulununca 1 sn "Rakip bulundu: X" gösterilip maça geçilir.
+ * Akış: kuyruğa gir → 8 sn gerçek rakip ara → bulunamazsa sunucu bir rakip
+ * kurar. Rakip bulununca 1 sn "Rakip bulundu: X" gösterilip maça geçilir.
+ *
+ * Ekranda "bot" kelimesi GEÇMEZ: gizli botlar gerçek oyuncu gibi görünmeli
+ * (bkz. migration 155). Açık botlar zaten adlarından belli.
  */
 export default function RakipAra({ kategori, dereceli = true, onBulundu, onIptal }) {
   const { user } = useAuth();
@@ -63,27 +66,39 @@ export default function RakipAra({ kategori, dereceli = true, onBulundu, onIptal
     [onBulundu, user?.id]
   );
 
-  // Son çare: bot/karışık maç
+  // Son çare: sunucu rakip kursun.
+  //
+  // `quick_match` BOŞ dönebilir: sunucu, gerçekten aranmış gibi görünsün
+  // diye botu kurmadan önce 2-5 sn bekletiyor (bkz. migration 155). Bu
+  // yüzden tek seferlik değil, id gelene kadar saniyede bir yokluyoruz.
+  // Ekranda "bot" kelimesi geçmez — gizli botun gizli kalması bu ekrandan
+  // başlıyor.
   const sonCare = useCallback(async () => {
     if (bittiRef.current) return;
     setBotaDusuldu(true);
     clearInterval(zamanlayiciRef.current);
-    try {
-      await supabase.rpc("kuyruktan_cik");
-    } catch {
-      /* önemli değil */
-    }
-    try {
-      const { data, error } = await supabase.rpc("quick_match", {
-        p_kategori: kategori ?? null,
-        p_dereceli: dereceli,
-      });
-      if (error) throw error;
-      if (data) bitir(data);
-    } catch (e) {
-      setHata("Maç başlatılamadı. Bağlantını kontrol edip tekrar dene.");
-      console.error("[Bildim] quick_match:", e);
-    }
+
+    const dene = async () => {
+      if (bittiRef.current) return true;
+      try {
+        const { data, error } = await supabase.rpc("quick_match", {
+          p_kategori: kategori ?? null,
+          p_dereceli: dereceli,
+        });
+        if (error) throw error;
+        if (data) { bitir(data); return true; }
+        return false;                       // sunucu hâlâ arıyor
+      } catch (e) {
+        setHata("Maç başlatılamadı. Bağlantını kontrol edip tekrar dene.");
+        console.error("[Bildim] quick_match:", e);
+        return true;                        // hata: yoklamayı durdur
+      }
+    };
+
+    if (await dene()) return;
+    zamanlayiciRef.current = setInterval(async () => {
+      if (await dene()) clearInterval(zamanlayiciRef.current);
+    }, 1000);
   }, [kategori, dereceli, bitir]);
 
   useEffect(() => {
@@ -147,7 +162,7 @@ export default function RakipAra({ kategori, dereceli = true, onBulundu, onIptal
         <div className="bd-arama-alt">
           {kategori ? kategoriEtiket(kategori) : "Karışık"} kategorisinde
           {botaDusuldu
-            ? " uygun rakip bulunamadı — BilgeBot ile oynuyorsun."
+            ? " seviyene yakın bir rakiple eşleştiriyoruz."
             : " seninle aynı seviyede birini arıyoruz."}
         </div>
 
@@ -161,7 +176,7 @@ export default function RakipAra({ kategori, dereceli = true, onBulundu, onIptal
           <div className="bd-arama-eylem">
             {!botaDusuldu && (
               <button className="btn" onClick={sonCare}>
-                Bot ile hemen oyna
+                Beklemeden eşleş
               </button>
             )}
             <button

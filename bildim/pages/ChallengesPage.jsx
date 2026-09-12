@@ -21,8 +21,8 @@ const SUREN_TAVAN = 200;  // güvenlik tavanı; pratikte hiç dolmaz
 const BITEN_LIMIT = 20;
 
 const MAC_SECIMI = `*,
-  p1:profiles!matches_oyuncu1_fkey(id, gorunen_ad, gorunen_avatar, puan, is_bot),
-  p2:profiles!matches_oyuncu2_fkey(id, gorunen_ad, gorunen_avatar, puan, is_bot)`;
+  p1:profiles!matches_oyuncu1_fkey(id, gorunen_ad, gorunen_avatar, puan, acik_bot),
+  p2:profiles!matches_oyuncu2_fkey(id, gorunen_ad, gorunen_avatar, puan, acik_bot)`;
 
 const GRUP_SECIMI = `*,
   katilimcilar:group_match_players(group_match_id, user_id, davet_durumu, skor,
@@ -174,7 +174,7 @@ export default function ChallengesPage() {
         tehlike: false,
       };
     }
-    if (rakipProfil?.is_bot) {
+    if (rakipProfil?.acik_bot) {
       return {
         baslik: "Bot maçını iptal et",
         metin: "Rakibin bir bot. İptal edersen puan değişmez, mağlubiyet yazılmaz.",
@@ -247,9 +247,12 @@ export default function ChallengesPage() {
   useEffect(() => {
     supabase
       .from("profiles")
-      .select("id, gorunen_ad, gorunen_avatar, puan, bot_isabet")
-      .eq("is_bot", true)
-      .order("bot_isabet", { ascending: true })
+      // Yalnız AÇIK botlar listelenir; gizli botlar "bot listesi"nde
+      // görünseydi gizli olmazlardı. Sıralama isabete göre değil puana
+      // göre: `bot_isabet` de istemciye kapalı (bkz. migration 155).
+      .select("id, gorunen_ad, gorunen_avatar, puan")
+      .eq("acik_bot", true)
+      .order("puan", { ascending: true })
       .then(({ data }) => setBotlar(data ?? []));
     // Rakip olabilecekler: YALNIZ arkadaşlar (sunucu da bunu zorunlu kılıyor).
     (async () => {

@@ -19,7 +19,10 @@ import { hataMesaji } from "../lib/hata.js";
 import { bayrak } from "../lib/konum.js";
 
 const ALANLAR =
-  "id, gorunen_ad, gorunen_avatar, puan, sampiyonluk, toplam_mac, sehir, ulke, is_bot, last_seen, seri_gun";
+  // `is_bot` BİLEREK YOK: gizli botlar gerçek oyuncudan ayırt edilmemeli
+  // (kolon `authenticated` rolüne kapalı, bkz. migration 155). İstemci
+  // yalnız `acik_bot` görür — adında "Bot" geçen, zaten belli olan botlar.
+  "id, gorunen_ad, gorunen_avatar, puan, sampiyonluk, toplam_mac, sehir, ulke, acik_bot, last_seen, seri_gun";
 
 /**
  * @param {object} o
@@ -69,7 +72,7 @@ export default function OyuncuKarti({ userId, onIzleme = null, onKapat, onMeydan
           </div>
           <div className="bd-oyuncu-ad">
             {p?.gorunen_ad ?? (yukleniyor ? "…" : "Oyuncu")}
-            {p?.is_bot && (
+            {(p?.acik_bot ?? p?.is_bot) && (
               <span className="bd-bot-rozet" title="Yapay rakip"><Ikon ad="robot" boyut={13} /></span>
             )}
           </div>

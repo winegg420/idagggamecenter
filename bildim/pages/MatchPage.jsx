@@ -26,12 +26,16 @@ import { macBittiReklam } from "../lib/reklam.js";
 import { y } from "../lib/yol.js";
 import { GB_MS } from "../lib/geriBildirim.js";
 
-// is_bot: maç sonunda hangi rövanş eyleminin gösterileceğini belirler
+// acik_bot: maç sonunda hangi rövanş eyleminin gösterileceğini belirler.
+// `is_bot` BİLEREK KULLANILMIYOR (kolon istemciye kapalı, migration 155):
+// gizli bota karşı rövanş normal "istek gönder" yolundan gider ve botu
+// sunucudaki bot_oyna birkaç saniye içinde kabul eder — gerçek oyuncuyla
+// aynı his, gizlilik bozulmaz.
 // (bota doğrudan yeni maç, gerçek oyuncuya istek). Ekstra sorgu açmamak için
 // zaten çekilen profil satırına eklendi.
 const MAC_SECIMI = `*,
-  p1:profiles!matches_oyuncu1_fkey(id, gorunen_ad, gorunen_avatar, is_bot),
-  p2:profiles!matches_oyuncu2_fkey(id, gorunen_ad, gorunen_avatar, is_bot)`;
+  p1:profiles!matches_oyuncu1_fkey(id, gorunen_ad, gorunen_avatar, acik_bot),
+  p2:profiles!matches_oyuncu2_fkey(id, gorunen_ad, gorunen_avatar, acik_bot)`;
 
 // Tepkiler artık SVG ikon (bkz. lib/tepkiler.js). Sunucuya giden metin aynı.
 // Balonda gösterim: mesaj bir tepki emojisiyse ikonu, değilse metni çiz.
@@ -553,7 +557,7 @@ export default function MatchPage() {
   const benimSkor = benP1 ? mac.oyuncu1_skor : mac.oyuncu2_skor;
   const rakipSkor = benP1 ? mac.oyuncu2_skor : mac.oyuncu1_skor;
   const rakipProfil = benP1 ? mac.p2 : mac.p1;
-  const rakipBot = Boolean(rakipProfil?.is_bot);
+  const rakipBot = Boolean(rakipProfil?.acik_bot);
   const benimProfil = benP1 ? mac.p1 : mac.p2;
 
   if (mac.durum === "bekliyor") {

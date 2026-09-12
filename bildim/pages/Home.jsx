@@ -83,8 +83,8 @@ export default function Home() {
         .from("matches")
         .select(
           `id, oyuncu1, oyuncu2, oyuncu1_soru, oyuncu2_soru, soru_ids, kabul_at, senkron, basladi,
-           p1:profiles!matches_oyuncu1_fkey(gorunen_ad, is_bot),
-           p2:profiles!matches_oyuncu2_fkey(gorunen_ad, is_bot)`
+           p1:profiles!matches_oyuncu1_fkey(gorunen_ad, acik_bot),
+           p2:profiles!matches_oyuncu2_fkey(gorunen_ad, acik_bot)`
         )
         .eq("durum", "aktif")
         .or("oyuncu1.eq." + user.id + ",oyuncu2.eq." + user.id)
@@ -95,7 +95,7 @@ export default function Home() {
           const benP1 = m.oyuncu1 === user.id;
           const benimSoru = benP1 ? (m.oyuncu1_soru ?? 0) : (m.oyuncu2_soru ?? 0);
           const rakip = benP1 ? m.p2 : m.p1;
-          return { ...m, benimSoru, rakipAd: rakip?.gorunen_ad, rakipBot: Boolean(rakip?.is_bot) };
+          return { ...m, benimSoru, rakipAd: rakip?.gorunen_ad, rakipBot: Boolean(rakip?.acik_bot) };
         })
         .filter((m) => m.benimSoru < (m.soru_ids?.length ?? 20));
 
