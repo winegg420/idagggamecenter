@@ -11,12 +11,14 @@ import CoinGorseli, { coinBoyutu } from "../components/CoinGorseli.jsx";
 import { y } from "../lib/yol.js";
 import AvatarVitrin from "../components/AvatarVitrin.jsx";
 import { useAuth } from "../../src/context/AuthContext.jsx";
+import { ayarlar } from "../lib/ayarlar.js";
 
 // Dükkân üç sekme: Kıyafet (avatar eşyaları + danslar) / Joker / Coin.
 // Kıyafet sekmesinin içeriği Görünüm sayfasında; buradan oraya köprü var.
-// Reklam ödülü sunucudaki oyun_ayarlari tablosundan gelir; buradaki sayı
-// yalnız metinde gösterilen varsayılandır (RPC gerçek değeri döndürür).
-const ODUL_COIN = 25;
+// Bütün rakamlar sunucudaki oyun_ayarlari tablosundan gelir; aşağıdakiler
+// yalnız tablo okunamazsa kullanılan varsayılanlardır (bkz. lib/ayarlar.js).
+const ODUL_COIN_VARSAYILAN = 25;
+const TEK_JOKER_VARSAYILAN = { elli: 40, sure: 60, soru_degistir: 80 };
 
 const SEKMELER = [
   { kod: "kiyafet", ad: "Kıyafet & Dans", ikon: "tisort" },
@@ -35,6 +37,23 @@ export default function JokerDukkani() {
   const [videoCalisiyor, setVideoCalisiyor] = useState(false);
   const [alinan, setAlinan] = useState(null);
   const [coinPaketleri, setCoinPaketleri] = useState([]);
+  // Coin rakamları koda gömülmez: oyun_ayarlari'ndan okunur.
+  const [odulCoin, setOdulCoin] = useState(ODUL_COIN_VARSAYILAN);
+  const [tekFiyat, setTekFiyat] = useState(TEK_JOKER_VARSAYILAN);
+
+  useEffect(() => {
+    let aktif = true;
+    ayarlar().then((o) => {
+      if (!aktif || !o) return;
+      if (Number.isFinite(Number(o.coin_reklam))) setOdulCoin(Number(o.coin_reklam));
+      setTekFiyat({
+        elli: Number(o.coin_joker_elli ?? TEK_JOKER_VARSAYILAN.elli),
+        sure: Number(o.coin_joker_sure ?? TEK_JOKER_VARSAYILAN.sure),
+        soru_degistir: Number(o.coin_joker_soru_degistir ?? TEK_JOKER_VARSAYILAN.soru_degistir),
+      });
+    });
+    return () => { aktif = false; };
+  }, []);
 
   // Sekme adres çubuğunda tutulur: "coin yetmiyor" uyarısı doğrudan Coin
   // sekmesine götürebilsin, geri tuşu da beklendiği gibi çalışsın.
@@ -162,6 +181,27 @@ export default function JokerDukkani() {
     }
   };
 
+  /** Tek joker alır (birim fiyat oyun_ayarlari'ndan). */
+  const jokerTekAl = async (tur) => {
+    setHata(null);
+    setBilgi(null);
+    setAlinan(`tek:${tur}`);
+    try {
+      const { error } = await supabase.rpc("joker_tek_al", { p_tur: tur });
+      if (error) throw error;
+      setBilgi(`${JOKER_BILGI[tur].ad} hesabına eklendi.`);
+      coinTazele();
+      coinOku();
+      await yukle();
+    } catch (e) {
+      const m = coinHatasi(e);
+      setHata(m);
+      if (m === "Coin yetmiyor") sekmeSec("coin");
+    } finally {
+      setAlinan(null);
+    }
+  };
+
   const reklamKaldi = Math.max(0, (reklam.tavan ?? 5) - (reklam.bugun ?? 0));
 
   return (
@@ -225,7 +265,37 @@ export default function JokerDukkani() {
         <div className="alt-yazi" style={{ marginTop: 10 }}>
           Her maçta <b>1 adet 50:50 ücretsizdir</b> (kullanılmazsa birikmez).
           Lig maçlarında maç başına en fazla 2 joker, arkadaş maçlarında sınırsız.
-          Turnuva finalinde joker kullanılamaz.
+          Turnuva finalinde ve altın soruda joker kullanılamaz.
+          <b> Soru Değiştir</b> maç başına bir kez kullanılır.
+        </div>
+
+        {/* Tek tek alım: paket almak istemeyene birim fiyat. */}
+        <div className="bd-kat-baslik" style={{ marginTop: 14 }}>
+          <span>Tek tek al</span>
+          <span className="alt-yazi">
+            <Ikon ad="coin" boyut={14} /> {(bakiye ?? 0).toLocaleString("tr-TR")}
+          </span>
+        </div>
+        <div className="bd-paket-liste">
+          {["elli", "sure", "soru_degistir"].map((tur) => (
+            <div key={tur} className="bd-paket">
+              <div className="bd-paket-bilgi">
+                <div className="bd-paket-ad">
+                  <Ikon ad={JOKER_BILGI[tur].ikon} boyut={15} /> {JOKER_BILGI[tur].ad}
+                </div>
+                <div className="alt-yazi">{JOKER_BILGI[tur].aciklama}</div>
+              </div>
+              <button
+                className="btn kucuk"
+                disabled={alinan === `tek:${tur}`}
+                onClick={() => jokerTekAl(tur)}
+              >
+                {alinan === `tek:${tur}`
+                  ? "…"
+                  : <><Ikon ad="coin" boyut={14} /> {tekFiyat[tur]}</>}
+              </button>
+            </div>
+          ))}
         </div>
       </div>
       )}
@@ -238,7 +308,7 @@ export default function JokerDukkani() {
           <span className="alt-yazi">bugün {reklam.bugun}/{reklam.tavan}</span>
         </div>
         <div className="alt-yazi" style={{ marginBottom: 12 }}>
-          Bir video = <b>+{ODUL_COIN} coin</b>. Günde en fazla {reklam.tavan} ödül.
+          Bir video = <b>+{odulCoin} coin</b>. Günde en fazla {reklam.tavan} ödül.
         </div>
 
         {!h5AdsYapilandirildi() ? (
@@ -260,7 +330,7 @@ export default function JokerDukkani() {
               ? "Reklam açılıyor…"
               : reklamKaldi <= 0
                 ? "Bugünlük hakkın doldu"
-                : `Video izle (+${ODUL_COIN} coin)`}
+                : `Video izle (+${odulCoin} coin)`}
           </button>
         )}
       </div>

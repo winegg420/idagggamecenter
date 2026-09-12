@@ -14,6 +14,7 @@ import Ikon from "../components/Ikon.jsx";
 import { kategoriEtiket, kategorileriSirala } from "../lib/kategoriler.js";
 import { y } from "../lib/yol.js";
 import { useGorunurlukTazele } from "../lib/gorunurluk.js";
+import { useAuth } from "../../src/context/AuthContext.jsx";
 
 const TOPLAM_SN = 60;
 const SORU_SN = 5;
@@ -21,6 +22,7 @@ const HARFLER = ["A", "B", "C", "D"];
 
 export default function HizliModPage() {
   const navigate = useNavigate();
+  const { profile } = useAuth();
   const [asama, setAsama] = useState("secim"); // secim | oyun | gecis | sonuc
   const [kategoriler, setKategoriler] = useState([]);
   const [kategori, setKategori] = useState(null);
@@ -122,7 +124,7 @@ export default function HizliModPage() {
       }
       const perdeKalan = Math.max(0, 800 - (Date.now() - perdeBasi));
       setTimeout(() => setAsama("sonuc"), perdeKalan);
-      macBittiReklam().catch(() => {}); // sıklık kuralı reklam.js'te
+      macBittiReklam(profile?.created_at).catch(() => {}); // sıklık kuralı reklam.js'te
       try {
         const { data, error } = await supabase.rpc("hizli_mod_siralama", { p_kapsam: kapsam });
         if (error) throw error;

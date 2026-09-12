@@ -74,7 +74,7 @@ function ilerlemeDamgasi(m) {
 
 export default function MatchPage() {
   const { id } = useParams();
-  const { user, refreshProfile } = useAuth();
+  const { user, profile, refreshProfile } = useAuth();
   const navigate = useNavigate();
   const [mac, setMac] = useState(null);
   const [soru, setSoru] = useState(null);
@@ -448,7 +448,8 @@ export default function MatchPage() {
       if (pollRef.current) clearInterval(pollRef.current);
       if (!reklamGosterildiRef.current) {
         reklamGosterildiRef.current = true;
-        macBittiReklam().catch(() => {}); // reklam akışı oyunu asla bloklamaz
+        // İlk 3 gün reklamsız: hesabın açılış tarihi reklam.js'e verilir.
+        macBittiReklam(profile?.created_at).catch(() => {}); // oyunu asla bloklamaz
       }
     }
   }, [mac?.durum, refreshProfile, user.id]);
