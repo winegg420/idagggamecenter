@@ -3641,3 +3641,68 @@ eksikleri kapattı (migration 155):
 **İsim listesi düzeltmesi:** sahibin listesinde `cileksi` iki kez yazılmış
 ve başlıklar "Kadın (26) / Erkek (31)" diyor; gerçekte **25 kadın + 32
 erkek = 57** (toplam doğru). Tekilleştirilmiş hâli uygulandı.
+
+---
+
+## 12 Eylül 2026 — Karakter sistemi düzeltmeleri (3 madde)
+
+Sahibi 2B karakter sisteminde üç şeyin çalışmadığını bildirdi.
+
+### 1. Tanıtım metinleri kaldırıldı
+`karakterler.aciklama` ve `karakterler.js` içindeki `bio` alanları
+PatiRun'dan (yarış oyunu) gelmişti: "Plajdan yarışa geldi", "Isınma turu
+diye pisti üç kez koştu", "Her checkpoint'te yeni bir dörtlük yazıyor".
+Bilgi yarışmasında anlamsız. Yeni metin yazılmadı, alan boşaltıldı
+(migration 160). Kolon düşürülmedi — `karakter_katalogum` onu döndürüyor.
+
+### 2. "Karakter seçilemiyor" — KÖK SEBEP: yanlış uygulama dosyası
+**quizsquare.vercel.app `VITE_MOD=bildim` ile derleniyor**, yani
+`src/App.jsx` değil `src/BildimApp.jsx` çalışıyor. Yeni `/gorunum`
+rotası yalnız `App.jsx`'e eklenmişti; canlıda `/gorunum` hâlâ eski 3B
+`GorunumPage`'i açıyordu. Oyuncu yeni karakterleri hiç göremiyor,
+"tıklanmıyor" diyordu. Tıklamada, CSS'te, `karSahip` verisinde sorun yoktu
+(tarayıcıda ölçüldü: `elementFromPoint` kartın kendi `<img>`'ini
+döndürüyor, RPC 5 karakter sahipliği dönüyor).
+
+**KURAL:** bu depoda iki route dosyası var. Yeni rota eklerken
+**ikisine birden** eklenmeli, yoksa canlı site görmez.
+
+Aynı incelemede iki hata daha çıktı:
+- **Kaydet 400 dönüyordu.** Sayfa karakterin *varsayılan* kombinini de
+  gönderiyordu; `gorunum_dogrula` her parçanın sahipliğini soruyor ve
+  "Bu parçaya sahip değilsin: esofman" diye reddediyordu. Artık yalnız
+  oyuncunun açık seçimleri gönderiliyor — varsayılanlar zaten çizim
+  anında `kozmetikCoz` ile tamamlanıyor, `gorunum_kaydet` de kozmetiği
+  derin birleştiriyor.
+- **Kurulum sihirbazı tıklamayı yutuyordu.** İlk giriş yönlendirmesi
+  sihirbaz açıkken de `/gorunum`'a gidiyordu; sihirbaz tam ekran
+  `bd-modal-katman` (position:fixed, z-index 100) olduğu için kartlar
+  görünüyor ama tıklama sihirbaza gidiyordu. Kurulum bitmeden
+  yönlendirme yapılmıyor.
+
+### 3. Haritada 2B karakter (billboard)
+Tek görünüm kaydı: `/gorunum`'da seçilen karakter ve kozmetikler artık
+meydanda da görünüyor. Yöntem: SVG → 256×256 tuval → `THREE.Sprite`
+(Don't Starve / Paper Mario yöntemi; sprite hep kameraya baktığı için
+döndürme derdi yok).
+
+- Yeni modül `bildim/harita/karakterGorsel.js` — **görünüm kaydı → doku**
+  işinin tek yeri. Sahne (dunya.js) yalnız ekleyip çıkarıyor. Harita
+  ileride baştan çizilecek; modeller değişince burası değişir.
+- Eski 3B gövde **silinmedi**: `avatar.js` + `esyalar.js` yerinde,
+  `/gorunum-3b` önizlemesi onları kullanıyor. Geri dönmek için
+  `dunya.js`'teki tek import satırını çevirmek yeter.
+- Döndürülen grubun `userData` şekli `avatar.js` ile aynı tutuldu
+  (kok/bacaklar/kollar/govde/kafa/etiket) — `danslar.js`, `ikramGorsel.js`
+  ve yürüme animasyonu değişmeden çalışıyor.
+- Yürürken `run1`/`run2`, dururken `idle`; bakış yönü kameraya göre
+  aynalanıyor. İsim etiketi ve emoji balonları eskisi gibi.
+- Doku önbelleği referans sayılı: 40 avatar / 10 farklı görünüm →
+  **10 doku** (ölçüldü). Son kullanan sahneden çıkınca `dispose()`.
+  Meydandan çıkışta `karakterDokulariniTemizle()` kalanı bırakıyor.
+- `/gorunum-3b` rotası duruyor ama hiçbir menüde bağlantısı yok.
+
+**Ölçümler:** 40 avatar kurulumu 22 ms, yıkıp yeniden kurma 11 ms;
+ikinci turda da 10 doku (bellek büyümüyor). İki hesap iki sekmede
+birbirinin doğru karakterini görüyor. 390 px'de yatay kaydırma yok,
+7 ekranda konsol hatası 0. `npm run build` temiz.

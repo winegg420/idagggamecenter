@@ -18,7 +18,14 @@
 // ============================================================
 import * as THREE from "three";
 import { roundRect, canvasDoku, isimEtiketi, nesneyiSerbestBirak } from "./ortak.js";
-import { avatarKur, avatarGorunumDegistir, avatarEfektleriGuncelle, avatarYokEt } from "./avatar.js";
+// MEYDAN KARAKTERİ ARTIK 2B BILLBOARD: /gorunum sayfasında seçilen karakter
+// ve kozmetikler sahnede de görünsün diye çizim karakterGorsel.js'e taşındı.
+// Eski 3B gövde (avatar.js + esyalar.js) SİLİNMEDİ — /gorunum-3b önizlemesi
+// onu kullanmaya devam ediyor; geri dönmek için bu satırı çevirmek yeter.
+import {
+  karakterAvatarKur, karakterGorunumDegistir, karakterPozGuncelle,
+  karakterYonGuncelle, karakterYokEt, karakterDokulariniTemizle,
+} from "./karakterGorsel.js";
 import { esyaBilgisi, esyaOnbelleginiTemizle } from "./esyalar.js";
 import { dansBaslat, dansKaresi, dansiDurdur } from "./danslar.js";
 import { turnuvaSaatMetni } from "../lib/zaman.js";
@@ -358,30 +365,27 @@ export function dunyaKur(kapsayici, s = {}) {
    * @param {string} etiketRenk css rengi
    */
   /**
-   * Avatar kurar. GÖVDE VE EŞYALAR avatar.js'te — Görünüm sayfasındaki
-   * önizleme de aynı fonksiyonu çağırır, iki çizim yolu yok.
+   * Avatar kurar. ÇİZİM karakterGorsel.js'te — /gorunum sayfasındaki
+   * önizleme ile aynı SVG üreticisini kullanır, iki çizim yolu yok.
    *
    * @param {string} ad
-   * @param {number} govdeRenk  görünüm kaydı yoksa kullanılacak gövde rengi
-   * @param {number} sacRenk    geriye uyum; görünüm kaydı varsa yok sayılır
+   * @param {number} govdeRenk  geriye uyum; 2B karakterde kullanılmaz
+   * @param {number} sacRenk    geriye uyum; 2B karakterde kullanılmaz
    * @param {string} etiketRenk
    * @param {object} gorunum    profiles.gorunum
-   * @param {object} esyaBilgi  esyaBilgisi(katalog)
+   * @param {object} esyaBilgi  geriye uyum; 3B eşya katalogu (kullanılmaz)
    */
   function avatarOlustur(ad, govdeRenk, sacRenk, etiketRenk, gorunum = null, esyaBilgi = {}) {
-    // Görünüm kaydı yoksa eski davranış: düz gövde + basit saç.
-    const gor = gorunum ?? {
-      sac: "sac_01",
-      sac_renk: "#" + Number(sacRenk ?? 0x5a3a22).toString(16).padStart(6, "0"),
-    };
-    const g = avatarKur({ ad, gorunum: gor, bilgi: esyaBilgi, etiketRenk, govdeRenk });
+    // Görünüm kaydı yoksa karakterGorsel ilk bedava karakteri çizer.
+    const gor = gorunum ?? {};
+    const g = karakterAvatarKur({ ad, gorunum: gor, etiketRenk });
     sahne.add(g);
     return g;
   }
 
-  /** Kıyafet değişimi — sahne yıkılmadan (bkz. avatar.js). */
+  /** Kıyafet değişimi — sahne yıkılmadan (bkz. karakterGorsel.js). */
   function avatarGorunumu(av, gorunum, esyaBilgi = {}) {
-    avatarGorunumDegistir(av, gorunum, esyaBilgi);
+    karakterGorunumDegistir(av, gorunum);
   }
 
   /**
@@ -405,12 +409,13 @@ export function dunyaKur(kapsayici, s = {}) {
 
   /**
    * Avatarı sahneden kaldırıp GPU kaynaklarını bırakır.
-   * Eşya geometrileri PAYLAŞILDIĞI için onlar burada dispose EDİLMEZ;
-   * sahne kapanınca esyaOnbelleginiTemizle() bırakır (bkz. yokEt).
+   * Doku REFERANS SAYILIR: aynı görünümü kullanan başka oyuncu kaldıysa
+   * doku ayakta kalır, son kullanan çıkınca dispose edilir
+   * (bkz. karakterGorsel.js).
    */
   function avatarSil(g) {
     sahne.remove(g);
-    avatarYokEt(g);
+    karakterYokEt(g);
   }
 
   /** Yürüme animasyonu: guc 0..1 (0 = duruyor). */
@@ -420,7 +425,7 @@ export function dunyaKur(kapsayici, s = {}) {
     // dans kesilir (uzak oyuncuda da: hareket hız paketlerinden anlaşılır).
     if (u.dans) {
       if (guc > 0.05) dansiDurdur(av);
-      else if (dansKaresi(av, dt)) { avatarEfektleriGuncelle(av, dt); return; }
+      else if (dansKaresi(av, dt)) { return; }
     }
     u.yurumeFaz += dt * (guc > 0.05 ? guc * 10 : 2);
     const sal = Math.sin(u.yurumeFaz) * (guc > 0.05 ? 0.5 : 0.04);
@@ -428,8 +433,11 @@ export function dunyaKur(kapsayici, s = {}) {
     u.bacaklar.children[1].rotation.x = -sal;
     u.kollar.rotation.x = -sal * 0.55;
     av.position.y = guc > 0.05 ? Math.abs(Math.sin(u.yurumeFaz)) * 0.09 : 0;
-    // Parıltı halkası / yıldızlar gibi efektler dönsün (bkz. avatar.js)
-    avatarEfektleriGuncelle(av, dt);
+    // BILLBOARD: yürürken run1/run2, dururken idle; bakış yönü kameraya göre.
+    karakterPozGuncelle(av, guc > 0.05);
+    karakterYonGuncelle(av, kamera);
+    // 3B eşya efektleri (parıltı halkası, yıldız) 2B karakterde yok;
+    // avatarEfektleriGuncelle çağrısı bu yüzden kalktı (avatar.js duruyor).
   }
 
   /** Yumuşak dönüş — en kısa yaydan hedef açıya. */
@@ -621,6 +629,9 @@ export function dunyaKur(kapsayici, s = {}) {
     // Eşya geometrileri/malzemeleri avatarlar arasında paylaşılıyordu;
     // sahne kapanınca burada bırakılır (bkz. esyalar.js).
     esyaOnbelleginiTemizle();
+    // Karakter dokuları da oyuncular arasında paylaşılıyor: meydandan çıkıp
+    // girince avatar çoğalmasın, bellek büyümesin (bkz. karakterGorsel.js).
+    karakterDokulariniTemizle();
     render.dispose();
     render.forceContextLoss?.();
     if (render.domElement.parentNode) render.domElement.parentNode.removeChild(render.domElement);
