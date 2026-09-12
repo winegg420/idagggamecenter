@@ -46,12 +46,12 @@ export function titret(desen) {
 
 /**
  * 1v1 / grup / turnuva puan formülü — sunucudaki hesabın birebir aynısı:
- *   dogru ise 10 + clamp(0..15, ceil(kalan + 1)), değilse 0
- * Sunucu RPC'leri kazanılan puanı geri döndürmüyor; uçan "+16" rozetini
- * çizebilmek için istemci aynı formülü uygular. Skorun kendisi her zaman
- * sunucudan gelir; bu yalnız gösterimdir.
+ *   doğru ise 10, değilse 0.
+ *
+ * Hız bonusu KALDIRILDI (migration 143): refleks bilgiyi bastırıyordu.
+ * `kalanSn` imza uyumu için duruyor, puana etki etmiyor. Skorun kendisi her
+ * zaman sunucudan gelir; bu yalnız uçan "+10" rozeti içindir.
  */
 export function macPuani(kalanSn, dogru) {
-  if (!dogru) return 0;
-  return 10 + Math.max(0, Math.min(15, Math.ceil(kalanSn + 1)));
+  return dogru ? 10 : 0;
 }

@@ -8,9 +8,9 @@ const KARTLAR = [
     poz: "selam",
     baslik: "Nasıl oynanır?",
     metin:
-      "20 soruluk kapışmalarda rakibinle yarışırsın. Doğru cevap kadar hız da " +
-      "puan getirir. Sıra beklemek yok — sen istediğin zaman oynarsın, rakibin " +
-      "de kendi zamanında.",
+      "20 soruluk kapışmalarda rakibinle yarışırsın. Her doğru cevap 10 puan — " +
+      "hızlı basmak fark etmez, bilmek yeter. Sıra beklemek yok: sen istediğin " +
+      "zaman oynarsın, rakibin de kendi zamanında.",
     tema: "tema-meydan",
   },
   {
