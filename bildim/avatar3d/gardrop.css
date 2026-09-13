@@ -72,3 +72,13 @@
   .kategori-serit{top:45dvh}
   .yuva-bolum{scroll-margin-top:calc(45dvh + 58px)}
 }
+
+/* ---- Renk kategorileri (ayrı "Karakter" sekmesi kalktı) ---- */
+.yuva-bolum .renkler{display:flex;gap:10px;flex-wrap:wrap}
+.renk-yuvarlak{
+  width:44px;height:44px;border-radius:50%;padding:0;
+  border:3px solid #2b3342;cursor:pointer;
+}
+.renk-yuvarlak.takili{border-color:#e4bb76;transform:scale(1.08)}
+.yuva-bolum .kimlikler{grid-template-columns:repeat(auto-fill,minmax(104px,1fr));margin-bottom:0}
+.yuva-bolum .kimlikler button{min-height:44px}

@@ -51,6 +51,14 @@ export const CERCEVE={
  tamboy:{fov:30,konum:[0,2.60,9.20],bak:[0,2.00,0]},
  sirt:  {fov:30,konum:[0,2.70,-9.20],bak:[0,2.00,0]},  // hafif geriden: sırt görünsün
 };
+// Kart görselleri için çerçeveler (eşya tek başına / manken üstünde).
+// Kamera değerleri TEK YERDE dursun ki ileride ayarlamak kolay olsun.
+CERCEVE.esya_bas     = { fov: 26, konum: [0, 3.80, 2.70], bak: [0, 3.66, 0] };
+CERCEVE.esya_gozluk  = { fov: 22, konum: [0, 3.24, 2.10], bak: [0, 3.22, 0] };
+CERCEVE.esya_pelerin = { fov: 28, konum: [0, 2.35, -3.60], bak: [0, 2.20, 0] };
+CERCEVE.manken_sac   = { fov: 24, konum: [0, 3.30, 3.90], bak: [0, 3.18, 0] };
+CERCEVE.manken_kiyafet = { fov: 26, konum: [0, 2.05, 4.60], bak: [0, 1.95, 0] };
+
 const YUVA_CERCEVE={sac:'bas',bas:'bas',gozluk:'bas',kiyafet:'govde',pelerin:'sirt'};
 
 /**
@@ -77,6 +85,167 @@ export function parcaPortresi(temelGorunum,parca,boyut=192){
  }catch(e){console.error('[Portre] parca portresi uretilemedi:',parca?.deger,e);return null;}
  // Model her render sonrası atılır: sahnede avatar birikmesin.
  finally{if(model)modelYokEt(model);}
+}
+
+
+// ============================================================
+// EŞYA PORTRESİ — kartta EŞYANIN KENDİSİ görünür
+//
+// Sahibinin isteği: "Sadece ekipmanın kendisi çıplak bir şekilde
+// gözükecek." Kartlar eskiden parçayı karakterin üstünde gösteriyordu;
+// artık:
+//
+//   bas / gozluk / pelerin  → YALNIZ eşya, karakter yok
+//   sac / kiyafet           → yüzsüz GRİ MANKEN üzerinde
+//
+// Gerekçe (sahibinin): saç ve kıyafet tek başına anlaşılmıyor (havada
+// duran saç, düz tişört); aksesuarlar tek başına net.
+//
+// Aynı paylaşılan renderer kullanılır, ikinci WebGL bağlamı açılmaz.
+// ============================================================
+
+/** Bu yuva için manken gerekiyor mu? */
+const MANKEN_GEREKEN = { sac: true, kiyafet: true };
+
+/** Kartta hangi çerçeve kullanılacak. */
+const ESYA_CERCEVE = {
+  bas:     'esya_bas',
+  gozluk:  'esya_gozluk',
+  pelerin: 'esya_pelerin',
+  sac:     'manken_sac',
+  kiyafet: 'manken_kiyafet',
+};
+
+/** Alt ağaçtaki bütün mesh'leri gizler. */
+function gizle(kok) {
+  if (!kok) return;
+  kok.traverse((o) => { if (o.isMesh || o.isSkinnedMesh) o.visible = false; });
+}
+
+/**
+ * Alt ağaçtaki mesh'leri MODELİN KENDİ KARARINA göre geri açar.
+ *
+ * Zorla açmak hataya yol açıyordu: tişört seçiliyken ceket parçaları da
+ * görünüyor, "Tişört" kartında ceket çıkıyordu. Model kurulurken hangi
+ * parçanın görüneceğine zaten karar veriyor (`ceketParcalari` tişörtte
+ * visible=false); o karar `ilkDurum`da saklanıp burada geri yükleniyor.
+ */
+function geriAc(kok, ilkDurum) {
+  if (!kok) return;
+  kok.traverse((o) => {
+    if (o.isMesh || o.isSkinnedMesh) o.visible = ilkDurum.get(o) === true;
+  });
+}
+
+/**
+ * Ten renkli mesh'leri düz griye çevirir (yüzsüz manken hissi).
+ * Malzeme KLONLANIR; paylaşılan malzemeye dokunulmaz. Klonlar
+ * `atilacak` listesine konur ve render sonrası dispose edilir.
+ */
+function mankenlestir(model, tenRenk, atilacak) {
+  const ten = new T.Color(tenRenk);
+  // Koyu gri: acik renkli kiyafet (beyaz tisort) mankenle karismasin.
+  const gri = new T.Color('#6f747c');
+  model.traverse((o) => {
+    if (!(o.isMesh || o.isSkinnedMesh) || !o.material || !o.material.color) return;
+    if (!o.material.color.equals(ten)) return;
+    const m = o.material.clone();
+    m.color.copy(gri);
+    o.material = m;
+    atilacak.push(m);
+  });
+}
+
+/**
+ * Kart görseli: eşyanın kendisi (gerekirse manken üzerinde).
+ *
+ * @param {object} temelGorunum oyuncunun o anki görünümü (renkler buradan)
+ * @param {object} parca        envanter.js parçası: {yuva, deger}
+ * @param {number} [boyut=192]  kare kenarı (px)
+ * @returns {string|null} PNG data URI
+ */
+export function esyaPortresi(temelGorunum, parca, boyut = 192) {
+  const yuva = parca?.yuva;
+  if (!yuva) return null;
+  const manken = Boolean(MANKEN_GEREKEN[yuva]);
+  const cerceveAdi = ESYA_CERCEVE[yuva] || 'tamboy';
+  const c = CERCEVE[cerceveAdi];
+  if (!c) return null;
+
+  // Eşya kendi rengiyle çizilsin diye görünüm renkleri korunur; yuva
+  // değeri parçanın kendisi olur.
+  const ayar = ayarDogrula({ ...(temelGorunum || {}), [yuva]: parca.deger });
+  // Önbellek anahtarında YUVA ve MANKEN bayrağı da var: aynı görünüm
+  // farklı yuvalar için farklı kart üretir.
+  const key = 'esya|' + yuva + '|' + (manken ? 'm' : 'y') + '|'
+            + JSON.stringify(ayar) + '|' + boyut;
+  if (kayitlar.has(key)) { const v = kayitlar.get(key); kayitlar.delete(key); kayitlar.set(key, v); return v; }
+
+  let model = null;
+  const atilacak = [];
+  try {
+    const r = makine();
+    r.setSize(boyut, boyut, false);
+    const sahne = new T.Scene();
+    const kamera = new T.PerspectiveCamera(c.fov, 1, .1, 40);
+    kamera.position.set(...c.konum);
+    kamera.lookAt(...c.bak);
+    sahne.add(new T.HemisphereLight(0xffffff, 0x57647b, 2.3));
+    const isik = new T.DirectionalLight(0xffead0, 3);
+    isik.position.set(3, 6, 5);
+    sahne.add(isik);
+
+    model = modelKur(ayar);
+    const u = model.userData;
+
+    // Modelin kendi görünürlük kararını sakla (hangi kıyafet parçası açık).
+    const ilkDurum = new Map();
+    model.traverse((o) => {
+      if (o.isMesh || o.isSkinnedMesh) ilkDurum.set(o, o.visible);
+    });
+
+    // Önce HER ŞEYİ gizle, sonra yalnız gerekeni geri aç.
+    gizle(model);
+
+    const yuvaKok = { sac: u.sacYuva, gozluk: u.gozlukYuva, bas: u.basYuva,
+                      kiyafet: u.elbiseYuva, pelerin: u.capeRoot }[yuva];
+    geriAc(yuvaKok, ilkDurum);
+
+    if (yuva === 'kiyafet') {
+      // Kıyafet üç yere dağılmış: etek (elbiseYuva), üst (elbiseUst) ve
+      // ceket parçaları. Hangisinin görüneceğine model karar verdi.
+      geriAc(u.elbiseUst, ilkDurum);
+      for (const parcasi of u.ceketParcalari || []) geriAc(parcasi, ilkDurum);
+      // Manken gövde + kollar; kafa KAPALI kalır (yüzsüz).
+      geriAc(u.govde, ilkDurum);
+      gizle(u.kafa);
+      mankenlestir(model, ayar.ten, atilacak);
+    } else if (yuva === 'sac') {
+      // Saç kafanın üstünde durur; kafa gri manken olarak açılır ama
+      // YÜZ DETAYLARI kapalı kalır. Ad listesi modelden ölçüldü:
+      // Goz, Iris, GozBebegi, GozIsigi, Kas, UstGozKapagi, Burun, Gulumseme,
+      // Kulak, KulakIci. ("Gulumseme" = ağız; ilk denemede kaçmıştı.)
+      geriAc(u.kafa, ilkDurum);
+      u.kafa.traverse((o) => {
+        if (!(o.isMesh || o.isSkinnedMesh)) return;
+        if (/Goz|Iris|Bebek|Kas|Kapak|Kulak|Burun|Gulumseme|Agiz|Dudak|Kirpik/i.test(o.name || '')) {
+          o.visible = false;
+        }
+      });
+      geriAc(u.sacYuva, ilkDurum);
+      mankenlestir(model, ayar.ten, atilacak);
+    }
+
+    sahne.add(model);
+    r.render(sahne, kamera);
+    return onbellegeYaz(key, r.domElement.toDataURL('image/png'));
+  } catch (e) {
+    console.error('[Portre] esya portresi uretilemedi:', parca?.deger, e);
+    return null;
+  } finally {
+    for (const m of atilacak) { try { m.dispose(); } catch { /* yut */ } }
+    if (model) modelYokEt(model);
+  }
 }
 
 /** Sayfadan çıkarken WebGL bağlamı bırakılsın. */

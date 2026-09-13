@@ -1,5 +1,5 @@
 // ============================================================
-// PARÇA PORTRESİ KARTI — gardırop listesindeki küçük resim
+// EŞYA KARTI GÖRSELİ — kartta eşyanın KENDİSİ görünür
 //
 // Sayfada zaten canlı 3B sahne dönüyor ve altbilgide FPS yazıyor. 12 portreyi
 // birden üretirsek sahne takılır; iki fren var:
@@ -15,7 +15,7 @@
 // PNG, hareket değil.
 // ============================================================
 import React,{useEffect,useRef,useState} from 'react';
-import {parcaPortresi} from './portre.js';
+import {esyaPortresi} from './portre.js';
 
 // Kuyruk PAYLAŞILIR (portre-kuyrugu.js): listelerdeki avatarlar da aynı
 // kuyruğu kullanır, toplam yük kare başına bir render olarak kalır.
@@ -31,7 +31,10 @@ export default function ParcaPortresi({gorunum,parca,boyut=192}){
  const kutuRef=useRef(null);
  const [kaynak,setKaynak]=useState(null);
  // Portrenin tam olarak neye baktığı: görünüm + bu parça.
- const anahtar=JSON.stringify({...(gorunum||{}),[parca.yuva]:parca.deger});
+ // Kart artik EŞYANIN KENDİSİNİ gösteriyor; anahtar yuva + değer +
+ // renkler (eşyanın kendi rengi görünümden geliyor).
+ const anahtar=JSON.stringify({y:parca.yuva,d:parca.deger,
+  ten:gorunum?.ten,sacRenk:gorunum?.sacRenk,ceketRenk:gorunum?.ceketRenk});
 
  useEffect(()=>{
   let atildi=false;
@@ -43,7 +46,7 @@ export default function ParcaPortresi({gorunum,parca,boyut=192}){
   // Kuyruk zaten kare başına tek portre üretiyor; asıl fren o.
   siraya(()=>{
    if(atildi)return;
-   const veri=parcaPortresi(gorunum,parca,boyut);
+   const veri=esyaPortresi(gorunum,parca,boyut);
    if(!atildi&&veri)setKaynak(veri);
   });
   return()=>{atildi=true;};
