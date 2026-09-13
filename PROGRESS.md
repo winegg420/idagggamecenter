@@ -3926,3 +3926,39 @@ eski hâline dönünce sayfalar dist'e hiç girmedi.
   yürüme, zıplama, 14 dans, görünüm değişimi ve bellek bırakma burada
   ölçülüyor.
 - `CLAUDE.md` + `AGENTS.md`: derleme ayarı uyarısı eklendi.
+
+## 13 Eylül 2026 (2) — Tek karakter sistemi: 3B her yerde
+
+**Şikayet:** "Görünüm sayfasında hâlâ eski görsellerimiz var. Oyun başında
+seçilen avatar eski görseller — meydanda çıkan görseller değil."
+
+**Kök sebep (ölçüldü):** depoda üç avatar sistemi birden canlıydı —
+(A) 31 düz SVG ikon (kurulum sihirbazı), (B) 2B PatiRun karakterleri
+(`bildim/karakter/`), (C) Codex'in 3B sistemi. `src/components/Avatar.jsx`
+(18 dosyada kullanılıyor) yalnız B ve A'ya bakıyordu; C hiç yoktu.
+
+- **Migration 165:** `avatar3d_parcalar` (12 parça), `avatar3d_sahip`,
+  RPC'ler (`_katalogum`, `_satin_al`, `_gorunum_kaydet`, `_portre_kaydet`,
+  `_odul_ver`, `_dogrula`). Taç ve Pelerin satılmaz. 85 bota deterministik
+  görünüm, 85'i de farklı, hiçbiri taç/pelerin takmıyor.
+- **Migration 166 — iade:** 2B'de ücretli alım **hiç yoktu** (tüm 2B
+  kayıtlar `kaynak='baslangic'`). Eski 3B kozmetiklerde 2 hesap / 450 coin
+  iade edildi. Sahiplik kayıtları silinmedi.
+- **Migration 167/170:** görünüm kaydedince `avatar_onayli` de true olur;
+  `avatar3d_rastgele_baslangic` (sihirbazı atlayan engellenmesin).
+- **Migration 168/169:** bot portreleri için dar Storage kuralı.
+  168'in ilk hâli `profiles`'ı doğrudan sorguladığı için
+  "permission denied" veriyordu — kontrol `security definer` yardımcıya
+  taşındı. **Ders:** RLS politikası çağıranın rolüyle çalışır.
+- **Avatar.jsx yeni sırası:** `portre_url` (düz img) → `avatar3d` (tembel
+  WebGL) → baş harf. 2B yol çıktı. three.js dinamik import: portresi olan
+  oyuncu için ana pakete girmiyor.
+- **Portre PNG'si:** gardıropta kaydederken bir kez üretilip Storage'a
+  yükleniyor. 85 bot portresi de bir kez üretildi (31 sn).
+  **Ölçüm:** lig tablosu 26 satır → 0 WebGL render, 0 canvas.
+- **Eski SVG ikonlar:** Avatar.jsx artık `/avatars/kNN.svg` göstermiyor.
+  Lig tablosunda 8 taneydi, şimdi 0. Dosyalar silinmedi.
+- **Meydan kapısı:** `gorunum.avatar3d` yoksa meydan açılmıyor.
+- **Bilinen boşluk:** dans satın alma eski görünüm sayfasındaydı, o sayfa
+  arayüzden çıktı. Sahip olunan danslar çalışıyor, yeni dans alınamıyor —
+  dansın yeni evi ayrı bir karar.
