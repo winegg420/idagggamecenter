@@ -28,6 +28,20 @@ canlıdaki 3B sayfalar silindi ve yanlış sistem geliştirildi.
 
 **Commit edilmemiş iş bırakma.** Yarım kalsa bile commit et.
 
+### iOS Safari kontrolü — her arayüz değişikliğinden sonra
+
+**Her arayüz değişikliğinden sonra iOS Safari kontrolü yapılır.**
+Özellikle sabitlenmiş alt menü ve üst çubuk, sayfa aşağı-yukarı
+kaydırılırken test edilir. `position: fixed` ile `transform` **aynı öğede
+kullanılmaz**; yükseklikte `100vh` yerine `100dvh` tercih edilir.
+
+Sebep: iOS'ta bu ikisi birlikte sabitlemeyi bozar ve daralıp genişleyen
+adres çubuğuyla birleşince menü kaydırma sırasında yerinden oynar.
+13 Eyl 2026'da `.tabbar` bu yüzden "sayfayı bölüyordu".
+Aynı tuzak **atalarda** da geçerlidir: `transform`, `filter`,
+`perspective` ya da transform'lu bir animasyon içeren bir ata, içindeki
+`position: fixed` katmanları kendine göre konumlandırır.
+
 ### Yayın
 Canlıya çıkış **yalnız GitHub üzerinden** olur (push → Vercel derler).
 **Vercel'e doğrudan kaynak dağıtımı yapılmaz.** Öyle bir dağıtım, bir

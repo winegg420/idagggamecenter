@@ -76,9 +76,19 @@ button, a, .secenek {
   border-radius: 999px; padding: 6px 12px; font-weight: 700; font-size: 14px;
 }
 
-/* ---------- Alt menü ---------- */
+/* ---------- Alt menü ----------
+   iOS SAFARI TUZAĞI — `position: fixed` ile `transform` AYNI ÖĞEDE
+   KULLANILMAZ. Eskiden ortalama `left: 50% + translateX(-50%)` ile
+   yapılıyordu; iOS'ta bu ikisi birlikte sabitlemeyi bozuyor ve sayfa
+   aşağı-yukarı kaydırılırken menü yerinden oynayıp "sayfayı bölüyor"
+   görüntüsü veriyordu (sahibinin iPhone'unda ölçüldü, 13 Eyl 2026).
+   Ortalama artık `left/right: 0 + margin-inline: auto` ile yapılıyor —
+   transform yok, containing block bozulmuyor.
+   Aynı sebeple atalarda da transform/filter/perspective olmamalı
+   (bkz. bildim/styles/tema.css › sayfa geçişi keyframe'i). */
 .tabbar {
-  position: fixed; bottom: 0; left: 50%; transform: translateX(-50%);
+  position: fixed; bottom: 0; left: 0; right: 0;
+  margin-inline: auto;
   width: 100%; max-width: 540px;
   display: flex; justify-content: space-around;
   background: rgba(19, 28, 49, 0.95);
