@@ -1,0 +1,18 @@
+{
+  "aciklama": "Yalnız yerel deneme cüzdanı. Yeni parçaların fiyatları yayın kararı değildir.",
+  "bakiye": 5000,
+  "parcalar": [
+    {"id":"sac_kisa","fiyat":0},
+    {"id":"sac_uzun","fiyat":500},
+    {"id":"sac_rasta","fiyat":600},
+    {"id":"ust_tisort","fiyat":0},
+    {"id":"ust_ceket","fiyat":2200},
+    {"id":"ust_gelinlik","fiyat":2000},
+    {"id":"bas_kep","fiyat":0},
+    {"id":"bas_bere","fiyat":300},
+    {"id":"bas_tac","fiyat":null,"odul":true},
+    {"id":"bas_duvak","fiyat":500},
+    {"id":"goz_gunes","fiyat":450},
+    {"id":"sirt_pelerin","fiyat":null,"odul":true}
+  ]
+}

@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "build:bildim": "vite build --mode bildim",
+    "build:bildim": "vite build --mode bildim --config bildim/avatar3d/vite.prototip.config.js",
     "preview": "vite preview",
     "test:bildim": "node bildim/_test/joker-kurallari-test.mjs",
     "uyumluluk": "node araclar/tarayici-uyumluluk.mjs",

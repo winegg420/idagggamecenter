@@ -1,0 +1,4 @@
+/* Karakter ile kamera/animasyon kontrolleri aynı alanı örtmesin. */
+.atolye .gosterim{background:#151a23;position:sticky;top:0;align-self:start;height:calc(100dvh - 80px);min-height:700px;max-height:900px}
+.atolye .gosterim .sahne{inset:160px 0 92px}
+@media(max-width:760px){.atolye .gosterim{position:relative;height:760px;min-height:0}.atolye .gosterim .sahne{inset:168px 0 112px}.sahne-baslik h1{font-size:25px}.hareketler{gap:5px}.hareketler button{font-size:12px;padding:10px}}
