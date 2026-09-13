@@ -6,6 +6,44 @@ proje rehberidir. **Her oturuma başlarken oku.**
 Claude Code kullanıcısıysan `CLAUDE.md` de aynı içeriği taşır; ikisi
 senkron tutulur. Bir kural değişirse **ikisini birden güncelle**.
 
+## ÇALIŞMA KLASÖRÜ — TEK KURAL
+
+Bu depoda **yalnız tek bir çalışma klasörü** vardır:
+`C:UsersidaDesktopidagggamecenter`
+
+Codex, Claude Code ve diğer tüm araçlar **bu klasörde** çalışır.
+Ayrı worktree, ayrı kopya, `DocumentsCodex...` altında klasör **açılmaz**.
+13 Eyl 2026'da ayrık worktree yüzünden 26 commitlik iş görünmez oldu,
+canlıdaki 3B sayfalar silindi ve yanlış sistem geliştirildi.
+(O klasörlerden kurtarılan iş: `arsiv/OKU.md`.)
+
+### Her oturumun başı
+1. `git pull` — başka araç ne yaptıysa al.
+2. `git log --oneline -5` — son ne olmuş, gör.
+3. `PROGRESS.md`'nin sonunu oku.
+
+### Her oturumun sonu
+1. `npm run build` hatasız.
+2. Commit et (Türkçe mesaj), **`main`'e push et**.
+3. `PROGRESS.md`'ye ne yapıldığını ekle.
+
+**Commit edilmemiş iş bırakma.** Yarım kalsa bile commit et.
+
+### Yayın
+Canlıya çıkış **yalnız GitHub üzerinden** olur (push → Vercel derler).
+**Vercel'e doğrudan kaynak dağıtımı yapılmaz.** Öyle bir dağıtım, bir
+sonraki normal push'ta sessizce silinir — 13 Eyl'de tam olarak bu oldu.
+
+### Aynı anda çalışma
+Aynı anda **tek araç** çalışır. Codex çalışırken Claude Code'a görev
+verilmez, tersi de geçerli. Biri işini bitirip push etmeden diğeri başlamaz.
+
+### İki Vercel projesi
+Bu depo iki projeyi besler: `idagg-game-center` (hub) ve `quizsquare`.
+Ayrımı **`VITE_MOD`** env değişkeni yapar (quizsquare'de `bildim`, hub'da
+tanımsız). `vercel.json`'daki `buildCommand` **moda özel olmamalıdır**.
+Ayrıntı: aşağıdaki "İKİ VERCEL PROJESİ" bölümü.
+
 ## Proje
 
 **IDA GG Game Center** — birçok oyunu tek çatı altında toplayan oyun

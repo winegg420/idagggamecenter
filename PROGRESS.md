@@ -4113,3 +4113,30 @@ yayınlanan HTML ve paketlerinde `idaGG` dizesi **0 kez** geçiyor.
 Küçük ders: kök `index.html`'e koyduğum açıklama yorumu Quiz Square'in
 yayınlanan HTML'ine de sızıyordu (yorumlar derlemede korunuyor).
 Açıklama işi yapan yere, `vite.config.js`'teki eklentinin başına taşındı.
+
+## 14 Eylül 2026 (2) — Ayrık çalışma klasörleri kapatıldı
+
+**Sorun:** Codex `Documents\Codex\2026-09-12\...\work\` altında çalışmıştı.
+`quizsquare-yayin` bir git worktree'siydi (HEAD `3ef8ecf`, bugünkü
+`main`'den 26 commit geride); `quizsquare` ise git'e **hiç bağlı olmayan**
+sıradan bir kopyaydı. 13 Eylül'deki üç arıza bu ayrıklıktan çıktı:
+Codex'in işi GitHub'a girmedi, push canlıdaki 3B sayfaları sildi, görev
+metni o klasörün dosya adlarını kullandığı için yanlış sistem geliştirildi.
+
+**Yapılan:**
+1. İki klasördeki commit edilmemiş iş `arsiv/` altına alındı ve commit
+   edildi (`b916855`). `quizsquare` kopyasında **git geçmişinde hiç yer
+   almamış** iki dosya çıktı: `bildim/styles/square.css` (181 satırlık
+   görsel katman denemesi) ve `DEVAM_TASARIM.md`. Notunda *"kullanıcı
+   tasarımı görüp beğenmeden push ve yayın YAPILMAYACAK"* yazdığı için
+   uygulanmadı, yalnız saklandı — karar sahibinin.
+2. `git worktree remove --force` + `prune`. Artık `git worktree list`
+   yalnız `Desktop\idagggamecenter` gösteriyor; iki klasörde de
+   `git status` "not a git repository" diyor. Dosyalar diskte duruyor.
+3. `CLAUDE.md` + `AGENTS.md`'nin **en üstüne** "ÇALIŞMA KLASÖRÜ — TEK
+   KURAL" bölümü: tek klasör, oturum başı `git pull`, oturum sonu commit
+   + push, yayın yalnız GitHub üzerinden, aynı anda tek araç.
+
+**Ders:** Git worktree'si ayrı bir klasörde ayrı bir HEAD tutar; oradaki
+iş `main`'de görünmez ve `git status` ana klasörde temiz görünür. İki
+aracın aynı depoda çalıştığı yerde worktree kullanılmaz.
