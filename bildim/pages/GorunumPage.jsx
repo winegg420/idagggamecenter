@@ -13,11 +13,14 @@
 //
 // 3B kısım LAZY yüklenir: sayfayı açmayan oyuncu three.js indirmez.
 // ============================================================
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "../../src/lib/supabase.js";
 import { useAuth } from "../../src/context/AuthContext.jsx";
 import Ikon from "../components/Ikon.jsx";
+import EsyaPortresi from "../components/EsyaPortresi.jsx";
+import { esyaBilgisi } from "../harita/esyalar.js";
+import { portreMakinesiniKapat } from "../harita/portre.js";
 import { hataMesaji } from "../lib/hata.js";
 import { coinTazele, coinHatasi } from "../lib/coin.js";
 import { nadirligiUnut } from "../lib/nadirlik.js";
@@ -116,6 +119,23 @@ export default function GorunumPage() {
     // Sahne BİR KEZ kurulur; kıyafet değişimi guncelle() ile yapılır.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [gorunum !== null, katalog.length]);
+
+  // ---------- kart küçük resimleri ----------
+  // Küçük resimler eşyanın OYUNCUNUN KENDİ karakteri üstünde nasıl durduğunu
+  // gösterir; bu yüzden ten/saç rengine bağlılar.
+  const bilgiTablosu = useMemo(() => esyaBilgisi(katalog), [katalog]);
+
+  // Renk paletinde gezerken her tıklamada 12 render yapılmasın: temel görünüm
+  // ~250 ms geciktirilir, küçük resimler o durulduktan sonra yenilenir.
+  const [portreTemeli, setPortreTemeli] = useState(null);
+  useEffect(() => {
+    if (gorunum === null) return undefined;
+    const zaman = setTimeout(() => setPortreTemeli(gorunum), 250);
+    return () => clearTimeout(zaman);
+  }, [gorunum]);
+
+  // Sayfadan çıkarken portre renderer'ının WebGL bağlamı bırakılsın.
+  useEffect(() => () => portreMakinesiniKapat(), []);
 
   // ---------- değişiklikler ----------
   const yuvaDegistir = (kod) => {
@@ -274,18 +294,27 @@ export default function GorunumPage() {
             return yeni;
           })}
         >
-          <span className="bd-esya-gorsel"><Ikon ad="carpi" boyut={20} /></span>
+          <span className="bd-esya-gorsel bd-esya-bos"><Ikon ad="carpi" boyut={22} /></span>
           <span className="bd-esya-ad">Yok</span>
+          <span className="bd-esya-fiyat bd-esya-durum">
+            {secili === null ? "Üzerinde" : "Yuvayı boşalt"}
+          </span>
         </button>
         )}
 
         {liste.map((e) => {
           const sahipMi = sahip.includes(e.kod);
           const alinabilir = e.coin_fiyat != null;
+          // Ödül eşyası: coin ile satılmaz, yalnız turnuvadan gelir.
+          const odul = !sahipMi && !alinabilir;
+          const takili = secili === e.kod;
           return (
             <button
               key={e.kod}
-              className={"bd-esya" + (secili === e.kod ? " secili" : "") + (sahipMi ? "" : " kilitli")}
+              className={"bd-esya" + (takili ? " secili takili" : "") + (sahipMi ? "" : " kilitli")
+                + (odul ? " bd-esya-odul" : "")}
+              aria-pressed={sahipMi && !aktifYuva.giyilmez ? takili : undefined}
+              aria-label={`${e.ad}${sahipMi ? (takili ? " — üzerinde" : "") : (alinabilir ? ` — ${e.coin_fiyat} coin` : " — turnuva ödülü, kilitli")}`}
               onClick={() => {
                 if (!sahipMi) { if (alinabilir) satinAl(e.kod); return; }
                 if (aktifYuva.giyilmez) dansiGoster(e.kod);
@@ -293,17 +322,32 @@ export default function GorunumPage() {
               }}
               disabled={alinan === e.kod}
             >
-              <span className="bd-esya-gorsel" style={{ background: e.varsayilan_renk ?? "#DDE7F0" }}>
-                {!sahipMi && <Ikon ad="kilit" boyut={16} />}
-              </span>
-              <span className="bd-esya-ad">{e.ad}</span>
-              {!sahipMi && (
-                <span className="bd-esya-fiyat">
-                  {alinabilir
-                    ? <><Ikon ad="coin" boyut={12} /> {Number(e.coin_fiyat).toLocaleString("tr-TR")}</>
-                    : "Etkinlik ödülü"}
+              {/* Parçanın oyuncunun kendi karakteri üstündeki görüntüsü */}
+              {portreTemeli
+                ? <EsyaPortresi
+                    gorunum={portreTemeli}
+                    yuva={yuva}
+                    kod={e.kod}
+                    bilgi={bilgiTablosu}
+                  />
+                : <span className="bd-esya-gorsel"><span className="bd-esya-iskelet" aria-hidden="true" /></span>}
+
+              {/* Ödül eşyasında kilit rozeti — görsel yine de görünür */}
+              {odul && (
+                <span className="bd-esya-kilit" aria-hidden="true">
+                  <Ikon ad="kilit" boyut={13} />
                 </span>
               )}
+
+              <span className="bd-esya-ad">{e.ad}</span>
+
+              <span className={"bd-esya-fiyat" + (sahipMi ? " bd-esya-durum" : "")}>
+                {sahipMi
+                  ? (takili ? "Üzerinde" : "Sahipsin")
+                  : (alinabilir
+                      ? <><Ikon ad="coin" boyut={12} /> {Number(e.coin_fiyat).toLocaleString("tr-TR")}</>
+                      : "Turnuva ödülü")}
+              </span>
             </button>
           );
         })}

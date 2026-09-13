@@ -66,13 +66,14 @@
 
 /* ---- eşya ızgarası ---- */
 .bd-esya-grid {
-  display: grid; grid-template-columns: repeat(auto-fill, minmax(94px, 1fr));
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
   gap: 10px; margin-bottom: 14px;
 }
 .bd-esya {
+  position: relative;
   border: 0; cursor: pointer; text-align: center;
   display: flex; flex-direction: column; align-items: center; gap: 5px;
-  padding: 10px 6px; border-radius: 16px;
+  padding: 10px 8px; border-radius: 16px;
   background: var(--bd-yuzey-1);
   box-shadow: 0 4px 0 var(--bd-kart-alt);
   font-family: var(--bd-f-govde); font-weight: 800; font-size: 12px;
@@ -85,19 +86,49 @@
   outline-offset: -3px;
 }
 .bd-esya.kilitli .bd-esya-ad { color: var(--bd-metin-2); }
+/* Takılı kartın çerçevesi daha da belirgin olsun. */
+.bd-esya.takili { box-shadow: 0 4px 0 var(--bd-vurgu); }
+
+/* ---- kart görseli ----
+   Kartın belirleyici öğesi görsel: metinden önce ve büyük gelir. Kutunun
+   boyu baştan sabit (aspect-ratio: 1) ki portre gelince düzen zıplamasın. */
 .bd-esya-gorsel {
-  width: 46px; height: 46px; border-radius: 14px;
-  display: grid; place-items: center;
-  background: #DDE7F0; color: #fff;
+  /* min-height: aspect-ratio'yu bilmeyen eski Safari'de kutu çökmesin. */
+  width: 100%; aspect-ratio: 1; min-height: 92px; border-radius: 14px;
+  display: grid; place-items: center; overflow: hidden;
+  background: var(--bd-yuzey-2, #DDE7F0); color: var(--bd-metin-2);
 }
-.bd-esya.kilitli .bd-esya-gorsel { filter: grayscale(0.55) brightness(0.9); }
+.bd-esya-gorsel img {
+  width: 100%; height: 100%; object-fit: contain; display: block;
+  -webkit-user-select: none; user-select: none;
+}
+.bd-esya-bos { color: var(--bd-metin-2); }
+/* Portre hazır olana kadar duran iskelet */
+.bd-esya-iskelet {
+  width: 100%; height: 100%;
+  background: linear-gradient(180deg,
+    rgba(255, 255, 255, 0.10), rgba(255, 255, 255, 0.02));
+}
+.bd-esya.kilitli .bd-esya-gorsel { filter: grayscale(0.35) brightness(0.95); }
+/* Ödül eşyası soluk ama GÖRÜNÜR: oyuncu neyin peşinde koşacağını görmeli. */
+.bd-esya-odul .bd-esya-gorsel img { opacity: 0.65; }
+.bd-esya-kilit {
+  position: absolute; top: 14px; right: 14px;
+  width: 24px; height: 24px; border-radius: 50%;
+  display: grid; place-items: center;
+  background: rgba(32, 50, 74, 0.78); color: #fff;
+}
 .bd-esya-ad { line-height: 1.25; }
 .bd-esya-fiyat {
   display: inline-flex; align-items: center; gap: 3px;
   font-family: var(--bd-f-baslik); font-weight: 900; font-size: 11.5px;
   color: var(--bd-odul-metin);
 }
+/* "Sahipsin" / "Üzerinde" fiyat değil, durum: vurgu rengine girmesin. */
+.bd-esya-durum { color: var(--bd-metin-2); }
+.bd-esya.takili .bd-esya-durum { color: var(--bd-vurgu); }
 :root[data-tema="koyu"] .bd-esya-fiyat { color: var(--bd-odul); }
+:root[data-tema="koyu"] .bd-esya-durum { color: var(--bd-metin-2); }
 
 /* ---- renk paleti ---- */
 .bd-palet-kart { margin-bottom: 12px; }
@@ -120,7 +151,8 @@
 
 @media (max-width: 400px) {
   .bd-gorunum-sahne-kutu { height: 260px; }
-  .bd-esya-grid { grid-template-columns: repeat(auto-fill, minmax(86px, 1fr)); }
+  /* Telefonda 2 sütun: 3. sütun sığmasın diye taban 120px. */
+  .bd-esya-grid { grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); }
 }
 
 /* ============================================================
