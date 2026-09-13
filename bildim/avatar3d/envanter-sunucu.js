@@ -11,8 +11,12 @@ export function sunucuServisi(supabase){
     // `kurulmus`: oyuncu daha önce karakterini kaydetti mi. Yeni oyuncuda
     // görünüm TEMEL'e eşit olur ve "değişiklik yok" sanılıp Kaydet düğmesi
     // kapalı kalırdı — o zaman karakter hiç kurulamıyordu.
+    // `bedavaTest`: test dönemi anahtarı (oyun_ayarlari.kozmetik_bedava_test).
+    // Sunucunun sözü; arayüz buna bakarak "Ücretsiz" yazar. Kararı yine
+    // sunucu veriyor, bu alan yalnız görüntü içindir.
     return {katalog,bakiye,sahip:katalog.filter(p=>p.sahip).map(p=>p.id),
-      gorunum:ayarDogrula(s.avatar3d_gorunum||TEMEL),kurulmus:s.avatar3d_gorunum!=null};
+      gorunum:ayarDogrula(s.avatar3d_gorunum||TEMEL),kurulmus:s.avatar3d_gorunum!=null,
+      bedavaTest:s.bedava_test===true};
   }
   return {yukle,
     async satinAl(id){await rpc('avatar3d_satin_al',{p_id:id});return yukle();},

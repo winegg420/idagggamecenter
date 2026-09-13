@@ -65,7 +65,13 @@ export function sahneKur(kapsayici, ayar, rapor = () => {}) {
     }
     if(mod!=='dur')hareket(model,t,hareketMod);
     if(dondur)model.rotation.y+=dt*.35;
-    kontrol.update();render.render(sahne,kamera);kareSay++;ilkKareCizildi=true;
+    kontrol.update();render.render(sahne,kamera);kareSay++;
+    if(!ilkKareCizildi){
+      ilkKareCizildi=true;
+      // İlk kare gizliyken çizildiyse durumu HEMEN bildir: sonraki kare
+      // gelmeyeceği için altbilgi yoksa sonsuza kadar "Ölçülüyor…" kalır.
+      if(document.hidden&&!gizliBildirildi){gizliBildirildi=true;rapor({gizli:true});}
+    }
     if(now-olcum>=1500){rapor({fps:Math.round(kareSay*1000/(now-olcum)),ucgen:render.info.render.triangles,cagri:render.info.render.calls,geometri:render.info.memory.geometries,doku:render.info.memory.textures});kareSay=0;olcum=now;}
   }
   raf=requestAnimationFrame(kare);

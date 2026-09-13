@@ -12,9 +12,31 @@
 const kuyruk = [];
 let bekleyen = 0;
 
-const bosZamanda = typeof requestIdleCallback === "function"
-  ? (fn) => requestIdleCallback(fn, { timeout: 500 })
-  : (fn) => requestAnimationFrame(fn);
+// BOŞ ZAMAN + GARANTİLİ YEDEK.
+// `requestIdleCallback` tek başına yetmiyor: sekme arka plandayken (ya da
+// sayfa sürekli meşgulken) tarayıcı onu kısıyor ve kuyruk saatlerce
+// ilerlemiyordu — ölçüldü, 12 saniyede 3 portrede takılı kaldı.
+// Bu yüzden idle ile birlikte bir `setTimeout` de kurulur; hangisi önce
+// gelirse iş o zaman çalışır, diğeri iptal edilir.
+let idleKimlik = 0;
+let saatKimlik = 0;
+
+function iptal() {
+  if (idleKimlik && typeof cancelIdleCallback === "function") cancelIdleCallback(idleKimlik);
+  if (saatKimlik) clearTimeout(saatKimlik);
+  idleKimlik = 0; saatKimlik = 0;
+}
+
+function bosZamanda(fn) {
+  const tetikle = () => { iptal(); fn(); };
+  if (typeof requestIdleCallback === "function") {
+    idleKimlik = requestIdleCallback(tetikle, { timeout: 300 });
+  }
+  // Yedek: idle gelmezse en geç 350 ms sonra yine de çalışsın.
+  saatKimlik = setTimeout(tetikle, 350);
+  // Sıfırdan farklı bir "bekliyor" işareti yeter.
+  return 1;
+}
 
 // `calisiyor`: bir iş yürürken o işin içinden `siraya` çağrılırsa ikinci bir
 // boşaltma zinciri başlıyordu; iki zincir birbirini besleyip işi katlıyordu.

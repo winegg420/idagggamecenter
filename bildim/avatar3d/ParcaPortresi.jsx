@@ -34,29 +34,19 @@ export default function ParcaPortresi({gorunum,parca,boyut=192}){
  const anahtar=JSON.stringify({...(gorunum||{}),[parca.yuva]:parca.deger});
 
  useEffect(()=>{
-  const kutu=kutuRef.current;
-  if(!kutu)return undefined;
   let atildi=false;
   setKaynak(null);
-
-  const uret=()=>{
+  // IntersectionObserver KALDIRILDI (13 Eylül 2026).
+  // Gardıropta 12 kart var ve kategoriler tek sayfada — oyuncu hepsini
+  // zaten görüyor. Gözlemci kart görünür alana girmeden iş kuyruğa
+  // koymuyordu ve ölçümde portreler hiç üretilmiyordu (12 kartın 0'ı).
+  // Kuyruk zaten kare başına tek portre üretiyor; asıl fren o.
+  siraya(()=>{
    if(atildi)return;
    const veri=parcaPortresi(gorunum,parca,boyut);
    if(!atildi&&veri)setKaynak(veri);
-  };
-
-  // IntersectionObserver yoksa (çok eski tarayıcı) doğrudan sıraya alınır.
-  if(typeof IntersectionObserver!=='function'){siraya(uret);return()=>{atildi=true;};}
-
-  const gozcu=new IntersectionObserver(girisler=>{
-   for(const gir of girisler){
-    if(!gir.isIntersecting)continue;
-    gozcu.disconnect();
-    siraya(uret);
-   }
-  },{rootMargin:'120px'});
-  gozcu.observe(kutu);
-  return()=>{atildi=true;gozcu.disconnect();};
+  });
+  return()=>{atildi=true;};
   // `anahtar` görünümün tamamını temsil ediyor.
   // eslint-disable-next-line react-hooks/exhaustive-deps
  },[anahtar,boyut]);
