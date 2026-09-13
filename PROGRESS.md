@@ -4054,3 +4054,33 @@ Pelerin 0 bakiyeyle alındı, coin düşmedi; kapalıyken Gelinlik
 - Sitede hiç `<h1>` yoktu → 12 sayfaya eklendi.
 - `.app` 540 px sabit şeritti → 1024 px üstü 760, 1400 px üstü 900 px.
   Telefon düzeni korundu.
+
+## 13 Eylül 2026 (5) — Hub kendi adresine döndü
+
+**Sorun:** `idagg-game-center.vercel.app` açılınca Quiz Square'in
+gardırobu geliyordu; Kafa Topu, DidaGP, Meyve Kes, PatiRun, RUN,
+Gladius, Gölge Boks'a hiçbir yerden ulaşılamıyordu.
+
+**Sebep (benim hatam, `e8c9169`):** Aşama 1'de `vercel.json`'ın
+`buildCommand`'ine `--mode bildim --config .../vite.prototip.config.js`
+yazmıştım. **İki Vercel projesi de aynı `vercel.json`'u okuyor** ve
+oradaki komut panel ayarını **eziyor** — bu yüzden hub da Quiz Square
+olarak derlendi. `--mode bildim`, depodaki `.env.bildim`'i yüklüyor ve
+oradaki `VITE_MOD=bildim` uygulamayı Quiz Square'e çeviriyor.
+
+**Çözüm:**
+- `vercel.json` tarafsız: `npm run build && node araclar/tarayici-uyumluluk.mjs`
+- Çok girişli derleme `vite.config.js`'e taşındı, **yalnız
+  `VITE_MOD === 'bildim'` iken** (`rollupOptions.input`). Hub'da tek
+  giriş: `index.html`. `vite.prototip.config.js` silinmedi.
+- Kök `index.html` artık **hub'ın kimliğini** taşıyor; Quiz Square'in
+  başlık/paylaşım alanlarını `bildim-modu` eklentisi yazıyor.
+
+**Ders:** Mod seçimi env değişkeninin (`VITE_MOD`) işi. `vercel.json`
+iki projenin ORTAK dosyası — oraya moda özel hiçbir şey yazılmaz.
+Not `CLAUDE.md` + `AGENTS.md`'ye eklendi.
+
+**Doğrulandı (canlı):** hub `idaGG Game Center` başlığıyla 8 oyun kartı
+gösteriyor, hepsi 200 dönüyor, Kafa Topu açıldı. Quiz Square adresinde
+gardırop (`assets/gardrop-*.js`) ve meydan sayfaları yerinde, `/harita`
+meydanı açıyor. Konsolda hata yok.
