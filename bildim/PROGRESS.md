@@ -2631,3 +2631,24 @@ yeterli.
 
 Yeni testler: `_test/ziplama-test.mjs`, `_test/ziplama-ag-test.mjs`,
 `_test/dil-test.mjs`.
+
+## 13 Eylül 2026 — Gardırop kart ızgarası ve parça portreleri
+
+- **Sorun:** `/bildim/gorunum-3b` (3B gardırop) eşya listesinde hiçbir
+  eşyanın görseli yoktu; `.bd-esya-gorsel` yalnız düz renk kutusuydu.
+- **Çözüm:** `bildim/harita/portre.js` — modül düzeyinde TEK paylaşılan
+  `WebGLRenderer`. `parcaPortresi(temelGorunum, parca, bilgi, boyut)`
+  oyuncunun o anki görünümü + yalnız o parçayı çizip PNG data URI verir.
+  Çerçeveleme yuvaya göre tek sabitte (`CERCEVE`): baş / gövde / ayak /
+  tam boy / sırt. LRU önbellek 160 giriş.
+- `bildim/components/EsyaPortresi.jsx` — IntersectionObserver ile tembel
+  üretim + kare başına tek render kuyruğu. Ölçüm: portre başına ~8-11 ms,
+  önbellekten 0 ms. Hepsi bir karede yapılsaydı ~120 ms donma olurdu.
+- Temel görünüm 250 ms geciktirilir (debounce): renk paletinde gezerken
+  her tıklamada 12 render yapılmaz.
+- **Karar:** Dans yuvasında portre YOK. Durağan karede dans görünmediği
+  için 14 tıpatıp aynı resim çıkıyordu; simge kaldı.
+- **Not:** Görev metni `bildim/avatar3d/portre.js`, `Gardrop.jsx`,
+  `.esya-listesi` gibi adlardan söz ediyordu; depoda bunların karşılığı
+  `bildim/harita/`, `pages/GorunumPage.jsx`, `.bd-esya-grid`. İş gerçek
+  adlar üzerinde yapıldı.
