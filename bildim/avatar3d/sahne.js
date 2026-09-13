@@ -6,7 +6,10 @@ export function sahneKur(kapsayici, ayar, rapor = () => {}) {
   const sahne = new T.Scene(); sahne.background = new T.Color('#151a23');
   const kamera = new T.PerspectiveCamera(32, 1, .1, 100);
   kamera.position.set(4.1, 3.1, 8); 
-  const render = new T.WebGLRenderer({ antialias: true, alpha: false, preserveDrawingBuffer: true });
+  // preserveDrawingBuffer YOK: bu sahne toDataURL almiyor (portre uretimi ayri
+  // renderer'da). Acik birakmak surucude arka tamponu zorla saklatiyor ve
+  // ANGLE/D3D11'de bellek baskisi yaratiyor.
+  const render = new T.WebGLRenderer({ antialias: true, alpha: false });
   render.setPixelRatio(Math.min(devicePixelRatio || 1, 1.5));
   render.shadowMap.enabled = true; render.shadowMap.type = T.PCFShadowMap;
   render.toneMapping = T.ACESFilmicToneMapping; render.toneMappingExposure = 1.25;
@@ -32,13 +35,27 @@ export function sahneKur(kapsayici, ayar, rapor = () => {}) {
   const odakKaybi=()=>tuslar.clear();window.addEventListener('blur',odakKaybi);
   const boyut=()=>{const w=Math.max(1,kapsayici.clientWidth),h=Math.max(1,kapsayici.clientHeight);render.setSize(w,h);kamera.aspect=w/h;kamera.updateProjectionMatrix();};
   const gozlem=typeof ResizeObserver!=='undefined'?new ResizeObserver(boyut):null;gozlem?.observe(kapsayici);window.addEventListener('resize',boyut);boyut();
-  let durumKayip=false;
+  let durumKayip=false, gizliBildirildi=false;
   const contextKaybi=e=>{e.preventDefault();durumKayip=true;rapor({hata:'3D görüntü bağlantısı kesildi. Sayfayı yenileyin.'});};
   render.domElement.addEventListener('webglcontextlost',contextKaybi);
+  // İLK KARE HER HÂLÜKÂRDA ÇİZİLİR.
+  // Eskiden döngü `document.hidden` iken hiç render etmiyordu; sayfa arka
+  // planda/otomasyon sekmesinde açıldıysa tuval BOMBOŞ kalıyor, sekme öne
+  // gelince bir sonraki kareye kadar öyle duruyordu. Üstelik FPS hiç
+  // bildirilmediği için altbilgi sonsuza kadar "Ölçülüyor…" yazıyordu ve
+  // sayfa ölü görünüyordu. Artık: en az bir kare çizilir, gizlilik durumu
+  // da rapor edilir ki arayüz dürüst bir şey söyleyebilsin.
+  let ilkKareCizildi=false;
   function kare(now){
     if(!aktif)return;raf=requestAnimationFrame(kare);
     const dt=Math.min((now-son)/1000,.05);son=now;
-    if(document.hidden||durumKayip){kareSay=0;olcum=now;return;}
+    if(durumKayip){kareSay=0;olcum=now;return;}
+    if(document.hidden&&ilkKareCizildi){
+      kareSay=0;olcum=now;
+      if(!gizliBildirildi){gizliBildirildi=true;rapor({gizli:true});}
+      return;
+    }
+    if(gizliBildirildi){gizliBildirildi=false;rapor({gizli:false});}
     t+=dt;
     let hareketMod=mod;
     if(meydan){
@@ -48,10 +65,18 @@ export function sahneKur(kapsayici, ayar, rapor = () => {}) {
     }
     if(mod!=='dur')hareket(model,t,hareketMod);
     if(dondur)model.rotation.y+=dt*.35;
-    kontrol.update();render.render(sahne,kamera);kareSay++;
+    kontrol.update();render.render(sahne,kamera);kareSay++;ilkKareCizildi=true;
     if(now-olcum>=1500){rapor({fps:Math.round(kareSay*1000/(now-olcum)),ucgen:render.info.render.triangles,cagri:render.info.render.calls,geometri:render.info.memory.geometries,doku:render.info.memory.textures});kareSay=0;olcum=now;}
   }
   raf=requestAnimationFrame(kare);
+
+  // Sekme öne gelince ölçüm penceresi sıfırlanır: arka planda geçen süre
+  // FPS'i sahte biçimde düşük göstermesin.
+  const gorunurlukDegisti=()=>{
+    if(document.hidden)return;
+    son=performance.now();olcum=son;kareSay=0;
+  };
+  document.addEventListener('visibilitychange',gorunurlukDegisti);
   return {
     guncelle(yeni){const once=model;model=modelKur(yeni);model.position.copy(once.position);model.rotation.copy(once.rotation);sahne.add(model);modelYokEt(once);if(mod==='dur')hareket(model,0,'bekle');},
     animasyon(v){mod=v;if(v==='dur')hareket(model,0,'bekle');},
@@ -59,6 +84,6 @@ export function sahneKur(kapsayici, ayar, rapor = () => {}) {
     yakin(v){kontrol.target.set(0,v?3.12:1.9,0);kamera.position.set(v?1.2:4.1,v?3.25:3.1,v?3.2:8);kontrol.update();},
     meydan(v){meydan=v;izgara.visible=v;zemin.visible=!v;model.position.set(0,0,0);model.rotation.y=0;kontrol.target.set(0,1.8,0);kamera.position.set(v?6:4.1,v?6:3.1,v?10:8);},
     async glb(){const {GLTFExporter}=await import('three/addons/exporters/GLTFExporter.js');const veri=await new GLTFExporter().parseAsync(model,{binary:true,onlyVisible:true});return new Blob([veri],{type:'model/gltf-binary'});},
-    yokEt(){aktif=false;cancelAnimationFrame(raf);gozlem?.disconnect();window.removeEventListener('resize',boyut);window.removeEventListener('keydown',bas);window.removeEventListener('keyup',birak);window.removeEventListener('blur',odakKaybi);kontrol.dispose();modelYokEt(model);zemin.geometry.dispose();zemin.material.dispose();izgara.geometry.dispose();izgara.material.dispose();render.dispose();render.forceContextLoss();render.domElement.remove();},
+    yokEt(){aktif=false;cancelAnimationFrame(raf);gozlem?.disconnect();window.removeEventListener('resize',boyut);window.removeEventListener('keydown',bas);window.removeEventListener('keyup',birak);window.removeEventListener('blur',odakKaybi);document.removeEventListener('visibilitychange',gorunurlukDegisti);kontrol.dispose();modelYokEt(model);zemin.geometry.dispose();zemin.material.dispose();izgara.geometry.dispose();izgara.material.dispose();render.dispose();render.forceContextLoss();render.domElement.remove();},
   };
 }

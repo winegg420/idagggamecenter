@@ -576,7 +576,11 @@ export default function HaritaSayfasi() {
     const cizim = (t) => {
       if (!aktif) return;
       raf = requestAnimationFrame(cizim);
-      if (document.hidden) { sonT = t; return; }   // sayfa gizliyken render yok
+      // SAYFA GİZLİYKEN RENDER YOK — ama İLK KARE her hâlükârda çizilir.
+      // Eskiden gizli sekmede hiç kare gelmiyordu: perde ("sahne
+      // hazırlanıyor…") sonsuza kadar kalıyor, sahne bomboş duruyordu.
+      // Şimdi bir kare çizilip perde kalkıyor; sonrası yine duraklıyor.
+      if (document.hidden && !ilkKare) { sonT = t; return; }
       try {
       const dt = Math.min((t - sonT) / 1000, 0.05);
       sonT = t; zaman += dt;

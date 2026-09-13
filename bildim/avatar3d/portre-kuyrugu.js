@@ -16,17 +16,24 @@ const bosZamanda = typeof requestIdleCallback === "function"
   ? (fn) => requestIdleCallback(fn, { timeout: 500 })
   : (fn) => requestAnimationFrame(fn);
 
+// `calisiyor`: bir iş yürürken o işin içinden `siraya` çağrılırsa ikinci bir
+// boşaltma zinciri başlıyordu; iki zincir birbirini besleyip işi katlıyordu.
+// Bu bayrak tek zincir garantisi verir.
+let calisiyor = false;
+
 function isle() {
   bekleyen = 0;
+  calisiyor = true;
   const is = kuyruk.shift();
   if (is) {
     try { is(); } catch (e) { console.error("[Portre] kuyruk isi:", e); }
   }
-  if (kuyruk.length) bekleyen = bosZamanda(isle);
+  calisiyor = false;
+  if (kuyruk.length && !bekleyen) bekleyen = bosZamanda(isle);
 }
 
 /** İşi kuyruğa alır; sırası gelince boş zamanda çalıştırılır. */
 export function siraya(is) {
   kuyruk.push(is);
-  if (!bekleyen) bekleyen = bosZamanda(isle);
+  if (!bekleyen && !calisiyor) bekleyen = bosZamanda(isle);
 }
