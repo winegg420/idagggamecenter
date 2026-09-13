@@ -3962,3 +3962,46 @@ seçilen avatar eski görseller — meydanda çıkan görseller değil."
 - **Bilinen boşluk:** dans satın alma eski görünüm sayfasındaydı, o sayfa
   arayüzden çıktı. Sahip olunan danslar çalışıyor, yeni dans alınamıyor —
   dansın yeni evi ayrı bir karar.
+
+## 13 Eylül 2026 (3) — 2B karakter sistemi tamamen söküldü
+
+**Sahibinin kararı:** *"2B karakterlere dair oyunda hiçbir şey kalmamalı.
+Oyunda/profilde avatar fotosu görünecek. Meydana girerken oluşturulan
+karakter ile girilecek."* Bu, bir önceki oturumdaki "avatar her yerde 3B
+portre" kararını **iptal eder**.
+
+Üç sistemin son hâli:
+- **A — 31 hazır avatar ikonu:** KALDI. Profil, lig, arkadaşlar, maç,
+  turnuva podyumu. Kurulum sihirbazının "Avatarını seç" adımı eski hâline
+  döndürüldü (önceki oturumda yanlışlıkla kaldırılmıştı).
+- **B — 2B PatiRun karakterleri:** arayüzden TAMAMEN kalktı.
+- **C — 3B karakter:** yalnız meydan + gardırop/dükkân vitrini.
+
+Çıkarılan yerler:
+- `src/components/Avatar.jsx` → yalnız `gorunen_avatar`/`avatar_url` →
+  baş harf. 3B portre dalı da kalktı (yalnızca meydan 3B çizer).
+- `bildim/pages/ProfilePage.jsx` → 2B vitrin kalktı. **Şikayetin asıl
+  kaynağı buydu:** profilde hâlâ PatiRun karakteri çiziliyordu.
+- `bildim/harita/karakterGorsel.js` → billboard artık `avatarUri` yerine
+  `yeniPortre` kullanıyor. Meydanda hiç 2B görsel yok: yakındakiler gerçek
+  3B gövde, uzaktakiler aynı modelin fotoğrafı.
+- `/gorunum-2b` rotası kalktı (App.jsx + BildimApp.jsx).
+- Üç ölü dosya `bildim/karakter/` altına taşındı (silinmedi):
+  AvatarVitrin, GorunumDukkani, KarakterPage.
+- `GorunumPage` (yedek /gorunum-3b) artık profil fotoğrafının üstüne
+  3B render yazmıyor — `fotografiYukle` duruyor ama çağrılmıyor.
+
+**Süpürme grep'i boş:**
+`grep -rn "karakter/gorunum\|avatarUri" bildim/ src/ | grep -v bildim/karakter/`
+
+**Ölçüm — billboard portreye geçince:**
+- Çizim maliyeti DEĞİŞMEDİ: billboard başına 2 çizim çağrısı, 16 üçgen.
+  Yani kalabalıkta FPS aynı.
+- Ama ilk üretim pahalı: yeni bir görünüm için portre ~83 ms. 8 oyuncu
+  aynı anda girerse ~660 ms donma oluyordu. **Çözüm:** doku hemen saydam
+  verilir, portre paylaşılan boş-zaman kuyruğunda üretilir.
+  Sonrası: 8 oyuncu kurulumu **2.2 ms** (oyuncu başına 0.3 ms), portreler
+  bir an sonra doluyor. Aynı görünüm tekrarında 0.3 ms (önbellek).
+
+**Ders:** aynı görünümü JSON anahtarıyla önbelleğe almak, üretim sonucunun
+(data-URI) anahtar olmasından daha iyi — üretim ertelenebilir hâle geldi.

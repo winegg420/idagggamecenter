@@ -31,6 +31,7 @@ import * as THREE from "three";
 import { meydanModelKur, meydanModelSil, meydanModelDegistir } from "../avatar3d/meydan-model.js";
 import { isimEtiketi, nesneyiSerbestBirak } from "./ortak.js";
 import { yeniPortre } from "../avatar3d/portre.js";
+import { siraya } from "../avatar3d/portre-kuyrugu.js";
 
 /** Doku çözünürlüğü — meydanda karakter ekranda en fazla ~200 px. */
 const DOKU = 256;
@@ -39,27 +40,27 @@ const EN = 3.8;
 /** Sprite merkezinin yerden yüksekliği; ayaklar y=0'a otursun. */
 const MERKEZ_Y = EN / 2;
 
-// ---- doku önbelleği (anahtar: portre PNG'in data-URI'si) ----
-// `yeniPortre` aynı görünüm için hep aynı dizgeyi döndürüyor (kendi Map'i
-// var). O dizgeyi doğrudan anahtar yapmak ikinci bir özet fonksiyonundan
-// hem ucuz hem tutarlı.
-const dokular = new Map();   // uri -> { doku, sayac }
+// ---- doku önbelleği (anahtar: görünümün JSON özeti) ----
+// Aynı görünümü kullanan herkes TEK dokuyu paylaşır, referans sayılır.
+//
+// PORTRE BOŞ ZAMANDA ÜRETİLİR. Ölçüldü (13 Eylül 2026): yeni bir görünüm
+// için portre üretimi ~83 ms. Oyuncu meydana girerken bunu kare içinde
+// yapmak donmaya yol açıyordu (8 kişi aynı anda girerse ~0.7 sn). Bu
+// yüzden doku HEMEN saydam olarak verilir, resmi sırası gelince dolar —
+// karakter bir an sonra beliriverir, sahne hiç takılmaz.
+const dokular = new Map();   // anahtar -> { doku, sayac }
 
 /** Görünüm için doku alır, referans sayacını artırır. */
 function dokuAl(gorunum) {
-  let uri;
+  const gor = gorunum ?? {};
+  let anahtar;
   try {
-    // 3B MODELİN FOTOĞRAFI — eskiden 2B PatiRun karakteri çiziliyordu.
-    // Meydanda artık hiç 2B görsel yok: yakındaki oyuncular gerçek 3B
-    // gövde, uzaktakiler aynı modelin tek karelik portresi.
-    uri = yeniPortre(gorunum ?? {});
-  } catch (e) {
-    console.error("[Meydan] karakter portresi:", e);
-    uri = null;
+    anahtar = JSON.stringify(gor.avatar3d ?? gor.karakter ?? gor);
+  } catch {
+    anahtar = "varsayilan";
   }
-  if (!uri) return null;
 
-  const kayit = dokular.get(uri);
+  const kayit = dokular.get(anahtar);
   if (kayit) { kayit.sayac += 1; return kayit.doku; }
 
   const tuval = document.createElement("canvas");
@@ -68,33 +69,47 @@ function dokuAl(gorunum) {
   doku.colorSpace = THREE.SRGBColorSpace;
   doku.generateMipmaps = false;
   doku.minFilter = THREE.LinearFilter;
+  dokular.set(anahtar, { doku, sayac: 1 });
 
-  // SVG çözülene kadar tuval saydam kalır (bir kare boş görünür, sorun değil).
-  try {
-    const resim = new Image();
-    resim.onload = () => {
-      try {
-        tuval.getContext("2d").drawImage(resim, 0, 0, DOKU, DOKU);
-        doku.needsUpdate = true;
-      } catch (e) { console.error("[Meydan] doku cizimi:", e); }
-    };
-    resim.onerror = () => console.error("[Meydan] karakter resmi yuklenemedi");
-    resim.src = uri;
-  } catch (e) {
-    console.error("[Meydan] doku:", e);
-  }
+  // Sıraya al: kare başına tek portre, boş zamanda.
+  siraya(() => {
+    // Bu arada son kullanan da çıktıysa boşuna üretme.
+    if (!dokular.has(anahtar)) return;
+    let uri = null;
+    try {
+      // 3B MODELİN FOTOĞRAFI — eskiden 2B PatiRun karakteri çiziliyordu.
+      // Meydanda artık hiç 2B görsel yok: yakındakiler gerçek 3B gövde,
+      // uzaktakiler aynı modelin tek karelik portresi.
+      uri = yeniPortre(gor);
+    } catch (e) {
+      console.error("[Meydan] karakter portresi:", e);
+    }
+    if (!uri) return;
+    try {
+      const resim = new Image();
+      resim.onload = () => {
+        try {
+          tuval.getContext("2d").drawImage(resim, 0, 0, DOKU, DOKU);
+          doku.needsUpdate = true;
+        } catch (e) { console.error("[Meydan] doku cizimi:", e); }
+      };
+      resim.onerror = () => console.error("[Meydan] karakter resmi yuklenemedi");
+      resim.src = uri;
+    } catch (e) {
+      console.error("[Meydan] doku:", e);
+    }
+  });
 
-  dokular.set(uri, { doku, sayac: 1 });
   return doku;
 }
 
 /** Referansı bırakır; son kullanan da bırakınca doku serbest kalır. */
 function dokuBirak(doku) {
   if (!doku) return;
-  for (const [uri, k] of dokular) {
+  for (const [anahtar, k] of dokular) {
     if (k.doku !== doku) continue;
     k.sayac -= 1;
-    if (k.sayac <= 0) { k.doku.dispose(); dokular.delete(uri); }
+    if (k.sayac <= 0) { k.doku.dispose(); dokular.delete(anahtar); }
     return;
   }
 }

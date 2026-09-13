@@ -218,7 +218,10 @@ export default function GorunumPage() {
       if (data && typeof data === "object") setGorunum(data);
       // Çerçeve nadirliği önbellekte: kıyafet değişti, eskisini unut.
       nadirligiUnut(user?.id);
-      await fotografiYukle();
+      // PROFİL FOTOĞRAFINA ARTIK DOKUNULMUYOR (13 Eylül 2026 kararı):
+      // oyuncunun avatarı kurulumda seçtiği fotoğraftır. Bu yedek sayfa
+      // onu sessizce 3B render'la değiştiriyordu. `fotografiYukle`
+      // silinmedi — geri dönülürse hazır duruyor.
       setBilgi("Görünümün kaydedildi.");
     } catch (e) {
       setHata(hataMesaji(e, "Görünüm kaydedilemedi."));
