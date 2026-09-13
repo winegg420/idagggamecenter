@@ -21,7 +21,7 @@ import { avatarKur, avatarYokEt } from "./avatar.js";
 // Gövde ölçüleri avatar.js'ten: ayak 0, gövde 1.85, omuz 2.52, kafa 3.05.
 export const CERCEVE = {
   // baş hizası — yüz + baş üstü
-  bas:      { fov: 24, konum: [0, 3.20, 3.70], bak: [0, 3.02, 0] },
+  bas:      { fov: 24, konum: [0, 3.18, 4.05], bak: [0, 2.98, 0] },
   // göğüs hizası — omuz–bel arası
   govde:    { fov: 26, konum: [0, 2.35, 5.10], bak: [0, 2.10, 0] },
   // ayak hizası

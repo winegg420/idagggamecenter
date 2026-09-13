@@ -322,8 +322,15 @@ export default function GorunumPage() {
               }}
               disabled={alinan === e.kod}
             >
-              {/* Parçanın oyuncunun kendi karakteri üstündeki görüntüsü */}
-              {portreTemeli
+              {/* Parçanın oyuncunun kendi karakteri üstündeki görüntüsü.
+                  Dans GİYİLMEZ: durağan karede hareket görünmeyeceği için
+                  14 tıpatıp aynı portre basmak yerine simge kalır; dansın
+                  kendisi karta dokununca önizlemede oynar. */}
+              {aktifYuva.giyilmez
+                ? <span className="bd-esya-gorsel bd-esya-bos">
+                    <Ikon ad={aktifYuva.ikon} boyut={30} />
+                  </span>
+                : portreTemeli
                 ? <EsyaPortresi
                     gorunum={portreTemeli}
                     yuva={yuva}
