@@ -1,0 +1,1051 @@
+diff --git a/bildim/components/AvatarVitrin.jsx b/bildim/components/AvatarVitrin.jsx
+index 4af9a16..1a49572 100644
+--- a/bildim/components/AvatarVitrin.jsx
++++ b/bildim/components/AvatarVitrin.jsx
+@@ -1,75 +1 @@
+-// ============================================================
+-// AVATAR VİTRİNİ — profilin ve dükkânın başındaki büyük avatar
+-//
+-// 2B KARAKTER SİSTEMİ: avatar PatiRun'dan taşınan vektör üreteciyle
+-// çizilir (bildim/karakter/). three.js YÜKLENMEZ — bu bileşen artık
+-// hiçbir 3B modül indirmez, profil ve dükkân sayfası hafifledi.
+-//
+-// Eski 3B vitrin kodu silinmedi; meydan sahnesinin önizlemesi hâlâ
+-// `bildim/harita/onizleme.js` üzerinden /gorunum-3b sayfasında.
+-// ============================================================
+-import { useEffect, useState } from "react";
+-import { supabase } from "../../src/lib/supabase.js";
+-import RankBadge from "./RankBadge.jsx";
+-import { NADIRLIK_ETIKET, nadirlikGorunumden } from "../lib/nadirlik.js";
+-import { avatarUri, karakterId } from "../karakter/gorunum.js";
+-import { getCharacter } from "../karakter/karakterler.js";
+-
+-/**
+- * @param {object} o
+- * @param {string} [o.ad]      oyuncunun görünen adı
+- * @param {number} [o.puan]    rütbe rozeti için
+- * @param {string} [o.baslik]  kartın üst başlığı
+- * @param {string} [o.poz]     idle | wave | flex | laugh
+- */
+-export default function AvatarVitrin({ ad, puan = 0, baslik = null, poz = "idle" }) {
+-  const [gorunum, setGorunum] = useState(null);
+-  const [nadirlik, setNadirlik] = useState("sirali");
+-
+-  useEffect(() => {
+-    let aktif = true;
+-    (async () => {
+-      try {
+-        const { data, error } = await supabase.rpc("profilim");
+-        if (error) throw error;
+-        if (!aktif) return;
+-        const g = data?.gorunum ?? {};
+-        setGorunum(g);
+-        try {
+-          const n = await nadirlikGorunumden(g);
+-          if (aktif) setNadirlik(n ?? "sirali");
+-        } catch {
+-          /* nadirlik çözülemedi — gri çerçeveyle devam */
+-        }
+-      } catch (e) {
+-        console.error("[Bildim] vitrin gorunumu alinamadi:", e);
+-        if (aktif) setGorunum({});
+-      }
+-    })();
+-    return () => { aktif = false; };
+-  }, []);
+-
+-  const def = getCharacter(karakterId(gorunum ?? {}));
+-  const gorsel = avatarUri(gorunum ?? {}, poz);
+-
+-  return (
+-    <div className={`kart bd-vitrin n-${nadirlik}`}>
+-      {baslik && <div className="bd-kat-baslik"><span>{baslik}</span></div>}
+-      <div className="bd-vitrin-sahne">
+-        {gorsel ? (
+-          <img src={gorsel} alt={ad ?? def.name} className="bd-vitrin-gorsel" />
+-        ) : (
+-          <div className="yukleniyor">Yükleniyor…</div>
+-        )}
+-      </div>
+-      <div className="bd-vitrin-alt">
+-        <div className="bd-vitrin-ad">{ad ?? def.name}</div>
+-        <div className="alt-yazi">{def.bio}</div>
+-        <div className="bd-vitrin-rozetler">
+-          <RankBadge puan={puan} />
+-          <span className={`rutbe-chip n-${nadirlik}`}>{NADIRLIK_ETIKET[nadirlik] ?? "Sıradan"}</span>
+-        </div>
+-      </div>
+-    </div>
+-  );
+-}
++export {default} from '../avatar3d/Vitrin.jsx';
+\ No newline at end of file
+diff --git a/bildim/components/GorunumDukkani.jsx b/bildim/components/GorunumDukkani.jsx
+index 241df33..d6efb66 100644
+--- a/bildim/components/GorunumDukkani.jsx
++++ b/bildim/components/GorunumDukkani.jsx
+@@ -1,140 +1 @@
+-// ============================================================
+-// DÜKKÂN — GÖRÜNÜM SEKMESİ
+-//
+-// Karakterler ve kozmetik parçalar gruplu listelenir. Her kart parçanın
+-// ÖNİZLEMESİNİ gösterir: parçayı takmış avatar, kodla çizilir (asset yok).
+-// Sahip olunanda "Sahipsin" rozeti, etkinlik parçasında kilit ve
+-// "Etkinlik ödülü" etiketi — oyuncu neyin peşinde koşacağını bilsin.
+-//
+-// Satın alma kararı SUNUCUDA: karakter_satin_al / esya_satin_al coin'i
+-// düşürür, etkinlik parçalarını reddeder. Buradaki kilit yalnız bilgi.
+-// ============================================================
+-import { useCallback, useEffect, useMemo, useState } from "react";
+-import { Link } from "react-router-dom";
+-import { supabase } from "../../src/lib/supabase.js";
+-import { useAuth } from "../../src/context/AuthContext.jsx";
+-import Ikon from "./Ikon.jsx";
+-import { hataMesaji } from "../lib/hata.js";
+-import { coinTazele, coinHatasi } from "../lib/coin.js";
+-import { y } from "../lib/yol.js";
+-import { avatarUri, kozmetikCoz, karakterId, YUVALAR } from "../karakter/gorunum.js";
+-import "../pages/gorunum.css";
+-
+-const NADIRLIK_SINIF = { sirali: "n-sirali", ozel: "n-ozel", etkinlik: "n-etkinlik" };
+-
+-export default function GorunumDukkani() {
+-  const { profile } = useAuth();
+-  const [veri, setVeri] = useState(null);
+-  const [hata, setHata] = useState(null);
+-  const [bilgi, setBilgi] = useState(null);
+-  const [alinan, setAlinan] = useState(null);
+-
+-  const yukle = useCallback(async () => {
+-    try {
+-      const { data, error } = await supabase.rpc("karakter_katalogum");
+-      if (error) throw error;
+-      setVeri(Array.isArray(data) ? data[0] : data);
+-    } catch (e) {
+-      setHata(hataMesaji(e, "Dükkân yüklenemedi."));
+-    }
+-  }, []);
+-
+-  useEffect(() => { yukle(); }, [yukle]);
+-
+-  const temel = useMemo(() => {
+-    const g = veri?.gorunum ?? profile?.gorunum ?? {};
+-    return { karakter: karakterId(g), kozmetik: kozmetikCoz(g) };
+-  }, [veri, profile]);
+-
+-  if (hata) return <div className="hata-kutu">{hata}</div>;
+-  if (!veri) return <div className="yukleniyor">Yükleniyor…</div>;
+-
+-  const karSahip = veri.karakter_sahip ?? [];
+-  const parcaSahip = veri.parca_sahip ?? [];
+-
+-  const al = async (tur, anahtar, ad) => {
+-    setHata(null);
+-    setBilgi(null);
+-    setAlinan(anahtar);
+-    try {
+-      const { error } =
+-        tur === "karakter"
+-          ? await supabase.rpc("karakter_satin_al", { p_id: anahtar })
+-          : await supabase.rpc("esya_satin_al", { p_kod: anahtar });
+-      if (error) throw error;
+-      setBilgi(ad + " alındı.");
+-      coinTazele();
+-      await yukle();
+-    } catch (e) {
+-      setHata(coinHatasi(e));
+-    } finally {
+-      setAlinan(null);
+-    }
+-  };
+-
+-  const kart = ({ anahtar, ad, fiyat, nadirlik, bende, gorsel, tur }) => {
+-    const etkinlik = fiyat === null || fiyat === undefined;
+-    return (
+-      <div key={anahtar} className={"bd-parca " + (bende ? "aktif " : "") + (NADIRLIK_SINIF[nadirlik] ?? "")}>
+-        <img src={gorsel} alt="" loading="lazy" />
+-        <span className="bd-parca-ad">{ad}</span>
+-        {bende ? (
+-          <span className="bd-parca-fiyat"><Ikon ad="onay" boyut={11} /> Sahipsin</span>
+-        ) : etkinlik ? (
+-          <span className="bd-parca-fiyat"><Ikon ad="kilit" boyut={11} /> Etkinlik ödülü</span>
+-        ) : (
+-          <button
+-            className="btn kucuk"
+-            disabled={alinan === anahtar}
+-            onClick={() => al(tur, anahtar, ad)}
+-          >
+-            {alinan === anahtar ? "…" : <><Ikon ad="coin" boyut={12} /> {Number(fiyat).toLocaleString("tr-TR")}</>}
+-          </button>
+-        )}
+-      </div>
+-    );
+-  };
+-
+-  return (
+-    <>
+-      {bilgi && <div className="bd-bilgi-kutu">{bilgi}</div>}
+-
+-      <div className="kart bd-yuva-kart">
+-        <div className="bd-yuva-baslik"><span>Karakterler</span></div>
+-        <div className="bd-parca-grid">
+-          {(veri.karakterler ?? []).map((k) =>
+-            kart({
+-              anahtar: k.id, ad: k.ad, fiyat: k.coin_fiyat, nadirlik: k.nadirlik,
+-              bende: karSahip.includes(k.id), tur: "karakter",
+-              gorsel: avatarUri({ karakter: k.id }, "idle"),
+-            })
+-          )}
+-        </div>
+-      </div>
+-
+-      {YUVALAR.map(({ yuva, ad }) => {
+-        const liste = (veri.parcalar ?? []).filter((p) => p.yuva === yuva);
+-        if (liste.length === 0) return null;
+-        return (
+-          <div className="kart bd-yuva-kart" key={yuva}>
+-            <div className="bd-yuva-baslik"><span>{ad}</span></div>
+-            <div className="bd-parca-grid">
+-              {liste.map((p) =>
+-                kart({
+-                  anahtar: p.kod, ad: p.ad, fiyat: p.coin_fiyat, nadirlik: p.nadirlik,
+-                  bende: parcaSahip.includes(p.kod), tur: "parca",
+-                  gorsel: avatarUri(
+-                    { karakter: temel.karakter, kozmetik: { ...temel.kozmetik, [yuva]: p.anahtar } },
+-                    "idle"
+-                  ),
+-                })
+-              )}
+-            </div>
+-          </div>
+-        );
+-      })}
+-
+-      <Link className="btn ikincil" to={y("/gorunum")}>Görünümü düzenle</Link>
+-    </>
+-  );
+-}
++export default function GorunumDukkani(){return <section className="kart"><h2>3D karakter koleksiyonu</h2><p>Yeni karakterler, saçlar ve kıyafetler gardıropta.</p><a className="btn" href="/bildim/avatar3d/gardrop.html">Gardırobu aç</a><a className="btn ikincil" href="/bildim/avatar3d/index.html">Tüm karakterleri incele</a></section>;}
+\ No newline at end of file
+diff --git a/bildim/harita/danslar.js b/bildim/harita/danslar.js
+index dedbe4d..565c78b 100644
+--- a/bildim/harita/danslar.js
++++ b/bildim/harita/danslar.js
+@@ -208,7 +208,7 @@ export function dansiDurdur(avatar) {
+   const { kok, govde, kollar, bacaklar, kafa } = u;
+   if (kok) { kok.rotation.set(0, 0, 0); kok.position.set(0, 0, 0); }
+   if (govde) govde.rotation.set(0, 0, 0);
+-  if (kafa) { kafa.rotation.set(0, 0, 0); kafa.position.y = 3.05; }
++  if (kafa) { kafa.rotation.set(0, 0, 0); kafa.position.y = u.gercek3d ? u.kafaY : 3.05; }
+   if (kollar) {
+     kollar.rotation.set(0, 0, 0);
+     for (const c of kollar.children) c.rotation.set(0, 0, 0);
+@@ -241,7 +241,7 @@ export function dansKaresi(avatar, dt) {
+   // Her kare temiz duruştan başlar: hareketler birbirinin üstüne binmesin.
+   kok.rotation.set(0, 0, 0); kok.position.set(0, 0, 0);
+   kollar.rotation.set(0, 0, 0);
+-  kafa.rotation.set(0, 0, 0); kafa.position.y = 3.05;
++  kafa.rotation.set(0, 0, 0); kafa.position.y = u.gercek3d ? u.kafaY : 3.05;
+   if (govde) govde.rotation.set(0, 0, 0);
+   const sol = kollar.children[0], sag = kollar.children[1];
+   const solBacak = bacaklar.children[0], sagBacak = bacaklar.children[1];
+@@ -252,6 +252,7 @@ export function dansKaresi(avatar, dt) {
+ 
+   try {
+     uygula({ kok, govde, kollar, bacaklar, kafa, sol, sag, solBacak, sagBacak }, d.t, avatar);
++    if(u.gercek3d && kafa.position.y > 2) kafa.position.y += u.kafaY - 3.05;
+   } catch (e) {
+     console.error("[Meydan] dans oynatilamadi:", d.kod, e);
+     dansiDurdur(avatar);
+diff --git a/bildim/harita/dunya.js b/bildim/harita/dunya.js
+index f843a1d..0b9b1da 100644
+--- a/bildim/harita/dunya.js
++++ b/bildim/harita/dunya.js
+@@ -1,3 +1,4 @@
++import {meydanModelYuru} from '../avatar3d/meydan-model.js';
+ // ============================================================
+ // MEYDAN (The Square) — DÜNYA (saf three.js, React yok)
+ //
+@@ -432,6 +433,7 @@ export function dunyaKur(kapsayici, s = {}) {
+       if (guc > 0.05 || zipla > 0) dansiDurdur(av);
+       else if (dansKaresi(av, dt)) { return; }
+     }
++    if(u.gercek3d){meydanModelYuru(av,dt,guc,zipla);return;}
+     // ZIPLARKEN YÜRÜME KESİLİR: bacaklar hafif toplanır, sprite "idle"a
+     // döner, adım salınımı hiç işlemez.
+     if (zipla > 0) {
+diff --git a/bildim/harita/karakterGorsel.js b/bildim/harita/karakterGorsel.js
+index 04d9d11..e15bbe0 100644
+--- a/bildim/harita/karakterGorsel.js
++++ b/bildim/harita/karakterGorsel.js
+@@ -25,6 +25,7 @@
+ // son kullanan sahneden çıkınca doku dispose edilir.
+ // ============================================================
+ import * as THREE from "three";
++import {meydanModelKur,meydanModelSil,meydanModelDegistir} from '../avatar3d/meydan-model.js';
+ import { isimEtiketi, nesneyiSerbestBirak } from "./ortak.js";
+ import { avatarUri } from "../karakter/gorunum.js";
+ 
+@@ -126,6 +127,7 @@ function golgeKur() {
+  * @returns {THREE.Group}
+  */
+ export function karakterAvatarKur({ ad, gorunum, etiketRenk = "#20324A" }) {
++  if(import.meta.env.VITE_AVATAR3D_DEMO==='1')return meydanModelKur({ad,gorunum,etiketRenk});
+   const g = new THREE.Group();
+ 
+   // GÖVDE KÖKÜ — danslar yalnız burayı oynatır (bkz. avatar.js aynı ayrım).
+@@ -174,6 +176,7 @@ export function karakterAvatarKur({ ad, gorunum, etiketRenk = "#20324A" }) {
+  * Meydanda biri görünümünü değiştirince yalnız bu çağrılır.
+  */
+ export function karakterGorunumDegistir(avatar, gorunum) {
++  if(avatar?.userData?.gercek3d){meydanModelDegistir(avatar,gorunum);return;}
+   const u = avatar?.userData;
+   if (!u?.sprite) return;
+   const gor = gorunum ?? {};
+@@ -233,6 +236,7 @@ export function karakterYonGuncelle(avatar, kamera) {
+ 
+ /** Avatarı ve kendine ait kaynakları bırakır. */
+ export function karakterYokEt(avatar) {
++  if(avatar?.userData?.gercek3d){meydanModelSil(avatar);return;}
+   if (!avatar) return;
+   const u = avatar.userData ?? {};
+   // Paylaşılan gölge geometrisi/malzemesi dispose edilmesin.
+diff --git a/bildim/karakter/gorunum.js b/bildim/karakter/gorunum.js
+index 7af5b5a..488eb5c 100644
+--- a/bildim/karakter/gorunum.js
++++ b/bildim/karakter/gorunum.js
+@@ -1,3 +1,4 @@
++import {yeniPortre} from '../avatar3d/portre.js';
+ // ============================================================
+ // GÖRÜNÜM KÖPRÜSÜ — profiles.gorunum ↔ 2B karakter çizimi
+ //
+@@ -74,6 +75,7 @@ function ozet(gorunum, poz) {
+  * @param {string} [poz] idle | wave | flex | laugh
+  */
+ export function avatarUri(gorunum, poz = "idle") {
++  if(import.meta.env.VITE_MOD==='bildim'&&import.meta.env.VITE_AVATAR3D_DEMO==='1')return yeniPortre(gorunum);
+   const anahtar = ozet(gorunum, poz);
+   const hazir = onbellek.get(anahtar);
+   if (hazir) return hazir;
+diff --git a/bildim/pages/GorunumPage.jsx b/bildim/pages/GorunumPage.jsx
+index d087e93..8f657cb 100644
+--- a/bildim/pages/GorunumPage.jsx
++++ b/bildim/pages/GorunumPage.jsx
+@@ -1,356 +1,5 @@
+-// ============================================================
+-// GÖRÜNÜM — avatar kişiselleştirme
+-//
+-// Solda (dar ekranda üstte) dönen 3B avatar, altta yuva sekmeleri, her
+-// sekmede sahip olunan + satın alınabilir eşyalar. Sahip olunmayan eşya
+-// kilitli görünür, üstünde coin fiyatı yazar.
+-//
+-// Kaydedince iki şey olur:
+-//   1) gorunum_kaydet — sunucu her yuvanın SAHİPLİĞİNİ doğrular
+-//   2) avatarın tek karelik PNG'si üretilip Storage'a yüklenir ve
+-//      avatar_onayla ile profile yazılır; lig/arkadaş listeleri 3B sahne
+-//      açmadan bu fotoğrafı gösterir.
+-//
+-// 3B kısım LAZY yüklenir: sayfayı açmayan oyuncu three.js indirmez.
+-// ============================================================
+-import { useCallback, useEffect, useRef, useState } from "react";
+-import { useNavigate, useSearchParams } from "react-router-dom";
+-import { supabase } from "../../src/lib/supabase.js";
+-import { useAuth } from "../../src/context/AuthContext.jsx";
+-import Ikon from "../components/Ikon.jsx";
+-import { hataMesaji } from "../lib/hata.js";
+-import { coinTazele, coinHatasi } from "../lib/coin.js";
+-import { nadirligiUnut } from "../lib/nadirlik.js";
+-import { y } from "../lib/yol.js";
+-import "./gorunum.css";
+-
+-const YUVALAR = [
+-  { kod: "sac", ad: "Saç", ikon: "kisi", renkAlani: "sac_renk" },
+-  { kod: "sapka", ad: "Şapka", ikon: "yildiz" },
+-  { kod: "gozluk", ad: "Gözlük", ikon: "soru" },
+-  { kod: "kupe", ad: "Küpe", ikon: "hediye" },
+-  { kod: "ust", ad: "Üst", ikon: "tisort", renkAlani: "ust_renk" },
+-  { kod: "ayakkabi", ad: "Ayakkabı", ikon: "kalkan" },
+-  { kod: "efekt", ad: "Efekt", ikon: "ates" },
+-  // Dans GİYİLMEZ: satın alınır, meydanda oynatılır. Bu yüzden dans yuvası
+-  // hiçbir zaman `gorunum`a yazılmaz (sunucu da kabul etmez); buradaki
+-  // dokunuş yalnız önizlemede dansı oynatır.
+-  { kod: "dans", ad: "Dans", ikon: "mikrofon", giyilmez: true },
+-];
+-
+-// Boyanabilir eşyalar için 8 renklik palet (oyunun kendi tonları)
+-const PALET = ["#F4701F", "#FFC53D", "#2FBF71", "#4A9DD9",
+-               "#A855F7", "#EF4B4B", "#20324A", "#FFFFFF"];
+-
+-// Ten rengi ayrı bir palet
+-const TEN_PALETI = ["#F3C89B", "#E8B384", "#D49A6A", "#B57A4F",
+-                    "#8D5524", "#5C3317", "#FFDCC0", "#C68642"];
+-
+-export default function GorunumPage() {
+-  const navigate = useNavigate();
+-  // Dükkândan "Dansları gör" ile gelinince doğrudan o sekme açılsın.
+-  const [arama] = useSearchParams();
+-  const { user, refreshProfile } = useAuth();
+-  const kapsayiciRef = useRef(null);
+-  const onizlemeRef = useRef(null);
+-
+-  const [katalog, setKatalog] = useState([]);
+-  const [sahip, setSahip] = useState([]);
+-  const [gorunum, setGorunum] = useState(null);
+-  const [bakiye, setBakiye] = useState(0);
+-  const [yuva, setYuva] = useState(() => {
+-    const g = arama.get("yuva");
+-    return YUVALAR.some((x) => x.kod === g) ? g : "sac";
+-  });
+-  const [hata, setHata] = useState(null);
+-  const [bilgi, setBilgi] = useState(null);
+-  const [kaydediliyor, setKaydediliyor] = useState(false);
+-  const [alinan, setAlinan] = useState(null);
+-  const [sahneHatasi, setSahneHatasi] = useState(false);
+-
+-  // ---------- veri ----------
+-  const yukle = useCallback(async () => {
+-    try {
+-      const { data, error } = await supabase.rpc("esya_katalogum");
+-      if (error) throw error;
+-      const r = Array.isArray(data) ? data[0] : data;
+-      setKatalog(Array.isArray(r?.esyalar) ? r.esyalar : []);
+-      setSahip(Array.isArray(r?.sahip) ? r.sahip : []);
+-      setGorunum(r?.gorunum && typeof r.gorunum === "object" ? r.gorunum : {});
+-      setBakiye(Number(r?.bakiye ?? 0));
+-    } catch (e) {
+-      setHata(hataMesaji(e, "Görünüm yüklenemedi."));
+-      setGorunum({});
+-    }
+-  }, []);
+-
+-  useEffect(() => { yukle(); }, [yukle]);
+-
+-  // ---------- 3B önizleme (lazy) ----------
+-  useEffect(() => {
+-    const kapsayici = kapsayiciRef.current;
+-    if (!kapsayici || gorunum === null || katalog.length === 0) return undefined;
+-    let kapandi = false;
+-    let sahne = null;
+-
+-    (async () => {
+-      try {
+-        const [{ onizlemeKur }, { esyaBilgisi }] = await Promise.all([
+-          import("../harita/onizleme.js"),
+-          import("../harita/esyalar.js"),
+-        ]);
+-        if (kapandi) return;
+-        sahne = onizlemeKur(kapsayici, { gorunum, bilgi: esyaBilgisi(katalog) });
+-        onizlemeRef.current = sahne;
+-      } catch (e) {
+-        console.error("[Görünüm] 3B sahne kurulamadi:", e);
+-        setSahneHatasi(true);
+-      }
+-    })();
+-
+-    return () => {
+-      kapandi = true;
+-      try { sahne?.yokEt(); } catch (e) { console.error("[Görünüm] kapatma:", e); }
+-      onizlemeRef.current = null;
+-    };
+-    // Sahne BİR KEZ kurulur; kıyafet değişimi guncelle() ile yapılır.
+-    // eslint-disable-next-line react-hooks/exhaustive-deps
+-  }, [gorunum !== null, katalog.length]);
+-
+-  // ---------- değişiklikler ----------
+-  const yuvaDegistir = (kod) => {
+-    setGorunum((g) => {
+-      const yeni = { ...g, [yuva]: g?.[yuva] === kod ? null : kod };
+-      onizlemeRef.current?.guncelle(yeni);
+-      return yeni;
+-    });
+-    setBilgi(null);
+-  };
+-
+-  const renkDegistir = (alan, renk) => {
+-    setGorunum((g) => {
+-      const yeni = { ...g, [alan]: renk };
+-      // Ten gövdeyi de etkiler: avatar baştan kurulur.
+-      if (alan === "ten") onizlemeRef.current?.yenidenKur(yeni);
+-      else onizlemeRef.current?.guncelle(yeni);
+-      return yeni;
+-    });
+-  };
+-
+-  /** Dansı önizlemede oynatır — dükkânda "nasıl duruyor" görülebilsin. */
+-  const dansiGoster = (kod) => {
+-    setBilgi("Bu dansı Meydan'da 💃 düğmesinden oynatabilirsin.");
+-    onizlemeRef.current?.dansOynat(kod);
+-  };
+-
+-  const satinAl = async (kod) => {
+-    setHata(null); setBilgi(null); setAlinan(kod);
+-    try {
+-      const { data, error } = await supabase.rpc("esya_satin_al", { p_kod: kod });
+-      if (error) throw error;
+-      const r = Array.isArray(data) ? data[0] : data;
+-      setBakiye(Number(r?.bakiye ?? bakiye));
+-      setSahip((s) => [...s, kod]);
+-      coinTazele();
+-      setBilgi(yuva === "dans"
+-        ? "Dans alındı — Meydan'da 💃 düğmesinden oynatabilirsin."
+-        : "Eşya alındı, giyebilirsin.");
+-      if (yuva === "dans") onizlemeRef.current?.dansOynat(kod);
+-    } catch (e) {
+-      const m = coinHatasi(e);
+-      setHata(m);
+-      if (m === "Coin yetmiyor") navigate(y("/joker?sekme=coin"));
+-    } finally {
+-      setAlinan(null);
+-    }
+-  };
+-
+-  /** Liste ekranları için avatarın tek karelik fotoğrafını üretip yükler. */
+-  const fotografiYukle = async () => {
+-    const s = onizlemeRef.current;
+-    if (!s || !user) return;
+-    try {
+-      const veri = await s.fotograf(256);
+-      const ikili = await (await fetch(veri)).blob();
+-      const yol = `${user.id}/avatar.png`;
+-      const { error: yuklemeHatasi } = await supabase.storage
+-        .from("avatarlar")
+-        .upload(yol, ikili, { upsert: true, contentType: "image/png" });
+-      if (yuklemeHatasi) throw yuklemeHatasi;
+-      const { data: genel } = supabase.storage.from("avatarlar").getPublicUrl(yol);
+-      // Önbellek kırıcı: aynı adrese yazıyoruz, tarayıcı eskisini göstermesin
+-      const adres = `${genel.publicUrl}?v=${Date.now()}`;
+-      const { error: onayHatasi } = await supabase.rpc("avatar_onayla", { p_url: adres });
+-      if (onayHatasi) throw onayHatasi;
+-      refreshProfile?.(user.id);
+-    } catch (e) {
+-      // Fotoğraf üretilemese de görünüm kaydı geçerli; sessiz geçilmez ama
+-      // kullanıcı akışı da durmaz.
+-      console.error("[Görünüm] avatar fotografi yuklenemedi:", e);
+-    }
+-  };
+-
+-  const kaydet = async () => {
+-    setHata(null); setBilgi(null); setKaydediliyor(true);
+-    try {
+-      const { data, error } = await supabase.rpc("gorunum_kaydet", { p_gorunum: gorunum });
+-      if (error) throw error;
+-      if (data && typeof data === "object") setGorunum(data);
+-      // Çerçeve nadirliği önbellekte: kıyafet değişti, eskisini unut.
+-      nadirligiUnut(user?.id);
+-      await fotografiYukle();
+-      setBilgi("Görünümün kaydedildi.");
+-    } catch (e) {
+-      setHata(hataMesaji(e, "Görünüm kaydedilemedi."));
+-    } finally {
+-      setKaydediliyor(false);
+-    }
+-  };
+-
+-  if (gorunum === null) {
+-    return <div className="bd-gorunum"><div className="baslik">Görünüm</div>
+-      <div className="alt-yazi">Yükleniyor…</div></div>;
+-  }
+-
+-  const aktifYuva = YUVALAR.find((x) => x.kod === yuva) ?? YUVALAR[0];
+-  const liste = katalog.filter((e) => e.yuva === yuva);
+-  const secili = gorunum?.[yuva] ?? null;
+-  const seciliEsya = katalog.find((e) => e.kod === secili);
+-  const renkAlani = aktifYuva.renkAlani;
+-  const boyanabilirMi = Boolean(renkAlani && seciliEsya?.boyanabilir);
+-
+-  return (
+-    <div className="bd-gorunum">
+-      <div className="baslik">Görünüm</div>
+-
+-      {hata && <div className="hata-kutu">{hata}</div>}
+-      {bilgi && <div className="bd-bilgi-kutu">{bilgi}</div>}
+-
+-      <div className="bd-gorunum-ust">
+-        {/* ---- 3B önizleme ---- */}
+-        <div className="bd-gorunum-sahne-kutu">
+-          {sahneHatasi ? (
+-            <div className="bd-gorunum-sahnesiz">
+-              <Ikon ad="uyari" boyut={28} />
+-              <span>Cihazın 3B önizlemeyi açamıyor. Eşyaları yine de seçip kaydedebilirsin.</span>
+-            </div>
+-          ) : (
+-            <div className="bd-gorunum-sahne" ref={kapsayiciRef} />
+-          )}
+-        </div>
+-
+-        {/* ---- coin ---- */}
+-        <div className="bd-gorunum-coin">
+-          <Ikon ad="coin" boyut={16} />
+-          {bakiye.toLocaleString("tr-TR")}
+-        </div>
+-      </div>
+-
+-      {/* ---- yuva sekmeleri ---- */}
+-      <div className="bd-gorunum-yuvalar" role="tablist">
+-        {YUVALAR.map((x) => (
+-          <button
+-            key={x.kod}
+-            role="tab"
+-            aria-selected={yuva === x.kod}
+-            className={"bd-gorunum-yuva" + (yuva === x.kod ? " aktif" : "")}
+-            onClick={() => setYuva(x.kod)}
+-          >
+-            <Ikon ad={x.ikon} boyut={16} />
+-            {x.ad}
+-          </button>
+-        ))}
+-      </div>
+-
+-      {/* ---- eşya ızgarası ---- */}
+-      <div className="bd-esya-grid">
+-        {/* "Yok" seçeneği: yuvayı boşaltır (dans giyilmediği için orada yok) */}
+-        {!aktifYuva.giyilmez && (
+-        <button
+-          className={"bd-esya" + (secili === null ? " secili" : "")}
+-          onClick={() => setGorunum((g) => {
+-            const yeni = { ...g, [yuva]: null };
+-            onizlemeRef.current?.guncelle(yeni);
+-            return yeni;
+-          })}
+-        >
+-          <span className="bd-esya-gorsel"><Ikon ad="carpi" boyut={20} /></span>
+-          <span className="bd-esya-ad">Yok</span>
+-        </button>
+-        )}
+-
+-        {liste.map((e) => {
+-          const sahipMi = sahip.includes(e.kod);
+-          const alinabilir = e.coin_fiyat != null;
+-          return (
+-            <button
+-              key={e.kod}
+-              className={"bd-esya" + (secili === e.kod ? " secili" : "") + (sahipMi ? "" : " kilitli")}
+-              onClick={() => {
+-                if (!sahipMi) { if (alinabilir) satinAl(e.kod); return; }
+-                if (aktifYuva.giyilmez) dansiGoster(e.kod);
+-                else yuvaDegistir(e.kod);
+-              }}
+-              disabled={alinan === e.kod}
+-            >
+-              <span className="bd-esya-gorsel" style={{ background: e.varsayilan_renk ?? "#DDE7F0" }}>
+-                {!sahipMi && <Ikon ad="kilit" boyut={16} />}
+-              </span>
+-              <span className="bd-esya-ad">{e.ad}</span>
+-              {!sahipMi && (
+-                <span className="bd-esya-fiyat">
+-                  {alinabilir
+-                    ? <><Ikon ad="coin" boyut={12} /> {Number(e.coin_fiyat).toLocaleString("tr-TR")}</>
+-                    : "Etkinlik ödülü"}
+-                </span>
+-              )}
+-            </button>
+-          );
+-        })}
+-      </div>
+-
+-      {/* ---- renk paleti ---- */}
+-      {boyanabilirMi && (
+-        <div className="kart bd-palet-kart">
+-          <div className="bd-kat-baslik"><span>{aktifYuva.ad} rengi</span></div>
+-          <div className="bd-palet">
+-            {PALET.map((r) => (
+-              <button
+-                key={r}
+-                className={"bd-palet-renk" + (gorunum?.[renkAlani] === r ? " secili" : "")}
+-                style={{ background: r }}
+-                aria-label={r}
+-                onClick={() => renkDegistir(renkAlani, r)}
+-              />
+-            ))}
+-          </div>
+-        </div>
+-      )}
+-
+-      {/* ---- ten rengi ---- */}
+-      <div className="kart bd-palet-kart">
+-        <div className="bd-kat-baslik"><span>Ten rengi</span></div>
+-        <div className="bd-palet">
+-          {TEN_PALETI.map((r) => (
+-            <button
+-              key={r}
+-              className={"bd-palet-renk" + (gorunum?.ten === r ? " secili" : "")}
+-              style={{ background: r }}
+-              aria-label={r}
+-              onClick={() => renkDegistir("ten", r)}
+-            />
+-          ))}
+-        </div>
+-      </div>
+-
+-      <div className="bd-gorunum-eylemler">
+-        <button className="btn" onClick={kaydet} disabled={kaydediliyor}>
+-          {kaydediliyor ? "Kaydediliyor…" : "Kaydet"}
+-        </button>
+-        <button className="btn ikincil" onClick={() => navigate(y("/profil"))}>
+-          Profile dön
+-        </button>
+-      </div>
+-    </div>
+-  );
+-}
++import {useEffect} from 'react';
++export default function YeniGorunum(){
++ useEffect(()=>{location.replace('/bildim/avatar3d/gardrop.html');},[]);
++ return <p><a href="/bildim/avatar3d/gardrop.html">3D gardırobu aç</a></p>;
++}
+\ No newline at end of file
+diff --git a/bildim/pages/KarakterPage.jsx b/bildim/pages/KarakterPage.jsx
+index dd30c9c..8f657cb 100644
+--- a/bildim/pages/KarakterPage.jsx
++++ b/bildim/pages/KarakterPage.jsx
+@@ -1,332 +1,5 @@
+-// ============================================================
+-// GÖRÜNÜM (2B) — karakter ve kozmetik seçimi
+-//
+-// PatiRun'dan taşınan vektör karakter sistemini kullanır: hazır görsel
+-// yok, her şey SVG olarak kodla çizilir (bildim/karakter/).
+-//
+-// Düzen: üstte yatay kaydırmalı karakter şeridi (sahip olunanlar renkli,
+-// olmayanlar soluk + fiyat), ortada büyük önizleme (YALNIZ AD), altta yuva
+-// listesi (açılır) ve renk seçici. Tanıtım cümlesi YOK: PatiRun'dan gelen
+-// metinler yarış oyununa aitti, bilgi yarışmasında anlamsız kalıyordu.
+-//
+-// SUNUCUYA GÜVEN: satın alma ve giyme kararını sunucu verir
+-// (karakter_satin_al / esya_satin_al / gorunum_kaydet). Buradaki
+-// kilitler yalnız oyuncuya ne olduğunu anlatmak için.
+-// 3B sahne YÜKLENMEZ — bu sayfa three.js indirmez.
+-// ============================================================
+-import { useCallback, useEffect, useMemo, useState } from "react";
+-import { useNavigate } from "react-router-dom";
+-import { supabase } from "../../src/lib/supabase.js";
+-import { useAuth } from "../../src/context/AuthContext.jsx";
+-import Ikon from "../components/Ikon.jsx";
+-import Modal from "../components/Modal.jsx";
+-import { hataMesaji } from "../lib/hata.js";
+-import { coinTazele, coinHatasi } from "../lib/coin.js";
+-import { nadirligiUnut } from "../lib/nadirlik.js";
+-import { y } from "../lib/yol.js";
+-import { COSMETIC_COLORS, COSMETIC_LABELS, getCharacter } from "../karakter/karakterler.js";
+-import { YUVALAR, RENKLI_YUVALAR, avatarUri, kozmetikCoz, karakterId, renkAlani } from "../karakter/gorunum.js";
+-import "./gorunum.css";
+-
+-/** Nadirlik → çerçeve sınıfı (AvatarCerceve ile aynı aile). */
+-const NADIRLIK_SINIF = { sirali: "n-sirali", ozel: "n-ozel", etkinlik: "n-etkinlik" };
+-
+-export default function KarakterPage() {
+-  const navigate = useNavigate();
+-  const { profile, refreshProfile } = useAuth();
+-
+-  const [karakterler, setKarakterler] = useState([]);
+-  const [karSahip, setKarSahip] = useState([]);
+-  const [parcalar, setParcalar] = useState([]);
+-  const [parcaSahip, setParcaSahip] = useState([]);
+-  const [bakiye, setBakiye] = useState(0);
+-  // secili.kozmetik SADECE OYUNCUNUN AÇIK SEÇİMLERİDİR — karakterin kendi
+-  // varsayılan kombini burada tutulmaz. Sebep: gorunum_kaydet gönderilen her
+-  // parçanın sahipliğini soruyor; varsayılanı da yollayınca "Bu parçaya sahip
+-  // değilsin: esofman" diye reddediyordu ve Kaydet 400 dönüyordu. Varsayılanlar
+-  // çizim anında kozmetikCoz ile tamamlanıyor, kaydedilmeleri gerekmiyor.
+-  const [secili, setSecili] = useState(null);        // { karakter, kozmetik }
+-  const [acikYuva, setAcikYuva] = useState(null);
+-  const [onay, setOnay] = useState(null);            // satın alma onayı
+-  const [hata, setHata] = useState(null);
+-  const [bilgi, setBilgi] = useState(null);
+-  const [calisiyor, setCalisiyor] = useState(false);
+-  const [yukleniyor, setYukleniyor] = useState(true);
+-
+-  const yukle = useCallback(async () => {
+-    try {
+-      const { data, error } = await supabase.rpc("karakter_katalogum");
+-      if (error) throw error;
+-      const k = Array.isArray(data) ? data[0] : data;
+-      if (!k) return;
+-      setKarakterler(k.karakterler ?? []);
+-      setKarSahip(k.karakter_sahip ?? []);
+-      setParcalar(k.parcalar ?? []);
+-      setParcaSahip(k.parca_sahip ?? []);
+-      setBakiye(Number(k.bakiye ?? 0));
+-      const g = k.gorunum ?? {};
+-      const ham = g.kozmetik && typeof g.kozmetik === "object" ? g.kozmetik : {};
+-      setSecili({ karakter: karakterId(g), kozmetik: ham });
+-    } catch (e) {
+-      setHata(hataMesaji(e, "Görünüm yüklenemedi."));
+-    } finally {
+-      setYukleniyor(false);
+-    }
+-  }, []);
+-
+-  useEffect(() => { yukle(); }, [yukle]);
+-
+-  const parcaHaritasi = useMemo(() => {
+-    const m = {};
+-    for (const p of parcalar) m[p.yuva + ":" + p.anahtar] = p;
+-    return m;
+-  }, [parcalar]);
+-
+-  const sahipMi = useCallback(
+-    (yuva, anahtar) => {
+-      if (anahtar === "yok") return true;
+-      const p = parcaHaritasi[yuva + ":" + anahtar];
+-      return Boolean(p && parcaSahip.includes(p.kod));
+-    },
+-    [parcaHaritasi, parcaSahip]
+-  );
+-
+-  if (yukleniyor || !secili) {
+-    return <div className="yukleniyor">Yükleniyor…</div>;
+-  }
+-
+-  const def = getCharacter(secili.karakter);
+-  // Ekranda gösterilen kombin: açık seçimler + karakterin varsayılanları.
+-  const koz = kozmetikCoz({ karakter: secili.karakter, kozmetik: secili.kozmetik });
+-  const onizleme = avatarUri({ karakter: secili.karakter, kozmetik: secili.kozmetik }, "idle");
+-
+-  // Karakter değiştirmek SERBEST: sahip olunanlar arasında sınırsız geçiş.
+-  const karakterSec = (k) => {
+-    setHata(null);
+-    if (karSahip.includes(k.id)) {
+-      setSecili((s) => ({ ...s, karakter: k.id }));
+-      return;
+-    }
+-    setOnay({ tur: "karakter", id: k.id, ad: k.ad, fiyat: Number(k.coin_fiyat ?? 0) });
+-  };
+-
+-  const parcaSec = (yuva, anahtar) => {
+-    setHata(null);
+-    if (sahipMi(yuva, anahtar)) {
+-      setSecili((s) => ({ ...s, kozmetik: { ...s.kozmetik, [yuva]: anahtar } }));
+-      return;
+-    }
+-    const p = parcaHaritasi[yuva + ":" + anahtar];
+-    if (!p) return;
+-    if (p.coin_fiyat === null || p.coin_fiyat === undefined) {
+-      setHata("Bu parça yalnız turnuva ödülü olarak kazanılır.");
+-      return;
+-    }
+-    setOnay({ tur: "parca", kod: p.kod, yuva, anahtar, ad: p.ad, fiyat: Number(p.coin_fiyat) });
+-  };
+-
+-  // Renk seçimi ÜCRETSİZ — sunucuya ödeme gitmez, yalnız kaydedilir.
+-  const renkSec = (yuva, renk) => {
+-    setSecili((s) => ({ ...s, kozmetik: { ...s.kozmetik, [renkAlani(yuva)]: renk } }));
+-  };
+-
+-  const satinAl = async () => {
+-    if (!onay) return;
+-    setCalisiyor(true);
+-    setHata(null);
+-    try {
+-      if (onay.tur === "karakter") {
+-        const { error } = await supabase.rpc("karakter_satin_al", { p_id: onay.id });
+-        if (error) throw error;
+-        setKarSahip((l) => [...l, onay.id]);
+-        setSecili((s) => ({ ...s, karakter: onay.id }));
+-      } else {
+-        const { error } = await supabase.rpc("esya_satin_al", { p_kod: onay.kod });
+-        if (error) throw error;
+-        setParcaSahip((l) => [...l, onay.kod]);
+-        setSecili((s) => ({ ...s, kozmetik: { ...s.kozmetik, [onay.yuva]: onay.anahtar } }));
+-      }
+-      setBakiye((b) => b - onay.fiyat);
+-      coinTazele();
+-      setBilgi(onay.ad + " alındı.");
+-      setOnay(null);
+-    } catch (e) {
+-      setHata(coinHatasi(e));
+-    } finally {
+-      setCalisiyor(false);
+-    }
+-  };
+-
+-  const kaydet = async () => {
+-    setCalisiyor(true);
+-    setHata(null);
+-    try {
+-      const { error } = await supabase.rpc("gorunum_kaydet", {
+-        p_gorunum: { karakter: secili.karakter, kozmetik: secili.kozmetik },
+-      });
+-      if (error) throw error;
+-      nadirligiUnut(profile?.id);
+-      refreshProfile?.(profile?.id);
+-      setBilgi("Görünümün kaydedildi.");
+-      try { localStorage.setItem("bildim_karakter_secildi", "1"); } catch { /* özel mod */ }
+-    } catch (e) {
+-      setHata(hataMesaji(e, "Kaydedilemedi."));
+-    } finally {
+-      setCalisiyor(false);
+-    }
+-  };
+-
+-  return (
+-    <div className="bd-karakter-sayfa">
+-      <div className="baslik">Görünümün</div>
+-      {hata && <div className="hata-kutu">{hata}</div>}
+-      {bilgi && <div className="bd-bilgi-kutu">{bilgi}</div>}
+-
+-      {/* ---- Karakter şeridi ---- */}
+-      <div className="bd-kar-serit" role="listbox" aria-label="Karakterler">
+-        {karakterler.map((k) => {
+-          const bende = karSahip.includes(k.id);
+-          const aktif = k.id === secili.karakter;
+-          return (
+-            <button
+-              key={k.id}
+-              type="button"
+-              role="option"
+-              aria-selected={aktif}
+-              className={"bd-kar-kart " + (aktif ? "aktif " : "") + (bende ? "" : "kilitli ") + (NADIRLIK_SINIF[k.nadirlik] ?? "")}
+-              onClick={() => karakterSec(k)}
+-              title={k.ad}
+-            >
+-              <img src={avatarUri({ karakter: k.id }, "idle")} alt="" loading="lazy" />
+-              <span className="bd-kar-ad">{k.ad}</span>
+-              {!bende && (
+-                <span className="bd-kar-fiyat">
+-                  <Ikon ad="coin" boyut={12} /> {Number(k.coin_fiyat).toLocaleString("tr-TR")}
+-                </span>
+-              )}
+-            </button>
+-          );
+-        })}
+-      </div>
+-
+-      {/* ---- Büyük önizleme ---- */}
+-      <div className="kart bd-kar-onizleme">
+-        <img src={onizleme} alt={def.name} className="bd-kar-buyuk" />
+-        <div className="bd-kar-baslik">{def.name}</div>
+-        <button className="btn" disabled={calisiyor} onClick={kaydet}>
+-          {calisiyor ? "Kaydediliyor…" : "Kaydet"}
+-        </button>
+-      </div>
+-
+-      {/* ---- Yuvalar ---- */}
+-      {YUVALAR.map(({ yuva, ad }) => {
+-        const acik = acikYuva === yuva;
+-        const liste = parcalar.filter((p) => p.yuva === yuva);
+-        const simdiki = koz[yuva] ?? "yok";
+-        return (
+-          <div className="kart bd-yuva-kart" key={yuva}>
+-            <button
+-              type="button"
+-              className="bd-yuva-baslik"
+-              aria-expanded={acik}
+-              onClick={() => setAcikYuva(acik ? null : yuva)}
+-            >
+-              <span>{ad}</span>
+-              <span className="alt-yazi">{COSMETIC_LABELS[simdiki] ?? "Yok"}</span>
+-            </button>
+-
+-            {acik && (
+-              <>
+-                <div className="bd-parca-grid">
+-                  <button
+-                    type="button"
+-                    className={"bd-parca " + (simdiki === "yok" ? "aktif" : "")}
+-                    onClick={() => parcaSec(yuva, "yok")}
+-                  >
+-                    <span className="bd-parca-ad">Yok</span>
+-                  </button>
+-                  {liste.map((p) => {
+-                    const bende = parcaSahip.includes(p.kod);
+-                    const etkinlik = p.coin_fiyat === null || p.coin_fiyat === undefined;
+-                    return (
+-                      <button
+-                        key={p.kod}
+-                        type="button"
+-                        className={"bd-parca " + (simdiki === p.anahtar ? "aktif " : "") + (bende ? "" : "kilitli ") + (NADIRLIK_SINIF[p.nadirlik] ?? "")}
+-                        onClick={() => parcaSec(yuva, p.anahtar)}
+-                        title={p.ad}
+-                      >
+-                        <img
+-                          src={avatarUri(
+-                            { karakter: secili.karakter, kozmetik: { ...secili.kozmetik, [yuva]: p.anahtar } },
+-                            "idle"
+-                          )}
+-                          alt=""
+-                          loading="lazy"
+-                        />
+-                        <span className="bd-parca-ad">{p.ad}</span>
+-                        {!bende && (
+-                          <span className="bd-parca-fiyat">
+-                            {etkinlik ? (
+-                              <><Ikon ad="kilit" boyut={11} /> Etkinlik ödülü</>
+-                            ) : (
+-                              <><Ikon ad="coin" boyut={11} /> {Number(p.coin_fiyat).toLocaleString("tr-TR")}</>
+-                            )}
+-                          </span>
+-                        )}
+-                      </button>
+-                    );
+-                  })}
+-                </div>
+-
+-                {/* Renk ÜCRETSİZ: parça satılır, rengi hediye edilir. */}
+-                {RENKLI_YUVALAR.has(yuva) && (
+-                  <div className="bd-renk-satir" role="group" aria-label={ad + " rengi"}>
+-                    {COSMETIC_COLORS.map((r) => (
+-                      <button
+-                        key={r}
+-                        type="button"
+-                        className={"bd-renk " + (koz[renkAlani(yuva)] === r ? "aktif" : "")}
+-                        style={{ background: r }}
+-                        aria-label={"Renk " + r}
+-                        onClick={() => renkSec(yuva, r)}
+-                      />
+-                    ))}
+-                  </div>
+-                )}
+-              </>
+-            )}
+-          </div>
+-        );
+-      })}
+-
+-      <div className="alt-yazi" style={{ textAlign: "center", margin: "12px 0 4px" }}>
+-        Coin bakiyen: <b>{bakiye.toLocaleString("tr-TR")}</b> · Renkler ücretsiz
+-      </div>
+-      <button className="btn ikincil" onClick={() => navigate(y("/joker?sekme=gorunum"))}>
+-        Dükkânda tüm parçalar
+-      </button>
+-
+-      {onay && (
+-        <Modal onKapat={() => setOnay(null)} etiket="Satın alma">
+-          <div className="bd-modal">
+-            <div className="baslik">{onay.ad}</div>
+-            <div className="alt-yazi" style={{ marginBottom: 12 }}>
+-              Fiyat: <b>{onay.fiyat.toLocaleString("tr-TR")} coin</b> · Bakiyen:{" "}
+-              <b>{bakiye.toLocaleString("tr-TR")} coin</b>
+-            </div>
+-            {bakiye < onay.fiyat && (
+-              <div className="hata-kutu" style={{ marginBottom: 10 }}>Coinin yetmiyor.</div>
+-            )}
+-            <div className="bd-konum-butonlar">
+-              <button className="btn" disabled={calisiyor || bakiye < onay.fiyat} onClick={satinAl}>
+-                {calisiyor ? "…" : "Satın al"}
+-              </button>
+-              <button className="btn ikincil" onClick={() => setOnay(null)}>Vazgeç</button>
+-            </div>
+-          </div>
+-        </Modal>
+-      )}
+-    </div>
+-  );
+-}
++import {useEffect} from 'react';
++export default function YeniGorunum(){
++ useEffect(()=>{location.replace('/bildim/avatar3d/gardrop.html');},[]);
++ return <p><a href="/bildim/avatar3d/gardrop.html">3D gardırobu aç</a></p>;
++}
+\ No newline at end of file
+diff --git a/vercel.json b/vercel.json
+index 170b3f6..97feeb2 100644
+--- a/vercel.json
++++ b/vercel.json
+@@ -1,6 +1,6 @@
+ {
+   "framework": "vite",
+-  "buildCommand": "npm run build",
++  "buildCommand": "npx vite build --mode bildim --config bildim/avatar3d/vite.prototip.config.js && node araclar/tarayici-uyumluluk.mjs",
+   "outputDirectory": "dist",
+   "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }]
+ }

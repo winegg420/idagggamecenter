@@ -1,0 +1,626 @@
+diff -ru --new-file bildim/avatar3d/Gardrop.jsx /c/Users/ida/Desktop/idagggamecenter/bildim/avatar3d/Gardrop.jsx
+--- bildim/avatar3d/Gardrop.jsx	2026-09-13 19:59:27.120791000 +0300
++++ /c/Users/ida/Desktop/idagggamecenter/bildim/avatar3d/Gardrop.jsx	2026-09-13 23:14:12.187160000 +0300
+@@ -3,26 +3,78 @@
+ import {sahneKur} from './sahne.js';
+ import {TENLER,SAC_RENKLERI} from './model.js';
+ import {KOLEKSIYON} from './koleksiyon.js';
+-import {TEMEL,YUVA_ADLARI,parcayiTak,parcayiCikar} from './envanter.js';
++import {TEMEL,YUVA_ADLARI,BOSLAR,parcayiTak,parcayiCikar} from './envanter.js';
+ import {denemeServisi,ENVANTER_ANAHTAR} from './envanter-yerel.js';
+ import denemeKatalog from './deneme-katalog.json';
+-import {onizlemeMi} from './yerel.js';
++import {denemeCuzdaniMi} from './yerel.js';
++import {sunucuServisi} from './envanter-sunucu.js';
++import {supabase} from '../../src/lib/supabase.js';
++import ParcaPortresi from './ParcaPortresi.jsx';
++import {portreMakinesiniKapat,yeniPortre} from './portre.js';
+ import './atolye.css';
+ import './yerlesim.css';
+ import './gardrop.css';
+ 
+ function Gardrop(){
+- const [durum,setDurum]=useState(null),[g,setG]=useState(TEMEL),[tab,setTab]=useState('magaza'),[yuva,setYuva]=useState('hepsi'),[hata,setHata]=useState(''),[bilgi,setBilgi]=useState(''),[mesgul,setMesgul]=useState(false),[onay,setOnay]=useState(null),[stat,setStat]=useState({}),[mod,setMod]=useState('bekle');
++ const [durum,setDurum]=useState(null),[g,setG]=useState(TEMEL),[tab,setTab]=useState('magaza'),[hata,setHata]=useState(''),[bilgi,setBilgi]=useState(''),[mesgul,setMesgul]=useState(false),[onay,setOnay]=useState(null),[stat,setStat]=useState({}),[mod,setMod]=useState('bekle');
++ const [kullanici,setKullanici]=useState(null);
++ // Hangi cüzdandayız: giriş yapan oyuncu GERÇEK coin harcar, oturumsuz
++ // yerel geliştirme sahte cüzdanda kalır. Etiketler buna göre yazılır —
++ // "Gerçek bakiyeni etkilemez" yazısı gerçek bakiyede YALAN olurdu.
++ const [denemeMi,setDenemeMi]=useState(false);
+  const alan=useRef(),sahne=useRef(),servis=useRef(),kilit=useRef(false),guncel=useRef(g);guncel.current=g;
++
++ /**
++  * PORTRE PNG'Sİ — listelerin WebGL açmaması için.
++  * Avatar.jsx 19 yerde kullanılıyor, lig tablosunda 25 satır var; her
++  * satırda render etmek kabul edilemez (portre başına ~55 ms). Bu yüzden
++  * portre KAYDEDERKEN BİR KEZ üretilip Storage'a yüklenir, listeler düz
++  * <img> çizer.
++  * Portre üretilemezse görünüm kaydı yine geçerlidir — akış durmaz.
++  */
++ const portreyiYukle=async(gorunum)=>{
++  if(!kullanici)return;
++  try{
++   const veri=yeniPortre({avatar3d:gorunum});
++   if(!veri)return;
++   const ikili=await (await fetch(veri)).blob();
++   const yol=`${kullanici}/portre3b.png`;
++   const {error:yuklemeHatasi}=await supabase.storage.from('avatarlar')
++     .upload(yol,ikili,{upsert:true,contentType:'image/png'});
++   if(yuklemeHatasi)throw yuklemeHatasi;
++   const {data:genel}=supabase.storage.from('avatarlar').getPublicUrl(yol);
++   // Önbellek kırıcı: aynı adrese yazıyoruz, tarayıcı eskisini göstermesin.
++   const {error:kayitHatasi}=await supabase.rpc('avatar3d_portre_kaydet',{p_url:`${genel.publicUrl}?v=${Date.now()}`});
++   if(kayitHatasi)throw kayitHatasi;
++  }catch(e){console.error('[Gardırop] portre yuklenemedi:',e);}
++ };
+  useEffect(()=>{
+-  if(!onizlemeMi()){setHata('Gardırop önizlemesi henüz açık değil.');return;}
+   let aktif=true;
+-  try{servis.current=denemeServisi(localStorage,denemeKatalog);sahne.current=sahneKur(alan.current,TEMEL,setStat);if(matchMedia('(prefers-reduced-motion: reduce)').matches){sahne.current.animasyon('dur');setMod('dur');}}catch(e){setHata(e.message);}
++  try{sahne.current=sahneKur(alan.current,TEMEL,setStat);if(matchMedia('(prefers-reduced-motion: reduce)').matches){sahne.current.animasyon('dur');setMod('dur');}}catch(e){setHata(e.message);}
+   const yukle=async()=>{try{const s=await servis.current.yukle();if(aktif){setDurum(s);setG(s.gorunum);}}catch(e){if(aktif)setHata(e.message);}};
+-  yukle();const degisti=e=>{if(e.key===ENVANTER_ANAHTAR)yukle();};window.addEventListener('storage',degisti);
+-  return()=>{aktif=false;window.removeEventListener('storage',degisti);sahne.current?.yokEt();};
++
++  // HANGİ CÜZDAN: giriş yapmış oyuncu GERÇEK ekonomide (avatar3d_* RPC),
++  // oturumsuz yerel geliştirme deneme cüzdanında çalışır.
++  (async()=>{
++   try{
++    const {data:{session}}=await supabase.auth.getSession();
++    if(!aktif)return;
++    if(session){servis.current=sunucuServisi(supabase);setKullanici(session.user.id);setDenemeMi(false);}
++    else if(denemeCuzdaniMi()){servis.current=denemeServisi(localStorage,denemeKatalog);setDenemeMi(true);}
++    else{setHata('Gardıroba girmek için önce giriş yapmalısın.');return;}
++    yukle();
++   }catch(e){if(aktif)setHata(e.message||'Gardırop açılamadı.');}
++  })();
++
++  const degisti=e=>{if(e.key===ENVANTER_ANAHTAR)yukle();};window.addEventListener('storage',degisti);
++  return()=>{aktif=false;window.removeEventListener('storage',degisti);sahne.current?.yokEt();portreMakinesiniKapat();};
+  },[]);
+  useEffect(()=>{try{sahne.current?.guncelle(g);}catch(e){setHata(e.message);}},[g]);
++ // Küçük resimler ~250 ms GECİKTİRİLİR: renk paletinde gezerken her
++ // tıklamada 12 portre üretilmesin. Canlı sahne anında güncellenmeye
++ // devam ediyor (yukarıdaki effect), gecikme yalnız kartlarda.
++ const [portreTemeli,setPortreTemeli]=useState(TEMEL);
++ useEffect(()=>{const z=setTimeout(()=>setPortreTemeli(g),250);return()=>clearTimeout(z);},[g]);
+  async function islem(fn,mesaj,uygula=false){
+   if(kilit.current)return;kilit.current=true;setMesgul(true);setHata('');
+   try{const s=await fn();setDurum(s);if(uygula)setG(s.gorunum);setBilgi(mesaj);setOnay(null);window.dispatchEvent(new Event('qs-envanter3d'));}
+@@ -30,27 +82,96 @@
+  }
+  const sahip=durum?.sahip||[],katalog=durum?.katalog||[];
+  const kilitli=katalog.filter(p=>g[p.yuva]===p.deger&&!sahip.includes(p.id));
+- const fark=durum&&JSON.stringify(g)!==JSON.stringify(durum.gorunum);
++ // Karakterini hiç kurmamış oyuncu hiçbir şeyi değiştirmeden de kaydedebilsin:
++ // yoksa "değişiklik yok" diye Kaydet kapalı kalıyor ve meydan kapısı
++ // (karakteri olmayan giremez) hiç açılamıyordu.
++ const fark=durum&&(durum.kurulmus===false||JSON.stringify(g)!==JSON.stringify(durum.gorunum));
++ // TEST DÖNEMİ: sunucu "bedava" diyorsa fiyat yerine "Ücretsiz" yazılır
++ // ve satın alma tek tıkla, onaysız olur. Kararı yine sunucu veriyor
++ // (avatar3d_satin_al); burası yalnız görüntü.
++ const bedavaMi=durum?.bedavaTest===true;
++
++ /** Kategori şeridi: filtre değil, ilgili bölüme kaydırır. */
++ const bolumeGit=(id)=>{
++  try{
++   document.getElementById('yuva-'+id)?.scrollIntoView({behavior:'smooth',block:'start'});
++  }catch(e){console.error('[Gardırop] bölüme gidilemedi:',e);}
++ };
++
++ /** Bedava dönemde tek tık: onay penceresi açılmaz. */
++ const hemenAl=(p)=>islem(()=>servis.current.satinAl(p.id),p.ad+' envanterine eklendi.');
++
+  const sec=p=>{setG(a=>parcayiTak(a,p));setBilgi(p.ad+(sahip.includes(p.id)?' seçildi. Kaydederek oyuna uygula.':' deneniyor. Kaydetmek için önce edinmelisin.'));};
+- return <div className="atolye gardrop"><header><a href="./index.html">Quiz Square</a><span className="etiket">GARDIROP · ÖNİZLEME</span></header>
++ return <div className="atolye gardrop"><header><a href="./index.html">Quiz Square</a><span className="etiket">{denemeMi?`GARDIROP · DENEME`:`GARDIROP`}</span></header>
+  <main><section className="gosterim"><div className="sahne" ref={alan}/><div className="sahne-baslik"><span>KARAKTERİN / KOLEKSİYONUN</span><h1>Üzerinde dene.</h1><p>{kilitli.length?'Önizleme · Henüz sahip olmadığın eşya var.':fark?'Kaydedilmemiş değişiklikler':'Oyuna kaydedilen görünüm'}</p></div>
+  <div className="kamera"><button onClick={()=>sahne.current?.yakin(true)}>Yüzü incele</button><button onClick={()=>sahne.current?.yakin(false)}>Tüm karakter</button></div>
+  <div className="sahne-alt"><div className="hareketler">{[['bekle','Bekle'],['yuru','Yürü'],['selam','Selam ver']].map(([id,ad])=><button key={id} aria-pressed={mod===id} onClick={()=>{setMod(id);sahne.current?.animasyon(id);}}>{ad}</button>)}</div>
+- <button className="kaydet" disabled={!durum||mesgul||!!kilitli.length||!fark} onClick={()=>islem(()=>servis.current.kaydet(guncel.current),'Görünümün kaydedildi. Meydanda aynı kıyafetlerle görüneceksin.',true)}>Görünümü kaydet</button>
++ <button className="kaydet" disabled={!durum||mesgul||!!kilitli.length||!fark} onClick={()=>islem(async()=>{
++  const s=await servis.current.kaydet(guncel.current);
++  // Kayıt tuttuktan SONRA portre üretilir: listeler bu PNG'yi kullanacak.
++  await portreyiYukle(guncel.current);
++  return s;
++ },'Görünümün kaydedildi. Meydanda aynı kıyafetlerle görüneceksin.',true)}>Görünümü kaydet</button>
+  <a className="meydan-link" href="./meydan.html?envanter=1">Kaydedilen karakterle meydana git ↗</a></div></section>
+- <aside><div className="cuzdan"><div><small>DENEME CÜZDANI</small><strong>{durum?.bakiye.toLocaleString('tr-TR')??'—'} coin</strong></div><span>Gerçek bakiyeni etkilemez</span></div>
++ <aside><div className="cuzdan"><div><small>{denemeMi?'DENEME CÜZDANI':'COIN BAKİYEN'}</small><strong>{durum?.bakiye.toLocaleString('tr-TR')??'—'} coin</strong></div><span>{denemeMi?'Gerçek bakiyeni etkilemez':'Satın alınan parçalar bakiyenden düşer'}</span></div>
+  <p role="status" className="bilgi">{bilgi}</p>{hata&&<p role="alert" className="hata">{hata}</p>}
+  <div className="gardrop-sekmeler">{[['magaza','Mağaza'],['envanter','Envanterim'],['kimlik','Karakter']].map(([id,ad])=><button key={id} aria-pressed={tab===id} onClick={()=>setTab(id)}>{ad}</button>)}</div>
+  {tab==='kimlik'?<><p>Ten, yüz biçimi ve renkler ücretsiz. Hazır görünüm seçimi takılı saçını ve ekipmanlarını korur.</p><div className="kimlikler">{KOLEKSIYON.map(k=><button key={k.id} onClick={()=>setG(a=>({...a,ten:k.kimlik.ten,yuz:k.kimlik.yuz,sacRenk:k.kimlik.sacRenk}))}>{k.ad}</button>)}</div>
+  {[[TENLER,'ten','Ten'],[SAC_RENKLERI,'sacRenk','Saç rengi'],[['#be542d','#275c63','#354469','#71344c','#292b30','#c9b899'],'ceketRenk','Ceket rengi']].map(([liste,key,ad])=><fieldset key={key}><legend>{ad}</legend><div className="renkler">{liste.map((r,i)=><button key={r} aria-label={ad+' '+(i+1)} aria-pressed={g[key]===r} style={{background:r}} onClick={()=>setG(a=>({...a,[key]:r}))}/>)}</div></fieldset>)}</>:<>
+- <label className="filtre">Kategori<select value={yuva} onChange={e=>setYuva(e.target.value)}><option value="hepsi">Tüm eşyalar</option>{Object.entries(YUVA_ADLARI).map(([id,ad])=><option key={id} value={id}>{ad}</option>)}</select></label>
+- <div className="esya-listesi">{katalog.filter(p=>(yuva==='hepsi'||p.yuva===yuva)&&(tab!=='envanter'||sahip.includes(p.id))).map(p=>{
+- const sende=sahip.includes(p.id),takili=g[p.yuva]===p.deger;
+- return <article key={p.id} className={takili?'takili':''}><div><small>{YUVA_ADLARI[p.yuva]} · {p.odul?'Turnuva ödülü':sende?'Envanterinde':p.fiyat+' coin'}</small><h3>{p.ad}</h3></div><div className="esya-eylem"><button aria-label={p.ad+(sende?' tak':' dene')} aria-pressed={takili} onClick={()=>sec(p)}>{takili?'Üzerinde':sende?'Tak':'Dene'}</button>{takili&&p.yuva!=='kiyafet'&&<button aria-label={p.ad+' çıkar'} onClick={()=>setG(a=>parcayiCikar(a,p.yuva))}>Çıkar</button>}{!sende&&!p.odul&&<button disabled={mesgul} onClick={()=>setOnay(p)} aria-label={p.ad+' satın al'}>Satın al</button>}{!sende&&p.odul&&<span className="odul-kilit">Yalnız ödül</span>}</div></article>;
+- })}</div></>}
+- <details className="deneme-panel"><summary>Deneme araçları</summary><p>Bu düğmeler yalnız önizleme içindir. Gerçek turnuva ve coin hesabına bağlı değildir.</p><button disabled={mesgul||durum?.oduller?.includes('ilk-turnuva-denemesi')} onClick={()=>islem(()=>servis.current.odulDene(),'Deneme turnuva ödülü geldi: taç ve pelerin envanterinde.')}>Turnuva ödülünü dene</button><button disabled={mesgul} onClick={()=>islem(()=>servis.current.sifirla(),'Deneme cüzdanı ve envanteri yeniden başlatıldı.',true)}>Denemeyi yeniden başlat</button></details>
++ {/* KATEGORİ ŞERİDİ — filtre DEĞİL, gezinme.
++     Eskiden kategoriler bir <select> arkasındaydı ve tek seferde tek
++     kategori görünüyordu. Artık hepsi tek sayfada başlıklı bölümler
++     hâlinde; şerit yalnız ilgili bölüme kaydırır. */}
++ <nav className="kategori-serit" aria-label="Kozmetik kategorileri">
++  {Object.entries(YUVA_ADLARI).map(([id,ad])=>
++   <button key={id} type="button" onClick={()=>bolumeGit(id)}>{ad}</button>)}
++ </nav>
++
++ {Object.entries(YUVA_ADLARI).map(([yv,yuvaAd])=>{
++  const liste=katalog.filter(p=>p.yuva===yv&&(tab!=='envanter'||sahip.includes(p.id)));
++  if(!liste.length)return null;
++  const bosTakili=g[yv]===BOSLAR[yv];
++  return <section key={yv} id={'yuva-'+yv} className="yuva-bolum">
++   <h2>{yuvaAd}</h2>
++   <div className="esya-listesi">
++    {/* Her bölümün başında "boşalt" seçeneği: oyuncu ayrı düğme aramasın. */}
++    <article className={'esya-bos'+(bosTakili?' takili':'')}>
++     <button type="button" className="kart-dokun" aria-pressed={bosTakili}
++       aria-label={yuvaAd+' yuvasını boşalt'}
++       onClick={()=>{setG(a=>parcayiCikar(a,yv));setBilgi(yuvaAd+' çıkarıldı.');}}>
++      <span className="esya-gorsel esya-yok" aria-hidden="true">✕</span>
++      <h3>{yv==='kiyafet'?'Tişört':'Yok'}</h3>
++      <small>{bosTakili?'Üzerinde':'Çıkar'}</small>
++     </button>
++    </article>
++
++    {liste.map(p=>{
++     const sende=sahip.includes(p.id),takili=g[p.yuva]===p.deger;
++     return <article key={p.id} className={(takili?'takili':'')+(p.odul&&!sende?' odul':'')}>
++      {/* KARTIN KENDİSİ DÜĞME: tıklayınca ara onay olmadan karakterde denenir. */}
++      <button type="button" className="kart-dokun" aria-pressed={takili}
++        aria-label={p.ad+(sende?' tak':' dene')} onClick={()=>sec(p)}>
++       <ParcaPortresi gorunum={portreTemeli} parca={p}/>
++       <h3>{p.ad}</h3>
++       <small>{takili?'Üzerinde':sende?'Envanterinde':bedavaMi?'Ücretsiz':<><span className="coin" aria-hidden="true">◎</span> {p.fiyat} coin</>}</small>
++      </button>
++      {/* Nadirlik etiketi bedava dönemde de KALIR: oyuncu normalde nasıl
++          kazanılacağını görsün. */}
++      {p.odul&&<span className="odul-rozet">{sende?'Turnuva ödülü':<><span aria-hidden="true">🔒</span> Turnuva ödülü</>}</span>}
++      <div className="esya-eylem">
++       {takili&&yv!=='kiyafet'&&<button type="button" aria-label={p.ad+' çıkar'} onClick={()=>setG(a=>parcayiCikar(a,p.yuva))}>Çıkar</button>}
++       {!sende&&(bedavaMi||!p.odul)&&<button type="button" disabled={mesgul}
++         aria-label={p.ad+(bedavaMi?' al':' satın al')}
++         onClick={()=>bedavaMi?hemenAl(p):setOnay(p)}>{bedavaMi?'Al':'Satın al'}</button>}
++       {!sende&&!bedavaMi&&p.odul&&<span className="odul-kilit">Yalnız ödül</span>}
++      </div></article>;
++    })}
++   </div>
++  </section>;
++ })}</>}
++ {denemeMi&&<details className="deneme-panel"><summary>Deneme araçları</summary><p>Bu düğmeler yalnız önizleme içindir. Gerçek turnuva ve coin hesabına bağlı değildir.</p><button disabled={mesgul||durum?.oduller?.includes('ilk-turnuva-denemesi')} onClick={()=>islem(()=>servis.current.odulDene(),'Deneme turnuva ödülü geldi: taç ve pelerin envanterinde.')}>Turnuva ödülünü dene</button><button disabled={mesgul} onClick={()=>islem(()=>servis.current.sifirla(),'Deneme cüzdanı ve envanteri yeniden başlatıldı.',true)}>Denemeyi yeniden başlat</button></details>}
+  <a className="meydan-link" href="./index.html">Serbest tasarım atölyesine dön</a><p className="not">Satın alma ve ödül denemeleri bu tarayıcıda saklanır. Yeni ürün fiyatları örnektir. Serbest atölyedeki seçimler envanter sahipliği vermez.</p></aside></main>
+  {onay&&<div className="onay-zemin"><section role="dialog" aria-modal="true" aria-labelledby="satin-baslik" className="satin-onay" onKeyDown={e=>{if(e.key==='Escape'&&!mesgul)setOnay(null);if(e.key==='Tab'){const btns=[...e.currentTarget.querySelectorAll('button:not(:disabled)')];if(btns.length){e.preventDefault();const i=btns.indexOf(document.activeElement);btns[(i+(e.shiftKey?-1:1)+btns.length)%btns.length].focus();}}}}><h2 id="satin-baslik">{onay.ad}</h2><p>{onay.fiyat} deneme coin harcanacak.</p><p>Kalan: {Math.max(0,(durum?.bakiye||0)-onay.fiyat)} coin</p>{durum?.bakiye<onay.fiyat&&<p>Deneme bakiyen yetersiz.</p>}<button autoFocus disabled={mesgul} onClick={()=>setOnay(null)}>Vazgeç</button><button disabled={mesgul||durum?.bakiye<onay.fiyat} onClick={()=>islem(()=>servis.current.satinAl(onay.id),onay.ad+' envanterine eklendi. Takıp kaydedebilirsin.')}>Satın almayı onayla</button></section></div>}
+- <footer><span>Önizleme · Envanter ve giydirme</span><output>{stat.fps?stat.fps+' FPS':'Ölçülüyor…'}</output></footer></div>;
++ <footer><span>{denemeMi?'Önizleme · Envanter ve giydirme':'Gardırop'}</span><output>{stat.hata?stat.hata:stat.gizli?'Sekme arka planda — çizim duraklatıldı':stat.fps?stat.fps+' FPS':'Ölçülüyor…'}</output></footer></div>;
+ }
+ createRoot(document.getElementById('root')).render(<Gardrop/>);
+diff -ru --new-file bildim/avatar3d/ParcaPortresi.jsx /c/Users/ida/Desktop/idagggamecenter/bildim/avatar3d/ParcaPortresi.jsx
+--- bildim/avatar3d/ParcaPortresi.jsx	1970-01-01 03:00:00.000000000 +0300
++++ /c/Users/ida/Desktop/idagggamecenter/bildim/avatar3d/ParcaPortresi.jsx	2026-09-13 23:18:42.283424000 +0300
+@@ -0,0 +1,57 @@
++// ============================================================
++// PARÇA PORTRESİ KARTI — gardırop listesindeki küçük resim
++//
++// Sayfada zaten canlı 3B sahne dönüyor ve altbilgide FPS yazıyor. 12 portreyi
++// birden üretirsek sahne takılır; iki fren var:
++//   1) TEMBEL — kart görünür alana girmeden portre üretilmez
++//      (IntersectionObserver).
++//   2) SIRALI — kare başına EN FAZLA BİR portre; istekler modül düzeyindeki
++//      kuyruğa girer, requestAnimationFrame tek tek boşaltır.
++//
++// Görsel kutusunun boyu baştan sabit (aspect-ratio: 1) ve hazır olana kadar
++// iskelet duruyor: resim gelince düzen zıplamaz.
++//
++// prefers-reduced-motion altında da küçük resimler GÖRÜNÜR — bunlar durağan
++// PNG, hareket değil.
++// ============================================================
++import React,{useEffect,useRef,useState} from 'react';
++import {parcaPortresi} from './portre.js';
++
++// Kuyruk PAYLAŞILIR (portre-kuyrugu.js): listelerdeki avatarlar da aynı
++// kuyruğu kullanır, toplam yük kare başına bir render olarak kalır.
++import {siraya} from './portre-kuyrugu.js';
++
++/**
++ * @param {object} p
++ * @param {object} p.gorunum oyuncunun o anki görünümü
++ * @param {object} p.parca   envanter.js parçası: {yuva, deger, ad}
++ * @param {number} [p.boyut] render kenarı (px)
++ */
++export default function ParcaPortresi({gorunum,parca,boyut=192}){
++ const kutuRef=useRef(null);
++ const [kaynak,setKaynak]=useState(null);
++ // Portrenin tam olarak neye baktığı: görünüm + bu parça.
++ const anahtar=JSON.stringify({...(gorunum||{}),[parca.yuva]:parca.deger});
++
++ useEffect(()=>{
++  let atildi=false;
++  setKaynak(null);
++  // IntersectionObserver KALDIRILDI (13 Eylül 2026).
++  // Gardıropta 12 kart var ve kategoriler tek sayfada — oyuncu hepsini
++  // zaten görüyor. Gözlemci kart görünür alana girmeden iş kuyruğa
++  // koymuyordu ve ölçümde portreler hiç üretilmiyordu (12 kartın 0'ı).
++  // Kuyruk zaten kare başına tek portre üretiyor; asıl fren o.
++  siraya(()=>{
++   if(atildi)return;
++   const veri=parcaPortresi(gorunum,parca,boyut);
++   if(!atildi&&veri)setKaynak(veri);
++  });
++  return()=>{atildi=true;};
++  // `anahtar` görünümün tamamını temsil ediyor.
++  // eslint-disable-next-line react-hooks/exhaustive-deps
++ },[anahtar,boyut]);
++
++ return <span className="esya-gorsel" ref={kutuRef}>
++  {kaynak?<img src={kaynak} alt="" draggable="false"/>:<span className="esya-iskelet" aria-hidden="true"/>}
++ </span>;
++}
+diff -ru --new-file bildim/avatar3d/envanter-sunucu.js /c/Users/ida/Desktop/idagggamecenter/bildim/avatar3d/envanter-sunucu.js
+--- bildim/avatar3d/envanter-sunucu.js	2026-09-13 19:52:49.440283000 +0300
++++ /c/Users/ida/Desktop/idagggamecenter/bildim/avatar3d/envanter-sunucu.js	2026-09-13 23:13:27.016120700 +0300
+@@ -8,7 +8,15 @@
+     const s=await rpc('avatar3d_katalogum');if(!s)throw new Error('Envanter alınamadı.');
+     const bakiye=Number(s.bakiye);if(s.bakiye==null||!Number.isSafeInteger(bakiye)||bakiye<0)throw new Error('Geçersiz sunucu bakiyesi.');
+     const katalog=katalogEsle(s);
+-    return {katalog,bakiye,sahip:katalog.filter(p=>p.sahip).map(p=>p.id),gorunum:ayarDogrula(s.avatar3d_gorunum||TEMEL)};
++    // `kurulmus`: oyuncu daha önce karakterini kaydetti mi. Yeni oyuncuda
++    // görünüm TEMEL'e eşit olur ve "değişiklik yok" sanılıp Kaydet düğmesi
++    // kapalı kalırdı — o zaman karakter hiç kurulamıyordu.
++    // `bedavaTest`: test dönemi anahtarı (oyun_ayarlari.kozmetik_bedava_test).
++    // Sunucunun sözü; arayüz buna bakarak "Ücretsiz" yazar. Kararı yine
++    // sunucu veriyor, bu alan yalnız görüntü içindir.
++    return {katalog,bakiye,sahip:katalog.filter(p=>p.sahip).map(p=>p.id),
++      gorunum:ayarDogrula(s.avatar3d_gorunum||TEMEL),kurulmus:s.avatar3d_gorunum!=null,
++      bedavaTest:s.bedava_test===true};
+   }
+   return {yukle,
+     async satinAl(id){await rpc('avatar3d_satin_al',{p_id:id});return yukle();},
+diff -ru --new-file bildim/avatar3d/gardrop.css /c/Users/ida/Desktop/idagggamecenter/bildim/avatar3d/gardrop.css
+--- bildim/avatar3d/gardrop.css	2026-09-13 15:08:53.431618800 +0300
++++ /c/Users/ida/Desktop/idagggamecenter/bildim/avatar3d/gardrop.css	2026-09-13 23:14:37.419361400 +0300
+@@ -1 +1,74 @@
+ .gardrop main{grid-template-columns:minmax(0,1fr) 410px}.gardrop .cuzdan{padding:16px;border:1px solid #685534;border-radius:12px;margin-bottom:18px;background:#29251e}.cuzdan strong{display:block;font-size:25px}.cuzdan small{font-size:10px;letter-spacing:1.5px;color:#e4bb76}.cuzdan span{font-size:11px;color:#bbc3d0}.gardrop-sekmeler{display:flex;gap:6px;margin-bottom:16px}.gardrop-sekmeler button{flex:1;font-size:12px}.gardrop .filtre{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;font-size:12px}.filtre select{background:#222935;color:#eaeef5;border:1px solid #536077;padding:9px;border-radius:6px}.esya-listesi{display:grid;gap:10px}.esya-listesi article{padding:14px;border:1px solid #364252;border-radius:10px}.esya-listesi article.takili{border-color:#dfb575;background:#29271f}.esya-listesi small{font-size:10px;color:#bec6d2}.esya-listesi h3{font-size:16px;margin:3px 0 12px}.esya-eylem{display:flex;gap:6px;align-items:center;flex-wrap:wrap}.esya-eylem button{font-size:12px}.odul-kilit{font-size:11px;color:#e4bb76}.gardrop button:disabled{opacity:.45;cursor:not-allowed}.gardrop .kaydet{background:#e4bb76;color:#161a21;font-weight:700}.meydan-link{display:block;text-align:center;font-size:12px;margin:12px 8px;text-decoration:underline;text-underline-offset:4px}.gardrop .sahne-alt{bottom:12px}.gardrop .gosterim .sahne{bottom:148px}.deneme-panel{margin-top:24px;border-top:1px solid #394555;padding-top:16px;font-size:12px}.deneme-panel button{font-size:11px;margin:4px}.deneme-panel p{color:#b4bece}.gardrop .hata{color:#ffb1a4;font-size:13px}.kimlikler{display:grid;grid-template-columns:repeat(3,1fr);gap:5px;margin-bottom:20px}.kimlikler button{font-size:12px}.onay-zemin{position:fixed;inset:0;z-index:50;background:#080c14db;display:grid;place-items:center;padding:20px}.satin-onay{width:min(100%,400px);padding:24px;border:1px solid #a1865a;border-radius:16px;background:#1a202b}.satin-onay button{margin:4px}.satin-onay h2{margin-top:0}@media(max-width:760px){.gardrop main{display:block}.gardrop .gosterim{height:760px;min-height:760px}.gardrop .gosterim .sahne{bottom:148px}.gardrop aside{padding:24px 18px}}
++
++/* ---- kart ızgarası: görsel önce, metin sonra ----
++   Eşya listesi düz metindi; her kartın üstünde artık parçanın oyuncunun
++   kendi karakteri üstündeki portresi var (ParcaPortresi.jsx). */
++.esya-listesi{grid-template-columns:repeat(auto-fill,minmax(140px,1fr))}
++.esya-listesi article{position:relative;padding:10px;display:flex;flex-direction:column;gap:6px}
++/* Kutunun boyu baştan sabit: portre gelince düzen zıplamasın.
++   min-height, aspect-ratio'yu bilmeyen eski Safari için. */
++.esya-gorsel{display:block;width:100%;aspect-ratio:1;min-height:96px;border-radius:8px;overflow:hidden;background:#222935}
++.esya-gorsel img{width:100%;height:100%;object-fit:contain;display:block;user-select:none}
++.esya-iskelet{display:block;width:100%;height:100%;background:linear-gradient(180deg,#2b3342,#222935)}
++.esya-listesi h3{font-size:14px;margin:0}
++.esya-listesi small{display:flex;align-items:center;gap:4px;margin-top:2px}
++.esya-listesi .coin{color:#e4bb76}
++/* Ödül eşyası: kilitli ama GÖRSELİ GÖRÜNÜR kalır. */
++.esya-listesi article.odul .esya-gorsel img{opacity:.65}
++.esya-kilit{position:absolute;top:16px;right:16px;width:24px;height:24px;border-radius:50%;display:grid;place-items:center;font-size:12px;background:#0c1017c7}
++/* Dokunma hedefi en az 44 px. */
++.esya-eylem button{min-height:44px;padding:0 10px;flex:1 1 auto}
++
++/* ============================================================
++   KATEGORİLER TEK EKRANDA (13 Eylül 2026)
++   Açılır menü kalktı; her yuva kendi başlıklı bölümünde.
++   Şerit filtre değil, GEZİNME: tıklayınca bölüme kaydırır.
++   ============================================================ */
++.kategori-serit{
++  position:sticky;top:0;z-index:5;
++  display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;
++  margin:0 -18px 14px;padding:10px 18px;
++  background:#161a21;border-bottom:1px solid #2b3342;
++}
++.kategori-serit::-webkit-scrollbar{display:none}
++.kategori-serit button{flex:none;font-size:12px;white-space:nowrap;min-height:40px}
++
++.yuva-bolum{margin-bottom:22px;scroll-margin-top:64px}
++.yuva-bolum h2{
++  font-size:13px;letter-spacing:1.4px;text-transform:uppercase;
++  color:#bec6d2;margin:0 0 8px;font-weight:700;
++}
++
++/* Kartın kendisi düğme: tıklama = anında dene, ara onay yok. */
++.esya-listesi .kart-dokun{
++  display:block;width:100%;padding:0;border:0;background:none;
++  text-align:left;cursor:pointer;color:inherit;font:inherit;
++}
++.esya-listesi .kart-dokun h3{margin:6px 0 0}
++.esya-listesi .kart-dokun small{margin-top:2px}
++.esya-yok{
++  display:grid;place-items:center;font-size:26px;color:#8c97a8;
++  background:#222935;
++}
++.esya-bos .esya-gorsel{aspect-ratio:1;min-height:96px;border-radius:8px}
++.odul-rozet{
++  position:absolute;top:14px;right:14px;
++  display:inline-flex;align-items:center;gap:4px;
++  padding:3px 8px;border-radius:999px;
++  background:#0c1017d9;color:#e4bb76;font-size:10px;font-weight:700;
++}
++
++/* ---- Mobil: karakter ekranın üstünde SABİT kalsın ----
++   Listede aşağı inerken karakter kaybolmamalı. */
++@media(max-width:760px){
++  .gardrop .gosterim{
++    position:sticky;top:0;z-index:6;
++    height:45dvh;min-height:280px;max-height:420px;
++  }
++  .gardrop .gosterim .sahne{inset:96px 0 76px}
++  .gardrop .sahne-baslik h1{font-size:19px}
++  .gardrop .sahne-baslik span,.gardrop .sahne-baslik p{font-size:11px}
++  .gardrop .kamera{display:none}
++  .kategori-serit{top:45dvh}
++  .yuva-bolum{scroll-margin-top:calc(45dvh + 58px)}
++}
+diff -ru --new-file bildim/avatar3d/portre-kuyrugu.js /c/Users/ida/Desktop/idagggamecenter/bildim/avatar3d/portre-kuyrugu.js
+--- bildim/avatar3d/portre-kuyrugu.js	1970-01-01 03:00:00.000000000 +0300
++++ /c/Users/ida/Desktop/idagggamecenter/bildim/avatar3d/portre-kuyrugu.js	2026-09-13 23:16:39.601214300 +0300
+@@ -0,0 +1,61 @@
++// ============================================================
++// PORTRE KUYRUĞU — kare başına en fazla bir render
++//
++// Bir 3B portre ~55 ms sürüyor (ölçüldü); 16.7 ms'lik kare bütçesine
++// sığmıyor. Hepsini üst üste üretmek sayfayı dondurur, o yüzden istekler
++// bu tek kuyruğa girer ve teker teker BOŞ ZAMANDA işlenir.
++//
++// Gardırop kartları (ParcaPortresi.jsx) ve listelerdeki avatarlar
++// (src/components/Avatar.jsx) AYNI kuyruğu paylaşır: lig tablosu açıkken
++// gardıroba geçilse bile toplam yük kare başına bir render olarak kalır.
++// ============================================================
++const kuyruk = [];
++let bekleyen = 0;
++
++// BOŞ ZAMAN + GARANTİLİ YEDEK.
++// `requestIdleCallback` tek başına yetmiyor: sekme arka plandayken (ya da
++// sayfa sürekli meşgulken) tarayıcı onu kısıyor ve kuyruk saatlerce
++// ilerlemiyordu — ölçüldü, 12 saniyede 3 portrede takılı kaldı.
++// Bu yüzden idle ile birlikte bir `setTimeout` de kurulur; hangisi önce
++// gelirse iş o zaman çalışır, diğeri iptal edilir.
++let idleKimlik = 0;
++let saatKimlik = 0;
++
++function iptal() {
++  if (idleKimlik && typeof cancelIdleCallback === "function") cancelIdleCallback(idleKimlik);
++  if (saatKimlik) clearTimeout(saatKimlik);
++  idleKimlik = 0; saatKimlik = 0;
++}
++
++function bosZamanda(fn) {
++  const tetikle = () => { iptal(); fn(); };
++  if (typeof requestIdleCallback === "function") {
++    idleKimlik = requestIdleCallback(tetikle, { timeout: 300 });
++  }
++  // Yedek: idle gelmezse en geç 350 ms sonra yine de çalışsın.
++  saatKimlik = setTimeout(tetikle, 350);
++  // Sıfırdan farklı bir "bekliyor" işareti yeter.
++  return 1;
++}
++
++// `calisiyor`: bir iş yürürken o işin içinden `siraya` çağrılırsa ikinci bir
++// boşaltma zinciri başlıyordu; iki zincir birbirini besleyip işi katlıyordu.
++// Bu bayrak tek zincir garantisi verir.
++let calisiyor = false;
++
++function isle() {
++  bekleyen = 0;
++  calisiyor = true;
++  const is = kuyruk.shift();
++  if (is) {
++    try { is(); } catch (e) { console.error("[Portre] kuyruk isi:", e); }
++  }
++  calisiyor = false;
++  if (kuyruk.length && !bekleyen) bekleyen = bosZamanda(isle);
++}
++
++/** İşi kuyruğa alır; sırası gelince boş zamanda çalıştırılır. */
++export function siraya(is) {
++  kuyruk.push(is);
++  if (!bekleyen && !calisiyor) bekleyen = bosZamanda(isle);
++}
+diff -ru --new-file bildim/avatar3d/portre.js /c/Users/ida/Desktop/idagggamecenter/bildim/avatar3d/portre.js
+--- bildim/avatar3d/portre.js	2026-09-13 20:04:08.772011500 +0300
++++ /c/Users/ida/Desktop/idagggamecenter/bildim/avatar3d/portre.js	2026-09-13 21:08:19.698055500 +0300
+@@ -1,18 +1,86 @@
+ import * as T from 'three';
+ import {modelKur,modelYokEt,ayarDogrula} from './model.js';
+ import {KOLEKSIYON} from './koleksiyon.js';
++// Önbellek sınırı 64 > 160: gardıroptaki 12 parça, oyuncu ten/saç rengini
++// değiştirdikçe yeniden üretiliyor; 64 girişte aynı resimler sürekli düşüyordu.
++const ONBELLEK_SINIRI=160;
+ const kayitlar=new Map();let render;
++
++/** Tek paylaşılan renderer — parça portreleri de bunu kullanır, ikinci
++ *  WebGL bağlamı açılmaz (tarayıcı bağlam sınırı genelde 16). */
++function makine(){
++ if(!render){render=new T.WebGLRenderer({alpha:true,antialias:true,preserveDrawingBuffer:true});render.setSize(256,256);render.setPixelRatio(1);render.outputColorSpace=T.SRGBColorSpace;}
++ return render;
++}
++
++/** LRU: dokunulan sona gider, taşarsa en eskisi düşer. */
++function onbellegeYaz(key,uri){
++ kayitlar.set(key,uri);
++ while(kayitlar.size>ONBELLEK_SINIRI)kayitlar.delete(kayitlar.keys().next().value);
++ return uri;
++}
++
+ export function yeniPortre(g={}){
+  const ad=g?.karakter||'deniz';let hash=0;for(const c of ad)hash=(hash*31+c.charCodeAt(0))>>>0;
+  const ayar=ayarDogrula(g?.avatar3d||{...KOLEKSIYON[hash%KOLEKSIYON.length].kimlik,kiyafet:'tisort'});
+  const key=JSON.stringify(ayar);if(kayitlar.has(key))return kayitlar.get(key);
+  let model;
+  try{
+-  if(!render){render=new T.WebGLRenderer({alpha:true,antialias:true,preserveDrawingBuffer:true});render.setSize(256,256);render.setPixelRatio(1);render.outputColorSpace=T.SRGBColorSpace;}
++  const r=makine();r.setSize(256,256,false);
+   const sahne=new T.Scene(),kamera=new T.PerspectiveCamera(35,1,.1,40);
+   kamera.position.set(0,2.5,8);kamera.lookAt(0,2,0);
+   sahne.add(new T.HemisphereLight(0xffffff,0x57647b,2.3));const isik=new T.DirectionalLight(0xffead0,3);isik.position.set(3,6,5);sahne.add(isik);
+-  model=modelKur(ayar);sahne.add(model);render.render(sahne,kamera);
+-  const uri=render.domElement.toDataURL('image/png');if(kayitlar.size>=64)kayitlar.delete(kayitlar.keys().next().value);kayitlar.set(key,uri);return uri;
++  model=modelKur(ayar);sahne.add(model);r.render(sahne,kamera);
++  return onbellegeYaz(key,r.domElement.toDataURL('image/png'));
+  }catch{return null;}finally{if(model)modelYokEt(model);}
+ }
++
++// ============================================================
++// PARÇA PORTRESİ — gardırop kartlarındaki küçük resim
++//
++// Kart, parçanın OYUNCUNUN KENDİ karakteri üstünde nasıl durduğunu gösterir:
++// o anki görünüm alınır, yalnız ilgili yuva o parçayla değiştirilir.
++//
++// Aynı kamera her parçaya uymaz — kepi tam boy çekersen nokta kadar kalır.
++// Çerçeveler TEK yerde dursun ki ileride ayarlamak kolay olsun.
++// Ölçüldü (model.js gövdesi): ayak 0.04, gövde 1.95, kafa kutusu 2.53-3.96.
++// ============================================================
++export const CERCEVE={
++ bas:   {fov:24,konum:[0,3.35,4.30],bak:[0,3.20,0]},   // yüz + baş üstü
++ govde: {fov:26,konum:[0,2.40,5.20],bak:[0,2.10,0]},   // omuz-bel arası
++ tamboy:{fov:30,konum:[0,2.60,9.20],bak:[0,2.00,0]},
++ sirt:  {fov:30,konum:[0,2.70,-9.20],bak:[0,2.00,0]},  // hafif geriden: sırt görünsün
++};
++const YUVA_CERCEVE={sac:'bas',bas:'bas',gozluk:'bas',kiyafet:'govde',pelerin:'sirt'};
++
++/**
++ * @param {object} temelGorunum oyuncunun o anki görünümü (ten/saç rengi dahil)
++ * @param {object} parca        envanter.js parçası: {yuva, deger}
++ * @param {number} [boyut=192]  kare kenarı (px)
++ * @returns {string|null} PNG data URI, üretilemezse null
++ */
++export function parcaPortresi(temelGorunum,parca,boyut=192){
++ const yuva=parca?.yuva;if(!yuva)return null;
++ const ayar=ayarDogrula({...(temelGorunum||{}),[yuva]:parca.deger});
++ const cerceveAdi=YUVA_CERCEVE[yuva]||'tamboy';
++ const key=JSON.stringify(ayar)+'|'+cerceveAdi+'|'+boyut;
++ if(kayitlar.has(key)){const v=kayitlar.get(key);kayitlar.delete(key);kayitlar.set(key,v);return v;}
++ let model;
++ try{
++  const r=makine();r.setSize(boyut,boyut,false);
++  const c=CERCEVE[cerceveAdi];
++  const sahne=new T.Scene(),kamera=new T.PerspectiveCamera(c.fov,1,.1,40);
++  kamera.position.set(...c.konum);kamera.lookAt(...c.bak);
++  sahne.add(new T.HemisphereLight(0xffffff,0x57647b,2.3));const isik=new T.DirectionalLight(0xffead0,3);isik.position.set(3,6,5);sahne.add(isik);
++  model=modelKur(ayar);sahne.add(model);r.render(sahne,kamera);
++  return onbellegeYaz(key,r.domElement.toDataURL('image/png'));
++ }catch(e){console.error('[Portre] parca portresi uretilemedi:',parca?.deger,e);return null;}
++ // Model her render sonrası atılır: sahnede avatar birikmesin.
++ finally{if(model)modelYokEt(model);}
++}
++
++/** Sayfadan çıkarken WebGL bağlamı bırakılsın. */
++export function portreMakinesiniKapat(){
++ try{render?.dispose();render?.forceContextLoss?.();}catch(e){console.error('[Portre] kapatilamadi:',e);}
++ render=null;kayitlar.clear();
++}
+diff -ru --new-file bildim/avatar3d/sahne.js /c/Users/ida/Desktop/idagggamecenter/bildim/avatar3d/sahne.js
+--- bildim/avatar3d/sahne.js	2026-09-13 13:20:18.722636100 +0300
++++ /c/Users/ida/Desktop/idagggamecenter/bildim/avatar3d/sahne.js	2026-09-13 23:19:36.458465200 +0300
+@@ -6,7 +6,10 @@
+   const sahne = new T.Scene(); sahne.background = new T.Color('#151a23');
+   const kamera = new T.PerspectiveCamera(32, 1, .1, 100);
+   kamera.position.set(4.1, 3.1, 8); 
+-  const render = new T.WebGLRenderer({ antialias: true, alpha: false, preserveDrawingBuffer: true });
++  // preserveDrawingBuffer YOK: bu sahne toDataURL almiyor (portre uretimi ayri
++  // renderer'da). Acik birakmak surucude arka tamponu zorla saklatiyor ve
++  // ANGLE/D3D11'de bellek baskisi yaratiyor.
++  const render = new T.WebGLRenderer({ antialias: true, alpha: false });
+   render.setPixelRatio(Math.min(devicePixelRatio || 1, 1.5));
+   render.shadowMap.enabled = true; render.shadowMap.type = T.PCFShadowMap;
+   render.toneMapping = T.ACESFilmicToneMapping; render.toneMappingExposure = 1.25;
+@@ -32,13 +35,27 @@
+   const odakKaybi=()=>tuslar.clear();window.addEventListener('blur',odakKaybi);
+   const boyut=()=>{const w=Math.max(1,kapsayici.clientWidth),h=Math.max(1,kapsayici.clientHeight);render.setSize(w,h);kamera.aspect=w/h;kamera.updateProjectionMatrix();};
+   const gozlem=typeof ResizeObserver!=='undefined'?new ResizeObserver(boyut):null;gozlem?.observe(kapsayici);window.addEventListener('resize',boyut);boyut();
+-  let durumKayip=false;
++  let durumKayip=false, gizliBildirildi=false;
+   const contextKaybi=e=>{e.preventDefault();durumKayip=true;rapor({hata:'3D görüntü bağlantısı kesildi. Sayfayı yenileyin.'});};
+   render.domElement.addEventListener('webglcontextlost',contextKaybi);
++  // İLK KARE HER HÂLÜKÂRDA ÇİZİLİR.
++  // Eskiden döngü `document.hidden` iken hiç render etmiyordu; sayfa arka
++  // planda/otomasyon sekmesinde açıldıysa tuval BOMBOŞ kalıyor, sekme öne
++  // gelince bir sonraki kareye kadar öyle duruyordu. Üstelik FPS hiç
++  // bildirilmediği için altbilgi sonsuza kadar "Ölçülüyor…" yazıyordu ve
++  // sayfa ölü görünüyordu. Artık: en az bir kare çizilir, gizlilik durumu
++  // da rapor edilir ki arayüz dürüst bir şey söyleyebilsin.
++  let ilkKareCizildi=false;
+   function kare(now){
+     if(!aktif)return;raf=requestAnimationFrame(kare);
+     const dt=Math.min((now-son)/1000,.05);son=now;
+-    if(document.hidden||durumKayip){kareSay=0;olcum=now;return;}
++    if(durumKayip){kareSay=0;olcum=now;return;}
++    if(document.hidden&&ilkKareCizildi){
++      kareSay=0;olcum=now;
++      if(!gizliBildirildi){gizliBildirildi=true;rapor({gizli:true});}
++      return;
++    }
++    if(gizliBildirildi){gizliBildirildi=false;rapor({gizli:false});}
+     t+=dt;
+     let hareketMod=mod;
+     if(meydan){
+@@ -49,9 +66,23 @@
+     if(mod!=='dur')hareket(model,t,hareketMod);
+     if(dondur)model.rotation.y+=dt*.35;
+     kontrol.update();render.render(sahne,kamera);kareSay++;
++    if(!ilkKareCizildi){
++      ilkKareCizildi=true;
++      // İlk kare gizliyken çizildiyse durumu HEMEN bildir: sonraki kare
++      // gelmeyeceği için altbilgi yoksa sonsuza kadar "Ölçülüyor…" kalır.
++      if(document.hidden&&!gizliBildirildi){gizliBildirildi=true;rapor({gizli:true});}
++    }
+     if(now-olcum>=1500){rapor({fps:Math.round(kareSay*1000/(now-olcum)),ucgen:render.info.render.triangles,cagri:render.info.render.calls,geometri:render.info.memory.geometries,doku:render.info.memory.textures});kareSay=0;olcum=now;}
+   }
+   raf=requestAnimationFrame(kare);
++
++  // Sekme öne gelince ölçüm penceresi sıfırlanır: arka planda geçen süre
++  // FPS'i sahte biçimde düşük göstermesin.
++  const gorunurlukDegisti=()=>{
++    if(document.hidden)return;
++    son=performance.now();olcum=son;kareSay=0;
++  };
++  document.addEventListener('visibilitychange',gorunurlukDegisti);
+   return {
+     guncelle(yeni){const once=model;model=modelKur(yeni);model.position.copy(once.position);model.rotation.copy(once.rotation);sahne.add(model);modelYokEt(once);if(mod==='dur')hareket(model,0,'bekle');},
+     animasyon(v){mod=v;if(v==='dur')hareket(model,0,'bekle');},
+@@ -59,6 +90,6 @@
+     yakin(v){kontrol.target.set(0,v?3.12:1.9,0);kamera.position.set(v?1.2:4.1,v?3.25:3.1,v?3.2:8);kontrol.update();},
+     meydan(v){meydan=v;izgara.visible=v;zemin.visible=!v;model.position.set(0,0,0);model.rotation.y=0;kontrol.target.set(0,1.8,0);kamera.position.set(v?6:4.1,v?6:3.1,v?10:8);},
+     async glb(){const {GLTFExporter}=await import('three/addons/exporters/GLTFExporter.js');const veri=await new GLTFExporter().parseAsync(model,{binary:true,onlyVisible:true});return new Blob([veri],{type:'model/gltf-binary'});},
+-    yokEt(){aktif=false;cancelAnimationFrame(raf);gozlem?.disconnect();window.removeEventListener('resize',boyut);window.removeEventListener('keydown',bas);window.removeEventListener('keyup',birak);window.removeEventListener('blur',odakKaybi);kontrol.dispose();modelYokEt(model);zemin.geometry.dispose();zemin.material.dispose();izgara.geometry.dispose();izgara.material.dispose();render.dispose();render.forceContextLoss();render.domElement.remove();},
++    yokEt(){aktif=false;cancelAnimationFrame(raf);gozlem?.disconnect();window.removeEventListener('resize',boyut);window.removeEventListener('keydown',bas);window.removeEventListener('keyup',birak);window.removeEventListener('blur',odakKaybi);document.removeEventListener('visibilitychange',gorunurlukDegisti);kontrol.dispose();modelYokEt(model);zemin.geometry.dispose();zemin.material.dispose();izgara.geometry.dispose();izgara.material.dispose();render.dispose();render.forceContextLoss();render.domElement.remove();},
+   };
+ }
+diff -ru --new-file bildim/avatar3d/yerel.js /c/Users/ida/Desktop/idagggamecenter/bildim/avatar3d/yerel.js
+--- bildim/avatar3d/yerel.js	2026-09-13 19:59:26.658024600 +0300
++++ /c/Users/ida/Desktop/idagggamecenter/bildim/avatar3d/yerel.js	2026-09-13 21:41:43.905776100 +0300
+@@ -1,6 +1,30 @@
++// ============================================================
++// YEREL DENEME KAPISI
++//
++// Gardırop ARTIK GERÇEK EKONOMİDE çalışıyor: giriş yapmış oyuncu
++// `envanter-sunucu.js` yolunu kullanır (avatar3d_* RPC'leri, gerçek coin).
++// Yerel deneme cüzdanı (`envanter-yerel.js`, localStorage + sahte coin)
++// yalnız `localhost`ta, oturumsuz geliştirme için kalır.
++//
++// `onizlemeMi` ARTIK KAPI DEĞİL: eskiden `VITE_AVATAR3D_DEMO=1` yoksa
++// gardırop "önizleme henüz açık değil" deyip kapanıyordu. O bayrak
++// kaldırılmadı ama kod ona bağımlı değil — tanımlı olsa da olmasa da
++// gardırop açılır.
++// ============================================================
+ import { ayarDogrula, VARSAYILAN } from './model.js';
++
+ const ANAHTAR='quizsquare_avatar3d_prototip_v1';
++
+ export const yerelMi=()=>typeof location!=='undefined'&&['localhost','127.0.0.1','[::1]'].includes(location.hostname);
+-export const onizlemeMi=()=>yerelMi()||import.meta.env.VITE_AVATAR3D_DEMO==='1';
++
++/** Deneme cüzdanı kullanılabilir mi (yalnız yerel geliştirme). */
++export const denemeCuzdaniMi=()=>yerelMi()||import.meta.env.VITE_AVATAR3D_DEMO==='1';
++
++/**
++ * Geriye uyumluluk: Vitrin.jsx bunu "yerel deneme var mı" diye soruyor.
++ * Artık kapı görevi yok, yalnız deneme cüzdanının açık olduğunu söyler.
++ */
++export const onizlemeMi=denemeCuzdaniMi;
++
+ export function yerelOku(){try{return ayarDogrula(JSON.parse(localStorage.getItem(ANAHTAR))||VARSAYILAN);}catch{return {...VARSAYILAN};}}
+ export function yerelKaydet(g){localStorage.setItem(ANAHTAR,JSON.stringify(ayarDogrula(g)));window.dispatchEvent(new Event('qs-avatar3d'));}

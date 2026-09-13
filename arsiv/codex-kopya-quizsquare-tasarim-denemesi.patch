@@ -1,0 +1,753 @@
+--- a/bildim/pages/Home.jsx
++++ b/bildim/pages/Home.jsx
+@@ -279,7 +279,6 @@
+ 
+   return (
+     <div className="anasayfa">
+-      <h1 className="baslik bd-gorsel-gizli">Ana sayfa</h1>
+ 
+       {/* ======== EN ÜST: RAKİP SENİ BEKLİYOR ========
+           Meydan okuman kabul edildi ve karşı taraf ŞU AN maç ekranında
+@@ -334,58 +333,32 @@
+         </div>
+       )}
+ 
+-      {/* ---------- HERO: tek odak — rütbe, haftalık sıra, birincil eylem ---------- */}
+-      {/* --rutbe: rütbe çubuğu, rütbe adı ve avatar halkası aynı rengi kullanır */}
+-      <section className="bd-hero bd-giris-1" style={{ "--rutbe": rutbe.renk }}>
+-        <div className="bd-hero-isik" aria-hidden="true" />
+-
+-        <div className="bd-hero-kimlik">
+-          <Maskot poz="selam" boyut={78} className="bd-hero-maskot" />
+-          <div className="bd-hero-ad-blok">
+-            <div className="bd-hero-selam">Hoş geldin,</div>
+-            <div className="bd-hero-ad">{profile?.gorunen_ad ?? "Oyuncu"}</div>
+-            <RankBadge puan={puan} />
+-          </div>
+-          <div className="bd-hero-halka" style={{ "--halka": rutbe.renk }}>
+-            <AvatarCerceve profile={profile} boyut={54} userId={user.id} />
+-          </div>
++      <section className="qs-welcome" aria-label="Oyuncu özeti">
++        <AvatarCerceve profile={profile} boyut={42} userId={user.id} />
++        <div className="qs-welcome-name"><span>Tekrar hoş geldin</span><strong>{profile?.gorunen_ad ?? "Oyuncu"}</strong></div>
++        <div className="qs-progress"><RankBadge puan={puan} /><span><b>{puan}</b> puan</span>
++          <div className="bd-hero-bar"><div className="dolgu" style={{width: `${ilerleme}%`}} /></div>
++          <small>{sonraki ? `${sonraki.ad} rütbesine ${sonraki.min - puan} puan` : "En yüksek rütbedesin"}</small>
+         </div>
+-
+-        <div className="bd-hero-puan">
+-          <span className="bd-hero-puan-sayi">{puan}</span>
+-          <span className="bd-hero-puan-etiket">puan</span>
++        <SeriRozeti />
++      </section>
++      <section className="qs-play">
++        <div className="qs-play-copy">
++          <span className="qs-eyebrow">BİLGİNİ OYUNA GETİR</span>
++          <h1>Bir soru.<br />Bin ihtimal.</h1>
++          <p>Rakibinle yarış, bildiklerinle fark yarat.<br />Sıradaki kapışma senin.</p>
++          <button className="bd-ana-eylem" onClick={() => hemenOyna(true)}>
++            <span>Hemen oyna</span><Ikon ad="ok" boyut={22} />
++          </button>
++          <button className="qs-friend-link" onClick={() => navigate(y("/meydan"))}>
++            <Ikon ad="kisiler" boyut={18} /> Arkadaşınla oyna
++          </button>
+         </div>
+-
+-        <div className="bd-hero-ilerleme">
+-          <div className="bd-hero-bar">
+-            <div className="dolgu" style={{ width: `${ilerleme}%` }} />
+-          </div>
+-          <div className="bd-hero-ilerleme-yazi">
+-            {sonraki ? (
+-              <>
+-                <b style={{ color: sonraki.metinRenk }}>{sonraki.ad}</b> rütbesine{" "}
+-                {sonraki.min - puan} puan
+-              </>
+-            ) : (
+-              <>En yüksek rütbedesin</>
+-            )}
+-          </div>
++        <div className="qs-square-art" aria-hidden="true">
++          <span className="qs-art-a">?</span><span className="qs-art-b">!</span>
++          <span className="qs-art-c"><Ikon ad="yildiz" boyut={62} /></span><span className="qs-art-d">Q</span>
+         </div>
+-
+-        <SeriRozeti />
+-
+-        {/* İKİ AYRI MOD (sahibinin kararı):
+-            · Hemen oyna   → puansız keyfi maç. Ne coin ne lig puanı.
+-            · Dereceli Maç → 3. katmanda, coin + lig puanı yazar.
+-            Kural sunucuda da zorlanıyor (migration 162): `matches.dereceli`
+-            false ise `mac_sonuclandir` coin çağrısını hiç yapmıyor. */}
+-        <button className="bd-ana-eylem" onClick={() => hemenOyna(false)}>
+-          <Ikon ad="hizli" boyut={22} />
+-          <span>Hemen oyna</span>
+-          <Ikon ad="ok" boyut={20} className="bd-ana-eylem-ok" />
+-        </button>
+-        <div className="bd-ana-eylem-not">Puansız — keyfine bak, hiçbir şey kaybetmezsin</div>
+-        {mesaj && <div className="hata-kutu" style={{ marginTop: 10 }}>{mesaj}</div>}
++        {mesaj && <div className="hata-kutu">{mesaj}</div>}
+       </section>
+       {/* KATMAN 1 BİTTİ.
+           Lig sıralaması ve haftalık geri sayım buradan 2. katmana taşındı:
+@@ -395,7 +368,7 @@
+           Zaman baskılı işlerin hepsi tek başlık altında toplandı: sıra sende
+           olan maçlar, turnuva geri sayımı, ezeli rakip, günlük görevler ve
+           haftalık lig durumu. */}
+-      <section className="bd-katman bd-giris-2">
++      <section className="bd-katman bd-giris-2 qs-events">
+         <h2 className="bd-katman-baslik">Seni bekleyenler</h2>
+ 
+ 
+@@ -541,22 +514,18 @@
+       {/* ============ KATMAN 3 — BAŞKA NASIL OYNANIR ============
+           SADELEŞTİRME. Izgarada dokuz düğme vardı; üçü
+           başka bir yolun kopyasıydı ve kaldırıldı:
++            · "Dereceli Maç"  → yukarıdaki "Hemen oyna" ile aynı çağrı.
+             · "Joker Dükkânı" → alt sekmede zaten var.
+             · "Lig"           → alt sekmede zaten var.
+           Hiçbir ekran erişilemez olmadı; yalnız ikinci kapılar kapandı.
+-          Başlık da somutlaştı ("Modlar" → ne olduğunu söyleyen bir cümle).
+-
+-          "Dereceli Maç" GERİ GELDİ: bir süre "Hemen oyna" ile aynı çağrıyı
+-          yaptığı için kaldırılmıştı. Artık iki mod gerçekten farklı —
+-          yukarıdaki düğme puansız, buradaki puanlı. Puansız maça giden
+-          yol da, puanlı maça giden yol da açık olmalı. */}
+-      <section className="bd-katman bd-giris-3">
++          Başlık da somutlaştı ("Modlar" → ne olduğunu söyleyen bir cümle). */}
++      <section className="bd-katman bd-giris-3 qs-modes">
+         <h2 className="bd-katman-baslik">Başka nasıl oynanır</h2>
+         <div className="bd-mod-grid">
+-          <button className="bd-mod bd-mod-genis tema-lig" onClick={() => hemenOyna(true)}>
+-            <span className="bd-mod-ikon"><Ikon ad="kupa" boyut={30} /></span>
+-            <span className="bd-mod-ad">Dereceli Maç</span>
+-            <span className="bd-mod-not">Lig puanını ve coin'ini etkiler · seviyene yakın rakip</span>
++          <button className="bd-mod bd-mod-genis tema-hizli" onClick={() => hemenOyna(false)}>
++            <span className="bd-mod-ikon"><Ikon ad="hizli" boyut={30} /></span>
++            <span className="bd-mod-ad">Normal Maç</span>
++            <span className="bd-mod-not">Serbest rakip · puan yazılmaz</span>
+           </button>
+           <button className="bd-mod bd-mod-genis tema-grup" onClick={() => navigate(y("/meydan"))}>
+             <span className="bd-mod-ikon"><Ikon ad="kisiler" boyut={26} /></span>
+--- a/bildim/components/Layout.jsx
++++ b/bildim/components/Layout.jsx
+@@ -24,6 +24,10 @@
+ export default function Layout() {
+   const { profile, user } = useAuth();
+   const navigate = useNavigate();
++  useEffect(() => {
++    document.documentElement.classList.add("qs-theme");
++    return () => document.documentElement.classList.remove("qs-theme");
++  }, []);
+   const [bekleyen, setBekleyen] = useState(0);
+ 
+   // Bildim rotalarında PWA kimliği Bildim'in kendi manifesti olsun
+@@ -122,7 +126,7 @@
+     (!profile.takma_ad_secildi || !profile.avatar_onayli || !profile.ulke);
+ 
+   return (
+-    <div className="app">
++    <div className="app qs-app">
+       <RankUpOverlay />
+       {kurulumEksik && !tanitimGosterildi ? (
+         <Tanitim
+@@ -175,7 +179,7 @@
+           değil: oyuncular yalnız arkadaşlarıyla maç yapabiliyor, biri
+           oyunu sırf bunun için oynuyor olabilir.
+           Yeni rota açılmadı; hepsi var olan yollar. */}
+-      <nav className="tabbar">
++      <nav className="tabbar" aria-label="Ana gezinme">
+         <NavLink to={y()} end className={({ isActive }) => (isActive ? "aktif" : "")}>
+           <span className="ikon"><Ikon ad="ev" boyut={26} /></span>Ana Sayfa
+         </NavLink>
+--- a/src/pages/Login.jsx
++++ b/src/pages/Login.jsx
+@@ -1,301 +1,277 @@
+-import { useEffect, useState } from "react";
+-import { supabase } from "../lib/supabase.js";
+-import Logo from "../../bildim/components/Logo.jsx";
+-import { girisHedefiniKaydet } from "../lib/girisHedefi.js";
+-import { useDil } from "../../bildim/lib/dilKanca.js";
+-import { DILLER } from "../../bildim/lib/dil.js";
+-import { BILDIM_MOD } from "../../bildim/lib/yol.js";
+-
+-// Supabase'in İngilizce hata metinlerini oyuncuya anlaşılır Türkçeye çevirir.
+-// Sağlayıcı panelde kapalıysa dönen mesaj ("provider is not enabled") teknik
+-// kaçıyordu; oyuncu düğmenin bozuk olduğunu sanıyordu.
+-// `ceviri` = useDil()'den gelen t(); metinler oyuncunun dilinde döner.
+-function girisHatasi(e, saglayiciAd, ceviri) {
+-  const m = String(e?.message ?? e ?? "");
+-  if (/provider is not enabled|Unsupported provider/i.test(m)) {
+-    return ceviri("{ad} girişi şu an kapalı. Google veya e-posta ile devam edebilirsin.", { ad: saglayiciAd });
+-  }
+-  if (/Anonymous sign-ins are disabled/i.test(m)) {
+-    return ceviri("Misafir girişi şu an kapalı. Google veya e-posta ile devam edebilirsin.");
+-  }
+-  if (/rate limit|too many/i.test(m)) {
+-    return ceviri("Çok fazla deneme yapıldı. Birkaç dakika sonra tekrar dene.");
+-  }
+-  if (/redirect|not allowed/i.test(m)) {
+-    return ceviri("Giriş adresi doğrulanamadı. Sayfayı yenileyip tekrar dene.");
+-  }
+-  if (/network|fetch|Failed to fetch/i.test(m)) {
+-    return ceviri("Bağlantı kurulamadı. İnternetini kontrol edip tekrar dene.");
+-  }
+-  return m || ceviri("Giriş yapılamadı. Tekrar dene.");
+-}
+-
+-const SAGLAYICI_AD = {
+-  google: "Google",
+-  facebook: "Facebook",
+-  twitter: "X (Twitter)",
+-};
+-
+-// Hangi sosyal düğmeler gösterilecek?
+-//
+-// supabase-js signInWithOAuth sağlayıcıyı DOĞRULAMADAN tarayıcıyı Supabase'e
+-// yönlendirir. Sağlayıcı panelde kapalıysa oyuncu uygulamadan çıkıp ham JSON
+-// hata sayfasında ("Unsupported provider") kalıyordu — yukarıdaki Türkçe hata
+-// çevirisi hiç çalışmıyor, çünkü hata istemciye dönmüyor.
+-// Bu yüzden kapalı sağlayıcının düğmesi hiç basılmaz. X/Meta anahtarları
+-// Supabase'e girilince .env'e `VITE_SOSYAL=google,facebook,twitter` yaz;
+-// düğmeler geri gelir. Kod silinmedi, yalnız kapıya bağlandı.
+-const ACIK_SAGLAYICILAR = new Set(
+-  String(import.meta.env.VITE_SOSYAL ?? "google,facebook")
+-    .split(",")
+-    .map((s) => s.trim().toLowerCase())
+-    .filter(Boolean)
+-);
+-
+-// Sağlayıcı Supabase panelinde AÇIK MI? Auth'un herkese açık `settings`
+-// ucundan öğreniliyor. Böylece kapalı bir sağlayıcıya basan oyuncu ham
+-// JSON hata sayfasına düşmüyor, Türkçe mesaj görüyor.
+-async function acikSaglayicilariOku() {
+-  try {
+-    const kok = import.meta.env.VITE_SUPABASE_URL;
+-    if (!kok) return null;
+-    const yanit = await fetch(`${kok}/auth/v1/settings`, {
+-      headers: { apikey: import.meta.env.VITE_SUPABASE_ANON_KEY ?? "" },
+-    });
+-    if (!yanit.ok) return null;
+-    const veri = await yanit.json();
+-    return veri?.external ?? null;
+-  } catch (e) {
+-    console.error("[Bildim] saglayici listesi okunamadi:", e);
+-    return null;   // bilinmiyor: düğmeler eskisi gibi çizilir
+-  }
+-}
+-
+-export default function Login() {
+-  // DİL: profil tercihi > bu tarayıcıdaki seçim > tarayıcı dili (IP'ye bakılmaz)
+-  const { dil, ceviri, dilDegistir } = useDil();
+-  const [email, setEmail] = useState("");
+-  const [gonderildi, setGonderildi] = useState(false);
+-  const [hata, setHata] = useState(null);
+-  const [bekleyen, setBekleyen] = useState(null); // hangi düğme çalışıyor
+-  // Supabase'de gerçekten açık olan sağlayıcılar (null = henüz bilinmiyor)
+-  const [acikListe, setAcikListe] = useState(null);
+-
+-  useEffect(() => {
+-    let aktif = true;
+-    acikSaglayicilariOku().then((d) => { if (aktif) setAcikListe(d); });
+-    return () => { aktif = false; };
+-  }, []);
+-
+-  /** Düğme çizilsin mi? Panelden bilgi gelmediyse .env kararı geçerli. */
+-  const saglayiciAcik = (ad) =>
+-    acikListe ? Boolean(acikListe[ad]) : ACIK_SAGLAYICILAR.has(ad);
+-
+-  /**
+-   * Facebook düğmesi HER ZAMAN görünür (oyuncu seçeneği görsün), ama
+-   * sağlayıcı Supabase'de henüz açılmadıysa tarayıcı yönlendirilmez:
+-   * `signInWithOAuth` sağlayıcıyı doğrulamadan gittiği için oyuncu ham
+-   * JSON hata sayfasında kalıyordu. Bunun yerine Türkçe açıklama.
+-   */
+-  const facebookGiris = () => {
+-    if (acikListe && !acikListe.facebook) {
+-      setHata(ceviri("Facebook girişi henüz açılmadı. Google veya e-posta ile devam edebilirsin."));
+-      return;
+-    }
+-    sosyalGiris("facebook");
+-  };
+-
+-  const sosyalGiris = async (provider) => {
+-    setHata(null);
+-    setBekleyen(provider);
+-    // Supabase izin listesi redirectTo'yu reddederse Site URL'ine düşer;
+-    // hedefi burada saklarız ki derin bağlantı kaybolmasın.
+-    girisHedefiniKaydet();
+-    try {
+-      const { error } = await supabase.auth.signInWithOAuth({
+-        provider,
+-        options: {
+-          // Girişten sonra kullanıcı geldiği sayfaya dönsün (davet linki vb.)
+-          redirectTo: `${window.location.origin}${window.location.pathname}`,
+-          // X ve Facebook e-posta iznini ayrıca ister; istemezsek profil adı boş kalır.
+-          //
+-          // `user_friends` App Review ONAYI ister. Onay gelmeden istenirse
+-          // Facebook girişi hata verir, o yüzden varsayılan olarak İSTENMEZ.
+-          // Onay geldiğinde .env'e VITE_FB_ARKADAS=1 yazmak yeterli:
+-          // izin istenir ve arkadaş önerisi bölümü kendiliğinden dolar.
+-          scopes:
+-            provider === "facebook"
+-              ? (import.meta.env.VITE_FB_ARKADAS === "1"
+-                  ? "public_profile,email,user_friends"
+-                  : "public_profile,email")
+-              : undefined,
+-        },
+-      });
+-      if (error) throw error;
+-    } catch (e) {
+-      setHata(girisHatasi(e, SAGLAYICI_AD[provider] ?? provider, ceviri));
+-    } finally {
+-      setBekleyen(null);
+-    }
+-  };
+-
+-  // Misafir girişi: Supabase anonim oturumu. Profil tetikleyicisi e-postası
+-  // olmayan kullanıcıya da "oyuncu_xxxx" takma adı üretir; oyuncu daha sonra
+-  // sosyal hesap bağlayarak kalıcı hesaba geçebilir.
+-  const misafirGiris = async () => {
+-    setHata(null);
+-    setBekleyen("misafir");
+-    try {
+-      const { error } = await supabase.auth.signInAnonymously();
+-      if (error) throw error;
+-    } catch (e) {
+-      setHata(girisHatasi(e, "Misafir", ceviri));
+-    } finally {
+-      setBekleyen(null);
+-    }
+-  };
+-
+-  const epostaGiris = async (e) => {
+-    e.preventDefault();
+-    setHata(null);
+-    setBekleyen("eposta");
+-    girisHedefiniKaydet();
+-    try {
+-      const { error } = await supabase.auth.signInWithOtp({
+-        email,
+-        options: { emailRedirectTo: window.location.origin },
+-      });
+-      if (error) throw error;
+-      setGonderildi(true);
+-    } catch (err) {
+-      setHata(girisHatasi(err, "E-posta", ceviri));
+-    } finally {
+-      setBekleyen(null);
+-    }
+-  };
+-
+-  return (
+-    <div className="giris">
+-      {/* TR / EN değiştirici — en üstte, giriş yapmadan da erişilebilir.
+-          Seçim localStorage'a, giriş yapılmışsa profile de yazılır. */}
+-      <div className="giris-dil" role="group" aria-label={ceviri("Dil")}>
+-        {DILLER.map((d) => (
+-          <button
+-            key={d}
+-            type="button"
+-            className={"giris-dil-btn" + (dil === d ? " aktif" : "")}
+-            aria-pressed={dil === d}
+-            onClick={() => dilDegistir(d)}
+-          >
+-            {d.toUpperCase()}
+-          </button>
+-        ))}
+-      </div>
+-
+-      {/* GİRİŞ EKRANI MARKASI SİTEYE GÖRE DEĞİŞİR.
+-          quizsquare.vercel.app (VITE_MOD=bildim) → Quiz Square wordmark,
+-          aynen eskisi gibi. idagg-game-center.vercel.app (hub) → hub
+-          kendi adıyla karşılar; Quiz Square orada oyunlardan biridir. */}
+-      {BILDIM_MOD ? (
+-        <div className="buyuk-logo"><Logo boyut={44} /></div>
+-      ) : (
+-        <div className="buyuk-logo gc-giris-marka">
+-          <span className="gc-giris-ad">idaGG</span>
+-          <span className="gc-giris-alt">GAME CENTER</span>
+-        </div>
+-      )}
+-      <div className="slogan">
+-        {BILDIM_MOD ? (<>
+-          {ceviri("Her gün 13:00 ve 21:50'de (Türkiye saati) büyük turnuva.")}
+-          <br />
+-          {ceviri("7/24 meydan okumalar. Sen de yerini al.")}
+-        </>) : (<>
+-          {ceviri("Bilgi yarışması, kafa topu, drift, meyve kes ve daha fazlası.")}
+-          <br />
+-          {ceviri("Hepsi tek çatı altında, tek hesapla.")}
+-        </>)}
+-      </div>
+-
+-      {hata && <div className="hata-kutu">{hata}</div>}
+-
+-      <button
+-        className="sosyal-btn"
+-        disabled={bekleyen !== null}
+-        onClick={() => sosyalGiris("google")}
+-      >
+-        <svg width="18" height="18" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.27-4.74 3.27-8.1z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84A11 11 0 0 0 12 23z"/><path fill="#FBBC05" d="M5.84 14.1A6.6 6.6 0 0 1 5.49 12c0-.73.13-1.43.35-2.1V7.06H2.18a11 11 0 0 0 0 9.88l3.66-2.84z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15A10.96 10.96 0 0 0 12 1 11 11 0 0 0 2.18 7.06l3.66 2.84C6.71 7.31 9.14 5.38 12 5.38z"/></svg>
+-        {bekleyen === "google" ? ceviri("Yönlendiriliyor…") : ceviri("Google ile devam et")}
+-      </button>
+-      <button
+-        className="sosyal-btn"
+-        disabled={bekleyen !== null}
+-        onClick={facebookGiris}
+-      >
+-        <svg width="18" height="18" viewBox="0 0 24 24"><path fill="#1877F2" d="M24 12.07C24 5.4 18.63 0 12 0S0 5.4 0 12.07C0 18.1 4.39 23.09 10.13 24v-8.44H7.08v-3.49h3.05V9.41c0-3.02 1.79-4.7 4.53-4.7 1.31 0 2.69.24 2.69.24v2.97h-1.52c-1.49 0-1.95.93-1.95 1.89v2.26h3.32l-.53 3.49h-2.79V24C19.61 23.09 24 18.1 24 12.07z"/></svg>
+-        {bekleyen === "facebook" ? ceviri("Yönlendiriliyor…") : ceviri("Facebook ile devam et")}
+-      </button>
+-      {saglayiciAcik("twitter") && (
+-      <button
+-        className="sosyal-btn"
+-        disabled={bekleyen !== null}
+-        onClick={() => sosyalGiris("twitter")}
+-      >
+-        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M18.24 2.25h3.31l-7.23 8.26L22.83 21.75h-6.66l-5.22-6.82-5.97 6.82H1.66l7.73-8.84L1.17 2.25h6.83l4.72 6.24 5.52-6.24zm-1.16 17.52h1.83L7.02 4.13H5.06l12.02 15.64z"/></svg>
+-        {bekleyen === "twitter" ? ceviri("Yönlendiriliyor…") : ceviri("X (Twitter) ile devam et")}
+-      </button>
+-      )}
+-
+-      <div className="ayrac">{ceviri("veya")}</div>
+-
+-      {gonderildi ? (
+-        <div className="kart" style={{ maxWidth: 340, textAlign: "center" }}>
+-          {ceviri("Giriş bağlantısı {eposta} adresine gönderildi. E-postanı kontrol et.", { eposta: email })}
+-        </div>
+-      ) : (
+-        <form onSubmit={epostaGiris} style={{ width: "100%", maxWidth: 340, display: "flex", flexDirection: "column", gap: 10 }}>
+-          <input
+-            type="email"
+-            placeholder={ceviri("E-posta adresin")}
+-            value={email}
+-            onChange={(e) => setEmail(e.target.value)}
+-            required
+-          />
+-          <button type="submit" className="btn ikincil" disabled={bekleyen !== null}>
+-            {bekleyen === "eposta" ? ceviri("Gönderiliyor…") : ceviri("E-posta ile giriş bağlantısı al")}
+-          </button>
+-        </form>
+-      )}
+-
+-      <div className="ayrac">{ceviri("hesap açmadan")}</div>
+-
+-      <button
+-        className="sosyal-btn"
+-        disabled={bekleyen !== null}
+-        onClick={misafirGiris}
+-      >
+-        {bekleyen === "misafir" ? ceviri("Giriş yapılıyor…") : ceviri("Misafir olarak dene")}
+-      </button>
+-      {/* Kapalı sağlayıcıyı vaat etmeyelim: liste GERÇEKTEN açık olan
+-          sağlayıcılardan üretilir (panelden okunur). */}
+-      <div className="giris-not">
+-        {ceviri(
+-          "Misafir hesabı bu cihaza bağlıdır. Puanların kaybolmasın diye daha sonra {liste} veya e-posta hesabını bağlayabilirsin.",
+-          {
+-            liste: ["google", "facebook", "twitter"]
+-              .filter(saglayiciAcik)
+-              .map((s) => SAGLAYICI_AD[s] ?? s)
+-              .join(", "),
+-          }
+-        )}
+-      </div>
+-
+-      {/* Yasal metinler giriş duvarının ÖNÜNDE erişilebilir olmalı
+-          (Google Play ve reklam ağları şartı). */}
+-      <div className="giris-yasal">
+-        <a href="/gizlilik">{ceviri("Gizlilik politikası")}</a>
+-        <span aria-hidden="true">·</span>
+-        <a href="/kosullar">{ceviri("Kullanım koşulları")}</a>
+-      </div>
+-    </div>
+-  );
+-}
++import { useEffect, useState } from "react";
++import { supabase } from "../lib/supabase.js";
++import { BILDIM_MOD } from "../../bildim/lib/yol.js";
++import Logo from "../../bildim/components/Logo.jsx";
++import { girisHedefiniKaydet } from "../lib/girisHedefi.js";
++
++// Supabase'in İngilizce hata metinlerini oyuncuya anlaşılır Türkçeye çevirir.
++// Sağlayıcı panelde kapalıysa dönen mesaj ("provider is not enabled") teknik
++// kaçıyordu; oyuncu düğmenin bozuk olduğunu sanıyordu.
++function girisHatasi(e, saglayiciAd) {
++  const m = String(e?.message ?? e ?? "");
++  if (/provider is not enabled|Unsupported provider/i.test(m)) {
++    return `${saglayiciAd} girişi şu an kapalı. Google veya e-posta ile devam edebilirsin.`;
++  }
++  if (/Anonymous sign-ins are disabled/i.test(m)) {
++    return "Misafir girişi şu an kapalı. Google veya e-posta ile devam edebilirsin.";
++  }
++  if (/rate limit|too many/i.test(m)) {
++    return "Çok fazla deneme yapıldı. Birkaç dakika sonra tekrar dene.";
++  }
++  if (/redirect|not allowed/i.test(m)) {
++    return "Giriş adresi doğrulanamadı. Sayfayı yenileyip tekrar dene.";
++  }
++  if (/network|fetch|Failed to fetch/i.test(m)) {
++    return "Bağlantı kurulamadı. İnternetini kontrol edip tekrar dene.";
++  }
++  return m || "Giriş yapılamadı. Tekrar dene.";
++}
++
++const SAGLAYICI_AD = {
++  google: "Google",
++  facebook: "Facebook",
++  twitter: "X (Twitter)",
++};
++
++// Hangi sosyal düğmeler gösterilecek?
++//
++// supabase-js signInWithOAuth sağlayıcıyı DOĞRULAMADAN tarayıcıyı Supabase'e
++// yönlendirir. Sağlayıcı panelde kapalıysa oyuncu uygulamadan çıkıp ham JSON
++// hata sayfasında ("Unsupported provider") kalıyordu — yukarıdaki Türkçe hata
++// çevirisi hiç çalışmıyor, çünkü hata istemciye dönmüyor.
++// Bu yüzden kapalı sağlayıcının düğmesi hiç basılmaz. X/Meta anahtarları
++// Supabase'e girilince .env'e `VITE_SOSYAL=google,facebook,twitter` yaz;
++// düğmeler geri gelir. Kod silinmedi, yalnız kapıya bağlandı.
++const ACIK_SAGLAYICILAR = new Set(
++  String(import.meta.env.VITE_SOSYAL ?? "google,facebook")
++    .split(",")
++    .map((s) => s.trim().toLowerCase())
++    .filter(Boolean)
++);
++
++// Sağlayıcı Supabase panelinde AÇIK MI? Auth'un herkese açık `settings`
++// ucundan öğreniliyor. Böylece kapalı bir sağlayıcıya basan oyuncu ham
++// JSON hata sayfasına düşmüyor, Türkçe mesaj görüyor.
++async function acikSaglayicilariOku() {
++  try {
++    const kok = import.meta.env.VITE_SUPABASE_URL;
++    if (!kok) return null;
++    const yanit = await fetch(`${kok}/auth/v1/settings`, {
++      headers: { apikey: import.meta.env.VITE_SUPABASE_ANON_KEY ?? "" },
++    });
++    if (!yanit.ok) return null;
++    const veri = await yanit.json();
++    return veri?.external ?? null;
++  } catch (e) {
++    console.error("[Bildim] saglayici listesi okunamadi:", e);
++    return null;   // bilinmiyor: düğmeler eskisi gibi çizilir
++  }
++}
++
++export default function Login() {
++  useEffect(() => {
++    if (!BILDIM_MOD) return;
++    document.documentElement.classList.add("qs-theme");
++    return () => document.documentElement.classList.remove("qs-theme");
++  }, []);
++  const [email, setEmail] = useState("");
++  const [gonderildi, setGonderildi] = useState(false);
++  const [hata, setHata] = useState(null);
++  const [bekleyen, setBekleyen] = useState(null); // hangi düğme çalışıyor
++  // Supabase'de gerçekten açık olan sağlayıcılar (null = henüz bilinmiyor)
++  const [acikListe, setAcikListe] = useState(null);
++
++  useEffect(() => {
++    let aktif = true;
++    acikSaglayicilariOku().then((d) => { if (aktif) setAcikListe(d); });
++    return () => { aktif = false; };
++  }, []);
++
++  /** Düğme çizilsin mi? Panelden bilgi gelmediyse .env kararı geçerli. */
++  const saglayiciAcik = (ad) =>
++    acikListe ? Boolean(acikListe[ad]) : ACIK_SAGLAYICILAR.has(ad);
++
++  /**
++   * Facebook düğmesi HER ZAMAN görünür (oyuncu seçeneği görsün), ama
++   * sağlayıcı Supabase'de henüz açılmadıysa tarayıcı yönlendirilmez:
++   * `signInWithOAuth` sağlayıcıyı doğrulamadan gittiği için oyuncu ham
++   * JSON hata sayfasında kalıyordu. Bunun yerine Türkçe açıklama.
++   */
++  const facebookGiris = () => {
++    if (acikListe && !acikListe.facebook) {
++      setHata("Facebook girişi henüz açılmadı. Google veya e-posta ile devam edebilirsin.");
++      return;
++    }
++    sosyalGiris("facebook");
++  };
++
++  const sosyalGiris = async (provider) => {
++    setHata(null);
++    setBekleyen(provider);
++    // Supabase izin listesi redirectTo'yu reddederse Site URL'ine düşer;
++    // hedefi burada saklarız ki derin bağlantı kaybolmasın.
++    girisHedefiniKaydet();
++    try {
++      const { error } = await supabase.auth.signInWithOAuth({
++        provider,
++        options: {
++          // Girişten sonra kullanıcı geldiği sayfaya dönsün (davet linki vb.)
++          redirectTo: `${window.location.origin}${window.location.pathname}`,
++          // X ve Facebook e-posta iznini ayrıca ister; istemezsek profil adı boş kalır.
++          //
++          // `user_friends` App Review ONAYI ister. Onay gelmeden istenirse
++          // Facebook girişi hata verir, o yüzden varsayılan olarak İSTENMEZ.
++          // Onay geldiğinde .env'e VITE_FB_ARKADAS=1 yazmak yeterli:
++          // izin istenir ve arkadaş önerisi bölümü kendiliğinden dolar.
++          scopes:
++            provider === "facebook"
++              ? (import.meta.env.VITE_FB_ARKADAS === "1"
++                  ? "public_profile,email,user_friends"
++                  : "public_profile,email")
++              : undefined,
++        },
++      });
++      if (error) throw error;
++    } catch (e) {
++      setHata(girisHatasi(e, SAGLAYICI_AD[provider] ?? provider));
++    } finally {
++      setBekleyen(null);
++    }
++  };
++
++  // Misafir girişi: Supabase anonim oturumu. Profil tetikleyicisi e-postası
++  // olmayan kullanıcıya da "oyuncu_xxxx" takma adı üretir; oyuncu daha sonra
++  // sosyal hesap bağlayarak kalıcı hesaba geçebilir.
++  const misafirGiris = async () => {
++    setHata(null);
++    setBekleyen("misafir");
++    try {
++      const { error } = await supabase.auth.signInAnonymously();
++      if (error) throw error;
++    } catch (e) {
++      setHata(girisHatasi(e, "Misafir"));
++    } finally {
++      setBekleyen(null);
++    }
++  };
++
++  const epostaGiris = async (e) => {
++    e.preventDefault();
++    setHata(null);
++    setBekleyen("eposta");
++    girisHedefiniKaydet();
++    try {
++      const { error } = await supabase.auth.signInWithOtp({
++        email,
++        options: { emailRedirectTo: window.location.origin },
++      });
++      if (error) throw error;
++      setGonderildi(true);
++    } catch (err) {
++      setHata(girisHatasi(err, "E-posta"));
++    } finally {
++      setBekleyen(null);
++    }
++  };
++
++  return (
++    <div className={`giris ${BILDIM_MOD ? "qs-login" : ""}`}>
++      {BILDIM_MOD && <section className="qs-login-story">
++        <span className="qs-eyebrow">QUIZ SQUARE / BİLGİ YARIŞMASI</span>
++        <h1>Meraklı zihinlerin<br /><em>buluşma noktası.</em></h1>
++        <p>Bilgini konuştur. Arkadaşlarına meydan oku.<br />Her gün yeni bir kapışmada yerini al.</p>
++        <div className="qs-login-art" aria-hidden="true"><span>?</span><span>Q</span><span>!</span></div>
++        <div className="qs-login-caption">Birlikte oyna. Birlikte öğren.</div>
++      </section>}
++      <div className="qs-login-form">
++      <div className="buyuk-logo"><Logo boyut={44} /></div>
++      <div className="slogan">
++        Her gün 13:00 ve 21:50'de (Türkiye saati) büyük turnuva.
++        <br />
++        7/24 meydan okumalar. Sen de yerini al.
++      </div>
++
++      {hata && <div className="hata-kutu">{hata}</div>}
++
++      <button
++        className="sosyal-btn"
++        disabled={bekleyen !== null}
++        onClick={() => sosyalGiris("google")}
++      >
++        <svg width="18" height="18" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.27-4.74 3.27-8.1z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84A11 11 0 0 0 12 23z"/><path fill="#FBBC05" d="M5.84 14.1A6.6 6.6 0 0 1 5.49 12c0-.73.13-1.43.35-2.1V7.06H2.18a11 11 0 0 0 0 9.88l3.66-2.84z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15A10.96 10.96 0 0 0 12 1 11 11 0 0 0 2.18 7.06l3.66 2.84C6.71 7.31 9.14 5.38 12 5.38z"/></svg>
++        {bekleyen === "google" ? "Yönlendiriliyor…" : "Google ile devam et"}
++      </button>
++      <button
++        className="sosyal-btn"
++        disabled={bekleyen !== null}
++        onClick={facebookGiris}
++      >
++        <svg width="18" height="18" viewBox="0 0 24 24"><path fill="#1877F2" d="M24 12.07C24 5.4 18.63 0 12 0S0 5.4 0 12.07C0 18.1 4.39 23.09 10.13 24v-8.44H7.08v-3.49h3.05V9.41c0-3.02 1.79-4.7 4.53-4.7 1.31 0 2.69.24 2.69.24v2.97h-1.52c-1.49 0-1.95.93-1.95 1.89v2.26h3.32l-.53 3.49h-2.79V24C19.61 23.09 24 18.1 24 12.07z"/></svg>
++        {bekleyen === "facebook" ? "Yönlendiriliyor…" : "Facebook ile devam et"}
++      </button>
++      {saglayiciAcik("twitter") && (
++      <button
++        className="sosyal-btn"
++        disabled={bekleyen !== null}
++        onClick={() => sosyalGiris("twitter")}
++      >
++        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M18.24 2.25h3.31l-7.23 8.26L22.83 21.75h-6.66l-5.22-6.82-5.97 6.82H1.66l7.73-8.84L1.17 2.25h6.83l4.72 6.24 5.52-6.24zm-1.16 17.52h1.83L7.02 4.13H5.06l12.02 15.64z"/></svg>
++        {bekleyen === "twitter" ? "Yönlendiriliyor…" : "X (Twitter) ile devam et"}
++      </button>
++      )}
++
++      <div className="ayrac">veya</div>
++
++      {gonderildi ? (
++        <div className="kart" style={{ maxWidth: 340, textAlign: "center" }}>
++          Giriş bağlantısı <b>{email}</b> adresine gönderildi. E-postanı kontrol et.
++        </div>
++      ) : (
++        <form onSubmit={epostaGiris} style={{ width: "100%", maxWidth: 340, display: "flex", flexDirection: "column", gap: 10 }}>
++          <input
++            type="email"
++            placeholder="E-posta adresin"
++            aria-label="E-posta adresin"
++            value={email}
++            onChange={(e) => setEmail(e.target.value)}
++            required
++          />
++          <button type="submit" className="btn ikincil" disabled={bekleyen !== null}>
++            {bekleyen === "eposta" ? "Gönderiliyor…" : "E-posta ile giriş bağlantısı al"}
++          </button>
++        </form>
++      )}
++
++      <div className="ayrac">hesap açmadan</div>
++
++      <button
++        className="sosyal-btn"
++        disabled={bekleyen !== null}
++        onClick={misafirGiris}
++      >
++        {bekleyen === "misafir" ? "Giriş yapılıyor…" : "Misafir olarak dene"}
++      </button>
++      <div className="giris-not">
++        Misafir hesabı bu cihaza bağlıdır. Puanların kaybolmasın diye daha sonra
++        {" "}
++        {/* Kapalı sağlayıcıyı vaat etmeyelim: metin GERÇEKTEN açık olan
++            sağlayıcılardan üretilir (panelden okunur). */}
++        {["google", "facebook", "twitter"]
++          .filter(saglayiciAcik)
++          .map((s) => SAGLAYICI_AD[s] ?? s)
++          .join(", ")}{" "}
++        veya
++        e-posta hesabını bağlayabilirsin.
++      </div>
++
++      {/* Yasal metinler giriş duvarının ÖNÜNDE erişilebilir olmalı
++          (Google Play ve reklam ağları şartı). */}
++      <div className="giris-yasal">
++        <a href="/gizlilik">Gizlilik politikası</a>
++        <span aria-hidden="true">·</span>
++        <a href="/kosullar">Kullanım koşulları</a>
++      </div>
++      </div>
++    </div>
++  );
++}
+--- a/src/main.jsx
++++ b/src/main.jsx
+@@ -18,6 +18,7 @@
+ import "../bildim/styles/tema.css";
+ // Koyu tema tema.css'ten SONRA: kaskadda sonra gelip acik temayi ezer.
+ import "../bildim/styles/koyu.css";
++import "../bildim/styles/square.css";
+ import { temaBaslat } from "../bildim/lib/tema.js";
+ import { cubukBaslat } from "../bildim/lib/kaydirmaCubugu.js";
+ 
