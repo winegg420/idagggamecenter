@@ -34,6 +34,21 @@ npx supabase db push                            # Migration'ları uygula
 npx supabase functions deploy generate-questions
 ```
 
+## 3B AVATAR SİSTEMİ — DERLEME AYARINA DOKUNMA
+
+Quiz Square'in 3B avatar sistemi `bildim/avatar3d/` altındadır ve
+`vercel.json` bunun **çok girişli** derlemesini kullanır
+(`oyun` + `atolye` + `meydan` + `gardrop`). Bu derleme ayarı
+değiştirilirse gardırop/atölye/meydan sayfaları canlıdan silinir —
+istekler SPA kabuğuna düşer ve sayfa yokmuş gibi davranır.
+12 Eylül 2026'da tam olarak bu oldu.
+
+`npm run build:bildim` aynı config'i kullanır: yereldeki derleme ile
+canlıdaki derleme birbirinden ayrılmasın.
+
+Depo dışındaki Codex worktree'si **artık kaynak değildir**; her şey bu
+depodadır.
+
 ## Dizin Yapısı
 
 Site bir **oyun portalıdır** (idaGG Game Center). **Her oyun kendi kök klasöründe, bağımsız geliştirilebilir bir modüldür** — hiçbiri diğerinin klasöründen import etmez; her biri kabuğa (`src/App.jsx`) tek bir lazy route satırıyla bağlanır.

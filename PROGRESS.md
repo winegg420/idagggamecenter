@@ -3880,3 +3880,49 @@ Anahtar girildikten sonra bir sonraki saat başı 30'da cron kendiliğinden
 yeterli. Havuz durumu şu an: cografya 1.707, tarih 903, edebiyat 887,
 sinema 853, muzik 850, bilim 844, sanat 843, teknoloji 838, genel_kultur 800,
 spor 765.
+
+## 13 Eylül 2026 — Codex'in 3B avatar sistemi depoya alındı ve asıl sistem oldu
+
+**Ne olmuştu:** Codex'in 3B avatar işi (`bildim/avatar3d/`) hiç GitHub'a
+gönderilmemiş, doğrudan Vercel'e kaynak dağıtımı yapılmıştı. Depo dışındaki
+worktree'de duruyordu. `main`'e yapılan bir push canlıyı GitHub'dan yeniden
+kurunca 3B sayfalar canlıdan silindi; `/bildim/avatar3d/gardrop.html`
+istekleri SPA kabuğuna düşüyordu.
+
+**Kök sebep:** `vercel.json` içindeki `buildCommand`. 3B sayfaların var
+olmasının tek sebebi Codex'in oraya koyduğu çok girişli derlemeydi; o satır
+eski hâline dönünce sayfalar dist'e hiç girmedi.
+
+- **Aşama 1:** `bildim/avatar3d/` (22 dosya) aynen aktarıldı, `vercel.json`
+  çok girişli derlemeye alındı. `package.json > build:bildim` de aynı
+  config'e bağlandı — yerel derleme ile canlı derleme ayrışmasın.
+- **Aşama 2:** `/bildim/gorunum` artık 3B gardıroba gidiyor
+  (`GardropaGit.jsx`; gardırop ayrı giriş noktası olduğu için rota bileşeni
+  olamaz). Eski sayfalar `/gorunum-2b` ve `/gorunum-3b`'de yedekte,
+  menülerden bağlantısız. Meydandaki "dans al" bağlantısı `/gorunum-3b`'de
+  bırakıldı: 3B gardıropta dans yuvası yok.
+- **Aşama 3:** Meydandaki karakter gerçek 3B gövde. `karakterGorsel.js`
+  girişleri `meydan-model.js`'e devrediyor, eski billboard kodu
+  `billboardAvatarKur` adıyla duruyor. `danslar.js` kafa sıfırlaması artık
+  modelin kendi `kafaY`'sini kullanıyor (eski sabit 3.05'ti; 3B modelde kafa
+  yerel olarak 1.10 — kafa gövdeden fırlıyordu).
+- **KALABALIK SINIRI (ölçüldü, karar):** 3B gövde karakter başına **57 çizim
+  çağrısı / 33.068 üçgen**; eski billboard 2 çağrıydı. 12 oyuncu = 684 çağrı,
+  telefon GPU'su için çok. İlk 6 oyuncu 3B, gerisi billboard'da kalıyor
+  (`UC_BOYUTLU_SINIR`). Model gardırop için tasarlandı (parmak, iris, göz
+  kapağı, bağcık), kalabalık için değil. Kalabalıkta tam 3B istenirse
+  modelin sadeleştirilmesi gerekir — ayrı iş.
+- **Aşama 4:** Kozmetik küçük resimleri Codex'in modeline taşındı
+  (`avatar3d/portre.js > parcaPortresi`, `ParcaPortresi.jsx`). Portre başına
+  **~55 ms** (31 ms'i modelin kurulması); eski basit avatarda 8-11 ms'ti.
+  Kare bütçesine sığmadığı için kuyruk `requestIdleCallback`'e alındı.
+- **Köprü:** Gardırop yerel deneme cüzdanında çalıştığı için kaydedilen
+  kıyafet sunucuda değil. `HaritaSayfasi` onu `gorunum.avatar3d` içine
+  koyuyor; meydan `gorunum`u zaten realtime ile yayınladığı için öteki
+  oyuncular da doğru kıyafeti görüyor. **Gerçek ekonomiye bağlanınca bu
+  köprü kalkmalı.**
+- Yeni test: `bildim/_test/meydan-3b-test.mjs` — meydan sekmesi gizliyken
+  tarayıcı render'ı durdurduğu için ekrandan doğrulanamıyor; kurulum,
+  yürüme, zıplama, 14 dans, görünüm değişimi ve bellek bırakma burada
+  ölçülüyor.
+- `CLAUDE.md` + `AGENTS.md`: derleme ayarı uyarısı eklendi.

@@ -36,6 +36,21 @@ npx supabase db push                             # migration'ları uygula
 npx supabase functions deploy generate-questions
 ```
 
+## 3B AVATAR SİSTEMİ — DERLEME AYARINA DOKUNMA
+
+Quiz Square'in 3B avatar sistemi `bildim/avatar3d/` altındadır ve
+`vercel.json` bunun **çok girişli** derlemesini kullanır
+(`oyun` + `atolye` + `meydan` + `gardrop`). Bu derleme ayarı
+değiştirilirse gardırop/atölye/meydan sayfaları canlıdan silinir —
+istekler SPA kabuğuna düşer ve sayfa yokmuş gibi davranır.
+12 Eylül 2026'da tam olarak bu oldu.
+
+`npm run build:bildim` aynı config'i kullanır: yereldeki derleme ile
+canlıdaki derleme birbirinden ayrılmasın.
+
+Depo dışındaki Codex worktree'si **artık kaynak değildir**; her şey bu
+depodadır.
+
 ## Çalışma düzeni — SAHİBİNİN İSTEDİĞİ AKIŞ
 
 Sahibi kod yazmaz, dosya taşımaz. Verilen görevi baştan sona kendin
