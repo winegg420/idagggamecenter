@@ -24,8 +24,8 @@ import { hataMesaji } from "../lib/hata.js";
 import { coinTazele, coinHatasi } from "../lib/coin.js";
 import { nadirligiUnut } from "../lib/nadirlik.js";
 import { y } from "../lib/yol.js";
-import { COSMETIC_COLORS, COSMETIC_LABELS, getCharacter } from "../karakter/karakterler.js";
-import { YUVALAR, RENKLI_YUVALAR, avatarUri, kozmetikCoz, karakterId, renkAlani } from "../karakter/gorunum.js";
+import { COSMETIC_COLORS, COSMETIC_LABELS, getCharacter } from "./karakterler.js";
+import { YUVALAR, RENKLI_YUVALAR, avatarUri, kozmetikCoz, karakterId, renkAlani } from "./gorunum.js";
 import "./gorunum.css";
 
 /** Nadirlik → çerçeve sınıfı (AvatarCerceve ile aynı aile). */

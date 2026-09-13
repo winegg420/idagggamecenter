@@ -36,11 +36,10 @@ const CalismaPage = lazy(() => import("../bildim/pages/CalismaPage.jsx"));
 const HaritaSayfasi = lazy(() => import("../bildim/harita/HaritaSayfasi.jsx"));
 // Görünüm = 3B GARDIROP (bildim/avatar3d/gardrop.html). Ayrı giriş noktası
 // olduğu için rota bileşen değil, yönlendirmedir (bkz. GardropaGit.jsx).
-// Eski iki sayfa SİLİNMEDİ, menülerden bağlantıları YOK:
-//   /gorunum-2b  → 2B vektör karakter sayfası
+// 2B KARAKTER SİSTEMİ TAMAMEN KALKTI: sayfası da rotadan çıktı, dosyaları
+// bildim/karakter/ altında duruyor. Eski 3B görünüm sayfası yedekte:
 //   /gorunum-3b  → eski 3B görünüm sayfası
 const GardropaGit = lazy(() => import("../bildim/pages/GardropaGit.jsx"));
-const KarakterPage = lazy(() => import("../bildim/pages/KarakterPage.jsx"));
 const GorunumPage = lazy(() => import("../bildim/pages/GorunumPage.jsx"));
 // Yasal metinler giriş duvarının ÖNÜNDE olmalı (Play Store + reklam ağları).
 const GizlilikPage = lazy(() => import("../bildim/pages/GizlilikPage.jsx"));
@@ -116,7 +115,6 @@ export default function BildimApp() {
           <Route path="calisma" element={<CalismaPage />} />
           <Route path="harita" element={<HaritaSayfasi />} />
           <Route path="gorunum" element={<GardropaGit />} />
-          <Route path="gorunum-2b" element={<KarakterPage />} />
           <Route path="gorunum-3b" element={<GorunumPage />} />
           <Route path="profil" element={<ProfilePage />} />
         </Route>

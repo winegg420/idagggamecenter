@@ -12,8 +12,8 @@ import { useEffect, useState } from "react";
 import { supabase } from "../../src/lib/supabase.js";
 import RankBadge from "./RankBadge.jsx";
 import { NADIRLIK_ETIKET, nadirlikGorunumden } from "../lib/nadirlik.js";
-import { avatarUri, karakterId } from "../karakter/gorunum.js";
-import { getCharacter } from "../karakter/karakterler.js";
+import { avatarUri, karakterId } from "./gorunum.js";
+import { getCharacter } from "./karakterler.js";
 
 /**
  * @param {object} o

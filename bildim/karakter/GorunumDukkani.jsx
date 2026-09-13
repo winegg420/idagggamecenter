@@ -17,7 +17,7 @@ import Ikon from "./Ikon.jsx";
 import { hataMesaji } from "../lib/hata.js";
 import { coinTazele, coinHatasi } from "../lib/coin.js";
 import { y } from "../lib/yol.js";
-import { avatarUri, kozmetikCoz, karakterId, YUVALAR } from "../karakter/gorunum.js";
+import { avatarUri, kozmetikCoz, karakterId, YUVALAR } from "./gorunum.js";
 import "../pages/gorunum.css";
 
 const NADIRLIK_SINIF = { sirali: "n-sirali", ozel: "n-ozel", etkinlik: "n-etkinlik" };

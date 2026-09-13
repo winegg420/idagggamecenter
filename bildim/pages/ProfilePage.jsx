@@ -8,7 +8,6 @@ import { supabase } from "../../src/lib/supabase.js";
 import { useAuth } from "../../src/context/AuthContext.jsx";
 import Avatar from "../../src/components/Avatar.jsx";
 import AvatarCerceve from "../components/AvatarCerceve.jsx";
-import AvatarVitrin from "../components/AvatarVitrin.jsx";
 import RankBadge from "../components/RankBadge.jsx";
 import SayanSayi from "../components/SayanSayi.jsx";
 import KonumSecici from "../components/KonumSecici.jsx";
@@ -83,8 +82,8 @@ export default function ProfilePage() {
 
   return (
     <div>
-      {/* Vitrin: meydan sahnesini YÜKLEMEZ (bkz. AvatarVitrin başlığı). */}
-      <AvatarVitrin ad={profile.gorunen_ad} puan={profile.puan ?? 0} />
+      {/* 2B KARAKTER VİTRİNİ KALKTI (13 Eylül 2026): profilde artık
+          seçilen avatar fotoğrafı görünür, 3B karakter yalnız meydanda. */}
 
       <div className="bd-profil-ust">
         <AvatarCerceve profile={profile} boyut={92} userId={user?.id} />

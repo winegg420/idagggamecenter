@@ -14,8 +14,8 @@
 import { useCallback, useEffect, useState } from "react";
 import { supabase } from "../../src/lib/supabase.js";
 import { useAuth } from "../../src/context/AuthContext.jsx";
-import Avatar from "../../src/components/Avatar.jsx";
 import Ikon from "./Ikon.jsx";
+import KarakterPortresi from "./KarakterPortresi.jsx";
 import { hataMesaji } from "../lib/hata.js";
 import { GARDROP_YOLU } from "../pages/GardropaGit.jsx";
 // `.bd-gardrop-*` stilleri burada; dükkân sayfası gorunum.css'i kendiliğinden
@@ -41,6 +41,7 @@ export default function GardropVitrini() {
         parcalar: Array.isArray(r?.avatar3d_parcalar) ? r.avatar3d_parcalar : [],
         sahip: new Set(Array.isArray(r?.avatar3d_sahip) ? r.avatar3d_sahip : []),
         kurulmus: r?.avatar3d_gorunum != null,
+        gorunum: r?.avatar3d_gorunum ?? null,
       });
     } catch (e) {
       setHata(hataMesaji(e, "Gardırop kataloğu yüklenemedi."));
@@ -60,7 +61,10 @@ export default function GardropVitrini() {
       <div className="kart bd-gardrop-vitrin">
         <div className="bd-kat-baslik"><span>Şu anki karakterin</span></div>
         <div className="bd-gardrop-vitrin-ic">
-          <Avatar profile={profile} boyut={96} />
+          {/* Burada AVATAR FOTOĞRAFI DEĞİL, 3B karakterin kendisi gösterilir:
+              bu sekme meydana girdiğin karakteri kurduğun yer. Listelerdeki
+              avatar (Avatar.jsx) seçilen fotoğraf olmaya devam ediyor. */}
+          <KarakterPortresi gorunum={veri.gorunum} boyut={96} />
           <div>
             <div className="bd-gardrop-vitrin-ad">{profile?.gorunen_ad ?? "Karakterin"}</div>
             <div className="alt-yazi">

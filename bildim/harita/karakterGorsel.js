@@ -1,44 +1,36 @@
 // ============================================================
-// MEYDAN — 2B KARAKTERİN 3B SAHNEDEKİ GÖRSELİ (BILLBOARD)
+// MEYDAN KARAKTERİ — 3B GÖVDE + UZAKTAKİLER İÇİN PORTRE BILLBOARD'U
 //
-// MİMARİ: bu dosya "görünüm kaydı → doku" işinin TEK yeridir. Sahnenin
-// kendisi (dunya.js) yalnız burada üretilen nesneyi ekler/çıkarır.
-// Harita ileride baştan çizilecek; modeller değişince burası değişir,
-// mantık (coin, ağ, etkileşim) durmaya devam eder.
+// MEYDANDA HİÇ 2B KARAKTER YOK (13 Eylül 2026 kararı). İki çizim biçimi
+// var, ikisi de AYNI 3B modelden gelir (`bildim/avatar3d/`):
 //
-// YÖNTEM: oyuncunun `profiles.gorunum` kaydından bildim/karakter/ SVG
-// üreticisiyle bir resim çıkarılır, 256×256 bir tuvale çizilip
-// THREE.Sprite olarak sahneye konur. Sprite her zaman kameraya bakar
-// (Don't Starve / Paper Mario yöntemi), bu yüzden döndürme derdi yok.
+//   1) YAKINDAKİLER — gerçek 3B gövde (meydan-model.js). Kalabalık sınırı
+//      kadar oyuncu bunu alır (bkz. UC_BOYUTLU_SINIR).
+//   2) GERİSİ — aynı modelin TEK KARELİK PORTRESİ (avatar3d/portre.js),
+//      256×256 bir tuvale çizilip THREE.Sprite olarak konur. Sprite her
+//      zaman kameraya bakar (Don't Starve / Paper Mario yöntemi).
 //
-// ESKİ 3B GÖVDE SİLİNMEDİ: avatar.js + esyalar.js yerinde duruyor ve
-// /gorunum-3b önizlemesi onları kullanmaya devam ediyor. Geri dönmek
-// için dunya.js'teki import satırını çevirmek yeter.
+// Eskiden 2. yol bildim/karakter/ SVG'lerinden (PatiRun karakterleri)
+// besleniyordu; o bağ koptu. `bildim/karakter/` dosyaları depoda duruyor
+// ama meydan artık onları çağırmıyor.
 //
 // UYUMLULUK: döndürülen grubun `userData` şekli avatar.js ile AYNIDIR
 // (kok, bacaklar, kollar, govde, kafa, etiket, ad, yurumeFaz, dans).
 // Böylece danslar.js, ikramGorsel.js ve yürüme animasyonu değişmeden
 // çalışır; o kodlar yalnız boş grupların rotation/position'ını yazar.
 //
-// PERFORMANS: doku önbelleği görünüm+poz başına TEK dokudur ve referans
-// sayılır. 40 oyuncu 5 farklı karakter kullanıyorsa 5 doku üretilir;
+// PERFORMANS: doku önbelleği görünüm başına TEK dokudur ve referans
+// sayılır. 40 oyuncu 5 farklı görünüm kullanıyorsa 5 doku üretilir;
 // son kullanan sahneden çıkınca doku dispose edilir.
-// ============================================================
 //
-// ARTIK 3B GÖVDE ÇİZİLİYOR (13 Eylül 2026). Meydandaki karakter
-// bildim/avatar3d/ altındaki gerçek 3B modeldir. Aşağıdaki billboard kodu
-// SİLİNMEDİ — yalnız çizim yolundan çıktı; giriş fonksiyonlarının başındaki
-// üç satır işi meydan-model.js'e devrediyor. Geri dönmek için o üç satırı
-// kaldırmak yeter.
-//
-// `karakterPozGuncelle` ve `karakterYonGuncelle` 3B modelde kendiliğinden
-// etkisiz: ikisi de `userData.sprite` yoksa hemen dönüyor (3B modelde yok).
+// `karakterPozGuncelle` ve `karakterYonGuncelle` 3B gövdede kendiliğinden
+// etkisiz: ikisi de `userData.sprite` yoksa hemen dönüyor (3B gövdede yok).
 // Gerçek 3B gövde kameraya değil, gittiği yöne bakar.
 // ============================================================
 import * as THREE from "three";
 import { meydanModelKur, meydanModelSil, meydanModelDegistir } from "../avatar3d/meydan-model.js";
 import { isimEtiketi, nesneyiSerbestBirak } from "./ortak.js";
-import { avatarUri } from "../karakter/gorunum.js";
+import { yeniPortre } from "../avatar3d/portre.js";
 
 /** Doku çözünürlüğü — meydanda karakter ekranda en fazla ~200 px. */
 const DOKU = 256;
@@ -47,19 +39,22 @@ const EN = 3.8;
 /** Sprite merkezinin yerden yüksekliği; ayaklar y=0'a otursun. */
 const MERKEZ_Y = EN / 2;
 
-// ---- doku önbelleği (anahtar: avatarUri çıktısı) ----
-// avatarUri zaten görünüm+poz özetine göre önbellekli, aynı görünüm için
-// hep aynı dizgeyi döndürüyor. O dizgeyi doğrudan anahtar olarak kullanmak
-// ikinci bir özet fonksiyonu yazmaktan hem ucuz hem tutarlı.
+// ---- doku önbelleği (anahtar: portre PNG'in data-URI'si) ----
+// `yeniPortre` aynı görünüm için hep aynı dizgeyi döndürüyor (kendi Map'i
+// var). O dizgeyi doğrudan anahtar yapmak ikinci bir özet fonksiyonundan
+// hem ucuz hem tutarlı.
 const dokular = new Map();   // uri -> { doku, sayac }
 
-/** Görünüm+poz için doku alır, referans sayacını artırır. */
-function dokuAl(gorunum, poz) {
+/** Görünüm için doku alır, referans sayacını artırır. */
+function dokuAl(gorunum) {
   let uri;
   try {
-    uri = avatarUri(gorunum, poz);
+    // 3B MODELİN FOTOĞRAFI — eskiden 2B PatiRun karakteri çiziliyordu.
+    // Meydanda artık hiç 2B görsel yok: yakındaki oyuncular gerçek 3B
+    // gövde, uzaktakiler aynı modelin tek karelik portresi.
+    uri = yeniPortre(gorunum ?? {});
   } catch (e) {
-    console.error("[Meydan] karakter uri:", e);
+    console.error("[Meydan] karakter portresi:", e);
     uri = null;
   }
   if (!uri) return null;
@@ -175,8 +170,9 @@ export function karakterAvatarKur({ ad, gorunum, etiketRenk = "#20324A" }) {
 }
 
 /**
- * ESKİ 2B BILLBOARD — çizim yolundan çıktı, geri dönüş için duruyor.
- * Yukarıdaki `karakterAvatarKur` bunun yerine 3B modeli kuruyor.
+ * PORTRE BILLBOARD'U — kalabalık sınırının üstündeki oyuncular için.
+ * Gövde yerine 3B modelin tek karelik fotoğrafı çizilir; görsel olarak
+ * aynı karakter, maliyeti 57 çizim çağrısı yerine 2.
  */
 export function billboardAvatarKur({ ad, gorunum, etiketRenk = "#20324A" }) {
   const g = new THREE.Group();
@@ -186,7 +182,7 @@ export function billboardAvatarKur({ ad, gorunum, etiketRenk = "#20324A" }) {
   g.add(kok);
 
   const gor = gorunum ?? {};
-  const doku = dokuAl(gor, "idle");
+  const doku = dokuAl(gor);
   const malzeme = new THREE.SpriteMaterial({
     map: doku, transparent: true, depthWrite: false,
   });
@@ -233,7 +229,7 @@ export function karakterGorunumDegistir(avatar, gorunum) {
   const u = avatar?.userData;
   if (!u?.sprite) return;
   const gor = gorunum ?? {};
-  const yeni = dokuAl(gor, u.poz ?? "idle");
+  const yeni = dokuAl(gor);
   if (!yeni) return;
   dokuBirak(u.doku);
   u.doku = yeni;
@@ -249,20 +245,11 @@ export function karakterGorunumDegistir(avatar, gorunum) {
  * @param {THREE.Group} avatar
  * @param {boolean} yuruyor
  */
-export function karakterPozGuncelle(avatar, yuruyor) {
-  const u = avatar?.userData;
-  if (!u?.sprite) return;
-  const poz = yuruyor
-    ? (Math.sin(u.yurumeFaz) >= 0 ? "run1" : "run2")
-    : "idle";
-  if (poz === u.poz) return;
-  const yeni = dokuAl(u.gorunum ?? {}, poz);
-  if (!yeni) return;
-  dokuBirak(u.doku);
-  u.doku = yeni;
-  u.poz = poz;
-  u.sprite.material.map = yeni;
-  u.sprite.material.needsUpdate = true;
+export function karakterPozGuncelle() {
+  // POZ DEĞİŞTİRME KALKTI. Eskiden 2B karakterin idle/run1/run2 kareleri
+  // vardı; billboard artık 3B modelin TEK karelik portresi olduğu için
+  // takas edilecek ikinci bir doku yok. Çağıranlar (dunya.js) değişmesin
+  // diye fonksiyon duruyor, işlem yapmıyor.
 }
 
 const _ileri = new THREE.Vector3();

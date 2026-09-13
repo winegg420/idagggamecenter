@@ -311,3 +311,14 @@
 .bd-gardrop-satir.odul { opacity: 0.8; }
 :root[data-tema="koyu"] .bd-gardrop-satir-fiyat { color: var(--bd-odul); }
 :root[data-tema="koyu"] .bd-gardrop-satir.sende .bd-gardrop-satir-fiyat { color: var(--bd-metin-2); }
+
+/* 3B karakter portresi — yalnız gardırop/dükkân gibi karakterin konu
+   olduğu yerlerde. Hazır olana kadar kutu boyu sabit, düzen zıplamaz. */
+.bd-karakter-portre {
+  display: grid; place-items: center; flex: none;
+  border-radius: 18px; overflow: hidden;
+  background: var(--bd-yuzey-2, #DDE7F0);
+}
+.bd-karakter-portre img {
+  width: 100%; height: 100%; object-fit: contain; display: block;
+}
