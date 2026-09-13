@@ -58,8 +58,14 @@ CERCEVE.esya_gozluk  = { fov: 22, konum: [0, 3.24, 2.10], bak: [0, 3.22, 0] };
 CERCEVE.esya_pelerin = { fov: 28, konum: [0, 2.35, -3.60], bak: [0, 2.20, 0] };
 CERCEVE.manken_sac   = { fov: 24, konum: [0, 3.30, 3.90], bak: [0, 3.18, 0] };
 CERCEVE.manken_kiyafet = { fov: 26, konum: [0, 2.05, 4.60], bak: [0, 1.95, 0] };
+// Aşağıdaki üç çerçeve modelden ÖLÇÜLEN kutu merkezlerine göre yazıldı:
+// sakal y≈2.77, alt giyim y≈1.16, ayakkabı y≈0.23.
+CERCEVE.manken_sakal    = { fov: 24, konum: [0, 2.86, 3.10], bak: [0, 2.82, 0] };
+CERCEVE.manken_alt      = { fov: 26, konum: [0, 1.25, 4.00], bak: [0, 1.16, 0] };
+CERCEVE.manken_ayakkabi = { fov: 26, konum: [0, .62, 2.50], bak: [0, .23, 0] };
 
-const YUVA_CERCEVE={sac:'bas',bas:'bas',gozluk:'bas',kiyafet:'govde',pelerin:'sirt'};
+const YUVA_CERCEVE={sac:'bas',bas:'bas',gozluk:'bas',sakal:'bas',kiyafet:'govde',
+ alt:'tamboy',ayakkabi:'tamboy',pelerin:'sirt'};
 
 /**
  * @param {object} temelGorunum oyuncunun o anki görünümü (ten/saç rengi dahil)
@@ -105,15 +111,20 @@ export function parcaPortresi(temelGorunum,parca,boyut=192){
 // ============================================================
 
 /** Bu yuva için manken gerekiyor mu? */
-const MANKEN_GEREKEN = { sac: true, kiyafet: true };
+// Sakal/alt/ayakkabı tek başına havada duruyor gibi görünür; gri manken
+// üzerinde gösterilir (saç ve kıyafetle aynı gerekçe).
+const MANKEN_GEREKEN = { sac: true, kiyafet: true, sakal: true, alt: true, ayakkabi: true };
 
 /** Kartta hangi çerçeve kullanılacak. */
 const ESYA_CERCEVE = {
-  bas:     'esya_bas',
-  gozluk:  'esya_gozluk',
-  pelerin: 'esya_pelerin',
-  sac:     'manken_sac',
-  kiyafet: 'manken_kiyafet',
+  bas:      'esya_bas',
+  gozluk:   'esya_gozluk',
+  pelerin:  'esya_pelerin',
+  sac:      'manken_sac',
+  kiyafet:  'manken_kiyafet',
+  sakal:    'manken_sakal',
+  alt:      'manken_alt',
+  ayakkabi: 'manken_ayakkabi',
 };
 
 /** Alt ağaçtaki bütün mesh'leri gizler. */
@@ -207,9 +218,12 @@ export function esyaPortresi(temelGorunum, parca, boyut = 192) {
     // Önce HER ŞEYİ gizle, sonra yalnız gerekeni geri aç.
     gizle(model);
 
+    // Bazı yuvalar tek bir grup, bazıları mesh dizisidir (alt/ayakkabı).
     const yuvaKok = { sac: u.sacYuva, gozluk: u.gozlukYuva, bas: u.basYuva,
-                      kiyafet: u.elbiseYuva, pelerin: u.capeRoot }[yuva];
-    geriAc(yuvaKok, ilkDurum);
+                      kiyafet: u.elbiseYuva, pelerin: u.capeRoot,
+                      sakal: u.sakalYuva, alt: u.altParcalari,
+                      ayakkabi: u.ayakkabiParcalari }[yuva];
+    for (const kok of [].concat(yuvaKok || [])) geriAc(kok, ilkDurum);
 
     if (yuva === 'kiyafet') {
       // Kıyafet üç yere dağılmış: etek (elbiseYuva), üst (elbiseUst) ve
@@ -233,6 +247,25 @@ export function esyaPortresi(temelGorunum, parca, boyut = 192) {
         }
       });
       geriAc(u.sacYuva, ilkDurum);
+      mankenlestir(model, ayar.ten, atilacak);
+    } else if (yuva === 'sakal') {
+      // Sakal çenede durur: kafa gri manken olarak açılır, yüz detayları
+      // kapalı (saçla aynı gerekçe), sakal üstte kalır.
+      geriAc(u.kafa, ilkDurum);
+      u.kafa.traverse((o) => {
+        if (!(o.isMesh || o.isSkinnedMesh)) return;
+        if (/Goz|Iris|Bebek|Kas|Kapak|Kulak|Burun|Gulumseme|Agiz|Dudak|Kirpik/i.test(o.name || '')) {
+          o.visible = false;
+        }
+      });
+      geriAc(u.sakalYuva, ilkDurum);
+      mankenlestir(model, ayar.ten, atilacak);
+    } else if (yuva === 'alt' || yuva === 'ayakkabi') {
+      // Bacaklar gri manken olarak açılır ki pantolon/ayakkabı boşlukta
+      // durmasın. Diğer yuvanın parçaları kapalı kalır.
+      for (const bacak of u.bacaklar || []) geriAc(bacak, ilkDurum);
+      for (const p of (yuva === 'alt' ? u.ayakkabiParcalari : u.altParcalari) || []) gizle(p);
+      for (const p of (yuva === 'alt' ? u.altParcalari : u.ayakkabiParcalari) || []) geriAc(p, ilkDurum);
       mankenlestir(model, ayar.ten, atilacak);
     }
 

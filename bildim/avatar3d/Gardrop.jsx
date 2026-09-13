@@ -18,10 +18,14 @@ import './gardrop.css';
 // Renk kategorileri — ayrı "Karakter" sekmesi kalktı, bunlar da
 // alttaki tek listeye kategori olarak girdi.
 const CEKET_RENKLERI=['#be542d','#275c63','#354469','#71344c','#292b30','#c9b899'];
+const ALT_RENKLERI=['#253341','#3a3f4a','#5a4632','#2f4a3a','#6b4a55','#1f2933'];
+const AYAKKABI_RENKLERI=['#eee7d8','#2b2b30','#c04a34','#3a5a8c','#d9c27a','#8a8f98'];
 const RENK_BOLUMLERI=[
  {id:'ten',ad:'Ten',alan:'ten',liste:TENLER},
  {id:'sacRenk',ad:'Saç rengi',alan:'sacRenk',liste:SAC_RENKLERI},
  {id:'ceketRenk',ad:'Ceket rengi',alan:'ceketRenk',liste:CEKET_RENKLERI},
+ {id:'altRenk',ad:'Alt giyim rengi',alan:'altRenk',liste:ALT_RENKLERI},
+ {id:'ayakkabiRenk',ad:'Ayakkabı rengi',alan:'ayakkabiRenk',liste:AYAKKABI_RENKLERI},
 ];
 
 function Gardrop(){

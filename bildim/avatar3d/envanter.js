@@ -12,15 +12,41 @@ export const PARCALAR = [
   ['bas_bere','Bere','bas','bere','k2_hat_bere'],
   ['bas_tac','Taç','bas','tac','k2_hat_tac'],
   ['bas_duvak','Duvak','bas','duvak',null],
-  ['goz_gunes','Güneş gözlüğü','gozluk',true,'k2_glasses_gunes'],
-  ['sirt_pelerin','Pelerin','pelerin',true,'k2_top_pelerin'],
+  ['ust_atlet','Atlet','kiyafet','atlet',null],
+  ['ust_gomlek','Gömlek','kiyafet','gomlek',null],
+  ['goz_gunes','Güneş gözlüğü','gozluk','gunes','k2_glasses_gunes'],
+  ['goz_kare','Kare gözlük','gozluk','kare',null],
+  ['goz_yuvarlak','Yuvarlak gözlük','gozluk','yuvarlak',null],
+  ['goz_okuma','Okuma gözlüğü','gozluk','okuma',null],
+  ['goz_spor','Spor gözlük','gozluk','spor',null],
+  ['sirt_pelerin','Pelerin','pelerin','klasik','k2_top_pelerin'],
+  // Not: `pelerin: 'kisa'` modelde var ama dükkâna KONMADI — pelerin
+  // etkinlik ödülüdür, varyantını satmak ödülü değersizleştirir.
+  ['sakal_tam','Tam sakal','sakal','tam',null],
+  ['sakal_keci','Keçi sakalı','sakal','keci',null],
+  ['sakal_biyik','Bıyık','sakal','biyik',null],
+  ['sakal_favori','Favori','sakal','favori',null],
+  ['ayak_spor','Spor ayakkabı','ayakkabi','spor',null],
+  ['ayak_bot','Bot','ayakkabi','bot',null],
+  ['ayak_terlik','Terlik','ayakkabi','terlik',null],
+  ['ayak_sandalet','Sandalet','ayakkabi','sandalet',null],
+  ['alt_pantolon','Pantolon','alt','pantolon',null],
+  ['alt_sort','Şort','alt','sort',null],
+  ['alt_kapri','Kapri','alt','kapri',null],
 ].map(([id,ad,yuva,deger,eskiKod])=>({id,ad,yuva,deger,eskiKod}));
-export const YUVA_ADLARI={sac:'Saç',kiyafet:'Kıyafet',bas:'Baş aksesuarı',gozluk:'Gözlük',pelerin:'Sırt'};
-export const BOSLAR={sac:'yok',kiyafet:'tisort',bas:'yok',gozluk:false,pelerin:false};
+export const YUVA_ADLARI={sac:'Saç',kiyafet:'Üst giyim',alt:'Alt giyim',ayakkabi:'Ayakkabı',bas:'Baş aksesuarı',gozluk:'Gözlük',sakal:'Sakal',pelerin:'Sırt'};
+// Boş değer = o yuvanın ücretsiz/varsayılan hâli. `kiyafet`, `alt` ve
+// `ayakkabi` çıplak bırakılamaz; bu yüzden boşları temel parçadır.
+export const BOSLAR={sac:'yok',kiyafet:'tisort',alt:'pantolon',ayakkabi:'spor',bas:'yok',gozluk:'yok',sakal:'yok',pelerin:'yok'};
 export const TEMEL=ayarDogrula({...BOSLAR,ceket:false});
 export function sahiplikDogrula(g,sahip){
   const temiz=ayarDogrula(g);
-  for(const p of PARCALAR) if(temiz[p.yuva]===p.deger&&!sahip.includes(p.id)) throw new Error(p.ad+' envanterinde yok.');
+  for(const p of PARCALAR){
+    // Yuvanın varsayılan değeri (tişört, pantolon, spor ayakkabı) herkeste
+    // vardır — sahiplik aranmaz, yoksa yeni oyuncu giyinemez.
+    if(BOSLAR[p.yuva]===p.deger) continue;
+    if(temiz[p.yuva]===p.deger&&!sahip.includes(p.id)) throw new Error(p.ad+' envanterinde yok.');
+  }
   return temiz;
 }
 export function parcayiTak(g,p){return ayarDogrula({...g,[p.yuva]:p.deger});}

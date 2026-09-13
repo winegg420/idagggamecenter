@@ -23,8 +23,8 @@ import { GARDROP_YOLU } from "../pages/GardropaGit.jsx";
 import "../pages/gorunum.css";
 
 const YUVA_ADLARI = {
-  sac: "Saç", kiyafet: "Kıyafet", bas: "Baş aksesuarı",
-  gozluk: "Gözlük", pelerin: "Sırt",
+  sac: "Saç", kiyafet: "Üst giyim", alt: "Alt giyim", ayakkabi: "Ayakkabı",
+  bas: "Baş aksesuarı", gozluk: "Gözlük", sakal: "Sakal", pelerin: "Sırt",
 };
 
 export default function GardropVitrini() {

@@ -4190,3 +4190,43 @@ saç/kıyafet yüzsüz gri manken üzerinde.
 kartında ceket çıkıyordu — modelin kendi görünürlük kararı saklanıp geri
 yükleniyor; (b) manken kafasında ağız kalmıştı, mesh adı `Gulumseme`
 imiş. Manken grisi beyaz tişörtle karıştığı için koyulaştırıldı.
+
+## 14 Eylül 2026 — Revizyon Paketi 5, Madde 2: yeni ekipman yuvaları
+
+**İstek:** gözlük tek tip değil birkaç çeşit; sakal/bıyık; ayakkabı ve
+terlik; şort; atlet/gömlek/tişört.
+
+**Kök sorun:** `avatar3d_parcalar.yuva` yalnız 5 değer kabul ediyordu ve
+`gozluk`/`pelerin` MANTIKSAL (true/false) değerdi — bir yuvada tek çeşit
+taşıyabiliyordu. Yuvalar 5'ten **8'e** çıktı (`+sakal +ayakkabi +alt`),
+gözlük ve pelerin metin değere geçti. Katalog 12 → **29 parça**.
+
+**Geriye uyum (ölçüldü):** migration 176 hem katalogdaki hem
+`profiles.gorunum->'avatar3d'` içindeki `true` değerlerini somut id'ye
+taşıdı (`gozluk true → "gunes"`, `pelerin true → "klasik"`, `false →
+"yok"`). Canlıda **163 görünüm** dönüştürüldü, geriye **0** mantıksal
+değer kaldı. Ayrıca `avatar3d_dogrula` eski `true/false`'u hâlâ kabul
+edip çeviriyor (eski sekme açık kalmış olabilir): canlı testte
+`{gozluk:true,pelerin:true}` → `gunes`/`klasik` döndü.
+
+**Model tarafı:** bacak artık ten + ayrı giysi kabuğu; alt giyim ve
+ayakkabı `altParcalari` / `ayakkabiParcalari` dizilerinde, kendi
+renkleriyle (`altRenk`, `ayakkabiRenk`). Kalça da sabit pantolon
+renginden çıkıp alt giyime bağlandı. 5 gözlük, 4 sakal, 4 ayakkabı,
+3 alt, 5 üst varyantının hepsi node testinde çizildi (12 alt×ayakkabı
+kombinasyonu dahil).
+
+**Kart görselleri:** `esyaPortresi` yuva listesi hard-coded'dı, yeni üç
+yuva eklendi; alt/ayakkabı tek grup değil mesh DİZİSİ olduğu için kök
+çözümü diziyi de kabul ediyor. Kamera çerçeveleri modelden ölçülen kutu
+merkezlerine göre yazıldı (sakal y≈2.77, alt y≈1.16, ayakkabı y≈0.23).
+
+**Botlar:** `avatar3d_bot_gorunum_uret` yeni yuvaları da giydiriyor;
+160 botun **160'ı farklı görünüm**. Etkinlik eşyası hâlâ yok: taç/duvak
+0, pelerin 0, gelinlik 0.
+
+**Ürün kararı:** `pelerin:'kisa'` modelde var ama **dükkâna konmadı** —
+pelerin turnuva ödülüdür, varyantını satmak ödülü değersizleştirir.
+
+**Ücretsiz temeller:** tişört/pantolon/spor ayakkabı 0 coin; yoksa yeni
+oyuncu çıplak ayak kalırdı. 428 sahiplik satırı geriye dönük verildi.
