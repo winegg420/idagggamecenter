@@ -8,7 +8,11 @@ export function sunucuServisi(supabase){
     const s=await rpc('avatar3d_katalogum');if(!s)throw new Error('Envanter alınamadı.');
     const bakiye=Number(s.bakiye);if(s.bakiye==null||!Number.isSafeInteger(bakiye)||bakiye<0)throw new Error('Geçersiz sunucu bakiyesi.');
     const katalog=katalogEsle(s);
-    return {katalog,bakiye,sahip:katalog.filter(p=>p.sahip).map(p=>p.id),gorunum:ayarDogrula(s.avatar3d_gorunum||TEMEL)};
+    // `kurulmus`: oyuncu daha önce karakterini kaydetti mi. Yeni oyuncuda
+    // görünüm TEMEL'e eşit olur ve "değişiklik yok" sanılıp Kaydet düğmesi
+    // kapalı kalırdı — o zaman karakter hiç kurulamıyordu.
+    return {katalog,bakiye,sahip:katalog.filter(p=>p.sahip).map(p=>p.id),
+      gorunum:ayarDogrula(s.avatar3d_gorunum||TEMEL),kurulmus:s.avatar3d_gorunum!=null};
   }
   return {yukle,
     async satinAl(id){await rpc('avatar3d_satin_al',{p_id:id});return yukle();},

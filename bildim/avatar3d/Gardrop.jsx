@@ -6,22 +6,63 @@ import {KOLEKSIYON} from './koleksiyon.js';
 import {TEMEL,YUVA_ADLARI,parcayiTak,parcayiCikar} from './envanter.js';
 import {denemeServisi,ENVANTER_ANAHTAR} from './envanter-yerel.js';
 import denemeKatalog from './deneme-katalog.json';
-import {onizlemeMi} from './yerel.js';
+import {denemeCuzdaniMi} from './yerel.js';
+import {sunucuServisi} from './envanter-sunucu.js';
+import {supabase} from '../../src/lib/supabase.js';
 import ParcaPortresi from './ParcaPortresi.jsx';
-import {portreMakinesiniKapat} from './portre.js';
+import {portreMakinesiniKapat,yeniPortre} from './portre.js';
 import './atolye.css';
 import './yerlesim.css';
 import './gardrop.css';
 
 function Gardrop(){
  const [durum,setDurum]=useState(null),[g,setG]=useState(TEMEL),[tab,setTab]=useState('magaza'),[yuva,setYuva]=useState('hepsi'),[hata,setHata]=useState(''),[bilgi,setBilgi]=useState(''),[mesgul,setMesgul]=useState(false),[onay,setOnay]=useState(null),[stat,setStat]=useState({}),[mod,setMod]=useState('bekle');
+ const [kullanici,setKullanici]=useState(null);
  const alan=useRef(),sahne=useRef(),servis=useRef(),kilit=useRef(false),guncel=useRef(g);guncel.current=g;
+
+ /**
+  * PORTRE PNG'Sİ — listelerin WebGL açmaması için.
+  * Avatar.jsx 19 yerde kullanılıyor, lig tablosunda 25 satır var; her
+  * satırda render etmek kabul edilemez (portre başına ~55 ms). Bu yüzden
+  * portre KAYDEDERKEN BİR KEZ üretilip Storage'a yüklenir, listeler düz
+  * <img> çizer.
+  * Portre üretilemezse görünüm kaydı yine geçerlidir — akış durmaz.
+  */
+ const portreyiYukle=async(gorunum)=>{
+  if(!kullanici)return;
+  try{
+   const veri=yeniPortre({avatar3d:gorunum});
+   if(!veri)return;
+   const ikili=await (await fetch(veri)).blob();
+   const yol=`${kullanici}/portre3b.png`;
+   const {error:yuklemeHatasi}=await supabase.storage.from('avatarlar')
+     .upload(yol,ikili,{upsert:true,contentType:'image/png'});
+   if(yuklemeHatasi)throw yuklemeHatasi;
+   const {data:genel}=supabase.storage.from('avatarlar').getPublicUrl(yol);
+   // Önbellek kırıcı: aynı adrese yazıyoruz, tarayıcı eskisini göstermesin.
+   const {error:kayitHatasi}=await supabase.rpc('avatar3d_portre_kaydet',{p_url:`${genel.publicUrl}?v=${Date.now()}`});
+   if(kayitHatasi)throw kayitHatasi;
+  }catch(e){console.error('[Gardırop] portre yuklenemedi:',e);}
+ };
  useEffect(()=>{
-  if(!onizlemeMi()){setHata('Gardırop önizlemesi henüz açık değil.');return;}
   let aktif=true;
-  try{servis.current=denemeServisi(localStorage,denemeKatalog);sahne.current=sahneKur(alan.current,TEMEL,setStat);if(matchMedia('(prefers-reduced-motion: reduce)').matches){sahne.current.animasyon('dur');setMod('dur');}}catch(e){setHata(e.message);}
+  try{sahne.current=sahneKur(alan.current,TEMEL,setStat);if(matchMedia('(prefers-reduced-motion: reduce)').matches){sahne.current.animasyon('dur');setMod('dur');}}catch(e){setHata(e.message);}
   const yukle=async()=>{try{const s=await servis.current.yukle();if(aktif){setDurum(s);setG(s.gorunum);}}catch(e){if(aktif)setHata(e.message);}};
-  yukle();const degisti=e=>{if(e.key===ENVANTER_ANAHTAR)yukle();};window.addEventListener('storage',degisti);
+
+  // HANGİ CÜZDAN: giriş yapmış oyuncu GERÇEK ekonomide (avatar3d_* RPC),
+  // oturumsuz yerel geliştirme deneme cüzdanında çalışır.
+  (async()=>{
+   try{
+    const {data:{session}}=await supabase.auth.getSession();
+    if(!aktif)return;
+    if(session){servis.current=sunucuServisi(supabase);setKullanici(session.user.id);}
+    else if(denemeCuzdaniMi()){servis.current=denemeServisi(localStorage,denemeKatalog);}
+    else{setHata('Gardıroba girmek için önce giriş yapmalısın.');return;}
+    yukle();
+   }catch(e){if(aktif)setHata(e.message||'Gardırop açılamadı.');}
+  })();
+
+  const degisti=e=>{if(e.key===ENVANTER_ANAHTAR)yukle();};window.addEventListener('storage',degisti);
   return()=>{aktif=false;window.removeEventListener('storage',degisti);sahne.current?.yokEt();portreMakinesiniKapat();};
  },[]);
  useEffect(()=>{try{sahne.current?.guncelle(g);}catch(e){setHata(e.message);}},[g]);
@@ -37,13 +78,21 @@ function Gardrop(){
  }
  const sahip=durum?.sahip||[],katalog=durum?.katalog||[];
  const kilitli=katalog.filter(p=>g[p.yuva]===p.deger&&!sahip.includes(p.id));
- const fark=durum&&JSON.stringify(g)!==JSON.stringify(durum.gorunum);
+ // Karakterini hiç kurmamış oyuncu hiçbir şeyi değiştirmeden de kaydedebilsin:
+ // yoksa "değişiklik yok" diye Kaydet kapalı kalıyor ve meydan kapısı
+ // (karakteri olmayan giremez) hiç açılamıyordu.
+ const fark=durum&&(durum.kurulmus===false||JSON.stringify(g)!==JSON.stringify(durum.gorunum));
  const sec=p=>{setG(a=>parcayiTak(a,p));setBilgi(p.ad+(sahip.includes(p.id)?' seçildi. Kaydederek oyuna uygula.':' deneniyor. Kaydetmek için önce edinmelisin.'));};
  return <div className="atolye gardrop"><header><a href="./index.html">Quiz Square</a><span className="etiket">GARDIROP · ÖNİZLEME</span></header>
  <main><section className="gosterim"><div className="sahne" ref={alan}/><div className="sahne-baslik"><span>KARAKTERİN / KOLEKSİYONUN</span><h1>Üzerinde dene.</h1><p>{kilitli.length?'Önizleme · Henüz sahip olmadığın eşya var.':fark?'Kaydedilmemiş değişiklikler':'Oyuna kaydedilen görünüm'}</p></div>
  <div className="kamera"><button onClick={()=>sahne.current?.yakin(true)}>Yüzü incele</button><button onClick={()=>sahne.current?.yakin(false)}>Tüm karakter</button></div>
  <div className="sahne-alt"><div className="hareketler">{[['bekle','Bekle'],['yuru','Yürü'],['selam','Selam ver']].map(([id,ad])=><button key={id} aria-pressed={mod===id} onClick={()=>{setMod(id);sahne.current?.animasyon(id);}}>{ad}</button>)}</div>
- <button className="kaydet" disabled={!durum||mesgul||!!kilitli.length||!fark} onClick={()=>islem(()=>servis.current.kaydet(guncel.current),'Görünümün kaydedildi. Meydanda aynı kıyafetlerle görüneceksin.',true)}>Görünümü kaydet</button>
+ <button className="kaydet" disabled={!durum||mesgul||!!kilitli.length||!fark} onClick={()=>islem(async()=>{
+  const s=await servis.current.kaydet(guncel.current);
+  // Kayıt tuttuktan SONRA portre üretilir: listeler bu PNG'yi kullanacak.
+  await portreyiYukle(guncel.current);
+  return s;
+ },'Görünümün kaydedildi. Meydanda aynı kıyafetlerle görüneceksin.',true)}>Görünümü kaydet</button>
  <a className="meydan-link" href="./meydan.html?envanter=1">Kaydedilen karakterle meydana git ↗</a></div></section>
  <aside><div className="cuzdan"><div><small>DENEME CÜZDANI</small><strong>{durum?.bakiye.toLocaleString('tr-TR')??'—'} coin</strong></div><span>Gerçek bakiyeni etkilemez</span></div>
  <p role="status" className="bilgi">{bilgi}</p>{hata&&<p role="alert" className="hata">{hata}</p>}
