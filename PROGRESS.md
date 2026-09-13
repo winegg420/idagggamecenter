@@ -4272,3 +4272,53 @@ görülemiyordu. Önizleme `position:sticky` yapıldı (telefonda 54vh).
 sanıyordu, oysa tek bir `T.Group`. Alt giyim ve ayakkabı kartları
 "object is not iterable" ile hiç üretilmiyordu. Düzeltildikten sonra
 tarayıcıda **29 kartın 29'u** görsel üretti.
+
+## 14 Eylül 2026 — Revizyon Paketi 5, Madde 4: botların gerçekçiliği
+
+Üç migration: **177** (sabırsız eşleşme + hazır gecikmesi + puan),
+**178** (1v1 lobisi atlanmıştı), **179** (davet kabul gecikmesi).
+
+### Sabırsız tıklama → seviyeli açık bot (177)
+"Beklemeden eşleş" düğmesi eskiden `quick_match`i çağırıyordu: hem 2-5 sn
+bekletiyor hem de GİZLİ bot getiriyordu. Yeni `hemen_bot_mac` RPC'si
+oyuncunun ligine en yakın AÇIK botu **anında** veriyor. Yeni eşleştirme
+algoritması yazılmadı, mevcut `lig_sirasi` kullanıldı. Ölçüm:
+bronz→ToyBot, gümüş→ÇaylakBot, altın→ÜstatBot, elmas/efsane→EfsaneBot.
+Canlı testte bronz oyuncu → ToyBot, maç anında kuruldu.
+Düğme metni dürüstleşti: "Beklemeden bot ile oyna" + "coin ödülü yarıya
+iner" notu (açık bot maçında `coin_bot_carpani` zaten 0.5).
+
+### Hazır butonu gecikmesi (177 + 178)
+**Kök sebep:** üç lobide de `hazir or is_bot` yazıyordu — bot 0. saniyede
+hazırdı. `mac_nabiz` (1v1), `hizli_mac_nabiz`, `grup_mac_nabiz` üçü de
+artık `bot_hazir_mi` ile bota+lobiye özel 0.5-3 sn bekliyor.
+10 bot ölçüldü: 0.62 / 0.91 / 1.28 / 1.72 / 1.79 / 1.85 / 2.15 / 2.25 /
+2.32 / 2.99 sn — hepsi farklı, hiçbiri 0 değil.
+
+### Gerçekçilik taraması — bulunan ve düzeltilen sinyal (179)
+`bot_oyna` botlara gelen 1v1 meydan okumasını, grup davetini ve hızlı maç
+davetini KOŞULSUZ kabul ediyordu; cron 7 sn'de bir çalıştığı için gizli
+bot daveti **her zaman 7 saniyeden kısa sürede** kabul ediyordu.
+Artık gizli bot 8-90 sn bekliyor (deterministik), açık bot anında kabul
+ediyor. `rovans_iste` de aynı kurala bağlandı: gizli bota rövanş artık
+'bekliyor' olarak açılıyor, anında başlamıyor.
+
+**Taramada TEMİZ çıkanlar (değiştirilmedi):** cevap gecikmesi zaten
+zorluğa bağlı ve soru başına sabit (`bot_gecikme_sn`); bot insanın
+ulaştığı soruyu geçmiyor; %15 olasılıkla emoji/tepki atıyor;
+`lig_siralama` yalnız AÇIK botu `bot=true` diye işaretliyor, gizli bot
+gerçek oyuncudan ayırt edilemiyor; istemcide `is_bot` hiçbir yerde gizli
+bot için kullanılmıyor.
+
+### Botlar puan kazanıyor (177)
+**Ölçüm:** doğal yol (`mac_sonuclandir` → `lig_bot_puan_yuzde` %40)
+ÇALIŞIYOR ama gerçek maç trafiği yok — tüm veritabanında 3 bitmiş maç
+vardı, 160 botun yalnız 6'sında puan.
+Yeni `bot_puan_tik()` (10 dk'da bir cron) boşta geçen zamanı dolduruyor:
+her bota 55 dk - 7 saat arası **sabit ve kendine özel** bir oynama
+temposu düşüyor; temposu gelince bir maç oynamış sayılıyor, %55 ihtimalle
+kazanıp gerçek maçtaki formülün aynısıyla (20 × %40 = 8) puan alıyor.
+`bot_puan_temposu` tablosunda RLS politikası YOK — istemci göremez, bot
+olduğunu ele vermesin. Lig DEĞİŞTİRİLMEZ (yerleşik karar korundu;
+`lig_haftayi_kapat` zaten `if r.bot then continue`).
+İlk tik 72 bot işledi (başlangıç anları geriye yayılmıştı), ikinci tik 21.

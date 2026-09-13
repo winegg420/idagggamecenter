@@ -15,14 +15,20 @@ const BEKLEME_SN = 8; // bu süre içinde insan rakip aranır, sonra bota düş�
  * Akış: kuyruğa gir → 8 sn gerçek rakip ara → bulunamazsa sunucu bir rakip
  * kurar. Rakip bulununca 1 sn "Rakip bulundu: X" gösterilip maça geçilir.
  *
- * Ekranda "bot" kelimesi GEÇMEZ: gizli botlar gerçek oyuncu gibi görünmeli
- * (bkz. migration 155). Açık botlar zaten adlarından belli.
+ * Beklemek istemeyen "Beklemeden bot ile oyna"ya basar: seviyesine yakın
+ * bir AÇIK botla anında eşleşir (migration 177 › hemen_bot_mac).
+ *
+ * Otomatik yolda ekranda "bot" kelimesi GEÇMEZ: gizli botlar gerçek
+ * oyuncu gibi görünmeli (bkz. migration 155). Açık bot yolunda geçer —
+ * oyuncu bilerek seçiyor ve o maçta coin yarıya iniyor.
  */
 export default function RakipAra({ kategori, dereceli = true, onBulundu, onIptal }) {
   const { user } = useAuth();
   const [kalan, setKalan] = useState(BEKLEME_SN);
   const [hata, setHata] = useState(null);
   const [botaDusuldu, setBotaDusuldu] = useState(false);
+  // Açık bot yolu ayrı tutulur: ekrandaki yazı dürüst olsun (o maçta coin yarıya iner).
+  const [botYolu, setBotYolu] = useState(false);
   const [rakipAdi, setRakipAdi] = useState(null);
   const bittiRef = useRef(false);
   const zamanlayiciRef = useRef(null);
@@ -66,13 +72,37 @@ export default function RakipAra({ kategori, dereceli = true, onBulundu, onIptal
     [onBulundu, user?.id]
   );
 
-  // Son çare: sunucu rakip kursun.
+  // SABIRSIZ TIKLAMA: oyuncu beklemek istemiyorsa seviyesine yakın bir
+  // AÇIK bot ile ANINDA eşleşir (ToyBot / ÇaylakBot / ÜstatBot /
+  // EfsaneBot). Burada "bot" kelimesi bilerek geçer: açık botlar zaten
+  // adından belli ve oyuncu bilerek seçiyor. Gizli botlar bu yola
+  // KARIŞMAZ — onların gizli kalması gerekiyor.
+  const hemenBot = useCallback(async () => {
+    if (bittiRef.current) return;
+    setBotaDusuldu(true);
+    setBotYolu(true);
+    clearInterval(zamanlayiciRef.current);
+    try {
+      const { data, error } = await supabase.rpc("hemen_bot_mac", {
+        p_kategori: kategori ?? null,
+        p_dereceli: dereceli,
+      });
+      if (error) throw error;
+      if (data) { bitir(data); return; }
+      setHata("Şu an uygun rakip bulunamadı. Birazdan tekrar dene.");
+    } catch (e) {
+      setHata("Maç başlatılamadı. Bağlantını kontrol edip tekrar dene.");
+      console.error("[Bildim] hemen_bot_mac:", e);
+    }
+  }, [kategori, dereceli, bitir]);
+
+  // Son çare: 8 sn dolunca sunucu rakip kursun.
   //
   // `quick_match` BOŞ dönebilir: sunucu, gerçekten aranmış gibi görünsün
   // diye botu kurmadan önce 2-5 sn bekletiyor (bkz. migration 155). Bu
   // yüzden tek seferlik değil, id gelene kadar saniyede bir yokluyoruz.
-  // Ekranda "bot" kelimesi geçmez — gizli botun gizli kalması bu ekrandan
-  // başlıyor.
+  // Bu yolda ekranda "bot" kelimesi GEÇMEZ — gizli botun gizli kalması bu
+  // ekrandan başlıyor.
   const sonCare = useCallback(async () => {
     if (bittiRef.current) return;
     setBotaDusuldu(true);
@@ -161,9 +191,11 @@ export default function RakipAra({ kategori, dereceli = true, onBulundu, onIptal
 
         <div className="bd-arama-alt">
           {kategori ? kategoriEtiket(kategori) : "Karışık"} kategorisinde
-          {botaDusuldu
-            ? " seviyene yakın bir rakiple eşleştiriyoruz."
-            : " seninle aynı seviyede birini arıyoruz."}
+          {botYolu
+            ? " seviyene yakın bir botla eşleştiriyoruz. Bot maçında coin ödülü yarıya iner."
+            : botaDusuldu
+              ? " seviyene yakın bir rakiple eşleştiriyoruz."
+              : " seninle aynı seviyede birini arıyoruz."}
         </div>
 
         {!botaDusuldu && !rakipAdi && (
@@ -175,8 +207,8 @@ export default function RakipAra({ kategori, dereceli = true, onBulundu, onIptal
         {!rakipAdi && (
           <div className="bd-arama-eylem">
             {!botaDusuldu && (
-              <button className="btn" onClick={sonCare}>
-                Beklemeden eşleş
+              <button className="btn" onClick={hemenBot}>
+                Beklemeden bot ile oyna
               </button>
             )}
             <button
