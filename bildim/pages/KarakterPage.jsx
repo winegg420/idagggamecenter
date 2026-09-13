@@ -243,15 +243,6 @@ export default function KarakterPage() {
                     className={"bd-parca " + (simdiki === "yok" ? "aktif" : "")}
                     onClick={() => parcaSec(yuva, "yok")}
                   >
-                    {/* "Yok" da görselli: oyuncu parçasız hâlini görsün */}
-                    <img
-                      src={avatarUri(
-                        { karakter: secili.karakter, kozmetik: { ...secili.kozmetik, [yuva]: "yok" } },
-                        "idle"
-                      )}
-                      alt=""
-                      loading="lazy"
-                    />
                     <span className="bd-parca-ad">Yok</span>
                   </button>
                   {liste.map((p) => {
