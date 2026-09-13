@@ -4005,3 +4005,52 @@ portre" kararını **iptal eder**.
 
 **Ders:** aynı görünümü JSON anahtarıyla önbelleğe almak, üretim sonucunun
 (data-URI) anahtar olmasından daha iyi — üretim ertelenebilir hâle geldi.
+
+## 13 Eylül 2026 (4) — 3B çizim regresyonu, gardırop düzeni, bedava test, profil
+
+### KÖK SEBEP: 3B hiçbir yerde çizilmiyordu
+`sahne.js` ve meydanın çizim döngüsü `document.hidden` iken **hiç render
+etmiyordu**. Sayfa arka plan sekmesinde (ya da otomasyon tarayıcısında)
+açıldıysa tuval bomboş kalıyor, FPS hiç bildirilmediği için altbilgi
+sonsuza kadar "Ölçülüyor…", meydanda da "sahne hazırlanıyor…" perdesi
+kalkmıyordu.
+
+**Kanıt:** `document.hidden`'ı `false`'a sabitler sabitlemez karakter
+anında çizildi. WebGL bağlamı sağlamdı (`isContextLost()=false`),
+renderer sağlamdı, portre üretimi (12 portre ≈ 1 sn) suçlu değildi.
+
+Düzeltmeler: **ilk kare her hâlükârda çizilir**; sonrası gizliyken
+duraklar. `visibilitychange` ile FPS ölçüm penceresi sıfırlanır.
+Altbilgi dürüst ("Sekme arka planda — çizim duraklatıldı").
+`preserveDrawingBuffer` kaldırıldı (sahne `toDataURL` almıyor).
+
+### Portre üretimi iki ayrı hatadan dolayı çalışmıyordu
+1. `requestIdleCallback` tek başına yetmiyor — arka planda kısılıyor,
+   ölçümde 12 saniyede 3 portrede takıldı. Yanına `setTimeout` yedeği.
+2. `ParcaPortresi`'ndeki `IntersectionObserver` kart görünür alana
+   girmeden iş kuyruğa koymuyordu; **12 kartın 0'ı** üretiliyordu.
+   Kaldırıldı — fren zaten kuyrukta (kare başına tek portre).
+   Sonuç: **12/12 portre**.
+
+**Ders:** "tembel yükleme" iyi bir refleks ama ölçülmeden eklenirse
+işi hiç yaptırmayabiliyor. Kuyruk zaten frendi; gözlemci fazlaydı.
+
+### Gardırop düzeni
+Kategori `<select>`'i kalktı; Saç/Kıyafet/Baş/Gözlük/Sırt tek sayfada
+başlıklı bölümler. Üstteki yapışkan şerit **filtre değil, gezinme**.
+Her bölümün başında "Yok/Çıkar" kartı. Kartın kendisi düğme: ara onay
+yok. Karakter masaüstünde zaten sticky'di, **mobilde de sabit** (%45).
+
+### Bedava test (migration 172)
+`oyun_ayarlari.kozmetik_bedava_test` (varsayılan `true`).
+`avatar3d_satin_al` açıkken coin düşmez, Taç/Pelerin de alınabilir.
+Fiyatlar tabloda duruyor. Doğrulandı: açıkken 2200'lük Ceket + Taç +
+Pelerin 0 bakiyeyle alındı, coin düşmedi; kapalıyken Gelinlik
+"Yetersiz coin" ile reddedildi.
+
+### Profil ve genel
+- Profil **3890 → 1553 px**; dört sekme; üç istatistik kutusu aynı türde;
+  gizlilik notu takma ad ayarının altına indi.
+- Sitede hiç `<h1>` yoktu → 12 sayfaya eklendi.
+- `.app` 540 px sabit şeritti → 1024 px üstü 760, 1400 px üstü 900 px.
+  Telefon düzeni korundu.
