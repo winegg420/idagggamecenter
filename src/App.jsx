@@ -53,9 +53,12 @@ const HizliModPage = lazy(() => import("../bildim/pages/HizliModPage.jsx"));
 const CalismaPage = lazy(() => import("../bildim/pages/CalismaPage.jsx"));
 // Meydan (3B): three.js yalniz bu rotaya girilince iner (ayri chunk)
 const HaritaSayfasi = lazy(() => import("../bildim/harita/HaritaSayfasi.jsx"));
-// 2B karakter görünümü ARTIK ANA SAYFA: PatiRun'dan taşınan vektör
-// karakter sistemi (bildim/karakter/). Eski 3B görünüm sayfası SİLİNMEDİ,
-// /gorunum-3b altında duruyor — meydan sahnesinin avatarı oradan ayarlanır.
+// GÖRÜNÜM ARTIK 3B: /gorunum, bildim/avatar3d/ altındaki gardıroba gider
+// (ayrı giriş noktası olan bir sayfa, bkz. GardropaGit.jsx).
+// Eski iki sayfa SİLİNMEDİ, yedekte duruyor ve menülerden bağlantıları yok:
+//   /gorunum-2b  → 2B vektör karakter sayfası (bildim/karakter/)
+//   /gorunum-3b  → eski 3B görünüm sayfası (bildim/harita/avatar.js)
+const GardropaGit = lazy(() => import("../bildim/pages/GardropaGit.jsx"));
 const KarakterPage = lazy(() => import("../bildim/pages/KarakterPage.jsx"));
 const GorunumPage = lazy(() => import("../bildim/pages/GorunumPage.jsx"));
 
@@ -185,7 +188,8 @@ export default function App() {
         <Route path="hizli-mod" element={<HizliModPage />} />
         <Route path="calisma" element={<CalismaPage />} />
         <Route path="harita" element={<HaritaSayfasi />} />
-        <Route path="gorunum" element={<KarakterPage />} />
+        <Route path="gorunum" element={<GardropaGit />} />
+        <Route path="gorunum-2b" element={<KarakterPage />} />
         <Route path="gorunum-3b" element={<GorunumPage />} />
         <Route path="profil" element={<ProfilePage />} />
       </Route>

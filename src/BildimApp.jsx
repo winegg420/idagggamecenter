@@ -34,9 +34,12 @@ const HizliModPage = lazy(() => import("../bildim/pages/HizliModPage.jsx"));
 const CalismaPage = lazy(() => import("../bildim/pages/CalismaPage.jsx"));
 // Meydan (3B): three.js yalniz bu rotaya girilince iner (ayri chunk)
 const HaritaSayfasi = lazy(() => import("../bildim/harita/HaritaSayfasi.jsx"));
-// Görünüm = 2B karakter sayfası (three.js indirmez). Eski 3B görünüm sayfası
-// /gorunum-3b altında duruyor; menülerden bağlantısı YOK, elle adres yazan
-// görsün diye rota bırakıldı.
+// Görünüm = 3B GARDIROP (bildim/avatar3d/gardrop.html). Ayrı giriş noktası
+// olduğu için rota bileşen değil, yönlendirmedir (bkz. GardropaGit.jsx).
+// Eski iki sayfa SİLİNMEDİ, menülerden bağlantıları YOK:
+//   /gorunum-2b  → 2B vektör karakter sayfası
+//   /gorunum-3b  → eski 3B görünüm sayfası
+const GardropaGit = lazy(() => import("../bildim/pages/GardropaGit.jsx"));
 const KarakterPage = lazy(() => import("../bildim/pages/KarakterPage.jsx"));
 const GorunumPage = lazy(() => import("../bildim/pages/GorunumPage.jsx"));
 // Yasal metinler giriş duvarının ÖNÜNDE olmalı (Play Store + reklam ağları).
@@ -112,7 +115,8 @@ export default function BildimApp() {
           <Route path="hizli-mod" element={<HizliModPage />} />
           <Route path="calisma" element={<CalismaPage />} />
           <Route path="harita" element={<HaritaSayfasi />} />
-          <Route path="gorunum" element={<KarakterPage />} />
+          <Route path="gorunum" element={<GardropaGit />} />
+          <Route path="gorunum-2b" element={<KarakterPage />} />
           <Route path="gorunum-3b" element={<GorunumPage />} />
           <Route path="profil" element={<ProfilePage />} />
         </Route>

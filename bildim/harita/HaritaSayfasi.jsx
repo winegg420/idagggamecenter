@@ -1122,7 +1122,10 @@ export default function HaritaSayfasi() {
               </button>
             ))}
           </div>
-          <button type="button" className="bd-harita-dans-bos" onClick={() => navigate(y("/gorunum?yuva=dans"))}>
+          {/* DANS 3B gardıropta YOK (orada 5 yuva var: saç/kıyafet/baş/gözlük/
+              sırt). Dans satın alma hâlâ eski görünüm sayfasının dans
+              sekmesinde; oraya gönderilir ki oyuncu dans alabilsin. */}
+          <button type="button" className="bd-harita-dans-bos" onClick={() => navigate(y("/gorunum-3b?yuva=dans"))}>
             {danslar.length === 0
               ? "Hiç dansın yok — Görünüm'den al"
               : "Dükkândan yeni dans al →"}
