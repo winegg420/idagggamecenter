@@ -27,6 +27,27 @@ import { turnuvaSaatleriniAyarla } from "../lib/zaman.js";
 import { donusKaydet, donusOku, donusTemizle } from "./donus.js";
 import { MENU, ikramGonder, ikramYanitla, bekleyenIkramlar, IKRAM_SURE_SN, ZAMAN_ASIMI_SN } from "./etkilesim.js";
 import { kahveBasla, balonBasla, ikramKaresi, ikramlariTemizle } from "./ikramGorsel.js";
+import { envanterGorunumuOku } from "../avatar3d/envanter-yerel.js";
+
+/**
+ * 3B gardıropta kaydedilen kıyafeti sunucudan gelen görünüme ekler.
+ *
+ * Gardırop şimdilik yerel deneme cüzdanıyla çalışıyor (localStorage), yani
+ * kıyafet sunucuda tutulmuyor. Meydan `gorunum` nesnesinin tamamını realtime
+ * ile yayınladığı için, kıyafeti bu nesnenin içine koymak hem kendimizin hem
+ * öteki oyuncuların doğru görmesine yetiyor.
+ *
+ * Okuma başarısız olursa (özel mod, bozuk kayıt) sunucudan geleni olduğu gibi
+ * döndürür: meydan açılmamazlık etmesin.
+ */
+function gardroptanKoprule(gorunum) {
+  try {
+    return { ...gorunum, avatar3d: envanterGorunumuOku(localStorage) };
+  } catch (e) {
+    console.error("[Meydan] gardırop görünümü okunamadı:", e);
+    return gorunum;
+  }
+}
 import { meydanBotlariniAl, botKonumu, botJesti } from "./meydanBotlari.js";
 import "./harita.css";
 
@@ -192,7 +213,16 @@ export default function HaritaSayfasi() {
         const katalog = Array.isArray(r?.esyalar) ? r.esyalar : [];
         const sahip = new Set(Array.isArray(r?.sahip) ? r.sahip : []);
         setGorunumVerisi({
-          gorunum: r?.gorunum && typeof r.gorunum === "object" ? r.gorunum : {},
+          // 3B gardıropta kaydedilen kıyafet meydana KÖPRÜYLE taşınır:
+          // gardırop henüz yerel deneme cüzdanında çalıştığı için görünüm
+          // sunucuda değil, bu tarayıcıda duruyor (bkz. envanter-yerel.js).
+          // `avatar3d` alanı `gorunum`un içine konur; meydan onu zaten
+          // olduğu gibi yayınlıyor, böylece ÖTEKİ OYUNCULAR da doğru
+          // kıyafeti görür. Gerçek ekonomiye bağlanınca bu köprü kalkar
+          // ve alan doğrudan sunucudan gelir.
+          gorunum: gardroptanKoprule(
+            r?.gorunum && typeof r.gorunum === "object" ? r.gorunum : {}
+          ),
           bilgi: esyaBilgisi(katalog),
           // Danslar giyilmez: yalnız SAHİP OLUNANLAR meydanda oynatılabilir.
           // Oynatıcısı olmayan kod (katalogda var, kodda yok) listelenmez.
@@ -750,7 +780,10 @@ export default function HaritaSayfasi() {
         const { data, error } = await supabase.rpc("esya_katalogum");
         if (error) throw error;
         const r = Array.isArray(data) ? data[0] : data;
-        const yeni = r?.gorunum && typeof r.gorunum === "object" ? r.gorunum : {};
+        // Gardıropta yapılan değişiklik de buradan yakalanır (köprü).
+        const yeni = gardroptanKoprule(
+          r?.gorunum && typeof r.gorunum === "object" ? r.gorunum : {}
+        );
         const c = canliRef.current;
         if (!c || JSON.stringify(yeni) === JSON.stringify(gorunumVerisi.gorunum)) return;
         gorunumVerisi.gorunum = yeni;   // sahneyi yeniden kurmadan güncelle

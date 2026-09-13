@@ -24,7 +24,19 @@
 // sayılır. 40 oyuncu 5 farklı karakter kullanıyorsa 5 doku üretilir;
 // son kullanan sahneden çıkınca doku dispose edilir.
 // ============================================================
+//
+// ARTIK 3B GÖVDE ÇİZİLİYOR (13 Eylül 2026). Meydandaki karakter
+// bildim/avatar3d/ altındaki gerçek 3B modeldir. Aşağıdaki billboard kodu
+// SİLİNMEDİ — yalnız çizim yolundan çıktı; giriş fonksiyonlarının başındaki
+// üç satır işi meydan-model.js'e devrediyor. Geri dönmek için o üç satırı
+// kaldırmak yeter.
+//
+// `karakterPozGuncelle` ve `karakterYonGuncelle` 3B modelde kendiliğinden
+// etkisiz: ikisi de `userData.sprite` yoksa hemen dönüyor (3B modelde yok).
+// Gerçek 3B gövde kameraya değil, gittiği yöne bakar.
+// ============================================================
 import * as THREE from "three";
+import { meydanModelKur, meydanModelSil, meydanModelDegistir } from "../avatar3d/meydan-model.js";
 import { isimEtiketi, nesneyiSerbestBirak } from "./ortak.js";
 import { avatarUri } from "../karakter/gorunum.js";
 
@@ -96,6 +108,9 @@ function dokuBirak(doku) {
 export function karakterDokulariniTemizle() {
   for (const k of dokular.values()) { try { k.doku.dispose(); } catch { /* yut */ } }
   dokular.clear();
+  // Sahne kapandı: 3B gövde sayacı da sıfırlanır, yoksa meydana ikinci kez
+  // girildiğinde sınır dolu sanılır ve herkes billboard'a düşer.
+  ucBoyutluSayisi = 0;
 }
 
 // ---- yere düşen gölge (sprite gölge üretmez) ----
@@ -125,7 +140,45 @@ function golgeKur() {
  * @param {string} o.etiketRenk      isim etiketi yazı rengi
  * @returns {THREE.Group}
  */
+// ============================================================
+// KALABALIK SINIRI — ölçülmüş sayı, tahmin değil
+//
+// Gerçek 3B gövde gardırop için tasarlandı: tek karakter, yakın plan.
+// Ölçüm (13 Eylül 2026, bildim/_test/meydan-3b-test.mjs yanında):
+//   karakter başına 57 görünür mesh (= 57 çizim çağrısı), 33.068 üçgen.
+// Eski 2B billboard ise karakter başına 2 çizim çağrısıydı.
+//
+// 12 oyuncu × 57 = 684 çizim çağrısı yalnız karakterler için; telefon GPU'su
+// için makul aralık ~100-200. Bu yüzden 3B gövde YAKINDAKİ ilk birkaç
+// oyuncuya verilir, gerisi billboard'da kalır — meydan kalabalıkken
+// çökmesin. Kendi karakterin sahneye İLK kurulduğu için her zaman 3B.
+//
+// Sayıyı büyütmek/küçültmek tek satır: ölçüp değiştir, tahmin etme.
+export const UC_BOYUTLU_SINIR = 6;
+let ucBoyutluSayisi = 0;
+
+/** Kaç oyuncu şu an 3B gövdeyle çiziliyor (test ve ölçüm için). */
+export function ucBoyutluAdedi() { return ucBoyutluSayisi; }
+
 export function karakterAvatarKur({ ad, gorunum, etiketRenk = "#20324A" }) {
+  if (ucBoyutluSayisi < UC_BOYUTLU_SINIR) {
+    try {
+      const g = meydanModelKur({ ad, gorunum, etiketRenk });
+      ucBoyutluSayisi++;
+      return g;
+    } catch (e) {
+      // 3B model kurulamazsa oyuncu görünmez kalmasın: billboard'a düş.
+      console.error("[Meydan] 3B gövde kurulamadi, billboard'a dusuldu:", e);
+    }
+  }
+  return billboardAvatarKur({ ad, gorunum, etiketRenk });
+}
+
+/**
+ * ESKİ 2B BILLBOARD — çizim yolundan çıktı, geri dönüş için duruyor.
+ * Yukarıdaki `karakterAvatarKur` bunun yerine 3B modeli kuruyor.
+ */
+export function billboardAvatarKur({ ad, gorunum, etiketRenk = "#20324A" }) {
   const g = new THREE.Group();
 
   // GÖVDE KÖKÜ — danslar yalnız burayı oynatır (bkz. avatar.js aynı ayrım).
@@ -174,6 +227,9 @@ export function karakterAvatarKur({ ad, gorunum, etiketRenk = "#20324A" }) {
  * Meydanda biri görünümünü değiştirince yalnız bu çağrılır.
  */
 export function karakterGorunumDegistir(avatar, gorunum) {
+  // 3B model: parçalar iskelete bağlı, doku değiştirmekle olmaz — model
+  // yeniden kurulur (meydan-model.js grubun içeriğini yerinde değiştirir).
+  if (avatar?.userData?.gercek3d) { meydanModelDegistir(avatar, gorunum); return; }
   const u = avatar?.userData;
   if (!u?.sprite) return;
   const gor = gorunum ?? {};
@@ -234,6 +290,13 @@ export function karakterYonGuncelle(avatar, kamera) {
 /** Avatarı ve kendine ait kaynakları bırakır. */
 export function karakterYokEt(avatar) {
   if (!avatar) return;
+  // 3B model kendi geometri/malzemesini tutuyor: meydan-model.js bıraksın,
+  // yoksa meydandan çıkan her oyuncu bellekte kalır.
+  if (avatar.userData?.gercek3d) {
+    meydanModelSil(avatar);
+    ucBoyutluSayisi = Math.max(0, ucBoyutluSayisi - 1);
+    return;
+  }
   const u = avatar.userData ?? {};
   // Paylaşılan gölge geometrisi/malzemesi dispose edilmesin.
   for (const c of u.kok?.children ?? []) {

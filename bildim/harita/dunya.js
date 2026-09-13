@@ -18,14 +18,16 @@
 // ============================================================
 import * as THREE from "three";
 import { roundRect, canvasDoku, isimEtiketi, nesneyiSerbestBirak } from "./ortak.js";
-// MEYDAN KARAKTERİ ARTIK 2B BILLBOARD: /gorunum sayfasında seçilen karakter
-// ve kozmetikler sahnede de görünsün diye çizim karakterGorsel.js'e taşındı.
-// Eski 3B gövde (avatar.js + esyalar.js) SİLİNMEDİ — /gorunum-3b önizlemesi
-// onu kullanmaya devam ediyor; geri dönmek için bu satırı çevirmek yeter.
+// MEYDAN KARAKTERİ ARTIK GERÇEK 3B GÖVDE (13 Eylül 2026):
+// bildim/avatar3d/ altındaki iskeletli model. Gardıropta ne giyildiyse
+// meydanda da o görünür. Çağrılar karakterGorsel.js üzerinden gidiyor;
+// o dosya işi meydan-model.js'e devrediyor ve eski 2B billboard kodunu
+// `billboardAvatarKur` adıyla yedekte tutuyor.
 import {
   karakterAvatarKur, karakterGorunumDegistir, karakterPozGuncelle,
   karakterYonGuncelle, karakterYokEt, karakterDokulariniTemizle,
 } from "./karakterGorsel.js";
+import { meydanModelYuru } from "../avatar3d/meydan-model.js";
 import { esyaBilgisi, esyaOnbelleginiTemizle } from "./esyalar.js";
 import { dansBaslat, dansKaresi, dansiDurdur } from "./danslar.js";
 import { turnuvaSaatMetni } from "../lib/zaman.js";
@@ -432,6 +434,10 @@ export function dunyaKur(kapsayici, s = {}) {
       if (guc > 0.05 || zipla > 0) dansiDurdur(av);
       else if (dansKaresi(av, dt)) { return; }
     }
+    // 3B GÖVDE: yürüme/bekleme/zıplama duruşunu iskelet üzerinden
+    // meydan-model.js veriyor (bacak, diz, kol eklemleri). Aşağıdaki
+    // billboard salınımı 2B sprite içindi, 3B modelde karşılığı yok.
+    if (u.gercek3d) { meydanModelYuru(av, dt, guc, zipla); return; }
     // ZIPLARKEN YÜRÜME KESİLİR: bacaklar hafif toplanır, sprite "idle"a
     // döner, adım salınımı hiç işlemez.
     if (zipla > 0) {

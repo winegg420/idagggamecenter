@@ -208,7 +208,10 @@ export function dansiDurdur(avatar) {
   const { kok, govde, kollar, bacaklar, kafa } = u;
   if (kok) { kok.rotation.set(0, 0, 0); kok.position.set(0, 0, 0); }
   if (govde) govde.rotation.set(0, 0, 0);
-  if (kafa) { kafa.rotation.set(0, 0, 0); kafa.position.y = 3.05; }
+  // 3.05 ESKİ 2B/3B gövdenin kafa yüksekliği. Gerçek 3B modelde kafa
+  // iskelete bağlı ve başka yükseklikte; oranın kendi değeri kullanılır
+  // (meydan-model.js kurulumda `kafaY` olarak saklıyor).
+  if (kafa) { kafa.rotation.set(0, 0, 0); kafa.position.y = u.gercek3d ? u.kafaY : 3.05; }
   if (kollar) {
     kollar.rotation.set(0, 0, 0);
     for (const c of kollar.children) c.rotation.set(0, 0, 0);
@@ -241,7 +244,7 @@ export function dansKaresi(avatar, dt) {
   // Her kare temiz duruştan başlar: hareketler birbirinin üstüne binmesin.
   kok.rotation.set(0, 0, 0); kok.position.set(0, 0, 0);
   kollar.rotation.set(0, 0, 0);
-  kafa.rotation.set(0, 0, 0); kafa.position.y = 3.05;
+  kafa.rotation.set(0, 0, 0); kafa.position.y = u.gercek3d ? u.kafaY : 3.05;
   if (govde) govde.rotation.set(0, 0, 0);
   const sol = kollar.children[0], sag = kollar.children[1];
   const solBacak = bacaklar.children[0], sagBacak = bacaklar.children[1];
@@ -252,6 +255,9 @@ export function dansKaresi(avatar, dt) {
 
   try {
     uygula({ kok, govde, kollar, bacaklar, kafa, sol, sag, solBacak, sagBacak }, d.t, avatar);
+    // Dans figürleri kafayı 3.05 tabanına göre oynatıyor; 3B modelde kafa
+    // daha yukarıda olduğundan fark geri eklenir, kafa gövdeye gömülmesin.
+    if (u.gercek3d && kafa.position.y > 2) kafa.position.y += u.kafaY - 3.05;
   } catch (e) {
     console.error("[Meydan] dans oynatilamadi:", d.kod, e);
     dansiDurdur(avatar);
