@@ -130,8 +130,13 @@ export default function HaritaSayfasi() {
   const [ikramNotu, setIkramNotu] = useState(null);
   const [ikramCalisiyor, setIkramCalisiyor] = useState(false);
   const bekleyenIkramRef = useRef(null);   // gönderdiğim teklif { id, tur, alan }
+  // Meydandaki gerçek oyuncu sayısı ve bot kuralı — bot tazeleme
+  // closure içinde çalıştığı için ref üzerinden okunur.
+  const kisiRef = useRef(1);
+  const botAyarRef = useRef({ taban: 1, ek: 2, tavan: 6 });
   const turnuvaKalanRef = useRef(null);
   turnuvaKalanRef.current = turnuvaKalan;
+  kisiRef.current = kisi;
   // Dans tepsisi açık mı (emoji çubuğunun üstünde açılır)
   const [dansAcik, setDansAcik] = useState(false);
   // Ekran yönü: teşhis satırı, yatay kilit durumu ve uyarı
@@ -143,6 +148,28 @@ export default function HaritaSayfasi() {
   const [bilgiAcik, setBilgiAcik] = useState(() => {
     try { return localStorage.getItem(BILGI_ANAHTARI) !== "1"; } catch { return true; }
   });
+
+  // Bot kuralı sunucudan (oyun_ayarlari): rakamlar koda gömülmez.
+  useEffect(() => {
+    let aktif = true;
+    (async () => {
+      try {
+        const { data, error } = await supabase.rpc("meydan_bot_ayarlari");
+        if (error) throw error;
+        const r = Array.isArray(data) ? data[0] : data;
+        if (aktif && r) {
+          botAyarRef.current = {
+            taban: Number(r.taban ?? 1),
+            ek: Number(r.ek ?? 2),
+            tavan: Number(r.tavan ?? 6),
+          };
+        }
+      } catch (e) {
+        console.error("[Meydan] bot ayarlari alinamadi:", e);
+      }
+    })();
+    return () => { aktif = false; };
+  }, []);
 
   // ---- EKRAN YÖNÜ TEŞHİSİ ----
   // Sahibi telefonunda konsola bakıp ekran görüntüsü gönderebilsin diye
@@ -469,11 +496,27 @@ export default function HaritaSayfasi() {
     canliRef.current = { dunya, ben, coklu, renk, uzaklar, botlar, ziplama };
 
     // ---- MEYDAN BOTLARI ----
-    // Sunucu turnuva saatine yakın 1-2 gizli botu nöbete yazıyor
-    // (meydan_bot_nobeti). Konumları tohumdan türediği için herkes aynı
-    // botu aynı yerde görür; presence'a ihtiyaç yok.
+    // Sunucu nöbete TAVAN kadar gizli bot yazar (meydan_bot_nobeti);
+    // kaçının ÇİZİLECEĞİNE burası karar verir. Konumlar tohumdan türediği
+    // için herkes aynı botu aynı yerde görür; presence'a ihtiyaç yok.
+    //
+    // KAÇ BOT: meydanda başka gerçek oyuncu yokken `taban` (meydan asla
+    // boş görünmez); her ek gerçek oyuncu için `ek` kadar artar, `tavan`ı
+    // aşmaz. Sayım istemcide yapılır çünkü sunucu presence'ı görmez;
+    // herkes aynı `kisi` değerini kullandığı için sonuç tutarlıdır.
+    //
+    // KADEMELİ: yeni botlar aynı anda belirmesin diye her tazelemede en
+    // fazla bir tanesi eklenir (tazeleme 6 saniyede bir).
     const botlariTazele = async () => {
       const liste = await meydanBotlariniAl();
+
+      const gercekDigerleri = Math.max(0, (kisiRef.current ?? 1) - 1);
+      const hedef = Math.max(0, Math.min(
+        botAyarRef.current.tavan,
+        botAyarRef.current.taban + botAyarRef.current.ek * gercekDigerleri
+      ));
+
+      // Nöbetten düşenler her hâlükârda silinir.
       const gelen = new Set(liste.map((b) => b.user_id));
       for (const [id, b] of botlar) {
         if (!gelen.has(id)) {
@@ -481,8 +524,18 @@ export default function HaritaSayfasi() {
           botlar.delete(id);
         }
       }
+
+      // Fazlaysa sessizce azalt (gerçek oyuncular çıktı) — birer birer.
+      if (botlar.size > hedef) {
+        const [id, b] = [...botlar][botlar.size - 1];
+        try { dunya.avatarSil(b.av); } catch { /* yut */ }
+        botlar.delete(id);
+        return;
+      }
+
       for (const b of liste) {
         if (botlar.has(b.user_id)) continue;
+        if (botlar.size >= hedef) break;
         const r = renkUret(b.user_id);
         try {
           const av = dunya.avatarOlustur(
@@ -497,7 +550,8 @@ export default function HaritaSayfasi() {
       }
     };
     botlariTazele();
-    const botSaat = setInterval(botlariTazele, 60000);
+    // 6 saniye: botlar birer birer katılsın/ayrılsın (aniden belirmesin).
+    const botSaat = setInterval(botlariTazele, 6000);
 
     // ---- OYUNCUYA DOKUNMA ----
     // Sahnede bir avatara dokununca menü açılır (meydan oku / kahve / balon).
