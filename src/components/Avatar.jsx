@@ -24,12 +24,21 @@
 // ============================================================
 import { useEffect, useRef, useState } from "react";
 
+/**
+ * Emekli avatar görselleri: ilk kurulumdaki 31 düz SVG ikon ve ondan önceki
+ * siluetler. Dosyalar duruyor (eski profiller kırılmasın) ama ARTIK
+ * GÖSTERİLMİYORLAR — tek karakter sistemine geçildi. Google fotoğrafı gibi
+ * gerçek görseller etkilenmez.
+ */
+const ESKI_IKON = /\/avatars\/(k\d+|av\d+)\.svg(\?|$)/i;
+
 export default function Avatar({ profile, boyut = 42 }) {
   const ad = profile?.gorunen_ad ?? profile?.username ?? "?";
-  const gorsel =
+  const ham =
     profile?.gorunen_avatar !== undefined
       ? profile.gorunen_avatar
       : profile?.avatar_url;
+  const gorsel = typeof ham === "string" && ESKI_IKON.test(ham) ? null : ham;
   const harf = ad.charAt(0).toUpperCase();
 
   const gorunum = profile?.gorunum;

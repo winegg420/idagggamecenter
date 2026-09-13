@@ -18,6 +18,9 @@ import Avatar from "../../src/components/Avatar.jsx";
 import Ikon from "./Ikon.jsx";
 import { hataMesaji } from "../lib/hata.js";
 import { GARDROP_YOLU } from "../pages/GardropaGit.jsx";
+// `.bd-gardrop-*` stilleri burada; dükkân sayfası gorunum.css'i kendiliğinden
+// yüklemiyor, bu yüzden bileşen kendi stilini getiriyor.
+import "../pages/gorunum.css";
 
 const YUVA_ADLARI = {
   sac: "Saç", kiyafet: "Kıyafet", bas: "Baş aksesuarı",

@@ -279,14 +279,8 @@ export default function KurulumSihirbazi({ onTamam }) {
             >
               {calisiyor ? ceviri("Hazırlanıyor…") : ceviri("Şimdilik rastgele bir karakterle başla")}
             </button>
-            <button
-              className="btn ikincil"
-              style={{ marginTop: 10 }}
-              disabled={calisiyor}
-              onClick={() => avatarKaydet(null)}
-            >
-              {ceviri("Avatarsız devam et")}
-            </button>
+            {/* "Avatarsız devam et" KALKTI: artık herkesin bir karakteri var,
+                yukarıdaki rastgele seçenek o boşluğu dolduruyor. */}
           </>
         )}
 
