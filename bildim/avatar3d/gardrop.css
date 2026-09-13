@@ -1,1 +1,20 @@
 .gardrop main{grid-template-columns:minmax(0,1fr) 410px}.gardrop .cuzdan{padding:16px;border:1px solid #685534;border-radius:12px;margin-bottom:18px;background:#29251e}.cuzdan strong{display:block;font-size:25px}.cuzdan small{font-size:10px;letter-spacing:1.5px;color:#e4bb76}.cuzdan span{font-size:11px;color:#bbc3d0}.gardrop-sekmeler{display:flex;gap:6px;margin-bottom:16px}.gardrop-sekmeler button{flex:1;font-size:12px}.gardrop .filtre{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;font-size:12px}.filtre select{background:#222935;color:#eaeef5;border:1px solid #536077;padding:9px;border-radius:6px}.esya-listesi{display:grid;gap:10px}.esya-listesi article{padding:14px;border:1px solid #364252;border-radius:10px}.esya-listesi article.takili{border-color:#dfb575;background:#29271f}.esya-listesi small{font-size:10px;color:#bec6d2}.esya-listesi h3{font-size:16px;margin:3px 0 12px}.esya-eylem{display:flex;gap:6px;align-items:center;flex-wrap:wrap}.esya-eylem button{font-size:12px}.odul-kilit{font-size:11px;color:#e4bb76}.gardrop button:disabled{opacity:.45;cursor:not-allowed}.gardrop .kaydet{background:#e4bb76;color:#161a21;font-weight:700}.meydan-link{display:block;text-align:center;font-size:12px;margin:12px 8px;text-decoration:underline;text-underline-offset:4px}.gardrop .sahne-alt{bottom:12px}.gardrop .gosterim .sahne{bottom:148px}.deneme-panel{margin-top:24px;border-top:1px solid #394555;padding-top:16px;font-size:12px}.deneme-panel button{font-size:11px;margin:4px}.deneme-panel p{color:#b4bece}.gardrop .hata{color:#ffb1a4;font-size:13px}.kimlikler{display:grid;grid-template-columns:repeat(3,1fr);gap:5px;margin-bottom:20px}.kimlikler button{font-size:12px}.onay-zemin{position:fixed;inset:0;z-index:50;background:#080c14db;display:grid;place-items:center;padding:20px}.satin-onay{width:min(100%,400px);padding:24px;border:1px solid #a1865a;border-radius:16px;background:#1a202b}.satin-onay button{margin:4px}.satin-onay h2{margin-top:0}@media(max-width:760px){.gardrop main{display:block}.gardrop .gosterim{height:760px;min-height:760px}.gardrop .gosterim .sahne{bottom:148px}.gardrop aside{padding:24px 18px}}
+
+/* ---- kart ızgarası: görsel önce, metin sonra ----
+   Eşya listesi düz metindi; her kartın üstünde artık parçanın oyuncunun
+   kendi karakteri üstündeki portresi var (ParcaPortresi.jsx). */
+.esya-listesi{grid-template-columns:repeat(auto-fill,minmax(140px,1fr))}
+.esya-listesi article{position:relative;padding:10px;display:flex;flex-direction:column;gap:6px}
+/* Kutunun boyu baştan sabit: portre gelince düzen zıplamasın.
+   min-height, aspect-ratio'yu bilmeyen eski Safari için. */
+.esya-gorsel{display:block;width:100%;aspect-ratio:1;min-height:96px;border-radius:8px;overflow:hidden;background:#222935}
+.esya-gorsel img{width:100%;height:100%;object-fit:contain;display:block;user-select:none}
+.esya-iskelet{display:block;width:100%;height:100%;background:linear-gradient(180deg,#2b3342,#222935)}
+.esya-listesi h3{font-size:14px;margin:0}
+.esya-listesi small{display:flex;align-items:center;gap:4px;margin-top:2px}
+.esya-listesi .coin{color:#e4bb76}
+/* Ödül eşyası: kilitli ama GÖRSELİ GÖRÜNÜR kalır. */
+.esya-listesi article.odul .esya-gorsel img{opacity:.65}
+.esya-kilit{position:absolute;top:16px;right:16px;width:24px;height:24px;border-radius:50%;display:grid;place-items:center;font-size:12px;background:#0c1017c7}
+/* Dokunma hedefi en az 44 px. */
+.esya-eylem button{min-height:44px;padding:0 10px;flex:1 1 auto}

@@ -7,6 +7,8 @@ import {TEMEL,YUVA_ADLARI,parcayiTak,parcayiCikar} from './envanter.js';
 import {denemeServisi,ENVANTER_ANAHTAR} from './envanter-yerel.js';
 import denemeKatalog from './deneme-katalog.json';
 import {onizlemeMi} from './yerel.js';
+import ParcaPortresi from './ParcaPortresi.jsx';
+import {portreMakinesiniKapat} from './portre.js';
 import './atolye.css';
 import './yerlesim.css';
 import './gardrop.css';
@@ -20,9 +22,14 @@ function Gardrop(){
   try{servis.current=denemeServisi(localStorage,denemeKatalog);sahne.current=sahneKur(alan.current,TEMEL,setStat);if(matchMedia('(prefers-reduced-motion: reduce)').matches){sahne.current.animasyon('dur');setMod('dur');}}catch(e){setHata(e.message);}
   const yukle=async()=>{try{const s=await servis.current.yukle();if(aktif){setDurum(s);setG(s.gorunum);}}catch(e){if(aktif)setHata(e.message);}};
   yukle();const degisti=e=>{if(e.key===ENVANTER_ANAHTAR)yukle();};window.addEventListener('storage',degisti);
-  return()=>{aktif=false;window.removeEventListener('storage',degisti);sahne.current?.yokEt();};
+  return()=>{aktif=false;window.removeEventListener('storage',degisti);sahne.current?.yokEt();portreMakinesiniKapat();};
  },[]);
  useEffect(()=>{try{sahne.current?.guncelle(g);}catch(e){setHata(e.message);}},[g]);
+ // Küçük resimler ~250 ms GECİKTİRİLİR: renk paletinde gezerken her
+ // tıklamada 12 portre üretilmesin. Canlı sahne anında güncellenmeye
+ // devam ediyor (yukarıdaki effect), gecikme yalnız kartlarda.
+ const [portreTemeli,setPortreTemeli]=useState(TEMEL);
+ useEffect(()=>{const z=setTimeout(()=>setPortreTemeli(g),250);return()=>clearTimeout(z);},[g]);
  async function islem(fn,mesaj,uygula=false){
   if(kilit.current)return;kilit.current=true;setMesgul(true);setHata('');
   try{const s=await fn();setDurum(s);if(uygula)setG(s.gorunum);setBilgi(mesaj);setOnay(null);window.dispatchEvent(new Event('qs-envanter3d'));}
@@ -46,7 +53,14 @@ function Gardrop(){
  <label className="filtre">Kategori<select value={yuva} onChange={e=>setYuva(e.target.value)}><option value="hepsi">Tüm eşyalar</option>{Object.entries(YUVA_ADLARI).map(([id,ad])=><option key={id} value={id}>{ad}</option>)}</select></label>
  <div className="esya-listesi">{katalog.filter(p=>(yuva==='hepsi'||p.yuva===yuva)&&(tab!=='envanter'||sahip.includes(p.id))).map(p=>{
  const sende=sahip.includes(p.id),takili=g[p.yuva]===p.deger;
- return <article key={p.id} className={takili?'takili':''}><div><small>{YUVA_ADLARI[p.yuva]} · {p.odul?'Turnuva ödülü':sende?'Envanterinde':p.fiyat+' coin'}</small><h3>{p.ad}</h3></div><div className="esya-eylem"><button aria-label={p.ad+(sende?' tak':' dene')} aria-pressed={takili} onClick={()=>sec(p)}>{takili?'Üzerinde':sende?'Tak':'Dene'}</button>{takili&&p.yuva!=='kiyafet'&&<button aria-label={p.ad+' çıkar'} onClick={()=>setG(a=>parcayiCikar(a,p.yuva))}>Çıkar</button>}{!sende&&!p.odul&&<button disabled={mesgul} onClick={()=>setOnay(p)} aria-label={p.ad+' satın al'}>Satın al</button>}{!sende&&p.odul&&<span className="odul-kilit">Yalnız ödül</span>}</div></article>;
+ return <article key={p.id} className={(takili?'takili':'')+(p.odul&&!sende?' odul':'')}>
+ {/* Kartın belirleyici öğesi GÖRSEL: parçanın kendi karakterin üstündeki
+     hâli. Ödül eşyasında soluk ama görünür kalır — oyuncu neyin peşinde
+     koşacağını görmeli. */}
+ <ParcaPortresi gorunum={portreTemeli} parca={p}/>
+ {p.odul&&!sende&&<span className="esya-kilit" aria-hidden="true">🔒</span>}
+ <div><h3>{p.ad}</h3><small>{p.odul?'Turnuva ödülü':sende?(takili?'Üzerinde':'Envanterinde'):<><span className="coin" aria-hidden="true">◎</span> {p.fiyat} coin</>}</small></div>
+ <div className="esya-eylem"><button aria-label={p.ad+(sende?' tak':' dene')} aria-pressed={takili} onClick={()=>sec(p)}>{takili?'Üzerinde':sende?'Tak':'Dene'}</button>{takili&&p.yuva!=='kiyafet'&&<button aria-label={p.ad+' çıkar'} onClick={()=>setG(a=>parcayiCikar(a,p.yuva))}>Çıkar</button>}{!sende&&!p.odul&&<button disabled={mesgul} onClick={()=>setOnay(p)} aria-label={p.ad+' satın al'}>Satın al</button>}{!sende&&p.odul&&<span className="odul-kilit">Yalnız ödül</span>}</div></article>;
  })}</div></>}
  <details className="deneme-panel"><summary>Deneme araçları</summary><p>Bu düğmeler yalnız önizleme içindir. Gerçek turnuva ve coin hesabına bağlı değildir.</p><button disabled={mesgul||durum?.oduller?.includes('ilk-turnuva-denemesi')} onClick={()=>islem(()=>servis.current.odulDene(),'Deneme turnuva ödülü geldi: taç ve pelerin envanterinde.')}>Turnuva ödülünü dene</button><button disabled={mesgul} onClick={()=>islem(()=>servis.current.sifirla(),'Deneme cüzdanı ve envanteri yeniden başlatıldı.',true)}>Denemeyi yeniden başlat</button></details>
  <a className="meydan-link" href="./index.html">Serbest tasarım atölyesine dön</a><p className="not">Satın alma ve ödül denemeleri bu tarayıcıda saklanır. Yeni ürün fiyatları örnektir. Serbest atölyedeki seçimler envanter sahipliği vermez.</p></aside></main>
