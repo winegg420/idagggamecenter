@@ -4,6 +4,7 @@ import Logo from "../../bildim/components/Logo.jsx";
 import { girisHedefiniKaydet } from "../lib/girisHedefi.js";
 import { useDil } from "../../bildim/lib/dilKanca.js";
 import { DILLER } from "../../bildim/lib/dil.js";
+import { BILDIM_MOD } from "../../bildim/lib/yol.js";
 
 // Supabase'in İngilizce hata metinlerini oyuncuya anlaşılır Türkçeye çevirir.
 // Sağlayıcı panelde kapalıysa dönen mesaj ("provider is not enabled") teknik
@@ -191,11 +192,28 @@ export default function Login() {
         ))}
       </div>
 
-      <div className="buyuk-logo"><Logo boyut={44} /></div>
+      {/* GİRİŞ EKRANI MARKASI SİTEYE GÖRE DEĞİŞİR.
+          quizsquare.vercel.app (VITE_MOD=bildim) → Quiz Square wordmark,
+          aynen eskisi gibi. idagg-game-center.vercel.app (hub) → hub
+          kendi adıyla karşılar; Quiz Square orada oyunlardan biridir. */}
+      {BILDIM_MOD ? (
+        <div className="buyuk-logo"><Logo boyut={44} /></div>
+      ) : (
+        <div className="buyuk-logo gc-giris-marka">
+          <span className="gc-giris-ad">idaGG</span>
+          <span className="gc-giris-alt">GAME CENTER</span>
+        </div>
+      )}
       <div className="slogan">
-        {ceviri("Her gün 13:00 ve 21:50'de (Türkiye saati) büyük turnuva.")}
-        <br />
-        {ceviri("7/24 meydan okumalar. Sen de yerini al.")}
+        {BILDIM_MOD ? (<>
+          {ceviri("Her gün 13:00 ve 21:50'de (Türkiye saati) büyük turnuva.")}
+          <br />
+          {ceviri("7/24 meydan okumalar. Sen de yerini al.")}
+        </>) : (<>
+          {ceviri("Bilgi yarışması, kafa topu, drift, meyve kes ve daha fazlası.")}
+          <br />
+          {ceviri("Hepsi tek çatı altında, tek hesapla.")}
+        </>)}
       </div>
 
       {hata && <div className="hata-kutu">{hata}</div>}

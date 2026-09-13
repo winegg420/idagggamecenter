@@ -97,8 +97,12 @@ export default function GameCenter() {
       <header className="gc-header">
         <div className="gc-brand">
           <span className="gc-brand-mark">🎮</span>
+          {/* HUB'IN MARKASI "idaGG Game Center"dır. Quiz Square burada
+              yalnızca oyunlardan biridir (aşağıdaki kartlarda görünür).
+              Bu sayfa Quiz Square sitesinde hiç render edilmez — orada
+              BildimApp var, GameCenter yok — yani o site etkilenmez. */}
           <div className="gc-brand-text">
-            <span className="gc-brand-name">Quiz Square</span>
+            <span className="gc-brand-name">idaGG</span>
             <span className="gc-brand-sub">GAME CENTER</span>
           </div>
         </div>
