@@ -82,3 +82,23 @@
 .renk-yuvarlak.takili{border-color:#e4bb76;transform:scale(1.08)}
 .yuva-bolum .kimlikler{grid-template-columns:repeat(auto-fill,minmax(104px,1fr));margin-bottom:0}
 .yuva-bolum .kimlikler button{min-height:44px}
+
+/* Kategoriye göre otomatik gizleme uyarısı — geçici ve yalnız görsel
+   olduğunu söyler, "eşyam silindi" paniğini önler. */
+.gardrop .gecici-gizli{
+  position:absolute;top:190px;left:34px;margin:0;max-width:300px;font-size:12px;line-height:1.45;
+  color:#f2d9a5;background:#2a2318cc;border-left:3px solid #e4bb76;
+  padding:7px 10px;border-radius:0 7px 7px 0;
+}
+@media(max-width:760px){.gardrop .gecici-gizli{top:166px;left:20px;font-size:11px;max-width:240px}}
+
+/* KARAKTER HEP GÖRÜNSÜN.
+   Kategori listesi çok uzun; aşağı kaydırınca karakter ekrandan çıkıyordu
+   ve "kategoriye göre otomatik gizleme" hiç görülemiyordu. Önizleme
+   sabitlendi (sticky), liste onun yanından/altından akar. */
+.gardrop .gosterim{position:sticky;top:0;align-self:start;height:100vh}
+@media(max-width:760px){
+  /* Telefonda önizleme üstte sabit, liste altından kayar. Ekranın
+     yarısından fazlasını kaplamasın ki kartlar da görünsün. */
+  .gardrop .gosterim{height:54vh;min-height:300px;z-index:2;background:#11151c}
+}

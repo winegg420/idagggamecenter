@@ -4230,3 +4230,45 @@ pelerin turnuva ödülüdür, varyantını satmak ödülü değersizleştirir.
 
 **Ücretsiz temeller:** tişört/pantolon/spor ayakkabı 0 coin; yoksa yeni
 oyuncu çıplak ayak kalırdı. 428 sahiplik satırı geriye dönük verildi.
+
+## 14 Eylül 2026 — Revizyon Paketi 5, Madde 3: kategoriye göre otomatik gizleme
+
+**İstek:** "Karakterde şapka varken Ege/Maya/Nova gibi hazır görünümler
+arasında gezerken yüzündeki farklılıkları göremiyorum."
+
+**Çözüm:** `Gardrop.jsx` içinde `ENGELLEYENLER` eşleme tablosu — hangi
+bölüme bakılıyorsa onu ENGELLEYEN yuvalar önizlemede boşa çekilir.
+Tablo tek yerde; yeni yuva eklenince bir satır yetiyor. Ölçülen davranış:
+
+| Bakılan bölüm | Gizlenen |
+|---|---|
+| Hazır görünümler / Ten | Baş aksesuarı, Saç, Gözlük |
+| Saç / Saç rengi | Baş aksesuarı |
+| Gözlük | Baş aksesuarı, Saç |
+| Sakal | Baş aksesuarı |
+| Üst giyim, Alt giyim, Ayakkabı ve renkleri | Sırt (pelerin) |
+| Baş aksesuarı, Sırt | — |
+
+**Gizleme yalnız önizlemede:** `g` (gerçek seçim) hiç değişmez, sahneye
+giden kopya değiştirilir. Kartın altında "geçici olarak çıkarıldı …
+başka bölüme geçince geri gelir" yazısı çıkıyor ki oyuncu eşyasının
+silindiğini sanmasın. Ayrı "çıplak mod" düğmesi yok.
+
+**Üç ölçülmüş tuzak:**
+1. "Çizgiye en yakın başlık" kuralı yanlış: uzun bölümün başlığı yukarı
+   kayınca BİR SONRAKİ bölüm aktif sanılıyordu. Kural değişti —
+   ekranın %34'ündeki çizgiyi hangi bölüm KAPLIYORSA o aktif.
+2. Kısma `requestAnimationFrame` ileydi; arka plan sekmesinde rAF hiç
+   çalışmıyor ve aktif bölüm ilk değerinde donuyordu. `setTimeout` oldu.
+3. Kaydırma olayı bazı ortamlarda hiç gelmiyor. Kategori şeridine
+   basınca aktif bölüm ARTIK ANINDA kesinleşiyor (kaydırma beklenmiyor);
+   kaydırma dinleyicisi yalnız elle kaydıranlar için ek.
+
+**Yan düzeltme (aynı sorunun parçası):** kategori listesi uzun olduğu
+için aşağı kaydırınca KARAKTER EKRANDAN ÇIKIYORDU — gizleme hiç
+görülemiyordu. Önizleme `position:sticky` yapıldı (telefonda 54vh).
+
+**Madde 2'de bulunan gerçek hata:** `esyaPortresi` `u.bacaklar`'ı dizi
+sanıyordu, oysa tek bir `T.Group`. Alt giyim ve ayakkabı kartları
+"object is not iterable" ile hiç üretilmiyordu. Düzeltildikten sonra
+tarayıcıda **29 kartın 29'u** görsel üretti.

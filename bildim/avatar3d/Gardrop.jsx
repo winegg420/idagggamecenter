@@ -28,6 +28,46 @@ const RENK_BOLUMLERI=[
  {id:'ayakkabiRenk',ad:'Ayakkabı rengi',alan:'ayakkabiRenk',liste:AYAKKABI_RENKLERI},
 ];
 
+// ------------------------------------------------------------
+// KATEGORİYE GÖRE OTOMATİK GİZLEME
+//
+// Sahibinin şikâyeti: "karakterde şapka varken Ege/Maya/Nova gibi hazır
+// görünümler arasında gezerken yüzündeki farklılıkları göremiyorum."
+// Şapka takılıyken yüz/ten/saç seçerken kafa kapalı kalıyordu.
+//
+// Çözüm (WoW Shadowlands, Elden Ring, Monster Hunter'daki desen): hangi
+// bölüme bakılıyorsa onu ENGELLEYEN yuvalar önizlemede gizlenir.
+// GİZLEME YALNIZ ÖNİZLEMEDEDİR — `g` (gerçek seçim) hiç değişmez, kayıt
+// ve envanter etkilenmez; bölümden çıkınca parça aynen geri gelir.
+// Ayrı "çıplak mod" düğmesi yok, kategoriye göre kendiliğinden olur.
+//
+// Tablo genişletilebilir: yeni yuva eklenince buraya bir satır yazmak
+// yeter. Anahtar = bölüm id'si (yuva adı, renk bölümü ya da 'hazir').
+// Değer = o bölüme bakarken gizlenecek yuvalar.
+const ENGELLEYENLER={
+ hazir:       ['bas','sac','gozluk','sakal'],  // yüz farkları görünsün
+ ten:         ['bas','sac','gozluk','sakal'],
+ sac:         ['bas'],                          // şapka saçı örter
+ sacRenk:     ['bas'],
+ gozluk:      ['bas','sac'],                    // kasket siperi/uzun saç gözü örter
+ sakal:       ['bas'],
+ kiyafet:     ['pelerin'],                      // pelerin gövdeyi örter
+ ceketRenk:   ['pelerin'],
+ alt:         ['pelerin'],
+ altRenk:     ['pelerin'],
+ ayakkabi:    ['pelerin'],
+ ayakkabiRenk:['pelerin'],
+};
+
+/** Önizleme görünümü: aktif bölümü engelleyen yuvalar boşa çekilir. */
+function onizlemeyeCevir(gorunum,bolum){
+ const gizle=ENGELLEYENLER[bolum];
+ if(!gizle||!gizle.length)return gorunum;
+ const o={...gorunum};
+ for(const yv of gizle) if(BOSLAR[yv]!==undefined) o[yv]=BOSLAR[yv];
+ return o;
+}
+
 function Gardrop(){
  const [durum,setDurum]=useState(null),[g,setG]=useState(TEMEL),[hata,setHata]=useState(''),[bilgi,setBilgi]=useState(''),[mesgul,setMesgul]=useState(false),[onay,setOnay]=useState(null),[stat,setStat]=useState({}),[mod,setMod]=useState('bekle');
  const [kullanici,setKullanici]=useState(null);
@@ -82,7 +122,48 @@ function Gardrop(){
   const degisti=e=>{if(e.key===ENVANTER_ANAHTAR)yukle();};window.addEventListener('storage',degisti);
   return()=>{aktif=false;window.removeEventListener('storage',degisti);sahne.current?.yokEt();portreMakinesiniKapat();};
  },[]);
- useEffect(()=>{try{sahne.current?.guncelle(g);}catch(e){setHata(e.message);}},[g]);
+ // AKTİF BÖLÜM — ekranda hangi kategori duruyorsa o. Şerit düğmeleri
+ // filtre değil kaydırma olduğu için "aktif" ancak kaydırmadan okunabilir;
+ // IntersectionObserver en üstteki görünür bölümü seçer.
+ const [aktifBolum,setAktifBolum]=useState(null);
+ useEffect(()=>{
+  if(!durum)return;   // bölümler ancak katalog gelince basılıyor
+  let bekleyen=0;
+  // Ekranın üst üçte birindeki yatay çizgiyi HANGİ bölüm kaplıyorsa o
+  // aktiftir. "Çizgiye en yakın başlık" denemesi yanlış çıktı: uzun bir
+  // bölümün başlığı yukarı kayınca bir SONRAKİ bölüm aktif sanılıyordu.
+  const oku=()=>{
+   bekleyen=0;
+   try{
+    const cizgi=innerHeight*0.34;
+    let en=null,enUst=-Infinity,ilkGorunen=null;
+    for(const el of document.querySelectorAll('.yuva-bolum')){
+     const k=el.getBoundingClientRect();
+     if(k.bottom<0||k.top>innerHeight)continue;     // ekran dışı
+     if(!ilkGorunen)ilkGorunen=el.id;
+     if(k.top<=cizgi&&k.bottom>cizgi&&k.top>enUst){enUst=k.top;en=el.id;}
+    }
+    const secilen=en||ilkGorunen;
+    setAktifBolum(secilen?secilen.replace(/^yuva-/,''):null);
+   }catch(e){console.error('[Gardırop] bölüm okunamadı:',e);}
+  };
+  // setTimeout ile kısılıyor, requestAnimationFrame ile DEĞİL: sekme
+  // arka plandayken (otomasyon/gizli sekme) rAF hiç çalışmıyor ve aktif
+  // bölüm ilk değerinde donuyordu — ölçüldü.
+  const tetik=()=>{if(!bekleyen)bekleyen=setTimeout(oku,60);};
+  oku();
+  // scroll baloncuk yapmaz; yakalama evresinde dinlenir ki hangi kap
+  // kayarsa kaysın duyulsun.
+  addEventListener('scroll',tetik,true);addEventListener('resize',tetik);
+  return()=>{removeEventListener('scroll',tetik,true);removeEventListener('resize',tetik);if(bekleyen)clearTimeout(bekleyen);};
+ },[durum]);
+
+ // Sahneye GİDEN görünüm önizlemedir; `g` (gerçek seçim) değişmez.
+ const onizleme=onizlemeyeCevir(g,aktifBolum);
+ const onizlemeAnahtari=JSON.stringify(onizleme);
+ useEffect(()=>{try{sahne.current?.guncelle(JSON.parse(onizlemeAnahtari));}catch(e){setHata(e.message);}},[onizlemeAnahtari]);
+ // Bir şey gizlendiyse oyuncuya söyle: "eşyam kayboldu" paniği olmasın.
+ const gizlenen=(ENGELLEYENLER[aktifBolum]||[]).filter(yv=>g[yv]!==BOSLAR[yv]);
  // Küçük resimler ~250 ms GECİKTİRİLİR: renk paletinde gezerken her
  // tıklamada 12 portre üretilmesin. Canlı sahne anında güncellenmeye
  // devam ediyor (yukarıdaki effect), gecikme yalnız kartlarda.
@@ -106,6 +187,11 @@ function Gardrop(){
 
  /** Kategori şeridi: filtre değil, ilgili bölüme kaydırır. */
  const bolumeGit=(id)=>{
+  // Aktif bölüm ÖNCE burada kesinleşir, kaydırmayı beklemeden: kaydırma
+  // olayı bazı ortamlarda (arka plan sekmesi, azaltılmış hareket) hiç
+  // gelmiyor ve önizleme kilitli kalıyordu — ölçüldü. Kaydırma dinleyicisi
+  // yalnız elle kaydıranlar için ek olarak çalışır.
+  setAktifBolum(id);
   try{
    document.getElementById('yuva-'+id)?.scrollIntoView({behavior:'smooth',block:'start'});
   }catch(e){console.error('[Gardırop] bölüme gidilemedi:',e);}
@@ -115,8 +201,12 @@ function Gardrop(){
  const hemenAl=(p)=>islem(()=>servis.current.satinAl(p.id),p.ad+' envanterine eklendi.');
 
  const sec=p=>{setG(a=>parcayiTak(a,p));setBilgi(p.ad+(sahip.includes(p.id)?' seçildi. Kaydederek oyuna uygula.':' deneniyor. Kaydetmek için önce edinmelisin.'));};
- return <div className="atolye gardrop"><header><a href="./index.html">Quiz Square</a><span className="etiket">{denemeMi?`GARDIROP · DENEME`:`GARDIROP`}</span></header>
- <main><section className="gosterim"><div className="sahne" ref={alan}/><div className="sahne-baslik"><span>KARAKTERİN / KOLEKSİYONUN</span><h1>Üzerinde dene.</h1><p>{kilitli.length?'Önizleme · Henüz sahip olmadığın eşya var.':fark?'Kaydedilmemiş değişiklikler':'Oyuna kaydedilen görünüm'}</p></div>
+ return <div className="atolye gardrop" data-aktif-bolum={aktifBolum||''}><header><a href="./index.html">Quiz Square</a><span className="etiket">{denemeMi?`GARDIROP · DENEME`:`GARDIROP`}</span></header>
+ <main><section className="gosterim"><div className="sahne" ref={alan}/><div className="sahne-baslik"><span>KARAKTERİN / KOLEKSİYONUN</span><h1>Üzerinde dene.</h1><p>{kilitli.length?'Önizleme · Henüz sahip olmadığın eşya var.':fark?'Kaydedilmemiş değişiklikler':'Oyuna kaydedilen görünüm'}</p>
+</div>
+ {/* Gizleme geçici ve yalnız görsel: oyuncu eşyasının silindiğini sanmasın.
+     Kamera düğmelerinin ALTINDA duruyor, üstlerine binmesin diye. */}
+ {!!gizlenen.length&&<p className="gecici-gizli">Bu bölümde görünsün diye geçici olarak çıkarıldı: {gizlenen.map(yv=>YUVA_ADLARI[yv]).join(', ')}. Başka bölüme geçince geri gelir.</p>}
  <div className="kamera"><button onClick={()=>sahne.current?.yakin(true)}>Yüzü incele</button><button onClick={()=>sahne.current?.yakin(false)}>Tüm karakter</button></div>
  <div className="sahne-alt"><div className="hareketler">{[['bekle','Bekle'],['yuru','Yürü'],['selam','Selam ver']].map(([id,ad])=><button key={id} aria-pressed={mod===id} onClick={()=>{setMod(id);sahne.current?.animasyon(id);}}>{ad}</button>)}</div>
  <button className="kaydet" disabled={!durum||mesgul||!!kilitli.length||!fark} onClick={()=>islem(async()=>{
@@ -134,7 +224,7 @@ function Gardrop(){
      hâlinde; şerit yalnız ilgili bölüme kaydırır. */}
  <nav className="kategori-serit" aria-label="Kozmetik kategorileri">
   {[...Object.entries(YUVA_ADLARI),...RENK_BOLUMLERI.map(b=>[b.id,b.ad]),['hazir','Hazır görünümler']].map(([id,ad])=>
-   <button key={id} type="button" onClick={()=>bolumeGit(id)}>{ad}</button>)}
+   <button key={id} type="button" aria-pressed={aktifBolum===id} onClick={()=>bolumeGit(id)}>{ad}</button>)}
  </nav>
 
  {Object.entries(YUVA_ADLARI).map(([yv,yuvaAd])=>{

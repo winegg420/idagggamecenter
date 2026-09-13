@@ -263,7 +263,8 @@ export function esyaPortresi(temelGorunum, parca, boyut = 192) {
     } else if (yuva === 'alt' || yuva === 'ayakkabi') {
       // Bacaklar gri manken olarak açılır ki pantolon/ayakkabı boşlukta
       // durmasın. Diğer yuvanın parçaları kapalı kalır.
-      for (const bacak of u.bacaklar || []) geriAc(bacak, ilkDurum);
+      // `bacaklar` tek bir T.Group (dizi DEĞİL) — bütün bacak ağacı burada.
+      geriAc(u.bacaklar, ilkDurum);
       for (const p of (yuva === 'alt' ? u.ayakkabiParcalari : u.altParcalari) || []) gizle(p);
       for (const p of (yuva === 'alt' ? u.altParcalari : u.ayakkabiParcalari) || []) geriAc(p, ilkDurum);
       mankenlestir(model, ayar.ten, atilacak);
