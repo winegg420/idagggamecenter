@@ -4084,3 +4084,32 @@ Not `CLAUDE.md` + `AGENTS.md`'ye eklendi.
 gösteriyor, hepsi 200 dönüyor, Kafa Topu açıldı. Quiz Square adresinde
 gardırop (`assets/gardrop-*.js`) ve meydan sayfaları yerinde, `/harita`
 meydanı açıyor. Konsolda hata yok.
+
+## 14 Eylül 2026 — Hub markası: idaGG Game Center
+
+Sahibinin sözü: *"idaGG Game Center yazacak idagg sitesinde. içindeki
+oyunlardan biri de quizsquare. quizsquare sitemizde var zaten ona
+dokunmuyoruz."*
+
+Hub sitesinde marka artık **idaGG Game Center**; Quiz Square orada
+oyun kartlarından biri. Quiz Square sitesi **hiç değişmedi**.
+
+| Yer | Hub (idagg-game-center) | Quiz Square (quizsquare) |
+|---|---|---|
+| Sekme başlığı | idaGG Game Center | Quiz Square — Bilgi Yarışması |
+| Üst logo | idaGG / GAME CENTER (`GameCenter.jsx`) | Quiz Square wordmark (`Logo.jsx`) |
+| Giriş ekranı | idaGG GAME CENTER + portal sloganı | Quiz Square wordmark + turnuva sloganı |
+| Alt bilgi | idaGG Game Center · … | (bu sayfalar yok) |
+| PWA manifest | `manifest.webmanifest` → idaGG Game Center | `bildim.webmanifest` → Quiz Square |
+
+**`Logo.jsx`'e DOKUNULMADI.** Quiz Square wordmark'ı olduğu gibi duruyor
+ve hub içindeki `/bildim` kabuğunda da doğru şekilde Quiz Square yazıyor —
+orası zaten Quiz Square oyunudur.
+
+Ayrım `BILDIM_MOD` (`import.meta.env.VITE_MOD === "bildim"`) ile yapıldı;
+Vite ölü dalı derleme zamanında eliyor. **Ölçüldü:** Quiz Square'in
+yayınlanan HTML ve paketlerinde `idaGG` dizesi **0 kez** geçiyor.
+
+Küçük ders: kök `index.html`'e koyduğum açıklama yorumu Quiz Square'in
+yayınlanan HTML'ine de sızıyordu (yorumlar derlemede korunuyor).
+Açıklama işi yapan yere, `vite.config.js`'teki eklentinin başına taşındı.
