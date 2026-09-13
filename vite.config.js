@@ -15,6 +15,12 @@ import path from "node:path";
 // robots'a Sitemap satırı yazılmaz ve sitemap üretilmez — yanlış adres
 // yayınlamaktansa hiç yayınlamamak doğrusu.
 // ============================================================
+// KÖK `index.html` HUB'IN (idaGG Game Center) KİMLİĞİNİ TAŞIR: başlık,
+// açıklama, og/twitter alanları ve manifest oradaki hâliyle hub'ındır.
+// Quiz Square derlemesinde (VITE_MOD=bildim) aşağıdaki eklenti hepsini
+// kendi değerleriyle DEĞİŞTİRİR. Yani iki sitenin kimliği iki yerde:
+//   hub          → index.html (statik)
+//   Quiz Square  → bu eklenti
 function bildimModuEklentisi(mod, siteUrl) {
   const aktif = mod === "bildim";
   return {
