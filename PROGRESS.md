@@ -4140,3 +4140,53 @@ metni o klasörün dosya adlarını kullandığı için yanlış sistem gelişti
 **Ders:** Git worktree'si ayrı bir klasörde ayrı bir HEAD tutar; oradaki
 iş `main`'de görünmez ve `git status` ana klasörde temiz görünür. İki
 aracın aynı depoda çalıştığı yerde worktree kullanılmaz.
+
+## 14 Eylül 2026 (3) — Revizyon Paketi 4 (5 madde)
+
+### 1. iPhone alt menü (gerçek hata)
+`.tabbar`'da `position: fixed` ile `transform: translateX(-50%)` aynı
+öğedeydi — iOS'ta bu ikisi sabitlemeyi bozar. Ortalama `left/right: 0 +
+margin-inline: auto` ile yapıldı. Viewport'a `interactive-widget=
+resizes-content` eklendi. Atalarda transform/filter/perspective olmadığı
+doğrulandı. **Ölçüm:** 390 px'de 7 farklı kaydırma konumunda menünün
+sol/alt kenarı değişmiyor. Kalıcı iOS kuralı `CLAUDE.md`+`AGENTS.md`'de.
+
+### 2. İki oyuncu farklı sorularda (gerçek hata)
+**Sunucu suçsuzdu.** `submit_match_answer`, `mac_soruyu_atla` ve
+`advance_match` üçü de senkronu doğru koruyor (iki cevap ya da 16 sn
+dolmadan `aktif_soru` ilerlemiyor, `FOR UPDATE` kilidiyle); canlı
+veritabanında son 6 maçın hepsi `senkron=true`.
+
+Kayma **istemcideydi**: geri bildirim penceresi (`GB_MS`) herkesin KENDİ
+cevap anından sayılıyordu. 2. saniyede cevaplayan için kalan 0, 14.
+saniyede cevaplayan için tam 1000 ms → hızlı cevaplayan sonraki soruyu
+**1 saniye önce** görüyordu. Artık pencere ilerlemenin görüldüğü andan
+sayılıyor (effect zaten o an çalışıyor, iki istemcide de aynı).
+Yeni test: `bildim/_test/mac-senkron-test.mjs`.
+
+**Ders:** "sunucu doğru" ile "ekranda aynı anda görünüyor" aynı şey
+değil. Senkron, sunucu durumu kadar istemcinin o durumu ne zaman
+gösterdiğiyle de ilgili.
+
+### 3. Turnuva botları (migration 173)
+`bot_turnuva_katilim_min/max` (38–66) + `_yayilma_dk` (25). Hedef sayı
+turnuva id'sinden deterministik; ölçüm: 50/61/63/48/39, hepsi farklı,
+aynı turnuvada sabit. Katılımlar dakikalık cron'la yayılıyor: 50 bot
+12:35–12:59 arası **23 farklı dakikaya** dağıldı.
+
+### 4. Meydan botları (migration 174)
+**Kök sebep:** `meydan_bot_sayisi=2` sabitti ama nöbet yalnız turnuva
+saatine yakın doluyordu; günün geri kalanında meydan tamamen boştu.
+Artık nöbet her zaman dolu; çizilecek sayı `taban + ek*(gerçek oyuncu-1)`,
+tavanla sınırlı. Sayım istemcide (sunucu presence'ı görmez). Kademeli:
+6 saniyede bir en fazla bir bot eklenir/çıkarılır.
+
+### 5. Gardırop
+"Karakter" sekmesi kalktı; 9 kategori tek listede. Kart görselleri artık
+**eşyanın kendisi** (`esyaPortresi`): baş/gözlük/sırt yalnız eşya,
+saç/kıyafet yüzsüz gri manken üzerinde.
+
+**İki ölçülmüş hata:** (a) kıyafet parçalarını zorla açıyordum, "Tişört"
+kartında ceket çıkıyordu — modelin kendi görünürlük kararı saklanıp geri
+yükleniyor; (b) manken kafasında ağız kalmıştı, mesh adı `Gulumseme`
+imiş. Manken grisi beyaz tişörtle karıştığı için koyulaştırıldı.
