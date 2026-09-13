@@ -338,8 +338,25 @@ export default function MatchPage() {
       setSoru(null);
       return undefined;
     }
-    // Geri bildirim penceresinin kalanı kadar bekle (ilk soruda 0).
-    const kalanGB = Math.max(0, GB_MS - (Date.now() - cevapZamaniRef.current));
+    // ---- GERİ BİLDİRİM PENCERESİ ----
+    // SENKRON MAÇTA ORTAK BİR ANDAN SAYILIR.
+    //
+    // HATA (sahibi arkadaşıyla oynarken buldu): "Bazı sorulara o benden
+    // daha önce geçti." Sunucu suçsuzdu — `submit_match_answer`,
+    // `mac_soruyu_atla` ve `advance_match` üçü de senkronu doğru koruyor
+    // (iki cevap ya da süre dolmadan `aktif_soru` ilerlemiyor, FOR UPDATE
+    // kilidiyle). Kayma İSTEMCİDEYDİ: pencere herkesin KENDİ cevap anından
+    // sayılıyordu. 2. saniyede cevaplayan için kalan süre 0 çıkıyor, 14.
+    // saniyede cevaplayan için tam GB_MS; ilerleme ikisine de aynı anda
+    // gelse bile hızlı cevaplayan sonraki soruyu GB_MS önce görüyordu.
+    //
+    // Bu effect `kendiIndeks` değişince çalışır — yani ilerlemenin
+    // GÖRÜLDÜĞÜ an. Senkronda pencereyi o andan saymak iki istemcide de
+    // aynı sonucu verir. (Sunucu saatine bakmıyoruz: saat farkı bu
+    // dosyada daha önce iki ayrı hataya yol açtı.)
+    const kalanGB = senkron
+      ? (kendiIndeks === 0 ? 0 : GB_MS)
+      : Math.max(0, GB_MS - (Date.now() - cevapZamaniRef.current));
     let iptal = false;
     const zamanlayici = setTimeout(() => {
       if (iptal) return;
@@ -958,19 +975,18 @@ export default function MatchPage() {
 
       {soru && (
         <QuestionCard
-          // KENDİ indeksimize bağlanır — `aktif_soru`ya DEĞİL.
+          // `kendiIndeks`e bağlanır. SENKRON maçta bu zaten `aktif_soru`nun
+          // kendisidir (yukarıdaki hesaba bak) — yani senkron bozulmaz.
+          // ESKİ ASENKRON maçlarda ise herkesin kendi indeksidir.
           //
-          // `aktif_soru` iki oyuncudan hangisi ileriyse onu gösteren ORTAK
-          // sayaç (senkron dönemden kalma). Asenkron 1v1'de rakip cevap
-          // verdiğinde de artıyor; key ona bağlıyken rakibin her cevabı bu
-          // kartı komple yeniden bindiriyordu: seçili şık, süre sayacı ve
-          // sonuç ekranı sıfırlanıyor, oyuncu "sayfa yenilendi, şıkkı yeniden
-          // işaretledim" diyordu. Sesli sohbette iki taraf aynı anda oynadığı
-          // için sorun orada sürekli görülüyordu.
+          // Neden doğrudan `aktif_soru` yazılmıyor: asenkron maçlarda o
+          // sayaç iki oyuncudan hangisi ileriyse onu gösterir; key ona
+          // bağlıyken rakibin her cevabı kartı komple yeniden bindiriyordu
+          // (seçili şık, süre sayacı ve sonuç ekranı sıfırlanıyor,
+          // oyuncu "sayfa yenilendi" diyordu).
           //
-          // Soruyu çeken effect de `kendiIndeks`e bağlı (yukarıda); key artık
-          // onunla aynı kaynağa bakıyor. Grup ve Hızlı maç GERÇEKTEN senkron
-          // olduğu için oralarda `aktif_soru` doğrudur, dokunulmadı.
+          // Soruyu çeken effect de `kendiIndeks`e bağlı; key onunla aynı
+          // kaynağa bakar.
           key={`${mac.id}-${kendiIndeks}-${duraklamaTuru}`}
           soru={soru}
           onCevapla={cevapla}
