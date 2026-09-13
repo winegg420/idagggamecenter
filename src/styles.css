@@ -2480,3 +2480,53 @@ body.bd-oyun-modu .bd-joker-cubuk {
 @media (prefers-reduced-motion: reduce) {
   .bd-davet-kod-btn { transition: none; }
 }
+
+/* ============================================================
+   BAŞLIK HİYERARŞİSİ VE MASAÜSTÜ GENİŞLİĞİ (13 Eylül 2026)
+   Ölçüldü: sitede hiç <h1> yoktu; 1536 px ekranda içerik 540 px'lik
+   bir şeritti (ekranın %65'i boş).
+   ============================================================ */
+
+/* Sayfa başlıkları artık <h1>; görsel olarak .baslik ile aynı kalsın. */
+h1.baslik, h2.baslik { font-size: 18px; font-weight: 800; margin: 0 0 10px; }
+
+/* Görsel düzeni değiştirmeden ekran okuyucuya başlık veren sınıf. */
+.bd-gorsel-gizli {
+  position: absolute; width: 1px; height: 1px;
+  padding: 0; margin: -1px; overflow: hidden;
+  clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap;
+}
+
+/* Masaüstünde içerik genişlesin. Telefon düzeni (540 px) aynen korunur. */
+@media (min-width: 1024px) {
+  .app { max-width: 760px; }
+}
+@media (min-width: 1400px) {
+  .app { max-width: 900px; }
+}
+
+/* ---- Profil sekmeleri ---- */
+.bd-profil-sekmeler {
+  display: flex; gap: 6px; margin: 14px 0 12px;
+  overflow-x: auto; scrollbar-width: none;
+}
+.bd-profil-sekmeler::-webkit-scrollbar { display: none; }
+.bd-profil-sekme {
+  flex: 1 1 auto; min-height: 44px; white-space: nowrap;
+  border: 0; cursor: pointer; padding: 10px 12px;
+  border-radius: var(--bd-r-tam, 999px);
+  background: var(--bd-yuzey-1); color: var(--bd-metin-2);
+  box-shadow: 0 3px 0 var(--bd-kart-alt);
+  font-family: var(--bd-f-baslik); font-weight: 800; font-size: 13.5px;
+}
+.bd-profil-sekme.aktif {
+  background: var(--bd-vurgu); color: #fff;
+  box-shadow: 0 3px 0 var(--bd-vurgu-2);
+}
+
+/* Gizlilik notu artık ayrı bir kart değil, takma ad ayarının yardımcı
+   metni: küçük ve sönük. */
+p.bd-gizlilik-not {
+  margin: 4px 0 10px; font-size: 12px; line-height: 1.4;
+  color: var(--bd-metin-2, var(--text-dim));
+}

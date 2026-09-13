@@ -355,6 +355,7 @@ export default function TournamentPage() {
 
   return (
     <div>
+      <h1 className="baslik bd-gorsel-gizli">Turnuva</h1>
       {/* ALTIN SORU: sorular bitti, hayatta kalanlar eşit. Eleme turnuvası
           berabere bitemez — biri kazanana kadar yeni soru gelir. */}
       {soru?.altin ? (

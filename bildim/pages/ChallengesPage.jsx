@@ -546,7 +546,7 @@ export default function ChallengesPage() {
 
   return (
     <div>
-      <div className="baslik">Meydan Okuma</div>
+      <h1 className="baslik">Meydan Okuma</h1>
       {hata && <div className="hata-kutu">{hata}</div>}
       {toast && <div className="bd-toast">{toast}</div>}
 

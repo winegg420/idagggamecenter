@@ -208,7 +208,7 @@ export default function JokerDukkani() {
 
   return (
     <div className="bd-dukkan">
-      <div className="baslik">Dükkân</div>
+      <h1 className="baslik">Dükkân</h1>
 
       <div className="bd-dukkan-sekmeler" role="tablist">
         {SEKMELER.map((x) => (

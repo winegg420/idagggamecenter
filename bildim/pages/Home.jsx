@@ -279,6 +279,7 @@ export default function Home() {
 
   return (
     <div className="anasayfa">
+      <h1 className="baslik bd-gorsel-gizli">Ana sayfa</h1>
 
       {/* ======== EN ÜST: RAKİP SENİ BEKLİYOR ========
           Meydan okuman kabul edildi ve karşı taraf ŞU AN maç ekranında

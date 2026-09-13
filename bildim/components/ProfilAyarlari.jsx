@@ -155,12 +155,6 @@ export default function ProfilAyarlari() {
 
   return (
     <>
-      {/* ---------- Gizlilik açıklaması ---------- */}
-      <div className="kart bd-gizlilik-not">
-        <b>Gerçek adın hiçbir zaman gösterilmez.</b> Diğer oyuncular yalnızca takma
-        adını ve seçtiğin avatarı görür.
-      </div>
-
       {/* ---------- Meydanda rahatsız etme ---------- */}
       <div className="kart">
         <div className="bd-kat-baslik"><span>Meydanda ikramlar</span></div>
@@ -193,6 +187,13 @@ export default function ProfilAyarlari() {
             <span className="alt-yazi">{sureMetni(kalanKilit)}</span>
           )}
         </div>
+        {/* GİZLİLİK NOTU: eskiden istatistiklerin hemen altında iki
+            satırlık ayrı bir gri bloktu ve bir AYAR sanılıyordu. Bu bir
+            bilgi notu — ait olduğu yere, takma ad ayarının altına indi. */}
+        <p className="bd-gizlilik-not">
+          Gerçek adın hiçbir zaman gösterilmez; diğer oyuncular yalnızca
+          takma adını ve seçtiğin avatarı görür.
+        </p>
 
         {adDuzenle ? (
           <>

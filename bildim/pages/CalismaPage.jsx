@@ -226,7 +226,7 @@ export default function CalismaPage() {
     const bos = (banka?.bekleyen ?? 0) === 0;
     return (
       <div>
-        <div className="baslik">Hatalarım</div>
+        <h1 className="baslik">Hatalarım</h1>
 
         {yukleniyor ? (
           <div className="kart alt-yazi" style={{ textAlign: "center", padding: 22 }}>

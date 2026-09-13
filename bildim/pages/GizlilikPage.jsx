@@ -10,7 +10,7 @@ const ILETISIM = "idagureli@gmail.com";
 export default function GizlilikPage() {
   return (
     <div className="bd-metin-sayfa">
-      <div className="baslik">Gizlilik politikası</div>
+      <h1 className="baslik">Gizlilik politikası</h1>
       <div className="alt-yazi" style={{ marginBottom: 18 }}>
         Son güncelleme: {GUNCELLEME}
       </div>

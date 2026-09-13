@@ -261,7 +261,7 @@ export default function LeaderboardPage() {
         />
       )}
 
-      <div className="baslik">Lig</div>
+      <h1 className="baslik">Lig</h1>
 
       {hata && <div className="hata-kutu">{hata}</div>}
 

@@ -11,7 +11,7 @@ const ILETISIM = "idagureli@gmail.com";
 export default function KosullarPage() {
   return (
     <div className="bd-metin-sayfa">
-      <div className="baslik">Kullanım koşulları</div>
+      <h1 className="baslik">Kullanım koşulları</h1>
       <div className="alt-yazi" style={{ marginBottom: 18 }}>
         Son güncelleme: {GUNCELLEME}
       </div>

@@ -235,7 +235,7 @@ export default function HizliModPage() {
   if (asama === "secim") {
     return (
       <div>
-        <div className="baslik">Hızlı Mod</div>
+        <h1 className="baslik">Hızlı Mod</h1>
         <div className="kart bd-hizli-tanit">
           <div className="bd-hizli-buyuk">60</div>
           <div className="alt-yazi">

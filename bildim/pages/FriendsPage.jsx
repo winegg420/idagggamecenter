@@ -172,7 +172,7 @@ export default function FriendsPage() {
 
   return (
     <div>
-      <div className="baslik">Arkadaşlar</div>
+      <h1 className="baslik">Arkadaşlar</h1>
       {hata && <div className="hata-kutu">{hata}</div>}
       {bilgi && <div className="bd-bilgi-kutu">{bilgi}</div>}
 

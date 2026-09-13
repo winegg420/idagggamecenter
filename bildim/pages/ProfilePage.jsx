@@ -29,6 +29,8 @@ export default function ProfilePage() {
   const [rozetler, setRozetler] = useState([]);
   const [kazanilan, setKazanilan] = useState(new Set());
   const [kopyalandi, setKopyalandi] = useState(false);
+  // Profil dört sekmeye ayrıldı; varsayılan İstatistiklerim.
+  const [sekme, setSekme] = useState("istatistik");
   const [bildirim, setBildirim] = useState("kapali");
   const [ses, setSes] = useState(() => sesAcikMi());
   const [bildirimHata, setBildirimHata] = useState(null);
@@ -85,6 +87,7 @@ export default function ProfilePage() {
       {/* 2B KARAKTER VİTRİNİ KALKTI (13 Eylül 2026): profilde artık
           seçilen avatar fotoğrafı görünür, 3B karakter yalnız meydanda. */}
 
+      <h1 className="baslik bd-gorsel-gizli">Profil</h1>
       <div className="bd-profil-ust">
         <AvatarCerceve profile={profile} boyut={92} userId={user?.id} />
 
@@ -111,9 +114,12 @@ export default function ProfilePage() {
             <span className="etiket">Şampiyonluk</span>
           </div>
         ) : (
-          <div className="bd-istatistik bd-istatistik-hedef">
-            <span className="hedef">İlk şampiyonluğuna</span>
-            <span className="etiket">1 turnuva kaldı</span>
+          <div className="bd-istatistik">
+            {/* ÜÇ KUTU AYNI TÜRDE: sayı + etiket. Eskiden ortadaki bir
+                cümleydi ("İlk şampiyonluğuna / 1 turnuva kaldı") ve aynı
+                hizada üç farklı tür bilgi duruyordu; kutu taşıyordu. */}
+            <span className="deger">1</span>
+            <span className="etiket">Turnuvaya kaldı</span>
           </div>
         )}
         {(profile.seri ?? 0) > 0 ? (
@@ -122,30 +128,35 @@ export default function ProfilePage() {
             <span className="etiket">Günlük Seri</span>
           </div>
         ) : (
-          <div className="bd-istatistik bd-istatistik-hedef">
-            <span className="hedef">Seriyi başlat</span>
-            <span className="etiket">bugün 1 maç oyna</span>
+          <div className="bd-istatistik">
+            <span className="deger">1</span>
+            <span className="etiket">Maç ile seri başlar</span>
           </div>
         )}
       </div>
 
-      <ProfilAyarlari />
+      {/* ---------- SEKMELER ----------
+          Sayfa 3890 px'ti: kimlik, istatistik, sekiz ayar kartı, rozetler
+          ve davet arka arkaya tek sütundaydı. Bloklar AYNEN korundu,
+          yalnız dört sekmeye ayrıldı. */}
+      <div className="bd-profil-sekmeler" role="tablist" aria-label="Profil bölümleri">
+        {[["istatistik", "İstatistiklerim"], ["ayarlar", "Ayarlar"],
+          ["rozet", "Rozetler"], ["davet", "Davet"]].map(([id, ad]) => (
+          <button
+            key={id}
+            type="button"
+            role="tab"
+            aria-selected={sekme === id}
+            className={"bd-profil-sekme" + (sekme === id ? " aktif" : "")}
+            onClick={() => setSekme(id)}
+          >
+            {ad}
+          </button>
+        ))}
+      </div>
 
+      {sekme === "istatistik" && (<>
       <UstalikIzgarasi />
-
-      {/* ---------- Görünüm (avatar kişiselleştirme) ---------- */}
-      <Link to={y("/gorunum")} className="kart bd-profil-hatalarim">
-        <span className="bd-mod-ikon" style={{ background: "var(--bd-vurgu)" }}>
-          <Ikon ad="tisort" boyut={20} />
-        </span>
-        <div className="bd-profil-hatalarim-metin">
-          <div className="ad">Görünüm</div>
-          <div className="alt-yazi">
-            Saç, şapka, gözlük, kıyafet ve efektleri buradan değiştir.
-          </div>
-        </div>
-        <span className="ok" aria-hidden="true">›</span>
-      </Link>
 
       {/* ---------- Hatalarım bankası ---------- */}
       {banka && (
@@ -162,6 +173,46 @@ export default function ProfilePage() {
           <span className="ok" aria-hidden="true">›</span>
         </Link>
       )}
+
+      {sonraki && (
+        <div className="kart">
+          <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8 }}>
+            <span style={{ fontWeight: 700, fontSize: 14 }}>
+              Sonraki rütbe: <Ikon ad={sonraki.ikon} boyut={15} /> {sonraki.ad}
+            </span>
+            <span className="alt-yazi">
+              {profile.puan}/{sonraki.min}
+            </span>
+          </div>
+          <div className="soru-sayac">
+            <div
+              className="dolgu"
+              style={{
+                width: `${ilerleme}%`,
+                background: `linear-gradient(90deg, ${r.renk}, ${sonraki.renk})`,
+              }}
+            />
+          </div>
+        </div>
+      )}
+      </>)}
+
+      {sekme === "ayarlar" && (<>
+      <ProfilAyarlari />
+
+      {/* ---------- Görünüm (avatar kişiselleştirme) ---------- */}
+      <Link to={y("/gorunum")} className="kart bd-profil-hatalarim">
+        <span className="bd-mod-ikon" style={{ background: "var(--bd-vurgu)" }}>
+          <Ikon ad="tisort" boyut={20} />
+        </span>
+        <div className="bd-profil-hatalarim-metin">
+          <div className="ad">Görünüm</div>
+          <div className="alt-yazi">
+            Saç, şapka, gözlük, kıyafet ve efektleri buradan değiştir.
+          </div>
+        </div>
+        <span className="ok" aria-hidden="true">›</span>
+      </Link>
 
       {/* ---------- Konum (şehir/ülke ligi) ---------- */}
       {konumDuzenle ? (
@@ -184,28 +235,6 @@ export default function ProfilePage() {
           <button className="btn kucuk ikincil" onClick={() => setKonumDuzenle(true)}>
             {profile.ulke ? "Değiştir" : "Seç"}
           </button>
-        </div>
-      )}
-
-      {sonraki && (
-        <div className="kart">
-          <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8 }}>
-            <span style={{ fontWeight: 700, fontSize: 14 }}>
-              Sonraki rütbe: <Ikon ad={sonraki.ikon} boyut={15} /> {sonraki.ad}
-            </span>
-            <span className="alt-yazi">
-              {profile.puan}/{sonraki.min}
-            </span>
-          </div>
-          <div className="soru-sayac">
-            <div
-              className="dolgu"
-              style={{
-                width: `${ilerleme}%`,
-                background: `linear-gradient(90deg, ${r.renk}, ${sonraki.renk})`,
-              }}
-            />
-          </div>
         </div>
       )}
 
@@ -281,52 +310,6 @@ export default function ProfilePage() {
         <TemaDugmesi />
       </div>
 
-      <div className="kart" style={{ textAlign: "center" }}>
-        <div className="baslik">Arkadaşını davet et</div>
-        <div className="alt-yazi" style={{ marginBottom: 12 }}>
-          Her davet için <b>ikiniz de +50 puan</b>.
-          {profile.davet_sayisi > 0 && (
-            <> Şu ana kadar {profile.davet_sayisi} kişi davet ettin.</>
-          )}
-        </div>
-        <button
-          className="btn"
-          onClick={async () => {
-            const link = `${window.location.origin}/?davet=${user.id}`;
-            const mesaj = `Quiz Square'de benimle yarışmaya var mısın? Bu linkle gel, ikimiz de +50 puan kazanalım: ${link}`;
-            if (navigator.share) {
-              try {
-                await navigator.share({ title: "Quiz Square", text: mesaj });
-              } catch { /* vazgeçti */ }
-            } else {
-              await navigator.clipboard.writeText(mesaj);
-              setKopyalandi(true);
-              setTimeout(() => setKopyalandi(false), 2500);
-            }
-          }}
-        >
-          {kopyalandi ? "Kopyalandı" : "Davet linkini paylaş"}
-        </button>
-      </div>
-
-      <div className="kart">
-        <div className="baslik">
-          Rozetler ({kazanilan.size}/{rozetler.length})
-        </div>
-        <div className="rozet-grid">
-          {rozetler.map((r) => {
-            const var_mi = kazanilan.has(r.id);
-            return (
-              <div key={r.id} className={`rozet ${var_mi ? "" : "kilitli"}`}>
-                <div className="rozet-ikon">{var_mi ? r.ikon : <Ikon ad="kilit" boyut={18} />}</div>
-                <div className="rozet-ad">{r.ad}</div>
-                <div className="rozet-aciklama">{r.aciklama}</div>
-              </div>
-            );
-          })}
-        </div>
-      </div>
-
       {/* ---------- Yasal / hesap ---------- */}
       <div className="kart">
         <div className="baslik">Hesap</div>
@@ -356,6 +339,57 @@ export default function ProfilePage() {
       <button className="btn tehlike" onClick={signOut}>
         Çıkış Yap
       </button>
+      </>)}
+
+      {sekme === "rozet" && (<>
+      <div className="kart">
+        <div className="baslik">
+          Rozetler ({kazanilan.size}/{rozetler.length})
+        </div>
+        <div className="rozet-grid">
+          {rozetler.map((r) => {
+            const var_mi = kazanilan.has(r.id);
+            return (
+              <div key={r.id} className={`rozet ${var_mi ? "" : "kilitli"}`}>
+                <div className="rozet-ikon">{var_mi ? r.ikon : <Ikon ad="kilit" boyut={18} />}</div>
+                <div className="rozet-ad">{r.ad}</div>
+                <div className="rozet-aciklama">{r.aciklama}</div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+      </>)}
+
+      {sekme === "davet" && (<>
+      <div className="kart" style={{ textAlign: "center" }}>
+        <div className="baslik">Arkadaşını davet et</div>
+        <div className="alt-yazi" style={{ marginBottom: 12 }}>
+          Her davet için <b>ikiniz de +50 puan</b>.
+          {profile.davet_sayisi > 0 && (
+            <> Şu ana kadar {profile.davet_sayisi} kişi davet ettin.</>
+          )}
+        </div>
+        <button
+          className="btn"
+          onClick={async () => {
+            const link = `${window.location.origin}/?davet=${user.id}`;
+            const mesaj = `Quiz Square'de benimle yarışmaya var mısın? Bu linkle gel, ikimiz de +50 puan kazanalım: ${link}`;
+            if (navigator.share) {
+              try {
+                await navigator.share({ title: "Quiz Square", text: mesaj });
+              } catch { /* vazgeçti */ }
+            } else {
+              await navigator.clipboard.writeText(mesaj);
+              setKopyalandi(true);
+              setTimeout(() => setKopyalandi(false), 2500);
+            }
+          }}
+        >
+          {kopyalandi ? "Kopyalandı" : "Davet linkini paylaş"}
+        </button>
+      </div>
+      </>)}
 
       {silOnay && (
         <Modal onKapat={siliniyor ? undefined : () => { setSilOnay(false); setSilMetin(""); }} etiket="Hesap silme onayı">

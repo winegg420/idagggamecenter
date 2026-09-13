@@ -231,7 +231,7 @@ export default function GorunumPage() {
   };
 
   if (gorunum === null) {
-    return <div className="bd-gorunum"><div className="baslik">Görünüm</div>
+    return <div className="bd-gorunum"><h1 className="baslik">Görünüm</h1>
       <div className="alt-yazi">Yükleniyor…</div></div>;
   }
 

@@ -27,7 +27,7 @@ export default function GardropaGit() {
 
   return (
     <div className="bd-gorunum">
-      <div className="baslik">Görünüm</div>
+      <h1 className="baslik">Görünüm</h1>
       <div className="alt-yazi">Gardırop açılıyor…</div>
       {/* Yönlendirme engellenirse oyuncu elle gidebilsin. */}
       <div className="bd-gorunum-eylemler">
