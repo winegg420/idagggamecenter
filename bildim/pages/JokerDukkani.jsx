@@ -9,8 +9,9 @@ import { desteklenirMi, fiyatlariAl, satinAl, tuket } from "../lib/playFatura.js
 import { useCoin, coinTazele, coinHatasi } from "../lib/coin.js";
 import CoinGorseli, { coinBoyutu } from "../components/CoinGorseli.jsx";
 import { y } from "../lib/yol.js";
-import AvatarVitrin from "../components/AvatarVitrin.jsx";
-import GorunumDukkani from "../components/GorunumDukkani.jsx";
+// 2B vitrin ve 2B katalog SEKMEDEN ÇIKTI (tek karakter sistemi).
+// Dosyalar silinmedi, yalnız buradan çağrılmıyorlar.
+import GardropVitrini from "../components/GardropVitrini.jsx";
 import { useAuth } from "../../src/context/AuthContext.jsx";
 import { ayarlar } from "../lib/ayarlar.js";
 
@@ -227,16 +228,11 @@ export default function JokerDukkani() {
       {hata && <div className="hata-kutu">{hata}</div>}
       {bilgi && <div className="bd-bilgi-kutu">{bilgi}</div>}
 
-      {/* ---------- KIYAFET ---------- */}
-      {sekme === "kiyafet" && (
-        <AvatarVitrin ad={profile?.gorunen_ad} puan={profile?.puan ?? 0} baslik="Şu anki görünümün" />
-      )}
-
-      {/* GÖRÜNÜM SEKMESİ — karakterler ve kozmetik parçalar.
-          Her kart parçanın ÖNİZLEMESİNİ gösterir (o parçayı takmış
-          avatar); sahip olunanda "Sahipsin", etkinlik parçasında kilit.
-          Satın alma kararı sunucuda (karakter_satin_al / esya_satin_al). */}
-      {sekme === "kiyafet" && <GorunumDukkani />}
+      {/* ---------- KIYAFET ----------
+          Tek karakter sistemi: oyuncunun 3B portresi + 3B gardırop
+          kataloğu (avatar3d_katalogum). Denemek ve satın almak gardıropta.
+          Jokerler sekmesine dokunulmadı. */}
+      {sekme === "kiyafet" && <GardropVitrini />}
 
       {/* ---------- Envanter ---------- */}
       {sekme === "joker" && (

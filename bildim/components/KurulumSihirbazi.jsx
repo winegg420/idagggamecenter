@@ -6,6 +6,7 @@ import { useAuth } from "../../src/context/AuthContext.jsx";
 import Avatar from "../../src/components/Avatar.jsx";
 import { bayrak } from "../lib/konum.js";
 import { useDil } from "../lib/dilKanca.js";
+import { GARDROP_YOLU } from "../pages/GardropaGit.jsx";
 
 // 31 karakter avatarı (özgün çizim SVG, tamamı yerel — dış servis yok).
 // Üretici: scratchpad/avatar-uret.mjs. Eski düz siluetler (av1-av8) listeden
@@ -137,6 +138,36 @@ export default function KurulumSihirbazi({ onTamam }) {
     }
   };
 
+  /** Gardıroba gider; oyuncu karakterini kaydedince avatar adımı biter
+   *  (avatar3d_gorunum_kaydet `avatar_onayli`'yı da true yapıyor) ve
+   *  geri döndüğünde sihirbaz kaldığı yerden sürer. */
+  const gardirobaGit = () => {
+    try {
+      window.location.assign(GARDROP_YOLU);
+    } catch (e) {
+      setHata(hataMesaji(e, ceviri("Gardırop açılamadı.")));
+    }
+  };
+
+  /** Sihirbazı atlayan oyuncu engellenmesin: rastgele başlangıç görünümü. */
+  const rastgeleBaslat = async () => {
+    setHata(null);
+    setCalisiyor(true);
+    try {
+      const { error } = await supabase.rpc("avatar3d_rastgele_baslangic");
+      if (error) throw error;
+      await refreshProfile(user.id);
+      setAdim(3);
+    } catch (e) {
+      setHata(hataMesaji(e, ceviri("Karakter oluşturulamadı.")));
+    } finally {
+      setCalisiyor(false);
+    }
+  };
+
+  // ESKİ AVATAR ADIMI — 31 düz SVG ikon ve Google fotoğrafı onayı buradaydı.
+  // Arayüzden çıktı ama `avatar_onayla` RPC'si ve HAZIR_AVATARLAR listesi
+  // silinmedi; geri dönülmek istenirse yerinde duruyorlar.
   const avatarKaydet = async (url) => {
     setHata(null);
     setCalisiyor(true);
@@ -221,23 +252,9 @@ export default function KurulumSihirbazi({ onTamam }) {
 
         {adim === 2 && (
           <>
-            <div className="bd-konum-baslik">{ceviri("Avatarını seç")}</div>
+            <div className="bd-konum-baslik">{ceviri("Karakterini oluştur")}</div>
             <div className="bd-konum-aciklama">
-              {ceviri("Hazır bir avatar seç ya da Google fotoğrafını kullanmayı onayla. Onaylamazsan fotoğrafın kimseye gösterilmez.")}
-            </div>
-
-            <div className="bd-avatar-grid">
-              {HAZIR_AVATARLAR.map((a) => (
-                <button
-                  key={a.url}
-                  className={`bd-avatar-sec ${secilenAvatar === a.url ? "aktif" : ""}`}
-                  aria-label={ceviri("{ad} avatarını seç", { ad: ceviri(a.ad) })}
-                  title={ceviri(a.ad)}
-                  onClick={() => setSecilenAvatar(a.url)}
-                >
-                  <img src={a.url} alt="" />
-                </button>
-              ))}
+              {ceviri("Quiz Square'de tek bir karakterin var: gardıropta kurduğun karakter her yerde — listelerde, maçta ve Meydan'da — aynı görünür.")}
             </div>
 
             {hata && <div className="hata-kutu">{hata}</div>}
@@ -245,29 +262,23 @@ export default function KurulumSihirbazi({ onTamam }) {
             <div className="bd-konum-butonlar">
               <button
                 className="btn"
-                disabled={calisiyor || !secilenAvatar}
-                onClick={() => avatarKaydet(secilenAvatar)}
+                disabled={calisiyor}
+                onClick={gardirobaGit}
               >
-                {ceviri("Bu avatarı kullan")}
+                {ceviri("Gardıroba git")}
               </button>
             </div>
 
-            {googleFoto && (
-              <button
-                className="btn ikincil"
-                style={{ marginTop: 10 }}
-                disabled={calisiyor}
-                onClick={() => avatarKaydet(googleFoto)}
-              >
-                <img
-                  src={googleFoto}
-                  alt=""
-                  referrerPolicy="no-referrer"
-                  style={{ width: 24, height: 24, borderRadius: "50%" }}
-                />
-                {ceviri("Google fotoğrafımı kullan")}
-              </button>
-            )}
+            {/* Sihirbazı burada bırakan engellenmesin: rastgele bir başlangıç
+                görünümüyle devam eder, karakterini sonra kurar. */}
+            <button
+              className="btn ikincil"
+              style={{ marginTop: 10 }}
+              disabled={calisiyor}
+              onClick={rastgeleBaslat}
+            >
+              {calisiyor ? ceviri("Hazırlanıyor…") : ceviri("Şimdilik rastgele bir karakterle başla")}
+            </button>
             <button
               className="btn ikincil"
               style={{ marginTop: 10 }}

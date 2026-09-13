@@ -17,24 +17,9 @@
 import React,{useEffect,useRef,useState} from 'react';
 import {parcaPortresi} from './portre.js';
 
-// Ölçüldü (13 Eylül 2026): bir portre ~55 ms, bunun ~31 ms'i modelin
-// kurulması. 16.7 ms'lik kare bütçesine sığmıyor; bu yüzden iş kareyi
-// BEKLETMEK yerine BOŞ ZAMANA alınır (requestIdleCallback). Tarayıcı
-// desteklemiyorsa requestAnimationFrame'e düşülür — davranış aynı, yalnız
-// sahne o karede bir tık takılır.
-const kuyruk=[];let bekleyen=0;
-const bosZamanda=typeof requestIdleCallback==='function'
- ? (fn)=>requestIdleCallback(fn,{timeout:500})
- : (fn)=>requestAnimationFrame(fn);
-
-function kuyruguIsle(){
- bekleyen=0;
- const is=kuyruk.shift();
- if(is){try{is();}catch(e){console.error('[Portre] kuyruk isi:',e);}}
- // Kare başına EN FAZLA BİR portre: 12'sini üst üste üretmek sahneyi dondurur.
- if(kuyruk.length)bekleyen=bosZamanda(kuyruguIsle);
-}
-function siraya(is){kuyruk.push(is);if(!bekleyen)bekleyen=bosZamanda(kuyruguIsle);}
+// Kuyruk PAYLAŞILIR (portre-kuyrugu.js): listelerdeki avatarlar da aynı
+// kuyruğu kullanır, toplam yük kare başına bir render olarak kalır.
+import {siraya} from './portre-kuyrugu.js';
 
 /**
  * @param {object} p

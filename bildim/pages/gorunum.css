@@ -278,3 +278,36 @@
   display: flex; gap: 8px; justify-content: center; align-items: center;
   flex-wrap: wrap; margin-top: 8px;
 }
+
+/* ============================================================
+   GARDIROP VİTRİNİ — dükkânın "Kıyafet" sekmesi
+   ============================================================ */
+.bd-gardrop-vitrin-ic {
+  display: flex; gap: 16px; align-items: center; flex-wrap: wrap;
+}
+.bd-gardrop-vitrin-ad {
+  font-family: var(--bd-f-baslik); font-weight: 900; font-size: 18px;
+  color: var(--bd-metin);
+}
+.bd-gardrop-liste { display: flex; flex-direction: column; gap: 6px; }
+.bd-gardrop-satir {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  /* Dokunma hedefi en az 44 px */
+  min-height: 44px; padding: 8px 12px; border-radius: 12px;
+  background: var(--bd-yuzey-2, #EDF4FA);
+  text-decoration: none; color: var(--bd-metin);
+  font-family: var(--bd-f-govde); font-weight: 800; font-size: 13px;
+}
+.bd-gardrop-satir-ad { display: flex; flex-direction: column; }
+.bd-gardrop-satir-ad small {
+  font-weight: 700; font-size: 11px; color: var(--bd-metin-2);
+}
+.bd-gardrop-satir-fiyat {
+  display: inline-flex; align-items: center; gap: 4px; white-space: nowrap;
+  font-family: var(--bd-f-baslik); font-weight: 900; font-size: 12px;
+  color: var(--bd-odul-metin);
+}
+.bd-gardrop-satir.sende .bd-gardrop-satir-fiyat { color: var(--bd-metin-2); }
+.bd-gardrop-satir.odul { opacity: 0.8; }
+:root[data-tema="koyu"] .bd-gardrop-satir-fiyat { color: var(--bd-odul); }
+:root[data-tema="koyu"] .bd-gardrop-satir.sende .bd-gardrop-satir-fiyat { color: var(--bd-metin-2); }
