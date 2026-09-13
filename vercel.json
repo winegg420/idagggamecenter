@@ -1,6 +1,6 @@
 {
   "framework": "vite",
-  "buildCommand": "npx vite build --mode bildim --config bildim/avatar3d/vite.prototip.config.js && node araclar/tarayici-uyumluluk.mjs",
+  "buildCommand": "npm run build && node araclar/tarayici-uyumluluk.mjs",
   "outputDirectory": "dist",
   "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }]
 }

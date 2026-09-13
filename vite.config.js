@@ -148,6 +148,31 @@ export default defineConfig(({ mode }) => {
     cssTarget: ["safari12", "chrome64", "firefox67", "edge79"],
 
     rollupOptions: {
+      // ============================================================
+      // GİRİŞ NOKTALARI — MODA BAĞLI
+      //
+      // Bu depo İKİ Vercel projesini besler ve ayrımı YALNIZ `VITE_MOD`
+      // yapar (bkz. CLAUDE.md "İKİ VERCEL PROJESİ"):
+      //   • VITE_MOD tanımsız → idaGG Game Center (hub). TEK giriş:
+      //     index.html. Gardırop/atölye/meydan HTML'leri hub'a girmez.
+      //   • VITE_MOD=bildim   → Quiz Square. index.html'in yanına
+      //     bildim/avatar3d/ altındaki üç sayfa da derlenir; yoksa
+      //     gardırop ve meydan canlıdan silinir.
+      //
+      // BU LİSTE `vercel.json`'a TAŞINMAZ. Orada `--mode bildim` yazmak
+      // hub'ı da Quiz Square'e çevirir (12 Eylül'de tam olarak bu oldu:
+      // idagg-game-center adresinde gardırop açıldı, diğer oyunlar
+      // kayboldu). Moda bağlı her şey burada, `VITE_MOD` kontrolüyle.
+      // ============================================================
+      input: uygulamaModu === "bildim"
+        ? {
+            oyun: "index.html",
+            atolye: "bildim/avatar3d/index.html",
+            meydan: "bildim/avatar3d/meydan.html",
+            gardrop: "bildim/avatar3d/gardrop.html",
+          }
+        : "index.html",
+
       output: {
         // Satıcı kodunu ayır: uygulama her deploy'da değişse de bu parçalar
         // tarayıcı önbelleğinde kalır; ilk açılışta indirilen paket küçülür.

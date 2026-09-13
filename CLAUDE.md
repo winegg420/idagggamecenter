@@ -34,17 +34,48 @@ npx supabase db push                            # Migration'ları uygula
 npx supabase functions deploy generate-questions
 ```
 
+## İKİ VERCEL PROJESİ — `vercel.json`'a MOD GÖMME
+
+Bu depo **iki Vercel projesini** besler:
+
+| Proje | Adres | Ne derlenir |
+|---|---|---|
+| `idagg-game-center` | idagg-game-center.vercel.app | **Hub** — tüm oyunlar |
+| `quizsquare` | quizsquare.vercel.app | **Yalnız Quiz Square** |
+
+Ayrımı **tek şey** yapar: `VITE_MOD` ortam değişkeni. quizsquare
+projesinde `bildim` olarak tanımlıdır; hub projesinde **tanımsızdır**.
+
+`vercel.json`'daki `buildCommand` **moda özel olmamalıdır.** İki proje de
+aynı `vercel.json`'u okur ve oradaki komut panel ayarını **ezer**; oraya
+`--mode bildim` yazmak hub'ı da Quiz Square'e çevirir. 12 Eylül 2026'da
+tam olarak bu oldu: idagg-game-center adresinde Quiz Square'in gardırobu
+açıldı, Kafa Topu / DidaGP / Meyve Kes / PatiRun / RUN / Gladius canlıdan
+erişilemez oldu.
+
+Moda bağlı **her şey** `vite.config.js` içinde `VITE_MOD` kontrolüyle
+yapılır — giriş noktaları (`rollupOptions.input`) dahil. Quiz Square'de
+`index.html`'in yanına `bildim/avatar3d/` altındaki üç sayfa da
+(gardrop, meydan, atölye) girer; hub'da yalnız `index.html` vardır.
+
+Kökteki `index.html` **hub'ın kimliğini** taşır; Quiz Square'in başlık ve
+paylaşım alanlarını `vite.config.js`'teki "bildim-modu" eklentisi yazar.
+
 ## 3B AVATAR SİSTEMİ — DERLEME AYARINA DOKUNMA
 
-Quiz Square'in 3B avatar sistemi `bildim/avatar3d/` altındadır ve
-`vercel.json` bunun **çok girişli** derlemesini kullanır
-(`oyun` + `atolye` + `meydan` + `gardrop`). Bu derleme ayarı
-değiştirilirse gardırop/atölye/meydan sayfaları canlıdan silinir —
-istekler SPA kabuğuna düşer ve sayfa yokmuş gibi davranır.
-12 Eylül 2026'da tam olarak bu oldu.
+Quiz Square'in 3B avatar sistemi `bildim/avatar3d/` altındadır. O sayfaların
+(`atolye` + `meydan` + `gardrop`) derlemeye girmesi **çok girişli**
+yapılandırmaya bağlıdır ve bu yapılandırma `vite.config.js` içindeki
+`rollupOptions.input` bloğundadır — **yalnız `VITE_MOD === 'bildim'` iken**.
+Orası bozulursa gardırop/atölye/meydan sayfaları canlıdan silinir; istekler
+SPA kabuğuna düşer ve sayfa yokmuş gibi davranır. 12 Eylül 2026'da tam olarak
+bu oldu.
 
-`npm run build:bildim` aynı config'i kullanır: yereldeki derleme ile
-canlıdaki derleme birbirinden ayrılmasın.
+Giriş listesi **`vercel.json`'a taşınmaz** — sebebi yukarıdaki
+"İKİ VERCEL PROJESİ" bölümünde.
+
+`npm run build:bildim` (`bildim/avatar3d/vite.prototip.config.js`) yerel
+geliştirme için durur; canlı derlemeyle aynı girişleri üretir.
 
 Depo dışındaki Codex worktree'si **artık kaynak değildir**; her şey bu
 depodadır.
