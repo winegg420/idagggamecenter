@@ -147,7 +147,7 @@ export default function GameCenter() {
       </section>
 
       <footer className="gc-footer">
-        Quiz Square · Tüm oyunlar tek çatı altında 🚀
+        idaGG Game Center · Tüm oyunlar tek çatı altında 🚀
         {/* Yasal metinler ana kapıdan da erişilebilir olmalı (mağaza ve reklam ağı şartı). */}
         <div className="gc-footer-yasal">
           <Link to="/gizlilik">Gizlilik politikası</Link>
