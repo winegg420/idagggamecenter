@@ -5037,3 +5037,18 @@ Aşama 1 canlıda doğrulandıktan sonra başlandı; ayrı push edildi.
   normal. Gerçek cihazda etkisi yok.
 - Bilinen sınır: sekme kapatılır/yenilenirse `olta_birak` isteği iptal olabiliyor (fetch abort); olta en geç
   60 dk'da sunucuda düşer. Uygulama içi "Oyuna dön" ile çıkışta silinir.
+
+### KALDIĞIM YER (14 Eyl 2026 22:10, sahibi haftalık limit nedeniyle durdurdu)
+Aşama 1 ve 2 canlıda; son commit `6c050e3` (bot ziyareti köprüdeki oyuncuyu hedeflemez). Kalanlar:
+1. **Bot köprüde olta atıyor — canlı ekran görüntüsü alınamadı.** Sebep bulunup düzeltildi (`6c050e3`,
+   push edildi; Vercel dağıtımı doğrulanmadı). Doğrulama yolu: `scratchpad/balikbekle.mjs` canlı nöbet
+   tohumlarından pencereyi yazıyor (`PENCERE hh:mm:ss - hh:mm:ss`, x/z); o anda /harita'da ekran görüntüsü.
+   Not: gözlem sırasında oyuncu köprüde DURMASIN (düzeltme öncesi bu ziyareti tetikliyordu).
+2. Uygulama içi "Oyuna dön" ile çıkışta `olta_birak`'ın satırı sildiğini canlıda doğrula
+   (`select * from oltalar`). Kurucu hesapta olta var (22:43'te sunucu düşürür) — zararsız.
+3. Regresyon turu (kod dokunulmadı, yeniden koşulmadı): meydan ikram + meydan okuma (yaklaşma) büyük
+   haritada; turnuva binası kapısı; kamera/zoom; iOS Safari dokunma/kaydırma (gerçek cihaz).
+4. İkinci hesapla köprü yüksekliği (misafir girişi kapalı) — yalnız formül testiyle doğrulandı.
+5. Test kabuğu `.tmp/harita-test/` (git dışı): `npx vite --port 5175 --mode bildim` + Playwright
+   `scratchpad/kopru.cjs`, `botplan.cjs <tohum> <sn>`. Chrome otomasyonunda Worker-RAF şart (aşağıda).
+Ölçülen ama bırakılan küçük şey: bulutlar (y 22-31, r 60-105) zumlu kameranın önünden geçebiliyor (eskiden de).
