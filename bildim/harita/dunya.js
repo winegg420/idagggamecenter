@@ -37,9 +37,16 @@ export { esyaBilgisi };
 // Görünüm sayfasındaki önizleme de aynı avatarı çiziyor, iki kopya olmamalı.
 export { nesneyiSerbestBirak };
 
-const YARICAP = 30; // binaların meydan merkezine uzaklığı
-const HAVUZ_YARICAP = 6.6;
-const HARITA_SINIRI = 58;
+// PAKET 13 — HARİTA BÜYÜDÜ: binalar 30 → 44, göl 6,6 → 14, sınır 58 → 80.
+// Taş meydan 17 → 26; bank/lamba/ağaç halkaları buna oranlandı.
+const YARICAP = 44; // binaların meydan merkezine uzaklığı
+const HAVUZ_YARICAP = 14; // göl yarıçapı (eski çeşme havuzu)
+const HARITA_SINIRI = 80;
+const MEYDAN_R = 26; // taş meydanın yarıçapı
+// KÖPRÜ: gölün üstünden x ekseni boyunca geçen kemer. L = yarı uzunluk
+// (kıyıya 1,8 birim taşar), W = güverte genişliği, H = kemerin tepe yüksekliği.
+// Kemer yüksekliği tek yerde: zeminYuksekligi(). Çarpışma ve avatar y buna bakar.
+const KOPRU = { L: 15.8, W: 3.4, H: 3.0 };
 
 /** Bina listesi — renkler mevcut mod renkleriyle aynı, değiştirme. */
 export const BINALAR = [
@@ -97,7 +104,7 @@ export function dunyaKur(kapsayici, s = {}) {
 
   const sahne = new THREE.Scene();
   sahne.background = new THREE.Color(0xbfe8ff);
-  sahne.fog = new THREE.Fog(0xcdeeff, 60, 135);
+  sahne.fog = new THREE.Fog(0xcdeeff, 85, 190);
 
   // GÖRÜŞ AÇISI: dikeyde 42°, yatayda 48°. Telefon yan çevrilince ekran
   // alçalıyor ve sahne dar bir şeritten bakılıyormuş gibi görünüyordu.
@@ -116,7 +123,7 @@ export function dunyaKur(kapsayici, s = {}) {
   gunes.position.set(28, 46, 20);
   gunes.castShadow = !dusukDonanim;
   gunes.shadow.mapSize.set(2048, 2048);
-  const d = 62;
+  const d = 92;
   gunes.shadow.camera.left = -d; gunes.shadow.camera.right = d;
   gunes.shadow.camera.top = d;   gunes.shadow.camera.bottom = -d;
   gunes.shadow.camera.far = 140;
@@ -127,10 +134,10 @@ export function dunyaKur(kapsayici, s = {}) {
   const binalar = [];
 
   // ---------- zemin: çim ----------
-  const cim = new THREE.Mesh(new THREE.CircleGeometry(66, 64), mat(0x86ce6b));
+  const cim = new THREE.Mesh(new THREE.CircleGeometry(92, 64), mat(0x86ce6b));
   cim.rotation.x = -Math.PI / 2; cim.receiveShadow = true; sahne.add(cim);
   for (let i = 0; i < 26; i++) {
-    const a = Math.random() * Math.PI * 2, r = 18 + Math.random() * 42;
+    const a = Math.random() * Math.PI * 2, r = 28 + Math.random() * 60;
     const yama = new THREE.Mesh(
       new THREE.CircleGeometry(2.5 + Math.random() * 4.5, 16),
       mat(Math.random() < 0.5 ? 0x7cc462 : 0x93d677)
@@ -141,44 +148,78 @@ export function dunyaKur(kapsayici, s = {}) {
   }
 
   // ---------- meydan: kaldırım taşı ----------
-  const meydan = new THREE.Mesh(new THREE.CylinderGeometry(17, 17, 0.35, 64), mat(0xe8dfcb));
+  const meydan = new THREE.Mesh(new THREE.CylinderGeometry(MEYDAN_R, MEYDAN_R, 0.35, 64), mat(0xe8dfcb));
   meydan.position.y = 0.17; meydan.receiveShadow = true; sahne.add(meydan);
-  const halka = new THREE.Mesh(new THREE.TorusGeometry(17, 0.45, 8, 64), mat(0xc9bc9e));
+  const halka = new THREE.Mesh(new THREE.TorusGeometry(MEYDAN_R, 0.45, 8, 64), mat(0xc9bc9e));
   halka.rotation.x = Math.PI / 2; halka.position.y = 0.3; halka.castShadow = true; sahne.add(halka);
   for (let k = 0; k < 24; k++) {
     const ac = (k / 24) * Math.PI * 2;
-    const cizgi = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.06, 11), mat(0xd6cbb2));
-    cizgi.position.set(Math.cos(ac) * 11.2, 0.36, Math.sin(ac) * 11.2);
+    const cizgi = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.06, MEYDAN_R - HAVUZ_YARICAP - 1), mat(0xd6cbb2));
+    const cr = (MEYDAN_R + HAVUZ_YARICAP) / 2;
+    cizgi.position.set(Math.cos(ac) * cr, 0.36, Math.sin(ac) * cr);
     cizgi.rotation.y = -ac; sahne.add(cizgi);
   }
-  for (let rr = 6; rr <= 15; rr += 3) {
+  for (let rr = HAVUZ_YARICAP + 2; rr <= MEYDAN_R - 1; rr += 3) {
     const ring = new THREE.Mesh(new THREE.TorusGeometry(rr, 0.1, 6, 48), mat(0xd6cbb2));
     ring.rotation.x = Math.PI / 2; ring.position.y = 0.36; sahne.add(ring);
   }
 
-  // ---------- havuz ----------
+  // ---------- göl (Paket 13; eskiden çeşme) ----------
+  // Sütun, heykel ve su jetleri kalktı: köprü tam ortadan geçiyor.
+  // Su taş meydanın ÜSTÜNE çizilir (y 0,40 > taş 0,35): göl meydana gömülü durur.
   const havuz = new THREE.Group(); sahne.add(havuz);
-  const kaide = new THREE.Mesh(new THREE.CylinderGeometry(5.4, 5.9, 1.1, 32), mat(0xf0e8d6));
-  kaide.position.y = 0.7; kaide.castShadow = true; kaide.receiveShadow = true; havuz.add(kaide);
-  const kenarlik = new THREE.Mesh(new THREE.TorusGeometry(5.4, 0.45, 10, 40), mat(0xdcd1b8));
-  kenarlik.rotation.x = Math.PI / 2; kenarlik.position.y = 1.25; kenarlik.castShadow = true; havuz.add(kenarlik);
+  const kenarlik = new THREE.Mesh(new THREE.TorusGeometry(HAVUZ_YARICAP, 0.5, 10, 72), mat(0xdcd1b8));
+  kenarlik.rotation.x = Math.PI / 2; kenarlik.position.y = 0.45; kenarlik.castShadow = true; havuz.add(kenarlik);
   const suMat = new THREE.MeshLambertMaterial({ color: 0x4fc3e8, transparent: true, opacity: 0.88 });
-  const su = new THREE.Mesh(new THREE.CircleGeometry(5.15, 40), suMat);
-  su.rotation.x = -Math.PI / 2; su.position.y = 1.24; havuz.add(su);
-  const sutun = new THREE.Mesh(new THREE.CylinderGeometry(0.5, 0.85, 2.6, 16), mat(0xf0e8d6));
-  sutun.position.y = 2.5; sutun.castShadow = true; havuz.add(sutun);
-  const tas = new THREE.Mesh(new THREE.CylinderGeometry(2.1, 2.1, 0.4, 28), mat(0xf0e8d6));
-  tas.position.y = 3.9; tas.castShadow = true; havuz.add(tas);
-  const tepe = new THREE.Mesh(new THREE.SphereGeometry(0.75, 18, 14), mat(0xffc53d));
-  tepe.position.y = 4.6; tepe.castShadow = true; havuz.add(tepe);
-  const jetler = [];
-  for (let j = 0; j < 8; j++) {
-    const jm = new THREE.Mesh(new THREE.SphereGeometry(0.2, 8, 6), suMat);
-    havuz.add(jm); jetler.push({ m: jm, f: Math.random(), a: (j / 8) * Math.PI * 2 });
+  const su = new THREE.Mesh(new THREE.CircleGeometry(HAVUZ_YARICAP - 0.3, 72), suMat);
+  su.rotation.x = -Math.PI / 2; su.position.y = 0.4; havuz.add(su);
+  const dalgalar = [];
+  for (let i = 0; i < 3; i++) {
+    const dm = new THREE.Mesh(new THREE.TorusGeometry(1.2, 0.05, 6, 30), suMat.clone());
+    dm.rotation.x = Math.PI / 2; dm.position.set((i - 1) * 7, 0.44, (i % 2 ? -1 : 1) * 5);
+    havuz.add(dm); dalgalar.push({ m: dm, f: i / 3 });
   }
-  const dalgaMat = suMat.clone();
-  const dalga = new THREE.Mesh(new THREE.TorusGeometry(1.4, 0.05, 6, 30), dalgaMat);
-  dalga.rotation.x = Math.PI / 2; dalga.position.y = 1.28; havuz.add(dalga);
+
+  // ---------- köprü ----------
+  /** Köprü ayak izinde mi (x boyunca, gölün üstünden)? */
+  function kopruUstundeMi(x, z) {
+    return Math.abs(x) <= KOPRU.L && Math.abs(z) <= KOPRU.W / 2;
+  }
+  /** Kemerin (x) noktasındaki yüksekliği; ayak izi dışında 0. */
+  function kemer(x) { return Math.max(0, KOPRU.H * (1 - (x / KOPRU.L) ** 2)); }
+  /**
+   * Zemin yüksekliği: köprüdeyse kemer, değilse 0. TEK KAYNAK — avatar y,
+   * çarpışma ve ağ paketi buna bakar. (Zıplama yüksekliği bunun üstüne eklenir.)
+   */
+  function zeminYuksekligi(x, z) { return kopruUstundeMi(x, z) ? kemer(x) : 0; }
+  {
+    const kopru = new THREE.Group(); sahne.add(kopru);
+    const guverteMat = mat(0xe3d9c2), korkulukMat = mat(0xc9bc9e), ayakMat = mat(0xd6cbb2);
+    const PARCA = 26, adim = (KOPRU.L * 2) / PARCA;
+    for (let i = 0; i < PARCA; i++) {
+      const x0 = -KOPRU.L + adim * i, x1 = x0 + adim, xm = (x0 + x1) / 2;
+      const y0 = kemer(x0), y1 = kemer(x1);
+      const egim = Math.atan2(y1 - y0, adim), boy = Math.hypot(adim, y1 - y0) + 0.06;
+      const g = new THREE.Mesh(new THREE.BoxGeometry(boy, 0.32, KOPRU.W), guverteMat);
+      g.position.set(xm, 0.35 + (y0 + y1) / 2 - 0.16, 0);
+      g.rotation.z = egim; g.castShadow = true; g.receiveShadow = true; kopru.add(g);
+      // Korkuluk: iki yanda üst ray + her iki parçada bir dikme
+      for (const sg of [-1, 1]) {
+        const ray = new THREE.Mesh(new THREE.BoxGeometry(boy, 0.12, 0.12), korkulukMat);
+        ray.position.set(xm, 0.35 + (y0 + y1) / 2 + 1.0, sg * (KOPRU.W / 2 - 0.12));
+        ray.rotation.z = egim; ray.castShadow = true; kopru.add(ray);
+        if (i % 2 === 0) {
+          const dikme = new THREE.Mesh(new THREE.BoxGeometry(0.14, 1.05, 0.14), korkulukMat);
+          dikme.position.set(x0 + 0.1, 0.35 + kemer(x0 + 0.1) + 0.5, sg * (KOPRU.W / 2 - 0.12));
+          dikme.castShadow = true; kopru.add(dikme);
+        }
+      }
+    }
+    for (const px of [-7.5, 7.5]) {
+      const ayak = new THREE.Mesh(new THREE.CylinderGeometry(0.8, 1.0, 0.35 + kemer(px), 12), ayakMat);
+      ayak.position.set(px, (0.35 + kemer(px)) / 2, 0); ayak.castShadow = true; kopru.add(ayak);
+    }
+  }
 
   // ---------- ağaç ----------
   function agac(x, z, olcek, tip) {
@@ -281,10 +322,10 @@ export function dunyaKur(kapsayici, s = {}) {
       x: Math.cos(a) * YARICAP, z: Math.sin(a) * YARICAP,
       w: 9.5, h: 7, d: 8.5,
     });
-    const uz = YARICAP - 17 + 2;
+    const uz = YARICAP - MEYDAN_R + 2;
     const yol = new THREE.Mesh(new THREE.PlaneGeometry(3.4, uz + 4), mat(0xe8dfcb));
     yol.rotation.x = -Math.PI / 2; yol.rotation.z = -a;
-    yol.position.set(Math.cos(a) * (17 + uz / 2 - 2), 0.06, Math.sin(a) * (17 + uz / 2 - 2));
+    yol.position.set(Math.cos(a) * (MEYDAN_R + uz / 2 - 2), 0.06, Math.sin(a) * (MEYDAN_R + uz / 2 - 2));
     yol.receiveShadow = true; sahne.add(yol);
   });
 
@@ -313,29 +354,54 @@ export function dunyaKur(kapsayici, s = {}) {
     g.position.set(x, 0, z); sahne.add(g);
     engeller.push({ x, z, r: 0.6 });
   }
+  // Paket 13: iç halka bank 12,5 → 20 (açı 0'dan: oyuncu doğuş noktası 90°'de
+  // boş kalsın), lamba 15,6 → 24. Büyüyen dış alan için ikinci halka bank
+  // (36), lamba (37) ve çiçek tarhı (28) — hepsi bina/ağaç açılarından uzak.
   for (let b = 0; b < 6; b++) {
-    const ba = (b / 6) * Math.PI * 2 + Math.PI / 6;
-    bank(Math.cos(ba) * 12.5, Math.sin(ba) * 12.5, -ba + Math.PI / 2);
+    const ba = (b / 6) * Math.PI * 2;
+    bank(Math.cos(ba) * 20, Math.sin(ba) * 20, -ba + Math.PI / 2);
+  }
+  for (let b = 0; b < 6; b++) {
+    const ba = (b / 6) * Math.PI * 2 + Math.PI / 12;
+    bank(Math.cos(ba) * 36, Math.sin(ba) * 36, -ba + Math.PI / 2);
   }
   for (let l = 0; l < 8; l++) {
     const la = (l / 8) * Math.PI * 2 + Math.PI / 8;
-    lamba(Math.cos(la) * 15.6, Math.sin(la) * 15.6);
+    lamba(Math.cos(la) * 24, Math.sin(la) * 24);
+    lamba(Math.cos(la) * 37, Math.sin(la) * 37);
+  }
+  function cicekTarhi(x, z) {
+    const g = new THREE.Group();
+    const taban = new THREE.Mesh(new THREE.CylinderGeometry(1.2, 1.3, 0.4, 12), mat(0xb07a4a));
+    taban.position.y = 0.2; taban.castShadow = true; g.add(taban);
+    const renkler = [0xff5b4a, 0xffb020, 0xec4899, 0xa855f7, 0xffffff];
+    for (let i = 0; i < 7; i++) {
+      const a = (i / 7) * Math.PI * 2, r = i === 0 ? 0 : 0.7;
+      const c = new THREE.Mesh(new THREE.SphereGeometry(0.28, 8, 6), mat(renkler[i % renkler.length]));
+      c.position.set(Math.cos(a) * r, 0.62, Math.sin(a) * r); g.add(c);
+    }
+    g.position.set(x, 0, z); sahne.add(g);
+    engeller.push({ x, z, r: 1.3 });
+  }
+  for (let c = 0; c < 5; c++) {
+    const ca = (c / 5) * Math.PI * 2 + Math.PI / 10;
+    cicekTarhi(Math.cos(ca) * 28, Math.sin(ca) * 28);
   }
 
   // ağaçlar — meydan çevresindeki 7 ağaç sabit; dış ağaç/çalı sayısı düşük
   // donanımda yarıya iner (referans: 26 ağaç, 34 çalı)
   for (let t = 0; t < 7; t++) {
     const ta = (t / 7) * Math.PI * 2 + Math.PI / 7;
-    agac(Math.cos(ta) * 21, Math.sin(ta) * 21, 1, t % 2);
+    agac(Math.cos(ta) * 31, Math.sin(ta) * 31, 1, t % 2);
   }
   const disAgac = dusukDonanim ? 13 : 26;
   for (let t2 = 0; t2 < disAgac; t2++) {
-    const a2 = Math.random() * Math.PI * 2, r2 = 36 + Math.random() * 24;
+    const a2 = Math.random() * Math.PI * 2, r2 = 50 + Math.random() * 36;
     agac(Math.cos(a2) * r2, Math.sin(a2) * r2, 0.85 + Math.random() * 0.5, Math.round(Math.random()));
   }
   const caliSayisi = dusukDonanim ? 17 : 34;
   for (let c2 = 0; c2 < caliSayisi; c2++) {
-    const ca = Math.random() * Math.PI * 2, cr = 20 + Math.random() * 40;
+    const ca = Math.random() * Math.PI * 2, cr = 30 + Math.random() * 58;
     const cal = new THREE.Mesh(new THREE.SphereGeometry(0.75 + Math.random() * 0.6, 10, 8), mat(0x57b063));
     cal.position.set(Math.cos(ca) * cr, 0.5, Math.sin(ca) * cr);
     cal.castShadow = true; sahne.add(cal);
@@ -353,7 +419,7 @@ export function dunyaKur(kapsayici, s = {}) {
       pf.position.set((Math.random() - 0.5) * 6, (Math.random() - 0.5) * 1.2, (Math.random() - 0.5) * 3);
       bg.add(pf);
     }
-    const bla = Math.random() * Math.PI * 2, blr = 45 + Math.random() * 30;
+    const bla = Math.random() * Math.PI * 2, blr = 60 + Math.random() * 45;
     bg.position.set(Math.cos(bla) * blr, 22 + Math.random() * 9, Math.sin(bla) * blr);
     bg.userData.hiz = 0.3 + Math.random() * 0.4;
     sahne.add(bg); bulutlar.push(bg);
@@ -426,7 +492,7 @@ export function dunyaKur(kapsayici, s = {}) {
    *   ziplama.js hesaplar; burası yalnız uygular — modeller değişse de
    *   zıplama mantığı yerinde kalsın diye (bkz. ziplama.js başlığı).
    */
-  function yurumeAnimasyonu(av, dt, guc, zipla = 0) {
+  function yurumeAnimasyonu(av, dt, guc, zipla = 0, zemin = 0) {
     const u = av.userData;
     // Dans sürerken yürüme animasyonu çalışmaz. Oyuncu yürümeye başlarsa
     // dans kesilir (uzak oyuncuda da: hareket hız paketlerinden anlaşılır).
@@ -437,14 +503,14 @@ export function dunyaKur(kapsayici, s = {}) {
     // 3B GÖVDE: yürüme/bekleme/zıplama duruşunu iskelet üzerinden
     // meydan-model.js veriyor (bacak, diz, kol eklemleri). Aşağıdaki
     // billboard salınımı 2B sprite içindi, 3B modelde karşılığı yok.
-    if (u.gercek3d) { meydanModelYuru(av, dt, guc, zipla); return; }
+    if (u.gercek3d) { meydanModelYuru(av, dt, guc, zipla, zemin); return; }
     // ZIPLARKEN YÜRÜME KESİLİR: bacaklar hafif toplanır, sprite "idle"a
     // döner, adım salınımı hiç işlemez.
     if (zipla > 0) {
       u.bacaklar.children[0].rotation.x = -0.35;
       u.bacaklar.children[1].rotation.x = -0.2;
       u.kollar.rotation.x = -0.5;
-      av.position.y = zipla;
+      av.position.y = zemin + zipla;
       karakterPozGuncelle(av, false);
       karakterYonGuncelle(av, kamera);
       return;
@@ -454,7 +520,7 @@ export function dunyaKur(kapsayici, s = {}) {
     u.bacaklar.children[0].rotation.x = sal;
     u.bacaklar.children[1].rotation.x = -sal;
     u.kollar.rotation.x = -sal * 0.55;
-    av.position.y = guc > 0.05 ? Math.abs(Math.sin(u.yurumeFaz)) * 0.09 : 0;
+    av.position.y = zemin + (guc > 0.05 ? Math.abs(Math.sin(u.yurumeFaz)) * 0.09 : 0);
     // BILLBOARD: yürürken run1/run2, dururken idle; bakış yönü kameraya göre.
     karakterPozGuncelle(av, guc > 0.05);
     karakterYonGuncelle(av, kamera);
@@ -485,7 +551,7 @@ export function dunyaKur(kapsayici, s = {}) {
     }));
     sp.scale.set(2.2, 2.2, 1);
     sp.position.copy(hedefAvatar.position);
-    sp.position.y = 4.8;
+    sp.position.y = hedefAvatar.position.y + 4.8;
     sahne.add(sp);
     balonlar.push({ s: sp, t: 0 });
   }
@@ -501,8 +567,19 @@ export function dunyaKur(kapsayici, s = {}) {
         poz.z = e.z + (dz / uz) * min;
       }
     }
+    // KÖPRÜ KORKULUĞU (Paket 13): köprü boyunca yandan çıkılmaz/girilmez.
+    // Korkuluk şeridine düşen nokta hangi tarafa yakınsa oraya itilir.
+    const koprude = Math.abs(poz.x) <= KOPRU.L;
+    const ic = KOPRU.W / 2 - 0.35, dis = KOPRU.W / 2 + 0.7;
+    if (koprude) {
+      const az = Math.abs(poz.z);
+      if (az > ic && az < dis) poz.z = (poz.z < 0 ? -1 : 1) * (az - ic < dis - az ? ic : dis);
+    }
+    const guvertede = koprude && Math.abs(poz.z) <= ic;
     const d0 = Math.hypot(poz.x, poz.z);
-    if (d0 < HAVUZ_YARICAP && d0 > 0.0001) { poz.x = (poz.x / d0) * HAVUZ_YARICAP; poz.z = (poz.z / d0) * HAVUZ_YARICAP; }
+    // Göle girilmez — güverte hariç (üstünden geçilir).
+    const kiyi = HAVUZ_YARICAP + 0.5;
+    if (d0 < kiyi && d0 > 0.0001 && !guvertede) { poz.x = (poz.x / d0) * kiyi; poz.z = (poz.z / d0) * kiyi; }
     if (d0 > HARITA_SINIRI) { poz.x = (poz.x / d0) * HARITA_SINIRI; poz.z = (poz.z / d0) * HARITA_SINIRI; }
   }
 
@@ -596,20 +673,15 @@ export function dunyaKur(kapsayici, s = {}) {
     }
 
     if (!hareketAzalt) {
-      su.position.y = 1.24 + Math.sin(zaman * 1.6) * 0.03;
-      dalga.scale.setScalar(1 + ((zaman % 2.2) / 2.2) * 2.6);
-      dalgaMat.opacity = 0.55 * (1 - (zaman % 2.2) / 2.2);
-      for (const o of jetler) {
-        o.f += dt * 0.85;
-        if (o.f > 1) o.f -= 1;
-        const h = Math.sin(o.f * Math.PI);
-        o.m.position.set(Math.cos(o.a) * (0.5 + o.f * 2.0), 4.4 + h * 1.5 - o.f * 1.2, Math.sin(o.a) * (0.5 + o.f * 2.0));
-        o.m.scale.setScalar(0.7 + h * 0.6);
+      su.position.y = 0.4 + Math.sin(zaman * 1.6) * 0.02;
+      for (const dl of dalgalar) {
+        const f = ((zaman / 3.4) + dl.f) % 1;
+        dl.m.scale.setScalar(1 + f * 3.2);
+        dl.m.material.opacity = 0.5 * (1 - f);
       }
-      tepe.rotation.y += dt * 0.8;
       for (const b of bulutlar) {
         b.position.x += dt * b.userData.hiz;
-        if (b.position.x > 90) b.position.x = -90;
+        if (b.position.x > 125) b.position.x = -125;
       }
     }
 
@@ -629,10 +701,10 @@ export function dunyaKur(kapsayici, s = {}) {
     zum += (zumHedef - zum) * Math.min(1, dt * (hareketAzalt ? 60 : 7));
     const yatay = Math.pow(zum, 0.8);    // uzaklık
     const dikey = Math.pow(zum, 1.25);   // yükseklik (daha hızlı → kuş bakışı)
-    kamHedef.set(ben.position.x - 13 * yatay, 17 * dikey, ben.position.z + 17 * yatay);
+    kamHedef.set(ben.position.x - 13 * yatay, 17 * dikey + ben.position.y * 0.6, ben.position.z + 17 * yatay);
     // Hareket azaltmada kamera yumuşatmadan doğrudan takip eder
     kamera.position.lerp(kamHedef, hareketAzalt ? 1 : Math.min(1, dt * 3.2));
-    kamera.lookAt(ben.position.x, 2.2 * Math.min(1, zum), ben.position.z);
+    kamera.lookAt(ben.position.x, ben.position.y * 0.6 + 2.2 * Math.min(1, zum), ben.position.z);
 
     render.render(sahne, kamera);
   }
@@ -690,7 +762,7 @@ export function dunyaKur(kapsayici, s = {}) {
   return {
     sahne, kamera, render, engeller, binalar,
     avatarOlustur, avatarSil, avatarAdiDegistir, avatarGorunumu, yurumeAnimasyonu, yumusakDon,
-    emojiGoster, carpismaDuzelt, yakinBina, turnuvaKapisi, avatarSec,
+    emojiGoster, carpismaDuzelt, zeminYuksekligi, kopruUstundeMi, yakinBina, turnuvaKapisi, avatarSec,
     dansEttir: (av, kod) => dansBaslat(av, kod),
     zumla, zumAyarla, zumOku,
     guncelle, boyutlandir, yokEt,

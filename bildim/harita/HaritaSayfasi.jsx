@@ -408,7 +408,7 @@ export default function HaritaSayfasi() {
       ben.rotation.y = donus.aci ?? 0;
       donusTemizle();
     } else {
-      ben.position.set(0, 0, 11);
+      ben.position.set(0, 0, 18);   // Paket 13: göl 14, bank halkası 20 — arası
     }
 
     kontrol = kontrolKur(padRef.current, topuzRef.current);
@@ -545,7 +545,7 @@ export default function HaritaSayfasi() {
     // Paket 12, madde 2: giriş/çıkış bina kapısı DEĞİL — oyuncunun doğduğu
     // yöne yakın dış kenar (binaların arası). Bina kapısı yedek olarak kalır.
     // Paket 13: tüm dış kenar (her 2°'lik engelsiz nokta) — bot hep aynı yerden gelmesin.
-    const kenarKapilar = kenarKapilariHesapla(dunya.engeller, { x: 0, z: 11 }, Infinity);
+    const kenarKapilar = kenarKapilariHesapla(dunya.engeller, { x: 0, z: 18 }, Infinity);
     const kapilar = kenarKapilar.length ? kenarKapilar : kapilariHesapla(dunya.binalar, dunya.engeller);
     // Görünür botların TABAN planları (bir kez kurulur): id -> { id, tohum,
     // plan, ziyaretler, basSira, sira }. Buluşmalar bunların üstüne eklenir.
@@ -809,8 +809,11 @@ export default function HaritaSayfasi() {
         dunya.carpismaDuzelt(ben.position, 0.8);
         dunya.yumusakDon(ben, yon, dt, 12);
       }
-      dunya.yurumeAnimasyonu(ben, dt, guc, yukseklik);
-      coklu.pozGonder(ben.position.x, ben.position.z, ben.rotation.y, yukseklik);
+      // KÖPRÜ (Paket 13): zemin yüksekliği + zıplama. Ağ paketinin `h` alanı
+      // toplamı taşır — yeni alan yok; alıcı zemini kendi haritasından ayırır.
+      const zemin = dunya.zeminYuksekligi(ben.position.x, ben.position.z);
+      dunya.yurumeAnimasyonu(ben, dt, guc, yukseklik, zemin);
+      coklu.pozGonder(ben.position.x, ben.position.z, ben.rotation.y, yukseklik + zemin);
 
       // ---- uzak oyuncular: gönderenin saatinde biraz geçmişteki konum
       for (const u of uzaklar.values()) {
@@ -865,7 +868,9 @@ export default function HaritaSayfasi() {
         dunya.yumusakDon(av, hy, dt, 14);
         // Yürüme animasyonunun şiddeti gerçek hızdan gelir
         const hiz = dt > 0 ? Math.hypot(av.position.x - onceX, av.position.z - onceZ) / dt : 0;
-        dunya.yurumeAnimasyonu(av, dt, hiz > 0.4 ? Math.min(1, hiz / YURUME_HIZI) : 0, hh);
+        // Paketteki h = zemin + zıplama; zemin bu haritadan okunur, kalan zıplamadır.
+        const uzakZemin = dunya.zeminYuksekligi(av.position.x, av.position.z);
+        dunya.yurumeAnimasyonu(av, dt, hiz > 0.4 ? Math.min(1, hiz / YURUME_HIZI) : 0, Math.max(0, hh - uzakZemin), uzakZemin);
       }
       // 40'tan fazla oyuncu varsa yalnız en yakın 40'ı çiz (yarım saniyede bir sırala)
       if (uzaklar.size > MAKS_CIZILEN && zaman - sonSiralama > 0.5) {

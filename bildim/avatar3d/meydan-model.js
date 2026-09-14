@@ -16,9 +16,11 @@ export function meydanModelDegistir(g,gorunum){
  for(const c of [...yeni.children])g.add(c);
  g.userData=yeni.userData;
 }
-export function meydanModelYuru(g,dt,guc,zipla){
+// `zemin`: ayağın bastığı yükseklik (köprü kemeri; Paket 13). Zıplama bunun
+// üstüne eklenir; duruş yalnız zıplamaya bakar — köprüde bacaklar toplanmaz.
+export function meydanModelYuru(g,dt,guc,zipla,zemin=0){
  const u=g.userData;u.zaman+=dt*(guc>.05?Math.max(.3,guc):1);
  hareket(g,u.zaman,guc>.05&&zipla<=0?'yuru':'bekle');
- g.position.y=zipla;
+ g.position.y=zemin+zipla;
  if(zipla>0)for(const e of u.eklemler){e.bac.rotation.x=-.35;e.diz.rotation.x=.7;e.kol.rotation.x=-.5;}
 }
