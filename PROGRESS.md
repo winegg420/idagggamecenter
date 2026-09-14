@@ -4680,3 +4680,50 @@ değişkene başvuruyordu; derlemeden önce fark edilip geri alındı, temiz ta�
 ### Regresyon
 Joker/Coin sekmeleri duruyor; Ayarlar'daki diğer kartların sırası ve işlevi aynı
 (yalnız Görünüm başa geldi); Tema düğmesi bileşeni değişmedi. Build temiz.
+
+## 14 Eylül 2026 (10) — Revizyon Paketi 9
+
+Commit'ler: `7de2936` (Madde 1, migration 192-193) · `ed736cf` (Madde 2) · `b419db0` (Madde 3, migration 194).
+Tek oturum, alt ajansız.
+
+### Madde 1 — Meydan Okuma'da 5 botun 5'i "Çok zor"
+**Görevdeki öneri uygulanmadı, çünkü sayfayı bozardı:** `select`'e `bot_isabet` eklemek.
+Ölçüldü: `bot_isabet` sütununun authenticated okuma yetkisi YOK (migration 155) → PostgREST
+hata verir, bot listesi tamamen boşalır. Yetkiyi açmak gizli botların isabetini sızdırır.
+**Çözüm:** `acik_bot` kalıbıyla türetilmiş `acik_bot_isabet` sütunu (192), yalnız açık +
+aktif botta dolu (193); istemciye yalnız bu açıldı. Gizli/insan satırında dolu olan: 0.
+**Ek bulgu:** listedeki 5. bot "BilgeBot" emekli (`bot_aktif=false`, 0.45) ve ToyBot (0.42)
+ile aynı "Kolay"a düşüyordu → listeden çıkarıldı. Aktif 4 bot: 0.42 / 0.58 / 0.75 / 0.90.
+**Canlı:** ToyBot Kolay · ÇaylakBot Orta · ÜstatBot Zor · EfsaneBot Çok zor (ekran görüntüsü).
+Görevdeki "5 farklı etiket" beklentisi emekli botun varlığından geliyordu.
+
+### Madde 2 — Kategori nereden seçiliyor
+Ana sayfada "Hemen oyna"nın üstüne "Rakip aranacak kategori" açılır listesi (Ayarlar'la
+aynı `get_categories` + `tercih_kategori_kaydet`). Ayarlar metni: "Hemen Oyna ve Dereceli
+Maç bu kategoride rakip arar. Ana Sayfa'dan da değiştirebilirsin." Meydan Okuma başlığına
+açıklama: sayfa bot/arkadaş içindir, eşleştirme kategorisi Ana Sayfa'dan.
+**Canlı:** "Tarih" seçildi → Hemen oyna → arama ekranı "Tarih kategorisinde seninle aynı
+seviyede birini arıyoruz" (ekran görüntüsü). Vazgeç ile çıkıldı, kategori Karışık'a geri
+alındı (DB'de null). İlk denemede otomasyon tıklaması tutmadı; ikincide doğrulandı.
+
+### Madde 3 — Yeni saç, etek, kolsuz üstler (migration 194)
+model.js: saç `topuz`, `atkuyruk`, `orgu`, `dalgali`; alt `etek` (belde tek parça, iki yüzlü
+kumaş, bel ve kenar bandı); üst `askili` (ince askılar), `straplez`, `crop` (göbek açık).
+Kolsuz üstlerde kol kabuğu çizilmez (eskiden kısa olmayan her üst uzun kol alıyordu) ve
+boyunda havada kalacak yaka halkası kapatıldı.
+**Görsel kontrol (Playwright + swiftshader, scratchpad/png9):** ilk çizimde topuz, at kuyruğu
+ve örgü ense arkasında kaldı → önden portre ve kartta kısa saçtan AYIRT EDİLEMİYORDU.
+Düzeltildi: topuz başın üstünde, at kuyruğu sağ omzun önüne sarkan yan at kuyruğu, örgü sol
+omuzda yan örgü (at kuyruğu iki denemede oldu). Etek/askılı/straplez/crop'ta batma yok.
+Model testi: tüm yuva değerleri, 0 hata, NaN yok.
+**Katalog/sunucu:** 8 satır (350-550 coin), `avatar3d_dogrula` yeni değerleri kabul ediyor
+(canlı tanım temel alındı), bot üreticisi: kadın botlarda 25 yeni saç, 20 etek, 21 kolsuz
+üst; erkekte etek 0. Migration istemci yayına çıktıktan SONRA uygulandı (yoksa eski istemci
+bilinmeyen değeri kısa saça düşürürdü).
+**Canlı:** gardıropta 8/8 parça, askılı bluz karaktere giydirildi (ekran görüntüsü);
+dükkân listesi 48 → 56 satır, 56'sı görselli.
+
+### Regresyon
+Eski saç/üst/alt parçaları model testinde hatasız; `botZorluk` başka sayfada kullanılmıyor
+(oyuncu listelerindeki robot ikonu `bot_isabet != null` ile — o alan zaten hiç gelmiyordu,
+davranış değişmedi). Build temiz.
