@@ -759,10 +759,24 @@ export function dunyaKur(kapsayici, s = {}) {
     return n ?? null;
   }
 
+  /**
+   * Ekrandaki noktada GÖL suyu var mı? Olta atmak için (Aşama 2).
+   * @returns {{x:number,z:number}|null} su yüzeyindeki nokta
+   */
+  function suSec(nx, ny) {
+    _nokta.set(nx, ny);
+    _isin.setFromCamera(_nokta, kamera);
+    const k = _isin.intersectObject(su, false);
+    if (!k.length) return null;
+    const p = k[0].point;
+    if (Math.hypot(p.x, p.z) > HAVUZ_YARICAP - 0.6) return null;
+    return { x: p.x, z: p.z };
+  }
+
   return {
-    sahne, kamera, render, engeller, binalar,
+    sahne, kamera, render, engeller, binalar, kopru: KOPRU,
     avatarOlustur, avatarSil, avatarAdiDegistir, avatarGorunumu, yurumeAnimasyonu, yumusakDon,
-    emojiGoster, carpismaDuzelt, zeminYuksekligi, kopruUstundeMi, yakinBina, turnuvaKapisi, avatarSec,
+    emojiGoster, carpismaDuzelt, zeminYuksekligi, kopruUstundeMi, suSec, yakinBina, turnuvaKapisi, avatarSec,
     dansEttir: (av, kod) => dansBaslat(av, kod),
     zumla, zumAyarla, zumOku,
     guncelle, boyutlandir, yokEt,

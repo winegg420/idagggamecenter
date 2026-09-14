@@ -28,6 +28,8 @@ import { donusKaydet, donusOku, donusTemizle } from "./donus.js";
 import { MENU, ikramGonder, ikramYanitla, ikramDurumu, bekleyenIkramlar, IKRAM_SURE_SN, ZAMAN_ASIMI_SN } from "./etkilesim.js";
 import { kahveBasla, balonBasla, ikramKaresi, ikramlariTemizle } from "./ikramGorsel.js";
 import { yaklasmaKur, yaklasmaKonumu, kabulAniIstemci } from "./yaklasma.js";
+import { balikBaslat, balikDurdur, balikSonuc, balikKaresi, balikTutuyorMu, baliklariTemizle } from "./balikGorsel.js";
+import { ayar as oyunAyari } from "../lib/ayarlar.js";
 
 /** Kabul sonrası yaklaşmanın ardından oynayan kısa ikram gösterisi (sn). */
 const YAKLASMA_IKRAM_SN = 2.5;
@@ -140,6 +142,18 @@ export default function HaritaSayfasi() {
   const [secilenOyuncu, setSecilenOyuncu] = useState(null);
   const [gelenIkram, setGelenIkram] = useState(null);
   const [ikramNotu, setIkramNotu] = useState(null);
+  // ---- BALIK TUTMA (Paket 13, Aşama 2) ----
+  // olta: { bitisMs } | null — ref'i çizim döngüsü okur, state HUD'u çizer.
+  // balikRef: { su:{x,z}, tavanDendi } — oyuncu olta atıyor. Kural ve coin
+  // sunucuda (balik_yakala); burada yalnız görsel ve çağrı zamanlaması.
+  const [olta, setOlta] = useState(null);
+  const oltaRef = useRef(null);
+  const balikRef = useRef(null);
+  const [balikciAcik, setBalikciAcik] = useState(false);
+  const [oltaFiyat, setOltaFiyat] = useState(5);
+  const [balikBugun, setBalikBugun] = useState({ bugun: 0, tavan: 20 });
+  const [oltaKalanDk, setOltaKalanDk] = useState(0);
+  const botBalikYuzdeRef = useRef(35);
   const [ikramCalisiyor, setIkramCalisiyor] = useState(false);
   const bekleyenIkramRef = useRef(null);   // gönderdiğim teklif { id, tur, alan }
   // Kabul sonrası otomatik yaklaşma (Paket 12, madde 5): { plan, karsiId,
@@ -364,6 +378,7 @@ export default function HaritaSayfasi() {
     const uzaklar = new Map(); // id -> { av, tampon:[{t,x,z,y}], yerlesti }
     // Nöbetteki meydan botları: id -> { av, tohum, sonJest }
     const botlar = new Map();
+    const botBalik = new Map();   // av -> { rastgele } (olta atan botlar; yalnız görsel)
     // Presence bir an titrerse (kanal düşüp kalkması) oyuncu ayrılıp yeniden
     // katılmış sayılıyor ve avatarı meydanın rastgele bir kenarında doğuyordu.
     // Son bilinen konum saklanıp geri dönüşte oraya konuyor.
@@ -409,6 +424,20 @@ export default function HaritaSayfasi() {
       donusTemizle();
     } else {
       ben.position.set(0, 0, 16.5);   // Paket 13: göl kıyısı 14,5 ile (0,20) bankı arası
+    }
+
+    // BALIKÇI NPC (Aşama 2): köprünün ortasında, korkuluk kenarında durur;
+    // dekor — oyuncu değil, presence'a girmez, kişi sayısına eklenmez.
+    let balikci = null;
+    try {
+      balikci = dunya.avatarOlustur("Balıkçı", 0x3a6b8a, 0x222222, "#20324A", null, gorunumVerisi.bilgi);
+      balikci.position.set(0, dunya.zeminYuksekligi(0, 1.05), 1.05);
+      balikci.rotation.y = Math.PI;
+      balikci.userData.npc = true;
+      balikci.userData.ad = "Balıkçı";
+      // Engel DEĞİL: dekor; engel listesine girse bot planları köprüde takılırdı.
+    } catch (e) {
+      console.error("[Meydan] balikci kurulamadi:", e);
     }
 
     kontrol = kontrolKur(padRef.current, topuzRef.current);
@@ -526,7 +555,7 @@ export default function HaritaSayfasi() {
       try { dunya.zumla(carpan); } catch (e) { console.error("[Meydan] zum:", e); }
     });
 
-    canliRef.current = { dunya, ben, coklu, renk, uzaklar, botlar, ziplama };
+    canliRef.current = { dunya, ben, coklu, renk, uzaklar, botlar, ziplama, balikci };
 
     // ---- MEYDAN BOTLARI ----
     // Sunucu nöbeti katmanlara böler (meydan_bot_nobeti.katman); kaçının
@@ -592,6 +621,7 @@ export default function HaritaSayfasi() {
             const plan = botPlaniKur({
               tohum: b.tohum, baslangicMs: b.baslangicMs, bitisMs: b.bitisMs,
               kapilar, engeller: dunya.engeller, grup: g,
+              kopru: dunya.kopru, balikYuzde: botBalikYuzdeRef.current,
             });
             tabanlar.set(b.user_id, {
               id: b.user_id, tohum: b.tohum, plan,
@@ -698,10 +728,25 @@ export default function HaritaSayfasi() {
       const adaylar = [
         ...[...c.uzaklar.entries()].map(([id, u]) => { u.av.userData.oyuncuId = id; return u.av; }),
         ...[...c.botlar.entries()].map(([id, b]) => { b.av.userData.oyuncuId = id; return b.av; }),
+        ...(c.balikci ? [c.balikci] : []),
       ].filter((av) => av.visible);
       const secilen = c.dunya.avatarSec(nx, ny, adaylar);
-      if (!secilen) return;
+      if (!secilen) {
+        // BALIK (Aşama 2): köprüdeyken ve olta varken göle dokunmak olta atar.
+        if (oltaRef.current && !balikRef.current
+            && c.dunya.kopruUstundeMi(c.ben.position.x, c.ben.position.z)) {
+          const su = c.dunya.suSec(nx, ny);
+          if (su) {
+            try {
+              balikBaslat(c.dunya.sahne, c.ben, su);
+              balikRef.current = { su, tavanDendi: false };
+            } catch (e2) { console.error("[Meydan] balik baslatilamadi:", e2); }
+          }
+        }
+        return;
+      }
       menuBasisRef.current = false;
+      if (secilen.userData.npc) { setBalikciAcik(true); return; }
       setSecilenOyuncu({
         id: secilen.userData.oyuncuId,
         ad: secilen.userData.ad ?? "Oyuncu",
@@ -756,6 +801,38 @@ export default function HaritaSayfasi() {
     };
     perdeSaat = setTimeout(perdeBek, PERDE_SURESI);
 
+    // Çekiş: sonucu SUNUCU söyler. 'bos' çoğunluk; 'yakalandi' → balık + 1 coin;
+    // 'tavan' → bir kez uyarı; 'olta_yok' → olta düşer, olta toplanır.
+    let balikSoruyor = false;
+    const balikCek = async () => {
+      if (balikSoruyor || !aktif) return;
+      balikSoruyor = true;
+      try {
+        const { data, error } = await supabase.rpc("balik_yakala");
+        if (error) throw error;
+        if (!aktif) return;
+        if (data === "yakalandi") {
+          balikSonuc(ben, "yakalandi");
+          try { dunya.emojiGoster(ben, "🐟"); } catch { /* yut */ }
+          setBalikBugun((b) => ({ ...b, bugun: b.bugun + 1 }));
+          setIkramNotu("Balık tuttun: +1 coin 🐟");
+        } else if (data === "tavan") {
+          const b = balikRef.current;
+          if (b && !b.tavanDendi) { b.tavanDendi = true; setIkramNotu("Bugünkü balık hakkın doldu — yarın yine gel."); }
+        } else if (data === "olta_yok") {
+          oltaRef.current = null;
+          setOlta(null);
+          balikDurdur(ben);
+          balikRef.current = null;
+          setIkramNotu("Oltanın süresi doldu.");
+        }
+      } catch (e) {
+        console.error("[Meydan] balik yakala:", e);
+      } finally {
+        balikSoruyor = false;
+      }
+    };
+
     const cizim = (t) => {
       if (!aktif) return;
       raf = requestAnimationFrame(cizim);
@@ -809,6 +886,18 @@ export default function HaritaSayfasi() {
         dunya.carpismaDuzelt(ben.position, 0.8);
         dunya.yumusakDon(ben, yon, dt, 12);
       }
+      // BALIK (Aşama 2): hareket edince ya da köprüden inince olta toplanır;
+      // atarken avatar suya döner.
+      const balik = balikRef.current;
+      if (balik) {
+        if (guc > 0.05 || !oltaRef.current || !dunya.kopruUstundeMi(ben.position.x, ben.position.z)) {
+          balikDurdur(ben);
+          balikRef.current = null;
+        } else {
+          dunya.yumusakDon(ben, Math.atan2(balik.su.x - ben.position.x, balik.su.z - ben.position.z), dt, 8);
+        }
+      }
+      if (balikci) dunya.yurumeAnimasyonu(balikci, dt, 0, 0, dunya.zeminYuksekligi(0, 1.05));
       // KÖPRÜ (Paket 13): zemin yüksekliği + zıplama. Ağ paketinin `h` alanı
       // toplamı taşır — yeni alan yok; alıcı zemini kendi haritasından ayırır.
       const zemin = dunya.zeminYuksekligi(ben.position.x, ben.position.z);
@@ -904,6 +993,7 @@ export default function HaritaSayfasi() {
           const k = planKonumu(b.plan, simdiMs);
           if (k.bitti) {
             // Meydanın dış kenarından ayrıldı: avatar kalkar, sıradaki tazelemede yerine başkası gelir.
+            try { balikDurdur(b.av); botBalik.delete(b.av); } catch { /* yut */ }
             try { dunya.avatarSil(b.av); } catch { /* yut */ }
             botlar.delete(id);
             continue;
@@ -962,6 +1052,15 @@ export default function HaritaSayfasi() {
           b.av.position.x = x;
           b.av.position.z = z;
           dunya.yumusakDon(b.av, aci, dt, 8);
+          // Köprüde olta atan bot (Aşama 2): görsel başlar/biter; coin yok.
+          if (k.balik && !b.ziyaret && !balikTutuyorMu(b.av)) {
+            try {
+              balikBaslat(dunya.sahne, b.av, { x, z: z + (z >= 0 ? 3.2 : -3.2) }, kararliRastgele(b.tohum + "|balik"));
+              botBalik.set(b.av, { rastgele: kararliRastgele(b.tohum + "|yakalama") });
+            } catch (e) { console.error("[Meydan] bot baligi:", e); }
+          } else if (!k.balik && balikTutuyorMu(b.av)) {
+            balikDurdur(b.av); botBalik.delete(b.av);
+          }
           if (!zipla && b.hop) {
             const gecen = simdiMs - b.hop.basMs;
             zipla = hopYuksekligi(gecen, b.hop.adet);
@@ -971,7 +1070,7 @@ export default function HaritaSayfasi() {
           // Koşar/ağır bacakta tempo planın gerçek hızına uyar (Paket 7, 2d);
           // ziyaret sırasında plan hızı geçersiz, normal tempo.
           const adimHizi = b.ziyaret ? BOT_HIZI : (k.hiz || BOT_HIZI);
-          dunya.yurumeAnimasyonu(b.av, dt, yuruyor ? Math.min(1, adimHizi / YURUME_HIZI) : 0, zipla);
+          dunya.yurumeAnimasyonu(b.av, dt, yuruyor ? Math.min(1, adimHizi / YURUME_HIZI) : 0, zipla, dunya.zeminYuksekligi(x, z));
           const j = botJesti(b.tohum, sn);
           const pencere = Math.floor(sn / JEST_PENCERE_SN);
           // Paket 13: zıplama yürürken/koşarken de olur — gerçek oyuncular koşarken zıplar.
@@ -1029,6 +1128,16 @@ export default function HaritaSayfasi() {
 
       // İkram gösterileri (kahve jesti / uçan balonlar) — yalnız görsel
       try { ikramKaresi(dt); } catch (e) { console.error("[Meydan] ikram karesi:", e); }
+      // Çekiş anları: oyuncu için sunucuya sorulur, bot için tohumdan (görsel).
+      try {
+        for (const av of balikKaresi(dt)) {
+          if (av === ben) balikCek();
+          else {
+            const bb = botBalik.get(av);
+            if (bb && bb.rastgele() < 0.18) balikSonuc(av, "yakalandi");
+          }
+        }
+      } catch (e) { console.error("[Meydan] balik karesi:", e); }
       dunya.guncelle(dt, zaman, ben);
       if (ilkKare) {
         ilkKare = false;
@@ -1068,6 +1177,8 @@ export default function HaritaSayfasi() {
       clearInterval(botSayacSaat);
       for (const b of botlar.values()) { try { dunya.avatarSil(b.av); } catch { /* yut */ } }
       botlar.clear();
+      try { baliklariTemizle(); } catch (e) { console.error("[Meydan] balik temizle:", e); }
+      if (balikci) { try { dunya.avatarSil(balikci); } catch { /* yut */ } }
       try { ikramlariTemizle(); } catch (e) { console.error("[Meydan] ikram temizle:", e); }
       try { dunya?.yokEt(); } catch (e) { console.error("[Meydan] yokEt:", e); }
       canliRef.current = null;
@@ -1129,6 +1240,78 @@ export default function HaritaSayfasi() {
       console.error("[Meydan] ad guncellenemedi:", e);
     }
   }, [ad]);
+
+  // Olta durumu (sayfa açılışında): sunucu saatiyle bitiş anı, bugünkü balık, fiyat.
+  useEffect(() => {
+    let aktif = true;
+    (async () => {
+      try {
+        const { data, error } = await supabase.rpc("olta_durumum");
+        if (error) throw error;
+        const r = Array.isArray(data) ? data[0] : data;
+        if (!aktif || !r) return;
+        setOltaFiyat(Number(r.fiyat) || 5);
+        setBalikBugun({ bugun: Number(r.bugun) || 0, tavan: Number(r.tavan) || 20 });
+        if (r.bitis_at) {
+          const fark = Date.parse(r.sunucu_zamani) - Date.now();
+          const bitisMs = Date.parse(r.bitis_at) - (Number.isFinite(fark) ? fark : 0);
+          oltaRef.current = { bitisMs };
+          setOlta({ bitisMs });
+        }
+      } catch (e) {
+        console.error("[Meydan] olta durumu okunamadi:", e);
+      }
+      try { botBalikYuzdeRef.current = await oyunAyari("meydan_bot_balik_yuzde", 35); }
+      catch (e) { console.error("[Meydan] bot balik ayari:", e); }
+    })();
+    return () => { aktif = false; };
+  }, []);
+
+  // Kalan süre sayacı; süre dolunca olta düşer.
+  useEffect(() => {
+    if (!olta) return undefined;
+    const tik = () => {
+      const kalan = Math.ceil((olta.bitisMs - Date.now()) / 60000);
+      if (kalan <= 0) {
+        oltaRef.current = null;
+        setOlta(null);
+        setIkramNotu("Oltanın süresi doldu.");
+      } else setOltaKalanDk(kalan);
+    };
+    tik();
+    const id = setInterval(tik, 15000);
+    return () => clearInterval(id);
+  }, [olta]);
+
+  // Haritadan çıkınca olta biter (sahibinin kararı; sunucu da 1 saatte düşürür).
+  useEffect(() => {
+    const birak = () => {
+      if (!oltaRef.current) return;
+      oltaRef.current = null;
+      supabase.rpc("olta_birak").then(() => {}, () => {});
+    };
+    window.addEventListener("pagehide", birak);
+    return () => { window.removeEventListener("pagehide", birak); birak(); };
+  }, []);
+
+  /** Balıkçıdan olta al (coin sunucuda düşer: coin_harca, tur 'olta'). */
+  const oltaAl = useCallback(async () => {
+    try {
+      const { data, error } = await supabase.rpc("olta_al");
+      if (error) throw error;
+      const r = Array.isArray(data) ? data[0] : data;
+      const sunucuBitis = r?.bitis_at ? Date.parse(r.bitis_at) : NaN;
+      // Cihaz saati kaymışsa sunucunun süresi şimdiden 60 dk'yı aşmasın.
+      const bitisMs = Math.min(Number.isFinite(sunucuBitis) ? sunucuBitis : Infinity, Date.now() + 60 * 60000);
+      oltaRef.current = { bitisMs };
+      setOlta({ bitisMs });
+      setBalikciAcik(false);
+      setIkramNotu("Olta sende! Köprüdeyken göle dokun, olta atılsın.");
+    } catch (e) {
+      console.error("[Meydan] olta alinamadi:", e);
+      setIkramNotu(hataMesaji(e, "Olta alınamadı."));
+    }
+  }, []);
 
   /**
    * İkram gösterisini oynatır. Hangi avatarın kim olduğunu burada çözüp
@@ -1546,6 +1729,11 @@ export default function HaritaSayfasi() {
           <span className={"canli" + (bagli ? "" : " kopuk")} />
           {bagli ? `${kisi + botSayisi} kişi burada` : "bağlantı yok"}
         </span>
+        {olta && (
+          <span className="bd-harita-hap olta" role="status" title="Olta süresi">
+            🎣 {oltaKalanDk} dk
+          </span>
+        )}
       </div>
 
       {/* ---- zum: iki parmakla da olur, düğmeyle de ---- */}
@@ -1631,6 +1819,29 @@ export default function HaritaSayfasi() {
                     menuBasisRef.current = false;
                     setSecilenOyuncu(null);
                   }}>✕</button>
+        </div>
+      )}
+
+      {/* ---- BALIKÇI (Aşama 2) ---- */}
+      {balikciAcik && (
+        <div className="bd-harita-kisi-menu" role="dialog" aria-label="Balıkçı"
+             onPointerDown={() => { menuBasisRef.current = true; }}>
+          <div className="bd-harita-kisi-ad">Balıkçı</div>
+          {olta ? (
+            <div className="bd-harita-npc-metin">Oltan var — kalan {oltaKalanDk} dk. Köprüdeyken göle dokun, olta atılsın.</div>
+          ) : (
+            <>
+              <div className="bd-harita-npc-metin">
+                Olta 1 saat geçerli; haritadan çıkınca biter. Her balık 1 coin, günde en çok {balikBugun.tavan} coin.
+              </div>
+              <button type="button" className="bd-harita-btn"
+                      onClick={(e) => { if (e.detail !== 0 && !menuBasisRef.current) return; menuBasisRef.current = false; oltaAl(); }}>
+                Olta — {oltaFiyat} coin
+              </button>
+            </>
+          )}
+          <button type="button" className="bd-harita-dans-kapat" aria-label="Kapat"
+                  onClick={(e) => { if (e.detail !== 0 && !menuBasisRef.current) return; menuBasisRef.current = false; setBalikciAcik(false); }}>✕</button>
         </div>
       )}
 
