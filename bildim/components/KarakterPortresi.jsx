@@ -20,42 +20,31 @@ export default function KarakterPortresi({ gorunum, boyut = 96 }) {
   const anahtar = gorunum ? JSON.stringify(gorunum) : null;
 
   useEffect(() => {
-    if (!gorunum) { setKaynak(null); return undefined; }
-    const kutu = kutuRef.current;
-    if (!kutu) return undefined;
     let atildi = false;
     setKaynak(null);
 
-    const uret = async () => {
-      if (atildi) return;
+    // Paket 8: dükkândaki "Şu anki karakterin" kutusu boş kalıyordu. İki olası
+    // sebep birden kaldırıldı:
+    //   1) IntersectionObserver — gardıroptaki ParcaPortresi'nde ölçülüp
+    //      kaldırılmıştı (gözlemci tetiklenmediğinde portre hiç üretilmiyor).
+    //      Burada tek portre var; paylaşılan kuyruk zaten yükü sınırlıyor.
+    //   2) Görünümü hiç kaydedilmemiş oyuncu (`gorunum` null) boş kutu
+    //      görüyordu — artık varsayılan karakter çizilir.
+    (async () => {
       try {
         const { yeniPortre } = await import("../avatar3d/portre.js");
         const { siraya } = await import("../avatar3d/portre-kuyrugu.js");
         siraya(() => {
           if (atildi) return;
-          const veri = yeniPortre({ avatar3d: gorunum });
+          const veri = yeniPortre(gorunum ? { avatar3d: gorunum } : {});
           if (!atildi && veri) setKaynak(veri);
         });
       } catch (e) {
         console.error("[Karakter] portre uretilemedi:", e);
       }
-    };
+    })();
 
-    if (typeof IntersectionObserver !== "function") {
-      uret();
-      return () => { atildi = true; };
-    }
-
-    const gozcu = new IntersectionObserver((girisler) => {
-      for (const g of girisler) {
-        if (!g.isIntersecting) continue;
-        gozcu.disconnect();
-        uret();
-      }
-    }, { rootMargin: "120px" });
-    gozcu.observe(kutu);
-
-    return () => { atildi = true; gozcu.disconnect(); };
+    return () => { atildi = true; };
     // `anahtar` görünümün tamamını temsil ediyor.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [anahtar, boyut]);

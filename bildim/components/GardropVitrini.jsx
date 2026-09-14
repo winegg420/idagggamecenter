@@ -28,6 +28,44 @@ const YUVA_ADLARI = {
   kolye: "Kolye", saat: "Saat", kupe: "Küpe",
 };
 
+/**
+ * Satırdaki küçük eşya görseli (Paket 8): liste düz metindi, "Pantolon /
+ * Şort / Kapri" birbirinin aynısı görünüyordu. Gardıroptaki kartlarla aynı
+ * portre (esyaPortresi) — oyuncunun kendi ten/saç/renkleriyle.
+ * three.js DİNAMİK yüklenir (KarakterPortresi deseni): portre.js'i statik
+ * almak dükkân sayfasının paketine three.js'i sokardı. Paylaşılan kuyruk
+ * yükü tek tek dağıtır.
+ */
+function EsyaOnizleme({ gorunum, parca }) {
+  const [kaynak, setKaynak] = useState(null);
+  const anahtar = JSON.stringify({ y: parca.yuva, d: parca.deger, g: gorunum ?? null });
+  useEffect(() => {
+    let atildi = false;
+    setKaynak(null);
+    (async () => {
+      try {
+        const { esyaPortresi } = await import("../avatar3d/portre.js");
+        const { siraya } = await import("../avatar3d/portre-kuyrugu.js");
+        siraya(() => {
+          if (atildi) return;
+          const veri = esyaPortresi(gorunum ?? {}, parca, 112);
+          if (!atildi && veri) setKaynak(veri);
+        });
+      } catch (e) {
+        console.error("[Dükkân] esya gorseli uretilemedi:", e);
+      }
+    })();
+    return () => { atildi = true; };
+    // `anahtar` parçayı ve görünümü temsil ediyor.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [anahtar]);
+  return (
+    <span className="bd-gardrop-satir-gorsel" aria-hidden="true">
+      {kaynak ? <img src={kaynak} alt="" draggable="false" /> : null}
+    </span>
+  );
+}
+
 export default function GardropVitrini() {
   const { profile } = useAuth();
   const [veri, setVeri] = useState(null);
@@ -93,9 +131,12 @@ export default function GardropVitrini() {
                 className={"bd-gardrop-satir" + (sende ? " sende" : "") + (odul && !sende ? " odul" : "")}
                 href={GARDROP_YOLU}
               >
-                <span className="bd-gardrop-satir-ad">
-                  {p.ad}
-                  <small>{YUVA_ADLARI[p.yuva] ?? p.yuva}</small>
+                <span className="bd-gardrop-satir-sol">
+                  <EsyaOnizleme gorunum={veri.gorunum} parca={p} />
+                  <span className="bd-gardrop-satir-ad">
+                    {p.ad}
+                    <small>{YUVA_ADLARI[p.yuva] ?? p.yuva}</small>
+                  </span>
                 </span>
                 <span className="bd-gardrop-satir-fiyat">
                   {sende
