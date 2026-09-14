@@ -4789,3 +4789,101 @@ gradyan GÖRSELİ üstte kalıyordu → sıfırlandı; sayaç kutuları ortadayd
 **Kapsam dışı bırakılan (maddelerde yok, fark sürüyor):** referansta haftalık lig sayacı hero'nun
 içinde (canlıda "Seni bekleyenler" altında); canlıda hero içinde ayrı "N günlük seri" kartı var;
 kategori kartında referans turuncu ızgara ikonu, canlı seçili kategorinin rozeti.
+
+## 14 Eylül 2026 (13) — Revizyon Paketi 12 (7 madde)
+
+Tek oturum, alt ajansız, her madde ayrı commit. Migration 195-198 yazıldı, önce
+`begin … rollback` ile denendi, sonra canlıya uygulandı ve geçmişe kaydedildi.
+
+### 1 — Gardırop telefonda sıkı ızgara (`e42a8be`)
+Telefonda 3 sütun, geniş ekranda auto-fill (118-150 px). Kart 149 px, görsel 100×88, ad tek
+satır 12 px + üç nokta. Satın alınabilir eşyada fiyat çipi yerine "500 ◎" küçük hap (görünen
+28 px, ::after ile 44 px dokunma); Çıkar aynı boyda. Yeşil seçili çerçeve ve 3B önizleme aynı.
+**390×844 ölçüm (Playwright, yerel derleme):** yapışık alanın altında 6 eşya tam görünüyor,
+yatay taşma yok.
+
+### 2 — Meydan botları dış kenardan girip çıkar (`ee31df7`)
+`kenarKapilariHesapla(engeller, oyuncuBaslangici)`: 26 birimlik halkada engelsiz yayların ortası,
+oyuncunun doğduğu (0,11) yöne en yakın 3 nokta → 90°, 37°, 143° (binaların arası, oyuncu merkeze
+bakarken arkada). Bina kapısı yalnız yedek. `planKonumu` plandaki engelleri taşır; konum hiçbir
+anda bina/bank/ağaç içine düşmez (düşerse en yakın açık noktaya itilir). bacakKur / bulusmaKur /
+planaBacakEkle / nöbet devri dokunulmadı.
+**Simülasyon (300 plan + 5 buluşma bacağı, 338.500 örnek):** bina içi 0, diğer engel içi 0,
+sıçrama 0, bina kapısında biten 0, hepsi kenar noktasında başlar/biter, kararlı.
+**Canlı ~3 dk (gizli sekmede RAF zamanlayıcıyla kare ilerletildi):** botlar halkada yürüyüp
+duruyor, binaya giren/binadan çıkan yok. Opsiyonel "bina önünde durup dönme" yapılmadı.
+
+### 3 — Lig: kurulumu bitmemiş + test hesapları (`dfb5afe`, migration 195)
+**Ölçüm:** 55 gerçek hesabın 28'inde takma ad yok, 27'sinde avatar onayı yok; hepsi bu haftanın
+lig üyeliğinde. DİKKAT: 75 gizli botun `avatar_onayli`si false — kural botlara uygulanmaz.
+**Kalıcı kural:** `lig_gorunur_mu(is_bot, takma_ad_secildi, avatar_onayli, lig_gizli)` =
+gizli değil VE (bot VEYA takma ad + avatar tamam). lig_grubum (satır + grup boyu; oyuncu kendi
+satırını görür), lig_siralama, lig_uyeligim_kur, lig_gruplarini_kur (doluluk/grup sayısı) buna
+bakar. Üyelik silinmez; kurulumu bitiren kendiliğinden görünür. Yeni `profiles.lig_gizli`
+(sütun yetkisi yok, istemci okuyamaz).
+**SİLİNEN: 12 hesap** (auth.users, bağlı satırlar cascade) — ölçüt: gerçek hesap, 8 Eyl
+sonrası açılmış, anonim ya da `ornek.test` e-postalı, maç 0, grup/hızlı/turnuva kaydı 0,
+arkadaşlık 0, satın alma 0, son 12 saatte görülmemiş VE adı bariz test/anlamsız:
+TestOyuncu, SureTesti, TemaTest, TestKontrol, TestCanli, hhhh, sss, hhhjj, ddx, gfdg, vhh +
+`ornek.test` e-postalı "Oyuncu".
+**Yalnız gizlenen (lig_gizli):** SquareTest12 (1 maç), QuizTestIda (bugün görüldü), ssss (1 maç +
+1 arkadaş), DenekKartal, YüceBaran. sillaaa/slla/sila/silaapp/İGG/Şev/Jenny olası gerçek kişi —
+dokunulmadı. Haziran-Temmuz'dan kalan adı "Oyuncu" hesaplar (gerçek ad-soyadlı kullanıcı adları)
+silinmedi, kural gereği gizli.
+**Canlı /siralama (390 px iframe):** "Oyuncu" satırı 0, test adı 0, taşma yok; grup 11 kişi.
+
+### 4 — Dükkân › Görünüm yuvaya göre gruplu (`9439373`, ek `4df688a`)
+Saç · Üst giyim · Alt giyim · Ayakkabı · Baş aksesuarı · Gözlük · Sakal · Takı (kolye/saat/küpe) ·
+Sırt; bilinmeyen yuva sona. `<details open>` bölümler, başlıkta adet, içinde ızgara (≤520 px'te
+3 sütun). Fiyat / Sende / Turnuva ödülü / gardıroba bağlantı aynı.
+**Canlı 390 px:** 9 bölüm ("Saç · 7" … "Sırt · 1"), 3×102 px, açılıp kapanıyor, taşma yok,
+56/56 görsel. Ölçülüp düzeltilen: `.app a` (0,1,1) kart adını turuncu/altı çizili yapıyordu.
+
+### 5 — Kabul sonrası yüz yüze yaklaşma (`5308734`, migration 196)
+Saf mantık `harita/yaklasma.js` (three.js yok): kabul anından 1,6 sn sabit sürede yürüyüş
+(yumuşak başlangıç/bitiş, hız mesafeyle ölçekli), aralarında 1,5 birim, yüz yüze; sonra 1,9 sn
+etkinlik (ikram jesti kahve/balon 2,5 sn; meydan okumada 👋) → toplam 3,5 sn. Bu sürede
+topuz/zıpla/dans/emoji `kilitli` (soluk, basılamaz), klavye girdisi uygulanmaz.
+Ortak saat: `ikram_kabul_bilgisi(p_id)` → yanit_at + sunucu_zamani (gönderen VE alan okuyabilir;
+gizli botun ileri tarihli kabulünde o an gelene kadar 'bekliyor'). Geç açılan istemci ışınlanmaz,
+bulunduğu yerden kalan sürede yürür. Karşı taraf bot ise o istemcide bot da yürür, sonra planına
+`geriDonusYolu` ile yürüyerek döner. Uzak gerçek oyuncuyu kendi istemcisi yürütür.
+Meydan okuma haritada "kabul" olayı taşımıyor (seçen hemen maça geçiyor): yaklaşma + selam
+geçişten önce yerel oynar, sonra maça gidilir.
+**Node testi:** 0,4 / 10 / 18 birim → son aralık 1,500, yürüyüş 1600 ms, toplam 3500 ms, yüz yüze,
+en büyük kare adımı 0,12; geç başlayan 400 ms'de yürür, bitiş aynı; saat çevirme doğru.
+
+### 6 — "Beklemeden bot ile oyna" bot seçimi (`65cf853`, ek `4f0f2c6`, migration 197)
+Düğme önce açık botları kolaydan zora listeler (ad + `botZorluk`; zorluk `acik_bot_isabet`ten —
+ham `bot_isabet` istemciye kapalı). `botZorluk` ortak `lib/botZorluk.js`'e taşındı, ChallengesPage
+oradan alır. Seçim `hemen_bot_mac_sec(p_bot, p_kategori, p_dereceli)`: yalnız açık + aktif bot
+(gizli bot reddedilir), çift maç ve kota denetimi eskisiyle aynı. Liste okunamazsa/boşsa eski
+`hemen_bot_mac` yolu. Açık bot kuralları (%50 coin, anında cevap) maç motorunda, değişmedi.
+**Deneme:** ToyBot → aktif maç, 20 soru; gizli bot → "Bu bot şu an oynanamıyor."
+**Canlı 390 px:** ToyBot Kolay · ÇaylakBot Orta · ÜstatBot Zor · EfsaneBot Çok zor, satır 48 px,
+Vazgeç çalışıyor.
+
+### 7 — Günde 7 turnuva (`f3f137e`, ek `e34869e`, migration 198)
+`oyun_ayarlari.turnuva_saatleri` = 10:00, 12:30, 15:00, 18:00, 20:00, 22:00, 24:00 (TSİ; 24:00 = o
+tarihin gece yarısı). Eski sabah/aksam anahtarları duruyor, yalnız geçiş öncesi satırların anı
+için okunur. Ödüller ve 400 tavanı dokunulmadı.
+- `tournaments.seans` artık saat metni (check kısıtı genişletildi). `turnuva_seans_araligi`,
+  `turnuva_saatleri_listesi`; turnuva_an, sonraki_turnuva_bilgi/_tarihi/_ani, turnuva_lobi_botlari
+  listeden hesaplar.
+- Cron: sabit başlatma (2) ve bot çağrıları (2) kaldırıldı; `bildim-turnuva-zamanlayici` her dakika
+  anı gelen lobiyi başlatır (<2 kişi iptal, 15 dk'dan eski lobi iptal) ve sıradaki lobiyi açar.
+  Bot katılımı mevcut dakikalık tik ile her turnuvaya (38-66, yayılmış).
+- Bot havuzu: başka lobide/aktif turnuvada olan ve en son biten turnuvada oynamış bot dışarıda
+  (eşzamanlı ve art arda tekrar yok). Canlı ölçüm: iki açık lobide ortak bot 0.
+- Hatırlatma günde en çok 2: 12:30 için 11:45 TSİ ("Öğle turnuvası", `45 8 * * *` UTC), 22:00 için
+  21:15 TSİ (`15 18 * * *`). Gizli anahtarlı başlık dokunulmadı (alter_job yalnız zaman/metin).
+- Geçiş: bugünkü 21:50 lobisi (18 kişi) 22:00'a taşındı; zamanlayıcı ilk koşuda 20:00 lobisini açtı.
+- İstemci: zaman.js listeden hesaplar (`sonrakiTurnuva`, `bugunKalanTurnuvalar`, `turnuvaAniMs`,
+  `siradakiLobi`); Countdown otomatik genelleşti. Ana sayfa "20:00 TURNUVASI" + "Bugün kalan
+  turnuvalar: 20:00 · 22:00 · 24:00"; /turnuva geri sayım kartında aynı satır; tanıtım metni ve
+  meydan levhası ("günde 7 turnuva").
+- Ölçülüp düzeltilen (ek commit): Ana sayfa ve /turnuva "son 2-3 satır"dan ilk lobiyi alıyordu —
+  aynı gün iki lobide yanlış lobinin kişi sayısı görünüyordu; günde 7 turnuvada bitmişler lobiyi
+  hiç göstermeyebilirdi. Artık açık turnuvalar çekilip en erken başlayan lobi seçilir.
+**Canlı:** cron.job listesi yukarıdaki gibi; 390 px ana sayfa sayacı 25 dk (20:00'a), /turnuva
+lobisi aynı liste; bot 26/52 (20:00) ve 18/58 (22:00) katılıyor.
