@@ -4926,3 +4926,11 @@ zıplamalı; hep aynı noktadan gelmesin. Haritada arkadaşlık isteğini geri �
 - Meydan menüsü: "İstek gönderildi" (basılamaz) → "İsteği geri çek". Satır kimliği okunur;
   istek arada kabul edildiyse silinmez, "artık arkadaşsınız" denir.
 - Arkadaşlar sayfası › Bekleyen istekler: her satırda "Geri çek".
+
+### Paket 12 — turnuva regresyonu (canlı, 20:00 turnuvası)
+`bildim-turnuva-zamanlayici` 20:00 turnuvasını **tam 20:00:00'da** başlattı (52 kişi, hepsi bot),
+21. soruda 20:02:02'de bitti, kazanan yazıldı, zamanlayıcıda başarısız koşu 0; sıradaki 22:00 lobisi
+açık (22 bot + 1 gerçek oyuncu). Süre eski turnuvalarla aynı (13:00 → 1,9 dk, önceki gece 1,6-2,0 dk):
+botlar hızlı eleniyor, yeni zamanlayıcıdan değil. Ödül: `turnuva_odullerini_dagit` → coin_ekle
+(`tur='turnuva'`, `referans='derece:…'/'katilim:…'`); botlara coin yazılmaz, bu turnuvada gerçek oyuncu
+olmadığı için satır yok — 13:00'daki gerçek oyuncunun katılım ödülü 13:01'de yazılmış.
