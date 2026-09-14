@@ -246,7 +246,9 @@ export default function RakipAra({ kategori, dereceli = true, onBulundu, onIptal
 
         <div className="bd-arama-alt">
           {kategori ? kategoriEtiket(kategori) : "Karışık"} kategorisinde
-          {botYolu
+          {Array.isArray(botListesi)
+            ? " seçtiğin botla oynarsın. Bot maçında coin ödülü yarıya iner."
+            : botYolu
             ? " seviyene yakın bir botla eşleştiriyoruz. Bot maçında coin ödülü yarıya iner."
             : botaDusuldu
               ? " seviyene yakın bir rakiple eşleştiriyoruz."
