@@ -32,7 +32,7 @@ import { yaklasmaKur, yaklasmaKonumu, kabulAniIstemci } from "./yaklasma.js";
 /** Kabul sonrası yaklaşmanın ardından oynayan kısa ikram gösterisi (sn). */
 const YAKLASMA_IKRAM_SN = 2.5;
 import {
-  meydanBotlariniAl, botJesti, botPlaniKur, planKonumu, kapilariHesapla, kenarKapilariHesapla, BOT_HIZI,
+  meydanBotlariniAl, botJesti, botPlaniKur, planKonumu, kapilariHesapla, kenarKapilariHesapla, BOT_HIZI, JEST_PENCERE_SN,
   gorunurBotlariSec, ziyaretPencereleri, ziyaretHedefiSec, ziyaretUygunMu, ziyaretBaslat,
   ziyaretAdimi, botBulusmalariniPlanla, planaBacakEkle, hopYuksekligi, kararliRastgele, geriDonusYolu,
 } from "./meydanBotlari.js";
@@ -544,7 +544,8 @@ export default function HaritaSayfasi() {
     // (mantık katmanı yalnız sayı görür; harita değişirse bu da değişir).
     // Paket 12, madde 2: giriş/çıkış bina kapısı DEĞİL — oyuncunun doğduğu
     // yöne yakın dış kenar (binaların arası). Bina kapısı yedek olarak kalır.
-    const kenarKapilar = kenarKapilariHesapla(dunya.engeller, { x: 0, z: 11 });
+    // Paket 13: tüm dış kenar (her 2°'lik engelsiz nokta) — bot hep aynı yerden gelmesin.
+    const kenarKapilar = kenarKapilariHesapla(dunya.engeller, { x: 0, z: 11 }, Infinity);
     const kapilar = kenarKapilar.length ? kenarKapilar : kapilariHesapla(dunya.binalar, dunya.engeller);
     // Görünür botların TABAN planları (bir kez kurulur): id -> { id, tohum,
     // plan, ziyaretler, basSira, sira }. Buluşmalar bunların üstüne eklenir.
@@ -966,11 +967,16 @@ export default function HaritaSayfasi() {
           // ziyaret sırasında plan hızı geçersiz, normal tempo.
           const adimHizi = b.ziyaret ? BOT_HIZI : (k.hiz || BOT_HIZI);
           dunya.yurumeAnimasyonu(b.av, dt, yuruyor ? Math.min(1, adimHizi / YURUME_HIZI) : 0, zipla);
-          if (yuruyor || b.ziyaret) continue;   // yürürken / selam verirken jest yapmaz
+          const j = botJesti(b.tohum, sn);
+          const pencere = Math.floor(sn / JEST_PENCERE_SN);
+          // Paket 13: zıplama yürürken/koşarken de olur — gerçek oyuncular koşarken zıplar.
+          if (j && j.tur === "zipla" && yuruyor && !b.ziyaret && !b.hop && b.sonJest !== pencere) {
+            b.sonJest = pencere;
+            b.hop = { basMs: simdiMs, adet: Number(j.deger) || 1 };
+          }
+          if (yuruyor || b.ziyaret) continue;   // yürürken / selam verirken diğer jestler yok
           // Buluşma bacağındayken de jest yok (ikram gösterisi oynuyor).
           if (b.bacaklar.some((x2) => simdiMs >= x2.bacak.gitMs && simdiMs <= x2.bacak.donMs)) continue;
-          const j = botJesti(b.tohum, sn);
-          const pencere = Math.floor(sn / 40);
           if (j && b.sonJest !== pencere) {
             b.sonJest = pencere;
             try {
@@ -1190,21 +1196,25 @@ export default function HaritaSayfasi() {
   // Gizli bota da istek GİDER (gerçek oyuncu gibi); gizli botlar arkadaşlık
   // kabul etmez — mevcut kural, burada dokunulmadı.
   const [arkadasDurum, setArkadasDurum] = useState(null);
+  // Arkadaşlık satırının kimliği: gönderilen isteği geri çekmek için (Paket 13).
+  const [arkadaslikId, setArkadaslikId] = useState(null);
   const secilenId = secilenOyuncu?.id ?? null;
   useEffect(() => {
     setArkadasDurum(null);
+    setArkadaslikId(null);
     if (!secilenId || !user?.id) return undefined;
     let aktif = true;
     (async () => {
       try {
         const { data, error } = await supabase
           .from("friendships")
-          .select("requester, addressee, durum")
+          .select("id, requester, addressee, durum")
           .or(`and(requester.eq.${user.id},addressee.eq.${secilenId}),and(requester.eq.${secilenId},addressee.eq.${user.id})`)
           .limit(1);
         if (error) throw error;
         if (!aktif) return;
         const f = data?.[0];
+        setArkadaslikId(f?.id ?? null);
         setArkadasDurum(!f ? "yok" : f.durum === "arkadas" ? "arkadas" : f.requester === user.id ? "gonderildi" : "gelen");
       } catch (e) {
         console.error("[Meydan] arkadaslik durumu okunamadi:", e);
@@ -1224,11 +1234,48 @@ export default function HaritaSayfasi() {
       if (error) throw error;
       setArkadasDurum(kabulMu ? "arkadas" : "gonderildi");
       setIkramNotu(kabulMu ? `${hedef.ad} ile artık arkadaşsınız.` : `${hedef.ad} kişisine arkadaşlık isteği gönderildi.`);
+      // Geri çekilebilsin diye yeni satırın kimliği okunur (RPC kimlik döndürmüyor).
+      const { data: satir, error: okuHata } = await supabase
+        .from("friendships")
+        .select("id")
+        .eq("requester", user.id)
+        .eq("addressee", hedef.id)
+        .maybeSingle();
+      if (okuHata) throw okuHata;
+      setArkadaslikId(satir?.id ?? null);
     } catch (e) {
       console.error("[Meydan] arkadaslik istegi:", e);
       setIkramNotu(hataMesaji(e, "Arkadaşlık isteği gönderilemedi."));
     }
-  }, [secilenOyuncu, arkadasDurum]);
+  }, [secilenOyuncu, arkadasDurum, user.id]);
+
+  /**
+   * Gönderdiğim arkadaşlık isteğini geri çeker (Paket 13). Meydan okumadaki
+   * "Geri çek" gibi. remove_friend yalnız istek sahibinin/alıcının kendi
+   * satırını siler; istek arada kabul edildiyse ekranda "Arkadaşsınız" kalır.
+   */
+  const istegiGeriCek = useCallback(async () => {
+    const hedef = secilenOyuncu;
+    if (!hedef || !arkadaslikId) return;
+    try {
+      const { data: guncel, error: okuHata } = await supabase
+        .from("friendships").select("durum").eq("id", arkadaslikId).maybeSingle();
+      if (okuHata) throw okuHata;
+      if (guncel?.durum === "arkadas") {
+        setArkadasDurum("arkadas");
+        setIkramNotu(`${hedef.ad} isteğini zaten kabul etmiş — artık arkadaşsınız.`);
+        return;
+      }
+      const { error } = await supabase.rpc("remove_friend", { p_id: arkadaslikId });
+      if (error) throw error;
+      setArkadasDurum("yok");
+      setArkadaslikId(null);
+      setIkramNotu(`${hedef.ad} kişisine gönderdiğin arkadaşlık isteği geri çekildi.`);
+    } catch (e) {
+      console.error("[Meydan] arkadaslik istegi geri cekilemedi:", e);
+      setIkramNotu(hataMesaji(e, "İstek geri çekilemedi."));
+    }
+  }, [secilenOyuncu, arkadaslikId]);
 
   /** Menüden seçim: meydan oku / kahve / balon. */
   const menuSec = useCallback(async (kod) => {
@@ -1559,15 +1606,16 @@ export default function HaritaSayfasi() {
           <button
             type="button"
             className="bd-harita-btn beyaz"
-            disabled={arkadasDurum !== "yok" && arkadasDurum !== "gelen"}
+            disabled={arkadasDurum === null || arkadasDurum === "arkadas" || (arkadasDurum === "gonderildi" && !arkadaslikId)}
             onClick={(e) => {
               if (e.detail !== 0 && !menuBasisRef.current) return;
               menuBasisRef.current = false;
-              arkadasEkle();
+              if (arkadasDurum === "gonderildi") istegiGeriCek();
+              else arkadasEkle();
             }}
           >
             {arkadasDurum === "arkadas" ? "Arkadaşsınız ✓"
-              : arkadasDurum === "gonderildi" ? "İstek gönderildi"
+              : arkadasDurum === "gonderildi" ? "İsteği geri çek"
               : arkadasDurum === "gelen" ? "Arkadaşlık isteğini kabul et"
               : arkadasDurum === null ? "Arkadaş ekle…" : "Arkadaş ekle"}
           </button>

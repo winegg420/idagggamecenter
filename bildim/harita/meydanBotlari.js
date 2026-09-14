@@ -33,12 +33,19 @@ import { supabase } from "../../src/lib/supabase.js";
 import { ziplamaYuksekligi, ZIPLAMA } from "./ziplama.js";
 
 /** Botun yürüme hızı (birim/sn). Oyuncu 9 ile koşar; bot gezinir. */
-export const BOT_HIZI = 3.2;
+// Paket 13: 3.2 "aşırı yavaş" bulundu. Temel hız 4.2; her bacak ayrıca
+// koşar/seri/ağır çarpanı alır (bkz. botPlaniKur › Dolaş).
+export const BOT_HIZI = 4.2;
 
 // Dolaşma halkası: çeşme (6.6) ile bankların iç kenarı (12.5 - 1.6)
 // arası boş. Gövde payıyla birlikte bu aralıkta kalınır.
 const HALKA_MIN = 8.2;
 const HALKA_MAX = 9.8;
+// Paket 13: dolaşma artık yalnız bu dar halkada değil, çeşmeden çevre
+// ağaçlarının (21) iç kenarına kadar tüm meydanda. Bank/lamba engelleri
+// sapmaliYol ile dolaşılır.
+const DOLAS_MIN = 8.2;
+const DOLAS_MAX = 19;
 const GOVDE_R = 0.55;          // engelden uzak durma payı
 const SAPMA_PAYI = 0.35;       // engelin etrafından dolaşırken ek boşluk
 const KAPI_PAYI = 0.4;         // kapı noktası bina engelinin bu kadar önünde
@@ -156,12 +163,18 @@ export function kapilariHesapla(binalar, engeller) {
  * @param {{x:number,z:number}} baslangic gerçek oyuncunun doğduğu nokta
  */
 export function kenarKapilariHesapla(engeller, baslangic = { x: 0, z: 11 }, adet = 3) {
-  const ADIM = (3 * Math.PI) / 180;
+  // Paket 13: "bot hiçbir zaman aynı noktadan gelmesin" — adet Infinity
+  // verilirse her 2°'lik engelsiz kenar noktası döner (~130 nokta).
+  const ADIM = ((adet === Infinity ? 2 : 3) * Math.PI) / 180;
   const n = Math.round((Math.PI * 2) / ADIM);
   const bos = [];
   for (let i = 0; i < n; i++) {
     const a = i * ADIM, x = Math.cos(a) * KENAR_R, z = Math.sin(a) * KENAR_R;
     bos.push((engeller ?? []).every((e) => Math.hypot(x - e.x, z - e.z) >= e.r + GOVDE_R + KENAR_PAYI));
+  }
+  if (adet === Infinity) {
+    return bos.map((b, i) => (b ? { x: Math.cos(i * ADIM) * KENAR_R, z: Math.sin(i * ADIM) * KENAR_R, aci: i * ADIM } : null))
+      .filter(Boolean);
   }
   if (bos.every(Boolean) || !bos.some(Boolean)) return [];
   // Engelli bir noktadan başlayıp çevrimsel olarak boş yayları topla.
@@ -235,7 +248,10 @@ function halkaYolu(bas, hedefAci, hedefR, engeller) {
   let o = bas;
   for (let i = 1; i <= adim; i++) {
     const a = a0 + (fark * i) / adim, r = r0 + ((hedefR - r0) * i) / adim;
-    const n = { x: Math.cos(a) * r, z: Math.sin(a) * r };
+    // Paket 13: dolaşma bank halkasına (12,5) taşındı; ara nokta bir bankın
+    // İÇİNE düşerse planKonumu onu dışarı itiyor, bot bankın bir yanından
+    // öbür yanına atlıyordu (simülasyon: 145 sıçrama). Nokta baştan dışarıda.
+    const n = engeldenIt({ x: Math.cos(a) * r, z: Math.sin(a) * r }, engeller);
     yol.push(...sapmaliYol(o, n, engeller));
     o = n;
   }
@@ -303,20 +319,47 @@ export function botPlaniKur({ tohum, baslangicMs, bitisMs, kapilar, engeller, gr
   yuru(sapmaliYol(son(), { x: Math.cos(girisAci) * girisR, z: Math.sin(girisAci) * girisR }, engel));
   const dolasBasMs = son().t;
 
-  // 2) Dolaş — çıkışa yetecek süre kaldığı sürece
-  for (let i = 0; i < 40; i++) {
+  // 2) Dolaş — çıkışa yetecek süre kaldığı sürece.
+  // Paket 13 ("aynı tempoda süzülüyorlar, inandırıcı değil"): bacak türü
+  // karışık — halkada tur, meydanın rastgele bir yerine düz koşu, sağa-sola
+  // zikzak (her hamlede yön ters döner). Hepsi tohumdan: herkes aynısını görür.
+  for (let i = 0; i < 80; i++) {
     const o = son();
-    const yon = r() < 0.5 ? -1 : 1;
-    const aci = Math.atan2(o.z, o.x) + yon * ((35 + r() * 95) * Math.PI) / 180;
-    const hedefR = HALKA_MIN + r() * (HALKA_MAX - HALKA_MIN);
-    const bacak = halkaYolu(o, aci, hedefR, engel);
+    const bacakTuru = r();
+    let bacak;
+    if (bacakTuru < 0.35) {
+      const yon = r() < 0.5 ? -1 : 1;
+      const aci = Math.atan2(o.z, o.x) + yon * ((35 + r() * 95) * Math.PI) / 180;
+      bacak = halkaYolu(o, aci, DOLAS_MIN + r() * (DOLAS_MAX - DOLAS_MIN), engel);
+    } else if (bacakTuru < 0.65) {
+      const aci = r() * Math.PI * 2, rr = DOLAS_MIN + r() * (DOLAS_MAX - DOLAS_MIN);
+      bacak = sapmaliYol(o, engeldenIt({ x: Math.cos(aci) * rr, z: Math.sin(aci) * rr }, engel), engel);
+    } else {
+      bacak = [];
+      let p = o, yonAci = r() * Math.PI * 2;
+      const hamle = 2 + Math.floor(r() * 3);
+      for (let z = 0; z < hamle; z++) {
+        yonAci += Math.PI * (0.55 + r() * 0.9) * (z % 2 ? 1 : -1);
+        const boy = 1.8 + r() * 3.2;
+        let q = { x: p.x + Math.sin(yonAci) * boy, z: p.z + Math.cos(yonAci) * boy };
+        const qr = Math.hypot(q.x, q.z);
+        if (qr > DOLAS_MAX) q = { x: (q.x * DOLAS_MAX) / qr, z: (q.z * DOLAS_MAX) / qr };
+        q = engeldenIt(q, engel);
+        bacak.push(...sapmaliYol(p, q, engel));
+        p = q;
+      }
+    }
     // HIZ ÇEŞİTLİLİĞİ (Paket 7, madde 2d): %15 koşar gibi (1,4-1,6×),
     // %20 ağır ağır (0,6×), gerisi normal. AYRI tohum anahtarından seçilir,
     // `r()` dizisini tüketmez — rota/mola/buluşma zamanlaması aynen kalır.
     const hizSec = tohumSayi(tohum, "hiz" + i);
-    const hizCarpani = hizSec < 0.15 ? 1.4 + tohumSayi(tohum, "hizk" + i) * 0.2 : hizSec < 0.35 ? 0.6 : 1;
+    // Paket 13: bacakların %40'ı koşar (1,8-2,2× → oyuncu hızına yakın),
+    // %35'i seri (1,25-1,5×), %17'si yürür, %8'i ağır (0,7×). Koşu bacakları
+    // kısa sürdüğünden eşikler koşuya ağırlık verir. Molalar kısa ve seyrek.
+    const hizk = tohumSayi(tohum, "hizk" + i);
+    const hizCarpani = hizSec < 0.4 ? 1.8 + hizk * 0.4 : hizSec < 0.75 ? 1.25 + hizk * 0.25 : hizSec < 0.92 ? 1 : 0.7;
     const bacakMs = (uzunluk(o, bacak) * hizMs) / hizCarpani;
-    const molaMs = r() < 0.55 ? 2500 + r() * 6500 : 0;
+    const molaMs = r() < 0.35 ? 600 + r() * 3400 : 0;
     const varis = bacak.length ? bacak[bacak.length - 1] : o;
     const cikisMs = uzunluk(varis, cikisYolu(varis, cikis, engel)) * hizMs;
     if (o.t + bacakMs + molaMs + cikisMs > bitisMs) break;
@@ -404,14 +447,18 @@ export function planKonumu(plan, simdiMs) {
  * saniyede bir, tohuma bağlı olduğu için herkes aynı anda görür.
  * @returns {{tur:'emoji'|'dans'|'zipla', deger:string|number}|null}
  */
+// Paket 13: jest penceresi 40 → 14 sn; zıplama çoğunlukta (1-3 kez) ve
+// HaritaSayfasi yürürken/koşarken de uygular.
+export const JEST_PENCERE_SN = 14;
+
 export function botJesti(tohum, sn) {
-  const pencere = Math.floor(sn / 40);
+  const pencere = Math.floor(sn / JEST_PENCERE_SN);
   const p = tohumSayi(tohum, "j" + pencere);
-  if (p > 0.35) return null;                      // çoğu pencerede sessiz
-  const icinde = sn % 40;
+  if (p > 0.6) return null;                       // bazı pencerelerde sessiz
+  const icinde = sn % JEST_PENCERE_SN;
   if (icinde > 2) return null;                    // yalnız pencerenin başında
-  if (p < 0.10) return { tur: "dans", deger: "dns_01" };
-  if (p < 0.20) return { tur: "zipla", deger: 1 + (Math.floor(p * 1000) % 2) };
+  if (p < 0.06) return { tur: "dans", deger: "dns_01" };
+  if (p < 0.40) return { tur: "zipla", deger: 1 + (Math.floor(p * 1000) % 3) };
   const emojiler = ["👍", "😂", "🔥", "😎", "👋"];
   return { tur: "emoji", deger: emojiler[Math.floor(p * 100) % emojiler.length] };
 }
