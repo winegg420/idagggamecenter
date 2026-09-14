@@ -6042,3 +6042,23 @@ body.bd-ekle-acik .app { padding-bottom: calc(300px + env(safe-area-inset-bottom
 .app .anasayfa .bd-hero .bd-kategori-kart-deger { font-size: 14px; }
 .app .anasayfa .bd-hero .bd-kategori-kart-degistir { font-size: 12px; }
 .app .anasayfa .bd-hero .bd-ana-eylem { margin-top: 14px; }
+
+/* ---- 3 ek) Turnuva kartı: "Lobidesin" ikincil + sayaçlar solda ----
+   Canlıda ölçüldü: "btn kucuk ikincil" sınıfı doğru, zemin rengi saydam ama
+   başka bir .btn kuralından gelen turuncu gradyan GÖRSEL üstte kalıyordu
+   (ikincil yalnız rengi değiştiriyor, görseli sıfırlamıyordu). Referansta
+   lobideyken buton ikincil (beyaz + alt kalınlık). Sayaç kutuları referansta
+   solda; Countdown bileşeni ortalıyordu. */
+.app .anasayfa .bd-turnuva-sag .btn.ikincil {
+  background: var(--bd-yuzey-1);
+  background-image: none;
+  color: var(--bd-metin);
+  text-shadow: none;
+  border: 1px solid var(--border);
+  box-shadow: 0 3px 0 var(--bd-kart-alt);
+}
+.app .anasayfa .bd-turnuva-sag .btn.ikincil:active:not(:disabled) {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 var(--bd-kart-alt);
+}
+.app .anasayfa .bd-turnuva-serit .geri-sayim-rakamlar { justify-content: flex-start; }
