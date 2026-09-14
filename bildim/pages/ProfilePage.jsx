@@ -13,6 +13,7 @@ import SayanSayi from "../components/SayanSayi.jsx";
 import KonumSecici from "../components/KonumSecici.jsx";
 import ProfilAyarlari from "../components/ProfilAyarlari.jsx";
 import TemaDugmesi from "../components/TemaDugmesi.jsx";
+import { KOYU_TEMA_KAPALI } from "../lib/tema.js";
 import UstalikIzgarasi from "../components/UstalikIzgarasi.jsx";
 import { bayrak, konumKilidiKalan, sureMetni } from "../lib/konum.js";
 import { rutbeBul, sonrakiRutbe } from "../lib/ranks.js";
@@ -304,6 +305,9 @@ export default function ProfilePage() {
       {/* SADELEŞTİRME — tema düğmesi üst bardan kalktı ama
           KAYBOLMADI. Ayar, ayarların olduğu yere taşındı; oyuncu kontrolü
           elinde tutuyor. Bileşen aynı bileşen. */}
+      {/* Koyu tema geçici olarak kapalı (lib/tema.js › KOYU_TEMA_KAPALI):
+          geri bildirim süresince tek mod, düğme gizli. */}
+      {!KOYU_TEMA_KAPALI && (
       <div className="kart bd-ayar-satir">
         <div style={{ flex: 1, minWidth: 0 }}>
           {/* "Görünüm" adı 3B karakter kartına ait (Paket 8): iki kart aynı
@@ -313,6 +317,7 @@ export default function ProfilePage() {
         </div>
         <TemaDugmesi />
       </div>
+      )}
 
       {/* ---------- Yasal / hesap ---------- */}
       <div className="kart">

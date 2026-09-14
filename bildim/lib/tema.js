@@ -18,6 +18,12 @@
 // ============================================================
 
 const ANAHTAR = "bildim_tema";
+
+// KOYU TEMA GEÇİCİ OLARAK KAPALI (14 Eyl 2026, sahibin isteği): geri bildirim
+// toplanırken herkes siteyi tek modda (açık) görsün. Cihaz koyu olsa da,
+// daha önce "koyu" seçilmiş olsa da açık uygulanır; Profil'deki düğme gizli.
+// Kayıtlı tercih SİLİNMEZ — `false` yapılınca herkes eski seçimine döner.
+export const KOYU_TEMA_KAPALI = true;
 const dinleyiciler = new Set();
 let sistemSorgu = null;
 
@@ -42,6 +48,7 @@ export function cihazKoyuMu() {
 
 /** Şu an ekranda olan tema: "acik" | "koyu". */
 export function etkinTema() {
+  if (KOYU_TEMA_KAPALI) return "acik";
   const t = temaTercihi();
   if (t === "cihaz") return cihazKoyuMu() ? "koyu" : "acik";
   return t;
