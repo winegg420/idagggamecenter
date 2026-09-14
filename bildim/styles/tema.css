@@ -5994,3 +5994,51 @@ body.bd-ekle-acik .app { padding-bottom: calc(300px + env(safe-area-inset-bottom
   font-size: 13px; font-weight: 800; padding: 9px 16px; border-radius: 11px;
   min-height: 44px;   /* dokunma hedefi */
 }
+
+/* ---- 5) Hero kartı — kalan farklar ----
+   Referans .hero: 24 px köşe, 20/14/14 iç boşluk, 12 px dikey boşluk (eski
+   ".app .bd-hero { margin: 0 -12px }" taşması ezilir), 1 px çerçeve, yumuşak
+   gölge, hafif gri-mavi zemin. Altın parlaklık (.hero-isik) iki yerde
+   display:none ile kapatılmıştı → geri açıldı; transform yerine margin ile
+   ortalanır, statik (nefes animasyonu yok). */
+.app .anasayfa .bd-hero {
+  position: relative; overflow: hidden;
+  margin: 12px 0;
+  padding: 20px 14px 14px;
+  border-radius: 24px;
+  background: linear-gradient(rgba(32, 50, 74, 0.035), rgba(32, 50, 74, 0.035)), var(--bd-yuzey-1);
+  border: 1px solid var(--border);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.10);
+}
+.app .anasayfa .bd-hero-isik {
+  display: block;
+  position: absolute; top: -70px; left: 50%;
+  width: 260px; height: 160px; margin-left: -130px;
+  border-radius: 50%;
+  background: rgba(251, 191, 36, 0.28);
+  filter: blur(10px);
+  pointer-events: none;
+  animation: none; transform: none;
+}
+.app .anasayfa .bd-hero > :not(.bd-hero-isik) { position: relative; }
+/* Puan: 48 px, 800, parıltı gölgesi. Açık temada dolgu --bd-odul-metin
+   (beyazda 5,07:1 — referans #FFC53D ~1,6:1 AA'yı geçmez); koyu tema altın
+   kuralı daha özgül olduğu için korunur. */
+.app .anasayfa .bd-hero-puan { margin: 14px 0 8px; gap: 8px; }
+.app .anasayfa .bd-hero .bd-hero-puan-sayi {
+  font-size: 48px; font-weight: 800; line-height: .95;
+  text-shadow: 0 4px 20px rgba(255, 197, 61, 0.35);
+}
+.app .anasayfa .bd-hero-puan-etiket { font-size: 12px; font-weight: 700; letter-spacing: 2px; }
+/* Kategori kartı: hero'nun İÇİNDE, "Hemen oyna"nın 14 px üstünde;
+   referanstaki kesik turuncu çerçeve. */
+.app .anasayfa .bd-hero .bd-kategori-kart {
+  margin: 14px 0 0; padding: 10px 12px; min-height: 52px;
+  border-radius: 14px;
+  border: 1.5px dashed var(--bd-vurgu);
+  box-shadow: none;
+}
+.app .anasayfa .bd-hero .bd-kategori-kart-etiket { font-size: 10px; letter-spacing: .4px; }
+.app .anasayfa .bd-hero .bd-kategori-kart-deger { font-size: 14px; }
+.app .anasayfa .bd-hero .bd-kategori-kart-degistir { font-size: 12px; }
+.app .anasayfa .bd-hero .bd-ana-eylem { margin-top: 14px; }
