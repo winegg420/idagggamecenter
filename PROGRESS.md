@@ -4934,3 +4934,19 @@ açık (22 bot + 1 gerçek oyuncu). Süre eski turnuvalarla aynı (13:00 → 1,9
 botlar hızlı eleniyor, yeni zamanlayıcıdan değil. Ödül: `turnuva_odullerini_dagit` → coin_ekle
 (`tur='turnuva'`, `referans='derece:…'/'katilim:…'`); botlara coin yazılmaz, bu turnuvada gerçek oyuncu
 olmadığı için satır yok — 13:00'daki gerçek oyuncunun katılım ödülü 13:01'de yazılmış.
+
+## 14 Eylül 2026 (15) — Paket 12 Madde 1 tamamlama (gardırop sadeleştirme + karakter şeridi)
+
+Paket metni tekrar geldi; 2-7 zaten canlıdaydı (yukarıdaki kayıtlar). Madde 1'in yeni istekleri:
+- **Bekle / Yürü / Selam ver düğmeleri kaldırıldı.** `sahne.animasyon` kodu duruyor (atölye kullanıyor);
+  karakter varsayılan "bekle" duruşunda. Yüzü incele / Tüm karakter kaldı.
+- **"Kaydedilen karakterle meydana git" bağlantısı kaldırıldı** (alt menüde Meydan sekmesi var).
+- **Kaydırınca karakter şeride iner:** telefonda (≤760 px) ~120 px aşağıda `.kucuk-sahne` → sahne
+  `--gos-h` 88 px, en üste (≤12 px) dönünce geri büyür; eşik farkı titremeyi önler. Yalnız height
+  (ResizeObserver tuvali yeniden boyutlar), yapışık alanda/atalarında transform yok (iOS kuralı).
+  Kamera düğmeleri 88 px'lik şeride sığmadığı için yalnız küçükken gizli. Kayıt çubuğu ve
+  "geçici olarak çıkarıldı" uyarısı aynı.
+- **390×844 ölçüm (Playwright, yerel derleme):** açılış sahne 253 px / yapışık alt 387; kaydırınca
+  sahne 88 / yapışık alt 222, listede 9 eşya görünür (ilk 235 px'te tanıtım kartı hâlâ ekranda → 3);
+  üste dönünce 253; Bekle/Yürü/Selam ver yok, "meydana git" yok, taşma yok.
+- Izgara (3 sütun, kart ≤150 px, fiyatlı küçük hap, yeşil seçili çerçeve) önceki commit'lerde.
