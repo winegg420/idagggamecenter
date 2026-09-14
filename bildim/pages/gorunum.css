@@ -349,3 +349,42 @@
   .bd-karakter-portre.yukleniyor,
   .bd-gardrop-satir-gorsel.yukleniyor { animation: none; background: var(--bd-yuzey-2, #DDE7F0); }
 }
+
+/* ---- Dükkân › Görünüm: yuvaya göre gruplu ızgara (Paket 12, madde 4) ----
+   Tek uzun liste yerine açılır-kapanır bölümler (varsayılan açık); başlıkta
+   adet, içinde telefonda 3 sütun ızgara. Fiyat / "Sende" / "Turnuva ödülü"
+   ve gardıroba giden bağlantı aynen kalır. */
+.bd-gardrop-grup { margin: 0 0 12px; }
+.bd-gardrop-grup > summary {
+  display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  min-height: 44px; padding: 0 4px; cursor: pointer; list-style: none;
+  font-family: var(--bd-f-baslik); font-weight: 900; font-size: 16px; color: var(--bd-metin);
+}
+.bd-gardrop-grup > summary::-webkit-details-marker { display: none; }
+.bd-gardrop-grup > summary::after {
+  content: ""; width: 9px; height: 9px; margin-right: 6px; flex: none;
+  border-right: 3px solid var(--bd-metin-2); border-bottom: 3px solid var(--bd-metin-2);
+  transform: rotate(45deg); transition: transform .15s ease;
+}
+.bd-gardrop-grup:not([open]) > summary::after { transform: rotate(-45deg); }
+.bd-gardrop-liste.bd-gardrop-izgara {
+  display: grid; gap: 8px; grid-template-columns: repeat(auto-fill, minmax(104px, 1fr));
+}
+.bd-gardrop-izgara .bd-gardrop-satir {
+  flex-direction: column; align-items: stretch; justify-content: flex-start; gap: 4px;
+  padding: 6px; text-align: center; min-width: 0;
+}
+.bd-gardrop-izgara .bd-gardrop-satir.sende { box-shadow: inset 0 0 0 2px var(--bd-basari, #2FBF71); }
+.bd-gardrop-izgara .bd-gardrop-satir-sol { flex-direction: column; gap: 4px; }
+.bd-gardrop-izgara .bd-gardrop-satir-gorsel { width: 100%; height: 72px; }
+.bd-gardrop-izgara .bd-gardrop-satir-ad { width: 100%; min-width: 0; font-size: 12px; line-height: 1.2; }
+.bd-gardrop-izgara .bd-gardrop-satir-ad,
+.bd-gardrop-izgara .bd-gardrop-satir-ad small { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.bd-gardrop-izgara .bd-gardrop-satir-ad small { font-size: 10px; }
+.bd-gardrop-izgara .bd-gardrop-satir-fiyat { justify-content: center; font-size: 11px; white-space: normal; line-height: 1.15; }
+@media (max-width: 520px) {
+  .bd-gardrop-liste.bd-gardrop-izgara { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .bd-gardrop-grup > summary::after { transition: none; }
+}

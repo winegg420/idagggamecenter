@@ -28,6 +28,31 @@ const YUVA_ADLARI = {
   kolye: "Kolye", saat: "Saat", kupe: "Küpe",
 };
 
+/** Vitrin bölümleri ve sırası; "Takı" kolye + saat + küpeyi toplar. */
+const VITRIN_BOLUMLERI = [
+  { anahtar: "sac", ad: "Saç", yuvalar: ["sac"] },
+  { anahtar: "kiyafet", ad: "Üst giyim", yuvalar: ["kiyafet"] },
+  { anahtar: "alt", ad: "Alt giyim", yuvalar: ["alt"] },
+  { anahtar: "ayakkabi", ad: "Ayakkabı", yuvalar: ["ayakkabi"] },
+  { anahtar: "bas", ad: "Baş aksesuarı", yuvalar: ["bas"] },
+  { anahtar: "gozluk", ad: "Gözlük", yuvalar: ["gozluk"] },
+  { anahtar: "sakal", ad: "Sakal", yuvalar: ["sakal"] },
+  { anahtar: "taki", ad: "Takı", yuvalar: ["kolye", "saat", "kupe"] },
+  { anahtar: "pelerin", ad: "Sırt", yuvalar: ["pelerin"] },
+];
+
+/** Parçaları bölümlere ayırır; boş bölüm çıkmaz, bilinmeyen yuva sona eklenir. */
+function vitrinGruplari(parcalar) {
+  const bilinen = new Set(VITRIN_BOLUMLERI.flatMap((b) => b.yuvalar));
+  const gruplar = VITRIN_BOLUMLERI
+    .map((b) => ({ ...b, parcalar: parcalar.filter((p) => b.yuvalar.includes(p.yuva)) }));
+  const digerYuvalar = [...new Set(parcalar.map((p) => p.yuva).filter((y) => !bilinen.has(y)))];
+  for (const y of digerYuvalar) {
+    gruplar.push({ anahtar: y, ad: YUVA_ADLARI[y] ?? y, parcalar: parcalar.filter((p) => p.yuva === y) });
+  }
+  return gruplar.filter((g) => g.parcalar.length);
+}
+
 /**
  * Satırdaki küçük eşya görseli (Paket 8): liste düz metindi, "Pantolon /
  * Şort / Kapri" birbirinin aynısı görünüyordu. Gardıroptaki kartlarla aynı
@@ -121,34 +146,44 @@ export default function GardropVitrini() {
       {/* ---- Katalog ---- */}
       <div className="kart">
         <div className="bd-kat-baslik"><span>Gardırop</span></div>
-        <div className="bd-gardrop-liste">
-          {veri.parcalar.map((p) => {
-            const sende = veri.sahip.has(p.id);
-            const odul = p.coin_fiyat == null;
-            return (
-              <a
-                key={p.id}
-                className={"bd-gardrop-satir" + (sende ? " sende" : "") + (odul && !sende ? " odul" : "")}
-                href={GARDROP_YOLU}
-              >
-                <span className="bd-gardrop-satir-sol">
-                  <EsyaOnizleme gorunum={veri.gorunum} parca={p} />
-                  <span className="bd-gardrop-satir-ad">
-                    {p.ad}
-                    <small>{YUVA_ADLARI[p.yuva] ?? p.yuva}</small>
-                  </span>
-                </span>
-                <span className="bd-gardrop-satir-fiyat">
-                  {sende
-                    ? "Sende"
-                    : odul
-                      ? <><Ikon ad="kilit" boyut={12} /> Turnuva ödülü</>
-                      : <><Ikon ad="coin" boyut={12} /> {Number(p.coin_fiyat).toLocaleString("tr-TR")}</>}
-                </span>
-              </a>
-            );
-          })}
-        </div>
+        {/* YUVAYA GÖRE GRUPLU (Paket 12, madde 4): tek uzun liste yerine
+            bölümler; başlıkta adet, içinde ızgara. Bölümler açılıp kapanır,
+            varsayılan açık. Tanınmayan yuva en sonda kendi adıyla durur. */}
+        {vitrinGruplari(veri.parcalar).map((g) => (
+          <details key={g.anahtar} className="bd-gardrop-grup" open>
+            <summary>
+              <span>{g.ad} · {g.parcalar.length}</span>
+            </summary>
+            <div className="bd-gardrop-liste bd-gardrop-izgara">
+              {g.parcalar.map((p) => {
+                const sende = veri.sahip.has(p.id);
+                const odul = p.coin_fiyat == null;
+                return (
+                  <a
+                    key={p.id}
+                    className={"bd-gardrop-satir" + (sende ? " sende" : "") + (odul && !sende ? " odul" : "")}
+                    href={GARDROP_YOLU}
+                  >
+                    <span className="bd-gardrop-satir-sol">
+                      <EsyaOnizleme gorunum={veri.gorunum} parca={p} />
+                      <span className="bd-gardrop-satir-ad">
+                        {p.ad}
+                        <small>{YUVA_ADLARI[p.yuva] ?? p.yuva}</small>
+                      </span>
+                    </span>
+                    <span className="bd-gardrop-satir-fiyat">
+                      {sende
+                        ? "Sende"
+                        : odul
+                          ? <><Ikon ad="kilit" boyut={12} /> Turnuva ödülü</>
+                          : <><Ikon ad="coin" boyut={12} /> {Number(p.coin_fiyat).toLocaleString("tr-TR")}</>}
+                    </span>
+                  </a>
+                );
+              })}
+            </div>
+          </details>
+        ))}
         <div className="alt-yazi" style={{ marginTop: 10 }}>
           Parçalar gardıropta denenir ve satın alınır — orada karakterinin
           üstünde nasıl durduğunu görürsün.
