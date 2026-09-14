@@ -6062,3 +6062,29 @@ body.bd-ekle-acik .app { padding-bottom: calc(300px + env(safe-area-inset-bottom
   box-shadow: 0 1px 0 var(--bd-kart-alt);
 }
 .app .anasayfa .bd-turnuva-serit .geri-sayim-rakamlar { justify-content: flex-start; }
+
+/* ---- "Beklemeden bot ile oyna" — bot seçim listesi (Paket 12, madde 6) ----
+   Açık botlar kolaydan zora; satırda ad solda, zorluk etiketi sağda.
+   Dokunma hedefi ≥ 44 px, Şenlik kabartması. */
+.bd-arama-botlar { display: flex; flex-direction: column; gap: 8px; width: 100%; margin-top: 12px; }
+.bd-arama-bot {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  min-height: 48px; padding: 8px 14px; border-radius: 14px; cursor: pointer;
+  background: var(--bd-yuzey, #fff); color: var(--bd-metin);
+  border: 2px solid var(--bd-kenar, #D6E6F2); box-shadow: 0 4px 0 var(--bd-kenar, #D6E6F2);
+  font-family: var(--bd-f-govde); font-weight: 800; font-size: 15px; text-align: left;
+  transition: transform .08s ease, box-shadow .08s ease;
+}
+.bd-arama-bot:active:not(:disabled) { transform: translateY(4px); box-shadow: none; }
+.bd-arama-bot:disabled { cursor: default; opacity: .6; }
+.bd-arama-bot.secili { opacity: 1; border-color: var(--bd-vurgu); }
+.bd-arama-bot-ad { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.bd-arama-bot-zorluk { flex: none; font-size: 13px; font-weight: 900; }
+@media (prefers-reduced-motion: reduce) { .bd-arama-bot { transition: none; } }
+
+/* ---- Bugün kalan turnuvalar (Paket 12, madde 7) ---- */
+.bd-turnuva-kalanlar {
+  flex-basis: 100%; margin-top: 6px; font-size: 12.5px; font-weight: 800;
+  color: var(--bd-metin-2); line-height: 1.4;
+}
+.bd-turnuva-kalanlar b { color: var(--bd-odul-metin); font-weight: 900; }

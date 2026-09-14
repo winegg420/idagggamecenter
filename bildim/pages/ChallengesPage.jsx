@@ -32,18 +32,8 @@ const HIZLI_SECIMI = `*,
   katilimcilar:hizli_oyuncular(hizli_mac_id, user_id, davet_durumu, skor,
     profil:profiles(id, gorunen_ad, gorunen_avatar, puan))`;
 
-// Beş bot var (isabet 0.25 · 0.40 · 0.55 · 0.70 · 0.90); eşikler beşi de
-// ayrı gösterecek şekilde ayarlandı — önceden üçü aynı etikete düşüyordu.
-const botZorluk = (isabet) =>
-  isabet <= 0.30
-    ? { etiket: "Çok kolay", renk: "var(--bd-basari-metin)" }
-    : isabet <= 0.45
-      ? { etiket: "Kolay", renk: "var(--bd-basari-metin)" }
-      : isabet <= 0.60
-        ? { etiket: "Orta", renk: "var(--bd-odul-metin)" }
-        : isabet <= 0.75
-          ? { etiket: "Zor", renk: "var(--bd-vurgu-metin)" }
-          : { etiket: "Çok zor", renk: "var(--bd-hata-metin)" };
+// Bot zorluk etiketi ortak dosyada (RakipAra'daki bot seçimi de kullanır).
+import { botZorluk } from "../lib/botZorluk.js";
 
 // Kategori etiketleri ortak dosyada (bildim/lib/kategoriler.js)
 

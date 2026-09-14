@@ -4,6 +4,7 @@ import { supabase } from "../../src/lib/supabase.js";
 import { useAuth } from "../../src/context/AuthContext.jsx";
 import { kategoriEtiket } from "../lib/kategoriler.js";
 import Maskot from "./Maskot.jsx";
+import { botZorluk } from "../lib/botZorluk.js";
 
 const BEKLEME_SN = 8; // bu süre içinde insan rakip aranır, sonra bota düşülür
 
@@ -30,6 +31,9 @@ export default function RakipAra({ kategori, dereceli = true, onBulundu, onIptal
   // Açık bot yolu ayrı tutulur: ekrandaki yazı dürüst olsun (o maçta coin yarıya iner).
   const [botYolu, setBotYolu] = useState(false);
   const [rakipAdi, setRakipAdi] = useState(null);
+  // Bot seçimi (Paket 12, madde 6): null = liste kapalı, "yukleniyor", dizi = açık botlar.
+  const [botListesi, setBotListesi] = useState(null);
+  const [secilenBot, setSecilenBot] = useState(null);
   const bittiRef = useRef(false);
   const zamanlayiciRef = useRef(null);
 
@@ -93,6 +97,55 @@ export default function RakipAra({ kategori, dereceli = true, onBulundu, onIptal
     } catch (e) {
       setHata("Maç başlatılamadı. Bağlantını kontrol edip tekrar dene.");
       console.error("[Bildim] hemen_bot_mac:", e);
+    }
+  }, [kategori, dereceli, bitir]);
+
+  // BOT SEÇİMİ (Paket 12, madde 6): "Beklemeden bot ile oyna" önce açık
+  // botları ad + zorlukla listeler; oyuncu seçtiği botla oynar. Zorluk,
+  // ChallengesPage'teki gibi türetilmiş `acik_bot_isabet`ten (ham
+  // `bot_isabet` istemciye kapalı — gizli botları ele verir). Liste
+  // okunamazsa ya da boşsa eski yol: seviyeye en yakın açık bot.
+  const botlariGoster = useCallback(async () => {
+    if (bittiRef.current) return;
+    setBotaDusuldu(true);
+    setBotYolu(true);
+    clearInterval(zamanlayiciRef.current);
+    setBotListesi("yukleniyor");
+    try {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("id, gorunen_ad, acik_bot_isabet")
+        .eq("acik_bot", true)
+        .not("acik_bot_isabet", "is", null)
+        .order("acik_bot_isabet", { ascending: true });
+      if (error) throw error;
+      if (!data?.length) { setBotListesi(null); hemenBot(); return; }
+      setBotListesi(data);
+    } catch (e) {
+      console.error("[Bildim] acik botlar okunamadi:", e);
+      setBotListesi(null);
+      hemenBot();
+    }
+  }, [hemenBot]);
+
+  const botSec = useCallback(async (botId) => {
+    if (bittiRef.current) return;
+    setSecilenBot(botId);
+    setHata(null);
+    try {
+      const { data, error } = await supabase.rpc("hemen_bot_mac_sec", {
+        p_bot: botId,
+        p_kategori: kategori ?? null,
+        p_dereceli: dereceli,
+      });
+      if (error) throw error;
+      if (data) { bitir(data); return; }
+      setHata("Şu an bu botla maç açılamadı. Başka bir bot seç.");
+      setSecilenBot(null);
+    } catch (e) {
+      setHata("Maç başlatılamadı. Bağlantını kontrol edip tekrar dene.");
+      console.error("[Bildim] hemen_bot_mac_sec:", e);
+      setSecilenBot(null);
     }
   }, [kategori, dereceli, bitir]);
 
@@ -185,7 +238,9 @@ export default function RakipAra({ kategori, dereceli = true, onBulundu, onIptal
           <div className="bd-arama-bulundu">Rakip bulundu: {rakipAdi}</div>
         ) : (
           <div className="bd-arama-baslik">
-            {botaDusuldu ? "Maç hazırlanıyor…" : "Rakip aranıyor…"}
+            {Array.isArray(botListesi) && !secilenBot
+              ? "Rakip botunu seç"
+              : botaDusuldu ? "Maç hazırlanıyor…" : "Rakip aranıyor…"}
           </div>
         )}
 
@@ -202,12 +257,36 @@ export default function RakipAra({ kategori, dereceli = true, onBulundu, onIptal
           <div className="bd-arama-sayac">{kalan} sn</div>
         )}
 
+        {botListesi && !rakipAdi && (
+          botListesi === "yukleniyor" ? (
+            <div className="bd-arama-alt">Botlar yükleniyor…</div>
+          ) : (
+            <div className="bd-arama-botlar" role="group" aria-label="Rakip bot seç">
+              {botListesi.map((b) => {
+                const z = botZorluk(Number(b.acik_bot_isabet));
+                return (
+                  <button
+                    key={b.id}
+                    type="button"
+                    className={"bd-arama-bot" + (secilenBot === b.id ? " secili" : "")}
+                    disabled={secilenBot !== null}
+                    onClick={() => botSec(b.id)}
+                  >
+                    <span className="bd-arama-bot-ad">{b.gorunen_ad}</span>
+                    <span className="bd-arama-bot-zorluk" style={{ color: z.renk }}>{z.etiket}</span>
+                  </button>
+                );
+              })}
+            </div>
+          )
+        )}
+
         {hata && <div className="hata-kutu">{hata}</div>}
 
         {!rakipAdi && (
           <div className="bd-arama-eylem">
             {!botaDusuldu && (
-              <button className="btn" onClick={hemenBot}>
+              <button className="btn" onClick={botlariGoster}>
                 Beklemeden bot ile oyna
               </button>
             )}
