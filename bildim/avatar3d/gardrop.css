@@ -102,3 +102,62 @@
      yarısından fazlasını kaplamasın ki kartlar da görünsün. */
   .gardrop .gosterim{height:54vh;min-height:300px;z-index:2;background:#11151c}
 }
+
+/* ============================================================
+   TEK DÜZEN — KARAKTER ÜSTTE, EKİPMAN TABLOSU ALTTA (14 Eylül 2026)
+
+   KÖK SEBEP (canlıda 1522 px ölçüldü): önceki düzeltme dikey düzeni
+   yalnız `@media(max-width:760px)` içine yazmıştı. Masaüstünde hâlâ
+   `atolye.css › main{display:grid}` + yukarıdaki
+   `.gardrop main{grid-template-columns:minmax(0,1fr) 410px}` geçerliydi:
+   karakter solda, 410 px'lik dar liste sağda, kategori şeridi taşıp
+   kesiliyordu. `yerlesim.css › .atolye .gosterim{min-height:700px}` de
+   önizlemeyi ekran boyu tutuyordu.
+
+   Artık AYRI MASAÜSTÜ/MOBİL DÜZENİ YOK: her genişlikte karakter üstte
+   sabit (sticky — iOS kuralı gereği fixed değil, transform yok), altında
+   tam genişlikte kategori başlıklı ekipman ızgarası. Yatay kaydırma yok:
+   şerit satıra sarar.
+   ============================================================ */
+.gardrop{--gos-h:clamp(300px,46dvh,440px);--kenar:clamp(16px,3vw,34px)}
+.gardrop main{display:block;min-height:0}
+.gardrop .gosterim{
+  position:sticky;top:0;z-index:6;
+  height:var(--gos-h);min-height:0;max-height:none;
+  background:#11151c;border-bottom:1px solid #2c3440;
+}
+.gardrop .gosterim .sahne{inset:0}
+.gardrop .sahne-baslik{top:14px;left:var(--kenar)}
+.gardrop .sahne-baslik h1{font-size:20px;margin:2px 0}
+.gardrop .sahne-baslik span,.gardrop .sahne-baslik p{font-size:11px}
+.gardrop .kamera{top:auto;bottom:14px;left:var(--kenar)}
+.gardrop .gecici-gizli{top:86px;left:var(--kenar);max-width:260px}
+/* Eylem düğmeleri karakterin yanında, ayaklarının üstünde değil. */
+.gardrop .sahne-alt{left:auto;right:var(--kenar);bottom:14px;width:min(300px,38%)}
+.gardrop .hareketler{flex-wrap:wrap;justify-content:flex-end;gap:6px;margin-bottom:8px}
+.gardrop .sahne-alt .kaydet{width:100%}
+.gardrop .sahne-alt .meydan-link{margin:8px 0 0}
+
+.gardrop aside{padding:16px var(--kenar) 28px;border-left:0}
+.gardrop .cuzdan{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:6px 16px}
+.kategori-serit{
+  top:var(--gos-h);flex-wrap:wrap;overflow-x:visible;
+  margin:0 calc(-1 * var(--kenar)) 14px;padding:10px var(--kenar);
+}
+.kategori-serit button{min-height:36px}
+.esya-listesi{grid-template-columns:repeat(auto-fill,minmax(128px,1fr))}
+.yuva-bolum{scroll-margin-top:calc(var(--gos-h) + 110px)}
+
+@media(max-width:760px){
+  .gardrop{--gos-h:clamp(300px,48dvh,400px)}
+  /* Dar ekranda düğmeler karakterin ALTINDA (yan yana sığmaz). */
+  .gardrop .gosterim .sahne{inset:58px 0 112px}
+  .gardrop .sahne-alt{left:0;right:0;width:auto;bottom:8px}
+  .gardrop .hareketler{justify-content:center;margin-bottom:6px}
+  .gardrop .sahne-alt .kaydet{width:auto}
+  .gardrop .sahne-alt .meydan-link{margin:4px 0 0;font-size:11px}
+  .gardrop .gecici-gizli{top:58px}
+  /* Şerit telefonda birkaç satıra sarar; sabit kalırsa kartları örter. */
+  .kategori-serit{position:static}
+  .yuva-bolum{scroll-margin-top:calc(var(--gos-h) + 12px)}
+}
