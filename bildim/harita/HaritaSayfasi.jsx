@@ -25,7 +25,7 @@ import { dansVarMi } from "./danslar.js";
 import { yonDurumu, yonOzeti, yatayaGec, dikeyeDon } from "./yon.js";
 import { turnuvaSaatleriniAyarla } from "../lib/zaman.js";
 import { donusKaydet, donusOku, donusTemizle } from "./donus.js";
-import { MENU, ikramGonder, ikramYanitla, bekleyenIkramlar, IKRAM_SURE_SN, ZAMAN_ASIMI_SN } from "./etkilesim.js";
+import { MENU, ikramGonder, ikramYanitla, ikramDurumu, bekleyenIkramlar, IKRAM_SURE_SN, ZAMAN_ASIMI_SN } from "./etkilesim.js";
 import { kahveBasla, balonBasla, ikramKaresi, ikramlariTemizle } from "./ikramGorsel.js";
 import {
   meydanBotlariniAl, botJesti, botPlaniKur, planKonumu, kapilariHesapla, BOT_HIZI,
@@ -134,6 +134,12 @@ export default function HaritaSayfasi() {
   const [ikramNotu, setIkramNotu] = useState(null);
   const [ikramCalisiyor, setIkramCalisiyor] = useState(false);
   const bekleyenIkramRef = useRef(null);   // gönderdiğim teklif { id, tur, alan }
+  // HAYALET TIKLAMA KORUMASI: menü parmak kalkınca (pointerup) açılıyor;
+  // telefon hemen ardından AYNI NOKTAYA bir "click" üretiyor ve menü ekranın
+  // ortasında olduğu için bu tıklama "Meydan oku"ya düşüp oto meydan
+  // okuyordu (sahibinin telefonunda ölçülen hata). Menü düğmesi ancak basış
+  // menünün İÇİNDE başladıysa çalışır.
+  const menuBasisRef = useRef(false);
   // Meydandaki gerçek oyuncu sayısı ve bot kuralı — bot tazeleme
   // closure içinde çalıştığı için ref üzerinden okunur.
   const kisiRef = useRef(1);
@@ -666,12 +672,16 @@ export default function HaritaSayfasi() {
       const kutu = kapsayici.getBoundingClientRect();
       const nx = ((e.clientX - kutu.left) / kutu.width) * 2 - 1;
       const ny = -((e.clientY - kutu.top) / kutu.height) * 2 + 1;
-      const adaylar = [...c.uzaklar.entries()].map(([id, u]) => {
-        u.av.userData.oyuncuId = id;
-        return u.av;
-      });
+      // Meydan botları da seçilebilir (sahibinin isteği) — menü gerçek
+      // oyuncununkiyle aynı, bot olduğu belli olmaz. Görünmeyen avatar
+      // (ilk konum paketi gelmemiş) seçilmez: ışın görünürlüğe bakmıyor.
+      const adaylar = [
+        ...[...c.uzaklar.entries()].map(([id, u]) => { u.av.userData.oyuncuId = id; return u.av; }),
+        ...[...c.botlar.entries()].map(([id, b]) => { b.av.userData.oyuncuId = id; return b.av; }),
+      ].filter((av) => av.visible);
       const secilen = c.dunya.avatarSec(nx, ny, adaylar);
       if (!secilen) return;
+      menuBasisRef.current = false;
       setSecilenOyuncu({
         id: secilen.userData.oyuncuId,
         ad: secilen.userData.ad ?? "Oyuncu",
@@ -1048,7 +1058,7 @@ export default function HaritaSayfasi() {
   const ikramOynat = useCallback((tur, verenId, alanId) => {
     const c = canliRef.current;
     if (!c) return;
-    const av = (id) => (id === user.id ? c.ben : c.uzaklar.get(id)?.av);
+    const av = (id) => (id === user.id ? c.ben : (c.uzaklar.get(id)?.av ?? c.botlar.get(id)?.av));
     const veren = av(verenId);
     const alan = av(alanId);
     if (!veren || !alan) return;
@@ -1090,20 +1100,46 @@ export default function HaritaSayfasi() {
       });
       setSecilenOyuncu(null);
       setIkramNotu("Teklif gönderildi, yanıt bekleniyor…");
-      // Yanıtsız kalırsa sunucu iptal edip coini iade ediyor.
-      setTimeout(() => {
+      // Yanıt broadcast'le gelir (onIkramYanit). Gelmezse — paket kaybı ya
+      // da alanın istemcisi yok — sunucuya sorulur. İkisinden hangisi önce
+      // işlerse `bekleyenIkramRef` boşalır, öteki sessizce çıkar.
+      const son = Date.now() + ZAMAN_ASIMI_SN * 1000;
+      (async () => {
+        while (bekleyenIkramRef.current?.id === sonuc.id && Date.now() < son) {
+          await new Promise((r) => setTimeout(r, 1200));
+          if (bekleyenIkramRef.current?.id !== sonuc.id) return;
+          let d;
+          try {
+            d = await ikramDurumu(sonuc.id);
+          } catch (e) {
+            console.error("[Meydan] ikram durumu okunamadi:", e);
+            continue;
+          }
+          if (d === "bekliyor" || bekleyenIkramRef.current?.id !== sonuc.id) continue;
+          bekleyenIkramRef.current = null;
+          if (d === "kabul") {
+            setIkramNotu(null);
+            ikramOynat(kod, user.id, hedef.id);
+          } else if (d === "red") {
+            setIkramNotu("Teklifin kabul edilmedi — coinin iade edildi.");
+          } else {
+            setIkramNotu("Yanıt gelmedi — coinin iade edildi.");
+          }
+          return;
+        }
+        // Süre doldu, yanıt yok: sunucu iptal edip coini iade ediyor.
         if (bekleyenIkramRef.current?.id === sonuc.id) {
           bekleyenIkramRef.current = null;
           setIkramNotu("Yanıt gelmedi — coinin iade edildi.");
         }
-      }, ZAMAN_ASIMI_SN * 1000);
+      })();
     } catch (e) {
       console.error("[Meydan] ikram gonderilemedi:", e);
       setIkramNotu(hataMesaji(e, "İkram gönderilemedi."));
     } finally {
       setIkramCalisiyor(false);
     }
-  }, [secilenOyuncu, navigate]);
+  }, [secilenOyuncu, navigate, ikramOynat, user.id]);
 
   /** Gelen teklife yanıt. */
   const ikramYanit = useCallback(async (kabul) => {
@@ -1332,7 +1368,8 @@ export default function HaritaSayfasi() {
           Avatara dokununca açılır. Seçeneklerin listesi ve fiyatları
           etkilesim.js'te (MENU); burada yalnız çizim var. */}
       {secilenOyuncu && (
-        <div className="bd-harita-kisi-menu" role="dialog" aria-label="Oyuncu menüsü">
+        <div className="bd-harita-kisi-menu" role="dialog" aria-label="Oyuncu menüsü"
+             onPointerDown={() => { menuBasisRef.current = true; }}>
           <div className="bd-harita-kisi-ad">{secilenOyuncu.ad}</div>
           {MENU.map((m) => (
             <button
@@ -1340,13 +1377,23 @@ export default function HaritaSayfasi() {
               type="button"
               className="bd-harita-btn beyaz"
               disabled={ikramCalisiyor}
-              onClick={() => menuSec(m.kod)}
+              onClick={(e) => {
+                // detail 0 = klavye (Enter/Space): basış olayı olmaz, geçerli.
+                if (e.detail !== 0 && !menuBasisRef.current) return;
+                menuBasisRef.current = false;
+                menuSec(m.kod);
+              }}
             >
               {m.ad}{m.coin > 0 ? ` · ${m.coin} coin` : ""}
             </button>
           ))}
           <button type="button" className="bd-harita-dans-kapat" aria-label="Kapat"
-                  onClick={() => setSecilenOyuncu(null)}>✕</button>
+                  onClick={(e) => {
+                    // Aynı hayalet tıklama menüyü açılır açılmaz kapatıyordu.
+                    if (e.detail !== 0 && !menuBasisRef.current) return;
+                    menuBasisRef.current = false;
+                    setSecilenOyuncu(null);
+                  }}>✕</button>
         </div>
       )}
 

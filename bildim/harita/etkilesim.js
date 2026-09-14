@@ -48,6 +48,17 @@ export async function ikramYanitla(ikramId, kabul) {
   return data;
 }
 
+/**
+ * Gönderdiğim teklifin durumu: 'bekliyor' | 'kabul' | 'red' | 'zaman_asimi'.
+ * Yanıt broadcast'le gelir; gelmezse (paket kaybı, alanın istemcisi yok)
+ * bununla yoklanır (migration 186).
+ */
+export async function ikramDurumu(ikramId) {
+  const { data, error } = await supabase.rpc("ikram_durumu", { p_id: ikramId });
+  if (error) throw error;
+  return data;
+}
+
 /** Bekleyen teklifler — broadcast paketi kaybolursa yedek yol. */
 export async function bekleyenIkramlar() {
   const { data, error } = await supabase.rpc("ikramlarim");
