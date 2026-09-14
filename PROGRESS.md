@@ -4455,3 +4455,58 @@ Lobi: 12:41 → 17 · 12:45 → 25 · 12:47 → 28 · 12:50 → 34 · 12:54 → 
 12:50-12:53 arası yavaşlama hata değil: rastgele dağılımda o dakikalara
 1'er an düşmüş, 12:54-12:55'e 4'er. Havuz açık botları öncelikli alıyor
 (migration 173 kararı, dokunulmadı).
+
+## 14 Eylül 2026 (3) — Gardırop tasarımı, organik meydan botları, gece turnuvası, yeni kıyafetler
+
+**Yöntem notu:** Bu pakette iş 3 paralel alt ajana bölündü (gardırop, meydan,
+kıyafet); her biri ~175-230k token harcadı. Sahibi bundan rahatsız oldu:
+bundan sonra alt ajan açmadan önce sorulacak, varsayılan tek oturumda sırayla.
+
+Commit'ler: `00dcdce` (turnuva, 183) · `8db6a1d` (gardırop tasarımı) ·
+`2babefc` (kıyafetler, 185) · `9dcfd00` (meydan botları, 184).
+
+### Gece turnuvası — neden boştu (migration 183)
+Akşam lobisi 13:00'te açılıyor, botlar yalnız son 25 dk'ya yayılıyordu.
+Yeni: %30'u (`bot_turnuva_erken_yuzde`) lobi açılışından başlangıca kadar,
+açılışa yakın yoğun (r²); kalanı son 60 dk'da. Uygulanınca 13:35'te lobi
+1 → 9, 13:59'da 12. Hesaplanan eğri: açılış+1 sa 11, +4 sa 18, başlangıçtan
+1 sa önce 21, 10 dk önce 51, toplam 58 bot.
+
+### Gardırop — yeniden tasarım (8db6a1d)
+**"Kaydet'e bazen basılmıyor" kök sebebi:** üstüne katman binmiyordu; düğme
+SESSİZCE kapalıydı — sahip olunmayan parça denenince (ya da değişiklik yokken)
+disabled, sebebini yazan mesaj kaydırınca ekran dışında kalan paneldeydi.
+**Yeni:** Şenlik dili; yapışık üst alanda "← Menüye dön" (varsayılan `/bildim`,
+aynı kökenden gelindiyse geldiği sayfa; `/gorunum` döngü olmasın diye hariç),
+başlık, bakiye, karakter ve DURUM SÖYLEYEN kayıt çubuğu ("Görünümü kaydet" /
+"Kaydediliyor…" / "Kaydedildi ✓" / sahipsiz parça varsa adları + "Al / Hepsini
+al" + "Geri al"). İlk girene "Karakterini giydir" kartı. Düzen korundu:
+karakter üstte, ekipman ızgarası altta, yatay kaydırma yok.
+**Canlı doğrulama (1536 px):** yeni tasarım yayında, Menüye dön → `/bildim`,
+kaydet "Kaydedildi ✓", şeritte Küpe/Kolye/Saat dahil 17 kategori, yatay taşma 0.
+Otomasyon sekmesi arka planda sayıldığı için şerit düğmesinin yumuşak
+kaydırması oynamadı (aktif bölüm doğru değişti); ajan Playwright'ta akışı
+ölçmüştü — telefonda gözle bakılmalı.
+
+### Yeni kıyafetler (2babefc, migration 185)
+19 parça: mavi/sarı/çizgili tişört, polo, kot, oduncu, havai gömleği (desenli),
+kapüşonlu; şeytan kostümü (1.800) + şeytan boynuzu; damatlık (2.200); Tokyo
+terlik; topuklu; gümüş/altın küpe, kolye, saat (3 yeni yuva). Yuva kısıtı,
+`avatar3d_dogrula`, kayıtlı 165 görünüm ve 160 bot görünümü güncellendi
+(botlar kostüm/damatlık/topuklu/boynuz giymez). ENGELLEYENLER'e küpe/kolye/saat
+satırları eklendi. Görsel kontrolde (scratchpad/png) topuklunun burnu diken gibi
+uzundu → kısaltıldı. Bilinen: terlikler bacağın hafif altında duruyor (eski
+terlik/sandaletle aynı), yeni üstler "Ceket rengi"nden etkilenmez.
+
+### Meydan botları organik (9dcfd00, migration 184)
+Nöbet 6 katmana bölündü (`katman`); katmanlar ayrı devreder. Grup girişi
+(%30, en çok 3, aynı kapıdan 1,3 sn arayla). Tek oyuncu için hedef bot sayısı
+4 dk'lık dalgalarla 1-3. Oyuncuya yaklaşma (%25): 2 birim önünde durur, emoji,
+1-3 hop, rotasına döner. İki bot buluşup kahve (12 sn) / balon (7 sn) ikramı
+(%50). Hepsi tohumlu, iki istemcide aynı. Ayarlar `oyun_ayarlari`'nda.
+Node simülasyonu (3 tohum × 30 dk): engel boşluğu ≥ 0,552, havuz 0, sıçrama 0,
+bitişte kapıda olmayan 0; 30 dk'da 17-27 ziyaret, 5-6 ikram; tek oyuncuda
+ortalama 2,2-2,5 bot, botsuz saniye 0.
+**Canlı:** yeni istemci yayında, meydan açılınca 4 bot çizildi; kimse yokken
+tablo boşalıyor, oyuncu girince RPC hemen 11 nöbet yazdı (katman 0-5).
+Otomasyon penceresi gizli sayıldığı için kahve/balon/hoplama gözle izlenemedi.
