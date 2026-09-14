@@ -2120,7 +2120,13 @@ input:focus { border-color: var(--primary); }
 .bd-istatistik-grid b { font-size: 19px; font-weight: 900; }
 .bd-istatistik-grid span { font-size: 10.5px; color: var(--text-dim); line-height: 1.25; }
 
-.bd-ustalik-liste { display: flex; flex-direction: column; gap: var(--bd-bosluk-3); }
+/* Paket 7 madde 3: 8 kategori alt alta uzun bir liste oluyordu → 2 sütun.
+   Çok dar ekranda (≤340 px) tek sütuna döner, etiketler sıkışmasın. */
+.bd-ustalik-liste {
+  display: grid; grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--bd-bosluk-3);
+}
+@media (max-width: 340px) { .bd-ustalik-liste { grid-template-columns: 1fr; } }
 .bd-ustalik-ust { display: flex; justify-content: space-between; align-items: baseline; }
 .bd-ustalik-ad { font-size: 13.5px; font-weight: 700; }
 .bd-ustalik-seviye { font-size: 12px; font-weight: 900; }
