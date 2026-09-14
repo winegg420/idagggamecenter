@@ -176,78 +176,9 @@ export default function FriendsPage() {
       {hata && <div className="hata-kutu">{hata}</div>}
       {bilgi && <div className="bd-bilgi-kutu">{bilgi}</div>}
 
-      {/* ---------- Davet ---------- */}
-      <div className="kart bd-davet-kart">
-        <div className="bd-kat-baslik">
-          <span>Davet kodun</span>
-        </div>
-        {/* Kodun kendisi düğme: dokununca YALNIZ kod panoya gider. */}
-        <DavetKodu kod={profile?.davet_kodu} />
-        <button className="btn" onClick={linkPaylas} disabled={!davetLinki}>
-          {kopyalandi ? "Kopyalandı" : "Davet linkini paylaş"}
-        </button>
-        {/* Facebook'ta "tüm arkadaşlarını davet et" MÜMKÜN DEĞİL (2014'ten
-            beri kapalı); onun yerine paylaşım diyaloğu açılır. */}
-        <button
-          className="btn ikincil"
-          disabled={!davetLinki}
-          onClick={() => facebookDavetAc(davetLinki)}
-        >
-          Facebook'ta paylaş
-        </button>
-      </div>
-
-      {/* ---------- Facebook arkadaşların ----------
-          `user_friends` izni App Review ister; onay yoksa liste boş döner
-          ve bu bölüm HİÇ ÇİZİLMEZ (giriş akışı etkilenmez). */}
-      {fbOnerileri.length > 0 && (
-        <div className="kart">
-          <div className="bd-kat-baslik">
-            <span>Facebook arkadaşların Quiz Square'de</span>
-          </div>
-          {fbOnerileri.map((o) => (
-            <div key={o.user_id} className="liste-satir">
-              <Avatar profile={o} boyut={38} />
-              <div className="bilgi">
-                <div className="isim">{o.gorunen_ad}</div>
-                <div className="detay">Facebook arkadaşın</div>
-              </div>
-              <button
-                className="btn kucuk"
-                disabled={calisiyor}
-                onClick={() => fbArkadasEkle(o.user_id)}
-              >
-                Ekle
-              </button>
-            </div>
-          ))}
-        </div>
-      )}
-
-      <div className="kart">
-        <div className="bd-kat-baslik">
-          <span>Davet koduyla ekle</span>
-        </div>
-        <div className="bd-kod-satir">
-          <input
-            type="text"
-            className="bd-kod-giris"
-            placeholder="8 haneli kod"
-            maxLength={8}
-            value={kod}
-            onChange={(e) => setKod(e.target.value.toUpperCase())}
-            onKeyDown={(e) => e.key === "Enter" && kodlaEkle()}
-          />
-          <button
-            className="btn kucuk"
-            disabled={calisiyor || kod.trim().length !== 8}
-            onClick={() => kodlaEkle()}
-          >
-            {calisiyor ? "…" : "Ekle"}
-          </button>
-        </div>
-      </div>
-
+      {/* SIRA (Paket 8): arkadaş listesi ve istekler ÜSTTE. Davet kartları
+          sayfanın başındaydı; arkadaşı olan oyuncu her girişte onları
+          geçiyordu. Kartlar AYNEN korundu, sayfanın sonuna taşındı. */}
       {gelenIstekler.length > 0 && (
         <>
           <div className="baslik">Gelen istekler</div>
@@ -338,6 +269,79 @@ export default function FriendsPage() {
           ))}
         </>
       )}
+
+      {/* ---------- Davet (listenin altında) ---------- */}
+      <div className="baslik" style={{ marginTop: 18 }}>Arkadaş davet et</div>
+      <div className="kart bd-davet-kart">
+        <div className="bd-kat-baslik">
+          <span>Davet kodun</span>
+        </div>
+        {/* Kodun kendisi düğme: dokununca YALNIZ kod panoya gider. */}
+        <DavetKodu kod={profile?.davet_kodu} />
+        <button className="btn" onClick={linkPaylas} disabled={!davetLinki}>
+          {kopyalandi ? "Kopyalandı" : "Davet linkini paylaş"}
+        </button>
+        {/* Facebook'ta "tüm arkadaşlarını davet et" MÜMKÜN DEĞİL (2014'ten
+            beri kapalı); onun yerine paylaşım diyaloğu açılır. */}
+        <button
+          className="btn ikincil"
+          disabled={!davetLinki}
+          onClick={() => facebookDavetAc(davetLinki)}
+        >
+          Facebook'ta paylaş
+        </button>
+      </div>
+
+      {/* ---------- Facebook arkadaşların ----------
+          `user_friends` izni App Review ister; onay yoksa liste boş döner
+          ve bu bölüm HİÇ ÇİZİLMEZ (giriş akışı etkilenmez). */}
+      {fbOnerileri.length > 0 && (
+        <div className="kart">
+          <div className="bd-kat-baslik">
+            <span>Facebook arkadaşların Quiz Square'de</span>
+          </div>
+          {fbOnerileri.map((o) => (
+            <div key={o.user_id} className="liste-satir">
+              <Avatar profile={o} boyut={38} />
+              <div className="bilgi">
+                <div className="isim">{o.gorunen_ad}</div>
+                <div className="detay">Facebook arkadaşın</div>
+              </div>
+              <button
+                className="btn kucuk"
+                disabled={calisiyor}
+                onClick={() => fbArkadasEkle(o.user_id)}
+              >
+                Ekle
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+
+      <div className="kart">
+        <div className="bd-kat-baslik">
+          <span>Davet koduyla ekle</span>
+        </div>
+        <div className="bd-kod-satir">
+          <input
+            type="text"
+            className="bd-kod-giris"
+            placeholder="8 haneli kod"
+            maxLength={8}
+            value={kod}
+            onChange={(e) => setKod(e.target.value.toUpperCase())}
+            onKeyDown={(e) => e.key === "Enter" && kodlaEkle()}
+          />
+          <button
+            className="btn kucuk"
+            disabled={calisiyor || kod.trim().length !== 8}
+            onClick={() => kodlaEkle()}
+          >
+            {calisiyor ? "…" : "Ekle"}
+          </button>
+        </div>
+      </div>
     </div>
   );
 }
