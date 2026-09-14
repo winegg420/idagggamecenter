@@ -4637,3 +4637,13 @@ katılımı `turnuva_bot_havuzu`'ndan geçiyor; havuz migration 173'ten beri aç
 botlara ÖNCELİK veriyordu. Artık yalnız gizli botlar (gerçek oyuncu gibi);
 hedef sayı aynı. Bekleyen (lobi) turnuvalardaki açık botlar silindi, yerleri
 gizli botlarla doluyor; aktif/bitmiş turnuvalara dokunulmadı.
+
+## 14 Eylül 2026 (8) — Meydan botları: boşta sessiz, daha az (migration 191)
+Sahibi: kimse yokken gezinmesinler (Supabase limiti), inandırıcı değil → 1, bazen 2.
+**Ölçüm:** bot yürüyüşü yalnız haritayı açan istemcide hesaplanıyor, sunucuda
+hareket yok; kimse yokken aktif nöbet 0. Ama `bildim-meydan-bot` cron'u 5 dk'da
+bir boş meydanda da 6 katmanı dolduruyor, `gizli_bot_nabiz` o botlara yazıyordu.
+**Değişiklik:** cron kaldırıldı — nöbet yalnız harita açıkken `meydan_botlari()`
+ile dolar, kimse yokken tablo boşalır. Tavan 6→2, dalga üst 3→2, ek oyuncu 2→1,
+grup en çok 3→2, grup %30→%20. İstemci değişmedi (ayarları RPC'den okuyor).
+Senkron görünen hareketin kendisi düzeltilmedi; sayı düşürüldü (sahibinin tercihi).
