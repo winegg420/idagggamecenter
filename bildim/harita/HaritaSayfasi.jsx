@@ -27,7 +27,9 @@ import { turnuvaSaatleriniAyarla } from "../lib/zaman.js";
 import { donusKaydet, donusOku, donusTemizle } from "./donus.js";
 import { MENU, ikramGonder, ikramYanitla, bekleyenIkramlar, IKRAM_SURE_SN, ZAMAN_ASIMI_SN } from "./etkilesim.js";
 import { kahveBasla, balonBasla, ikramKaresi, ikramlariTemizle } from "./ikramGorsel.js";
-import { meydanBotlariniAl, botKonumu, botJesti } from "./meydanBotlari.js";
+import {
+  meydanBotlariniAl, botJesti, botPlaniKur, planKonumu, kapilariHesapla, BOT_HIZI,
+} from "./meydanBotlari.js";
 import { GARDROP_YOLU } from "../pages/GardropaGit.jsx";
 import "./harita.css";
 
@@ -507,6 +509,9 @@ export default function HaritaSayfasi() {
     //
     // KADEMELİ: yeni botlar aynı anda belirmesin diye her tazelemede en
     // fazla bir tanesi eklenir (tazeleme 6 saniyede bir).
+    // Botların girip çıktığı kapılar ve kaçındığı engeller dünyadan okunur
+    // (mantık katmanı yalnız sayı görür; harita değişirse bu da değişir).
+    const kapilar = kapilariHesapla(dunya.binalar, dunya.engeller);
     const botlariTazele = async () => {
       const liste = await meydanBotlariniAl();
 
@@ -533,17 +538,29 @@ export default function HaritaSayfasi() {
         return;
       }
 
+      // Liste sunucuda en yeni nöbet önde gelir: boşalan yere az önce
+      // nöbete giren bot bir binanın kapısından girer. Bitmesine 15 sn'den
+      // az kalan eklenmez — belirip hemen gitmesin.
+      const simdi = Date.now();
       for (const b of liste) {
         if (botlar.has(b.user_id)) continue;
         if (botlar.size >= hedef) break;
+        if (!(b.bitisMs - simdi > 15000)) continue;
         const r = renkUret(b.user_id);
         try {
+          const plan = botPlaniKur({
+            tohum: b.tohum, baslangicMs: b.baslangicMs, bitisMs: b.bitisMs,
+            kapilar, engeller: dunya.engeller,
+          });
           const av = dunya.avatarOlustur(
             String(b.gorunen_ad || "Oyuncu"), r.govde, r.sac, r.etiket,
             b.gorunum ?? null, gorunumVerisi.bilgi
           );
           av.userData.ad = String(b.gorunen_ad || "Oyuncu");
-          botlar.set(b.user_id, { av, tohum: b.tohum, sonJest: -1 });
+          const ilk = planKonumu(plan, simdi);
+          av.position.set(ilk.x, 0, ilk.z);
+          av.rotation.y = ilk.aci;
+          botlar.set(b.user_id, { av, tohum: b.tohum, plan, sonJest: -1 });
         } catch (e) {
           console.error("[Meydan] bot avatari kurulamadi:", e);
         }
@@ -731,15 +748,25 @@ export default function HaritaSayfasi() {
         setIpucu(yakin ? { ad: yakin.ad, alt: yakin.alt, rota: yakin.rota } : null);
       }
 
-      // Meydan botlarını tohumdan türeyen rotada yürüt (yarı pasif).
+      // Meydan botları: kapıdan gir → dolaş/dur → bir binaya yürü → kaybol.
+      // Konum sunucu saatine bağlı plandan okunur; herkes aynı yerde görür.
       if (botlar.size > 0) {
-        const sn = Date.now() / 1000;
-        for (const [, b] of botlar) {
-          const k = botKonumu(b.tohum, sn);
+        const simdiMs = Date.now();
+        const sn = simdiMs / 1000;
+        for (const [id, b] of botlar) {
+          const k = planKonumu(b.plan, simdiMs);
+          if (k.bitti) {
+            // Binaya girdi: avatar kalkar, sıradaki tazelemede yerine başkası gelir.
+            try { dunya.avatarSil(b.av); } catch { /* yut */ }
+            botlar.delete(id);
+            continue;
+          }
           b.av.position.x = k.x;
           b.av.position.z = k.z;
           dunya.yumusakDon(b.av, k.aci, dt, 8);
-          dunya.yurumeAnimasyonu(b.av, dt, 0.8);
+          // Adım temposu gerçek hızla orantılı — yerinde kayar gibi yürümesin.
+          dunya.yurumeAnimasyonu(b.av, dt, k.yuruyor ? BOT_HIZI / YURUME_HIZI : 0);
+          if (k.yuruyor) continue;              // yürürken jest yapmaz
           const j = botJesti(b.tohum, sn);
           const pencere = Math.floor(sn / 40);
           if (j && b.sonJest !== pencere) {
