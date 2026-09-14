@@ -4727,3 +4727,39 @@ dükkân listesi 48 → 56 satır, 56'sı görselli.
 Eski saç/üst/alt parçaları model testinde hatasız; `botZorluk` başka sayfada kullanılmıyor
 (oyuncu listelerindeki robot ikonu `bot_isabet != null` ile — o alan zaten hiç gelmiyordu,
 davranış değişmedi). Build temiz.
+
+## 14 Eylül 2026 (11) — Revizyon Paketi 10
+
+Commit'ler: `f30711d` (Madde 1) · `cc376c3` (Madde 1 ek, puan kontrastı) · `e812e99` (Madde 2).
+Tek oturum, alt ajansız. Migration yok.
+
+### Madde 1 — Ana sayfa rakip kategorisi
+Çıplak `<select>` kalktı → kart: solda seçili kategorinin `KategoriIkon` rozeti, "RAKİP
+KATEGORİSİ" + seçili ad, sağda "Değiştir ›"; satırın tamamı `<button>`. Tıklayınca
+`Modal` ile ALTTAN açılan liste (Karışık + 10 kategori, ikonlu, soru sayılı). `Modal`'a
+isteğe bağlı `ekSinif` eklendi (`bd-alttan` katmanı alta hizalar; diğer kullanımlar aynı).
+Kayıt mantığı aynı (`tercih_kategori_kaydet`). Not: görevdeki `varsayilan_kategorim` RPC'si
+yok; Ayarlar da `tercih_kategori_kaydet` kullanıyor.
+**Canlı:** kart → sayfa açıldı (11 seçenek, Karışık aktif) → Tarih → kart "Tarih"; ağda
+`tercih_kategori_kaydet {"p_kategori":"tarih"}`, Hemen oyna → `kuyruga_gir
+{"p_kategori":"tarih","p_dereceli":false}`, arama ekranı "Tarih kategorisinde…". Vazgeç,
+Karışık'a geri alındı (`p_kategori: null`).
+**Puan:** `.app .bd-hero-puan-sayi` (satır ~3710) rengi `--bd-metin`'e çekiyordu. İlk
+denemede `--bd-odul-2` #C99A00 kullanıldı → beyaz hero zemininde kontrast 2,59 ölçüldü
+(büyük metin eşiği 3,0 altı). Metin için ayrılmış `--bd-odul-metin` #8A6A00 → 5,07, altın
+his `--bd-odul` alt gölgesinden; boyut 52 → 68 px. Eski "metne kırpılmış zemin" sıfırlandı.
+
+### Madde 2 — Dükkân karakter portresi ve eşya görselleri
+**Kök sebep (ölçüldü, gerçek GPU — AMD D3D11):** çizim bozuk değildi, SIRA sorunuydu.
+Karakter portresi ve 56 eşya görseli aynı portre kuyruğunda; portre en sona düşüyordu.
+3,4. sn: 27/56 görsel, portre boş; 7,4. sn: 56/56 + portre. Bu arada kutular düz renk
+durduğu için "çizilmiyor / yalnız birkaç satırda görsel var" görünüyordu; yavaş cihazda süre
+daha da uzar. (Paket 8'deki "56/56 dolu" ölçümü bekleyerek alınmıştı.)
+**Düzeltme:** `siraya(is, oncelikli)` — portre kuyruğun başına girer. Bekleyen portre ve
+satır kutularında "yükleniyor" ışık geçişi (azaltılmış harekette durağan).
+**Canlı:** 1,9. sn'de portre DOLU (53 kutu iskelette), 6,9. sn'de 56/56 satır görselli.
+Etek'e özel bir ikon deseni yoktu; tüm satırlar zaten aynı EsyaOnizleme'yi kullanıyor.
+
+### Regresyon
+Ayarlar'daki "Varsayılan kategorim" kodu değişmedi; Dükkân Joker/Coin sekmeleri aynı;
+Hemen oyna akışı ve kategori parametresi ağda doğrulandı. Build temiz.
