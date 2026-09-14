@@ -150,6 +150,19 @@ export default function FriendsPage() {
     }
   };
 
+  /** Gönderdiğim, henüz cevaplanmamış arkadaşlık isteğini geri çeker (Paket 13). */
+  const geriCek = async (fId) => {
+    setHata(null);
+    try {
+      const { error } = await supabase.rpc("remove_friend", { p_id: fId });
+      if (error) throw error;
+      setBilgi("Arkadaşlık isteği geri çekildi.");
+      yukle();
+    } catch (e) {
+      setHata(hataMesaji(e, "İstek geri çekilemedi."));
+    }
+  };
+
   const meydanOku = async (hedefId) => {
     setHata(null);
     try {
@@ -265,6 +278,14 @@ export default function FriendsPage() {
                 <div className="isim">{f.add?.gorunen_ad}</div>
                 <div className="detay">cevap bekleniyor…</div>
               </div>
+              {/* Paket 13: meydan okumadaki "Geri çek" gibi, gönderilen istek de geri alınır. */}
+              <button
+                className="btn kucuk ikincil"
+                onClick={() => geriCek(f.id)}
+                aria-label={(f.add?.gorunen_ad ?? "Bu kişiye") + " gönderilen isteği geri çek"}
+              >
+                Geri çek
+              </button>
             </div>
           ))}
         </>

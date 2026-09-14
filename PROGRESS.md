@@ -4887,3 +4887,42 @@ için okunur. Ödüller ve 400 tavanı dokunulmadı.
   hiç göstermeyebilirdi. Artık açık turnuvalar çekilip en erken başlayan lobi seçilir.
 **Canlı:** cron.job listesi yukarıdaki gibi; 390 px ana sayfa sayacı 25 dk (20:00'a), /turnuva
 lobisi aynı liste; bot 26/52 (20:00) ve 18/58 (22:00) katılıyor.
+
+### Paket 12 — ekler ve regresyon
+- **Madde 1 ek:** canlı hesapta bedava dönem açık; her kartta "Ücretsiz" çipi + "Al" hapı birlikte
+  olunca kart 171 px oluyordu. Hap varken çip gizli ("Ücretsiz al" / fiyat / "Çıkar" hapın
+  içinde, takılı kartta yeşil çerçeve). Yerel 390 px: 9 kartın hepsi 149 px, 6 eşya görünür.
+- **Madde 5 canlı:** otomasyonla meydanda yürüyen bota isabetli tıklanamadı (ekran görüntüsü ile
+  tıklama arası gecikme); ikram kabul akışı CANLIDA DENENMEDİ. Doğrulama: derleme + yaklasma.js
+  node testleri + migration 196 deneme koşusu (kurucunun son kabul ettiği ikram için doğru an).
+- **Lig haftalık kurulum:** `lig_gruplarini_kur(gelecek hafta)` geri alınan işlemde hatasız —
+  bronz 1 grup: 11 görünür gerçek oyuncu + 12 gizli bot; 31 eksik kurulumlu hesap üye ama yer
+  kaplamıyor. `lig_haftayi_kapat` değişmedi.
+- **Normal Hemen oyna:** kuyruga_gir / quick_match değişmedi; canlıda arama ekranı açılıp Vazgeç ile
+  kapandı.
+
+## 14 Eylül 2026 (14) — Meydan botları daha canlı + arkadaşlık isteği geri çekme
+
+**Şikâyet:** "Botlar aşırı yavaş ve aynı tempoda; sağa sola koşmalı, mantıksız hareket edip
+zıplamalı; hep aynı noktadan gelmesin. Haritada arkadaşlık isteğini geri çekemiyorum."
+
+### Botlar (`meydanBotlari.js`, `HaritaSayfasi.jsx`)
+- Temel hız 3,2 → 4,2 (oyuncu 9). Bacak başına tempo: %40 koşar (1,8-2,2×), %35 seri
+  (1,25-1,5×), %17 yürür, %8 ağır (0,7×). Molalar %55·2,5-9 sn → %35·0,6-4 sn.
+- Dolaşma alanı dar halka (8,2-9,8) → tüm meydan (8,2-19). Bacak türü karışık: halkada tur,
+  rastgele noktaya düz koşu, 2-4 hamlelik sağa-sola zikzak (her hamlede yön ters).
+- Jest penceresi 40 → 14 sn; zıplama 1-3 kez, artık yürürken/koşarken de.
+- Giriş/çıkış: 3 kenar noktası → her 2°'lik engelsiz kenar noktası (81 nokta).
+- Ölçülüp düzeltilen: geniş alanda `halkaYolu` ara noktası bankın içine düşüp itiliyor, bot
+  bankın bir yanından öbür yanına atlıyordu (145 sıçrama) → ara nokta baştan engel dışında.
+- **Simülasyon (300 plan + 5 buluşma, 338.500 örnek):** bina/engel/havuz içi 0, sıçrama 0;
+  yürüyüşte koşar %24, seri %30, yürür %34, ağır %13 (zaman ağırlıklı); yürüyüşün %58'i bank
+  halkasının dışında; zıplama bot başına ~1,5/dk, jest ~2,6/dk; 300 botta 76 farklı giriş noktası.
+  Hepsi tohumdan — herkes aynı hareketi görür.
+
+### Arkadaşlık isteği geri çekme
+- Sunucu değişikliği yok: `remove_friend(p_id)` isteği gönderene de satırı sildiriyor;
+  friendships'te bildirim tetikleyicisi yok (geride bildirim kalmaz).
+- Meydan menüsü: "İstek gönderildi" (basılamaz) → "İsteği geri çek". Satır kimliği okunur;
+  istek arada kabul edildiyse silinmez, "artık arkadaşsınız" denir.
+- Arkadaşlar sayfası › Bekleyen istekler: her satırda "Geri çek".
