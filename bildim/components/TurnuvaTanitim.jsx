@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "../../src/lib/supabase.js";
 import Avatar from "../../src/components/Avatar.jsx";
 import Ikon from "./Ikon.jsx";
-import { turnuvaSaatMetni } from "../lib/zaman.js";
+import { turnuvaSaatleri } from "../lib/zaman.js";
 
 /**
  * Turnuva sayfasındaki boş ekranı dolduran tanıtım bloğu:
@@ -62,8 +62,8 @@ export default function TurnuvaTanitim() {
           <li>
             <span className="bd-nasil-no">1</span>
             <span>
-              <b>Lobiye katıl.</b> Turnuva her gün <b>{turnuvaSaatMetni("sabah")}</b> ve{" "}
-              <b>{turnuvaSaatMetni("aksam")}</b>'de başlar (Türkiye saati);
+              <b>Lobiye katıl.</b> Turnuvalar her gün{" "}
+              <b>{turnuvaSaatleri().join(", ")}</b> saatlerinde başlar (Türkiye saati);
               başlamadan lobide olman gerekir.
             </span>
           </li>

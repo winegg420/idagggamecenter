@@ -30,7 +30,7 @@ import {
 import { meydanModelYuru } from "../avatar3d/meydan-model.js";
 import { esyaBilgisi, esyaOnbelleginiTemizle } from "./esyalar.js";
 import { dansBaslat, dansKaresi, dansiDurdur } from "./danslar.js";
-import { turnuvaSaatMetni } from "../lib/zaman.js";
+import { turnuvaSaatleri } from "../lib/zaman.js";
 export { esyaBilgisi };
 
 // roundRect / canvasDoku / isimEtiketi / nesneyiSerbestBirak ORTAK.JS'e taşındı:
@@ -267,7 +267,7 @@ export function dunyaKur(kapsayici, s = {}) {
     binalar.push({
       // alt null ise turnuva binası: saatler ayar tablosundan gelir
       ad: cfg.ad,
-      alt: cfg.alt ?? `her gün ${turnuvaSaatMetni("sabah")} ve ${turnuvaSaatMetni("aksam")}`,
+      alt: cfg.alt ?? `günde ${turnuvaSaatleri().length} turnuva`,
       rota: cfg.rota, x: cfg.x, z: cfg.z, g,
       isima, sayacLevha, yukseklik: h,
     });

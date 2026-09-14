@@ -7,6 +7,7 @@ import TurnuvaTanitim from "../components/TurnuvaTanitim.jsx";
 import { supabase } from "../../src/lib/supabase.js";
 import { useAuth } from "../../src/context/AuthContext.jsx";
 import Countdown from "../components/Countdown.jsx";
+import { BugunKalanTurnuvalar } from "../components/TurnuvaSaatleri.jsx";
 import YanlisSatiri from "../components/YanlisSatiri.jsx";
 import MeydanaDonus from "../components/MeydanaDonus.jsx";
 import QuestionCard from "../components/QuestionCard.jsx";
@@ -269,6 +270,7 @@ export default function TournamentPage() {
             SIRADAKİ TURNUVA
           </div>
           <Countdown />
+          <BugunKalanTurnuvalar />
           {hata && <div className="hata-kutu">{hata}</div>}
           <button className="btn" onClick={lobiyeKatil}>
             Lobiye katıl
@@ -289,6 +291,7 @@ export default function TournamentPage() {
             TURNUVA LOBİSİ
           </div>
           <Countdown onSifir={turnuvaYukle} />
+          <BugunKalanTurnuvalar />
           {hata && <div className="hata-kutu">{hata}</div>}
           {benimKayit ? (
             <button className="btn ikincil" onClick={lobidenAyril}>

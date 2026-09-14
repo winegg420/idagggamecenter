@@ -20,7 +20,7 @@ import { GARDROP_YOLU } from "../pages/GardropaGit.jsx";
 import { y, BILDIM_MOD } from "../lib/yol.js";
 import { cihazBildir } from "../lib/cihaz.js";
 import { ayarlar } from "../lib/ayarlar.js";
-import { turnuvaSaatleriniAyarla } from "../lib/zaman.js";
+import { turnuvaSaatleriniAyarla, turnuvaListesiniAyarla } from "../lib/zaman.js";
 
 export default function Layout() {
   const { profile, user } = useAuth();
@@ -69,6 +69,9 @@ export default function Layout() {
   useEffect(() => {
     ayarlar()
       .then((o) => {
+        // Günde 7 turnuva (Paket 12, madde 7): liste tek kaynak. Eski
+        // sabah/akşam değerleri yalnız eski çağrılar için saklanır.
+        if (Array.isArray(o?.turnuva_saatleri)) turnuvaListesiniAyarla(o.turnuva_saatleri);
         if (o?.turnuva_saat_sabah && o?.turnuva_saat_aksam) {
           turnuvaSaatleriniAyarla(o.turnuva_saat_sabah, o.turnuva_saat_aksam);
         }

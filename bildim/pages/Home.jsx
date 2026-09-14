@@ -6,7 +6,7 @@ import { useAuth } from "../../src/context/AuthContext.jsx";
 import Countdown from "../components/Countdown.jsx";
 import Avatar from "../../src/components/Avatar.jsx";
 import AvatarCerceve from "../components/AvatarCerceve.jsx";
-import { sonrakiTurnuvaSeans } from "../lib/zaman.js";
+import { TurnuvaSaatEtiketi, BugunKalanTurnuvalar } from "../components/TurnuvaSaatleri.jsx";
 import { rutbeBul, sonrakiRutbe } from "../lib/ranks.js";
 import { bayrak, haftaBitisi, sureMetni } from "../lib/konum.js";
 import RakipAra from "../components/RakipAra.jsx";
@@ -489,7 +489,7 @@ export default function Home() {
       <div className={`bd-turnuva-serit bd-turnuva-vurgu${canliTurnuva ? " canli" : ""}`}>
         <div className="bd-turnuva-sol">
           <div className="bd-turnuva-etiket">
-            {sonrakiTurnuvaSeans() === "sabah" ? "SABAH TURNUVASI" : "GECE TURNUVASI"}
+            {canliTurnuva ? "TURNUVA" : <TurnuvaSaatEtiketi />}
           </div>
           {canliTurnuva ? (
             <div className="bd-turnuva-canli">
@@ -518,6 +518,7 @@ export default function Home() {
             </button>
           )}
         </div>
+        <BugunKalanTurnuvalar />
         {mesaj && <div className="hata-kutu" style={{ flexBasis: "100%" }}>{mesaj}</div>}
       </div>
 
