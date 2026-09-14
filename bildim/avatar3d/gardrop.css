@@ -1,165 +1,385 @@
-.gardrop main{grid-template-columns:minmax(0,1fr) 410px}.gardrop .cuzdan{padding:16px;border:1px solid #685534;border-radius:12px;margin-bottom:18px;background:#29251e}.cuzdan strong{display:block;font-size:25px}.cuzdan small{font-size:10px;letter-spacing:1.5px;color:#e4bb76}.cuzdan span{font-size:11px;color:#bbc3d0}.gardrop-sekmeler{display:flex;gap:6px;margin-bottom:16px}.gardrop-sekmeler button{flex:1;font-size:12px}.gardrop .filtre{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;font-size:12px}.filtre select{background:#222935;color:#eaeef5;border:1px solid #536077;padding:9px;border-radius:6px}.esya-listesi{display:grid;gap:10px}.esya-listesi article{padding:14px;border:1px solid #364252;border-radius:10px}.esya-listesi article.takili{border-color:#dfb575;background:#29271f}.esya-listesi small{font-size:10px;color:#bec6d2}.esya-listesi h3{font-size:16px;margin:3px 0 12px}.esya-eylem{display:flex;gap:6px;align-items:center;flex-wrap:wrap}.esya-eylem button{font-size:12px}.odul-kilit{font-size:11px;color:#e4bb76}.gardrop button:disabled{opacity:.45;cursor:not-allowed}.gardrop .kaydet{background:#e4bb76;color:#161a21;font-weight:700}.meydan-link{display:block;text-align:center;font-size:12px;margin:12px 8px;text-decoration:underline;text-underline-offset:4px}.gardrop .sahne-alt{bottom:12px}.gardrop .gosterim .sahne{bottom:148px}.deneme-panel{margin-top:24px;border-top:1px solid #394555;padding-top:16px;font-size:12px}.deneme-panel button{font-size:11px;margin:4px}.deneme-panel p{color:#b4bece}.gardrop .hata{color:#ffb1a4;font-size:13px}.kimlikler{display:grid;grid-template-columns:repeat(3,1fr);gap:5px;margin-bottom:20px}.kimlikler button{font-size:12px}.onay-zemin{position:fixed;inset:0;z-index:50;background:#080c14db;display:grid;place-items:center;padding:20px}.satin-onay{width:min(100%,400px);padding:24px;border:1px solid #a1865a;border-radius:16px;background:#1a202b}.satin-onay button{margin:4px}.satin-onay h2{margin-top:0}@media(max-width:760px){.gardrop main{display:block}.gardrop .gosterim{height:760px;min-height:760px}.gardrop .gosterim .sahne{bottom:148px}.gardrop aside{padding:24px 18px}}
+/* ============================================================
+   GARDIROP — ŞENLİK TASARIMI (14 Eylül 2026)
 
-/* ---- kart ızgarası: görsel önce, metin sonra ----
-   Eşya listesi düz metindi; her kartın üstünde artık parçanın oyuncunun
-   kendi karakteri üstündeki portresi var (ParcaPortresi.jsx). */
-.esya-listesi{grid-template-columns:repeat(auto-fill,minmax(140px,1fr))}
-.esya-listesi article{position:relative;padding:10px;display:flex;flex-direction:column;gap:6px}
-/* Kutunun boyu baştan sabit: portre gelince düzen zıplamasın.
-   min-height, aspect-ratio'yu bilmeyen eski Safari için. */
-.esya-gorsel{display:block;width:100%;aspect-ratio:1;min-height:96px;border-radius:8px;overflow:hidden;background:#222935}
-.esya-gorsel img{width:100%;height:100%;object-fit:contain;display:block;user-select:none}
-.esya-iskelet{display:block;width:100%;height:100%;background:linear-gradient(180deg,#2b3342,#222935)}
-.esya-listesi h3{font-size:14px;margin:0}
-.esya-listesi small{display:flex;align-items:center;gap:4px;margin-top:2px}
-.esya-listesi .coin{color:#e4bb76}
-/* Ödül eşyası: kilitli ama GÖRSELİ GÖRÜNÜR kalır. */
-.esya-listesi article.odul .esya-gorsel img{opacity:.65}
-.esya-kilit{position:absolute;top:16px;right:16px;width:24px;height:24px;border-radius:50%;display:grid;place-items:center;font-size:12px;background:#0c1017c7}
-/* Dokunma hedefi en az 44 px. */
-.esya-eylem button{min-height:44px;padding:0 10px;flex:1 1 auto}
+   Sahibinin şikâyeti: "Görünümü kaydet'e bazen basılmıyor. Menüye dön
+   yok. İlk defa giren zorlanıyor." Sayfa koyu atölye temasındaydı;
+   Quiz Square'in geri kalanıyla aynı "Şenlik" diline taşındı:
+   açık gökyüzü zemin, beyaz kartlar + alt kalınlık, kabartmalı düğmeler,
+   Baloo 2 başlık / Nunito gövde, turuncu vurgu.
+
+   atolye.css ve yerlesim.css atölye + meydan sayfalarında da kullanılıyor;
+   onlara DOKUNULMAZ. Buradaki her kural `.atolye.gardrop` kapsamıyla
+   (özgüllük 0,2,0+) onları ezer — CSS parçalarının yüklenme sırasına
+   bağlı kalmasın diye.
+
+   KORUNAN DÜZEN (sahibinin kesin isteği): karakter ÜSTTE yapışık, altında
+   tam genişlik ekipman ızgarası, kategoriler tek sayfada, yatay kaydırma
+   yok, şerit satıra sarar. Masaüstü ve telefon aynı dikey düzen.
+
+   iOS: yapışık alan `position: sticky` (fixed değil); ne kendisinde ne
+   atalarında transform/filter/perspective var. Tek fixed katman (satın alma
+   onayı) doğrudan `.gardrop` kökünün çocuğu; kökte transform yok.
+   ============================================================ */
+
+.atolye.gardrop{
+  --g-gok:#CDEEFF; --g-zemin:#EAF7FF; --g-krem:#FFF6E8;
+  --g-kart:#FFFFFF; --g-kart-alt:#D8E6F0; --g-kenar:#D6E6F2; --g-dolgu:#EEF5FB;
+  --g-metin:#20324A; --g-metin-2:#5A7089;            /* beyazda 5.1:1 */
+  --g-vurgu:#F4701F; --g-vurgu-koyu:#C4530F;          /* beyaz yazı 4.56:1 */
+  --g-vurgu-kalin:#8A3907; --g-vurgu-yazi:#B24A0C;    /* beyazda 5.4:1 */
+  --g-vurgu-acik:#FFE9DA;
+  --g-basari:#2FBF71; --g-basari-yazi:#17774A; --g-basari-acik:#E3F6EC;
+  --g-hata:#B62F2F; --g-odul-acik:#FFF1D6; --g-odul-yazi:#7A5200;
+  --g-baslik:"Baloo 2","Trebuchet MS",system-ui,sans-serif;
+  --g-govde:"Nunito",system-ui,-apple-system,sans-serif;
+  --kenar:clamp(16px,3vw,32px);
+  /* İçerik en fazla 1180 px; daha geniş ekranda iki yandan boşluk. */
+  --yan:max(var(--kenar),calc((100% - 1180px) / 2));
+  --gos-h:clamp(240px,36dvh,400px);
+
+  min-height:100vh; min-height:100dvh;
+  color:var(--g-metin);
+  font:15px/1.5 var(--g-govde);
+  background:linear-gradient(180deg,var(--g-gok) 0,var(--g-zemin) 360px,var(--g-krem) 100%);
+}
+/* atolye.css gövdeyi koyu boyuyor; lastik kaydırmada (iOS) görünmesin. */
+body:has(.gardrop){background:#EAF7FF;color:#20324A}
+
+.atolye.gardrop h1,.atolye.gardrop h2,.atolye.gardrop h3{font-family:var(--g-baslik);color:var(--g-metin)}
+.atolye.gardrop a{color:inherit}
+.atolye.gardrop :focus-visible{outline:3px solid #1F6FD1;outline-offset:3px}
+
+/* ---- Kabartmalı düğme (varsayılan: beyaz) ---- */
+.atolye.gardrop button{
+  font:800 14px/1.2 var(--g-govde); color:var(--g-metin);
+  background:var(--g-kart); border:2px solid var(--g-kenar); border-radius:14px;
+  min-height:44px; padding:8px 14px; cursor:pointer;
+  box-shadow:0 4px 0 var(--g-kart-alt);
+  transition:transform .08s ease,box-shadow .08s ease,background-color .12s ease;
+}
+.atolye.gardrop button:hover:not(:disabled){border-color:#9FC3DD}
+.atolye.gardrop button:active:not(:disabled){transform:translateY(4px);box-shadow:0 0 0 var(--g-kart-alt)}
+.atolye.gardrop button[aria-pressed=true]{background:var(--g-vurgu-acik);border-color:var(--g-vurgu);color:var(--g-vurgu-yazi)}
+/* Kapalı düğme soluklaşmaz (opacity kontrastı düşürür); düz ve gömülü görünür. */
+.atolye.gardrop button:disabled{cursor:not-allowed;background:var(--g-dolgu);color:var(--g-metin-2);border-color:var(--g-kenar);box-shadow:none}
+
+/* ---- Birincil (turuncu) ---- */
+.atolye.gardrop button.birincil,
+.atolye.gardrop button.al{
+  background:var(--g-vurgu-koyu); color:#fff; border:0;
+  box-shadow:0 5px 0 var(--g-vurgu-kalin);
+  font-family:var(--g-baslik); font-size:17px; letter-spacing:.1px;
+}
+.atolye.gardrop button.al{font-size:15px;box-shadow:0 4px 0 var(--g-vurgu-kalin)}
+.atolye.gardrop button.birincil:hover:not(:disabled),
+.atolye.gardrop button.al:hover:not(:disabled){background:#B64B0B}
+.atolye.gardrop button.birincil:active:not(:disabled),
+.atolye.gardrop button.al:active:not(:disabled){box-shadow:0 1px 0 var(--g-vurgu-kalin)}
+.atolye.gardrop button.birincil:disabled{background:var(--g-dolgu);color:var(--g-metin-2);box-shadow:none}
+.atolye.gardrop button.birincil small{display:block;font:800 12px/1.2 var(--g-govde);opacity:.95}
+/* Değişiklik yok: "Kaydedildi ✓" — başarı yeşili, basılamayan ama OKUNAN durum. */
+.atolye.gardrop button.kaydet.kayitli:disabled{
+  background:var(--g-basari-acik); color:var(--g-basari-yazi);
+  border:2px solid #BFE6CF; box-shadow:none; cursor:default;
+}
 
 /* ============================================================
-   KATEGORİLER TEK EKRANDA (13 Eylül 2026)
-   Açılır menü kalktı; her yuva kendi başlıklı bölümünde.
-   Şerit filtre değil, GEZİNME: tıklayınca bölüme kaydırır.
+   YAPIŞIK ALAN: üst çubuk + karakter + kayıt çubuğu
    ============================================================ */
-.kategori-serit{
-  position:sticky;top:0;z-index:5;
-  display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;
-  margin:0 -18px 14px;padding:10px 18px;
-  background:#161a21;border-bottom:1px solid #2b3342;
+.atolye.gardrop .sabit-alan{
+  position:sticky; top:0; z-index:20;
+  padding:0 var(--yan) 10px;
+  background:linear-gradient(180deg,var(--g-gok),#DDF2FF);
+  box-shadow:0 3px 0 var(--g-kart-alt);
 }
-.kategori-serit::-webkit-scrollbar{display:none}
-.kategori-serit button{flex:none;font-size:12px;white-space:nowrap;min-height:40px}
+.atolye.gardrop header.g-ust{
+  height:auto; min-height:60px; padding:8px 0; border:0;
+  display:grid; grid-template-columns:1fr auto 1fr; align-items:center; gap:8px;
+}
+.atolye.gardrop .g-geri{
+  justify-self:start; display:inline-flex; align-items:center; gap:6px;
+  min-height:44px; padding:0 14px; border-radius:14px; white-space:nowrap;
+  background:var(--g-kart); border:2px solid var(--g-kenar);
+  box-shadow:0 4px 0 var(--g-kart-alt);
+  font:800 15px/1 var(--g-baslik); letter-spacing:0; color:var(--g-metin); text-decoration:none;
+  transition:transform .08s ease,box-shadow .08s ease;
+}
+.atolye.gardrop .g-geri:active{transform:translateY(4px);box-shadow:0 0 0 var(--g-kart-alt)}
+.atolye.gardrop .g-baslik{
+  margin:0; display:flex; align-items:center; gap:8px;
+  font-size:24px; line-height:1; font-weight:800; letter-spacing:0;
+}
+.atolye.gardrop .g-deneme{
+  font:800 11px/1 var(--g-govde); text-transform:uppercase; letter-spacing:.8px;
+  padding:4px 8px; border-radius:999px; background:var(--g-vurgu-acik); color:var(--g-vurgu-yazi);
+}
+.atolye.gardrop .g-bakiye{
+  justify-self:end; margin:0; display:inline-flex; align-items:center; gap:4px;
+  min-height:36px; padding:0 12px; border-radius:999px; white-space:nowrap;
+  background:var(--g-kart); box-shadow:0 3px 0 var(--g-kart-alt);
+  font:800 15px/1 var(--g-baslik); color:var(--g-metin);
+}
+.atolye.gardrop .coin{color:#B07F00}
 
-.yuva-bolum{margin-bottom:22px;scroll-margin-top:64px}
-.yuva-bolum h2{
-  font-size:13px;letter-spacing:1.4px;text-transform:uppercase;
-  color:#bec6d2;margin:0 0 8px;font-weight:700;
+/* Karakter sahnesi: sahne.js zemini koyu çiziyor; beyaz çerçeveli bir
+   "vitrin" kartı gibi durur. */
+.atolye.gardrop .sabit-orta{display:flex;flex-direction:column;gap:8px}
+.atolye.gardrop .gosterim{
+  position:relative; top:auto; z-index:auto; align-self:stretch;
+  height:var(--gos-h); min-height:0; max-height:none;
+  border-radius:18px; overflow:hidden; background:#151a23;
+  border:3px solid var(--g-kart); box-shadow:0 4px 0 var(--g-kart-alt);
+}
+.atolye.gardrop .gosterim .sahne{inset:0}
+/* Sahne düğmeleri kenarlarda DİKEY: karakter ortada, üstüne binmesin. */
+.atolye.gardrop .kamera,
+.atolye.gardrop .hareketler{
+  position:absolute; margin:0; display:flex; flex-direction:column; gap:6px;
+}
+.atolye.gardrop .kamera{top:8px;left:8px}
+.atolye.gardrop .hareketler{bottom:8px;right:8px;align-items:stretch;justify-content:flex-end}
+.atolye.gardrop .kamera button,
+.atolye.gardrop .hareketler button{
+  min-height:44px; padding:6px 12px; font-size:13px; border:0;
+  background:rgba(255,255,255,.94); color:var(--g-metin);
+  box-shadow:0 3px 0 rgba(0,0,0,.35);
+}
+.atolye.gardrop .kamera button:active:not(:disabled),
+.atolye.gardrop .hareketler button:active:not(:disabled){transform:translateY(3px);box-shadow:0 0 0 rgba(0,0,0,.35)}
+.atolye.gardrop .kamera button[aria-pressed=true],
+.atolye.gardrop .hareketler button[aria-pressed=true]{background:var(--g-vurgu-acik);color:var(--g-vurgu-yazi)}
+
+/* ---- Kayıt çubuğu ---- */
+.atolye.gardrop .kayit-cubugu{
+  display:flex; flex-wrap:wrap; align-items:center; gap:8px 12px;
+  padding:10px 12px; border-radius:16px;
+  background:var(--g-kart); border:2px solid var(--g-kenar);
+  box-shadow:0 4px 0 var(--g-kart-alt);
+}
+.atolye.gardrop .kayit-cubugu.uyari{background:#FFF4EA;border-color:var(--g-vurgu)}
+.atolye.gardrop .kayit-cubugu.tamam{border-color:#BFE6CF}
+.atolye.gardrop .kayit-metin{flex:1 1 200px;min-width:0;display:flex;flex-direction:column;gap:2px}
+.atolye.gardrop .kayit-metin strong{font:800 15px/1.25 var(--g-baslik);color:var(--g-metin)}
+.atolye.gardrop .kayit-metin .bilgi{font-size:13px;line-height:1.3;color:var(--g-metin-2)}
+.atolye.gardrop .kayit-metin .bilgi:empty{display:none}
+.atolye.gardrop .hata{font-size:13px;line-height:1.35;color:var(--g-hata);font-weight:700;margin:0}
+.atolye.gardrop .kayit-eylem{display:flex;flex-wrap:wrap;gap:8px;margin-left:auto}
+.atolye.gardrop .kayit-eylem button{min-height:48px}
+.atolye.gardrop .kayit-eylem .birincil{min-width:150px;padding:6px 18px}
+.atolye.gardrop .kayit-not{flex:1 1 100%;margin:0;font-size:12px;font-weight:700;color:var(--g-odul-yazi)}
+
+/* Kategoriye göre otomatik gizleme notu — karakterin üstünde değil, altında. */
+.atolye.gardrop .gecici-gizli{
+  position:static; margin:0; max-width:none;
+  padding:6px 10px; border-radius:12px;
+  background:#FFF3C4; border:2px solid #FFD66B; color:#5E4500;
+  font-size:13px; line-height:1.35; font-weight:700;
 }
 
-/* Kartın kendisi düğme: tıklama = anında dene, ara onay yok. */
-.esya-listesi .kart-dokun{
-  display:block;width:100%;padding:0;border:0;background:none;
-  text-align:left;cursor:pointer;color:inherit;font:inherit;
+/* ============================================================
+   LİSTE
+   ============================================================ */
+.atolye.gardrop main{display:block;min-height:0}
+.atolye.gardrop aside{padding:18px var(--yan) 32px;background:transparent;border:0}
+
+.atolye.gardrop .g-giris{
+  margin:0 0 14px; padding:16px 18px; border-radius:18px;
+  background:var(--g-kart); box-shadow:0 4px 0 var(--g-kart-alt);
 }
-.esya-listesi .kart-dokun h3{margin:6px 0 0}
-.esya-listesi .kart-dokun small{margin-top:2px}
-.esya-yok{
-  display:grid;place-items:center;font-size:26px;color:#8c97a8;
-  background:#222935;
+.atolye.gardrop .g-giris h2{margin:0;font-size:24px;line-height:1.15;font-weight:800}
+.atolye.gardrop .g-giris p{margin:4px 0 0;color:var(--g-metin-2);font-weight:600}
+.atolye.gardrop .g-giris p b{color:var(--g-metin)}
+.atolye.gardrop .cuzdan{
+  display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:4px 16px;
+  margin:12px 0 4px; padding:10px 14px; border:0; border-radius:14px; background:var(--g-dolgu);
 }
-.esya-bos .esya-gorsel{aspect-ratio:1;min-height:96px;border-radius:8px}
-.odul-rozet{
-  position:absolute;top:14px;right:14px;
-  display:inline-flex;align-items:center;gap:4px;
-  padding:3px 8px;border-radius:999px;
-  background:#0c1017d9;color:#e4bb76;font-size:10px;font-weight:700;
+.atolye.gardrop .cuzdan small{font-size:11px;font-weight:800;letter-spacing:1px;color:var(--g-metin-2)}
+.atolye.gardrop .cuzdan strong{display:block;font:800 22px/1.2 var(--g-baslik);color:var(--g-metin)}
+.atolye.gardrop .cuzdan span{font-size:13px;color:var(--g-metin-2);font-weight:600}
+.atolye.gardrop .meydan-link{
+  display:inline-flex; align-items:center; min-height:44px; margin:0;
+  font-weight:800; font-size:14px; color:var(--g-vurgu-yazi);
+  text-decoration:underline; text-underline-offset:4px;
 }
 
-/* ---- Mobil: karakter ekranın üstünde SABİT kalsın ----
-   Listede aşağı inerken karakter kaybolmamalı. */
-@media(max-width:760px){
-  .gardrop .gosterim{
-    position:sticky;top:0;z-index:6;
-    height:45dvh;min-height:280px;max-height:420px;
+/* ---- Kategori şeridi: gezinme, satıra sarar (yatay kaydırma yok) ---- */
+.atolye.gardrop .kategori-serit{
+  position:static; display:flex; flex-wrap:wrap; gap:8px;
+  margin:0 0 16px; padding:8px 0 12px; overflow:visible;
+  background:transparent; border:0;
+}
+.atolye.gardrop .kategori-serit button{
+  flex:none; white-space:nowrap; min-height:44px; padding:0 14px;
+  border-radius:999px; font-size:14px; box-shadow:0 3px 0 var(--g-kart-alt);
+}
+/* Yeterince yüksek geniş ekranda şerit de yapışır: karakterin tam altına
+   (--sabit-h, Gardrop.jsx ResizeObserver ile yazar). Kısa ekranda yapışırsa
+   liste görünmez hâle geliyordu; orada sayfayla akar. */
+@media (min-width:900px) and (min-height:760px){
+  .atolye.gardrop .kategori-serit{
+    position:sticky; top:var(--sabit-h,0px); z-index:15;
+    background:#E4F4FF; box-shadow:0 3px 0 var(--g-kart-alt);
+    margin-left:-12px; margin-right:-12px; padding:10px 12px;
+    border-radius:0 0 16px 16px;
   }
-  .gardrop .gosterim .sahne{inset:96px 0 76px}
-  .gardrop .sahne-baslik h1{font-size:19px}
-  .gardrop .sahne-baslik span,.gardrop .sahne-baslik p{font-size:11px}
-  .gardrop .kamera{display:none}
-  .kategori-serit{top:45dvh}
-  .yuva-bolum{scroll-margin-top:calc(45dvh + 58px)}
 }
 
-/* ---- Renk kategorileri (ayrı "Karakter" sekmesi kalktı) ---- */
-.yuva-bolum .renkler{display:flex;gap:10px;flex-wrap:wrap}
-.renk-yuvarlak{
-  width:44px;height:44px;border-radius:50%;padding:0;
-  border:3px solid #2b3342;cursor:pointer;
+.atolye.gardrop .yuva-bolum{margin:0 0 26px}
+.atolye.gardrop .yuva-bolum h2{
+  margin:0 0 10px; font-size:21px; line-height:1.2; font-weight:800;
+  text-transform:none; letter-spacing:0; color:var(--g-metin);
 }
-.renk-yuvarlak.takili{border-color:#e4bb76;transform:scale(1.08)}
-.yuva-bolum .kimlikler{grid-template-columns:repeat(auto-fill,minmax(104px,1fr));margin-bottom:0}
-.yuva-bolum .kimlikler button{min-height:44px}
 
-/* Kategoriye göre otomatik gizleme uyarısı — geçici ve yalnız görsel
-   olduğunu söyler, "eşyam silindi" paniğini önler. */
-.gardrop .gecici-gizli{
-  position:absolute;top:190px;left:34px;margin:0;max-width:300px;font-size:12px;line-height:1.45;
-  color:#f2d9a5;background:#2a2318cc;border-left:3px solid #e4bb76;
-  padding:7px 10px;border-radius:0 7px 7px 0;
+/* ---- Eşya kartları ---- */
+.atolye.gardrop .esya-listesi{display:grid;gap:14px 12px;grid-template-columns:repeat(auto-fill,minmax(136px,1fr))}
+.atolye.gardrop .esya-listesi article{
+  position:relative; display:flex; flex-direction:column; gap:8px;
+  padding:8px; border-radius:18px; background:var(--g-kart);
+  border:3px solid transparent; box-shadow:0 4px 0 var(--g-kart-alt);
 }
-@media(max-width:760px){.gardrop .gecici-gizli{top:166px;left:20px;font-size:11px;max-width:240px}}
+.atolye.gardrop .esya-listesi article.takili{border-color:var(--g-basari);background:var(--g-kart)}
+.atolye.gardrop .esya-listesi article.deneniyor{border-color:var(--g-vurgu);border-style:dashed}
+.atolye.gardrop .esya-listesi .kart-dokun{
+  display:block; width:100%; min-height:0; padding:0; border:0; border-radius:12px;
+  background:none; box-shadow:none; text-align:left; color:inherit; font:inherit;
+}
+.atolye.gardrop .esya-listesi .kart-dokun:hover:not(:disabled){border:0}
+.atolye.gardrop .esya-listesi .kart-dokun:active:not(:disabled){transform:translateY(2px);box-shadow:none}
+.atolye.gardrop .esya-listesi .kart-dokun[aria-pressed=true]{background:none;color:inherit}
+.atolye.gardrop .esya-gorsel{
+  display:block; width:100%; aspect-ratio:1; min-height:96px;
+  border-radius:12px; overflow:hidden; background:var(--g-dolgu);
+}
+.atolye.gardrop .esya-gorsel img{width:100%;height:100%;object-fit:contain;display:block;user-select:none}
+.atolye.gardrop .esya-iskelet{display:block;width:100%;height:100%;background:linear-gradient(180deg,#EEF5FB,#DDE9F3)}
+.atolye.gardrop .esya-listesi article.odul .esya-gorsel img{opacity:.7}
+.atolye.gardrop .esya-yok{display:grid;place-items:center;font-size:28px;color:var(--g-metin-2)}
+.atolye.gardrop .esya-listesi h3{margin:8px 2px 4px;font-size:15px;line-height:1.2;font-weight:800}
+.atolye.gardrop .cip{
+  display:inline-flex; align-items:center; gap:4px; margin:0 2px;
+  padding:2px 9px; border-radius:999px;
+  font:800 12px/1.5 var(--g-govde);
+  background:var(--g-dolgu); color:#3E5570;
+}
+.atolye.gardrop .cip-uzerinde{background:var(--g-basari-acik);color:var(--g-basari-yazi)}
+.atolye.gardrop .cip-deneniyor{background:var(--g-vurgu-acik);color:var(--g-vurgu-yazi)}
+.atolye.gardrop .cip-bedava{background:#E6F0FF;color:#1F5BAA}
+.atolye.gardrop .cip-fiyat,.atolye.gardrop .cip-odul{background:var(--g-odul-acik);color:var(--g-odul-yazi)}
+.atolye.gardrop .cip-fiyat .coin{color:var(--g-odul-yazi)}
+.atolye.gardrop .odul-rozet{
+  position:absolute; top:14px; right:14px;
+  display:inline-flex; align-items:center; gap:4px;
+  padding:3px 8px; border-radius:999px;
+  background:var(--g-odul-acik); color:var(--g-odul-yazi);
+  font-size:11px; font-weight:800; box-shadow:0 2px 0 #E8D3A6;
+}
+.atolye.gardrop .esya-eylem{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.atolye.gardrop .esya-eylem:empty{display:none}
+.atolye.gardrop .esya-eylem button{flex:1 1 auto;min-height:44px;padding:0 10px}
 
-/* KARAKTER HEP GÖRÜNSÜN.
-   Kategori listesi çok uzun; aşağı kaydırınca karakter ekrandan çıkıyordu
-   ve "kategoriye göre otomatik gizleme" hiç görülemiyordu. Önizleme
-   sabitlendi (sticky), liste onun yanından/altından akar. */
-.gardrop .gosterim{position:sticky;top:0;align-self:start;height:100vh}
-@media(max-width:760px){
-  /* Telefonda önizleme üstte sabit, liste altından kayar. Ekranın
-     yarısından fazlasını kaplamasın ki kartlar da görünsün. */
-  .gardrop .gosterim{height:54vh;min-height:300px;z-index:2;background:#11151c}
+/* ---- Renkler ---- */
+.atolye.gardrop .renkler{display:flex;gap:12px;flex-wrap:wrap;margin:0}
+.atolye.gardrop .renk-yuvarlak{
+  width:48px; height:48px; min-height:0; padding:0; border-radius:50%;
+  border:3px solid var(--g-kart); box-shadow:0 0 0 2px var(--g-kenar),0 4px 0 var(--g-kart-alt);
 }
+.atolye.gardrop .renk-yuvarlak:active:not(:disabled){transform:translateY(3px);box-shadow:0 0 0 2px var(--g-kenar)}
+.atolye.gardrop .renk-yuvarlak.takili{box-shadow:0 0 0 4px var(--g-vurgu),0 4px 0 var(--g-kart-alt)}
+.atolye.gardrop .renk-yuvarlak[aria-pressed=true]:not(:focus-visible){outline:0}
+
+/* ---- Hazır görünümler ---- */
+.atolye.gardrop .kimlikler{display:grid;grid-template-columns:repeat(auto-fill,minmax(112px,1fr));gap:10px;margin:0}
+.atolye.gardrop .kimlikler button{min-height:48px;font-family:var(--g-baslik);font-size:15px}
+
+/* ---- Deneme paneli, alt bağlantılar, not, altbilgi ---- */
+.atolye.gardrop .deneme-panel{
+  margin-top:24px; padding:12px 16px; border:0; border-radius:18px;
+  background:var(--g-kart); box-shadow:0 4px 0 var(--g-kart-alt); font-size:14px;
+}
+.atolye.gardrop .deneme-panel summary{min-height:44px;display:flex;align-items:center;cursor:pointer;font:800 16px/1.2 var(--g-baslik)}
+.atolye.gardrop .deneme-panel p{color:var(--g-metin-2);margin:4px 0 8px}
+.atolye.gardrop .deneme-panel button{margin:4px 8px 4px 0}
+.atolye.gardrop .g-alt-baglanti{display:flex;flex-wrap:wrap;gap:4px 20px;margin-top:20px}
+.atolye.gardrop .not{font-size:12px;color:var(--g-metin-2);margin-top:8px;max-width:620px}
+.atolye.gardrop footer{
+  display:flex; justify-content:space-between; gap:12px; flex-wrap:wrap;
+  padding:14px var(--yan); border-top:2px solid var(--g-kenar);
+  color:var(--g-metin-2); font-size:12px; background:transparent;
+}
+
+/* ---- Satın alma onayı (tek fixed katman) ---- */
+.atolye.gardrop .onay-zemin{position:fixed;inset:0;z-index:50;display:grid;place-items:center;padding:20px;background:rgba(32,50,74,.55)}
+.atolye.gardrop .satin-onay{
+  width:min(100%,400px); max-height:calc(100dvh - 40px); overflow:auto;
+  padding:24px; border:0; border-radius:20px;
+  background:var(--g-kart); color:var(--g-metin); box-shadow:0 6px 0 var(--g-kart-alt);
+}
+.atolye.gardrop .satin-onay h2{margin:0 0 8px;font-size:24px}
+.atolye.gardrop .satin-onay p{margin:4px 0}
+.atolye.gardrop .onay-liste{margin:8px 0;padding:0;list-style:none}
+.atolye.gardrop .onay-liste li{display:flex;justify-content:space-between;gap:12px;padding:6px 0;border-bottom:1px solid var(--g-kenar);font-weight:700}
+.atolye.gardrop .onay-liste span{color:var(--g-odul-yazi)}
+.atolye.gardrop .onay-eylem{display:flex;flex-wrap:wrap;gap:10px;margin-top:16px}
+.atolye.gardrop .onay-eylem button{flex:1 1 140px}
 
 /* ============================================================
-   TEK DÜZEN — KARAKTER ÜSTTE, EKİPMAN TABLOSU ALTTA (14 Eylül 2026)
-
-   KÖK SEBEP (canlıda 1522 px ölçüldü): önceki düzeltme dikey düzeni
-   yalnız `@media(max-width:760px)` içine yazmıştı. Masaüstünde hâlâ
-   `atolye.css › main{display:grid}` + yukarıdaki
-   `.gardrop main{grid-template-columns:minmax(0,1fr) 410px}` geçerliydi:
-   karakter solda, 410 px'lik dar liste sağda, kategori şeridi taşıp
-   kesiliyordu. `yerlesim.css › .atolye .gosterim{min-height:700px}` de
-   önizlemeyi ekran boyu tutuyordu.
-
-   Artık AYRI MASAÜSTÜ/MOBİL DÜZENİ YOK: her genişlikte karakter üstte
-   sabit (sticky — iOS kuralı gereği fixed değil, transform yok), altında
-   tam genişlikte kategori başlıklı ekipman ızgarası. Yatay kaydırma yok:
-   şerit satıra sarar.
+   EKRAN BOYUTLARI
    ============================================================ */
-.gardrop{--gos-h:clamp(300px,46dvh,440px);--kenar:clamp(16px,3vw,34px)}
-.gardrop main{display:block;min-height:0}
-.gardrop .gosterim{
-  position:sticky;top:0;z-index:6;
-  height:var(--gos-h);min-height:0;max-height:none;
-  background:#11151c;border-bottom:1px solid #2c3440;
+/* Geniş ekran: kayıt paneli karakterin YANINDA — yapışık alan kısa kalsın,
+   karakter yine üstte, ekipman tablosu altta. */
+@media (min-width:900px){
+  .atolye.gardrop .sabit-orta{
+    display:grid; grid-template-columns:minmax(0,1fr) 320px;
+    grid-template-rows:auto 1fr; gap:10px 12px; align-items:start;
+  }
+  .atolye.gardrop .gosterim{grid-row:1 / span 2}
+  .atolye.gardrop .kayit-cubugu{flex-direction:column;align-items:stretch}
+  .atolye.gardrop .kayit-metin{flex:none}
+  .atolye.gardrop .kayit-eylem{margin-left:0}
+  .atolye.gardrop .kayit-eylem button{flex:1 1 100%}
 }
-.gardrop .gosterim .sahne{inset:0}
-.gardrop .sahne-baslik{top:14px;left:var(--kenar)}
-.gardrop .sahne-baslik h1{font-size:20px;margin:2px 0}
-.gardrop .sahne-baslik span,.gardrop .sahne-baslik p{font-size:11px}
-.gardrop .kamera{top:auto;bottom:14px;left:var(--kenar)}
-.gardrop .gecici-gizli{top:86px;left:var(--kenar);max-width:260px}
-/* Eylem düğmeleri karakterin yanında, ayaklarının üstünde değil. */
-.gardrop .sahne-alt{left:auto;right:var(--kenar);bottom:14px;width:min(300px,38%)}
-.gardrop .hareketler{flex-wrap:wrap;justify-content:flex-end;gap:6px;margin-bottom:8px}
-.gardrop .sahne-alt .kaydet{width:100%}
-.gardrop .sahne-alt .meydan-link{margin:8px 0 0}
-
-.gardrop aside{padding:16px var(--kenar) 28px;border-left:0}
-.gardrop .cuzdan{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:6px 16px}
-.kategori-serit{
-  top:var(--gos-h);flex-wrap:wrap;overflow-x:visible;
-  margin:0 calc(-1 * var(--kenar)) 14px;padding:10px var(--kenar);
+/* Telefon: karakter biraz kısalır ki kartlar da görünsün. */
+@media (max-width:760px){
+  /* 390x664 (iOS Safari, çubuklar açık) ölçüldü: yapışık alan 432 px idi,
+     listeye 232 px kalıyordu. Sahne ve çubuk sıkıştırıldı. */
+  .atolye.gardrop{--gos-h:clamp(180px,30dvh,340px)}
+  .atolye.gardrop .sabit-alan{padding-bottom:8px}
+  .atolye.gardrop header.g-ust{min-height:56px;padding:6px 0}
+  .atolye.gardrop .g-baslik{font-size:20px}
+  .atolye.gardrop .g-geri{padding:0 12px;font-size:14px}
+  .atolye.gardrop .sabit-orta{gap:6px}
+  .atolye.gardrop .kayit-cubugu{padding:8px 10px;gap:6px 10px}
+  .atolye.gardrop .kayit-metin{flex-basis:150px}
+  .atolye.gardrop .kayit-metin strong{font-size:14px}
+  .atolye.gardrop .kayit-eylem button{min-height:44px}
+  .atolye.gardrop .kayit-eylem .birincil{min-width:130px;padding:4px 14px}
+  /* Geçici bilgi satırı telefonda yalnız ekran okuyucuya: kalıcı durum
+     başlıkta zaten yazıyor. Hata mesajı görünür kalır. */
+  .atolye.gardrop .kayit-metin .bilgi{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+  /* Dokunma hedefi 44 px kalır; kamera sol üstte, hareketler sağ altta
+     olduğundan 180 px'lik sahnede de birbirine binmezler. */
+  .atolye.gardrop .kamera button,.atolye.gardrop .hareketler button{padding:4px 10px}
+  .atolye.gardrop .hareketler,.atolye.gardrop .kamera{gap:5px}
 }
-.kategori-serit button{min-height:36px}
-.esya-listesi{grid-template-columns:repeat(auto-fill,minmax(128px,1fr))}
-.yuva-bolum{scroll-margin-top:calc(var(--gos-h) + 110px)}
+/* Çok dar: başlıktaki "Deneme" çipi sığmıyor (bilgisi cüzdan kartında da var). */
+@media (max-width:420px){
+  .atolye.gardrop .g-deneme{display:none}
+  .atolye.gardrop header.g-ust{gap:6px}
+  .atolye.gardrop .g-bakiye{padding:0 10px;font-size:14px}
+}
+/* Yatay telefon / kısa pencere: yapışık alan ekranı yutmasın. */
+@media (max-height:560px){
+  .atolye.gardrop{--gos-h:170px}
+  .atolye.gardrop header.g-ust{min-height:52px;padding:4px 0}
+  .atolye.gardrop .kamera,.atolye.gardrop .hareketler{flex-direction:row}
+}
 
-@media(max-width:760px){
-  .gardrop{--gos-h:clamp(300px,48dvh,400px)}
-  /* Dar ekranda düğmeler karakterin ALTINDA (yan yana sığmaz). */
-  .gardrop .gosterim .sahne{inset:58px 0 112px}
-  .gardrop .sahne-alt{left:0;right:0;width:auto;bottom:8px}
-  .gardrop .hareketler{justify-content:center;margin-bottom:6px}
-  .gardrop .sahne-alt .kaydet{width:auto}
-  .gardrop .sahne-alt .meydan-link{margin:4px 0 0;font-size:11px}
-  /* Not telefonda karakterin KAFASINI örtüyordu (gözlük/saç seçerken tam
-     bakılan yer) — ayak hizasına, düğmelerin hemen üstüne indi. */
-  .gardrop .gecici-gizli{top:auto;bottom:118px;left:8px;right:8px;max-width:none;font-size:10.5px;padding:5px 8px}
-  /* Şerit telefonda birkaç satıra sarar; sabit kalırsa kartları örter. */
-  .kategori-serit{position:static}
-  .yuva-bolum{scroll-margin-top:calc(var(--gos-h) + 12px)}
+@media (prefers-reduced-motion:reduce){
+  .atolye.gardrop *{transition:none!important;scroll-behavior:auto!important}
+  .atolye.gardrop button:active:not(:disabled),
+  .atolye.gardrop .g-geri:active{transform:none}
+}
+@media (prefers-reduced-transparency:reduce){
+  .atolye.gardrop .kamera button,.atolye.gardrop .hareketler button{background:#fff}
+  .atolye.gardrop .onay-zemin{background:rgba(32,50,74,.85)}
 }

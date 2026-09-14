@@ -68,9 +68,52 @@ function onizlemeyeCevir(gorunum,bolum){
  return o;
 }
 
+// ------------------------------------------------------------
+// MENÜYE DÖN — hedef
+//
+// Gardırop SPA'nın dışında, kendi HTML'i olan bir sayfa
+// (`/bildim/avatar3d/gardrop.html`); React Router'ın geri yığınına ait
+// değil. Oyuncu Quiz Square'in hangi ekranından geldiyse oraya döner.
+// Güvenli varsayılan `/bildim`:
+//   • quizsquare (VITE_MOD=bildim): BildimApp `/bildim`i köke (`/`) indirir
+//     → Quiz Square ana sayfası.
+//   • hub (VITE_MOD yok): `/bildim` Quiz Square'in ana sayfasıdır.
+// Geliş adresi yalnız AYNI KÖKENDEYSE kullanılır. `/gorunum` hariç tutulur:
+// o rota gardıroba yönlendiriyor, oraya dönmek sonsuz döngü olur.
+// avatar3d sayfaları (meydan/atölye) da hariç: onlar menü değil.
+function menuHedefi(){
+ try{
+  if(document.referrer){
+   const r=new URL(document.referrer);
+   if(r.origin===location.origin&&!/\/avatar3d\//.test(r.pathname)&&!/\/gorunum\/?$/.test(r.pathname))
+    return r.pathname+r.search+r.hash;
+  }
+ }catch(e){console.error('[Gardırop] geliş adresi okunamadı:',e);}
+ return '/bildim';
+}
+
+/** Sayfanın üstünde yapışık duran katmanların (karakter + kayıt çubuğu,
+ *  büyük ekranda kategori şeridi) alt kenarı — px, görünüm alanına göre. */
+function sabitAltKenari(){
+ let ust=0;
+ for(const s of document.querySelectorAll('.gardrop .sabit-alan, .gardrop .kategori-serit')){
+  if(getComputedStyle(s).position!=='sticky')continue;
+  const k=s.getBoundingClientRect();
+  if(k.top<=ust+1)ust=Math.max(ust,k.bottom);   // yalnız şu an yapışıksa
+ }
+ return ust;
+}
+
+/** "Uzun saç, Taç +2" — kayıt çubuğu dar ekranda taşmasın. */
+const adlariYaz=l=>l.length<=2?l.map(p=>p.ad).join(', '):`${l[0].ad}, ${l[1].ad} +${l.length-2}`;
+
 function Gardrop(){
  const [durum,setDurum]=useState(null),[g,setG]=useState(TEMEL),[hata,setHata]=useState(''),[bilgi,setBilgi]=useState(''),[mesgul,setMesgul]=useState(false),[onay,setOnay]=useState(null),[stat,setStat]=useState({}),[mod,setMod]=useState('bekle');
  const [kullanici,setKullanici]=useState(null);
+ // Kaydet düğmesi "Kaydediliyor…" desin; `mesgul` satın almada da true olur.
+ const [kaydediyor,setKaydediyor]=useState(false),[yakin,setYakin]=useState(false);
+ const [geriHedef]=useState(menuHedefi);
+ const kok=useRef(),sabitRef=useRef();
  // Hangi cüzdandayız: giriş yapan oyuncu GERÇEK coin harcar, oturumsuz
  // yerel geliştirme sahte cüzdanda kalır. Etiketler buna göre yazılır —
  // "Gerçek bakiyeni etkilemez" yazısı gerçek bakiyede YALAN olurdu.
@@ -135,15 +178,11 @@ function Gardrop(){
   const oku=()=>{
    bekleyen=0;
    try{
-    // Çizgi SABİT ALANIN ALTINDAN ölçülür: karakter (ve masaüstünde şerit)
-    // üstte sticky duruyor; ekranın %34'ü artık onun arkasında kalıyordu ve
-    // Gözlük'e bakarken aktif bölüm "Baş aksesuarı" sanılıyordu — ölçüldü.
-    // DOM sırasıyla: önce karakter, sonra hemen altına yapışan şerit.
-    let ust=0;
-    for(const s of document.querySelectorAll('.gardrop .gosterim, .kategori-serit')){
-     const k=s.getBoundingClientRect();
-     if(getComputedStyle(s).position==='sticky'&&k.top<=Math.max(ust,80)+1)ust=Math.max(ust,k.bottom);
-    }
+    // Çizgi SABİT ALANIN ALTINDAN ölçülür: karakter + kayıt çubuğu (ve
+    // büyük ekranda şerit) üstte sticky duruyor; ekranın üstü onların
+    // arkasında kalıyordu ve Gözlük'e bakarken aktif bölüm "Baş aksesuarı"
+    // sanılıyordu — ölçüldü.
+    const ust=sabitAltKenari();
     const cizgi=ust+(innerHeight-ust)*0.3;
     let en=null,enUst=-Infinity,ilkGorunen=null;
     for(const el of document.querySelectorAll('.yuva-bolum')){
@@ -202,37 +241,149 @@ function Gardrop(){
   // yalnız elle kaydıranlar için ek olarak çalışır.
   setAktifBolum(id);
   try{
-   document.getElementById('yuva-'+id)?.scrollIntoView({behavior:'smooth',block:'start'});
+   const el=document.getElementById('yuva-'+id);if(!el)return;
+   // scrollIntoView + scroll-margin yetmiyor: yapışık alanın boyu kayıt
+   // mesajına ve ekrana göre değişiyor. Hedefe varınca yapışık kalacak
+   // katmanların boyu ölçülüp başlık onların hemen altına getirilir.
+   const serit=document.querySelector('.gardrop .kategori-serit');
+   const seritYapisik=!!serit&&getComputedStyle(serit).position==='sticky';
+   const pay=(sabitRef.current?.offsetHeight||0)+(seritYapisik?serit.offsetHeight:0)+12;
+   const azHareket=matchMedia('(prefers-reduced-motion: reduce)').matches;
+   scrollTo({top:Math.max(0,el.getBoundingClientRect().top+scrollY-pay),behavior:azHareket?'auto':'smooth'});
   }catch(e){console.error('[Gardırop] bölüme gidilemedi:',e);}
  };
 
  /** Bedava dönemde tek tık: onay penceresi açılmaz. */
  const hemenAl=(p)=>islem(()=>servis.current.satinAl(p.id),p.ad+' envanterine eklendi.');
 
+ // ------------------------------------------------------------
+ // KAYDET NEDEN KAPALI — oyuncuya SÖYLENİR
+ //
+ // Sahibinin şikâyeti: "Görünümü kaydet'e bazen basılmıyor." Ölçüldü
+ // (390 ve 1536 px): düğmenin üstüne katman binmiyordu; düğme SESSİZCE
+ // disabled'dı. Sahip olunmayan bir parça denendiğinde (`kilitli`) o parça
+ // takılı kalıyor, oyuncu başka yuvada değişiklik yapsa da Kaydet açılmıyordu;
+ // sebebi yazan mesaj da kaydırınca ekran dışında kalan panelde duruyordu.
+ // Artık kayıt çubuğu yapışık alanda ve durumu kendisi yazıyor.
+ const alinabilir=kilitli.filter(p=>bedavaMi||!p.odul);
+ const toplamFiyat=alinabilir.reduce((t,p)=>t+(Number(p.fiyat)||0),0);
+ const bakiyeYetmez=!bedavaMi&&(durum?.bakiye??0)<toplamFiyat;
+ /** Parçaları sırayla alır; biri patlarsa envanter tazelenip hata gösterilir. */
+ const sirayla=async(liste)=>{
+  let s=null;
+  try{for(const p of liste)s=await servis.current.satinAl(p.id);return s;}
+  catch(e){try{setDurum(await servis.current.yukle());}catch(e2){console.error('[Gardırop] envanter tazelenemedi:',e2);}throw e;}
+ };
+ const hepsiniAl=()=>{
+  if(!alinabilir.length)return;
+  if(bedavaMi)islem(()=>sirayla(alinabilir),adlariYaz(alinabilir)+' envanterine eklendi. Şimdi kaydedebilirsin.');
+  else setOnay({ad:alinabilir.length===1?alinabilir[0].ad:alinabilir.length+' parça',fiyat:toplamFiyat,parcalar:alinabilir});
+ };
+ /** Denenen (sahip olunmayan) parçaları çıkarır: kayıtlı hâl sende varsa ona döner. */
+ const denenenleriGeriAl=()=>{
+  setG(a=>{
+   let o=a;
+   for(const p of kilitli){
+    const kayitli=durum?.gorunum?.[p.yuva];
+    const kayitliSende=kayitli!==undefined&&katalog.some(k=>k.yuva===p.yuva&&k.deger===kayitli&&sahip.includes(k.id));
+    o=kayitliSende?parcayiTak(o,{yuva:p.yuva,deger:kayitli}):parcayiCikar(o,p.yuva);
+   }
+   return o;
+  });
+  setBilgi('Denediğin parçalar çıkarıldı.');
+ };
+ const kurulmamis=durum?.kurulmus===false;
+ const kayitBasligi=!durum?(hata?'Gardırop açılamadı':'Gardırop yükleniyor…')
+  :kaydediyor?'Kaydediliyor…'
+  :kilitli.length?`Sende olmayan ${kilitli.length===1?'bir parça':kilitli.length+' parça'} deneniyor: ${adlariYaz(kilitli)}`
+  :kurulmamis?'Karakterini bir kez kaydet, meydana öyle girilir.'
+  :fark?'Kaydedilmemiş değişiklik var.'
+  :'Kaydedildi. Oyunda bu görünümle görünüyorsun.';
+
+ // Bilgi mesajı kalıcı değil: eski "kaydedildi" yazısı yeni değişiklikte
+ // yanıltmasın. Kalıcı durum yukarıdaki başlıkta, her an doğru.
+ useEffect(()=>{if(!bilgi)return;const z=setTimeout(()=>setBilgi(''),6000);return()=>clearTimeout(z);},[bilgi]);
+ // Yapışık alanın boyu CSS'e verilir: büyük ekranda kategori şeridi tam
+ // onun altına yapışır (mesaj uzayıp kısalınca boy değişiyor).
+ useEffect(()=>{
+  const el=sabitRef.current,k=kok.current;if(!el||!k)return;
+  const yaz=()=>{try{k.style.setProperty('--sabit-h',el.offsetHeight+'px');}catch(e){console.error('[Gardırop] boy yazılamadı:',e);}};
+  yaz();
+  if(typeof ResizeObserver==='undefined'){addEventListener('resize',yaz);return()=>removeEventListener('resize',yaz);}
+  const gz=new ResizeObserver(yaz);gz.observe(el);return()=>gz.disconnect();
+ },[]);
+
  const sec=p=>{setG(a=>parcayiTak(a,p));setBilgi(p.ad+(sahip.includes(p.id)?' seçildi. Kaydederek oyuna uygula.':' deneniyor. Kaydetmek için önce edinmelisin.'));};
- return <div className="atolye gardrop" data-aktif-bolum={aktifBolum||''}><header><a href="./index.html">Quiz Square</a><span className="etiket">{denemeMi?`GARDIROP · DENEME`:`GARDIROP`}</span></header>
- <main><section className="gosterim"><div className="sahne" ref={alan}/><div className="sahne-baslik"><span>KARAKTERİN / KOLEKSİYONUN</span><h1>Üzerinde dene.</h1><p>{kilitli.length?'Önizleme · Henüz sahip olmadığın eşya var.':fark?'Kaydedilmemiş değişiklikler':'Oyuna kaydedilen görünüm'}</p>
-</div>
- {/* Gizleme geçici ve yalnız görsel: oyuncu eşyasının silindiğini sanmasın.
-     Kamera düğmelerinin ALTINDA duruyor, üstlerine binmesin diye. */}
- {!!gizlenen.length&&<p className="gecici-gizli">Bu bölümde görünsün diye geçici olarak çıkarıldı: {gizlenen.map(yv=>YUVA_ADLARI[yv]).join(', ')}. Başka bölüme geçince geri gelir.</p>}
- <div className="kamera"><button onClick={()=>sahne.current?.yakin(true)}>Yüzü incele</button><button onClick={()=>sahne.current?.yakin(false)}>Tüm karakter</button></div>
- <div className="sahne-alt"><div className="hareketler">{[['bekle','Bekle'],['yuru','Yürü'],['selam','Selam ver']].map(([id,ad])=><button key={id} aria-pressed={mod===id} onClick={()=>{setMod(id);sahne.current?.animasyon(id);}}>{ad}</button>)}</div>
- <button className="kaydet" disabled={!durum||mesgul||!!kilitli.length||!fark} onClick={()=>islem(async()=>{
-  const s=await servis.current.kaydet(guncel.current);
-  // Kayıt tuttuktan SONRA portre üretilir: listeler bu PNG'yi kullanacak.
-  await portreyiYukle(guncel.current);
-  return s;
- },'Görünümün kaydedildi. Meydanda aynı kıyafetlerle görüneceksin.',true)}>Görünümü kaydet</button>
- <a className="meydan-link" href="./meydan.html?envanter=1">Kaydedilen karakterle meydana git ↗</a></div></section>
- <aside><div className="cuzdan"><div><small>{denemeMi?'DENEME CÜZDANI':'COIN BAKİYEN'}</small><strong>{durum?.bakiye.toLocaleString('tr-TR')??'—'} coin</strong></div><span>{denemeMi?'Gerçek bakiyeni etkilemez':'Satın alınan parçalar bakiyenden düşer'}</span></div>
- <p role="status" className="bilgi">{bilgi}</p>{hata&&<p role="alert" className="hata">{hata}</p>}
+ const bakiyeYazi=durum?(Number(durum.bakiye)||0).toLocaleString('tr-TR'):'—';
+ const kaydetYazi=!durum?'Yükleniyor…':kaydediyor?'Kaydediliyor…':mesgul?'Bekle…':!fark?'Kaydedildi ✓':kurulmamis?'Karakterimi kaydet':'Görünümü kaydet';
+ return <div ref={kok} className="atolye gardrop" data-aktif-bolum={aktifBolum||''}>
+ {/* YAPIŞIK ALAN — menü düğmesi, karakter ve kayıt çubuğu HEP görünür.
+     Tek sticky kap: iOS kuralı gereği fixed değil, atalarında transform yok. */}
+ <div ref={sabitRef} className="sabit-alan">
+  <header className="g-ust">
+   {/* Ok SVG: "←" karakteri Baloo 2'de yok, bazı cihazlarda hiç çizilmiyordu. */}
+   <a className="g-geri" href={geriHedef}><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M15 5l-7 7 7 7"/></svg>Menüye dön</a>
+   <h1 className="g-baslik">Gardırop{denemeMi&&<span className="g-deneme">Deneme</span>}</h1>
+   <p className="g-bakiye" aria-label={(denemeMi?'Deneme bakiyesi: ':'Coin bakiyen: ')+bakiyeYazi}><span className="coin" aria-hidden="true">◎</span> {bakiyeYazi}</p>
+  </header>
+  <div className="sabit-orta">
+   <section className="gosterim" aria-label="Karakter önizlemesi">
+    <div className="sahne" ref={alan}/>
+    <div className="kamera" role="group" aria-label="Kamera">
+     <button type="button" aria-pressed={yakin} onClick={()=>{setYakin(true);sahne.current?.yakin(true);}}>Yüzü incele</button>
+     <button type="button" aria-pressed={!yakin} onClick={()=>{setYakin(false);sahne.current?.yakin(false);}}>Tüm karakter</button>
+    </div>
+    <div className="hareketler" role="group" aria-label="Hareket">{[['bekle','Bekle'],['yuru','Yürü'],['selam','Selam ver']].map(([id,ad])=><button key={id} type="button" aria-pressed={mod===id} onClick={()=>{setMod(id);sahne.current?.animasyon(id);}}>{ad}</button>)}</div>
+   </section>
+
+   {/* KAYIT ÇUBUĞU — düğme hiçbir durumda sessizce kapanmaz: ne olduğunu
+       başlık yazar, sahipsiz parça varsa "Al" eylemi Kaydet'in yerine geçer. */}
+   <div className={'kayit-cubugu'+(kilitli.length?' uyari':'')+(durum&&!fark&&!kilitli.length?' tamam':'')}>
+    <div className="kayit-metin">
+     <strong>{kayitBasligi}</strong>
+     <span role="status" className="bilgi" hidden={!!hata}>{bilgi}</span>
+     {hata&&<span role="alert" className="hata">{hata}</span>}
+    </div>
+    <div className="kayit-eylem">
+     {kilitli.length?<>
+      {!!alinabilir.length&&<button type="button" className="birincil" disabled={mesgul||bakiyeYetmez} onClick={hepsiniAl}>
+       {mesgul?'Alınıyor…':bakiyeYetmez?'Coin yetmiyor':alinabilir.length===kilitli.length?(kilitli.length===1?'Al':'Hepsini al'):'Satılanları al'}{!mesgul&&!bakiyeYetmez&&<small>{bedavaMi?'Ücretsiz':toplamFiyat.toLocaleString('tr-TR')+' coin'}</small>}
+      </button>}
+      <button type="button" disabled={mesgul} onClick={denenenleriGeriAl}>Geri al</button>
+     </>:<button type="button" className={'kaydet birincil'+(durum&&!fark?' kayitli':'')} disabled={!durum||mesgul||!fark} onClick={()=>islem(async()=>{
+      setKaydediyor(true);
+      try{
+       const s=await servis.current.kaydet(guncel.current);
+       // Kayıt tuttuktan SONRA portre üretilir: listeler bu PNG'yi kullanacak.
+       await portreyiYukle(guncel.current);
+       return s;
+      }finally{setKaydediyor(false);}
+     },'Görünümün kaydedildi. Meydanda aynı kıyafetlerle görüneceksin.',true)}>{kaydetYazi}</button>}
+    </div>
+    {!!kilitli.length&&kilitli.length!==alinabilir.length&&<p className="kayit-not">{adlariYaz(kilitli.filter(p=>!alinabilir.includes(p)))} satılmaz, yalnız turnuva ödülüyle kazanılır.</p>}
+   </div>
+
+   {/* Gizleme geçici ve yalnız görsel: oyuncu eşyasının silindiğini sanmasın.
+       Karakterin ÜSTÜNDE değil, altında ayrı satır: kafayı örtmesin. */}
+   {!!gizlenen.length&&<p className="gecici-gizli">Bu bölümde görünsün diye geçici olarak çıkarıldı: {gizlenen.map(yv=>YUVA_ADLARI[yv]).join(', ')}. Başka bölüme geçince geri gelir.</p>}
+  </div>
+ </div>
+
+ <main><aside>
+ <section className="g-giris">
+  <h2>Karakterini giydir</h2>
+  <p>Bir karta dokun, karakterinde hemen dene. Sende olmayanı al, sonra <b>Görünümü kaydet</b>’e bas.</p>
+  <div className="cuzdan"><div><small>{denemeMi?'DENEME CÜZDANI':'COIN BAKİYEN'}</small><strong>{bakiyeYazi} coin</strong></div><span>{denemeMi?'Gerçek bakiyeni etkilemez':'Satın alınan parçalar bakiyenden düşer'}</span></div>
+  <a className="meydan-link" href="./meydan.html?envanter=1">Kaydedilen karakterle meydana git ↗</a>
+ </section>
  {/* KATEGORİ ŞERİDİ — filtre DEĞİL, gezinme.
      Eskiden kategoriler bir <select> arkasındaydı ve tek seferde tek
      kategori görünüyordu. Artık hepsi tek sayfada başlıklı bölümler
-     hâlinde; şerit yalnız ilgili bölüme kaydırır. */}
+     hâlinde; şerit yalnız ilgili bölüme kaydırır. Yuva sayısı sabit
+     varsayılmaz: YUVA_ADLARI'na eklenen her yuva (katalogda parçası
+     varsa) kendiliğinden şeride ve listeye girer, şerit satıra sarar. */}
  <nav className="kategori-serit" aria-label="Kozmetik kategorileri">
-  {[...Object.entries(YUVA_ADLARI),...RENK_BOLUMLERI.map(b=>[b.id,b.ad]),['hazir','Hazır görünümler']].map(([id,ad])=>
+  {[...Object.entries(YUVA_ADLARI).filter(([yv])=>katalog.some(p=>p.yuva===yv)),...RENK_BOLUMLERI.map(b=>[b.id,b.ad]),['hazir','Hazır görünümler']].map(([id,ad])=>
    <button key={id} type="button" aria-pressed={aktifBolum===id} onClick={()=>bolumeGit(id)}>{ad}</button>)}
  </nav>
 
@@ -250,29 +401,31 @@ function Gardrop(){
        onClick={()=>{setG(a=>parcayiCikar(a,yv));setBilgi(yuvaAd+' çıkarıldı.');}}>
       <span className="esya-gorsel esya-yok" aria-hidden="true">✕</span>
       <h3>{yv==='kiyafet'?'Tişört':'Yok'}</h3>
-      <small>{bosTakili?'Üzerinde':'Çıkar'}</small>
+      <small className={'cip '+(bosTakili?'cip-uzerinde':'cip-envanter')}>{bosTakili?'Üzerinde':'Çıkar'}</small>
      </button>
     </article>
 
     {liste.map(p=>{
      const sende=sahip.includes(p.id),takili=g[p.yuva]===p.deger;
-     return <article key={p.id} className={(takili?'takili':'')+(p.odul&&!sende?' odul':'')}>
+     // Kart durumu tek bakışta: Üzerinde / Deneniyor / Envanterinde / Ücretsiz / fiyat.
+     const cip=takili&&sende?['uzerinde','Üzerinde']:takili?['deneniyor','Deneniyor']:sende?['envanter','Envanterinde']
+      :bedavaMi?['bedava','Ücretsiz']:p.odul?['odul','Satılmaz']:['fiyat',<><span className="coin" aria-hidden="true">◎</span> {Number(p.fiyat||0).toLocaleString('tr-TR')} coin</>];
+     return <article key={p.id} className={(takili?'takili':'')+(takili&&!sende?' deneniyor':'')+(p.odul&&!sende?' odul':'')}>
       {/* KARTIN KENDİSİ DÜĞME: tıklayınca ara onay olmadan karakterde denenir. */}
       <button type="button" className="kart-dokun" aria-pressed={takili}
         aria-label={p.ad+(sende?' tak':' dene')} onClick={()=>sec(p)}>
        <ParcaPortresi gorunum={portreTemeli} parca={p}/>
        <h3>{p.ad}</h3>
-       <small>{takili?'Üzerinde':sende?'Envanterinde':bedavaMi?'Ücretsiz':<><span className="coin" aria-hidden="true">◎</span> {p.fiyat} coin</>}</small>
+       <small className={'cip cip-'+cip[0]}>{cip[1]}</small>
       </button>
       {/* Nadirlik etiketi bedava dönemde de KALIR: oyuncu normalde nasıl
           kazanılacağını görsün. */}
       {p.odul&&<span className="odul-rozet">{sende?'Turnuva ödülü':<><span aria-hidden="true">🔒</span> Turnuva ödülü</>}</span>}
       <div className="esya-eylem">
        {takili&&yv!=='kiyafet'&&<button type="button" aria-label={p.ad+' çıkar'} onClick={()=>setG(a=>parcayiCikar(a,p.yuva))}>Çıkar</button>}
-       {!sende&&(bedavaMi||!p.odul)&&<button type="button" disabled={mesgul}
+       {!sende&&(bedavaMi||!p.odul)&&<button type="button" className="al" disabled={mesgul}
          aria-label={p.ad+(bedavaMi?' al':' satın al')}
          onClick={()=>bedavaMi?hemenAl(p):setOnay(p)}>{bedavaMi?'Al':'Satın al'}</button>}
-       {!sende&&!bedavaMi&&p.odul&&<span className="odul-kilit">Yalnız ödül</span>}
       </div></article>;
     })}
    </div>
@@ -305,8 +458,11 @@ function Gardrop(){
   </div>
  </section>
  {denemeMi&&<details className="deneme-panel"><summary>Deneme araçları</summary><p>Bu düğmeler yalnız önizleme içindir. Gerçek turnuva ve coin hesabına bağlı değildir.</p><button disabled={mesgul||durum?.oduller?.includes('ilk-turnuva-denemesi')} onClick={()=>islem(()=>servis.current.odulDene(),'Deneme turnuva ödülü geldi: taç ve pelerin envanterinde.')}>Turnuva ödülünü dene</button><button disabled={mesgul} onClick={()=>islem(()=>servis.current.sifirla(),'Deneme cüzdanı ve envanteri yeniden başlatıldı.',true)}>Denemeyi yeniden başlat</button></details>}
- <a className="meydan-link" href="./index.html">Serbest tasarım atölyesine dön</a><p className="not">Satın alma ve ödül denemeleri bu tarayıcıda saklanır. Yeni ürün fiyatları örnektir. Serbest atölyedeki seçimler envanter sahipliği vermez.</p></aside></main>
- {onay&&<div className="onay-zemin"><section role="dialog" aria-modal="true" aria-labelledby="satin-baslik" className="satin-onay" onKeyDown={e=>{if(e.key==='Escape'&&!mesgul)setOnay(null);if(e.key==='Tab'){const btns=[...e.currentTarget.querySelectorAll('button:not(:disabled)')];if(btns.length){e.preventDefault();const i=btns.indexOf(document.activeElement);btns[(i+(e.shiftKey?-1:1)+btns.length)%btns.length].focus();}}}}><h2 id="satin-baslik">{onay.ad}</h2><p>{onay.fiyat} deneme coin harcanacak.</p><p>Kalan: {Math.max(0,(durum?.bakiye||0)-onay.fiyat)} coin</p>{durum?.bakiye<onay.fiyat&&<p>Deneme bakiyen yetersiz.</p>}<button autoFocus disabled={mesgul} onClick={()=>setOnay(null)}>Vazgeç</button><button disabled={mesgul||durum?.bakiye<onay.fiyat} onClick={()=>islem(()=>servis.current.satinAl(onay.id),onay.ad+' envanterine eklendi. Takıp kaydedebilirsin.')}>Satın almayı onayla</button></section></div>}
+ <nav className="g-alt-baglanti" aria-label="Diğer sayfalar"><a className="meydan-link" href={geriHedef}>← Menüye dön</a><a className="meydan-link" href="./index.html">Serbest tasarım atölyesine dön</a></nav>{denemeMi&&<p className="not">Satın alma ve ödül denemeleri bu tarayıcıda saklanır. Yeni ürün fiyatları örnektir. Serbest atölyedeki seçimler envanter sahipliği vermez.</p>}</aside></main>
+ {onay&&<div className="onay-zemin"><section role="dialog" aria-modal="true" aria-labelledby="satin-baslik" className="satin-onay" onKeyDown={e=>{if(e.key==='Escape'&&!mesgul)setOnay(null);if(e.key==='Tab'){const btns=[...e.currentTarget.querySelectorAll('button:not(:disabled)')];if(btns.length){e.preventDefault();const i=btns.indexOf(document.activeElement);btns[(i+(e.shiftKey?-1:1)+btns.length)%btns.length].focus();}}}}><h2 id="satin-baslik">{onay.ad}</h2>
+  {onay.parcalar&&<ul className="onay-liste">{onay.parcalar.map(p=><li key={p.id}>{p.ad} <span>{Number(p.fiyat||0).toLocaleString('tr-TR')} coin</span></li>)}</ul>}
+  <p>{Number(onay.fiyat||0).toLocaleString('tr-TR')} {denemeMi?'deneme ':''}coin harcanacak.</p><p>Kalan: {Math.max(0,(durum?.bakiye||0)-onay.fiyat).toLocaleString('tr-TR')} coin</p>{durum?.bakiye<onay.fiyat&&<p className="hata">{denemeMi?'Deneme bakiyen':'Bakiyen'} yetersiz.</p>}
+  <div className="onay-eylem"><button type="button" autoFocus disabled={mesgul} onClick={()=>setOnay(null)}>Vazgeç</button><button type="button" className="birincil" disabled={mesgul||durum?.bakiye<onay.fiyat} onClick={()=>{const liste=onay.parcalar||[onay];islem(()=>sirayla(liste),adlariYaz(liste)+' envanterine eklendi. Takıp kaydedebilirsin.');}}>Satın almayı onayla</button></div></section></div>}
  <footer><span>{denemeMi?'Önizleme · Envanter ve giydirme':'Gardırop'}</span><output>{stat.hata?stat.hata:stat.gizli?'Sekme arka planda — çizim duraklatıldı':stat.fps?stat.fps+' FPS':'Ölçülüyor…'}</output></footer></div>;
 }
 createRoot(document.getElementById('root')).render(<Gardrop/>);
