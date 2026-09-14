@@ -463,7 +463,11 @@ export function dunyaKur(kapsayici, s = {}) {
   }
 
   /** Yumuşak dönüş — en kısa yaydan hedef açıya. */
-  function yumusakDon(av, hedefAci, dt, hiz) {
+  // `hiz` VARSAYILANLI: eksik verilince `dt * undefined = NaN` oluyor,
+  // rotation.y NaN'a dönüp modelin bütün dünya matrisi bozuluyordu —
+  // avatar sahnede "var" ama hiç çizilmiyordu (14 Eyl 2026, meydan botları).
+  function yumusakDon(av, hedefAci, dt, hiz = 8) {
+    if (!Number.isFinite(av.rotation.y)) av.rotation.y = 0;
     const fark = ((hedefAci - av.rotation.y + Math.PI * 3) % (Math.PI * 2)) - Math.PI;
     av.rotation.y += fark * Math.min(1, dt * hiz);
   }

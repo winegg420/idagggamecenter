@@ -738,7 +738,7 @@ export default function HaritaSayfasi() {
           const k = botKonumu(b.tohum, sn);
           b.av.position.x = k.x;
           b.av.position.z = k.z;
-          dunya.yumusakDon(b.av, k.aci, dt);
+          dunya.yumusakDon(b.av, k.aci, dt, 8);
           dunya.yurumeAnimasyonu(b.av, dt, 0.8);
           const j = botJesti(b.tohum, sn);
           const pencere = Math.floor(sn / 40);
