@@ -5908,3 +5908,45 @@ body.bd-ekle-acik .app { padding-bottom: calc(300px + env(safe-area-inset-bottom
   transform: translateY(2px);
   box-shadow: 0 1px 0 var(--bd-odul-2);
 }
+
+/* ---- 2) "Başka nasıl oynanır" — kompakt, eşit 2 sütun ----
+   Eski durum: üç mod bd-mod-genis (tam satır), ikisi aspect-ratio 1.45/1;
+   masaüstünde hücre ~440 px genişleyince ~300 px boş kart çıkıyordu.
+   Hedef: hepsi aynı kart, 96-132 px, ortada 42 px renkli rozet + tek satır ad. */
+.app .anasayfa .bd-mod-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.app .anasayfa .bd-mod-grid .bd-mod {
+  position: relative;
+  grid-column: auto;
+  aspect-ratio: auto;
+  min-height: 96px; max-height: 132px;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 8px; padding: 14px 8px;
+  background: var(--bd-yuzey-1);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  box-shadow: 0 3px 0 var(--bd-kart-alt);
+}
+.app .anasayfa .bd-mod-grid .bd-mod:active { transform: translateY(3px); box-shadow: 0 0 0 var(--bd-kart-alt); }
+.app .anasayfa .bd-mod-grid .bd-mod-ikon {
+  width: 42px; height: 42px; border-radius: 13px; color: #fff;
+}
+.app .anasayfa .bd-mod-grid .bd-mod-ikon svg { width: 21px; height: 21px; }
+/* Rozet dolgusu referanstaki mod renkleri; Hatalarım referansta yok →
+   meydandaki "Hatalarım" binasının rengi. Ad yazısı ikonun altında, ikon
+   süsleme (bilgi yazıda). */
+.app .anasayfa .bd-mod-grid .tema-lig .bd-mod-ikon       { background: #2FBF71; color: #fff; }
+.app .anasayfa .bd-mod-grid .tema-grup .bd-mod-ikon      { background: #4A9DD9; color: #fff; }
+.app .anasayfa .bd-mod-grid .tema-hizli .bd-mod-ikon     { background: #FFD23F; color: #0B1220; }
+.app .anasayfa .bd-mod-grid .tema-turnuva .bd-mod-ikon   { background: #A855F7; color: #fff; }
+.app .anasayfa .bd-mod-grid .tema-hatalarim .bd-mod-ikon { background: #20A4A0; color: #fff; }
+.app .anasayfa .bd-mod-grid .bd-mod-ad {
+  font-size: 13.5px; font-weight: 800; text-align: center; line-height: 1.2;
+}
+/* Açıklama kompakt kartta gösterilmez (düğmenin title'ında duruyor). */
+.app .anasayfa .bd-mod-grid .bd-mod-not { display: none; }
+/* Hatalarım bekleyen sayısı rozeti köşede kalır. */
+.app .anasayfa .bd-mod-grid .bd-mod-rozet {
+  position: absolute; top: 8px; right: 8px;
+  min-width: 22px; height: 22px; padding: 0 6px;
+  display: grid; place-items: center; font-size: 12px;
+}

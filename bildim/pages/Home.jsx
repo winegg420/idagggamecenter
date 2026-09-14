@@ -642,12 +642,14 @@ export default function Home() {
       <section className="bd-katman bd-giris-3">
         <h2 className="bd-katman-baslik">Başka nasıl oynanır</h2>
         <div className="bd-mod-grid">
-          <button className="bd-mod bd-mod-genis tema-lig" onClick={() => hemenOyna(true)}>
+          {/* Kompakt 2×2 ızgara (referans tasarım): bd-mod-genis bu ızgaradan
+              çıktı, açıklama satırı gizli — bilgi title'da duruyor. */}
+          <button className="bd-mod tema-lig" title="Lig puanını ve coin'ini etkiler · seviyene yakın rakip" onClick={() => hemenOyna(true)}>
             <span className="bd-mod-ikon"><Ikon ad="kupa" boyut={30} /></span>
             <span className="bd-mod-ad">Dereceli Maç</span>
             <span className="bd-mod-not">Lig puanını ve coin'ini etkiler · seviyene yakın rakip</span>
           </button>
-          <button className="bd-mod bd-mod-genis tema-grup" onClick={() => navigate(y("/meydan"))}>
+          <button className="bd-mod tema-grup" title="Arkadaşına davet gönder · tekli ya da grup" onClick={() => navigate(y("/meydan"))}>
             <span className="bd-mod-ikon"><Ikon ad="kisiler" boyut={26} /></span>
             <span className="bd-mod-ad">Meydan Oku</span>
             {/* "Grup Maçı" düğmesi buradan kalktı: aynı sayfaya (/meydan)
@@ -664,7 +666,7 @@ export default function Home() {
             <span className="bd-mod-ad">Turnuva</span>
           </button>
           <button
-            className="bd-mod bd-mod-genis tema-hatalarim"
+            className="bd-mod tema-hatalarim"
             onClick={() => navigate(y("/calisma"))}
           >
             <span className="bd-mod-ikon hatalarim"><Ikon ad="kitap" boyut={26} /></span>
