@@ -4364,3 +4364,94 @@ gizli botlara düşüyor (migration 180).
 **Not:** `supabase_migrations.schema_migrations` 164'te kalmış;
 165-179 canlıda uygulanmış (fonksiyonlar/ayarlar ölçüldü) ama geçmişe
 yazılmamış. 180 yazıldı.
+
+## 14 Eylül 2026 (2) — Revizyon Paketi 6 (3 madde)
+
+Commit'ler: `c00b12c` (Madde 1) · `d19cfc3` (Madde 2) · `7f2f10a` + `d86a19e` + `8940d42` (Madde 3 ve ekleri).
+Migration: 181, 182 — ikisi de önce `rollback` ile denendi, sonra canlıya uygulandı ve geçmişe yazıldı.
+
+### Madde 1 — Lig tablosunda açık bot (migration 181)
+**Kök sebep:** `lig_gruplarini_kur` grup boşluklarını `bot_turu` ayırmadan
+TÜM botlarla dolduruyordu; ToyBot bronz grup 1'e üye yazılmıştı.
+`lig_grubum`/`lig_siralama` açık botu süzmüyor, yalnız `bot=true` işaretliyordu.
+**Düzeltme:** tek yardımcı `acik_bot_mu()`; `lig_grubum`, `lig_siralama`,
+`lig_uyeligim_kur` (kapasite), `lig_haftayi_kapat` (sıra/ödül) açık botu
+dışarıda bırakıyor; `lig_gruplarini_kur` boşluğu YALNIZ gizli botla dolduruyor.
+Açık botların puanı/ligi ve `lig_uyelik` satırı SİLİNMEDİ.
+**Doğrulama:** bu hafta var olan her grubun bir insan üyesinin gözünden
+`lig_grubum` → bronz 1 (24 satır), bronz 2 (25), bronz 3 (24), gümüş 1 (8):
+açık bot **0**; gizli botlar duruyor (bronz 1'de 6). `lig_siralama` global:
+açık 0. Canlı `/siralama` metninde "…Bot" adı yok; eskiden 2. sıradaki
+ToyBot'un yerinde kaptan61. Altın/elmas/efsane liglerinde bu hafta grup yok
+(gerçek oyuncu yok) — o tablolar açılamadı, aynı fonksiyondan geçiyor.
+
+### Madde 2 — Meydan botu hareketi (migration 182)
+**Eski:** sabit yarıçaplı daire (6-16). Daire çeşmenin (6.6), bankların
+(12.5) ve lambaların (15.6) içinden geçiyordu — "kaldırıma takılma".
+Adım animasyonu hızdan bağımsız sabit 0.8'di (kayar gibi yürüme).
+**Yeni (meydanBotlari.js, yalnız mantık):** tohumdan kararlı plan —
+bir binanın kapısından çık → çeşme ile banklar arasındaki boş halkada
+(8.2-9.8) dolaş, ara ara 2.5-9 sn dur → nöbet biterken başka bir binanın
+kapısına yürü, TAM bitiş anında kapıda kaybol. Her yol parçası
+`dunya.engeller`'e karşı denetlenir; çarpacaksa engelin yanından dolaşır.
+Adım temposu gerçek hızla orantılı (3.2 / 9).
+**Sunucu:** nöbet 80-150 sn (`meydan_bot_nobet_sn_min/_max`), bitmesine
+12 sn kala yenisi yazılır (`meydan_bot_devir_sn`). Cron 5 dk'da bir
+olduğu için `meydan_botlari()` eksik varsa nöbeti kendisi tazeler
+(advisory lock ile, eşzamanlı çağrılar çift iş yapmaz). RPC artık
+`baslangic/bitis/sunucu_zamani` döndürür (istemci saat farkını düzeltir);
+anon yetkisi kaldırıldı, `is_bot` dönmez.
+**Doğrulama:** Node testi, gerçek harita geometrisiyle 400 plan: engele en
+yakın boşluk 0.552 (gövde payı 0.55), havuza giriş 0, ani sıçrama 0, bitiş
+sapması 0 ms, aynı tohum → aynı plan. Canlıda: `bertan55` 80. sn'de düştü,
+aynı tazelemede `aleyna35` kapıdan (r=23.2) girdi; nöbet tablosunda
+12:45-12:47 arasında 7 bot sırayla girip çıktı. `aleyna35`'in canlı planı
+5 sn örnekle: 0 sn r23.2 (kapı) → 5 sn r9.1 → 140 sn boyunca halkada
+yürü/dur → 144 sn r23.2 (kapı); engele en yakın boşluk 0.95.
+**Sınır:** otomasyon penceresi `document.hidden` durumunda kaldığı için
+(bkz. harita CLAUDE.md "arka plan sekmesi") çizim döngüsü durdu; 3 dk'lık
+akıcı hareket ekran görüntüsüyle izlenemedi. Hareket planın kendisinden ve
+devir sunucudan ölçüldü. Telefonda gerçek gözle bakılmalı.
+
+### Madde 3 — Gardırop düzeni
+**Kök sebep (a):** Paket 5'teki dikey düzen yalnız `@media(max-width:760px)`
+içindeydi. Masaüstünde `atolye.css › main{display:grid}` +
+`.gardrop main{grid-template-columns:minmax(0,1fr) 410px}` ve
+`.atolye .gosterim{min-height:700px}` geçerliydi → karakter solda, 410 px
+liste sağda, şerit taşıp kesiliyor. Stale build/yanlış dosya DEĞİL.
+**Düzeltme:** her genişlikte `main{display:block}`; karakter üstte sticky
+(`--gos-h: clamp(300px,46dvh,440px)`, fixed/transform yok), altında tam
+genişlik ızgara (`minmax(128px,1fr)`); şerit satıra sarar (yatay kaydırma
+yok), masaüstünde karakterin altına yapışır, telefonda akışta kalır.
+**Ek hata 1 (canlıda görüldü):** aktif bölüm ekranın %34 çizgisinden
+okunuyordu; çizgi sabit karakterin arkasında kaldı → Gözlük'e bakarken
+"Baş aksesuarı" aktifti. Çizgi artık sabit alanın altından ölçülüyor.
+**Ek hata 2:** telefonda "geçici çıkarıldı" notu karakterin kafasını
+örtüyordu → ayak hizasına indi.
+**Doğrulama (canlı URL):** 1536 px — karakter üstte tam genişlik (364 px),
+liste altında, şerit tek satır, 1600-1800 px kaydırmada karakter top:0 ve
+şerit hemen altında, yatay taşma 0. 390 px (canlı sayfa 390×760 iframe
+içinde; pencere boyutlandırma otomasyonda tutmadı) — karakter üstte
+(365 px, canvas 194 px), liste altında tam genişlik, şerit 5 satıra sarıyor,
+Gözlük bölümüne kaydırınca karakter top:0, yatay taşma 0.
+**Ürün yorumu:** "hepsini tek ekranda" = tüm kategoriler tek sayfada,
+sekme/açılır menü arkasında değil, dikey kaydırmalı (29+ parça kaydırmasız
+sığmaz). Sahibi "hiç kaydırmadan" diyorsa ayrıca konuşulmalı.
+
+### Regresyon
+Paket 6 yalnız şu dosyalara dokundu: Gardrop.jsx, gardrop.css,
+HaritaSayfasi.jsx, meydanBotlari.js, migration 181-182. `Layout.jsx`
+(tabbar) 12 Eyl'den beri değişmedi; soru senkronu/maç RPC'lerine
+dokunulmadı. Yeni ekipmanlar (sakal 4, alt giyim, ayakkabı) canlı gardıropta
+görünüyor. Meydan nöbeti 6 aktif, turnuva bot katılımı sürüyor (aşağıda).
+
+### Not — sabah turnuvası lobisi (13:00 TSİ, ölçüm; kod değişmedi)
+Hedef bot `turnuva_hedef_bot` = 50 (38-66 aralığından, turnuvaya sabit).
+Katılım anları 12:35-13:00 arasına rastgele yayılıyor (`bot_turnuva_katilim_tik`
+her dakika, son 5 çalışma başarılı).
+Lobi: 12:41 → 17 · 12:45 → 25 · 12:47 → 28 · 12:50 → 34 · 12:54 → 35 ·
+**12:55:31 → 38** (37 bot + 1 insan). O anda anı gelmemiş 12 bot var, sonuncusu
+12:59:54 → başlangıçta 50 bot + 1 insan = **51**, aralığın içinde.
+12:50-12:53 arası yavaşlama hata değil: rastgele dağılımda o dakikalara
+1'er an düşmüş, 12:54-12:55'e 4'er. Havuz açık botları öncelikli alıyor
+(migration 173 kararı, dokunulmadı).
