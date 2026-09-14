@@ -917,7 +917,10 @@ export default function HaritaSayfasi() {
             if (gecen > 3000) b.hop = null;
           }
           // Adım temposu gerçek hızla orantılı — yerinde kayar gibi yürümesin.
-          dunya.yurumeAnimasyonu(b.av, dt, yuruyor ? BOT_HIZI / YURUME_HIZI : 0, zipla);
+          // Koşar/ağır bacakta tempo planın gerçek hızına uyar (Paket 7, 2d);
+          // ziyaret sırasında plan hızı geçersiz, normal tempo.
+          const adimHizi = b.ziyaret ? BOT_HIZI : (k.hiz || BOT_HIZI);
+          dunya.yurumeAnimasyonu(b.av, dt, yuruyor ? Math.min(1, adimHizi / YURUME_HIZI) : 0, zipla);
           if (yuruyor || b.ziyaret) continue;   // yürürken / selam verirken jest yapmaz
           // Buluşma bacağındayken de jest yok (ikram gösterisi oynuyor).
           if (b.bacaklar.some((x2) => simdiMs >= x2.bacak.gitMs && simdiMs <= x2.bacak.donMs)) continue;
@@ -936,6 +939,17 @@ export default function HaritaSayfasi() {
         // Buluşmalar: iki bot da noktasına vardıysa ikram gösterisi başlar.
         // Geç açılan istemci kalan süreyle oynatır.
         for (const m of bulusmalar) {
+          // İkram emojisi (Paket 7, 2b): anı gelince bir kez; geç açılan istemci
+          // 3 sn'den eskisini oynatmaz.
+          if (m.emoji && !oynananBulusmalar.has(m.id + ":emoji")
+              && simdiMs >= m.emoji.anMs && simdiMs <= m.emoji.anMs + 3000) {
+            const eb = botlar.get(m.emoji.bot);
+            if (eb && eb.bulusmaIdleri.has(m.id)) {
+              oynananBulusmalar.add(m.id + ":emoji");
+              try { dunya.emojiGoster(eb.av, m.emoji.deger); }
+              catch (e) { console.error("[Meydan] ikram emojisi:", e); }
+            }
+          }
           if (oynananBulusmalar.has(m.id)) continue;
           if (simdiMs < m.basMs || simdiMs > m.bitMs - 1500) continue;
           const A = botlar.get(m.a), B = botlar.get(m.b);
@@ -1078,6 +1092,52 @@ export default function HaritaSayfasi() {
       console.error("[Meydan] ikram gorseli:", e);
     }
   }, [user.id]);
+
+  // ---- ARKADAŞ EKLE (Paket 7, 2c) ----
+  // Menü açılınca seçilen kişiyle arkadaşlık durumu okunur (RLS: yalnız kendi
+  // satırların). null = okunuyor | 'yok' | 'gonderildi' | 'gelen' | 'arkadas'.
+  // Gizli bota da istek GİDER (gerçek oyuncu gibi); gizli botlar arkadaşlık
+  // kabul etmez — mevcut kural, burada dokunulmadı.
+  const [arkadasDurum, setArkadasDurum] = useState(null);
+  const secilenId = secilenOyuncu?.id ?? null;
+  useEffect(() => {
+    setArkadasDurum(null);
+    if (!secilenId || !user?.id) return undefined;
+    let aktif = true;
+    (async () => {
+      try {
+        const { data, error } = await supabase
+          .from("friendships")
+          .select("requester, addressee, durum")
+          .or(`and(requester.eq.${user.id},addressee.eq.${secilenId}),and(requester.eq.${secilenId},addressee.eq.${user.id})`)
+          .limit(1);
+        if (error) throw error;
+        if (!aktif) return;
+        const f = data?.[0];
+        setArkadasDurum(!f ? "yok" : f.durum === "arkadas" ? "arkadas" : f.requester === user.id ? "gonderildi" : "gelen");
+      } catch (e) {
+        console.error("[Meydan] arkadaslik durumu okunamadi:", e);
+        if (aktif) setArkadasDurum("yok");
+      }
+    })();
+    return () => { aktif = false; };
+  }, [secilenId, user?.id]);
+
+  const arkadasEkle = useCallback(async () => {
+    const hedef = secilenOyuncu;
+    if (!hedef) return;
+    const kabulMu = arkadasDurum === "gelen";
+    try {
+      // Karşı taraf zaten istek attıysa sunucu doğrudan arkadaş yapar.
+      const { error } = await supabase.rpc("send_friend_request", { p_target: hedef.id });
+      if (error) throw error;
+      setArkadasDurum(kabulMu ? "arkadas" : "gonderildi");
+      setIkramNotu(kabulMu ? `${hedef.ad} ile artık arkadaşsınız.` : `${hedef.ad} kişisine arkadaşlık isteği gönderildi.`);
+    } catch (e) {
+      console.error("[Meydan] arkadaslik istegi:", e);
+      setIkramNotu(hataMesaji(e, "Arkadaşlık isteği gönderilemedi."));
+    }
+  }, [secilenOyuncu, arkadasDurum]);
 
   /** Menüden seçim: meydan oku / kahve / balon. */
   const menuSec = useCallback(async (kod) => {
@@ -1396,6 +1456,21 @@ export default function HaritaSayfasi() {
               {m.ad}{m.coin > 0 ? ` · ${m.coin} coin` : ""}
             </button>
           ))}
+          <button
+            type="button"
+            className="bd-harita-btn beyaz"
+            disabled={arkadasDurum !== "yok" && arkadasDurum !== "gelen"}
+            onClick={(e) => {
+              if (e.detail !== 0 && !menuBasisRef.current) return;
+              menuBasisRef.current = false;
+              arkadasEkle();
+            }}
+          >
+            {arkadasDurum === "arkadas" ? "Arkadaşsınız ✓"
+              : arkadasDurum === "gonderildi" ? "İstek gönderildi"
+              : arkadasDurum === "gelen" ? "Arkadaşlık isteğini kabul et"
+              : arkadasDurum === null ? "Arkadaş ekle…" : "Arkadaş ekle"}
+          </button>
           <button type="button" className="bd-harita-dans-kapat" aria-label="Kapat"
                   onClick={(e) => {
                     // Aynı hayalet tıklama menüyü açılır açılmaz kapatıyordu.

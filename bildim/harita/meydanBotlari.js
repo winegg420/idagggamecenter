@@ -264,12 +264,17 @@ export function botPlaniKur({ tohum, baslangicMs, bitisMs, kapilar, engeller, gr
     const aci = Math.atan2(o.z, o.x) + yon * ((35 + r() * 95) * Math.PI) / 180;
     const hedefR = HALKA_MIN + r() * (HALKA_MAX - HALKA_MIN);
     const bacak = halkaYolu(o, aci, hedefR, engel);
-    const bacakMs = uzunluk(o, bacak) * hizMs;
+    // HIZ ÇEŞİTLİLİĞİ (Paket 7, madde 2d): %15 koşar gibi (1,4-1,6×),
+    // %20 ağır ağır (0,6×), gerisi normal. AYRI tohum anahtarından seçilir,
+    // `r()` dizisini tüketmez — rota/mola/buluşma zamanlaması aynen kalır.
+    const hizSec = tohumSayi(tohum, "hiz" + i);
+    const hizCarpani = hizSec < 0.15 ? 1.4 + tohumSayi(tohum, "hizk" + i) * 0.2 : hizSec < 0.35 ? 0.6 : 1;
+    const bacakMs = (uzunluk(o, bacak) * hizMs) / hizCarpani;
     const molaMs = r() < 0.55 ? 2500 + r() * 6500 : 0;
     const varis = bacak.length ? bacak[bacak.length - 1] : o;
     const cikisMs = uzunluk(varis, cikisYolu(varis, cikis, engel)) * hizMs;
     if (o.t + bacakMs + molaMs + cikisMs > bitisMs) break;
-    yuru(bacak);
+    yuru(bacak, 1 / hizCarpani);
     bekle(molaMs);
   }
 
@@ -313,12 +318,15 @@ export function planKonumu(plan, simdiMs) {
   }
   const a = n[lo], b = n[hi];
   const f = b.t > a.t ? (simdiMs - a.t) / (b.t - a.t) : 1;
-  const yuruyor = Math.hypot(b.x - a.x, b.z - a.z) > 1e-3;
+  const mesafe = Math.hypot(b.x - a.x, b.z - a.z);
+  const yuruyor = mesafe > 1e-3;
   return {
     x: a.x + (b.x - a.x) * f,
     z: a.z + (b.z - a.z) * f,
     aci: yuruyor ? b.aci : a.aci,
     yuruyor,
+    // Parçanın gerçek hızı (birim/sn): koşar/ağır bacaklarda adım temposu buna uyar.
+    hiz: yuruyor && b.t > a.t ? mesafe / ((b.t - a.t) / 1000) : 0,
     bitti: false,
   };
 }
@@ -711,9 +719,21 @@ function bulusmaKur(A, B, cift, engel, kayitlar) {
     if (!uygun) continue;
 
     const verenA = tohumSayi(cift, "veren") < 0.5;
+    const veren = verenA ? A.id : B.id, alan = verenA ? B.id : A.id;
+    // İKRAM EMOJİSİ (Paket 7, madde 2b): ~%35 buluşmada küçük bir emoji —
+    // ya ikram başlarken veren, ya biterken alan (teşekkür). Tohumlu, her
+    // istemci aynı anı görür.
+    let emoji = null;
+    if (tohumSayi(cift, "emoji") < 0.35) {
+      const sonda = tohumSayi(cift, "emojiAn") < 0.5;
+      const liste = sonda ? ["😊", "🙏", "❤️", "👍"] : ["😄", "☕", "🎈", "👋"];
+      const deger = tur === "kahve" && !sonda ? "☕" : tur === "balon" && !sonda ? "🎈"
+        : liste[Math.floor(tohumSayi(cift, "emojiD") * liste.length) % liste.length];
+      emoji = { bot: sonda ? alan : veren, deger, anMs: sonda ? bitMs - 2000 : basMs + 900 };
+    }
     return {
       id: cift, tur, basMs, bitMs, a: A.id, b: B.id,
-      veren: verenA ? A.id : B.id, alan: verenA ? B.id : A.id,
+      veren, alan, emoji,
       bacaklar: { [A.id]: bA, [B.id]: bB },
       nokta: { [A.id]: nA, [B.id]: nB },
     };
