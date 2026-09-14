@@ -332,3 +332,20 @@
   background: var(--bd-yuzey-2, #eef5fb);
 }
 .bd-gardrop-satir-gorsel img { width: 100%; height: 100%; object-fit: contain; display: block; }
+
+/* ---- Yükleniyor iskeleti (Paket 10) ----
+   Portreler tek kuyrukta sırayla üretiliyor; henüz sırası gelmemiş kutu
+   düz renk durunca "çizilmiyor / boş" sanılıyordu. Hafif ışık geçişi
+   "geliyor" der. Hareket azaltılmışsa geçiş yok, yalnız soluk dolgu. */
+.bd-karakter-portre.yukleniyor,
+.bd-gardrop-satir-gorsel.yukleniyor {
+  background: linear-gradient(100deg,
+    var(--bd-yuzey-2, #DDE7F0) 30%, rgba(255,255,255,.55) 50%, var(--bd-yuzey-2, #DDE7F0) 70%);
+  background-size: 250% 100%;
+  animation: bd-portre-iskelet 1.2s ease-in-out infinite;
+}
+@keyframes bd-portre-iskelet { from { background-position: 100% 0; } to { background-position: -150% 0; } }
+@media (prefers-reduced-motion: reduce) {
+  .bd-karakter-portre.yukleniyor,
+  .bd-gardrop-satir-gorsel.yukleniyor { animation: none; background: var(--bd-yuzey-2, #DDE7F0); }
+}

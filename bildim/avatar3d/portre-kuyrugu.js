@@ -54,8 +54,16 @@ function isle() {
   if (kuyruk.length && !bekleyen) bekleyen = bosZamanda(isle);
 }
 
-/** İşi kuyruğa alır; sırası gelince boş zamanda çalıştırılır. */
-export function siraya(is) {
-  kuyruk.push(is);
+/**
+ * İşi kuyruğa alır; sırası gelince boş zamanda çalıştırılır.
+ * @param {Function} is
+ * @param {boolean} [oncelikli=false] kuyruğun BAŞINA girer.
+ *   Paket 10: dükkânda karakter portresi 56 eşya görselinin ARKASINDA
+ *   kalıyordu — gerçek GPU'da 3,4. sn'de 27/56 görsel dolu, portre boş;
+ *   ancak hepsi bitince (7,4. sn) çiziliyordu. Sayfanın konusu olan
+ *   tek görsel öncelikli girer.
+ */
+export function siraya(is, oncelikli = false) {
+  if (oncelikli) kuyruk.unshift(is); else kuyruk.push(is);
   if (!bekleyen && !calisiyor) bekleyen = bosZamanda(isle);
 }

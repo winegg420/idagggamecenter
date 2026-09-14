@@ -60,7 +60,7 @@ function EsyaOnizleme({ gorunum, parca }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [anahtar]);
   return (
-    <span className="bd-gardrop-satir-gorsel" aria-hidden="true">
+    <span className={"bd-gardrop-satir-gorsel" + (kaynak ? "" : " yukleniyor")} aria-hidden="true">
       {kaynak ? <img src={kaynak} alt="" draggable="false" /> : null}
     </span>
   );

@@ -34,11 +34,12 @@ export default function KarakterPortresi({ gorunum, boyut = 96 }) {
       try {
         const { yeniPortre } = await import("../avatar3d/portre.js");
         const { siraya } = await import("../avatar3d/portre-kuyrugu.js");
+        // ÖNCELİKLİ (Paket 10): listedeki eşya görsellerinden önce çizilir.
         siraya(() => {
           if (atildi) return;
           const veri = yeniPortre(gorunum ? { avatar3d: gorunum } : {});
           if (!atildi && veri) setKaynak(veri);
-        });
+        }, true);
       } catch (e) {
         console.error("[Karakter] portre uretilemedi:", e);
       }
@@ -52,7 +53,8 @@ export default function KarakterPortresi({ gorunum, boyut = 96 }) {
   return (
     <span
       ref={kutuRef}
-      className="bd-karakter-portre"
+      className={"bd-karakter-portre" + (kaynak ? "" : " yukleniyor")}
+      aria-busy={kaynak ? undefined : true}
       style={{ width: boyut, height: boyut }}
     >
       {kaynak ? <img src={kaynak} alt="" draggable="false" /> : null}
