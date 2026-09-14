@@ -4510,3 +4510,43 @@ ortalama 2,2-2,5 bot, botsuz saniye 0.
 **Canlı:** yeni istemci yayında, meydan açılınca 4 bot çizildi; kimse yokken
 tablo boşalıyor, oyuncu girince RPC hemen 11 nöbet yazdı (katman 0-5).
 Otomasyon penceresi gizli sayıldığı için kahve/balon/hoplama gözle izlenemedi.
+
+## 14 Eylül 2026 (4) — Meydanda oyuncuya/bota dokunma
+
+**Sahibinin bildirimi:** telefonda başka oyuncuya dokununca menü açılıp hemen
+kapanıyor ve oto meydan okuyor; PC'de diğer oyunculara hiç dokunulamıyor;
+botlara da dokunulabilmeli.
+
+**Kök sebep 1 — hayalet tıklama (telefon):** menü `pointerup`'ta açılıyor;
+dokunmatik tarayıcı hemen ardından AYNI NOKTAYA sentetik `click` üretiyor.
+Menü ekranın ORTASINDA (`.bd-harita-kisi-menu` left/top 50%), dokunulan avatar
+da genelde ortada (kamera oyuncuya odaklı) → click ilk düğme "Meydan oku"ya
+düşüp `create_challenge` + maça yönlendirme yapıyordu; ✕'ye düşerse menü
+anında kapanıyordu.
+**Düzeltme:** `menuBasisRef` — menü düğmeleri yalnız basış menünün İÇİNDE
+başladıysa çalışır (klavye `detail===0` serbest).
+
+**Kök sebep 2 — PC'de dokunulamama:** seçim adayları yalnız `uzaklar` (gerçek
+oyuncular) idi; botlar listede yoktu. PC'de meydanda tek başına olunca
+etraftaki herkes bot → hiçbirine dokunulamıyordu. Fare olayları engellenmiyor
+(zum yalnız 2 parmakta devreye giriyor).
+**Düzeltme:** botlar da aday; görünmeyen avatar (ilk konum paketi gelmemiş)
+seçilmez. `ikramOynat` bot avatarını da bulur.
+
+**Bota ikram (migration 186):** kabul, alanın istemcisinden broadcast'le
+geliyordu; botun istemcisi yok → 20 sn zaman aşımı. Artık `ikram_gonder` alan
+botsa yanıtı hemen yazar ama `yanit_at`'ı 2-5 sn sonraya kurar (%85 kabul,
+red'de coin anında iade). Yeni `ikram_durumu(p_id)` yanıt anı gelmeden
+'bekliyor' döner; istemci broadcast'e ek olarak 1,2 sn'de bir yoklar (gerçek
+oyuncuda paket kaybına karşı da yedek). `is_bot` dönmez.
+Test (rollback): gizli bota kahve → hemen 'bekliyor', gizli durum 'kabul',
+yanıt 2,9 sn sonra.
+
+**Meydan okuma:** `oynanabilir_mi` yalnız arkadaş ve botlara izin veriyor
+(değiştirilmedi). Not: arkadaş olmayan gerçek oyuncuya meydan okuma hata
+verirken gizli bota vermemesi, dikkatli bir oyuncuya botu ele verebilir —
+sahibine sorulacak ürün kararı.
+
+Build temiz. Tarayıcıda doğrulanamadı: otomasyon penceresi gizli sayıldığı
+için sahne çizilmiyor, dokunmatik hayalet tıklama masaüstünde üretilemiyor —
+telefonda denenmeli.
