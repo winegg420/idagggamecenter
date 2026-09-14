@@ -3,7 +3,7 @@ import {KOLEKSIYON} from './koleksiyon.js';
 import {isimEtiketi,nesneyiSerbestBirak} from '../harita/ortak.js';
 export function meydanModelKur({ad,gorunum,etiketRenk}){
  let hash=0;for(const c of (gorunum?.karakter||'deniz'))hash=(hash*31+c.charCodeAt(0))>>>0;
- const g=modelKur(ayarDogrula(gorunum?.avatar3d||{...KOLEKSIYON[hash%24].kimlik,kiyafet:'tisort'}));
+ const g=modelKur(ayarDogrula(gorunum?.avatar3d||{...KOLEKSIYON[hash%KOLEKSIYON.length].kimlik,kiyafet:'tisort'}));
  Object.assign(g.userData,{gercek3d:true,ad,gorunum,zaman:0,kafaY:g.userData.kafa.position.y});
  if(ad!=null){const etiket=isimEtiketi(ad,etiketRenk);etiket.position.y=4.15;g.add(etiket);g.userData.etiket=etiket;}
  return g;

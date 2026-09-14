@@ -455,8 +455,11 @@ function Gardrop(){
   <div className="kimlikler">
    {KOLEKSIYON.map(k=>
     <button key={k.id} type="button"
+      aria-pressed={g.ten===k.kimlik.ten&&g.yuz===k.kimlik.yuz&&g.sacRenk===k.kimlik.sacRenk}
       onClick={()=>{setG(a=>({...a,ten:k.kimlik.ten,yuz:k.kimlik.yuz,sacRenk:k.kimlik.sacRenk}));setBilgi(k.ad+' uygulandı.');}}>
-     {k.ad}
+     {/* Önizleme rozeti (Atolye.jsx'teki desen): ten dolgusu + saç rengi çerçeve. */}
+     <span className="kimlik-rozet" aria-hidden="true" style={{background:k.kimlik.ten,borderColor:k.kimlik.sacRenk}}/>
+     <span className="kimlik-ad">{k.ad}</span>
     </button>)}
   </div>
  </section>
