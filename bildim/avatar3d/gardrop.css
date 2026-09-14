@@ -428,3 +428,17 @@ body:has(.gardrop){background:#EAF7FF;color:#20324A}
   .atolye.gardrop .yuva-bolum h2{margin-bottom:6px;font-size:17px}
 }
 .atolye.gardrop .esya-listesi button.al .coin{color:inherit}
+
+/* ---- Telefonda kaydırınca karakter şeride iner (Paket 12, madde 1) ----
+   Gardrop.jsx `.kucuk-sahne` sınıfını ~120 px aşağıda ekler, en üstte kaldırır.
+   Yalnız HEIGHT değişir (sahne ResizeObserver ile tuvali yeniden boyutlar);
+   yapışık alanda ve atalarında transform yok — iOS kuralı. */
+.atolye.gardrop .gosterim{transition:height .22s ease}
+@media (max-width:760px){
+  .atolye.gardrop.kucuk-sahne{--gos-h:88px}
+  /* 88 px'lik şeride kamera düğmeleri sığmaz; büyüyünce geri gelir. */
+  .atolye.gardrop.kucuk-sahne .kamera{display:none}
+}
+@media (prefers-reduced-motion:reduce){
+  .atolye.gardrop .gosterim{transition:none}
+}

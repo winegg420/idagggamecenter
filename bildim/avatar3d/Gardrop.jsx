@@ -117,6 +117,27 @@ function Gardrop(){
  const [kaydediyor,setKaydediyor]=useState(false),[yakin,setYakin]=useState(false);
  const [geriHedef]=useState(menuHedefi);
  const kok=useRef(),sabitRef=useRef();
+ // KAYDIRINCA KARAKTER KÜÇÜLÜR (Paket 12, madde 1): telefonda yapışık alan
+ // karakterle birlikte ekranın yarısını yiyordu. Aşağı kaydırınca sahne
+ // 88 px'lik şeride iner, en üste dönünce büyür. Eşik farkı (120 / 12 px)
+ // titremeyi önler: küçülen alan sayfayı kısaltıp kaydırmayı geri çekse de
+ // durum gidip gelmez. Yükseklik CSS değişkeniyle değişir — transform yok (iOS).
+ const [kucukSahne,setKucukSahne]=useState(false);
+ useEffect(()=>{
+  let mq=null,son=false,bekleyen=0;
+  try{mq=matchMedia('(max-width:760px)');}catch{/* eski tarayıcı: hep büyük */}
+  const bak=()=>{
+   bekleyen=0;
+   const y=window.scrollY||0;
+   const yeni=!!mq?.matches&&(son?y>12:y>120);
+   if(yeni!==son){son=yeni;setKucukSahne(yeni);}
+  };
+  const kaydir=()=>{if(!bekleyen)bekleyen=requestAnimationFrame(bak);};
+  window.addEventListener('scroll',kaydir,{passive:true});
+  mq?.addEventListener?.('change',bak);
+  bak();
+  return()=>{window.removeEventListener('scroll',kaydir);mq?.removeEventListener?.('change',bak);if(bekleyen)cancelAnimationFrame(bekleyen);};
+ },[]);
  // Hangi cüzdandayız: giriş yapan oyuncu GERÇEK coin harcar, oturumsuz
  // yerel geliştirme sahte cüzdanda kalır. Etiketler buna göre yazılır —
  // "Gerçek bakiyeni etkilemez" yazısı gerçek bakiyede YALAN olurdu.
@@ -319,7 +340,7 @@ function Gardrop(){
  const sec=p=>{setG(a=>parcayiTak(a,p));setBilgi(p.ad+(sahip.includes(p.id)?' seçildi. Kaydederek oyuna uygula.':' deneniyor. Kaydetmek için önce edinmelisin.'));};
  const bakiyeYazi=durum?(Number(durum.bakiye)||0).toLocaleString('tr-TR'):'—';
  const kaydetYazi=!durum?'Yükleniyor…':kaydediyor?'Kaydediliyor…':mesgul?'Bekle…':!fark?'Kaydedildi ✓':kurulmamis?'Karakterimi kaydet':'Görünümü kaydet';
- return <div ref={kok} className="atolye gardrop" data-aktif-bolum={aktifBolum||''}>
+ return <div ref={kok} className={'atolye gardrop'+(kucukSahne?' kucuk-sahne':'')} data-aktif-bolum={aktifBolum||''}>
  {/* YAPIŞIK ALAN — menü düğmesi, karakter ve kayıt çubuğu HEP görünür.
      Tek sticky kap: iOS kuralı gereği fixed değil, atalarında transform yok. */}
  <div ref={sabitRef} className="sabit-alan">
@@ -336,7 +357,9 @@ function Gardrop(){
      <button type="button" aria-pressed={yakin} onClick={()=>{setYakin(true);sahne.current?.yakin(true);}}>Yüzü incele</button>
      <button type="button" aria-pressed={!yakin} onClick={()=>{setYakin(false);sahne.current?.yakin(false);}}>Tüm karakter</button>
     </div>
-    <div className="hareketler" role="group" aria-label="Hareket">{[['bekle','Bekle'],['yuru','Yürü'],['selam','Selam ver']].map(([id,ad])=><button key={id} type="button" aria-pressed={mod===id} onClick={()=>{setMod(id);sahne.current?.animasyon(id);}}>{ad}</button>)}</div>
+    {/* Bekle / Yürü / Selam ver düğmeleri kaldırıldı (Paket 12, madde 1):
+        gardıropta gereksiz. Karakter varsayılan "bekle" duruşunda kalır;
+        sahne.animasyon kodu duruyor (atölye sayfası kullanıyor). */}
    </section>
 
    {/* KAYIT ÇUBUĞU — düğme hiçbir durumda sessizce kapanmaz: ne olduğunu
@@ -377,7 +400,8 @@ function Gardrop(){
   <h2>Karakterini giydir</h2>
   <p>Bir karta dokun, karakterinde hemen dene. Sende olmayanı al, sonra <b>Görünümü kaydet</b>’e bas.</p>
   <div className="cuzdan"><div><small>{denemeMi?'DENEME CÜZDANI':'COIN BAKİYEN'}</small><strong>{bakiyeYazi} coin</strong></div><span>{denemeMi?'Gerçek bakiyeni etkilemez':'Satın alınan parçalar bakiyenden düşer'}</span></div>
-  <a className="meydan-link" href="./meydan.html?envanter=1">Kaydedilen karakterle meydana git ↗</a>
+  {/* "Kaydedilen karakterle meydana git" kaldırıldı (Paket 12, madde 1):
+      oyuncu kaydeder, meydana alt menüdeki Meydan sekmesinden kendisi gider. */}
  </section>
  {/* KATEGORİ ŞERİDİ — filtre DEĞİL, gezinme.
      Eskiden kategoriler bir <select> arkasındaydı ve tek seferde tek
