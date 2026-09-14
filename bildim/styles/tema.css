@@ -5880,3 +5880,31 @@ body.bd-ekle-acik .app { padding-bottom: calc(300px + env(safe-area-inset-bottom
   color: var(--bd-odul);
   text-shadow: 0 3px 0 var(--bd-odul-2), 0 8px 18px rgba(255,197,61,.28);
 }
+
+/* ============================================================
+   ANA SAYFA — REFERANS TASARIMA UYARLAMA (Claude outputs/ANASAYFA_REFERANS.html)
+   Kapsam `.app .anasayfa`: yalnız Ana Sayfa etkilenir. Eski katmanlar
+   silinmedi; bu bloklar onları hedef değerlerle ezer.
+   ============================================================ */
+
+/* ---- 1) "Hemen oyna" — ALTIN birincil eylem ----
+   Sayfadaki tek en güçlü eylem; sitenin turuncu düğmelerinden kasıtlı
+   ayrışır. Renkler mevcut değişkenler: --bd-odul #FFC53D, --bd-odul-2 #C99A00.
+   Koyu yazı #1b1206 altın zeminde ~12:1. Nabız animasyonu referansta yok ve
+   basılma kaymasıyla (translateY) çakışıyordu → kapalı. */
+.app .anasayfa .bd-ana-eylem {
+  background: var(--bd-odul);
+  color: #1b1206;
+  box-shadow: 0 5px 0 var(--bd-odul-2);
+  border: none;
+  border-radius: 16px;
+  min-height: 54px;
+  font-size: 16px;
+  font-weight: 800;
+  animation: none;
+  transition: transform .08s ease, box-shadow .08s ease;
+}
+.app .anasayfa .bd-ana-eylem:active {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 var(--bd-odul-2);
+}
