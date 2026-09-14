@@ -135,7 +135,16 @@ function Gardrop(){
   const oku=()=>{
    bekleyen=0;
    try{
-    const cizgi=innerHeight*0.34;
+    // Çizgi SABİT ALANIN ALTINDAN ölçülür: karakter (ve masaüstünde şerit)
+    // üstte sticky duruyor; ekranın %34'ü artık onun arkasında kalıyordu ve
+    // Gözlük'e bakarken aktif bölüm "Baş aksesuarı" sanılıyordu — ölçüldü.
+    // DOM sırasıyla: önce karakter, sonra hemen altına yapışan şerit.
+    let ust=0;
+    for(const s of document.querySelectorAll('.gardrop .gosterim, .kategori-serit')){
+     const k=s.getBoundingClientRect();
+     if(getComputedStyle(s).position==='sticky'&&k.top<=Math.max(ust,80)+1)ust=Math.max(ust,k.bottom);
+    }
+    const cizgi=ust+(innerHeight-ust)*0.3;
     let en=null,enUst=-Infinity,ilkGorunen=null;
     for(const el of document.querySelectorAll('.yuva-bolum')){
      const k=el.getBoundingClientRect();
