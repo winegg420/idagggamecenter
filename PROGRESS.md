@@ -4322,3 +4322,45 @@ kazanıp gerçek maçtaki formülün aynısıyla (20 × %40 = 8) puan alıyor.
 olduğunu ele vermesin. Lig DEĞİŞTİRİLMEZ (yerleşik karar korundu;
 `lig_haftayi_kapat` zaten `if r.bot then continue`).
 İlk tik 72 bot işledi (başlangıç anları geriye yayılmıştı), ikinci tik 21.
+
+## 14 Eylül 2026 — Meydan botları görünmüyordu + "normal eşleşmede ÇaylakBot"
+
+### 1) Meydan botları — sorun İSTEMCİDEYDİ, sunucu sağlamdı
+**Ölçüm (sunucu):** `meydan_bot_nobeti` doluydu (6 satır, 4 aktif),
+`bildim-meydan-bot` cron'u aktif ve son 5 çalışması `succeeded`, 155 gizli
+bot uygun. `meydan_botlari()` authenticated rolüyle 4, tarayıcıdan
+kullanıcı token'ıyla 9 satır döndü. Yani "RPC boş dönüyor" varsayımı yanlıştı.
+
+**Ölçüm (tarayıcı, canlı):** React fiber'dan `canliRef` okundu: bot
+(`baris61`) sahnede, `visible=true`, kamera görüş alanında — ama modelin
+TÜM mesh dünya konumları `NaN`.
+**Kök sebep:** bot döngüsü `dunya.yumusakDon(b.av, k.aci, dt)` çağrısını
+4. parametresiz yapıyordu → `dt * undefined = NaN` → `rotation.y = NaN` →
+dünya matrisi bozuk, model hiç çizilmiyor. Oyuncu/uzak oyuncu çağrıları
+hızı verdiği için etkilenmiyordu (tüm çağrılar tarandı, tek eksik buydu).
+**Düzeltme:** `yumusakDon`'a varsayılan `hiz = 8` + NaN rotasyonu sıfırlama;
+bot çağrısına hız açıkça verildi.
+
+**Ek sağlamlaştırma (migration 180):** `meydan_bot_nobeti_guncelle`
+önümüzdeki cron turundan (6 dk) önce bitecek nöbeti dolu saymıyor, yenisini
+önceden yazıyor — nöbet bitişiyle cron arasında boşluk kalmıyor.
+
+### 2) "Normal eşleşmede ÇaylakBot" — veri otomatik yolu GÖSTERMİYOR
+Maç: 14 Eyl 08:24:17, `bedirhanbatur_a2ef` (bronz, ilk maçı) vs ÇaylakBot.
+- `bot_seviye_araligi` → [1, 11]; aynı hesapla `bot_sec` 300 denemede
+  **300 gizli bot** seçti; (d) adımına düşmüyor.
+- `hemen_bot_mac` bronz oyuncuya ToyBot verir (lig farkı 0), ÇaylakBot değil.
+- `rpc_sayac`'ta bu kullanıcı için **hiç `quick_match` ve `hemen_bot_mac`
+  kaydı yok** (ikisi de `hiz_siniri` çağırır, satır kalıcıdır; 8 başka
+  kullanıcıda `quick_match` satırı var). Otomatik yol hiç çalışmamış.
+- Maçta `kabul_at` = oluşturma + 1.04 sn: `create_challenge` ile
+  'bekliyor' açılıp `bot_oyna` tarafından kabul edilmiş. Otomatik yoldaki
+  gizli bot maçlarında `kabul_at` null.
+Sonuç: maç **meydan okuma** ile kurulmuş (Meydan Oku sayfasındaki
+"Botlar" listesi büyük olasılıkla; hemen öncesinde 08:22'de meydanda ikram
+göndermiş). Yine de istenen güvence yapıldı: `bot_sec` (d) artık yalnız
+gizli botlara düşüyor (migration 180).
+
+**Not:** `supabase_migrations.schema_migrations` 164'te kalmış;
+165-179 canlıda uygulanmış (fonksiyonlar/ayarlar ölçüldü) ama geçmişe
+yazılmamış. 180 yazıldı.
