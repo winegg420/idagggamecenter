@@ -28,7 +28,7 @@ import { donusKaydet, donusOku, donusTemizle } from "./donus.js";
 import { MENU, ikramGonder, ikramYanitla, ikramDurumu, bekleyenIkramlar, IKRAM_SURE_SN, ZAMAN_ASIMI_SN } from "./etkilesim.js";
 import { kahveBasla, balonBasla, ikramKaresi, ikramlariTemizle } from "./ikramGorsel.js";
 import {
-  meydanBotlariniAl, botJesti, botPlaniKur, planKonumu, kapilariHesapla, BOT_HIZI,
+  meydanBotlariniAl, botJesti, botPlaniKur, planKonumu, kapilariHesapla, kenarKapilariHesapla, BOT_HIZI,
   gorunurBotlariSec, ziyaretPencereleri, ziyaretHedefiSec, ziyaretUygunMu, ziyaretBaslat,
   ziyaretAdimi, botBulusmalariniPlanla, planaBacakEkle, hopYuksekligi, kararliRastgele,
 } from "./meydanBotlari.js";
@@ -534,7 +534,10 @@ export default function HaritaSayfasi() {
     //   • buluşma: iki bot karşılıklı durup kahve/balon ikram eder
     // Botların girip çıktığı kapılar ve kaçındığı engeller dünyadan okunur
     // (mantık katmanı yalnız sayı görür; harita değişirse bu da değişir).
-    const kapilar = kapilariHesapla(dunya.binalar, dunya.engeller);
+    // Paket 12, madde 2: giriş/çıkış bina kapısı DEĞİL — oyuncunun doğduğu
+    // yöne yakın dış kenar (binaların arası). Bina kapısı yedek olarak kalır.
+    const kenarKapilar = kenarKapilariHesapla(dunya.engeller, { x: 0, z: 11 });
+    const kapilar = kenarKapilar.length ? kenarKapilar : kapilariHesapla(dunya.binalar, dunya.engeller);
     // Görünür botların TABAN planları (bir kez kurulur): id -> { id, tohum,
     // plan, ziyaretler, basSira, sira }. Buluşmalar bunların üstüne eklenir.
     const tabanlar = new Map();
@@ -859,7 +862,7 @@ export default function HaritaSayfasi() {
         for (const [id, b] of botlar) {
           const k = planKonumu(b.plan, simdiMs);
           if (k.bitti) {
-            // Binaya girdi: avatar kalkar, sıradaki tazelemede yerine başkası gelir.
+            // Meydanın dış kenarından ayrıldı: avatar kalkar, sıradaki tazelemede yerine başkası gelir.
             try { dunya.avatarSil(b.av); } catch { /* yut */ }
             botlar.delete(id);
             continue;

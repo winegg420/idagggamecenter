@@ -9,6 +9,8 @@
 //
 // PLAN (Revizyon Paketi 6, madde 2 — "binaya gidip yok olmalı, yerine
 // başkası girmeli"):
+// (Paket 12, madde 2: "kapı" artık binaların arasındaki DIŞ KENAR noktası —
+// bkz. kenarKapilariHesapla. Bot binadan çıkmaz, binaya girip kaybolmaz.)
 //   1. Nöbet başlarken bir binanın kapısından çıkar, meydana yürür.
 //   2. Çeşme ile banklar arasındaki boş halkada dolaşır, ara ara durup
 //      bakınır (eski "yarı pasif" his korunur).
@@ -40,6 +42,11 @@ const HALKA_MAX = 9.8;
 const GOVDE_R = 0.55;          // engelden uzak durma payı
 const SAPMA_PAYI = 0.35;       // engelin etrafından dolaşırken ek boşluk
 const KAPI_PAYI = 0.4;         // kapı noktası bina engelinin bu kadar önünde
+// Dış kenar girişi (Paket 12): binaların iç kenarı ~24, çevre ağaçları 21.
+// 26 birimde binaların ARASI boş; oyuncu merkeze bakarken arkada kalır.
+const KENAR_R = 26;
+const KENAR_PAYI = 1.5;        // kenar noktası engelden en az bu kadar uzak
+const ENGEL_ICI_PAYI = 0.2;    // plan konumu engelin içine düşerse bu kadar dışına itilir
 const ADIM_ACI = (12 * Math.PI) / 180;
 
 // Çeşme dunya.js'in engel listesinde değil (ayrı çarpışma kontrolü var).
@@ -136,6 +143,45 @@ export function kapilariHesapla(binalar, engeller) {
     kapilar.push({ x: b.x * k, z: b.z * k, aci: Math.atan2(b.z, b.x) });
   }
   return kapilar;
+}
+
+/**
+ * MEYDANIN DIŞ KENARINDAKİ GİRİŞ/ÇIKIŞ NOKTALARI (Paket 12, madde 2).
+ * "Botlar binalardan çıkıyor" şikâyeti: bot artık bina kapısından değil,
+ * gerçek oyuncunun başladığı yöne yakın, binaların arasındaki boş kenardan
+ * meydana yürür ve nöbet bitince yine oradan ayrılır.
+ * Kenar halkası taranır; engelsiz yay parçalarının ortası aday olur, oyuncu
+ * başlangıcına açıca en yakın `adet` tanesi seçilir. Saf ve kararlı.
+ * @param {Array<{x:number,z:number,r:number}>} engeller
+ * @param {{x:number,z:number}} baslangic gerçek oyuncunun doğduğu nokta
+ */
+export function kenarKapilariHesapla(engeller, baslangic = { x: 0, z: 11 }, adet = 3) {
+  const ADIM = (3 * Math.PI) / 180;
+  const n = Math.round((Math.PI * 2) / ADIM);
+  const bos = [];
+  for (let i = 0; i < n; i++) {
+    const a = i * ADIM, x = Math.cos(a) * KENAR_R, z = Math.sin(a) * KENAR_R;
+    bos.push((engeller ?? []).every((e) => Math.hypot(x - e.x, z - e.z) >= e.r + GOVDE_R + KENAR_PAYI));
+  }
+  if (bos.every(Boolean) || !bos.some(Boolean)) return [];
+  // Engelli bir noktadan başlayıp çevrimsel olarak boş yayları topla.
+  const ilkDolu = bos.indexOf(false);
+  const yaylar = [];
+  let bas = -1;
+  for (let j = 1; j <= n; j++) {
+    const i = (ilkDolu + j) % n;
+    if (bos[i] && bas < 0) bas = j;
+    if ((!bos[i] || j === n) && bas >= 0) {
+      const bit = bos[i] ? j : j - 1;
+      if (bit - bas >= 1) yaylar.push(((ilkDolu + (bas + bit) / 2) % n) * ADIM);
+      bas = -1;
+    }
+  }
+  const hedef = Math.atan2(baslangic.z, baslangic.x);
+  return yaylar
+    .sort((p, q) => Math.abs(aciFarki(hedef, p)) - Math.abs(aciFarki(hedef, q)))
+    .slice(0, Math.max(1, adet))
+    .map((a) => ({ x: Math.cos(a) * KENAR_R, z: Math.sin(a) * KENAR_R, aci: a }));
 }
 
 /**
@@ -294,7 +340,28 @@ export function botPlaniKur({ tohum, baslangicMs, bitisMs, kapilar, engeller, gr
   }
   // dolasBasMs..cikisBasMs: bot halkada. Ziyaret ve buluşma yalnız bu
   // aralığa yerleşir; giriş ve çıkış yürüyüşü hiç bozulmaz.
-  return { noktalar, bitisMs, baslaMs, dolasBasMs, cikisBasMs };
+  // `engel`: planKonumu hiçbir anda bir engelin (bina, bank, ağaç) içini
+  // döndürmesin diye taşınır; planaBacakEkle `...plan` ile korur.
+  return { noktalar, bitisMs, baslaMs, dolasBasMs, cikisBasMs, engel };
+}
+
+/** Nokta bir engelin İÇİNDEYSE en yakın açık noktaya çıkarır; değilse aynen döner. */
+function engelIcindenCikar(x, z, engel) {
+  if (!engel?.length) return { x, z };
+  for (let tur = 0; tur < 3; tur++) {
+    let itildi = false;
+    for (const e of engel) {
+      const dx = x - e.x, dz = z - e.z;
+      const d = Math.hypot(dx, dz), min = e.r + ENGEL_ICI_PAYI;
+      if (d < min) {
+        if (d > 1e-4) { x = e.x + (dx / d) * min; z = e.z + (dz / d) * min; }
+        else { x = e.x + min; }
+        itildi = true;
+      }
+    }
+    if (!itildi) break;
+  }
+  return { x, z };
 }
 
 /**
@@ -320,9 +387,10 @@ export function planKonumu(plan, simdiMs) {
   const f = b.t > a.t ? (simdiMs - a.t) / (b.t - a.t) : 1;
   const mesafe = Math.hypot(b.x - a.x, b.z - a.z);
   const yuruyor = mesafe > 1e-3;
+  const acik = engelIcindenCikar(a.x + (b.x - a.x) * f, a.z + (b.z - a.z) * f, plan.engel);
   return {
-    x: a.x + (b.x - a.x) * f,
-    z: a.z + (b.z - a.z) * f,
+    x: acik.x,
+    z: acik.z,
     aci: yuruyor ? b.aci : a.aci,
     yuruyor,
     // Parçanın gerçek hızı (birim/sn): koşar/ağır bacaklarda adım temposu buna uyar.
