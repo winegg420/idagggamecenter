@@ -4647,3 +4647,36 @@ bir boş meydanda da 6 katmanı dolduruyor, `gizli_bot_nabiz` o botlara yazıyor
 ile dolar, kimse yokken tablo boşalır. Tavan 6→2, dalga üst 3→2, ek oyuncu 2→1,
 grup en çok 3→2, grup %30→%20. İstemci değişmedi (ayarları RPC'den okuyor).
 Senkron görünen hareketin kendisi düzeltilmedi; sayı düşürüldü (sahibinin tercihi).
+
+## 14 Eylül 2026 (9) — Revizyon Paketi 8 (Görünüm görünürlüğü + küçük düzeltmeler)
+
+Commit'ler: `d308965` (Madde 1) · `03188bb` (Madde 2) · `7713944` (Madde 3) · `cc9b580` (Madde 4).
+Tek oturum, alt ajansız. Migration yok.
+
+### Madde 1 — Görünüm öne çıktı (öncesi → sonrası, canlı ölçüm, 1389×960)
+- **Üst bar:** öncesi zil · coin · profil (gardırop bağlantısı yok) → sonrası zil · coin ·
+  **tişört ikonu** (44×44, `/bildim/avatar3d/gardrop.html`) · profil. Her ekrandan 1 tık.
+  390 px'te öğeler 161-359 px arasında, bar sağ kenarı 375, yatay taşma 0.
+- **Dükkân:** öncesi varsayılan sekme Joker → sonrası **Görünüm** (`?sekme=` bağlantıları aynı).
+- **Profil → Ayarlar:** öncesi Görünüm kartı 6. sırada, sayfanın 1242. pikselinde
+  (960 px ekranda kaydırma şart) → sonrası **1. kart, 466. piksel** (kaydırmasız görünür).
+
+### Madde 2 — İki "Görünüm" kartı
+Tema kartı "Görünüm" → **"Tema"**. Ayarlar'da "Görünüm" adlı kart 2 → 1. TemaDugmesi aynı.
+
+### Madde 3 — Dükkân gardırop listesi
+Satırlara eşya görseli (gardıroptaki `esyaPortresi`, oyuncunun ten/renkleriyle). three.js
+dükkân paketine statik girmesin diye dinamik yüklenen `EsyaOnizleme`; paylaşılan kuyruk.
+Canlı: 48 satır, 48 görsel dolu. "Şu anki karakterin" portresi: `KarakterPortresi`
+IntersectionObserver'a bağlıydı (gardıropta ParcaPortresi'nde aynı gözlemci portre
+üretmediği için kaldırılmıştı) ve görünümü hiç kaydedilmemiş oyuncuda bilerek boştu.
+İkisi de kaldırıldı: gözlemci yok, görünüm yoksa varsayılan karakter. Canlı: portre dolu.
+
+### Madde 4 — Arkadaşlar sayfası
+Sıra: Arkadaşların (122 px) → Bekleyen istekler → "Arkadaş davet et" başlığı (666 px) →
+Davet kodun → Davet koduyla ekle. Kartlar aynen korundu. (İlk düzenleme denemesi tanımsız
+değişkene başvuruyordu; derlemeden önce fark edilip geri alındı, temiz taşıma yapıldı.)
+
+### Regresyon
+Joker/Coin sekmeleri duruyor; Ayarlar'daki diğer kartların sırası ve işlevi aynı
+(yalnız Görünüm başa geldi); Tema düğmesi bileşeni değişmedi. Build temiz.
