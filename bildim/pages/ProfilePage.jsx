@@ -306,7 +306,9 @@ export default function ProfilePage() {
           elinde tutuyor. Bileşen aynı bileşen. */}
       <div className="kart bd-ayar-satir">
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontWeight: 700, fontSize: 14 }}>Görünüm</div>
+          {/* "Görünüm" adı 3B karakter kartına ait (Paket 8): iki kart aynı
+              adı taşıyordu. */}
+          <div style={{ fontWeight: 700, fontSize: 14 }}>Tema</div>
           <div className="alt-yazi">Açık ve koyu tema arasında geç</div>
         </div>
         <TemaDugmesi />
