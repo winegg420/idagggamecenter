@@ -5865,11 +5865,16 @@ body.bd-ekle-acik .app { padding-bottom: calc(300px + env(safe-area-inset-bottom
 
 /* ---- Hero puan: ödül hissi (Paket 10) ----
    .app .bd-hero-puan-sayi (satır ~3710) rengi --bd-metin'e çekiyordu; altın
-   geri geldi. Açık zeminde --bd-odul düşük kontrast → koyu altın ton. */
+   geri geldi. KONTRAST (canlıda ölçüldü, beyaz hero zemini): --bd-odul-2
+   #C99A00 = 2,59 (büyük metin eşiği 3,0'ın altında) → metin için ayrılmış
+   --bd-odul-metin #8A6A00 = 5,07. Altın his alt gölgeden (--bd-odul) gelir.
+   Satır ~948'deki "metne kırpılmış altın zemin" kalıntısı sıfırlanır. */
 .app .bd-hero .bd-hero-puan-sayi {
-  color: var(--bd-odul-2);
+  background: none;
+  -webkit-background-clip: border-box; background-clip: border-box;
+  color: var(--bd-odul-metin, #8A6A00);
   font-size: clamp(54px, 15vw, 68px);
-  text-shadow: 0 3px 0 rgba(0,0,0,.12);
+  text-shadow: 0 3px 0 var(--bd-odul);
 }
 :root[data-tema="koyu"] .app .bd-hero .bd-hero-puan-sayi {
   color: var(--bd-odul);
