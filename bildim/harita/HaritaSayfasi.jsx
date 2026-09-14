@@ -119,6 +119,10 @@ export default function HaritaSayfasi() {
 
   const [yukleniyor, setYukleniyor] = useState(true);
   const [kisi, setKisi] = useState(1);
+  // Meydandaki (gizli) botlar da "kişi burada" sayısına girer: gerçek oyuncu
+  // gibi görünmeleri gerekiyor. `kisi` yalnız gerçek oyuncu sayısı olarak
+  // KALIR — kaç bot çizileceği ona bakıyor (botlar botları çoğaltmasın).
+  const [botSayisi, setBotSayisi] = useState(0);
   const [bagli, setBagli] = useState(true);
   const [ipucu, setIpucu] = useState(null); // { ad, alt, rota }
   const [hata, setHata] = useState(null);   // { mesaj, tekrar:boolean }
@@ -657,6 +661,10 @@ export default function HaritaSayfasi() {
     botlariTazele();
     // 6 saniye: botlar birer birer katılsın/ayrılsın (aniden belirmesin).
     const botSaat = setInterval(botlariTazele, 6000);
+    // Sayaç saniyede bir; yalnız değişince React'e yazılır (her karede değil).
+    const botSayacSaat = setInterval(() => {
+      if (aktif) setBotSayisi((o) => (o === botlar.size ? o : botlar.size));
+    }, 1000);
 
     // ---- OYUNCUYA DOKUNMA ----
     // Sahnede bir avatara dokununca menü açılır (meydan oku / kahve / balon).
@@ -987,6 +995,7 @@ export default function HaritaSayfasi() {
       for (const u of uzaklar.values()) { try { dunya.avatarSil(u.av); } catch { /* yut */ } }
       uzaklar.clear();
       clearInterval(botSaat);
+      clearInterval(botSayacSaat);
       for (const b of botlar.values()) { try { dunya.avatarSil(b.av); } catch { /* yut */ } }
       botlar.clear();
       try { ikramlariTemizle(); } catch (e) { console.error("[Meydan] ikram temizle:", e); }
@@ -1323,7 +1332,7 @@ export default function HaritaSayfasi() {
         </button>
         <span className="bd-harita-hap" role="status">
           <span className={"canli" + (bagli ? "" : " kopuk")} />
-          {bagli ? `${kisi} kişi burada` : "bağlantı yok"}
+          {bagli ? `${kisi + botSayisi} kişi burada` : "bağlantı yok"}
         </span>
       </div>
 
