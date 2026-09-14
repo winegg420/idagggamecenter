@@ -4577,3 +4577,56 @@ yaşardı?"
 
 **Test:** kurucu hesapla `oynanabilir_mi` → arkadaş olmayan gizli bot false,
 ToyBot true; çevrimiçi gizli bot 10; cron aktif; ayar 100. Build temiz.
+
+## 14 Eylül 2026 (6) — Revizyon Paketi 7
+
+Tek oturumda, alt ajansız yapıldı. Commit'ler: `132c4b0` (Madde 1) · `c2e10c8`
+(Madde 2, migration 188) · `bd0a650` (Madde 2 ek, migration 189) · Madde 3.
+
+### Madde 1 — Hazır görünümler
+24 insan isimli tarif → 12 görünüm (4 yüz tipi × 3 ten). Ad üretilir:
+"Köşeli yüz · Esmer". **Saç stili etikete yazılmadı:** gardırop hazır görünümden
+yalnız ten/yüz/saç rengini uygular, saç stili ayrı satılan parça — yazılsa
+yanıltırdı. Gardırop düğmesinde ten dolgulu + saç rengi çerçeveli rozet
+(Atolye'deki desen), seçili olan `aria-pressed`. Atölye başlığı dinamik sayı.
+**Yakalanan gizli hata:** `meydan-model.js` `KOLEKSIYON[hash%24]` → liste 12'ye
+inince dizi dışı; `%KOLEKSIYON.length` yapıldı.
+**Canlı:** 12 düğme, 12 rozet, isim yok (ekran görüntüsü alındı).
+Vücut tipi (boy/kilo) kapsam dışı — model.js tek gövde.
+
+### Madde 2 — Harita botları
+**2a — ölçülen kök sebep görevdeki tahminden farklı:** bot görünümü istemcideki
+KOLEKSIYON hash'inden DEĞİL, sunucudaki `gorunum.avatar3d` kaydından geliyor
+(155/155 botta var). Üretici `avatar3d_bot_gorunum_uret` cinsiyete bakmıyordu:
+73 kadın botun 37'si sakallı. `cinsiyet` istemciye AÇILMADI (gerçek oyuncuda boş,
+botta dolu → ele verirdi). Migration 188: kadın → uzun/rasta saç, sakal yok,
+yumuşak/ince/dengeli yüz, küpe sık. Sonuç: 73/73 uzun-rasta, 0 sakallı.
+**İkinci kök sebep (doğrulamada bulundu):** botların `cinsiyet` alanı adlarından
+bağımsız atanmıştı — "mert41" k, "esra16" e. Migration 189: 16 kadın adı 'k',
+23 erkek adı 'e'; nötr/takma adlara dokunulmadı; görünüm yeniden üretildi
+(66 k / 89 e). mert41 → kısa saç + keçi sakalı, esra16 → rasta.
+**2b:** buluşmaların ~%35'inde emoji — ikram başlarken veren (☕/🎈) ya da
+biterken alan (😊🙏❤️👍). Tohumlu; geç açılan istemci 3 sn'den eskisini oynatmaz.
+**2c:** oyuncu menüsüne "Arkadaş ekle" (send_friend_request). Durum menü açılınca
+okunur: Arkadaş ekle / İstek gönderildi / Arkadaşlık isteğini kabul et /
+Arkadaşsınız ✓. Gizli bota istek gider, bot kabul etmez (mevcut kural).
+Hayalet tıklama koruması bu düğmede de var.
+**Canlı:** bota dokunma olayı üretilip menü açıldı → Meydan oku / Kahve / Balon /
+Arkadaş ekle (ekran görüntüsü). Sahnede kadın botlar uzun saç/rasta.
+**2d:** dolaşma bacaklarında %15 koşar gibi (1,4-1,6×), %20 ağır (0,6×). Ayrı tohum
+anahtarı — `r()` dizisini tüketmez, rota/mola/buluşma zamanlaması aynı. Adım
+temposu `planKonumu().hiz`e bağlı. Node testi (400 plan): engel boşluğu 0,554,
+havuz 0, sıçrama 0, kapıda olmayan 0, deterministik; yürüyüş süresinin %7,4'ü
+koşar, %24,9'u ağır.
+**Sınır:** otomasyon penceresi gizli sayıldığı için 3 dk akıcı hareket ve ikram
+emojisi ekran görüntüsüyle izlenemedi; mantık Node'da ve canlı plan verisinde ölçüldü.
+
+### Madde 3 — Profil
+**3.1 yapılmadı, gerek yok:** canlı `/profil`'de ölçüldü — tek ilerleme çubuğu var
+(alttaki "Sonraki rütbe"); üstteki yalnız rütbe rozeti (RankBadge çubuk içermiyor).
+Görevdeki "iki kez" tespiti bu sayfada doğru değil.
+**3.2:** kategori ustalığı (10 satır) 2 sütunlu ızgara; ≤340 px tek sütun.
+
+### Regresyon
+Lig/gardırop/meydan bina giriş-çıkış dosyalarında yalnız ekleme yapıldı; plan
+testi Paket 6'daki ölçütlerin hepsini geçti. Build temiz.
