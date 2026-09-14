@@ -480,6 +480,47 @@ export default function Home() {
           Lig sıralaması ve haftalık geri sayım buradan 2. katmana taşındı:
           aynı bilgi sayfanın hem en üstünde hem en altında iki kez duruyordu. */}
 
+      {/* ============ TURNUVA — hero'nun hemen altında, ilk sırada ============
+          Referans tasarım: günün ana olayı "Seni bekleyenler" listesinin
+          içinde değil, hero'dan hemen sonra ayrı kart. Katılım sayısı
+          butondan ayrı satırda ("N kişi lobide"); buton metni sade.
+          tema-turnuva kaldırıldı: butonu mor yapıyordu, referansta turuncu.
+          Canlıyken kart nabız atar (bd-turnuva-vurgu.canli). */}
+      <div className={`bd-turnuva-serit bd-turnuva-vurgu${canliTurnuva ? " canli" : ""}`}>
+        <div className="bd-turnuva-sol">
+          <div className="bd-turnuva-etiket">
+            {sonrakiTurnuvaSeans() === "sabah" ? "SABAH TURNUVASI" : "GECE TURNUVASI"}
+          </div>
+          {canliTurnuva ? (
+            <div className="bd-turnuva-canli">
+              <span className="canli-nokta" />
+              Şu an canlı
+            </div>
+          ) : (
+            <Countdown />
+          )}
+        </div>
+        <div className="bd-turnuva-sag">
+          <div className="bd-turnuva-katilim">
+            <Ikon ad="kisiler" boyut={13} /> {lobiSayisi} kişi lobide
+          </div>
+          {canliTurnuva ? (
+            <button className="btn kucuk" onClick={() => navigate(y("/turnuva"))}>
+              Katıl
+            </button>
+          ) : lobide ? (
+            <button className="btn kucuk ikincil" onClick={() => navigate(y("/turnuva"))}>
+              Lobidesin
+            </button>
+          ) : (
+            <button className="btn kucuk" onClick={lobiyeKatil}>
+              Lobiye katıl
+            </button>
+          )}
+        </div>
+        {mesaj && <div className="hata-kutu" style={{ flexBasis: "100%" }}>{mesaj}</div>}
+      </div>
+
       {/* ============ KATMAN 2 — SENİ BEKLEYENLER ============
           Zaman baskılı işlerin hepsi tek başlık altında toplandı: sıra sende
           olan maçlar, turnuva geri sayımı, ezeli rakip, günlük görevler ve
@@ -525,42 +566,6 @@ export default function Home() {
             </button>
           </div>
         ))}
-
-        {/* Turnuva: yatay bant — sayaç solda, eylem sağda */}
-        {/* tema-turnuva: "Lobiye katıl" / "Katıl" turnuva morunu alsın */}
-        {/* vurgulu: günün iki turnuvası oyunun ana olayı, listede sıradan
-            bir satır gibi durmasın; canlıyken ayrıca nabız atar. */}
-        <div className={`bd-turnuva-serit tema-turnuva bd-turnuva-vurgu${canliTurnuva ? " canli" : ""}`}>
-          <div className="bd-turnuva-sol">
-            <div className="bd-turnuva-etiket">
-              {sonrakiTurnuvaSeans() === "sabah" ? "SABAH TURNUVASI" : "GECE TURNUVASI"}
-            </div>
-            {canliTurnuva ? (
-              <div className="bd-turnuva-canli">
-                <span className="canli-nokta" />
-                Şu an canlı
-              </div>
-            ) : (
-              <Countdown />
-            )}
-          </div>
-          <div className="bd-turnuva-sag">
-            {canliTurnuva ? (
-              <button className="btn kucuk" onClick={() => navigate(y("/turnuva"))}>
-                Katıl
-              </button>
-            ) : lobide ? (
-              <button className="btn kucuk ikincil" onClick={() => navigate(y("/turnuva"))}>
-                Lobidesin ({lobiSayisi})
-              </button>
-            ) : (
-              <button className="btn kucuk" onClick={lobiyeKatil}>
-                Lobiye katıl
-              </button>
-            )}
-          </div>
-          {mesaj && <div className="hata-kutu" style={{ flexBasis: "100%" }}>{mesaj}</div>}
-        </div>
 
         {/* Günlük Görevler — tema-joker: "+N al" butonu joker magentasını alır */}
         {gorevler.length > 0 && (

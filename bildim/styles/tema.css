@@ -5950,3 +5950,47 @@ body.bd-ekle-acik .app { padding-bottom: calc(300px + env(safe-area-inset-bottom
   min-width: 22px; height: 22px; padding: 0 6px;
   display: grid; place-items: center; font-size: 12px;
 }
+
+/* ---- 3) Turnuva kartı — hero'nun altında, referans stil ----
+   Beyaz zemin, 1,5 px altın çerçeve, 16 px köşe, altın alt kalınlık.
+   Etiket: referanstaki #C99A00 10,5 px'te beyazda ~2,5:1 (küçük metin eşiği
+   4,5) → metin için ayrılmış --bd-odul-metin #8A6A00 (5,07:1). */
+.app .anasayfa .bd-turnuva-serit.bd-turnuva-vurgu {
+  display: flex; align-items: center; justify-content: space-between;
+  flex-wrap: wrap; gap: 12px;
+  margin: 0 0 10px; padding: 12px 14px;
+  background: var(--bd-yuzey-1);
+  border: 1.5px solid var(--bd-odul);
+  border-radius: 16px;
+  box-shadow: 0 3px 0 rgba(255, 197, 61, 0.5);
+}
+.app .anasayfa .bd-turnuva-vurgu.canli { animation-name: bd-turnuva-nabiz-ref; }
+@keyframes bd-turnuva-nabiz-ref {
+  0%, 100% { box-shadow: 0 3px 0 rgba(255, 197, 61, 0.5); }
+  50%      { box-shadow: 0 3px 0 rgba(255, 197, 61, 0.5), 0 0 0 4px rgba(255, 197, 61, 0.25); }
+}
+.app .anasayfa .bd-turnuva-sol { flex: 1; min-width: 150px; gap: 6px; }
+.app .anasayfa .bd-turnuva-vurgu .bd-turnuva-etiket {
+  font-size: 10.5px; font-weight: 800; letter-spacing: .6px;
+  color: var(--bd-odul-metin, #8A6A00);
+}
+:root[data-tema="koyu"] .app .anasayfa .bd-turnuva-vurgu .bd-turnuva-etiket { color: var(--bd-odul); }
+.app .anasayfa .bd-turnuva-serit .geri-sayim-rakamlar { display: flex; gap: 6px; margin: 0; }
+.app .anasayfa .bd-turnuva-serit .gs-kutu {
+  width: 46px; min-width: 46px; padding: 5px 0; text-align: center;
+  background: rgba(32, 50, 74, 0.05);
+  border: 1px solid var(--border); border-radius: 9px; box-shadow: none;
+}
+.app .anasayfa .bd-turnuva-serit .gs-kutu .deger { font-size: 16px; font-weight: 800; font-family: var(--bd-f-baslik); }
+.app .anasayfa .bd-turnuva-serit .gs-kutu .etiket { font-size: 8.5px; letter-spacing: 0; color: var(--bd-metin-2); }
+.app .anasayfa .bd-turnuva-sag {
+  display: flex; flex-direction: column; align-items: flex-end; gap: 6px; flex: 0 0 auto;
+}
+.app .anasayfa .bd-turnuva-katilim {
+  display: inline-flex; align-items: center; gap: 4px;
+  font-size: 11px; font-weight: 700; color: var(--bd-metin-2); white-space: nowrap;
+}
+.app .anasayfa .bd-turnuva-sag .btn {
+  font-size: 13px; font-weight: 800; padding: 9px 16px; border-radius: 11px;
+  min-height: 44px;   /* dokunma hedefi */
+}
