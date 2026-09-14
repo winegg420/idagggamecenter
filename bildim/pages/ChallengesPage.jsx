@@ -248,11 +248,17 @@ export default function ChallengesPage() {
     supabase
       .from("profiles")
       // Yalnız AÇIK botlar listelenir; gizli botlar "bot listesi"nde
-      // görünseydi gizli olmazlardı. Sıralama isabete göre değil puana
-      // göre: `bot_isabet` de istemciye kapalı (bkz. migration 155).
-      .select("id, gorunen_ad, gorunen_avatar, puan")
+      // görünseydi gizli olmazlardı.
+      // ZORLUK (Paket 9): açık botun isabeti gizli DEĞİL — bu sayfanın amacı
+      // onu göstermek. Ham `bot_isabet` sütunu istemciye kapalı kalır (gizli
+      // botları ele verir, migration 155); onun yerine yalnız açık botta dolu
+      // olan türetilmiş `acik_bot_isabet` okunur (migration 192). Eskiden hiç
+      // okunmuyordu → botZorluk(undefined) hepsini "Çok zor"a düşürüyordu.
+      .select("id, gorunen_ad, gorunen_avatar, puan, acik_bot_isabet")
       .eq("acik_bot", true)
-      .order("puan", { ascending: true })
+      // Emekli bot (bot_aktif=false) listelenmez: sütunu NULL gelir (migration 193).
+      .not("acik_bot_isabet", "is", null)
+      .order("acik_bot_isabet", { ascending: true })
       .then(({ data }) => setBotlar(data ?? []));
     // Rakip olabilecekler: YALNIZ arkadaşlar (sunucu da bunu zorunlu kılıyor).
     (async () => {
@@ -678,7 +684,7 @@ export default function ChallengesPage() {
             )
         )
         .map((b) => {
-          const z = botZorluk(b.bot_isabet);
+          const z = botZorluk(Number(b.acik_bot_isabet));
           return (
             <div key={b.id} className="liste-satir">
               <Avatar profile={b} />
