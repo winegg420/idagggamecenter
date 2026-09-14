@@ -418,8 +418,9 @@ function Gardrop(){
       <button type="button" className="kart-dokun" aria-pressed={takili}
         aria-label={p.ad+(sende?' tak':' dene')} onClick={()=>sec(p)}>
        <ParcaPortresi gorunum={portreTemeli} parca={p}/>
-       <h3>{p.ad}</h3>
-       <small className={'cip cip-'+cip[0]}>{cip[1]}</small>
+       <h3 title={p.ad}>{p.ad}</h3>
+       {/* Fiyat, "Al" hapının içinde yazar; aynı bilgi iki kez yer kaplamasın. */}
+       {!(cip[0]==='fiyat'&&!sende&&!p.odul)&&<small className={'cip cip-'+cip[0]}>{cip[1]}</small>}
       </button>
       {/* Nadirlik etiketi bedava dönemde de KALIR: oyuncu normalde nasıl
           kazanılacağını görsün. */}
@@ -428,7 +429,7 @@ function Gardrop(){
        {takili&&yv!=='kiyafet'&&<button type="button" aria-label={p.ad+' çıkar'} onClick={()=>setG(a=>parcayiCikar(a,p.yuva))}>Çıkar</button>}
        {!sende&&(bedavaMi||!p.odul)&&<button type="button" className="al" disabled={mesgul}
          aria-label={p.ad+(bedavaMi?' al':' satın al')}
-         onClick={()=>bedavaMi?hemenAl(p):setOnay(p)}>{bedavaMi?'Al':'Satın al'}</button>}
+         onClick={()=>bedavaMi?hemenAl(p):setOnay(p)}>{bedavaMi?'Al':<>{Number(p.fiyat||0).toLocaleString('tr-TR')} <span className="coin" aria-hidden="true">◎</span></>}</button>}
       </div></article>;
     })}
    </div>

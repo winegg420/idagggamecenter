@@ -397,3 +397,34 @@ body:has(.gardrop){background:#EAF7FF;color:#20324A}
   border:5px solid;box-shadow:0 2px 0 rgba(32,50,74,.18);
 }
 .atolye.gardrop .kimlik-ad{font-size:13px}
+
+/* ---- Sıkı eşya ızgarası (Paket 12, madde 1) ----
+   Kartlar küçüldü: telefonda 3 sütun, geniş ekranda 4-5. Kart ≤150 px,
+   görsel ~92 px kare, ad tek satır; "Al" fiyatlı küçük hap. Seçili yeşil
+   çerçeve (article.takili) aynen kalır. */
+.atolye.gardrop .esya-listesi{gap:8px;grid-template-columns:repeat(auto-fill,minmax(118px,150px))}
+.atolye.gardrop .esya-listesi article{gap:2px;padding:5px;border-width:2px;border-radius:14px;box-shadow:0 3px 0 var(--g-kart-alt)}
+.atolye.gardrop .esya-listesi .esya-gorsel{min-height:0;height:88px;aspect-ratio:auto;border-radius:10px}
+.atolye.gardrop .esya-listesi h3{
+  margin:2px 1px 1px;font-size:12px;line-height:1.2;font-weight:800;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.atolye.gardrop .esya-listesi .cip{margin:0;padding:1px 7px;font-size:11px}
+.atolye.gardrop .esya-listesi .esya-yok{font-size:22px}
+.atolye.gardrop .esya-listesi .odul-rozet{top:8px;right:8px;padding:2px 6px;font-size:10px}
+.atolye.gardrop .esya-listesi .esya-eylem{gap:4px;flex-wrap:nowrap}
+/* Dokunma hedefi: görünen hap 30 px, ::after ile 44 px'e genişler. */
+.atolye.gardrop .esya-listesi .esya-eylem button{
+  position:relative;flex:1 1 0;min-width:0;min-height:28px;padding:0 6px;
+  border-radius:999px;font:800 12px/1 var(--g-govde);box-shadow:0 2px 0 var(--g-kart-alt);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.atolye.gardrop .esya-listesi .esya-eylem button::after{content:"";position:absolute;inset:-7px 0}
+.atolye.gardrop .esya-listesi .esya-eylem button.al{font-size:12px;box-shadow:0 2px 0 var(--g-vurgu-kalin)}
+.atolye.gardrop .esya-listesi .esya-eylem button:active:not(:disabled){transform:translateY(2px);box-shadow:none}
+@media (max-width:760px){
+  .atolye.gardrop .esya-listesi{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .atolye.gardrop .yuva-bolum{margin-bottom:16px}
+  .atolye.gardrop .yuva-bolum h2{margin-bottom:6px;font-size:17px}
+}
+.atolye.gardrop .esya-listesi button.al .coin{color:inherit}
