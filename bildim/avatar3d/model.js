@@ -11,12 +11,15 @@ export const VARSAYILAN = { ten: '#c58b62', sac: 'kisa', sacRenk: '#30211c',
 // ---- yuva değer listeleri — TEK YER ----
 // ayarDogrula, katalog ve kart görselleri hepsi buna bakar.
 export const YUVA_DEGERLERI = {
-  sac:      ['yok', 'kisa', 'uzun', 'rasta'],
+  // Paket 9: topuz, at kuyruğu, örgü, uzun dalgalı.
+  sac:      ['yok', 'kisa', 'uzun', 'rasta', 'topuz', 'atkuyruk', 'orgu', 'dalgali'],
   bas:      ['yok', 'kep', 'bere', 'tac', 'duvak', 'boynuz'],
   // Paket 7: renkli/desenli üstler + iki kostüm (şeytan, damatlık).
   kiyafet:  ['ceket', 'tisort', 'gelinlik', 'atlet', 'gomlek',
              'havai', 'cizgili', 'oduncu', 'polo', 'kapusonlu', 'kot',
-             'tisort_mavi', 'tisort_sari', 'seytan', 'damatlik'],
+             'tisort_mavi', 'tisort_sari', 'seytan', 'damatlik',
+             // Paket 9: askılı bluz, straplez, göbeği açık (crop).
+             'askili', 'straplez', 'crop'],
   // GÖZLÜK ve PELERİN ESKİDEN BOOLEAN'DI (`g.gozluk === true`). Çeşit
   // desteklemek için metne çevrildi; eski `true` değeri ayarDogrula'da
   // 'gunes' / 'klasik' karşılığına taşınır — kayıtlı görünümler bozulmaz.
@@ -24,7 +27,7 @@ export const YUVA_DEGERLERI = {
   pelerin:  ['yok', 'klasik', 'kisa'],
   sakal:    ['yok', 'tam', 'keci', 'biyik', 'favori'],
   ayakkabi: ['spor', 'terlik', 'bot', 'sandalet', 'tokyo', 'topuklu'],
-  alt:      ['pantolon', 'sort', 'kapri'],
+  alt:      ['pantolon', 'sort', 'kapri', 'etek'],
   // Takılar üç AYRI yuva: kolye, saat ve küpe aynı anda takılabilsin.
   kolye:    ['yok', 'altin', 'gumus'],
   saat:     ['yok', 'altin', 'gumus'],
@@ -48,6 +51,10 @@ const YENI_USTLER = {
   tisort_sari: { renk: '#f2c230', kol: 'kisa', bicim: 'tisort' },
   seytan:      { renk: '#c0262d', kol: 'uzun', bicim: 'tisort', bacak: '#c0262d' },
   damatlik:    { renk: '#f7f5f0', kol: 'uzun', bicim: 'gomlek', bacak: '#1b1d24', kolRenk: '#1b1d24' },
+  // Paket 9 — kol: 'yok' = kolsuz (omuz açık). bicim gövde kabuğunu seçer.
+  askili:      { renk: '#e0527a', kol: 'yok',  bicim: 'askili' },
+  straplez:    { renk: '#1f2a44', kol: 'yok',  bicim: 'straplez' },
+  crop:        { renk: '#f08c3a', kol: 'kisa', bicim: 'crop' },
 };
 
 // ---- DESENLİ KUMAŞ DOKULARI ----
@@ -236,7 +243,14 @@ export function modelKur(girdi = VARSAYILAN) {
   const kostumBacakMal = ust?.bacak ? mal(ust.bacak, ust.bacak === '#1b1d24' ? .55 : .6) : null;
   const ustDetayMal = ust ? mal(ton(ust.kolRenk || ust.renk, ayar.kiyafet === 'cizgili' ? .35 : .7)) : null;
   const gomlekBicimi = ayar.kiyafet === 'gomlek' || ust?.bicim === 'gomlek';
-  const ustProfil = ayar.kiyafet === 'atlet'
+  // Paket 9: straplez/askılı gövdesi göğüs hizasında biter (omuz açık),
+  // crop göbek üstünde biter. Açık kalan yeri aşağıda ten kabuğu doldurur.
+  const acikOmuz = ust?.bicim === 'straplez' || ust?.bicim === 'askili';
+  const ustProfil = acikOmuz
+    ? [[.34,-.56],[.39,-.4],[.42,.1],[.41,.3],[.39,.34]]
+    : ust?.bicim === 'crop'
+      ? [[.4,-.22],[.43,.2],[.43,.43],[.2,.6]]
+      : ayar.kiyafet === 'atlet'
     ? [[.33,-.56],[.38,-.4],[.40,.2],[.36,.33],[.14,.4]]
     : gomlekBicimi
       ? [[.37,-.6],[.42,-.4],[.45,.2],[.45,.46],[.21,.6]]
@@ -245,6 +259,22 @@ export function modelKur(girdi = VARSAYILAN) {
         : [[.35,-.56],[.4,-.4],[.43,.2],[.43,.43],[.2,.6]];
   const ustGiyim = ekle(govde,govdeGeo(ustProfil),ustMal,[0,0,0],[1,1,1],'Tisort');
   if (ust) kiyafetParcalari.push(ustGiyim);
+  if (acikOmuz) {
+    // Omuz ve göğüs üstü ten; kumaşın üst kenarında ince bant.
+    ekle(govde, govdeGeo([[.39,.33],[.40,.42],[.34,.52],[.18,.62]]), ten, [0,0,0], [1,1,1], 'AcikOmuz');
+    const bant = ekle(govde, new T.TorusGeometry(.395, .02, 8, 40), mal(ton(ust.renk, .7)), [0,.335,0], [1,.62,1], 'UstBant');
+    bant.rotation.x = Math.PI / 2; kiyafetParcalari.push(bant);
+    if (ust.bicim === 'askili') {
+      // İnce askılar: göğüsten omuz üstüne, sırta iner.
+      for (const s of [-1, 1]) {
+        kiyafetParcalari.push(ekle(govde, cizgiGeo([[s*.2,.33,.24],[s*.24,.5,.17],[s*.25,.56,-.02],[s*.2,.42,-.22]], .018), ustMal, [0,0,0], [1,1,1], 'Aski'));
+      }
+    }
+  } else if (ust?.bicim === 'crop') {
+    // Göbek açık: kısa kumaşın altı ten, küçük göbek çukuru.
+    ekle(govde, govdeGeo([[.35,-.56],[.39,-.4],[.405,-.2]]), ten, [0,0,0], [1,1,1], 'AcikGobek');
+    kure(govde, icTen, [0,-.38,.252], [.018,.026,.01], 'Gobek');
+  }
   if (ayar.kiyafet === 'gomlek') {
     // Ön dikiş + iki düğme: gömleği tişörtten ayıran en ucuz iki detay.
     ekle(govde,cizgiGeo([[0,-.5,.28],[0,.1,.29],[0,.42,.24]],.012),dikisMal,[0,0,0],[1,1,1],'GomlekOnDikis');
@@ -324,8 +354,9 @@ export function modelKur(girdi = VARSAYILAN) {
       }
       kiyafetParcalari.push(kure(govde, saten, [0,.56,.2], [.032,.032,.03], 'PapyonDugum'));
       yakaHalkasi(.2, .03, .6, beyaz, 'GomlekYaka');
-    } else {
-      // Tişört ailesi (çizgili, mavi, sarı): koyu ton yaka ribanası.
+    } else if (ust.kol !== 'yok') {
+      // Tişört ailesi (çizgili, mavi, sarı, crop): koyu ton yaka ribanası.
+      // Kolsuz (askılı/straplez) üstte yaka yok: boyun açık, halka havada kalırdı.
       yakaHalkasi(.2, .03, .585, ustDetayMal, 'TisortYaka');
     }
     if (ust.bacak) {
@@ -363,7 +394,8 @@ export function modelKur(girdi = VARSAYILAN) {
     // hangi yuvaya ait olduğu ayrıldı.
     kapsul(bac, ten, .186, .29, [0,-.24,0], 'UstBacak');
     kapsul(diz, ten, .152, .32, [0,-.24,0], 'AltBacak');
-    altParcalari.push(kapsul(bac, altMal, .196, .29, [0,-.24,0], 'AltUst'));
+    // Etekte bacak başına kabuk yok: etek belde tek parça (aşağıda).
+    if (ayar.alt !== 'etek') altParcalari.push(kapsul(bac, altMal, .196, .29, [0,-.24,0], 'AltUst'));
     if (ayar.alt === 'pantolon') {
       altParcalari.push(kapsul(diz, altMal, .162, .32, [0,-.24,0], 'AltPaca'));
     } else if (ayar.alt === 'kapri') {
@@ -434,7 +466,9 @@ export function modelKur(girdi = VARSAYILAN) {
     if (ust) {
       if (ust.kol === 'kisa') {
         kiyafetParcalari.push(kapsul(kol, ustKolMal, .166, .12, [0,-.13,0], 'KisaKol'));
-      } else {
+      } else if (ust.kol === 'uzun') {
+        // Paket 9: eskiden kısa olmayan her üst uzun kol alıyordu; kolsuz
+        // (askılı/straplez) üstlerde kol kabuğu çizilmez, kol teni görünür.
         kiyafetParcalari.push(kapsul(kol, ustKolMal, .168, .36, [0,-.26,0], 'UzunUstKol'));
         kiyafetParcalari.push(kapsul(dirsek, ustKolMal, .143, .22, [0,-.2,0], 'UzunAltKol'));
         kiyafetParcalari.push(kure(dirsek, ustKolMal, [0,0,0], [.146,.15,.146], 'UzunKolDirsek'));
@@ -479,6 +513,20 @@ export function modelKur(girdi = VARSAYILAN) {
   ceketParcalari.push(kure(govde,metal,[.058,-.37,.313],[.021,.045,.014],'FermuarTutamaci'));
   for(const p of ceketParcalari) p.visible=ayar.ceket;
 
+  // ---- ETEK (Paket 9) — `alt` yuvası, bel kemiğinde tek parça ----
+  // Bel kemiği yürürken dönmediği için etek sabit durur; bacaklar içinde
+  // salınır. Kumaş iki yüzlü: aşağıdan bakınca iç yüzü boş görünmesin.
+  if (ayar.alt === 'etek') {
+    const etekMal = mal(ayar.altRenk, .7); etekMal.side = T.DoubleSide;
+    const etekProfil = [[.36,.12],[.42,-.02],[.47,-.22],[.51,-.4],[.52,-.45]].map(p => new T.Vector2(...p));
+    const etekGovde = new T.LatheGeometry(etekProfil, 40); etekGovde.scale(1, 1, .72);
+    altParcalari.push(ekle(bel, etekGovde, etekMal, [0,0,0], [1,1,1], 'Etek'));
+    const etekKenari = ekle(bel, new T.TorusGeometry(.52, .018, 6, 48), mal(ton(ayar.altRenk, .7)), [0,-.45,0], [1,.72,1], 'EtekKenari');
+    etekKenari.rotation.x = Math.PI / 2; altParcalari.push(etekKenari);
+    const etekBeli = ekle(bel, new T.TorusGeometry(.37, .026, 6, 40), mal(ton(ayar.altRenk, .7)), [0,.11,0], [1,.72,1], 'EtekBeli');
+    etekBeli.rotation.x = Math.PI / 2; altParcalari.push(etekBeli);
+  }
+
   // Gelinlik bütün kimliklerde aynı bel yuvasına oturur. Etek yürüyüş
   // salınımına yer bırakır; bacaklar içeride kalır, ayakkabılar görünür.
   const elbiseYuva=new T.Group();elbiseYuva.name='ElbiseYuvasi';bel.add(elbiseYuva);elbiseYuva.visible=ayar.kiyafet==='gelinlik';
@@ -516,6 +564,56 @@ export function modelKur(girdi = VARSAYILAN) {
         ekle(sacYuva,new T.TubeGeometry(yol,12,ayar.sac==='rasta'?.055:.09,8,false),sac,[0,0,0],[1,1,1],'SacTutami');
         if(ayar.sac==='rasta' && i%4===0) kure(sacYuva,metal,[x*1.07,-.43,z*1.13],[.06,.05,.06],'SacBoncugu');
       }
+    }
+    // ---- YENİ SAÇ STİLLERİ (Paket 9) ----
+    // Topuz ÜST saça bağlı (kep/bere altında gizlenir); arkaya sarkan at
+    // kuyruğu, örgü ve dalgalı tutamlar uzun saç gibi sacYuva'da kalır.
+    const lastik = mal('#2b2b33', .5);
+    if (ayar.sac === 'dalgali') {
+      for (let i = 0; i < 12; i++) {
+        const a = .9 + i / 11 * (Math.PI * 2 - 1.8), x = Math.sin(a) * .48, z = Math.cos(a) * .43;
+        const nokta = [];
+        for (let j = 0; j <= 6; j++) {
+          const t = j / 6, acil = .87 + .26 * Math.min(1, t * 3), dalga = Math.sin(t * Math.PI * 3 + i) * .045;
+          nokta.push(new T.Vector3(x * acil + dalga * Math.cos(a), .5 - 1.12 * t, z * acil - dalga * Math.sin(a)));
+        }
+        ekle(sacYuva, new T.TubeGeometry(new T.CatmullRomCurve3(nokta), 24, .085, 8, false), sac, [0,0,0], [1,1,1], 'DalgaliTutam');
+      }
+    } else if (ayar.sac === 'topuz') {
+      // Başın ÜSTÜNDE: önden bakınca (portre, kart) kısa saçtan ayırt edilsin.
+      // İlk denemede ense hizasındaydı ve önden hiç görünmüyordu (görsel kontrol).
+      kure(ustSac, sac, [0,.9,-.22], [.2,.18,.2], 'Topuz');
+      const l = ekle(ustSac, new T.TorusGeometry(.12, .026, 8, 24), lastik, [0,.8,-.2], [1,1,1], 'TopuzLastik');
+      l.rotation.x = -.5;
+    } else if (ayar.sac === 'atkuyruk') {
+      // YANDAN AT KUYRUĞU: arkada sağda, kulak hizasının altında bağlanır ve
+      // sağ omzun önüne iner — önden görünür, sol omuzdaki örgüden ayrılır.
+      // (İki denemede ense arkasında / tepede kaldı; öndeki tutamların
+      // arkasında kısa saçtan ayırt edilemiyordu — görsel kontrol.)
+      const l = ekle(sacYuva, new T.TorusGeometry(.075, .026, 8, 20), lastik, [.25,.05,-.45], [1,1,1], 'AtkuyrukLastik');
+      l.rotation.y = .9;
+      const yol = new T.CatmullRomCurve3([new T.Vector3(.25,.05,-.47), new T.Vector3(.4,-.1,-.4), new T.Vector3(.5,-.35,-.15), new T.Vector3(.46,-.7,.2)]);
+      const geo = new T.TubeGeometry(yol, 20, .1, 10, false), p = geo.attributes.position;
+      // Uca doğru incelir (tutam kodundaki yöntem).
+      for (let j = 0; j <= 20; j++) {
+        const merkez = yol.getPointAt(j / 20), r = 1 - .55 * (j / 20);
+        for (let k = 0; k <= 10; k++) {
+          const n = j * 11 + k;
+          const v = new T.Vector3().fromBufferAttribute(p, n).sub(merkez);
+          v.multiplyScalar(r).add(merkez); p.setXYZ(n, v.x, v.y, v.z);
+        }
+      }
+      geo.computeVertexNormals();
+      ekle(sacYuva, geo, sac, [0,0,0], [1,1,1], 'Atkuyrugu');
+    } else if (ayar.sac === 'orgu') {
+      // YAN ÖRGÜ: sol şakaktan omzun önüne sarkar — önden görünür. (İlk
+      // denemede ense arkasındaydı, kartta kısa saçtan farkı yoktu.)
+      for (let i = 0; i < 10; i++) {
+        const t = i / 9;
+        kure(sacYuva, sac, [-.44 + .08 * t + (i % 2 ? .025 : -.025), .15 - .8 * t, .1 + .22 * t], [.08 - i * .003, .065, .075], 'OrguHalka');
+      }
+      const l = ekle(sacYuva, new T.TorusGeometry(.045, .018, 8, 18), lastik, [-.35,-.72,.33], [1,1,1], 'OrguLastik');
+      l.rotation.x = Math.PI / 2;
     }
   }
   const basYuva=new T.Group();basYuva.name='BasYuvasi';kafa.add(basYuva);

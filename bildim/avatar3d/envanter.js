@@ -5,6 +5,11 @@ export const PARCALAR = [
   ['sac_kisa','Kısa saç','sac','kisa','k2_hair_kisa'],
   ['sac_uzun','Uzun saç','sac','uzun',null],
   ['sac_rasta','Rasta saç','sac','rasta','k2_hair_rasta'],
+  // Paket 9: yeni saç stilleri
+  ['sac_topuz','Topuz','sac','topuz',null],
+  ['sac_atkuyruk','At kuyruğu','sac','atkuyruk',null],
+  ['sac_orgu','Örgü','sac','orgu',null],
+  ['sac_dalgali','Uzun dalgalı','sac','dalgali',null],
   ['ust_tisort','Tişört','kiyafet','tisort','k2_top_tisort'],
   ['ust_ceket','Ceket','kiyafet','ceket','k2_top_ceket'],
   ['ust_gelinlik','Gelinlik','kiyafet','gelinlik',null],
@@ -33,6 +38,7 @@ export const PARCALAR = [
   ['alt_pantolon','Pantolon','alt','pantolon',null],
   ['alt_sort','Şort','alt','sort',null],
   ['alt_kapri','Kapri','alt','kapri',null],
+  ['alt_etek','Etek','alt','etek',null],
   // ---- Paket 7: yeni üstler, kostümler, ayakkabılar, takılar ----
   ['ust_havai','Havai gömleği','kiyafet','havai',null],
   ['ust_cizgili','Çizgili tişört','kiyafet','cizgili',null],
@@ -44,6 +50,10 @@ export const PARCALAR = [
   ['ust_tisort_sari','Sarı tişört','kiyafet','tisort_sari',null],
   ['ust_seytan','Şeytan kostümü','kiyafet','seytan',null],
   ['ust_damatlik','Damatlık','kiyafet','damatlik',null],
+  // Paket 9: kolsuz / göbeği açık üstler
+  ['ust_askili','Askılı bluz','kiyafet','askili',null],
+  ['ust_straplez','Straplez','kiyafet','straplez',null],
+  ['ust_crop','Crop tişört','kiyafet','crop',null],
   ['bas_boynuz','Şeytan boynuzu','bas','boynuz',null],
   ['ayak_tokyo','Tokyo terlik','ayakkabi','tokyo',null],
   ['ayak_topuklu','Topuklu ayakkabı','ayakkabi','topuklu',null],
