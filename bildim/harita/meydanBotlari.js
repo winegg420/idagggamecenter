@@ -645,6 +645,9 @@ export function ziyaretHedefiSec(pencere, oyuncuIdleri) {
 export function ziyaretUygunMu(k, hedef) {
   if (!k || k.bitti || !hedef || k.koprude) return false;
   if (!Number.isFinite(hedef.x) || !Number.isFinite(hedef.z)) return false;
+  // Hedef köprüdeyse (göl alanının içinde) ulaşılamaz: bot kıyıda takılıp
+  // 9 sn "peşinden gitmeye" çalışıyor, o arada balık bacağı geçiyordu (canlıda ölçüldü).
+  if (Math.hypot(hedef.x, hedef.z) < HAVUZ.r + 1.5) return false;
   if (Math.hypot(hedef.x, hedef.z) > ZIYARET_MENZIL) return false;
   return Math.hypot(hedef.x - k.x, hedef.z - k.z) <= ZIYARET_ULASIM;
 }
