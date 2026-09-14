@@ -4763,3 +4763,29 @@ Etek'e özel bir ikon deseni yoktu; tüm satırlar zaten aynı EsyaOnizleme'yi k
 ### Regresyon
 Ayarlar'daki "Varsayılan kategorim" kodu değişmedi; Dükkân Joker/Coin sekmeleri aynı;
 Hemen oyna akışı ve kategori parametresi ağda doğrulandı. Build temiz.
+
+## 14 Eylül 2026 (12) — Ana Sayfa referans tasarıma uyarlama (Claude outputs/ANASAYFA_REFERANS.html)
+
+Commit'ler: `e627ff2` (1 buton) · `9ad1130` (2 mod ızgarası) · `300a06b` (3 turnuva) ·
+`2913e23` (3 ek) · `007e386` (4 genişlik) · `9372341` (5 hero). Tek oturum, alt ajansız.
+Yöntem: tema.css katmanlı; eski kurallar silinmedi, her madde için sona `.app .anasayfa`
+kapsamlı hedef blok eklendi (yalnız Ana Sayfa etkilenir).
+
+**390 px canlı ölçüm (iframe):** Hemen oyna #FFC53D / yazı #1b1206 / gölge 0 5px 0 #C99A00 /
+54 px · hero köşe 24, padding 20/14/14, parlaklık görünür · puan 48 px + 0 4px 20px parıltı ·
+hero'dan hemen sonra turnuva kartı (1,5 px altın), "18 kişi lobide" ayrı satır, buton "Lobidesin"
+(beyaz, gradyansız, gri kalınlık) · 5 mod kartı 96 px, açıklama gizli (title'da), Hatalarım
+rozeti var · yatay taşma 0. Yan yana görüntü: scratchpad/anasayfa-yanyana-390.png.
+**Masaüstü:** `.app` 620 px, mod kartları 96 px, taşma 0. Lig, Profil, Dükkân, Arkadaşlar,
+Meydan Okuma 620 px'te açıldı: hepsinde taşma 0, düzen bozulmadı (ekran görüntüleri alındı).
+**Regresyon:** kategori sayfası açılıyor/Esc kapatıyor; Hemen oyna → arama → Vazgeç; görevler ve
+haftalık sayaç yerinde; "Seni bekleyenler" ve "Başka nasıl oynanır" başlıkları duruyor.
+
+**Referanstan bilinçli sapmalar (WCAG AA — CLAUDE.md):** puan sayısı dolgusu açık temada
+`--bd-odul-metin` #8A6A00 (referans #FFC53D beyazda ~1,6:1); "GECE TURNUVASI" 10,5 px etiketi
+aynı ton (referans #C99A00 ~2,5:1, küçük metin 4,5 ister). Boyut/gölge referansla aynı.
+**Ölçülüp düzeltilen:** "Lobidesin" ikincil sınıfı doğruydu ama başka .btn kuralının turuncu
+gradyan GÖRSELİ üstte kalıyordu → sıfırlandı; sayaç kutuları ortadaydı → sola.
+**Kapsam dışı bırakılan (maddelerde yok, fark sürüyor):** referansta haftalık lig sayacı hero'nun
+içinde (canlıda "Seni bekleyenler" altında); canlıda hero içinde ayrı "N günlük seri" kartı var;
+kategori kartında referans turuncu ızgara ikonu, canlı seçili kategorinin rozeti.
