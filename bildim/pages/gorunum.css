@@ -388,3 +388,11 @@
 @media (prefers-reduced-motion: reduce) {
   .bd-gardrop-grup > summary::after { transition: none; }
 }
+/* `.app a` (0,1,1) kartın rengini/alt çizgisini eziyordu: ad turuncu ve
+   altı çizili görünüyordu. Kart bağlantı gibi değil kart gibi görünsün;
+   beyaz kart zemininde kenarıyla ayrılsın. */
+.app .bd-gardrop-izgara .bd-gardrop-satir {
+  color: var(--bd-metin); text-decoration: none;
+  box-shadow: inset 0 0 0 2px var(--bd-kenar, #D6E6F2);
+}
+.app .bd-gardrop-izgara .bd-gardrop-satir.sende { box-shadow: inset 0 0 0 2px var(--bd-basari, #2FBF71); }
