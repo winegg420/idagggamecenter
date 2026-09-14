@@ -7,6 +7,7 @@ import Countdown from "../components/Countdown.jsx";
 import Avatar from "../../src/components/Avatar.jsx";
 import AvatarCerceve from "../components/AvatarCerceve.jsx";
 import { TurnuvaSaatEtiketi, BugunKalanTurnuvalar } from "../components/TurnuvaSaatleri.jsx";
+import { siradakiLobi } from "../lib/zaman.js";
 import { rutbeBul, sonrakiRutbe } from "../lib/ranks.js";
 import { bayrak, haftaBitisi, sureMetni } from "../lib/konum.js";
 import RakipAra from "../components/RakipAra.jsx";
@@ -220,11 +221,14 @@ export default function Home() {
       // turnuva şeridi sessizce boş kalır ve nedeni hiçbir yere düşmez.
       let tlar = null;
       try {
+        // Günde 7 turnuva (Paket 12, madde 7): "son 2 satır" artık bitmiş
+        // turnuvalardan oluşabiliyor; yalnız açık olanlar çekilir ve lobi
+        // olarak EN ERKEN başlayacak olan seçilir.
         const { data, error } = await supabase
           .from("tournaments")
-          .select("id, durum, tarih")
-          .order("tarih", { ascending: false })
-          .limit(2);
+          .select("id, durum, tarih, seans")
+          .in("durum", ["aktif", "lobi"])
+          .limit(20);
         if (error) throw error;
         tlar = data;
       } catch (e) {
@@ -234,7 +238,7 @@ export default function Home() {
       const aktif = (tlar ?? []).find((t) => t.durum === "aktif");
       setCanliTurnuva(Boolean(aktif));
 
-      const lobi = (tlar ?? []).find((t) => t.durum === "lobi");
+      const lobi = siradakiLobi(tlar);
       if (lobi) {
         try {
           const { data: oyuncular, count, error } = await supabase

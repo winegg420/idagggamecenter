@@ -22,6 +22,8 @@ export default function TurnuvaTanitim() {
           .select("id, tarih, seans, durum, kazanan")
           .eq("durum", "bitti")
           .order("tarih", { ascending: false })
+          // Aynı gün birden çok turnuva biter (günde 7): en son biten.
+          .order("bitis", { ascending: false, nullsFirst: false })
           .limit(1);
         if (error) throw error;
         const t = (tlar ?? [])[0];

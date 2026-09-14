@@ -8,6 +8,7 @@ import { supabase } from "../../src/lib/supabase.js";
 import { useAuth } from "../../src/context/AuthContext.jsx";
 import Countdown from "../components/Countdown.jsx";
 import { BugunKalanTurnuvalar } from "../components/TurnuvaSaatleri.jsx";
+import { siradakiLobi } from "../lib/zaman.js";
 import YanlisSatiri from "../components/YanlisSatiri.jsx";
 import MeydanaDonus from "../components/MeydanaDonus.jsx";
 import QuestionCard from "../components/QuestionCard.jsx";
@@ -57,13 +58,27 @@ export default function TournamentPage() {
     // hiçbir yere düşmez; kullanıcıya da gösterilecek bir mesaj kalmaz.
     let data = null;
     try {
+      // Günde 7 turnuva (Paket 12, madde 7): önce açık turnuvalar; yoksa
+      // son biten. "Son 3 satır" bitmiş turnuvalarla dolup lobiyi
+      // gizleyebiliyordu; aynı gün iki lobide de en erken başlayan seçilir.
       const sonuc = await supabase
         .from("tournaments")
         .select("*")
-        .order("tarih", { ascending: false })
-        .limit(3);
+        .in("durum", ["aktif", "lobi"])
+        .limit(20);
       if (sonuc.error) throw sonuc.error;
-      data = sonuc.data;
+      data = sonuc.data ?? [];
+      if (!data.length) {
+        const biten = await supabase
+          .from("tournaments")
+          .select("*")
+          .in("durum", ["bitti", "iptal"])
+          .order("tarih", { ascending: false })
+          .order("bitis", { ascending: false, nullsFirst: false })
+          .limit(1);
+        if (biten.error) throw biten.error;
+        data = biten.data;
+      }
     } catch (e) {
       console.error("[Bildim] turnuvalar alınamadı:", e);
       setHata(hataMesaji(e, "Turnuva bilgisi alınamadı."));
@@ -71,7 +86,7 @@ export default function TournamentPage() {
     const liste = data ?? [];
     const secilen =
       liste.find((t) => t.durum === "aktif") ??
-      liste.find((t) => t.durum === "lobi") ??
+      siradakiLobi(liste) ??
       liste[0] ??
       null;
     setTurnuva(secilen);

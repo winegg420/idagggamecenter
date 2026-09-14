@@ -69,6 +69,33 @@ export function sonrakiTurnuvaSaati() {
   return sonrakiTurnuva().saat;
 }
 
+/**
+ * Turnuva satırının başlangıç anı (UTC ms): `tarih` TSİ günü ("2026-09-14")
+ * + `seans` ("20:00"; geçiş öncesi satırlarda "sabah"/"aksam").
+ */
+export function turnuvaAniMs(tarih, seans) {
+  const [yil, ay, gun] = String(tarih ?? "").slice(0, 10).split("-").map(Number);
+  if (!yil || !ay || !gun) return Infinity;
+  let dk = dakikaCoz(seans);
+  if (dk === null) {
+    const eski = saatler[seans];
+    if (!eski) return Infinity;
+    dk = ((eski[0] + 3) % 24) * 60 + eski[1];
+  }
+  return Date.UTC(yil, ay - 1, gun) - TSI_MS + dk * 60000;
+}
+
+/**
+ * Açık lobilerden EN ERKEN başlayacak olanı. Günde 7 turnuvada aynı gün
+ * iki lobi bulunabilir (ör. geçişte taşınan 22:00 + yeni 20:00); "ilk
+ * bulunan lobi" yanlış lobinin oyuncu sayısını gösteriyordu.
+ */
+export function siradakiLobi(liste) {
+  return (liste ?? [])
+    .filter((t) => t?.durum === "lobi")
+    .sort((p, q) => turnuvaAniMs(p.tarih, p.seans) - turnuvaAniMs(q.tarih, q.seans))[0] ?? null;
+}
+
 /** Bugün (TSİ) henüz başlamamış turnuvaların saatleri. */
 export function bugunKalanTurnuvalar(simdi = new Date()) {
   const ms = simdi.getTime();
