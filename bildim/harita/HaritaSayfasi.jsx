@@ -408,7 +408,7 @@ export default function HaritaSayfasi() {
       ben.rotation.y = donus.aci ?? 0;
       donusTemizle();
     } else {
-      ben.position.set(0, 0, 18);   // Paket 13: göl 14, bank halkası 20 — arası
+      ben.position.set(0, 0, 16.5);   // Paket 13: göl kıyısı 14,5 ile (0,20) bankı arası
     }
 
     kontrol = kontrolKur(padRef.current, topuzRef.current);
@@ -545,7 +545,7 @@ export default function HaritaSayfasi() {
     // Paket 12, madde 2: giriş/çıkış bina kapısı DEĞİL — oyuncunun doğduğu
     // yöne yakın dış kenar (binaların arası). Bina kapısı yedek olarak kalır.
     // Paket 13: tüm dış kenar (her 2°'lik engelsiz nokta) — bot hep aynı yerden gelmesin.
-    const kenarKapilar = kenarKapilariHesapla(dunya.engeller, { x: 0, z: 18 }, Infinity);
+    const kenarKapilar = kenarKapilariHesapla(dunya.engeller, { x: 0, z: 16.5 }, Infinity);
     const kapilar = kenarKapilar.length ? kenarKapilar : kapilariHesapla(dunya.binalar, dunya.engeller);
     // Görünür botların TABAN planları (bir kez kurulur): id -> { id, tohum,
     // plan, ziyaretler, basSira, sira }. Buluşmalar bunların üstüne eklenir.

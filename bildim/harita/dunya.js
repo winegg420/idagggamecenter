@@ -354,11 +354,11 @@ export function dunyaKur(kapsayici, s = {}) {
     g.position.set(x, 0, z); sahne.add(g);
     engeller.push({ x, z, r: 0.6 });
   }
-  // Paket 13: iç halka bank 12,5 → 20 (açı 0'dan: oyuncu doğuş noktası 90°'de
-  // boş kalsın), lamba 15,6 → 24. Büyüyen dış alan için ikinci halka bank
+  // Paket 13: iç halka bank 12,5 → 20 (30°'den başlar: 0°/180° köprü uçlarının
+  // önü — ölçüldü, bank girişi kapatıyordu), lamba 15,6 → 24. Büyüyen dış alan için ikinci halka bank
   // (36), lamba (37) ve çiçek tarhı (28) — hepsi bina/ağaç açılarından uzak.
   for (let b = 0; b < 6; b++) {
-    const ba = (b / 6) * Math.PI * 2;
+    const ba = (b / 6) * Math.PI * 2 + Math.PI / 6;
     bank(Math.cos(ba) * 20, Math.sin(ba) * 20, -ba + Math.PI / 2);
   }
   for (let b = 0; b < 6; b++) {
