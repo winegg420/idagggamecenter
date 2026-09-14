@@ -4989,3 +4989,51 @@ Nöbet süresi (80-150 sn) yeter: kenardan halkaya yürüyüş 5,3-5,9 sn.
   başka hesap şifresi yok — uzak oyuncu yüksekliği yukarıdaki alıcı formülü testiyle doğrulandı.
 - Otomasyon sekmesinde ilk açılışta bir kez "Meydan açılamadı" görüldü (RAF durdurulmuş sekmede
   ilk kare 8 sn'ye yetişmedi); "Tekrar dene" ile açıldı. RAF durdurulmadan yeniden ölçüldü: 7 sn'de açık, hata yok — otomasyon kaynaklı.
+
+## 14 Eylül 2026 (17) — Revizyon Paketi 13, AŞAMA 2: balıkçı, olta, balık tutma
+
+Commit'ler: `12a0dcf` (migration 199 sunucu) · `f1308db` (NPC/olta/balık görseli) · `e129b61` (bot balık bacağı).
+Aşama 1 canlıda doğrulandıktan sonra başlandı; ayrı push edildi.
+
+### Sunucu (migration 199, uygulandı)
+- `oyun_ayarlari`: olta_fiyat 5, olta_sure_dk 60, balik_gunluk_tavan 20, balik_capalar [60,180,420,840,1680],
+  balik_sapma_yuzde 15, balik_sonraki_min_dk 9, balik_sonraki_max_dk 21, meydan_bot_balik_yuzde 35.
+- `oltalar` (user_id pk, alinma_at, bitis_at, tohum, basla_at, sonraki_an, yakalama) — RLS açık, politika yok:
+  istemci tabloya dokunamaz.
+- `olta_al()` → coin_harca(fiyat,'olta'); `olta_birak()`; `olta_durumum()` (bitis, bugün, tavan, fiyat, sunucu saati);
+  `balik_yakala()` → 'olta_yok' | 'bos' | 'yakalandi' | 'tavan'. Takvim `balik_sonraki_an`: ilk atıştan (basla_at)
+  çapalar ×(1±%15, bot_rasgele(tohum)) ; çapalar bitince önceki yakalamadan 9-21 dk. Tohum gen_random_uuid,
+  istemciye verilmez. Tavan: coin_hareketleri tur='balik' bugün (TSİ) toplamı + coin_gunluk_kalan (400).
+  hiz_siniri 40/dk. Botlar RPC çağırmaz; coin_ekle bota yazmaz.
+- **Deneme koşusu (rollback):** oltasız → olta_yok; olta al 365→360; ilk çekiş bos, ilk coin 57. sn; erken bos;
+  an gelince yakalandi (+1) ve sonraki 181. sn; takvim serisi 68/189/364/873/1870 sn, sonra 993/847/563 sn
+  aralık; tavan 2 → iki yakalama sonra 'tavan'; bırakınca olta_yok.
+
+### İstemci
+- Balıkçı NPC köprü ortasında (0, 3, 1,05), suya sırtı dönük; dekor (presence yok, kişi sayısına girmez,
+  engel değil — engel yapılınca bot planlarında sıçrama ölçüldü). Dokununca kutu: "Olta — 5 coin" / oltası
+  varsa kalan süre. Üst HUD'da "🎣 N dk" rozeti (15 sn'de bir; süre bitince düşer).
+- Köprüdeyken + olta varken göle dokunmak (`dunya.suSec` ışın) `balikGorsel.js` döngüsünü başlatır:
+  at 0,6 sn → bekle 4-7 sn → çek 0,8 sn. Her çekişte `balik_yakala`; yakalandı → balık sudan ele sıçrar, su
+  halkası, 🐟 emoji, "+1 coin"; tavan → bir kez "Bugünkü balık hakkın doldu"; olta_yok → olta düşer.
+  Hareket edince ya da köprüden inince olta toplanır. Haritadan çıkınca (`pagehide` + unmount) `olta_birak`.
+- Botlar: nöbet başına en çok bir balık bacağı (%35, tohumdan): kıyıdan yakın köprü ucuna, güvertede korkuluk
+  kenarına, 15-30 sn suya dönük olta (%18 çekişte sahte balık görseli), aynı uçtan geri. `planKonumu`
+  köprüde göl engelinden itmez; buluşma/ziyaret/geri dönüş köprü anlarını atlar. Simülasyon: 300 planın
+  104'ünde balık (ort. 22 sn), suda yürüyen 0, engel içi 0, sıçrama 0.
+
+### Canlı doğrulama (Chrome, idagg)
+- NPC'ye dokun → kutu; "Olta — 5 coin" → coin 365→360, `oltalar` satırı, coin_hareketleri 'olta' −5, rozet "🎣 60 dk".
+- Köprüden göle dokun → olta/misina/şamandıra çizildi; ilk atış 21:46:52, sunucu ilk coini 66 sn sonraya
+  planladı; 21:48:02 yakalandı: "+1 coin 🐟", coin 361, coin_hareketleri 'balik' +1, sonraki 21:50:12 (180 sn).
+- Tavan testi: ayar 2 → ikinci yakalama (362), üçüncü çekiş "Bugünkü balık hakkın doldu"; ayar 20'ye alındı.
+- **Sahte çağrı:** kullanıcı kimliğiyle art arda 5 `balik_yakala()` (sunucu tarafında, aynı auth.uid): ilki
+  zamanı gelmiş meşru yakalamaydı (tavan testinde ileri alınan an), sonraki dördü 'bos', coin +1'den fazla
+  artmadı (362→363). Takvimi olmayan çağrı ödül alamıyor. (Tarayıcı konsolundan çağrı için oturum
+  jetonuna dokunmak gerekirdi; yapılmadı — aynı fonksiyon aynı kimlikle sunucuda çağrıldı.)
+- Yürüyünce olta toplandı, köprüden karşı kıyıya geçildi. Zıplama girdisi çalışıyor.
+- **Otomasyon notu:** arka plan sekmesinde Chrome zamanlayıcıyı 1 Hz'e kısıyor; RAF yerine setTimeout koyunca
+  oyun 1/20 hızda akıyordu ("klavye çalışmıyor" sanıldı). Worker zamanlayıcıyla ~23 fps'ye çıkınca her şey
+  normal. Gerçek cihazda etkisi yok.
+- Bilinen sınır: sekme kapatılır/yenilenirse `olta_birak` isteği iptal olabiliyor (fetch abort); olta en geç
+  60 dk'da sunucuda düşer. Uygulama içi "Oyuna dön" ile çıkışta silinir.
