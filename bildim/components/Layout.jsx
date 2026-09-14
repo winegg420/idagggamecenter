@@ -14,6 +14,7 @@ import Ikon from "./Ikon.jsx";
 import CoinHapi from "./CoinHapi.jsx";
 import Avatar from "../../src/components/Avatar.jsx";
 import Logo from "./Logo.jsx";
+import { GARDROP_YOLU } from "../pages/GardropaGit.jsx";
 // SADELEŞTİRME: tema ve ses düğmeleri üst bardan Profil sayfasına
 // taşındı (sadeleştirme). Bileşenler silinmedi; geri istenirse tek satır.
 import { y, BILDIM_MOD } from "../lib/yol.js";
@@ -152,6 +153,14 @@ export default function Layout() {
             <div className="bd-topbar-sag">
               <BildirimZili />
               <CoinHapi />
+              {/* GÖRÜNÜM KISAYOLU (Paket 8): 3B karakter özelliği Profil →
+                  Ayarlar'ın dibinde gizli kalıyordu. Gardırop ayrı bir HTML
+                  sayfası (SPA rotası değil) → düz bağlantı. Profil düğmesiyle
+                  aynı sınıf: aynı boy/renk, dar ekran kuralları da geçerli. */}
+              <a href={GARDROP_YOLU} className="bd-profil-link bd-gorunum-kisayol"
+                 aria-label="Görünüm — karakterini giydir" title="Görünüm">
+                <Ikon ad="tisort" boyut={20} />
+              </a>
               <Link to={y("/profil")} className="bd-profil-link" aria-label="Profilim ve ayarlar" title="Profilim">
                 <Avatar profile={profile} boyut={34} />
               </Link>

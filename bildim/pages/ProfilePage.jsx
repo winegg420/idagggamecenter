@@ -198,9 +198,9 @@ export default function ProfilePage() {
       </>)}
 
       {sekme === "ayarlar" && (<>
-      <ProfilAyarlari />
-
-      {/* ---------- Görünüm (avatar kişiselleştirme) ---------- */}
+      {/* ---------- Görünüm (3B karakter) — EN ÜSTTE (Paket 8) ----------
+          Eskiden ProfilAyarlari'nın beş kartının ALTINDAYDI; önemli bir
+          özellik 6 kaydırma arkasında kalıyordu. */}
       <Link to={y("/gorunum")} className="kart bd-profil-hatalarim">
         <span className="bd-mod-ikon" style={{ background: "var(--bd-vurgu)" }}>
           <Ikon ad="tisort" boyut={20} />
@@ -213,6 +213,8 @@ export default function ProfilePage() {
         </div>
         <span className="ok" aria-hidden="true">›</span>
       </Link>
+
+      <ProfilAyarlari />
 
       {/* ---------- Konum (şehir/ülke ligi) ---------- */}
       {konumDuzenle ? (

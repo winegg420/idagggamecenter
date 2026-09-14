@@ -60,9 +60,12 @@ export default function JokerDukkani() {
   // Sekme adres çubuğunda tutulur: "coin yetmiyor" uyarısı doğrudan Coin
   // sekmesine götürebilsin, geri tuşu da beklendiği gibi çalışsın.
   const [arama, setArama] = useSearchParams();
+  // Varsayılan sekme "Görünüm" (Paket 8): 3B karakter önemli bir özellik ve
+  // dükkâna girenin ilk gördüğü o olmalı. Joker/Coin sekmeleri aynen duruyor;
+  // ?sekme=coin gibi doğrudan bağlantılar etkilenmez.
   const sekme = SEKMELER.some((x) => x.kod === arama.get("sekme"))
     ? arama.get("sekme")
-    : "joker";
+    : "kiyafet";
   const sekmeSec = (kod) => setArama({ sekme: kod }, { replace: true });
 
   const { bakiye, tazele: coinOku } = useCoin();
