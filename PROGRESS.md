@@ -4950,3 +4950,42 @@ Paket metni tekrar geldi; 2-7 zaten canlıdaydı (yukarıdaki kayıtlar). Madde 
   sahne 88 / yapışık alt 222, listede 9 eşya görünür (ilk 235 px'te tanıtım kartı hâlâ ekranda → 3);
   üste dönünce 253; Bekle/Yürü/Selam ver yok, "meydana git" yok, taşma yok.
 - Izgara (3 sütun, kart ≤150 px, fiyatlı küçük hap, yeşil seçili çerçeve) önceki commit'lerde.
+
+## 14 Eylül 2026 (16) — Revizyon Paketi 13, AŞAMA 1: harita büyüdü, göl + kemer köprü
+
+Commit'ler: `6ab53e3` (1.1-1.3 dünya/köprü/yükseklik) · `c703189` (bot yarıçapları) · `36fc84d` (bank/doğuş).
+Not: paket metnindeki "son migration 191" eski; Paket 12'de 195-198 uygulandı, sıradaki 199.
+
+### 1.1 Harita (`dunya.js`)
+Bina yarıçapı 30 → 44, yürünebilir sınır 58 → 80, çim 66 → 92, taş meydan 17 → 26; çim yamaları
+28-88, taş çizgileri göl-meydan arası, halkalar 16..25; sis 85-190, gölge kamerası 92. İç bank
+halkası 20 (30°'den; 0°/180° köprü uçlarıydı — ölçülüp düzeltildi), lamba 24, çevre ağaçları 31,
+dış ağaç 50-86, çalı 30-88. Boşluk için: ikinci bank halkası 36, ikinci lamba halkası 37, 5 çiçek
+tarhı 28 (hepsi engel listesinde). Oyuncu doğuş (0,16,5). Bulutlar 60-105.
+### 1.2 Göl
+Çeşme (kaide/sütun/heykel/8 jet) kalktı; göl r14: kıyı halkası + su yüzeyi (y 0,40, taşın üstünde)
++ 3 gezen dalga halkası. Su hafif salınır.
+### 1.3 Köprü ve yükseklik
+`KOPRU = {L:15,8, W:3,4, H:3}` x ekseni boyunca; 26 parçalı kemer güverte, iki yanda ray + dikme
+korkuluk, suda 2 ayak. **Tek kaynak `zeminYuksekligi(x,z)`** (dunya.js): ayak izinde kemer, dışında 0.
+- `carpismaDuzelt`: korkuluk şeridi (|z| 1,35-2,4) yakın tarafa iter; göl içine yalnız güverte
+  hariç girilmez (kıyı 14,5); harita sınırı 80.
+- Avatar y = zemin + zıplama: `yurumeAnimasyonu(av,dt,guc,zipla,zemin)` ve `meydanModelYuru(...,zemin)`;
+  duruş yalnız zıplamaya bakar (köprüde bacak toplanmaz). Emoji balonu avatar y'sini izler.
+- Ağ: `coklu.pozGonder` h = zıplama + zemin (yeni alan yok). Alıcı: `zipla = max(0, h − kendi
+  zeminYuksekligi)`; zemin haritadan. Kamera hedefi/lookAt oyuncu y'sinin %60'ını izler.
+### Botlar (`meydanBotlari.js`)
+HALKA 16-18, DOLAŞ 16-30, KENAR 40 (115 giriş noktası), göl engeli 14,5, buluşma 17, ziyaret 32.
+Nöbet süresi (80-150 sn) yeter: kenardan halkaya yürüyüş 5,3-5,9 sn.
+### Ölçümler
+- **Bot simülasyonu** (300 plan, 338.500 örnek): bina/engel/göl içi 0, sıçrama 0, 101 farklı giriş.
+- **Gerçek dunya.js testi** (`.tmp/harita-test`, git dışı; Vite dev + Playwright): göle yürüyünce
+  r 14,5'te durur; sol kıyıdan köprüye çıkıp tepede (0,08, 0,48) **y = 3,00**; tepede yandan yürüyünce
+  z −1,35'te kalır (güvertede); karşı kıyıya geçer (x 22,8, y 0); profil −15,8..15,8 →
+  0 / 1,27 / 2,23 / 2,81 / 3 / 2,81 / 2,23 / 1,27 / 0; ayak izi dışı 0. Uzak oyuncu paketi h=3 →
+  y 3 (zemin 3, zıplama 0); h=4 → y 4 (zıplama 1); yerde h=0 → 0. Sınıra yürüyünce r=80.
+- **Canlı (Chrome, idagg):** göl + köprü + süsler çiziliyor; botlar ~6 dk boyunca taş halkada
+  yürüdü, göle/binaya giren yok. İkinci HESAPLA canlı test yapılamadı: misafir girişi kapalı,
+  başka hesap şifresi yok — uzak oyuncu yüksekliği yukarıdaki alıcı formülü testiyle doğrulandı.
+- Otomasyon sekmesinde ilk açılışta bir kez "Meydan açılamadı" görüldü (RAF durdurulmuş sekmede
+  ilk kare 8 sn'ye yetişmedi); "Tekrar dene" ile açıldı. RAF durdurulmadan yeniden ölçüldü: 7 sn'de açık, hata yok — otomasyon kaynaklı.
