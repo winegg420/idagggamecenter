@@ -16,6 +16,8 @@ import SeriRozeti from "../components/SeriRozeti.jsx";
 import Maskot from "../components/Maskot.jsx";
 import { y } from "../lib/yol.js";
 import { kategoriEtiket, kategorileriSirala } from "../lib/kategoriler.js";
+import KategoriIkon from "../components/KategoriIkon.jsx";
+import Modal from "../components/Modal.jsx";
 
 export default function Home() {
   const { user, profile, refreshProfile } = useAuth();
@@ -270,6 +272,7 @@ export default function Home() {
   // burada da: oyuncu basmadan ÖNCE kategoriyi görür ve değiştirir.
   const [kategoriler, setKategoriler] = useState([]);
   const [kategoriKaydediliyor, setKategoriKaydediliyor] = useState(false);
+  const [kategoriSheet, setKategoriSheet] = useState(false);
   useEffect(() => {
     let aktif = true;
     (async () => {
@@ -414,23 +417,57 @@ export default function Home() {
             · Dereceli Maç → 3. katmanda, coin + lig puanı yazar.
             Kural sunucuda da zorlanıyor (migration 162): `matches.dereceli`
             false ise `mac_sonuclandir` coin çağrısını hiç yapmıyor. */}
-        <label className="bd-arama-kategori">
-          <span>Rakip aranacak kategori</span>
-          <select
-            value={profile?.tercih_kategori ?? ""}
-            disabled={kategoriKaydediliyor}
-            onChange={(e) => aramaKategorisiSec(e.target.value)}
-          >
-            <option value="">Karışık</option>
-            {kategorileriSirala(kategoriler).map((k) => (
-              <option key={k.kategori} value={k.kategori}>{kategoriEtiket(k.kategori)}</option>
-            ))}
-            {/* Liste henüz gelmediyse seçili kategori yine görünsün. */}
-            {profile?.tercih_kategori && !kategoriler.some((k) => k.kategori === profile.tercih_kategori) && (
-              <option value={profile.tercih_kategori}>{kategoriEtiket(profile.tercih_kategori)}</option>
-            )}
-          </select>
-        </label>
+        {/* RAKİP KATEGORİSİ KARTI (Paket 10): çıplak <select> yerine kart;
+            satırın tamamı dokunma alanı, liste alttan açılır. Kayıt mantığı
+            (aramaKategorisiSec) aynı. */}
+        <button
+          type="button"
+          className="bd-kategori-kart"
+          disabled={kategoriKaydediliyor}
+          aria-haspopup="dialog"
+          onClick={() => setKategoriSheet(true)}
+        >
+          <KategoriIkon anahtar={profile?.tercih_kategori || "karisik"} boyut={24} plaka />
+          <span className="bd-kategori-kart-metin">
+            <span className="bd-kategori-kart-etiket">Rakip kategorisi</span>
+            <span className="bd-kategori-kart-deger">
+              {kategoriKaydediliyor ? "Kaydediliyor…" : profile?.tercih_kategori ? kategoriEtiket(profile.tercih_kategori) : "Karışık"}
+            </span>
+          </span>
+          <span className="bd-kategori-kart-degistir" aria-hidden="true">Değiştir ›</span>
+        </button>
+        {kategoriSheet && (
+          <Modal etiket="Rakip kategorisi seç" ekSinif="bd-alttan" onKapat={() => setKategoriSheet(false)}>
+            <div className="bd-kategori-sheet">
+              <div className="bd-kategori-sheet-tutamac" aria-hidden="true" />
+              <h2>Rakip kategorisi</h2>
+              <p>"Hemen oyna" ve "Dereceli Maç" bu kategoride rakip arar.</p>
+              <div className="bd-kategori-sheet-liste">
+                {[{ kategori: "", soru_sayisi: null }, ...kategorileriSirala(kategoriler)].map((k) => {
+                  const secili = (profile?.tercih_kategori ?? "") === k.kategori;
+                  return (
+                    <button
+                      key={k.kategori || "karisik"}
+                      type="button"
+                      className={"bd-kategori-secenek" + (secili ? " aktif" : "")}
+                      aria-pressed={secili}
+                      onClick={async () => {
+                        setKategoriSheet(false);
+                        if (!secili) await aramaKategorisiSec(k.kategori);
+                      }}
+                    >
+                      <KategoriIkon anahtar={k.kategori || "karisik"} boyut={24} plaka />
+                      <span className="bd-kategori-secenek-ad">{k.kategori ? kategoriEtiket(k.kategori) : "Karışık"}</span>
+                      <span className="bd-kategori-secenek-alt">
+                        {k.kategori ? `${k.soru_sayisi} soru` : "Tüm kategoriler"}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          </Modal>
+        )}
         <button className="bd-ana-eylem" onClick={() => hemenOyna(false)}>
           <Ikon ad="hizli" boyut={22} />
           <span>Hemen oyna</span>

@@ -5809,3 +5809,69 @@ body.bd-ekle-acik .app { padding-bottom: calc(300px + env(safe-area-inset-bottom
   background: var(--bd-yuzey-1); color: var(--bd-metin);
   font: 800 14px/1 var(--bd-f-govde, inherit);
 }
+
+/* ============================================================
+   ANA SAYFA — RAKİP KATEGORİSİ KARTI + ALTTAN AÇILAN LİSTE (Paket 10)
+   Çıplak <select> sitenin kart/ikon dilinden kopuk duruyordu. Satırın
+   tamamı tek dokunma alanı; liste Modal (bd-modal-katman) ile açılır.
+   iOS kuralı: fixed katman Modal'da; kaydırılan panelde transform yok,
+   giriş animasyonu yalnız panelin kendisinde (içinde fixed öğe yok).
+   ============================================================ */
+.bd-kategori-kart {
+  display: flex; align-items: center; gap: 12px; width: 100%;
+  margin: 14px 0 10px; padding: 10px 12px; min-height: 60px;
+  border-radius: 16px; border: 2px solid var(--bd-kenar, rgba(0,0,0,.1));
+  background: var(--bd-yuzey-1); color: var(--bd-metin);
+  box-shadow: 0 4px 0 var(--bd-kart-alt, rgba(0,0,0,.12));
+  text-align: left; cursor: pointer; font: inherit;
+  transition: transform .08s ease, box-shadow .08s ease;
+}
+.bd-kategori-kart:active { transform: translateY(4px); box-shadow: 0 0 0 var(--bd-kart-alt, rgba(0,0,0,.12)); }
+.bd-kategori-kart-metin { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.bd-kategori-kart-etiket {
+  font-size: 10.5px; font-weight: 800; letter-spacing: 1.2px; text-transform: uppercase;
+  color: var(--bd-metin-2);
+}
+.bd-kategori-kart-deger {
+  font-family: var(--bd-f-baslik); font-weight: 800; font-size: 17px; line-height: 1.15;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.bd-kategori-kart-degistir { font-size: 13px; font-weight: 800; color: var(--bd-vurgu-metin, var(--bd-vurgu)); white-space: nowrap; }
+
+/* Katman alta hizalanır: panel ekranın dibinden çıkar. */
+.bd-modal-katman.bd-alttan { align-items: flex-end; padding: 0; }
+.bd-kategori-sheet {
+  width: 100%; max-width: 520px; max-height: 80dvh; overflow-y: auto;
+  background: var(--bd-yuzey-1); color: var(--bd-metin);
+  border-radius: 22px 22px 0 0;
+  padding: 10px 16px calc(16px + env(safe-area-inset-bottom, 0px));
+  box-shadow: 0 -6px 24px rgba(32,50,74,.22);
+  animation: bd-sheet-gel .18s ease-out;
+}
+@keyframes bd-sheet-gel { from { transform: translateY(24px); opacity: .6; } to { transform: none; opacity: 1; } }
+.bd-kategori-sheet-tutamac { width: 44px; height: 5px; border-radius: 99px; background: var(--bd-metin-3, rgba(0,0,0,.2)); margin: 0 auto 10px; }
+.bd-kategori-sheet h2 { margin: 0 0 4px; font-size: 19px; }
+.bd-kategori-sheet p { margin: 0 0 12px; font-size: 13px; color: var(--bd-metin-2); }
+.bd-kategori-sheet-liste { display: grid; gap: 8px; }
+.bd-kategori-secenek {
+  display: flex; align-items: center; gap: 12px; width: 100%; min-height: 52px;
+  padding: 8px 12px; border-radius: 14px; border: 2px solid var(--bd-kenar, rgba(0,0,0,.1));
+  background: var(--bd-yuzey-1); color: var(--bd-metin); font: inherit; text-align: left; cursor: pointer;
+}
+.bd-kategori-secenek.aktif { border-color: var(--bd-vurgu); background: var(--bd-vurgu-acik, rgba(244,112,31,.1)); }
+.bd-kategori-secenek-ad { flex: 1; font-weight: 800; font-size: 15px; }
+.bd-kategori-secenek-alt { font-size: 12px; color: var(--bd-metin-2); }
+@media (prefers-reduced-motion: reduce) { .bd-kategori-sheet { animation: none; } }
+
+/* ---- Hero puan: ödül hissi (Paket 10) ----
+   .app .bd-hero-puan-sayi (satır ~3710) rengi --bd-metin'e çekiyordu; altın
+   geri geldi. Açık zeminde --bd-odul düşük kontrast → koyu altın ton. */
+.app .bd-hero .bd-hero-puan-sayi {
+  color: var(--bd-odul-2);
+  font-size: clamp(54px, 15vw, 68px);
+  text-shadow: 0 3px 0 rgba(0,0,0,.12);
+}
+:root[data-tema="koyu"] .app .bd-hero .bd-hero-puan-sayi {
+  color: var(--bd-odul);
+  text-shadow: 0 3px 0 var(--bd-odul-2), 0 8px 18px rgba(255,197,61,.28);
+}

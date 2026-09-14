@@ -11,7 +11,7 @@ import { createPortal } from "react-dom";
  * hesabını pratikte silemiyordu. Animasyon da düzeltildi, ama modallerin
  * body'ye basılması bu sınıf hatayı kökten engelliyor.
  */
-export default function Modal({ children, onKapat, etiket = "İletişim kutusu" }) {
+export default function Modal({ children, onKapat, etiket = "İletişim kutusu", ekSinif = "" }) {
   // Modal açıkken arka planın kaymasını engelle.
   //
   // KAYDIRMA KONUMU KORUNUR. Eskiden yalnız `overflow: hidden` veriliyordu;
@@ -63,7 +63,7 @@ export default function Modal({ children, onKapat, etiket = "İletişim kutusu" 
 
   const govde = (
     <div
-      className="bd-modal-katman"
+      className={"bd-modal-katman" + (ekSinif ? " " + ekSinif : "")}
       role="dialog"
       aria-modal="true"
       aria-label={etiket}
