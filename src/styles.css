@@ -2513,12 +2513,14 @@ h1.baslik, h2.baslik { font-size: 18px; font-weight: 800; margin: 0 0 10px; }
   clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap;
 }
 
-/* Masaüstünde içerik genişlesin. Telefon düzeni (540 px) aynen korunur. */
+/* Masaüstünde içerik ölçülü genişlesin. Telefon düzeni (540 px) aynen korunur.
+   ESKİDEN 760 / 900 px: kartlar yayılınca tasarım (390 px telefon referansı)
+   "başka bir sayfa" gibi dağılıyordu. İki kırılma noktası da 620 px. */
 @media (min-width: 1024px) {
-  .app { max-width: 760px; }
+  .app { max-width: 620px; }
 }
 @media (min-width: 1400px) {
-  .app { max-width: 900px; }
+  .app { max-width: 620px; }
 }
 
 /* ---- Profil sekmeleri ---- */
