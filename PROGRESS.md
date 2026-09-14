@@ -4550,3 +4550,30 @@ sahibine sorulacak ürün kararı.
 Build temiz. Tarayıcıda doğrulanamadı: otomasyon penceresi gizli sayıldığı
 için sahne çizilmiyor, dokunmatik hayalet tıklama masaüstünde üretilemiyor —
 telefonda denenmeli.
+
+## 14 Eylül 2026 (5) — Gizli bot HER ALANDA gerçek oyuncu (migration 187)
+
+**Sahibinin kuralı (sert uyarı):** açık botlar (ToyBot/ÇaylakBot/ÜstatBot/
+EfsaneBot) bot gibi; gizli botlar oyunun her yerinde gerçek oyuncu gibi.
+"Her şeyi tek tek söyleyemem, mantıklı olan neyse onu yap." Kalıcı hafızaya
+yazıldı. Botla ilgili her değişiklikte sorulacak: "gerçek oyuncu burada ne
+yaşardı?"
+
+**Taranan ve düzeltilen sızıntılar:**
+- `oynanabilir_mi` tüm botları arkadaşlık şartından muaf tutuyordu → haritada/
+  listede arkadaş olmayan gizli bota meydan okuma, gruba/hızlı maça davet
+  mümkündü (gerçek oyuncuya değil). Artık yalnız AÇIK bot muaf
+  (create_challenge, create_group_challenge, create_hizli_mac).
+- `sesli_sohbet_izni` gizli bota "Rakibin bir bot" diyordu → artık yalnız açık
+  botta; gizli bot "yalnız arkadaşlarınla" kontrolüne düşer.
+- `oyuncu_ara` tüm botları gizliyordu → çevrimiçi gizli botlar da çıkar.
+- Gizli botların `last_seen`'i hiç güncellenmiyordu (155'te son 10 dk 0) →
+  yeni `gizli_bot_nabiz()` cron'u dakikada bir: meydan nöbetinde, aktif/bekleyen
+  maçta, grup/hızlı maçta, açık turnuvada olanları çevrimiçi yapar. İlk turda 10.
+- Meydanda "X kişi burada" yalnız presence sayıyordu → artık gerçek oyuncu +
+  çizilen botlar. Bot sayısını belirleyen `kisi` gerçek sayı olarak kaldı.
+- İkram: gizli bot bütün kahve/balon tekliflerini kabul eder
+  (`ikram_bot_kabul_yuzde` 85 → 100, coin iade yok).
+
+**Test:** kurucu hesapla `oynanabilir_mi` → arkadaş olmayan gizli bot false,
+ToyBot true; çevrimiçi gizli bot 10; cron aktif; ayar 100. Build temiz.
