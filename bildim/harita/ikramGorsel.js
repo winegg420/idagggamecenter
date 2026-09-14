@@ -98,22 +98,24 @@ export function kahveBasla(sahne, a, b, sure = 15) {
  * Balon ikramı: veren elini uzatır, elinden 3-5 balon çıkar; balonlar
  * ALANIN üzerinde yukarı uçar, yükselir ve kaybolur.
  */
-export function balonBasla(sahne, veren, alan, sure = 15) {
+// `rastgele` verilirse (ör. meydan botlarının kararlı üreteci) balon sayısı
+// ve renkleri her istemcide aynı çıkar; verilmezse Math.random.
+export function balonBasla(sahne, veren, alan, sure = 15, rastgele = Math.random) {
   if (!sahne || !veren || !alan) return;
   dansiDurdur(veren);
-  const adet = 3 + Math.floor(Math.random() * 3);   // 3-5
+  const adet = 3 + Math.floor(rastgele() * 3);   // 3-5
   const balonlar = [];
   for (let i = 0; i < adet; i++) {
-    const b = balonYap(BALON_RENKLERI[(Math.random() * BALON_RENKLERI.length) | 0]);
+    const b = balonYap(BALON_RENKLERI[(rastgele() * BALON_RENKLERI.length) | 0]);
     b.position.copy(onNokta(veren, 0.6));
     b.position.y = 2.2;
     sahne.add(b);
     balonlar.push({
       nesne: b,
       gecikme: i * 0.25,
-      sapmaX: (Math.random() - 0.5) * 1.2,
-      sapmaZ: (Math.random() - 0.5) * 1.2,
-      hiz: 1.6 + Math.random() * 0.8,
+      sapmaX: (rastgele() - 0.5) * 1.2,
+      sapmaZ: (rastgele() - 0.5) * 1.2,
+      hiz: 1.6 + rastgele() * 0.8,
     });
   }
   gosteriler.push({

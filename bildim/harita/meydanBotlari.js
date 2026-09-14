@@ -28,6 +28,7 @@
 // ============================================================
 
 import { supabase } from "../../src/lib/supabase.js";
+import { ziplamaYuksekligi, ZIPLAMA } from "./ziplama.js";
 
 /** Botun yürüme hızı (birim/sn). Oyuncu 9 ile koşar; bot gezinir. */
 export const BOT_HIZI = 3.2;
@@ -40,6 +41,36 @@ const GOVDE_R = 0.55;          // engelden uzak durma payı
 const SAPMA_PAYI = 0.35;       // engelin etrafından dolaşırken ek boşluk
 const KAPI_PAYI = 0.4;         // kapı noktası bina engelinin bu kadar önünde
 const ADIM_ACI = (12 * Math.PI) / 180;
+
+// Çeşme dunya.js'in engel listesinde değil (ayrı çarpışma kontrolü var).
+// Halkanın dışına çıkan yollar (ziyaret, buluşma) için engel sayılır:
+// merkeze en az r + GOVDE_R = 7.05 birim.
+const HAVUZ = { x: 0, z: 0, r: 6.5 };
+
+// ---- Grup girişi
+const GRUP_ARA_MS = 1300;      // aynı kapıdan girenler arasında birkaç adım
+const GRUP_ACI = 0.2;          // halkaya varınca yan yana dağılsınlar (radyan)
+
+// ---- Oyuncuya yaklaşma (ziyaret)
+const DURMA_MESAFE = 2.0;      // oyuncunun bu kadar önünde durur
+const ZIYARET_GIT_MS = 9000;   // yetişemezse vazgeçer
+const ZIYARET_MENZIL = 19;     // hedef meydan merkezine en çok bu kadar uzak
+const ZIYARET_ULASIM = 20;     // bot hedefe en çok bu kadar uzaksa gider
+const ZIYARET_KILIT_MS = 28000; // git + dur + dön için ayrılan en uzun süre
+const ZIYARET_EMOJI = ["👋", "😄", "🙌", "😎", "🎉", "👍"];
+const EMOJI_MS = 350;          // varınca emoji
+const HOP_BAS_MS = 900;        // emojiden sonra hoplamaya başlar
+const HOP_ARA_MS = 800;        // hoplamalar arası (zıplama süresi 620 ms)
+const HOP_OLCEK = 0.6;         // oyuncunun zıplamasının %60'ı kadar
+const DUR_SON_MS = 1500;       // hoplamadan sonra biraz daha bakar
+
+// ---- Bot-bot buluşması (ikram)
+const BULUSMA_R = 9.0;         // halkanın ortası
+const BULUSMA_ARA = 1.3;       // karşı karşıya duran iki bot arası
+const KAHVE_MS = 12000;
+const BALON_MS = 7000;
+const BULUSMA_BOSLUK_MS = 20000; // aynı botun iki buluşması arasında en az
+const TARAMA_MS = 250;
 
 /**
  * Nöbetteki botlar. Zamanlar İSTEMCİ saatine çevrilir: sunucu saati ile
@@ -179,8 +210,8 @@ function cikisYolu(bas, kapi, engeller) {
  * Aynı girdi → aynı plan (tüm istemcilerde).
  * @returns {{noktalar:Array<{t:number,x:number,z:number,aci:number}>, bitisMs:number}}
  */
-export function botPlaniKur({ tohum, baslangicMs, bitisMs, kapilar, engeller }) {
-  const engel = engeller ?? [];
+export function botPlaniKur({ tohum, baslangicMs, bitisMs, kapilar, engeller, grup = null }) {
+  const engel = [...(engeller ?? []), HAVUZ];
   const r = rastgeleUret(tohum);
   const hizMs = 1000 / BOT_HIZI;
 
@@ -188,16 +219,26 @@ export function botPlaniKur({ tohum, baslangicMs, bitisMs, kapilar, engeller }) 
     // Kapı bilgisi yoksa (harita değişti, bina yok): halkada durur.
     const a = r() * Math.PI * 2;
     const n = { t: baslangicMs, x: Math.cos(a) * HALKA_MIN, z: Math.sin(a) * HALKA_MIN, aci: 0 };
-    return { noktalar: [n, { ...n, t: bitisMs }], bitisMs };
+    return { noktalar: [n, { ...n, t: bitisMs }], bitisMs, baslaMs: baslangicMs, dolasBasMs: baslangicMs, cikisBasMs: bitisMs };
   }
 
-  const giris = kapilar[Math.floor(r() * kapilar.length) % kapilar.length];
+  let giris = kapilar[Math.floor(r() * kapilar.length) % kapilar.length];
   let cikis = kapilar[Math.floor(r() * kapilar.length) % kapilar.length];
+  // GRUP: hepsi aynı kapıdan, birkaç adım arayla girer (kapı grup
+  // anahtarından türer, sıra kadar gecikir). Çıkış kapısı herkesin kendi.
+  // Plan grup BOYUNA bağlı değildir: eşlikçi erken ayrıldıktan sonra açılan
+  // istemci grubu küçük görür, ama lideri yine aynı yoldan yürütmelidir.
+  // (Önce ayrılan hep en büyük sıradakidir; kalanların sırası değişmez.)
+  const sira = grup ? Math.max(0, grup.sira | 0) : 0;
+  if (grup && kapilar.length) {
+    giris = kapilar[Math.floor(tohumSayi(grup.anahtar, "kapi") * kapilar.length) % kapilar.length];
+  }
   if (cikis === giris && kapilar.length > 1) {
     cikis = kapilar[(kapilar.indexOf(giris) + 1 + Math.floor(r() * (kapilar.length - 1))) % kapilar.length];
   }
 
-  const noktalar = [{ t: baslangicMs, x: giris.x, z: giris.z, aci: Math.atan2(-giris.x, -giris.z) }];
+  const baslaMs = baslangicMs + sira * GRUP_ARA_MS;
+  const noktalar = [{ t: baslaMs, x: giris.x, z: giris.z, aci: Math.atan2(-giris.x, -giris.z) }];
   const son = () => noktalar[noktalar.length - 1];
   const yuru = (yol, olcek = 1) => {
     for (const n of yol) {
@@ -210,9 +251,11 @@ export function botPlaniKur({ tohum, baslangicMs, bitisMs, kapilar, engeller }) 
   const bekle = (ms) => { if (ms > 0) { const o = son(); noktalar.push({ ...o, t: o.t + ms }); } };
 
   // 1) Kapıdan meydana
-  const girisAci = Math.atan2(giris.z, giris.x);
+  // Sıra 0 kapı hizasına, 1 bir yana, 2 öbür yana: yan yana dağılırlar.
+  const girisAci = Math.atan2(giris.z, giris.x) + (sira === 0 ? 0 : (sira % 2 ? 1 : -1) * Math.ceil(sira / 2) * GRUP_ACI);
   const girisR = HALKA_MIN + r() * (HALKA_MAX - HALKA_MIN);
   yuru(sapmaliYol(son(), { x: Math.cos(girisAci) * girisR, z: Math.sin(girisAci) * girisR }, engel));
+  const dolasBasMs = son().t;
 
   // 2) Dolaş — çıkışa yetecek süre kaldığı sürece
   for (let i = 0; i < 40; i++) {
@@ -235,13 +278,18 @@ export function botPlaniKur({ tohum, baslangicMs, bitisMs, kapilar, engeller }) 
   const cikisYol = cikisYolu(son(), cikis, engel);
   const gerekenMs = uzunluk(son(), cikisYol) * hizMs;
   const kalanMs = bitisMs - son().t;
+  let cikisBasMs;
   if (kalanMs >= gerekenMs) {
     bekle(kalanMs - gerekenMs);
+    cikisBasMs = son().t;
     yuru(cikisYol);
   } else {
+    cikisBasMs = son().t;
     yuru(cikisYol, gerekenMs > 0 ? Math.max(0, kalanMs) / gerekenMs : 1);
   }
-  return { noktalar, bitisMs };
+  // dolasBasMs..cikisBasMs: bot halkada. Ziyaret ve buluşma yalnız bu
+  // aralığa yerleşir; giriş ve çıkış yürüyüşü hiç bozulmaz.
+  return { noktalar, bitisMs, baslaMs, dolasBasMs, cikisBasMs };
 }
 
 /**
@@ -276,9 +324,9 @@ export function planKonumu(plan, simdiMs) {
 }
 
 /**
- * Bot bu anda emoji/dans yapıyor mu? NADİREN: ortalama ~40 saniyede bir,
- * tohuma bağlı olduğu için herkes aynı anda görür.
- * @returns {{tur:'emoji'|'dans', deger:string}|null}
+ * Bot bu anda emoji/dans/hoplama yapıyor mu? NADİREN: ortalama ~40
+ * saniyede bir, tohuma bağlı olduğu için herkes aynı anda görür.
+ * @returns {{tur:'emoji'|'dans'|'zipla', deger:string|number}|null}
  */
 export function botJesti(tohum, sn) {
   const pencere = Math.floor(sn / 40);
@@ -286,7 +334,442 @@ export function botJesti(tohum, sn) {
   if (p > 0.35) return null;                      // çoğu pencerede sessiz
   const icinde = sn % 40;
   if (icinde > 2) return null;                    // yalnız pencerenin başında
-  if (p < 0.12) return { tur: "dans", deger: "dns_01" };
+  if (p < 0.10) return { tur: "dans", deger: "dns_01" };
+  if (p < 0.20) return { tur: "zipla", deger: 1 + (Math.floor(p * 1000) % 2) };
   const emojiler = ["👍", "😂", "🔥", "😎", "👋"];
   return { tur: "emoji", deger: emojiler[Math.floor(p * 100) % emojiler.length] };
+}
+
+/**
+ * Art arda hoplamanın o anki yüksekliği (saf; ziplama.js eğrisi).
+ * @param {number} gecenMs ilk hoplamanın başından beri geçen süre
+ * @param {number} adet kaç kez hoplayacak
+ */
+export function hopYuksekligi(gecenMs, adet) {
+  if (!(gecenMs >= 0) || !(adet > 0)) return 0;
+  const i = Math.floor(gecenMs / HOP_ARA_MS);
+  if (i >= adet) return 0;
+  const f = (gecenMs - i * HOP_ARA_MS) / (ZIPLAMA.sure * 1000);
+  return f < 1 ? ziplamaYuksekligi(f) * HOP_OLCEK : 0;
+}
+
+/** Tohumdan kararlı rastgele üreteç (görsel katman için; ör. balon renkleri). */
+export function kararliRastgele(tohum) {
+  return rastgeleUret(tohum);
+}
+
+// ============================================================
+// KAÇ BOT ÇİZİLİR — katman + dalga
+//
+// Sunucu nöbeti katmanlara böler (migration 184). Bir bot `katman <
+// hedef(başlangıç anı)` ise çizilir. Hedef, tek başına oyuncu için zamana
+// bağlı kararlı bir dalgadır (taban..dalgaUst); her ek gerçek oyuncu `ek`
+// kadar ekler, `tavan`ı aşmaz. Hedef botun GİRİŞ anında değerlendirilir:
+// meydanın ortasında aniden belirmez, sayı düşünce de ortadan kaybolmaz —
+// kendi nöbeti bitince bir binaya girip gider.
+// ============================================================
+
+/** Tek başına oyuncunun gördüğü katman sayısı (zamana bağlı, herkeste aynı). */
+export function dalgaHedefi(ms, ayar) {
+  const taban = Math.max(0, Number(ayar?.taban ?? 1) | 0);
+  const ust = Math.max(taban, Number(ayar?.dalgaUst ?? taban) | 0);
+  const dilimSn = Math.max(30, Number(ayar?.dalgaSn ?? 240));
+  const dilim = Math.floor(ms / 1000 / dilimSn);
+  return taban + (Math.floor(tohumSayi("dalga", String(dilim)) * (ust - taban + 1)) % (ust - taban + 1));
+}
+
+/** Verilen anda kaç katman çizilir. */
+export function botHedefi(ms, kisi, ayar) {
+  const tavan = Math.max(0, Number(ayar?.tavan ?? 6) | 0);
+  const ek = Math.max(0, Number(ayar?.ek ?? 2));
+  return Math.max(0, Math.min(tavan, dalgaHedefi(ms, ayar) + ek * Math.max(0, (kisi | 0) - 1)));
+}
+
+/**
+ * Nöbet listesinden çizilecek botlar ve grup bilgileri.
+ * Aynı katman + aynı başlangıç = birlikte giren grup. Grubun en uzun
+ * kalanı lider (sira 0); eşlikçiler, o an çizilen bot sayısı `hedef +
+ * grupEnCok - 1`'i aşacaksa atlanır. Lider her zaman çizilir.
+ * @param {Array<{user_id:string,tohum:string,baslangic:string,bitis:string,katman?:number}>} liste
+ * @returns {Map<string,{anahtar:string, sira:number, boyut:number, basSira:number}>}
+ */
+export function gorunurBotlariSec(liste, { kisi = 1, ayar } = {}) {
+  const gruplar = new Map();
+  for (const b of liste ?? []) {
+    const bas = Date.parse(b.baslangic);
+    const bit = Date.parse(b.bitis);
+    if (!Number.isFinite(bas) || !Number.isFinite(bit)) continue;
+    const anahtar = `${b.katman ?? 0}|${bas}`;
+    if (!gruplar.has(anahtar)) gruplar.set(anahtar, []);
+    gruplar.get(anahtar).push({ b, bas, bit, anahtar });
+  }
+  const hepsi = [];
+  for (const uyeler of gruplar.values()) {
+    uyeler.sort((x, y) => y.bit - x.bit || (x.b.tohum < y.b.tohum ? -1 : 1));
+    uyeler.forEach((u, i) => { u.sira = i; u.boyut = uyeler.length; hepsi.push(u); });
+  }
+  hepsi.sort((x, y) => x.bas - y.bas || x.sira - y.sira || (x.b.tohum < y.b.tohum ? -1 : 1));
+
+  const grupEnCok = Math.max(1, Number(ayar?.grupEnCok ?? 3) | 0);
+  const tavan = Math.max(0, Number(ayar?.tavan ?? 6) | 0);
+  const cizilen = [];
+  const sonuc = new Map();
+  for (const u of hepsi) {
+    const h = botHedefi(u.bas, kisi, ayar);
+    if (!((u.b.katman ?? 0) < h)) continue;
+    if (u.sira > 0) {
+      // Grup tek başına oyuncuda da tam girebilsin, ama kalabalık dalgada
+      // eşlikçiler sayıyı hedefin bir fazlasından öteye taşımasın.
+      const sinir = Math.min(tavan, Math.max(grupEnCok, h + 1));
+      const canli = cizilen.filter((c) => c.bit > u.bas).length;
+      if (canli >= sinir) continue;
+    }
+    cizilen.push({ bit: u.bit });
+    sonuc.set(u.b.user_id, { anahtar: u.anahtar, sira: u.sira, boyut: u.boyut, basSira: u.bas });
+  }
+  return sonuc;
+}
+
+// ============================================================
+// OYUNCUYA YAKLAŞMA (ziyaret)
+//
+// Zaman pencereleri botun tohumundan (herkeste aynı). Hedef, pencerenin
+// seçim sayısıyla SIRALI gerçek oyuncu listesinden seçilir; hedefin konumu
+// canlı okunur. Bot planından ayrılır → oyuncunun ~2 birim önünde durur →
+// döner, emoji atar, 1-3 kez hoplar → planına yetişip kaldığı yerden devam
+// eder. Pencereler halka evresinin içindedir; çıkışa her zaman yetişir.
+// ============================================================
+
+/** Botun nöbetindeki ziyaret pencereleri (kararlı). */
+export function ziyaretPencereleri(tohum, plan, ayar) {
+  const olasilik = Math.max(0, Number(ayar?.ziyaretYuzde ?? 0)) / 100;
+  const sonuc = [];
+  if (!(olasilik > 0) || !Number.isFinite(plan?.dolasBasMs) || !Number.isFinite(plan?.cikisBasMs)) return sonuc;
+  const r = rastgeleUret(String(tohum) + "|ziyaret");
+  const son = plan.cikisBasMs - ZIYARET_KILIT_MS;
+  let imlec = plan.dolasBasMs + 4000;
+  for (let i = 0; i < 12 && imlec <= son; i++) {
+    const bas = imlec + r() * 8000;
+    const zar = r();
+    if (zar < olasilik && bas <= son) {
+      sonuc.push({
+        basMs: bas,
+        secim: r(),
+        hop: 1 + Math.floor(r() * 3),
+        emoji: ZIYARET_EMOJI[Math.floor(r() * ZIYARET_EMOJI.length) % ZIYARET_EMOJI.length],
+      });
+      imlec = bas + ZIYARET_KILIT_MS + 15000;
+    } else {
+      imlec += 22000;
+    }
+  }
+  return sonuc;
+}
+
+/** Pencerenin hedefi: sıralı oyuncu kimliklerinden biri (herkeste aynı sıra). */
+export function ziyaretHedefiSec(pencere, oyuncuIdleri) {
+  const idler = [...new Set(oyuncuIdleri ?? [])].sort();
+  if (!idler.length || !pencere) return null;
+  return idler[Math.floor(pencere.secim * idler.length) % idler.length];
+}
+
+/** Hedef meydanda ve bota yeterince yakın mı? */
+export function ziyaretUygunMu(k, hedef) {
+  if (!k || k.bitti || !hedef) return false;
+  if (!Number.isFinite(hedef.x) || !Number.isFinite(hedef.z)) return false;
+  if (Math.hypot(hedef.x, hedef.z) > ZIYARET_MENZIL) return false;
+  return Math.hypot(hedef.x - k.x, hedef.z - k.z) <= ZIYARET_ULASIM;
+}
+
+/** Engellerin dışına it (gövde payı kadar). */
+function engeldenIt(p, engel) {
+  let x = p.x, z = p.z;
+  for (let tur = 0; tur < 3; tur++) {
+    for (const e of engel) {
+      const dx = x - e.x, dz = z - e.z;
+      const d = Math.hypot(dx, dz), min = e.r + GOVDE_R + 0.05;
+      if (d < min) {
+        if (d > 1e-4) { x = e.x + (dx / d) * min; z = e.z + (dz / d) * min; }
+        else { x = e.x + min; }
+      }
+    }
+  }
+  return { x, z };
+}
+
+/** Hedefin önünde, botun geldiği taraftaki duruş noktası. */
+function durmaNoktasi(hedef, bot, engel) {
+  const dx = bot.x - hedef.x, dz = bot.z - hedef.z;
+  const d = Math.hypot(dx, dz);
+  const nx = d > 1e-3 ? dx / d : 0, nz = d > 1e-3 ? dz / d : 1;
+  return engeldenIt({ x: hedef.x + nx * DURMA_MESAFE, z: hedef.z + nz * DURMA_MESAFE }, engel);
+}
+
+/** Yolu zaman damgalı noktalara çevirip listeye ekler. */
+function yoluEkle(noktalar, yol, hizMs) {
+  for (const n of yol) {
+    const o = noktalar[noktalar.length - 1];
+    const d = Math.hypot(n.x - o.x, n.z - o.z);
+    if (d < 1e-4) continue;
+    noktalar.push({ t: o.t + d * hizMs, x: n.x, z: n.z, aci: Math.atan2(n.x - o.x, n.z - o.z) });
+  }
+}
+
+/**
+ * Plandan ayrılmış bir botun plana geri katılma yolu: planın ileride
+ * olacağı ilk noktaya, o ana yetişecek şekilde (gerekirse bekleyerek)
+ * yürür. Yetişemezse son noktaya hızlanarak gider.
+ * @returns {{noktalar:Array, bitisMs:number}}
+ */
+export function geriDonusYolu(plan, konum, simdiMs, engeller) {
+  const engel = [...(engeller ?? []), HAVUZ];
+  const hizMs = 1000 / BOT_HIZI;
+  const n = plan.noktalar;
+  const sonT = n[n.length - 1].t;
+  const bas = { t: simdiMs, x: konum.x, z: konum.z, aci: konum.aci ?? 0 };
+  for (let t = simdiMs; t <= sonT; t += TARAMA_MS) {
+    const k = planKonumu(plan, t);
+    const yol = sapmaliYol(bas, k, engel);
+    const ms = uzunluk(bas, yol) * hizMs;
+    if (simdiMs + ms <= t) {
+      const noktalar = [bas];
+      if (t - ms > simdiMs) noktalar.push({ ...bas, t: t - ms });
+      yoluEkle(noktalar, yol, hizMs);
+      const sonN = noktalar[noktalar.length - 1];
+      if (sonN.t < t) noktalar.push({ ...sonN, t });
+      else sonN.t = t;
+      return { noktalar, bitisMs: t };
+    }
+  }
+  // Yetişemedi (olmamalı): kalan sürede son noktaya git.
+  const s = n[n.length - 1];
+  const yol = sapmaliYol(bas, s, engel);
+  const noktalar = [bas];
+  const uz = uzunluk(bas, yol);
+  const olcek = uz > 0 ? Math.max(0, sonT - simdiMs) / (uz * hizMs) : 1;
+  yoluEkle(noktalar, yol, hizMs * olcek);
+  const bitisMs = Math.max(simdiMs, sonT);
+  noktalar[noktalar.length - 1].t = bitisMs;
+  return { noktalar, bitisMs };
+}
+
+/** Ziyaretin canlı durumu (çizim döngüsü tutar, burası ilerletir). */
+export function ziyaretBaslat(k, pencere, simdiMs) {
+  return {
+    evre: "git", x: k.x, z: k.z, aci: k.aci, basMs: simdiMs, durBasMs: 0,
+    hop: pencere.hop, emoji: pencere.emoji, emojiAtildi: false, donus: null,
+  };
+}
+
+/**
+ * Ziyareti bir kare ilerletir. Saf: sayı girer sayı çıkar (durum nesnesi
+ * yerinde güncellenir).
+ * @param {object} d ziyaretBaslat'ın döndürdüğü durum
+ * @param {{simdiMs:number, dt:number, hedef:{x:number,z:number}|null, plan:object, engeller:Array}} g
+ * @returns {{x:number,z:number,aci:number,yuruyor:boolean,zipla:number,emoji:string|null,bitti:boolean}}
+ */
+export function ziyaretAdimi(d, { simdiMs, dt, hedef, plan, engeller }) {
+  const engel = [...(engeller ?? []), HAVUZ];
+  const cikti = (ek) => ({ x: d.x, z: d.z, aci: d.aci, yuruyor: false, zipla: 0, emoji: null, bitti: false, ...ek });
+  const donuseGec = () => {
+    d.evre = "donus";
+    d.donus = geriDonusYolu(plan, d, simdiMs, engeller);
+  };
+  const hedefVar = hedef && Number.isFinite(hedef.x) && Number.isFinite(hedef.z);
+
+  if (d.evre === "git") {
+    if (!hedefVar || simdiMs - d.basMs > ZIYARET_GIT_MS) {
+      donuseGec();
+    } else {
+      const T = durmaNoktasi(hedef, d, engel);
+      const kalan = Math.hypot(T.x - d.x, T.z - d.z);
+      if (kalan < 0.12) {
+        d.evre = "dur";
+        d.durBasMs = simdiMs;
+      } else {
+        const wp = sapmaliYol(d, T, engel)[0] ?? T;
+        const wd = Math.hypot(wp.x - d.x, wp.z - d.z);
+        const adim = Math.min(wd, BOT_HIZI * Math.max(0, dt));
+        if (wd > 1e-6 && adim > 0) {
+          d.aci = Math.atan2(wp.x - d.x, wp.z - d.z);
+          d.x += ((wp.x - d.x) / wd) * adim;
+          d.z += ((wp.z - d.z) / wd) * adim;
+        }
+        return cikti({ yuruyor: adim > 1e-4 });
+      }
+    }
+  }
+
+  if (d.evre === "dur") {
+    const uzak = hedefVar ? Math.hypot(hedef.x - d.x, hedef.z - d.z) : Infinity;
+    const gecen = simdiMs - d.durBasMs;
+    const toplam = HOP_BAS_MS + d.hop * HOP_ARA_MS + DUR_SON_MS;
+    if (hedefVar && uzak > DURMA_MESAFE + 3 && simdiMs - d.basMs < ZIYARET_GIT_MS) {
+      d.evre = "git";                 // oyuncu yürüdü: biraz daha peşinden
+      return cikti({});
+    }
+    if (!hedefVar || uzak > DURMA_MESAFE + 3 || gecen >= toplam) {
+      donuseGec();
+    } else {
+      d.aci = Math.atan2(hedef.x - d.x, hedef.z - d.z);
+      let emoji = null;
+      if (!d.emojiAtildi && gecen >= EMOJI_MS) { d.emojiAtildi = true; emoji = d.emoji; }
+      return cikti({ emoji, zipla: hopYuksekligi(gecen - HOP_BAS_MS, d.hop) });
+    }
+  }
+
+  // donus: plana geri katılma yolu
+  const k = planKonumu(d.donus, simdiMs);
+  d.x = k.x; d.z = k.z;
+  if (k.yuruyor) d.aci = k.aci;
+  return cikti({ yuruyor: k.yuruyor, bitti: k.bitti });
+}
+
+// ============================================================
+// BOT-BOT BULUŞMASI (kahve / balon ikramı)
+//
+// Aynı anda çizilen iki botun buluşması çiftin tohumlarından kararlı.
+// Çiftler geliş sırasıyla (sonra gelenin başlangıcı) işlenir: yeni gelen
+// bir bot önceden kararlaştırılmış buluşmayı bozamaz. Buluşma anı sonra
+// gelenin girişinden en az 40 sn sonradır — her istemci planı değişmeden
+// önce öğrenir. Buluşma planın ÜSTÜNE eklenir (bacak): bot planın o
+// anki noktasından ayrılır, buluşma noktasına tam vaktinde varır, bekler,
+// sonra planın ileride olacağı noktaya yetişir. Bacağın dışında plan
+// değişmez; bu yüzden geç açılan istemci de botu aynı yerde görür.
+// ============================================================
+
+/** Planın `basMs`'de P noktasına varıp `bitMs`'e kadar beklediği bacak. */
+function bacakKur(plan, P, basMs, bitMs, yuz, engel) {
+  const hizMs = 1000 / BOT_HIZI;
+  const alt = Math.max(plan.dolasBasMs, basMs - 30000);
+  let git = null, gidisYol = null;
+  for (let t = basMs; t >= alt; t -= TARAMA_MS) {
+    const k = planKonumu(plan, t);
+    const yol = sapmaliYol(k, P, engel);
+    if (t + uzunluk(k, yol) * hizMs <= basMs) { git = t; gidisYol = yol; break; }
+  }
+  if (git === null) return null;
+
+  let don = null, donusYol = null, donusMs = 0;
+  for (let t = bitMs; t <= plan.cikisBasMs; t += TARAMA_MS) {
+    const k = planKonumu(plan, t);
+    const yol = sapmaliYol(P, k, engel);
+    const ms = uzunluk(P, yol) * hizMs;
+    if (bitMs + ms <= t) { don = t; donusYol = yol; donusMs = ms; break; }
+  }
+  if (don === null) return null;
+
+  const k0 = planKonumu(plan, git);
+  const noktalar = [{ t: git, x: k0.x, z: k0.z, aci: k0.aci }];
+  yoluEkle(noktalar, gidisYol, hizMs);
+  const varis = noktalar[noktalar.length - 1];
+  noktalar.push({ t: varis.t, x: P.x, z: P.z, aci: yuz });
+  noktalar.push({ t: Math.max(varis.t, don - donusMs), x: P.x, z: P.z, aci: yuz });
+  yoluEkle(noktalar, donusYol, hizMs);
+  noktalar[noktalar.length - 1].t = Math.max(noktalar[noktalar.length - 2].t, don);
+  return { gitMs: git, donMs: don, noktalar };
+}
+
+function cakisir(a0, a1, b0, b1) { return a0 < b1 && b0 < a1; }
+
+/** Tek çift için uygun buluşma (yoksa null). */
+function bulusmaKur(A, B, cift, engel, kayitlar) {
+  const tur = tohumSayi(cift, "tur") < 0.5 ? "kahve" : "balon";
+  const sureMs = tur === "kahve" ? KAHVE_MS : BALON_MS;
+  const alt = Math.max(A.plan.dolasBasMs, B.plan.dolasBasMs, Math.max(A.plan.baslaMs, B.plan.baslaMs) + 40000);
+  const ust = Math.min(A.plan.cikisBasMs, B.plan.cikisBasMs) - sureMs - 16000;
+  if (!(ust >= alt)) return null;
+
+  for (let deneme = 0; deneme < 4; deneme++) {
+    const basMs = alt + tohumSayi(cift, "t" + deneme) * (ust - alt);
+    const bitMs = basMs + sureMs;
+    const pA = planKonumu(A.plan, basMs), pB = planKonumu(B.plan, basMs);
+    const aA = Math.atan2(pA.z, pA.x), aB = Math.atan2(pB.z, pB.x);
+    const fark = aciFarki(aA, aB);
+    const orta = aA + fark / 2;
+    const yarim = BULUSMA_ARA / 2 / BULUSMA_R;
+    const isaret = fark >= 0 ? 1 : -1;
+    const nA = { x: Math.cos(orta - isaret * yarim) * BULUSMA_R, z: Math.sin(orta - isaret * yarim) * BULUSMA_R };
+    const nB = { x: Math.cos(orta + isaret * yarim) * BULUSMA_R, z: Math.sin(orta + isaret * yarim) * BULUSMA_R };
+    const yuzA = Math.atan2(nB.x - nA.x, nB.z - nA.z);
+    const yuzB = Math.atan2(nA.x - nB.x, nA.z - nB.z);
+
+    const bA = bacakKur(A.plan, nA, basMs, bitMs, yuzA, engel);
+    const bB = bA && bacakKur(B.plan, nB, basMs, bitMs, yuzB, engel);
+    if (!bA || !bB) continue;
+
+    let uygun = true;
+    for (const [X, b] of [[A, bA], [B, bB]]) {
+      for (const w of X.ziyaretler ?? []) {
+        if (cakisir(b.gitMs - 3000, b.donMs + 3000, w.basMs, w.basMs + ZIYARET_KILIT_MS)) { uygun = false; break; }
+      }
+      for (const e of kayitlar.get(X.id) ?? []) {
+        if (cakisir(b.gitMs - BULUSMA_BOSLUK_MS, b.donMs + BULUSMA_BOSLUK_MS, e.gitMs, e.donMs)) { uygun = false; break; }
+      }
+      if (!uygun) break;
+    }
+    if (!uygun) continue;
+
+    const verenA = tohumSayi(cift, "veren") < 0.5;
+    return {
+      id: cift, tur, basMs, bitMs, a: A.id, b: B.id,
+      veren: verenA ? A.id : B.id, alan: verenA ? B.id : A.id,
+      bacaklar: { [A.id]: bA, [B.id]: bB },
+      nokta: { [A.id]: nA, [B.id]: nB },
+    };
+  }
+  return null;
+}
+
+/**
+ * Çizilen botlar arasındaki buluşmalar.
+ * @param {Array<{id:string, tohum:string, basSira:number, sira:number, plan:object, ziyaretler:Array}>} adaylar
+ *   basSira: sunucunun HAM başlangıç anı (ms) — tüm istemcilerde aynı sıralama için.
+ * @returns {Array<{id,tur,basMs,bitMs,a,b,veren,alan,bacaklar}>}
+ */
+export function botBulusmalariniPlanla(adaylar, ayar, engeller) {
+  const olasilik = Math.max(0, Number(ayar?.ikramYuzde ?? 0)) / 100;
+  if (!(olasilik > 0) || !adaylar?.length) return [];
+  const engel = [...(engeller ?? []), HAVUZ];
+  const sirali = [...adaylar].sort(
+    (x, y) => x.basSira - y.basSira || (x.sira ?? 0) - (y.sira ?? 0) || (x.tohum < y.tohum ? -1 : 1)
+  );
+  const kayitlar = new Map();   // id -> [{gitMs, donMs}]
+  const sonuc = [];
+  for (let i = 1; i < sirali.length; i++) {
+    const B = sirali[i];
+    for (let j = 0; j < i; j++) {
+      const A = sirali[j];
+      if (!(A.plan?.noktalar?.length) || !(B.plan?.noktalar?.length)) continue;
+      const cift = `${A.tohum}|${B.tohum}`;
+      if (tohumSayi(cift, "ikram") >= olasilik) continue;
+      const m = bulusmaKur(A, B, cift, engel, kayitlar);
+      if (!m) continue;
+      sonuc.push(m);
+      for (const id of [A.id, B.id]) {
+        if (!kayitlar.has(id)) kayitlar.set(id, []);
+        kayitlar.get(id).push(m.bacaklar[id]);
+      }
+    }
+  }
+  return sonuc;
+}
+
+/**
+ * Planın üstüne bacakları ekler (bacak dışındaki noktalar aynen kalır).
+ * @returns yeni plan nesnesi
+ */
+export function planaBacakEkle(plan, bacaklar) {
+  if (!bacaklar?.length) return plan;
+  const sirali = [...bacaklar].sort((a, b) => a.gitMs - b.gitMs);
+  const n = plan.noktalar;
+  const yeni = [];
+  let i = 0;
+  for (const bk of sirali) {
+    while (i < n.length && n[i].t < bk.gitMs) yeni.push(n[i++]);
+    yeni.push(...bk.noktalar);
+    while (i < n.length && n[i].t <= bk.donMs) i++;
+  }
+  while (i < n.length) yeni.push(n[i++]);
+  return { ...plan, noktalar: yeni };
 }

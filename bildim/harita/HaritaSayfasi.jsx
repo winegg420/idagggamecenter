@@ -29,6 +29,8 @@ import { MENU, ikramGonder, ikramYanitla, bekleyenIkramlar, IKRAM_SURE_SN, ZAMAN
 import { kahveBasla, balonBasla, ikramKaresi, ikramlariTemizle } from "./ikramGorsel.js";
 import {
   meydanBotlariniAl, botJesti, botPlaniKur, planKonumu, kapilariHesapla, BOT_HIZI,
+  gorunurBotlariSec, ziyaretPencereleri, ziyaretHedefiSec, ziyaretUygunMu, ziyaretBaslat,
+  ziyaretAdimi, botBulusmalariniPlanla, planaBacakEkle, hopYuksekligi, kararliRastgele,
 } from "./meydanBotlari.js";
 import { GARDROP_YOLU } from "../pages/GardropaGit.jsx";
 import "./harita.css";
@@ -135,7 +137,12 @@ export default function HaritaSayfasi() {
   // Meydandaki gerçek oyuncu sayısı ve bot kuralı — bot tazeleme
   // closure içinde çalıştığı için ref üzerinden okunur.
   const kisiRef = useRef(1);
-  const botAyarRef = useRef({ taban: 1, ek: 2, tavan: 6 });
+  const botAyarRef = useRef({
+    taban: 1, ek: 2, tavan: 6, dalgaSn: 240, dalgaUst: 1, grupEnCok: 1, ziyaretYuzde: 0, ikramYuzde: 0,
+  });
+  // Ayarlar gelmeden bot planı kurulmaz: farklı ayarla kurulan plan başka
+  // istemcilerin gördüğünden farklı olurdu.
+  const botAyarHazirRef = useRef(null);
   const turnuvaKalanRef = useRef(null);
   turnuvaKalanRef.current = turnuvaKalan;
   kisiRef.current = kisi;
@@ -154,16 +161,22 @@ export default function HaritaSayfasi() {
   // Bot kuralı sunucudan (oyun_ayarlari): rakamlar koda gömülmez.
   useEffect(() => {
     let aktif = true;
-    (async () => {
+    botAyarHazirRef.current = (async () => {
       try {
         const { data, error } = await supabase.rpc("meydan_bot_ayarlari");
         if (error) throw error;
         const r = Array.isArray(data) ? data[0] : data;
         if (aktif && r) {
+          const sayi = (v, varsayilan) => (Number.isFinite(Number(v)) ? Number(v) : varsayilan);
           botAyarRef.current = {
-            taban: Number(r.taban ?? 1),
-            ek: Number(r.ek ?? 2),
-            tavan: Number(r.tavan ?? 6),
+            taban: sayi(r.taban, 1),
+            ek: sayi(r.ek, 2),
+            tavan: sayi(r.tavan, 6),
+            dalgaSn: sayi(r.dalga_sn, 240),
+            dalgaUst: sayi(r.dalga_ust, sayi(r.taban, 1)),
+            grupEnCok: sayi(r.grup_en_cok, 1),
+            ziyaretYuzde: sayi(r.ziyaret_yuzde, 0),
+            ikramYuzde: sayi(r.ikram_yuzde, 0),
           };
         }
       } catch (e) {
@@ -498,72 +511,141 @@ export default function HaritaSayfasi() {
     canliRef.current = { dunya, ben, coklu, renk, uzaklar, botlar, ziplama };
 
     // ---- MEYDAN BOTLARI ----
-    // Sunucu nöbete TAVAN kadar gizli bot yazar (meydan_bot_nobeti);
-    // kaçının ÇİZİLECEĞİNE burası karar verir. Konumlar tohumdan türediği
-    // için herkes aynı botu aynı yerde görür; presence'a ihtiyaç yok.
+    // Sunucu nöbeti katmanlara böler (meydan_bot_nobeti.katman); kaçının
+    // ÇİZİLECEĞİNE mantık katmanı karar verir (gorunurBotlariSec): tek
+    // başına oyuncu için zamana bağlı dalga (taban..dalgaUst), her ek gerçek
+    // oyuncu `ek` kadar ekler, `tavan`ı aşmaz. Karar botun GİRİŞ anına göre
+    // verilir; herkes aynı listeye aynı kuralı uyguladığı için aynı botları
+    // aynı yerde görür. Presence'a ihtiyaç yok.
     //
-    // KAÇ BOT: meydanda başka gerçek oyuncu yokken `taban` (meydan asla
-    // boş görünmez); her ek gerçek oyuncu için `ek` kadar artar, `tavan`ı
-    // aşmaz. Sayım istemcide yapılır çünkü sunucu presence'ı görmez;
-    // herkes aynı `kisi` değerini kullandığı için sonuç tutarlıdır.
-    //
-    // KADEMELİ: yeni botlar aynı anda belirmesin diye her tazelemede en
-    // fazla bir tanesi eklenir (tazeleme 6 saniyede bir).
+    // ORGANİK DAVRANIŞ (hepsi tohumdan kararlı, Math.random yok):
+    //   • grup girişi: aynı katman + başlangıç → aynı kapıdan birkaç adım arayla
+    //   • ziyaret: ara sıra yakındaki gerçek oyuncuya gidip emoji + hoplama
+    //   • buluşma: iki bot karşılıklı durup kahve/balon ikram eder
     // Botların girip çıktığı kapılar ve kaçındığı engeller dünyadan okunur
     // (mantık katmanı yalnız sayı görür; harita değişirse bu da değişir).
     const kapilar = kapilariHesapla(dunya.binalar, dunya.engeller);
+    // Görünür botların TABAN planları (bir kez kurulur): id -> { id, tohum,
+    // plan, ziyaretler, basSira, sira }. Buluşmalar bunların üstüne eklenir.
+    const tabanlar = new Map();
+    let bulusmalar = [];
+    const oynananBulusmalar = new Set();
+    let ilkTazeleme = true;
+    // İlk tazelemeden sonra yalnız KAPIDAN GİREN bot eklenir; meydanın
+    // ortasında aniden belirmesin.
+    const GIRIS_PENCERESI_MS = 20000;
     const botlariTazele = async () => {
+      try {
+        await Promise.race([
+          botAyarHazirRef.current ?? Promise.resolve(),
+          new Promise((coz) => setTimeout(coz, 4000)),
+        ]);
+      } catch { /* ayar alınamadı: varsayılanlarla devam */ }
       const liste = await meydanBotlariniAl();
+      if (!aktif) return;
+      try {
+        const ayar = botAyarRef.current;
+        const simdi = Date.now();
+        const gorunur = gorunurBotlariSec(liste, { kisi: kisiRef.current ?? 1, ayar });
 
-      const gercekDigerleri = Math.max(0, (kisiRef.current ?? 1) - 1);
-      const hedef = Math.max(0, Math.min(
-        botAyarRef.current.tavan,
-        botAyarRef.current.taban + botAyarRef.current.ek * gercekDigerleri
-      ));
-
-      // Nöbetten düşenler her hâlükârda silinir.
-      const gelen = new Set(liste.map((b) => b.user_id));
-      for (const [id, b] of botlar) {
-        if (!gelen.has(id)) {
-          try { dunya.avatarSil(b.av); } catch { /* yut */ }
-          botlar.delete(id);
+        // Nöbetten düşenler her hâlükârda silinir.
+        const gelen = new Set(liste.map((b) => b.user_id));
+        for (const [id, b] of botlar) {
+          if (!gelen.has(id)) {
+            try { dunya.avatarSil(b.av); } catch { /* yut */ }
+            botlar.delete(id);
+          }
         }
-      }
+        for (const id of [...tabanlar.keys()]) {
+          if (!gelen.has(id) || (!gorunur.has(id) && !botlar.has(id))) tabanlar.delete(id);
+        }
 
-      // Fazlaysa sessizce azalt (gerçek oyuncular çıktı) — birer birer.
-      if (botlar.size > hedef) {
-        const [id, b] = [...botlar][botlar.size - 1];
-        try { dunya.avatarSil(b.av); } catch { /* yut */ }
-        botlar.delete(id);
-        return;
-      }
+        // Görünür botların taban planları (nöbet değişmediyse yeniden kurulmaz).
+        for (const b of liste) {
+          const g = gorunur.get(b.user_id);
+          if (!g) continue;
+          const eski = tabanlar.get(b.user_id);
+          if (eski && eski.tohum === b.tohum) continue;
+          try {
+            const plan = botPlaniKur({
+              tohum: b.tohum, baslangicMs: b.baslangicMs, bitisMs: b.bitisMs,
+              kapilar, engeller: dunya.engeller, grup: g,
+            });
+            tabanlar.set(b.user_id, {
+              id: b.user_id, tohum: b.tohum, plan,
+              ziyaretler: ziyaretPencereleri(b.tohum, plan, ayar),
+              basSira: g.basSira, sira: g.sira,
+            });
+          } catch (e) {
+            console.error("[Meydan] bot plani kurulamadi:", e);
+          }
+        }
 
-      // Liste sunucuda en yeni nöbet önde gelir: boşalan yere az önce
-      // nöbete giren bot bir binanın kapısından girer. Bitmesine 15 sn'den
-      // az kalan eklenmez — belirip hemen gitmesin.
-      const simdi = Date.now();
-      for (const b of liste) {
-        if (botlar.has(b.user_id)) continue;
-        if (botlar.size >= hedef) break;
-        if (!(b.bitisMs - simdi > 15000)) continue;
-        const r = renkUret(b.user_id);
+        // Buluşmalar yalnız görünür botlar arasında (herkeste aynı küme).
         try {
-          const plan = botPlaniKur({
-            tohum: b.tohum, baslangicMs: b.baslangicMs, bitisMs: b.bitisMs,
-            kapilar, engeller: dunya.engeller,
-          });
-          const av = dunya.avatarOlustur(
-            String(b.gorunen_ad || "Oyuncu"), r.govde, r.sac, r.etiket,
-            b.gorunum ?? null, gorunumVerisi.bilgi
+          bulusmalar = botBulusmalariniPlanla(
+            [...tabanlar.values()].filter((t) => gorunur.has(t.id)), ayar, dunya.engeller
           );
-          av.userData.ad = String(b.gorunen_ad || "Oyuncu");
-          const ilk = planKonumu(plan, simdi);
-          av.position.set(ilk.x, 0, ilk.z);
-          av.rotation.y = ilk.aci;
-          botlar.set(b.user_id, { av, tohum: b.tohum, plan, sonJest: -1 });
         } catch (e) {
-          console.error("[Meydan] bot avatari kurulamadi:", e);
+          console.error("[Meydan] bot bulusmalari:", e);
+          bulusmalar = [];
         }
+        const botBacaklari = new Map();   // id -> [{ id: bulusmaId, bacak }]
+        for (const m of bulusmalar) {
+          for (const id of [m.a, m.b]) {
+            if (!botBacaklari.has(id)) botBacaklari.set(id, []);
+            botBacaklari.get(id).push({ id: m.id, bacak: m.bacaklar[id] });
+          }
+        }
+
+        // Yeni botlar. Bitmesine 15 sn'den az kalan eklenmez — belirip hemen gitmesin.
+        for (const b of liste) {
+          if (botlar.has(b.user_id)) continue;
+          const t = tabanlar.get(b.user_id);
+          if (!t || !gorunur.has(b.user_id)) continue;
+          if (!(b.bitisMs - simdi > 15000)) continue;
+          if (!ilkTazeleme && simdi > t.plan.baslaMs + GIRIS_PENCERESI_MS) continue;
+          const r = renkUret(b.user_id);
+          try {
+            const av = dunya.avatarOlustur(
+              String(b.gorunen_ad || "Oyuncu"), r.govde, r.sac, r.etiket,
+              b.gorunum ?? null, gorunumVerisi.bilgi
+            );
+            av.userData.ad = String(b.gorunen_ad || "Oyuncu");
+            const ilk = planKonumu(t.plan, simdi);
+            av.position.set(ilk.x, 0, ilk.z);
+            av.rotation.y = ilk.aci;
+            av.visible = simdi >= t.plan.baslaMs;
+            botlar.set(b.user_id, {
+              av, tohum: b.tohum, taban: t, plan: t.plan, ziyaretler: t.ziyaretler,
+              bacaklar: [], bulusmaIdleri: new Set(), sonJest: -1,
+              ziyaret: null, ziyaretBitti: new Set(), hop: null,
+            });
+          } catch (e) {
+            console.error("[Meydan] bot avatari kurulamadi:", e);
+          }
+        }
+
+        // Buluşma bacaklarını planlara işle. Başlamış/süren bir bacak
+        // eklenip çıkarılamaz (bot yerinden sıçrardı) — o istemcide atlanır.
+        for (const [id, b] of botlar) {
+          const yeniler = botBacaklari.get(id) ?? [];
+          const imza = yeniler.map((x) => x.id).sort().join(",");
+          if (imza === [...b.bulusmaIdleri].sort().join(",")) continue;
+          if (b.ziyaret) continue;
+          const eklenen = yeniler.filter((x) => !b.bulusmaIdleri.has(x.id));
+          const cikan = b.bacaklar.filter((x) => !yeniler.some((y) => y.id === x.id));
+          const dokunulmaz = [...eklenen, ...cikan].some(
+            (x) => !(x.bacak.gitMs > simdi + 300 || x.bacak.donMs < simdi)
+          );
+          if (dokunulmaz) continue;
+          b.plan = planaBacakEkle(b.taban.plan, yeniler.map((x) => x.bacak));
+          b.bacaklar = yeniler;
+          b.bulusmaIdleri = new Set(yeniler.map((x) => x.id));
+        }
+        ilkTazeleme = false;
+      } catch (e) {
+        console.error("[Meydan] bot tazeleme:", e);
       }
     };
     botlariTazele();
@@ -748,11 +830,14 @@ export default function HaritaSayfasi() {
         setIpucu(yakin ? { ad: yakin.ad, alt: yakin.alt, rota: yakin.rota } : null);
       }
 
-      // Meydan botları: kapıdan gir → dolaş/dur → bir binaya yürü → kaybol.
-      // Konum sunucu saatine bağlı plandan okunur; herkes aynı yerde görür.
+      // Meydan botları: kapıdan gir → dolaş/dur (ara sıra oyuncuya selam,
+      // başka botla ikram) → bir binaya yürü → kaybol. Konum sunucu saatine
+      // bağlı plandan okunur; herkes aynı yerde görür.
       if (botlar.size > 0) {
         const simdiMs = Date.now();
         const sn = simdiMs / 1000;
+        let oyuncuIdleri = null;   // ziyaret hedefi olabilecek gerçek oyuncular (gerekince)
+        const oyuncuAvatari = (id) => (id === user.id ? ben : (uzaklar.get(id)?.yerlesti ? uzaklar.get(id).av : null));
         for (const [id, b] of botlar) {
           const k = planKonumu(b.plan, simdiMs);
           if (k.bitti) {
@@ -761,21 +846,96 @@ export default function HaritaSayfasi() {
             botlar.delete(id);
             continue;
           }
-          b.av.position.x = k.x;
-          b.av.position.z = k.z;
-          dunya.yumusakDon(b.av, k.aci, dt, 8);
+          // Grup üyeleri kapıdan sırayla çıkar: sırası gelmeyen görünmez.
+          const girdi = simdiMs >= b.plan.baslaMs;
+          if (b.av.visible !== girdi) b.av.visible = girdi;
+          if (!girdi) continue;
+
+          let x = k.x, z = k.z, aci = k.aci, yuruyor = k.yuruyor, zipla = 0;
+
+          // Ziyaret penceresi açıldı mı? (pencereyi kaçıran istemci atlar)
+          if (!b.ziyaret) {
+            const p = b.ziyaretler.find(
+              (w) => simdiMs >= w.basMs && simdiMs < w.basMs + 1500 && !b.ziyaretBitti.has(w.basMs)
+            );
+            if (p) {
+              b.ziyaretBitti.add(p.basMs);
+              if (!oyuncuIdleri) {
+                oyuncuIdleri = [user.id];
+                for (const [uid, u] of uzaklar) if (u.yerlesti) oyuncuIdleri.push(uid);
+              }
+              const hedefId = ziyaretHedefiSec(p, oyuncuIdleri);
+              const hedefAv = hedefId ? oyuncuAvatari(hedefId) : null;
+              if (hedefAv && ziyaretUygunMu(k, hedefAv.position)) {
+                b.ziyaret = { hedefId, durum: ziyaretBaslat(k, p, simdiMs) };
+              }
+            }
+          }
+          if (b.ziyaret) {
+            try {
+              const hedefAv = oyuncuAvatari(b.ziyaret.hedefId);
+              const s = ziyaretAdimi(b.ziyaret.durum, {
+                simdiMs, dt, hedef: hedefAv ? hedefAv.position : null,
+                plan: b.plan, engeller: dunya.engeller,
+              });
+              if (s.bitti) {
+                b.ziyaret = null;               // plana tam katıldı: plan konumu geçerli
+              } else {
+                x = s.x; z = s.z; aci = s.aci; yuruyor = s.yuruyor; zipla = s.zipla;
+                if (s.emoji) dunya.emojiGoster(b.av, s.emoji);
+              }
+            } catch (e) {
+              console.error("[Meydan] bot ziyareti:", e);
+              b.ziyaret = null;
+            }
+          }
+
+          b.av.position.x = x;
+          b.av.position.z = z;
+          dunya.yumusakDon(b.av, aci, dt, 8);
+          if (!zipla && b.hop) {
+            const gecen = simdiMs - b.hop.basMs;
+            zipla = hopYuksekligi(gecen, b.hop.adet);
+            if (gecen > 3000) b.hop = null;
+          }
           // Adım temposu gerçek hızla orantılı — yerinde kayar gibi yürümesin.
-          dunya.yurumeAnimasyonu(b.av, dt, k.yuruyor ? BOT_HIZI / YURUME_HIZI : 0);
-          if (k.yuruyor) continue;              // yürürken jest yapmaz
+          dunya.yurumeAnimasyonu(b.av, dt, yuruyor ? BOT_HIZI / YURUME_HIZI : 0, zipla);
+          if (yuruyor || b.ziyaret) continue;   // yürürken / selam verirken jest yapmaz
+          // Buluşma bacağındayken de jest yok (ikram gösterisi oynuyor).
+          if (b.bacaklar.some((x2) => simdiMs >= x2.bacak.gitMs && simdiMs <= x2.bacak.donMs)) continue;
           const j = botJesti(b.tohum, sn);
           const pencere = Math.floor(sn / 40);
           if (j && b.sonJest !== pencere) {
             b.sonJest = pencere;
             try {
               if (j.tur === "dans" && dansVarMi(j.deger)) dunya.dansEttir(b.av, j.deger);
-              else dunya.emojiGoster(b.av, j.deger);
+              else if (j.tur === "zipla") b.hop = { basMs: simdiMs, adet: Number(j.deger) || 1 };
+              else if (j.tur === "emoji") dunya.emojiGoster(b.av, j.deger);
             } catch (e) { console.error("[Meydan] bot jesti:", e); }
           }
+        }
+
+        // Buluşmalar: iki bot da noktasına vardıysa ikram gösterisi başlar.
+        // Geç açılan istemci kalan süreyle oynatır.
+        for (const m of bulusmalar) {
+          if (oynananBulusmalar.has(m.id)) continue;
+          if (simdiMs < m.basMs || simdiMs > m.bitMs - 1500) continue;
+          const A = botlar.get(m.a), B = botlar.get(m.b);
+          if (!A || !B || !A.bulusmaIdleri.has(m.id) || !B.bulusmaIdleri.has(m.id)) continue;
+          if (A.ziyaret || B.ziyaret) continue;
+          const yerinde = (bot, id) =>
+            Math.hypot(bot.av.position.x - m.nokta[id].x, bot.av.position.z - m.nokta[id].z) < 0.4;
+          if (!yerinde(A, m.a) || !yerinde(B, m.b)) continue;
+          oynananBulusmalar.add(m.id);
+          const kalanSn = (m.bitMs - simdiMs) / 1000;
+          try {
+            if (m.tur === "kahve") {
+              kahveBasla(dunya.sahne, A.av, B.av, kalanSn);
+            } else {
+              const veren = botlar.get(m.veren), alan = botlar.get(m.alan);
+              if (veren && alan) balonBasla(dunya.sahne, veren.av, alan.av, kalanSn, kararliRastgele(m.id));
+            }
+          } catch (e) { console.error("[Meydan] bot ikrami:", e); }
         }
       }
 
