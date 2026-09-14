@@ -33,11 +33,31 @@ export const PARCALAR = [
   ['alt_pantolon','Pantolon','alt','pantolon',null],
   ['alt_sort','Şort','alt','sort',null],
   ['alt_kapri','Kapri','alt','kapri',null],
+  // ---- Paket 7: yeni üstler, kostümler, ayakkabılar, takılar ----
+  ['ust_havai','Havai gömleği','kiyafet','havai',null],
+  ['ust_cizgili','Çizgili tişört','kiyafet','cizgili',null],
+  ['ust_oduncu','Oduncu gömleği','kiyafet','oduncu',null],
+  ['ust_polo','Polo tişört','kiyafet','polo',null],
+  ['ust_kapusonlu','Kapüşonlu sweatshirt','kiyafet','kapusonlu',null],
+  ['ust_kot','Kot gömlek','kiyafet','kot',null],
+  ['ust_tisort_mavi','Mavi tişört','kiyafet','tisort_mavi',null],
+  ['ust_tisort_sari','Sarı tişört','kiyafet','tisort_sari',null],
+  ['ust_seytan','Şeytan kostümü','kiyafet','seytan',null],
+  ['ust_damatlik','Damatlık','kiyafet','damatlik',null],
+  ['bas_boynuz','Şeytan boynuzu','bas','boynuz',null],
+  ['ayak_tokyo','Tokyo terlik','ayakkabi','tokyo',null],
+  ['ayak_topuklu','Topuklu ayakkabı','ayakkabi','topuklu',null],
+  ['kolye_altin','Altın kolye','kolye','altin',null],
+  ['kolye_gumus','Gümüş kolye','kolye','gumus',null],
+  ['saat_altin','Altın saat','saat','altin',null],
+  ['saat_gumus','Gümüş saat','saat','gumus',null],
+  ['kupe_altin','Altın küpe','kupe','altin',null],
+  ['kupe_gumus','Gümüş küpe','kupe','gumus',null],
 ].map(([id,ad,yuva,deger,eskiKod])=>({id,ad,yuva,deger,eskiKod}));
-export const YUVA_ADLARI={sac:'Saç',kiyafet:'Üst giyim',alt:'Alt giyim',ayakkabi:'Ayakkabı',bas:'Baş aksesuarı',gozluk:'Gözlük',sakal:'Sakal',pelerin:'Sırt'};
+export const YUVA_ADLARI={sac:'Saç',kiyafet:'Üst giyim',alt:'Alt giyim',ayakkabi:'Ayakkabı',bas:'Baş aksesuarı',gozluk:'Gözlük',kupe:'Küpe',kolye:'Kolye',saat:'Saat',sakal:'Sakal',pelerin:'Sırt'};
 // Boş değer = o yuvanın ücretsiz/varsayılan hâli. `kiyafet`, `alt` ve
 // `ayakkabi` çıplak bırakılamaz; bu yüzden boşları temel parçadır.
-export const BOSLAR={sac:'yok',kiyafet:'tisort',alt:'pantolon',ayakkabi:'spor',bas:'yok',gozluk:'yok',sakal:'yok',pelerin:'yok'};
+export const BOSLAR={sac:'yok',kiyafet:'tisort',alt:'pantolon',ayakkabi:'spor',bas:'yok',gozluk:'yok',sakal:'yok',pelerin:'yok',kolye:'yok',saat:'yok',kupe:'yok'};
 export const TEMEL=ayarDogrula({...BOSLAR,ceket:false});
 export function sahiplikDogrula(g,sahip){
   const temiz=ayarDogrula(g);

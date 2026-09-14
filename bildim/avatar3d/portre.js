@@ -63,9 +63,14 @@ CERCEVE.manken_kiyafet = { fov: 26, konum: [0, 2.05, 4.60], bak: [0, 1.95, 0] };
 CERCEVE.manken_sakal    = { fov: 24, konum: [0, 2.86, 3.10], bak: [0, 2.82, 0] };
 CERCEVE.manken_alt      = { fov: 26, konum: [0, 1.25, 4.00], bak: [0, 1.16, 0] };
 CERCEVE.manken_ayakkabi = { fov: 26, konum: [0, .62, 2.50], bak: [0, .23, 0] };
+// Takılar (Paket 7) — modelden hesaplanan konumlar: kolye göğüs y≈2.45,
+// saat sol el bileği (-.54, 1.58), küpeler kulak altı y≈2.95, x ±.6.
+CERCEVE.manken_kolye = { fov: 24, konum: [0, 2.62, 2.70], bak: [0, 2.45, 0] };
+CERCEVE.manken_saat  = { fov: 22, konum: [.10, 1.90, 1.90], bak: [-.54, 1.56, 0] };
+CERCEVE.manken_kupe  = { fov: 30, konum: [0, 3.05, 2.60], bak: [0, 3.00, 0] };
 
 const YUVA_CERCEVE={sac:'bas',bas:'bas',gozluk:'bas',sakal:'bas',kiyafet:'govde',
- alt:'tamboy',ayakkabi:'tamboy',pelerin:'sirt'};
+ alt:'tamboy',ayakkabi:'tamboy',pelerin:'sirt',kolye:'govde',saat:'govde',kupe:'bas'};
 
 /**
  * @param {object} temelGorunum oyuncunun o anki görünümü (ten/saç rengi dahil)
@@ -113,7 +118,8 @@ export function parcaPortresi(temelGorunum,parca,boyut=192){
 /** Bu yuva için manken gerekiyor mu? */
 // Sakal/alt/ayakkabı tek başına havada duruyor gibi görünür; gri manken
 // üzerinde gösterilir (saç ve kıyafetle aynı gerekçe).
-const MANKEN_GEREKEN = { sac: true, kiyafet: true, sakal: true, alt: true, ayakkabi: true };
+const MANKEN_GEREKEN = { sac: true, kiyafet: true, sakal: true, alt: true, ayakkabi: true,
+                         kolye: true, saat: true, kupe: true };
 
 /** Kartta hangi çerçeve kullanılacak. */
 const ESYA_CERCEVE = {
@@ -125,7 +131,13 @@ const ESYA_CERCEVE = {
   sakal:    'manken_sakal',
   alt:      'manken_alt',
   ayakkabi: 'manken_ayakkabi',
+  kolye:    'manken_kolye',
+  saat:     'manken_saat',
+  kupe:     'manken_kupe',
 };
+
+/** Yüz detayı mesh adları (saç/sakal/küpe kartında yüzsüz manken için). */
+const YUZ_DETAYI = /Goz|Iris|Bebek|Kas|Kapak|Kulak|Burun|Gulumseme|Agiz|Dudak|Kirpik/i;
 
 /** Alt ağaçtaki bütün mesh'leri gizler. */
 function gizle(kok) {
@@ -185,7 +197,10 @@ export function esyaPortresi(temelGorunum, parca, boyut = 192) {
 
   // Eşya kendi rengiyle çizilsin diye görünüm renkleri korunur; yuva
   // değeri parçanın kendisi olur.
-  const ayar = ayarDogrula({ ...(temelGorunum || {}), [yuva]: parca.deger });
+  // Kolye ve saat kartı TİŞÖRT üstünde çizilir: ceket/uzun kol takılıyken
+  // saat kordonu kol kabuğuna göre büyür, kolye ceketin altında kalır.
+  const takiKarti = yuva === 'kolye' || yuva === 'saat';
+  const ayar = ayarDogrula({ ...(temelGorunum || {}), ...(takiKarti ? { kiyafet: 'tisort', ceket: false } : {}), [yuva]: parca.deger });
   // Önbellek anahtarında YUVA ve MANKEN bayrağı da var: aynı görünüm
   // farklı yuvalar için farklı kart üretir.
   const key = 'esya|' + yuva + '|' + (manken ? 'm' : 'y') + '|'
@@ -222,7 +237,8 @@ export function esyaPortresi(temelGorunum, parca, boyut = 192) {
     const yuvaKok = { sac: u.sacYuva, gozluk: u.gozlukYuva, bas: u.basYuva,
                       kiyafet: u.elbiseYuva, pelerin: u.capeRoot,
                       sakal: u.sakalYuva, alt: u.altParcalari,
-                      ayakkabi: u.ayakkabiParcalari }[yuva];
+                      ayakkabi: u.ayakkabiParcalari, kolye: u.kolyeYuva,
+                      saat: u.saatYuva, kupe: u.kupeYuva }[yuva];
     for (const kok of [].concat(yuvaKok || [])) geriAc(kok, ilkDurum);
 
     if (yuva === 'kiyafet') {
@@ -233,6 +249,30 @@ export function esyaPortresi(temelGorunum, parca, boyut = 192) {
       // Manken gövde + kollar; kafa KAPALI kalır (yüzsüz).
       geriAc(u.govde, ilkDurum);
       gizle(u.kafa);
+      // Takılar gövde/kol ağacında ama kıyafet kartına ait değil.
+      gizle(u.kolyeYuva); gizle(u.saatYuva);
+      // Kostüm bacakları/kuyruğu bel ağacında: kıyafetin parçası, açılır.
+      for (const p of u.kiyafetParcalari || []) geriAc(p, ilkDurum);
+      mankenlestir(model, ayar.ten, atilacak);
+    } else if (yuva === 'kolye') {
+      // Yüzsüz büst: boyun + gövde kabuğu gri, zincir üstünde.
+      u.govde.traverse((o) => { if ((o.isMesh) && (o.name === 'Boyun' || o.name === 'Tisort')) o.visible = true; });
+      u.govde.traverse((o) => {
+        if (o.isMesh && o.name === 'Tisort') { const m = o.material.clone(); m.color.set('#6f747c'); o.material = m; atilacak.push(m); }
+      });
+      geriAc(u.kolyeYuva, ilkDurum);
+      mankenlestir(model, ayar.ten, atilacak);
+    } else if (yuva === 'saat') {
+      // Gri kol ve el; saat kordonu bileğin üstünde.
+      u.kollar.traverse((o) => { if (o.isMesh && o.material?.color?.equals(new T.Color(ayar.ten))) o.visible = true; });
+      geriAc(u.saatYuva, ilkDurum);
+      mankenlestir(model, ayar.ten, atilacak);
+    } else if (yuva === 'kupe') {
+      // Gri kafa, yüz detayları kapalı; saç/şapka/gözlük/sakal kapalı.
+      geriAc(u.kafa, ilkDurum);
+      u.kafa.traverse((o) => { if (o.isMesh && YUZ_DETAYI.test(o.name || '') && !/Kulak$/.test(o.name || '')) o.visible = false; });
+      for (const k of [u.sacYuva, u.basYuva, u.gozlukYuva, u.sakalYuva]) gizle(k);
+      geriAc(u.kupeYuva, ilkDurum);
       mankenlestir(model, ayar.ten, atilacak);
     } else if (yuva === 'sac') {
       // Saç kafanın üstünde durur; kafa gri manken olarak açılır ama
@@ -267,6 +307,8 @@ export function esyaPortresi(temelGorunum, parca, boyut = 192) {
       geriAc(u.bacaklar, ilkDurum);
       for (const p of (yuva === 'alt' ? u.ayakkabiParcalari : u.altParcalari) || []) gizle(p);
       for (const p of (yuva === 'alt' ? u.altParcalari : u.ayakkabiParcalari) || []) geriAc(p, ilkDurum);
+      // Kostüm bacakları (şeytan/damatlık) alt giyimi örter: kartta gizlenir.
+      for (const p of u.kostumBacakParcalari || []) gizle(p);
       mankenlestir(model, ayar.ten, atilacak);
     }
 

@@ -30,6 +30,25 @@
     {"id":"goz_okuma","fiyat":400},
     {"id":"goz_yuvarlak","fiyat":400},
     {"id":"goz_spor","fiyat":550},
-    {"id":"sirt_pelerin","fiyat":null,"odul":true}
+    {"id":"sirt_pelerin","fiyat":null,"odul":true},
+    {"id":"ust_havai","fiyat":550},
+    {"id":"ust_cizgili","fiyat":350},
+    {"id":"ust_oduncu","fiyat":500},
+    {"id":"ust_polo","fiyat":400},
+    {"id":"ust_kapusonlu","fiyat":600},
+    {"id":"ust_kot","fiyat":450},
+    {"id":"ust_tisort_mavi","fiyat":300},
+    {"id":"ust_tisort_sari","fiyat":300},
+    {"id":"ust_seytan","fiyat":1800},
+    {"id":"ust_damatlik","fiyat":2200},
+    {"id":"bas_boynuz","fiyat":600},
+    {"id":"ayak_tokyo","fiyat":300},
+    {"id":"ayak_topuklu","fiyat":550},
+    {"id":"kolye_altin","fiyat":1500},
+    {"id":"kolye_gumus","fiyat":500},
+    {"id":"saat_altin","fiyat":1800},
+    {"id":"saat_gumus","fiyat":600},
+    {"id":"kupe_altin","fiyat":1200},
+    {"id":"kupe_gumus","fiyat":400}
   ]
 }

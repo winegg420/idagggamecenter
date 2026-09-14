@@ -57,6 +57,9 @@ const ENGELLEYENLER={
  altRenk:     ['pelerin'],
  ayakkabi:    ['pelerin'],
  ayakkabiRenk:['pelerin'],
+ kupe:        ['bas','sac'],                    // bere/uzun saç kulağı örter
+ kolye:       ['pelerin','sakal'],              // tam sakal zinciri önden kapatır
+ saat:        ['pelerin'],
 };
 
 /** Önizleme görünümü: aktif bölümü engelleyen yuvalar boşa çekilir. */

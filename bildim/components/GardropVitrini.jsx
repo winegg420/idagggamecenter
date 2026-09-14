@@ -25,6 +25,7 @@ import "../pages/gorunum.css";
 const YUVA_ADLARI = {
   sac: "Saç", kiyafet: "Üst giyim", alt: "Alt giyim", ayakkabi: "Ayakkabı",
   bas: "Baş aksesuarı", gozluk: "Gözlük", sakal: "Sakal", pelerin: "Sırt",
+  kolye: "Kolye", saat: "Saat", kupe: "Küpe",
 };
 
 export default function GardropVitrini() {

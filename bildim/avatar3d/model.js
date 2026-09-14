@@ -6,23 +6,125 @@ import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 export const VARSAYILAN = { ten: '#c58b62', sac: 'kisa', sacRenk: '#30211c',
   gozluk: 'yok', ceket: true, pelerin: 'yok', ceketRenk: '#be542d', yuz: 'dengeli',
   bas: 'yok', kiyafet: 'ceket', sakal: 'yok', ayakkabi: 'spor', alt: 'pantolon',
-  ayakkabiRenk: '#eee7d8', altRenk: '#253341' };
+  ayakkabiRenk: '#eee7d8', altRenk: '#253341', kolye: 'yok', saat: 'yok', kupe: 'yok' };
 
 // ---- yuva değer listeleri — TEK YER ----
 // ayarDogrula, katalog ve kart görselleri hepsi buna bakar.
 export const YUVA_DEGERLERI = {
   sac:      ['yok', 'kisa', 'uzun', 'rasta'],
-  bas:      ['yok', 'kep', 'bere', 'tac', 'duvak'],
-  kiyafet:  ['ceket', 'tisort', 'gelinlik', 'atlet', 'gomlek'],
+  bas:      ['yok', 'kep', 'bere', 'tac', 'duvak', 'boynuz'],
+  // Paket 7: renkli/desenli üstler + iki kostüm (şeytan, damatlık).
+  kiyafet:  ['ceket', 'tisort', 'gelinlik', 'atlet', 'gomlek',
+             'havai', 'cizgili', 'oduncu', 'polo', 'kapusonlu', 'kot',
+             'tisort_mavi', 'tisort_sari', 'seytan', 'damatlik'],
   // GÖZLÜK ve PELERİN ESKİDEN BOOLEAN'DI (`g.gozluk === true`). Çeşit
   // desteklemek için metne çevrildi; eski `true` değeri ayarDogrula'da
   // 'gunes' / 'klasik' karşılığına taşınır — kayıtlı görünümler bozulmaz.
   gozluk:   ['yok', 'gunes', 'kare', 'yuvarlak', 'okuma', 'spor'],
   pelerin:  ['yok', 'klasik', 'kisa'],
   sakal:    ['yok', 'tam', 'keci', 'biyik', 'favori'],
-  ayakkabi: ['spor', 'terlik', 'bot', 'sandalet'],
+  ayakkabi: ['spor', 'terlik', 'bot', 'sandalet', 'tokyo', 'topuklu'],
   alt:      ['pantolon', 'sort', 'kapri'],
+  // Takılar üç AYRI yuva: kolye, saat ve küpe aynı anda takılabilsin.
+  kolye:    ['yok', 'altin', 'gumus'],
+  saat:     ['yok', 'altin', 'gumus'],
+  kupe:     ['yok', 'altin', 'gumus'],
 };
+
+// ---- YENİ ÜST GİYİMLER — renk/desen PARÇAYA GÖMÜLÜ ----
+// `ceketRenk` yalnız ceketindir; bu parçalar kendi rengini taşır ki
+// "farklı renkler" dükkânda ayrı ürün olarak görünsün.
+//   bicim : gövde kabuğunun profili (tisort / gomlek / kapusonlu)
+//   kol   : 'kisa' | 'uzun' — kol kabukları
+//   bacak : kostüm bacakları da örter (alt giyimin ÜSTÜNE geçer)
+const YENI_USTLER = {
+  havai:       { renk: '#1aa6b7', desen: 'havai',   tekrar: [3, 2],   kol: 'kisa', bicim: 'gomlek' },
+  cizgili:     { renk: '#f6f3ea', desen: 'cizgili', tekrar: [1, 1.5], kol: 'kisa', bicim: 'tisort' },
+  oduncu:      { renk: '#b3242b', desen: 'oduncu',  tekrar: [3, 2],   kol: 'uzun', bicim: 'gomlek' },
+  polo:        { renk: '#2e8b57', kol: 'kisa', bicim: 'tisort' },
+  kapusonlu:   { renk: '#6c5bb5', kol: 'uzun', bicim: 'kapusonlu' },
+  kot:         { renk: '#3d6ea8', desen: 'kot',     tekrar: [4, 3],   kol: 'uzun', bicim: 'gomlek' },
+  tisort_mavi: { renk: '#2f6fd0', kol: 'kisa', bicim: 'tisort' },
+  tisort_sari: { renk: '#f2c230', kol: 'kisa', bicim: 'tisort' },
+  seytan:      { renk: '#c0262d', kol: 'uzun', bicim: 'tisort', bacak: '#c0262d' },
+  damatlik:    { renk: '#f7f5f0', kol: 'uzun', bicim: 'gomlek', bacak: '#1b1d24', kolRenk: '#1b1d24' },
+};
+
+// ---- DESENLİ KUMAŞ DOKULARI ----
+// Tuval (canvas) ile bir kez çizilir, modül ömrü boyunca önbellekte kalır:
+// gardırop her kart için model kurar, doku her seferinde yeniden çizilmesin.
+// Tuval olmayan ortamda (Node testi) null döner; parça düz renge düşer.
+const dokuOnbellegi = new Map();
+function tuvalAl() {
+  try {
+    if (typeof document !== 'undefined' && document.createElement) {
+      const c = document.createElement('canvas'); c.width = c.height = 256; return c;
+    }
+    if (typeof OffscreenCanvas !== 'undefined') return new OffscreenCanvas(256, 256);
+  } catch { /* dokusuz devam edilir */ }
+  return null;
+}
+function desenCiz(ctx, desen) {
+  const TAM = Math.PI * 2;
+  // Deseni kenarlardan taşırıp karşı kenara da çizer: doku dikişsiz tekrarlar.
+  const sar = (x, y, fn) => {
+    for (const dx of [-256, 0, 256]) for (const dy of [-256, 0, 256]) {
+      ctx.save(); ctx.translate(x + dx, y + dy); fn(); ctx.restore();
+    }
+  };
+  if (desen === 'havai') {
+    ctx.fillStyle = '#1aa6b7'; ctx.fillRect(0, 0, 256, 256);
+    for (const [x, y, a] of [[30,40,.6],[150,22,2.2],[212,122,1.1],[88,150,2.8],[40,222,.3],[182,212,1.9],[120,92,.9]]) {
+      sar(x, y, () => {
+        ctx.rotate(a); ctx.fillStyle = '#1f7a4a';
+        ctx.beginPath(); ctx.ellipse(0, 0, 34, 12, 0, 0, TAM); ctx.fill();
+        ctx.strokeStyle = '#8fd694'; ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.moveTo(-30, 0); ctx.lineTo(30, 0); ctx.stroke();
+      });
+    }
+    for (const [x, y, renk] of [[70,60,'#ff4f7b'],[192,70,'#ffd23f'],[132,172,'#ff8a3d'],[30,140,'#ffd23f'],[222,200,'#ff4f7b'],[96,236,'#ffffff']]) {
+      sar(x, y, () => {
+        ctx.fillStyle = renk;
+        for (let i = 0; i < 5; i++) { ctx.rotate(TAM / 5); ctx.beginPath(); ctx.ellipse(0, -13, 10, 15, 0, 0, TAM); ctx.fill(); }
+        ctx.fillStyle = '#b3123f'; ctx.beginPath(); ctx.arc(0, 0, 6, 0, TAM); ctx.fill();
+        ctx.fillStyle = '#fff1a8'; ctx.beginPath(); ctx.arc(0, 0, 3, 0, TAM); ctx.fill();
+      });
+    }
+  } else if (desen === 'cizgili') {
+    ctx.fillStyle = '#f6f3ea'; ctx.fillRect(0, 0, 256, 256);
+    ctx.fillStyle = '#223a6b';
+    for (let i = 0; i < 8; i++) ctx.fillRect(0, i * 32, 256, 14);
+  } else if (desen === 'oduncu') {
+    ctx.fillStyle = '#b3242b'; ctx.fillRect(0, 0, 256, 256);
+    ctx.fillStyle = 'rgba(22,14,14,.62)';
+    for (const p of [0, 128]) { ctx.fillRect(p, 0, 64, 256); ctx.fillRect(0, p, 256, 64); }
+    ctx.fillStyle = 'rgba(22,14,14,.5)';
+    for (const p of [98, 226]) { ctx.fillRect(p, 0, 5, 256); ctx.fillRect(0, p, 256, 5); }
+  } else if (desen === 'kot') {
+    ctx.fillStyle = '#3d6ea8'; ctx.fillRect(0, 0, 256, 256);
+    ctx.lineWidth = 2;
+    for (let i = -256; i < 512; i += 8) {
+      ctx.strokeStyle = i % 16 ? 'rgba(255,255,255,.10)' : 'rgba(10,20,40,.12)';
+      ctx.beginPath(); ctx.moveTo(i, 0); ctx.lineTo(i + 256, 256); ctx.stroke();
+    }
+  }
+}
+function kumasDokusu(desen, tekrar) {
+  const anahtar = desen + '|' + tekrar.join('x');
+  if (dokuOnbellegi.has(anahtar)) return dokuOnbellegi.get(anahtar);
+  let doku = null;
+  const tuval = tuvalAl(), ctx = tuval?.getContext?.('2d');
+  if (ctx) {
+    desenCiz(ctx, desen);
+    doku = new T.CanvasTexture(tuval);
+    doku.colorSpace = T.SRGBColorSpace;
+    doku.wrapS = doku.wrapT = T.RepeatWrapping;
+    doku.repeat.set(...tekrar);
+    doku.anisotropy = 4;
+  }
+  dokuOnbellegi.set(anahtar, doku);
+  return doku;
+}
 export const TENLER = ['#f3d6bc', '#e8b68e', '#c58b62', '#995f3c', '#70442f', '#422c25'];
 export const SAC_RENKLERI = ['#30211c', '#141318', '#cba44d', '#9e4026', '#ddd2c3'];
 export function ayarDogrula(g = {}) {
@@ -56,6 +158,10 @@ export function ayarDogrula(g = {}) {
     alt: secim('alt', g.alt, 'pantolon'),
     ayakkabiRenk: renk(g.ayakkabiRenk, VARSAYILAN.ayakkabiRenk),
     altRenk: renk(g.altRenk, VARSAYILAN.altRenk),
+    // ---- Paket 7: takılar ----
+    kolye: secim('kolye', g.kolye, 'yok'),
+    saat: secim('saat', g.saat, 'yok'),
+    kupe: secim('kupe', g.kupe, 'yok'),
   };
 }
 
@@ -114,16 +220,119 @@ export function modelKur(girdi = VARSAYILAN) {
   // ---- ÜST GİYİM (tişört / atlet / gömlek) ----
   // Gövde kabuğu `kiyafet` yuvasına aittir. Atlet omuzları açar (daha dar
   // ve alçak yaka), gömlek biraz daha bol durur ve ön dikişi vardır.
+  // YENİ ÜSTLER (Paket 7) kendi rengini/desenini taşır; parçaları
+  // `kiyafetParcalari`nda toplanır, kostüm bacakları ayrıca
+  // `kostumBacakParcalari`nda (kart görseli alt giyimde onları gizler).
+  const ust = YENI_USTLER[ayar.kiyafet] || null;
+  const kiyafetParcalari = [], kostumBacakParcalari = [];
+  const kumasMal = (tanim, tekrar) => {
+    const doku = tanim.desen ? kumasDokusu(tanim.desen, tekrar || tanim.tekrar) : null;
+    const m = mal(doku ? '#ffffff' : tanim.renk, .78);
+    if (doku) m.map = doku;
+    return m;
+  };
+  const ustMal = ust ? kumasMal(ust) : beyaz;
+  const ustKolMal = ust ? (ust.kolRenk ? mal(ust.kolRenk, .6) : kumasMal(ust, ust.desen ? [1.5, 1] : null)) : null;
+  const kostumBacakMal = ust?.bacak ? mal(ust.bacak, ust.bacak === '#1b1d24' ? .55 : .6) : null;
+  const ustDetayMal = ust ? mal(ton(ust.kolRenk || ust.renk, ayar.kiyafet === 'cizgili' ? .35 : .7)) : null;
+  const gomlekBicimi = ayar.kiyafet === 'gomlek' || ust?.bicim === 'gomlek';
   const ustProfil = ayar.kiyafet === 'atlet'
     ? [[.33,-.56],[.38,-.4],[.40,.2],[.36,.33],[.14,.4]]
-    : ayar.kiyafet === 'gomlek'
+    : gomlekBicimi
       ? [[.37,-.6],[.42,-.4],[.45,.2],[.45,.46],[.21,.6]]
-      : [[.35,-.56],[.4,-.4],[.43,.2],[.43,.43],[.2,.6]];
-  const ustGiyim = ekle(govde,govdeGeo(ustProfil),beyaz,[0,0,0],[1,1,1],'Tisort');
+      : ust?.bicim === 'kapusonlu'
+        ? [[.38,-.6],[.43,-.4],[.46,.2],[.46,.45],[.22,.6]]
+        : [[.35,-.56],[.4,-.4],[.43,.2],[.43,.43],[.2,.6]];
+  const ustGiyim = ekle(govde,govdeGeo(ustProfil),ustMal,[0,0,0],[1,1,1],'Tisort');
+  if (ust) kiyafetParcalari.push(ustGiyim);
   if (ayar.kiyafet === 'gomlek') {
     // Ön dikiş + iki düğme: gömleği tişörtten ayıran en ucuz iki detay.
     ekle(govde,cizgiGeo([[0,-.5,.28],[0,.1,.29],[0,.42,.24]],.012),dikisMal,[0,0,0],[1,1,1],'GomlekOnDikis');
     for(let i=0;i<2;i++) kure(govde,dikisMal,[0,-.16+i*.3,.3],[.032,.032,.016],'GomlekDugme');
+  }
+  if (ust) {
+    const k = ayar.kiyafet;
+    const yakaHalkasi = (r, kalinlik, y, m, ad) => {
+      const h = ekle(govde, new T.TorusGeometry(r, kalinlik, 8, 32), m, [0, y, 0], [1, .64, 1], ad);
+      h.rotation.x = Math.PI / 2; kiyafetParcalari.push(h); return h;
+    };
+    if (['havai', 'oduncu', 'kot'].includes(k)) {
+      // Gömlek ailesi: ön pat + düğmeler. Havai yakası açık (V), diğerleri kapalı.
+      const dugmeMal = k === 'havai' ? mal('#fff7e9', .4) : mal('#e9dcc0', .4);
+      kiyafetParcalari.push(ekle(govde, cizgiGeo([[0,-.5,.282],[0,.1,.292],[0,k==='havai'?.36:.42,k==='havai'?.27:.24]],.014), ustDetayMal, [0,0,0], [1,1,1], 'GomlekPat'));
+      for (let i = 0; i < (k === 'havai' ? 3 : 4); i++) kiyafetParcalari.push(kure(govde, dugmeMal, [0,-.34+i*.2,.298], [.026,.026,.013], 'GomlekDugme'));
+      if (k === 'havai') {
+        for (const s of [-1, 1]) {
+          const yaka = kure(govde, ustMal, [s*.11,.5,.215], [.13,.045,.11], 'HavaiYaka');
+          yaka.rotation.z = s * .75; yaka.rotation.x = -.35; kiyafetParcalari.push(yaka);
+        }
+      } else {
+        yakaHalkasi(.215, .035, .59, ustDetayMal, 'GomlekYaka');
+      }
+      if (k === 'kot') {
+        // İki göğüs cebi: kot gömleğin tanınan detayı.
+        for (const s of [-1, 1]) kiyafetParcalari.push(ekle(govde, new T.BoxGeometry(.13,.12,.02), ustDetayMal, [s*.19,.24,.265], [1,1,1], 'KotCep'));
+      }
+    } else if (k === 'polo') {
+      yakaHalkasi(.21, .04, .585, ustDetayMal, 'PoloYaka');
+      kiyafetParcalari.push(ekle(govde, cizgiGeo([[0,.22,.275],[0,.42,.245]],.012), ustDetayMal, [0,0,0], [1,1,1], 'PoloPat'));
+      for (let i = 0; i < 2; i++) kiyafetParcalari.push(kure(govde, mal('#fff7e9', .4), [0,.26+i*.1,.28], [.022,.022,.011], 'PoloDugme'));
+    } else if (k === 'kapusonlu') {
+      // Kapüşon ense arkasında omuzlara yaslanır; önde kanguru cebi + iki bağcık.
+      kiyafetParcalari.push(kure(govde, ustMal, [0,.64,-.2], [.3,.2,.19], 'Kapuson'));
+      yakaHalkasi(.2, .045, .6, ustDetayMal, 'KapusonAgzi');
+      kiyafetParcalari.push(kure(govde, ustDetayMal, [0,-.28,.255], [.25,.12,.045], 'KanguruCep'));
+      for (const s of [-1, 1]) kiyafetParcalari.push(ekle(govde, cizgiGeo([[s*.06,.56,.18],[s*.065,.42,.265],[s*.07,.28,.29]],.01), beyaz, [0,0,0], [1,1,1], 'KapusonBagcik'));
+    } else if (k === 'seytan') {
+      // Şeytan kostümü: kırmızı tulum + koyu yaka + kuyruk (kuyruğun ucu mızrak).
+      yakaHalkasi(.205, .035, .59, ustDetayMal, 'SeytanYaka');
+      const kuyrukYol = new T.CatmullRomCurve3([[0,-.02,-.22],[0,-.3,-.44],[.05,-.62,-.52],[.16,-.82,-.4]].map(p => new T.Vector3(...p)));
+      kiyafetParcalari.push(ekle(bel, new T.TubeGeometry(kuyrukYol, 20, .032, 8, false), kostumBacakMal, [0,0,0], [1,1,1], 'SeytanKuyruk'));
+      const uc = ekle(bel, new T.ConeGeometry(.085, .17, 4), kostumBacakMal, [.21,-.9,-.36], [1,1,.45], 'SeytanKuyrukUcu');
+      uc.rotation.z = -Math.PI * .85; kiyafetParcalari.push(uc);
+    } else if (k === 'damatlik') {
+      // Damatlık: beyaz gömlek (gövde kabuğu) + önü V açık siyah smokin ceket,
+      // saten yaka şeridi, papyon, bel düğmesi ve cep mendili.
+      const siyah = mal('#1b1d24', .55), saten = mal('#0b0c10', .28);
+      const ceketProfil = [[.39,-.6],[.455,-.5],[.475,-.35],[.48,.08],[.515,.36],[.475,.48],[.235,.61]];
+      // V açıklığı: y -.05'in altında kapalı, yakaya doğru .55 radyana açılır.
+      const aralik = y => y < -.05 ? .012 : .012 + Math.min(1, (y + .05) / .66) * .55;
+      const segment = 40, geo = new T.LatheGeometry(ceketProfil.map(p => new T.Vector2(...p)), segment);
+      const gp = geo.attributes.position, sira = ceketProfil.length;
+      for (let i = 0; i <= segment; i++) for (let j = 0; j < sira; j++) {
+        const [r, y] = ceketProfil[j], a = aralik(y), fi = a + (i / segment) * (Math.PI * 2 - a * 2);
+        gp.setXYZ(i * sira + j, r * Math.sin(fi), y, r * Math.cos(fi));
+      }
+      geo.scale(1, 1, .62); geo.computeVertexNormals();
+      const smokin = ekle(govde, geo, siyah, [0,0,0], [1,1,1], 'SmokinCeket');
+      smokin.material.side = T.DoubleSide; kiyafetParcalari.push(smokin);
+      const seritler = [];
+      for (const s of [-1, 1]) {
+        const kenar = ceketProfil.filter(([, y]) => y > -.4).map(([r, y]) => {
+          const fi = s * aralik(y); return [r * 1.012 * Math.sin(fi), y, r * 1.012 * Math.cos(fi) * .62];
+        });
+        seritler.push(cizgiGeo(kenar, .028, 24));
+      }
+      kiyafetParcalari.push(birlestir(govde, seritler, saten, 'SmokinYaka'));
+      for (let i = 0; i < 2; i++) kiyafetParcalari.push(kure(govde, siyah, [0,.18+i*.14,.286], [.02,.02,.01], 'GomlekDugme'));
+      kiyafetParcalari.push(kure(govde, saten, [0,-.1,.305], [.03,.03,.014], 'SmokinDugme'));
+      kiyafetParcalari.push(kure(govde, beyaz, [.27,.34,.285], [.055,.03,.02], 'CepMendili'));
+      // Papyon: iki kanat (koni) + ortada düğüm.
+      for (const s of [-1, 1]) {
+        const kanat = ekle(govde, new T.ConeGeometry(.055, .12, 12), saten, [s*.07,.56,.19], [1,1,.5], 'Papyon');
+        kanat.rotation.z = s * Math.PI / 2; kiyafetParcalari.push(kanat);
+      }
+      kiyafetParcalari.push(kure(govde, saten, [0,.56,.2], [.032,.032,.03], 'PapyonDugum'));
+      yakaHalkasi(.2, .03, .6, beyaz, 'GomlekYaka');
+    } else {
+      // Tişört ailesi (çizgili, mavi, sarı): koyu ton yaka ribanası.
+      yakaHalkasi(.2, .03, .585, ustDetayMal, 'TisortYaka');
+    }
+    if (ust.bacak) {
+      // Kostüm kalçası alt giyimin kalçasından biraz büyük: onu tamamen örter.
+      const kalca = kure(bel, kostumBacakMal, [0,.05,0], [.425,.265,.265], 'KostumKalca');
+      kiyafetParcalari.push(kalca); kostumBacakParcalari.push(kalca);
+    }
   }
   // Kalça artık ALT GİYİME ait (eskiden sabit pantolon rengindeydi).
   altParcalari.push(kure(bel, altMal, [0,.05,0], [.41,.25,.25], 'Kalca'));
@@ -180,6 +389,32 @@ export function modelKur(girdi = VARSAYILAN) {
           b.rotation.x = -.2 + i*.12;
         }
       }
+    } else if (ayk === 'tokyo' || ayk === 'topuklu') {
+      // Paket 7. Renk parçaya gömülüdür; oyuncu "Ayakkabı rengi"ni
+      // varsayılandan değiştirdiyse o renk kullanılır.
+      const kendiRengi = ayar.ayakkabiRenk === VARSAYILAN.ayakkabiRenk;
+      if (ayk === 'tokyo') {
+        // Tokyo terlik: kalın beyaz taban, kenarında renkli şerit,
+        // parmak arasından iki yana inen renkli bant.
+        const bantMal = kendiRengi ? mal('#1f6fd1', .5) : aykMal;
+        ayakkabiParcalari.push(kure(diz, mal('#f7f6f1', .7), [0,-.712,.1], [.205,.052,.31], 'TokyoTaban'));
+        ayakkabiParcalari.push(kure(diz, bantMal, [0,-.7,.1], [.21,.014,.315], 'TokyoSerit'));
+        const bantlar = [];
+        for (const yan of [-1, 1]) bantlar.push(cizgiGeo([[0,-.655,.3],[yan*.1,-.64,.2],[yan*.18,-.665,.1]], .022, 12));
+        ayakkabiParcalari.push(birlestir(diz, bantlar, bantMal, 'TokyoBant'));
+        ayakkabiParcalari.push(kure(diz, bantMal, [0,-.66,.3], [.03,.03,.03], 'TokyoParmakArasi'));
+      } else {
+        // Topuklu: arkası yükselen yassı parlak gövde, açık ayak üstü (ten),
+        // burunda sivrilen uç ve ince uzun topuk.
+        const topMal = kendiRengi ? mal('#c0233a', .3) : aykMal;
+        ayakkabiParcalari.push(kure(diz, ten, [0,-.64,.06], [.12,.055,.17], 'TopukluAyakUstu'));
+        // Burun kısa tutulur: uzun koni yandan diken gibi öne taşıyordu (görsel kontrol).
+        const govdeAyk = kure(diz, topMal, [0,-.69,.12], [.155,.068,.26], 'TopukluGovde');
+        govdeAyk.rotation.x = .22; ayakkabiParcalari.push(govdeAyk);
+        const burun = ekle(diz, new T.ConeGeometry(.1,.1,16), topMal, [0,-.735,.34], [1,1,.45], 'TopukluBurun');
+        burun.rotation.x = Math.PI / 2; ayakkabiParcalari.push(burun);
+        ayakkabiParcalari.push(ekle(diz, new T.CylinderGeometry(.034,.016,.17,10), topMal, [0,-.685,-.12], [1,1,1], 'Topuk'));
+      }
     } else {
       // spor / bot — kapalı ayakkabı. Bot daha yüksek bilekli.
       const yukseklik = ayk === 'bot' ? .185 : .145;
@@ -195,6 +430,26 @@ export function modelKur(girdi = VARSAYILAN) {
       ayakkabiParcalari.push(birlestir(diz,aykDikis,metal,'AyakkabiYanDikis'));
     }
     eklemler.push({ kol, dirsek, bac, diz, s });
+    // ---- YENİ ÜSTLERİN KOLLARI / KOSTÜM BACAKLARI (Paket 7) ----
+    if (ust) {
+      if (ust.kol === 'kisa') {
+        kiyafetParcalari.push(kapsul(kol, ustKolMal, .166, .12, [0,-.13,0], 'KisaKol'));
+      } else {
+        kiyafetParcalari.push(kapsul(kol, ustKolMal, .168, .36, [0,-.26,0], 'UzunUstKol'));
+        kiyafetParcalari.push(kapsul(dirsek, ustKolMal, .143, .22, [0,-.2,0], 'UzunAltKol'));
+        kiyafetParcalari.push(kure(dirsek, ustKolMal, [0,0,0], [.146,.15,.146], 'UzunKolDirsek'));
+        // Manşet: damatlıkta beyaz gömlek manşeti, diğerlerinde koyu ton.
+        kiyafetParcalari.push(ekle(dirsek, new T.CylinderGeometry(.15,.147,.06,16), ayar.kiyafet === 'damatlik' ? beyaz : ustDetayMal, [0,-.42,0], [1,1,1], 'UzunKolManset'));
+      }
+      if (ust.bacak) {
+        // Alt giyim kabuğunun (r .196 / .162) biraz dışında: şort ya da kapri
+        // takılı olsa bile kostüm bacağı tam boy görünür.
+        for (const [kemikP, r] of [[bac, .206], [diz, .172]]) {
+          const p = kapsul(kemikP, kostumBacakMal, r, kemikP === bac ? .29 : .32, [0,-.24,0], 'KostumBacak');
+          kiyafetParcalari.push(p); kostumBacakParcalari.push(p);
+        }
+      }
+    }
     ceketParcalari.push(kapsul(kol, ceketMal, .177, .36, [0,-.26,0], 'CeketUstKol'));
     ceketParcalari.push(kapsul(dirsek, ceketMal, .152, .22, [0,-.2,0], 'CeketAltKol'));
     ceketParcalari.push(kure(dirsek,ceketMal,[0,0,0],[.155,.16,.155],'CeketDirsek'));
@@ -282,6 +537,58 @@ export function modelKur(girdi = VARSAYILAN) {
     geo.computeVertexNormals();ekle(basYuva,geo,tul,[0,0,0],[1,1,1],'Duvak');
     for(let i=0;i<7;i++){const x=(i-3)*.115;const y=.74-Math.abs(x)*.1;kure(basYuva,inci,[x,y,.02],[.052,.042,.06],'DuvakInci');}
   }
+  if(ayar.bas==='boynuz'){
+    // Şeytan boynuzu: iki kıvrık koni, uçları hafifçe içe döner.
+    const boynuzMal=mal('#b3181f',.45);
+    for(const s of [-1,1]){
+      const geo=new T.ConeGeometry(.075,.3,14,6),p=geo.attributes.position;
+      for(let i=0;i<p.count;i++){const t=(p.getY(i)+.15)/.3;p.setX(i,p.getX(i)-s*.09*t*t);}
+      geo.computeVertexNormals();
+      const b=ekle(basYuva,geo,boynuzMal,[s*.29,.86,.04],[1,1,1],'Boynuz');b.rotation.z=-s*.5;
+    }
+  }
+  // ---- TAKILAR (Paket 7) — kolye / saat / küpe, üç ayrı yuva ----
+  // Altın ve gümüş aynı geometri; yalnız malzeme değişir. Metalik oran
+  // düşük tutuldu: sahnede ortam haritası yok, yüksek metalik koyu görünür.
+  const takiMal = tur => tur === 'altin' ? mal('#e2b646', .28, .5) : mal('#d9dde3', .24, .5);
+  const kolyeYuva = new T.Group(); kolyeYuva.name = 'KolyeYuvasi'; govde.add(kolyeYuva);
+  kolyeYuva.visible = ayar.kolye !== 'yok';
+  if (kolyeYuva.visible) {
+    const m = takiMal(ayar.kolye);
+    // Boynun (r .16) dışından dolaşıp göğüste düşen kapalı zincir.
+    const yol = new T.CatmullRomCurve3([[0,.665,-.18],[.18,.645,-.07],[.225,.6,.06],[.155,.5,.235],[0,.445,.3],[-.155,.5,.235],[-.225,.6,.06],[-.18,.645,-.07]].map(p => new T.Vector3(...p)), true);
+    ekle(kolyeYuva, new T.TubeGeometry(yol, 64, ayar.kolye === 'altin' ? .016 : .012, 6, true), m, [0,0,0], [1,1,1], 'KolyeZincir');
+    const madalyon = ekle(kolyeYuva, new T.CylinderGeometry(.055,.055,.016,24), m, [0,.375,.312], [1,1,1], 'KolyeMadalyon');
+    madalyon.rotation.x = Math.PI / 2 - .2;
+    if (ayar.kolye === 'altin') kure(kolyeYuva, mal('#c0233a', .2, .1), [0,.375,.322], [.022,.022,.012], 'KolyeTas');
+  }
+  const uzunKol = ayar.kiyafet === 'ceket' || ust?.kol === 'uzun';
+  const solDirsek = eklemler.find(e => e.s === -1).dirsek;
+  const saatYuva = new T.Group(); saatYuva.name = 'SaatYuvasi'; solDirsek.add(saatYuva);
+  saatYuva.visible = ayar.saat !== 'yok';
+  if (saatYuva.visible) {
+    const m = takiMal(ayar.saat);
+    // Uzun kolda kordon kolun üstüne oturur (kol kabuğu daha kalın).
+    const R = uzunKol ? .168 : .128;
+    const kordon = ekle(saatYuva, new T.TorusGeometry(R, .026, 8, 28), m, [0,-.37,0], [1,1,1], 'SaatKordon');
+    kordon.rotation.x = Math.PI / 2;
+    const kasa = ekle(saatYuva, new T.CylinderGeometry(.064,.064,.034,24), m, [0,-.37,R+.018], [1,1,1], 'SaatKasa');
+    kasa.rotation.x = Math.PI / 2;
+    ekle(saatYuva, new T.CircleGeometry(.05, 24), mal('#f4efe2', .35), [0,-.37,R+.036], [1,1,1], 'SaatKadran');
+    const akrep = ekle(saatYuva, new T.BoxGeometry(.008,.036,.004), koyu, [.0,-.357,R+.039], [1,1,1], 'SaatAkrep');
+    akrep.rotation.z = .9;
+  }
+  const kupeYuva = new T.Group(); kupeYuva.name = 'KupeYuvasi'; kafa.add(kupeYuva);
+  kupeYuva.visible = ayar.kupe !== 'yok';
+  if (kupeYuva.visible) {
+    const m = takiMal(ayar.kupe);
+    for (const s of [-1, 1]) {
+      kure(kupeYuva, m, [s*.6,-.035,.03], [.03,.03,.03], 'KupeTopuz');
+      const halka = ekle(kupeYuva, new T.TorusGeometry(.048, .012, 8, 24), m, [s*.605,-.11,.03], [1,1,1], 'KupeHalka');
+      halka.rotation.y = s * .9;
+    }
+  }
+
   // ---- GÖZLÜK — 5 çeşit ----
   // Eskiden tek "güneş gözlüğü" vardı ve yuva BOOLEAN'dı. Artık çeşit
   // seçiliyor; her çeşit aynı bağlantı noktalarını kullanır (göz merkezi
@@ -379,7 +686,7 @@ export function modelKur(girdi = VARSAYILAN) {
   if (ayar.pelerin === 'kisa') capeRoot.scale.set(.92, .58, .92);
   for(const s of [-1,1]) kure(capeRoot,metal,[s*.31,-.04,.03],[.046,.046,.03],'PelerinTokasi');
 
-  avatar.userData={kok,govde,kafa,kollar,bacaklar,eklemler,ayar,sacYuva,gozlukYuva,basYuva,elbiseYuva,elbiseUst,capeRoot,pelerin,capeBones,ceketParcalari,sakalYuva,altParcalari,ayakkabiParcalari,yurumeFaz:0,dans:null};
+  avatar.userData={kok,govde,kafa,kollar,bacaklar,eklemler,ayar,sacYuva,gozlukYuva,basYuva,elbiseYuva,elbiseUst,capeRoot,pelerin,capeBones,ceketParcalari,sakalYuva,altParcalari,ayakkabiParcalari,kiyafetParcalari,kostumBacakParcalari,kolyeYuva,saatYuva,kupeYuva,yurumeFaz:0,dans:null};
   avatar.userData.yokEt=()=>{iskelet.dispose();geometriler.forEach(g=>g.dispose());malzemeler.forEach(m=>m.dispose());};
   return avatar;
 }
