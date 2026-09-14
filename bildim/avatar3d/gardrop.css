@@ -156,7 +156,9 @@
   .gardrop .hareketler{justify-content:center;margin-bottom:6px}
   .gardrop .sahne-alt .kaydet{width:auto}
   .gardrop .sahne-alt .meydan-link{margin:4px 0 0;font-size:11px}
-  .gardrop .gecici-gizli{top:58px}
+  /* Not telefonda karakterin KAFASINI örtüyordu (gözlük/saç seçerken tam
+     bakılan yer) — ayak hizasına, düğmelerin hemen üstüne indi. */
+  .gardrop .gecici-gizli{top:auto;bottom:118px;left:8px;right:8px;max-width:none;font-size:10.5px;padding:5px 8px}
   /* Şerit telefonda birkaç satıra sarar; sabit kalırsa kartları örter. */
   .kategori-serit{position:static}
   .yuva-bolum{scroll-margin-top:calc(var(--gos-h) + 12px)}
