@@ -482,3 +482,10 @@ body.bd-harita-acik { overflow: hidden; }
 @media (prefers-reduced-motion: reduce) {
   .bd-harita-yuvarlak, .bd-harita-dans, .bd-harita-dans-ac { transition: none; }
 }
+
+/* ---- Kabul sonrası otomatik yaklaşma: girdi kilitli (Paket 12, madde 5) ----
+   Topuz, zıpla/dans ve emoji düğmeleri ~3,5 sn basılamaz ve soluk. */
+.bd-harita-alt.kilitli,
+.bd-harita-alt.kilitli * { pointer-events: none !important; }
+.bd-harita-alt.kilitli { opacity: .45; transition: opacity .2s ease; }
+@media (prefers-reduced-motion: reduce) { .bd-harita-alt.kilitli { transition: none; } }

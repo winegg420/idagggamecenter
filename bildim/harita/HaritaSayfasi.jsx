@@ -27,10 +27,14 @@ import { turnuvaSaatleriniAyarla } from "../lib/zaman.js";
 import { donusKaydet, donusOku, donusTemizle } from "./donus.js";
 import { MENU, ikramGonder, ikramYanitla, ikramDurumu, bekleyenIkramlar, IKRAM_SURE_SN, ZAMAN_ASIMI_SN } from "./etkilesim.js";
 import { kahveBasla, balonBasla, ikramKaresi, ikramlariTemizle } from "./ikramGorsel.js";
+import { yaklasmaKur, yaklasmaKonumu, kabulAniIstemci } from "./yaklasma.js";
+
+/** Kabul sonrası yaklaşmanın ardından oynayan kısa ikram gösterisi (sn). */
+const YAKLASMA_IKRAM_SN = 2.5;
 import {
   meydanBotlariniAl, botJesti, botPlaniKur, planKonumu, kapilariHesapla, kenarKapilariHesapla, BOT_HIZI,
   gorunurBotlariSec, ziyaretPencereleri, ziyaretHedefiSec, ziyaretUygunMu, ziyaretBaslat,
-  ziyaretAdimi, botBulusmalariniPlanla, planaBacakEkle, hopYuksekligi, kararliRastgele,
+  ziyaretAdimi, botBulusmalariniPlanla, planaBacakEkle, hopYuksekligi, kararliRastgele, geriDonusYolu,
 } from "./meydanBotlari.js";
 import { GARDROP_YOLU } from "../pages/GardropaGit.jsx";
 import "./harita.css";
@@ -138,6 +142,10 @@ export default function HaritaSayfasi() {
   const [ikramNotu, setIkramNotu] = useState(null);
   const [ikramCalisiyor, setIkramCalisiyor] = useState(false);
   const bekleyenIkramRef = useRef(null);   // gönderdiğim teklif { id, tur, alan }
+  // Kabul sonrası otomatik yaklaşma (Paket 12, madde 5): { plan, karsiId,
+  // etkinlik, bitince, etkinlikOynadi }. Doluyken oyuncu girdisi kilitli.
+  const yaklasmaRef = useRef(null);
+  const [girdiKilitli, setGirdiKilitli] = useState(false);
   // HAYALET TIKLAMA KORUMASI: menü parmak kalkınca (pointerup) açılıyor;
   // telefon hemen ardından AYNI NOKTAYA bir "click" üretiyor ve menü ekranın
   // ortasında olduğu için bu tıklama "Meydan oku"ya düşüp oto meydan
@@ -425,7 +433,7 @@ export default function HaritaSayfasi() {
           setIkramNotu("Teklifin kabul edilmedi — coinin iade edildi.");
           return;
         }
-        ikramOynat(bekleyen.tur, user.id, bekleyen.alan);
+        ikramKabulOynat(bekleyen.id, bekleyen.tur, user.id, bekleyen.alan);
       },
       onKatilim(id, bilgi) {
         if (uzaklar.has(id)) return;
@@ -761,12 +769,39 @@ export default function HaritaSayfasi() {
 
       // ---- kendi hareketim
       const { ix, iz } = kontrol.oku();
-      const guc = Math.min(Math.hypot(ix, iz), 1);
+      let guc = Math.min(Math.hypot(ix, iz), 1);
+      // Kabul sonrası yaklaşma sürüyorsa girdi okunur ama UYGULANMAZ.
+      const yk = yaklasmaRef.current;
       // Boşluk tuşu ya da HUD düğmesi: havadayken ikinci zıplama yok
       // (kural ziplama.js içinde, burada değil).
-      if (kontrol.ziplandiMi()) ziplama.basla();
+      if (kontrol.ziplandiMi() && !yk) ziplama.basla();
       const yukseklik = ziplama.ilerlet(dt);
-      if (guc > 0.05) {
+      if (yk) {
+        // Paket 12, madde 5: iki avatar birbirine yürür, yüz yüze durur,
+        // etkinlik oynar; süre sabit, hız mesafeye göre ölçeklenir.
+        const kb = yaklasmaKonumu(yk.plan, Date.now(), "ben");
+        ben.position.x = kb.x;
+        ben.position.z = kb.z;
+        dunya.carpismaDuzelt(ben.position, 0.8);
+        dunya.yumusakDon(ben, kb.aci, dt, 12);
+        guc = kb.yuruyor ? Math.min(1, kb.hiz / YURUME_HIZI + 0.25) : 0;
+        if (!yk.etkinlikOynadi && (kb.evre === "etkinlik" || kb.evre === "bitti")) {
+          yk.etkinlikOynadi = true;
+          try { yk.etkinlik?.(); } catch (e) { console.error("[Meydan] yaklasma etkinligi:", e); }
+        }
+        if (kb.evre === "bitti") {
+          yaklasmaRef.current = null;
+          // Bot karşı taraftaysa planına YÜRÜYEREK döner (ışınlanmaz).
+          const kb2 = botlar.get(yk.karsiId);
+          if (kb2) {
+            const p = { x: kb2.av.position.x, z: kb2.av.position.z, aci: kb2.av.rotation.y };
+            try {
+              kb2.ziyaret = { hedefId: null, durum: { evre: "donus", ...p, donus: geriDonusYolu(kb2.plan, p, Date.now(), dunya.engeller) } };
+            } catch (e) { console.error("[Meydan] bot plana donemedi:", e); }
+          }
+          try { yk.bitince?.(); } catch (e) { console.error("[Meydan] yaklasma sonu:", e); }
+        }
+      } else if (guc > 0.05) {
         const yon = Math.atan2(ix, iz);
         ben.position.x += Math.sin(yon) * guc * YURUME_HIZI * dt;
         ben.position.z += Math.cos(yon) * guc * YURUME_HIZI * dt;
@@ -911,6 +946,13 @@ export default function HaritaSayfasi() {
             }
           }
 
+          // Oyuncunun kabul ettiği/aldığı ikramda karşı taraf bu botsa: plan
+          // yerine yaklaşma konumu (Paket 12, madde 5).
+          const ykB = yaklasmaRef.current;
+          if (ykB && ykB.karsiId === id && !b.ziyaret) {
+            const kk = yaklasmaKonumu(ykB.plan, simdiMs, "karsi");
+            x = kk.x; z = kk.z; aci = kk.aci; yuruyor = kk.yuruyor;
+          }
           b.av.position.x = x;
           b.av.position.z = z;
           dunya.yumusakDon(b.av, aci, dt, 8);
@@ -1081,7 +1123,7 @@ export default function HaritaSayfasi() {
    * İkram gösterisini oynatır. Hangi avatarın kim olduğunu burada çözüp
    * görsel katmana (ikramGorsel.js) veriyoruz; o katman kimlik bilmez.
    */
-  const ikramOynat = useCallback((tur, verenId, alanId) => {
+  const ikramOynat = useCallback((tur, verenId, alanId, sure = IKRAM_SURE_SN) => {
     const c = canliRef.current;
     if (!c) return;
     const av = (id) => (id === user.id ? c.ben : (c.uzaklar.get(id)?.av ?? c.botlar.get(id)?.av));
@@ -1089,12 +1131,58 @@ export default function HaritaSayfasi() {
     const alan = av(alanId);
     if (!veren || !alan) return;
     try {
-      if (tur === "kahve") kahveBasla(c.dunya.sahne, veren, alan, IKRAM_SURE_SN);
-      else balonBasla(c.dunya.sahne, veren, alan, IKRAM_SURE_SN);
+      if (tur === "kahve") kahveBasla(c.dunya.sahne, veren, alan, sure);
+      else balonBasla(c.dunya.sahne, veren, alan, sure);
     } catch (e) {
       console.error("[Meydan] ikram gorseli:", e);
     }
   }, [user.id]);
+
+  /**
+   * Kabul sonrası otomatik yaklaşmayı başlatır (Paket 12, madde 5).
+   * Karşı taraf sahnede yoksa false döner, hiçbir geri çağrı çalışmaz.
+   * `basMs`: iki istemcide ortak an (sunucu kabul anı, istemci saatinde).
+   */
+  const yaklasmaBaslat = useCallback(({ karsiId, basMs, etkinlik, bitince }) => {
+    const c = canliRef.current;
+    if (!c?.ben) return false;
+    const karsiAv = c.uzaklar.get(karsiId)?.av ?? c.botlar.get(karsiId)?.av;
+    if (!karsiAv) return false;
+    const bot = c.botlar.get(karsiId);
+    if (bot) bot.ziyaret = null;   // yarım kalan ziyaret; yaklaşma bulunduğu yerden başlar
+    const plan = yaklasmaKur({
+      basMs, simdiMs: Date.now(),
+      ben: { x: c.ben.position.x, z: c.ben.position.z },
+      karsi: { x: karsiAv.position.x, z: karsiAv.position.z },
+    });
+    yaklasmaRef.current = {
+      plan, karsiId, etkinlik, etkinlikOynadi: false,
+      bitince: () => { setGirdiKilitli(false); bitince?.(); },
+    };
+    setSecilenOyuncu(null);
+    setDansAcik(false);
+    setGirdiKilitli(true);
+    return true;
+  }, []);
+
+  /** Kabul edilen ikram: sunucu kabul anını okur, yaklaşıp gösteriyi oynatır. */
+  const ikramKabulOynat = useCallback(async (ikramId, tur, verenId, alanId) => {
+    let basMs = Date.now();
+    try {
+      const { data, error } = await supabase.rpc("ikram_kabul_bilgisi", { p_id: ikramId });
+      if (error) throw error;
+      const r = Array.isArray(data) ? data[0] : data;
+      if (r?.yanit_at) basMs = kabulAniIstemci(r.yanit_at, r.sunucu_zamani);
+    } catch (e) {
+      console.error("[Meydan] ikram kabul ani okunamadi:", e);
+    }
+    const karsiId = verenId === user.id ? alanId : verenId;
+    const basladi = yaklasmaBaslat({
+      karsiId, basMs,
+      etkinlik: () => ikramOynat(tur, verenId, alanId, YAKLASMA_IKRAM_SN),
+    });
+    if (!basladi) ikramOynat(tur, verenId, alanId);
+  }, [user.id, ikramOynat, yaklasmaBaslat]);
 
   // ---- ARKADAŞ EKLE (Paket 7, 2c) ----
   // Menü açılınca seçilen kişiyle arkadaşlık durumu okunur (RLS: yalnız kendi
@@ -1155,7 +1243,16 @@ export default function HaritaSayfasi() {
           p_rakip: hedef.id, p_kategori: null,
         });
         if (error) throw error;
-        if (data) navigate(y(`/mac/${data}`));
+        if (data) {
+          // Paket 12, madde 5: rakibe yürüyüp selam verir, sonra maça geçer.
+          const git = () => { konumuHatirla(); navigate(y(`/mac/${data}`)); };
+          const basladi = yaklasmaBaslat({
+            karsiId: hedef.id, basMs: Date.now(),
+            etkinlik: () => emojiAt("👋"),
+            bitince: git,
+          });
+          if (!basladi) git();
+        }
       } catch (e) {
         console.error("[Meydan] meydan okuma:", e);
         setIkramNotu(hataMesaji(e, "Meydan okuma başlatılamadı."));
@@ -1191,7 +1288,7 @@ export default function HaritaSayfasi() {
           bekleyenIkramRef.current = null;
           if (d === "kabul") {
             setIkramNotu(null);
-            ikramOynat(kod, user.id, hedef.id);
+            ikramKabulOynat(sonuc.id, kod, user.id, hedef.id);
           } else if (d === "red") {
             setIkramNotu("Teklifin kabul edilmedi — coinin iade edildi.");
           } else {
@@ -1211,7 +1308,7 @@ export default function HaritaSayfasi() {
     } finally {
       setIkramCalisiyor(false);
     }
-  }, [secilenOyuncu, navigate, ikramOynat, user.id]);
+  }, [secilenOyuncu, navigate, ikramKabulOynat, yaklasmaBaslat, user.id]);
 
   /** Gelen teklife yanıt. */
   const ikramYanit = useCallback(async (kabul) => {
@@ -1221,13 +1318,13 @@ export default function HaritaSayfasi() {
     try {
       const sonuc = await ikramYanitla(t.id, kabul);
       canliRef.current?.coklu?.ikramYanitGonder({ ikram: t.id, kabul: sonuc === "kabul" });
-      if (sonuc === "kabul") ikramOynat(t.tur, t.gonderenId, user.id);
+      if (sonuc === "kabul") ikramKabulOynat(t.id, t.tur, t.gonderenId, user.id);
       else if (sonuc === "zaman_asimi") setIkramNotu("Teklifin süresi dolmuştu.");
     } catch (e) {
       console.error("[Meydan] ikram yaniti:", e);
       setIkramNotu(hataMesaji(e, "Yanıt gönderilemedi."));
     }
-  }, [gelenIkram, ikramOynat, user.id]);
+  }, [gelenIkram, ikramKabulOynat, user.id]);
 
   /** Avatarın o anki yerini dönüş kaydına yazar (görselden bağımsız). */
   const konumuHatirla = () => {
@@ -1552,7 +1649,8 @@ export default function HaritaSayfasi() {
         </div>
       )}
 
-      <div className="bd-harita-hud bd-harita-alt">
+      <div className={"bd-harita-hud bd-harita-alt" + (girdiKilitli ? " kilitli" : "")}
+           aria-disabled={girdiKilitli || undefined}>
         <div className="bd-harita-sol-dugmeler">
           {/* Zıpla ve Dans aynı satırda: ikisi de EYLEM düğmesi ve HUD'un
               yüksekliği büyümesin (yatay ekranda sahneyi eziyordu).
