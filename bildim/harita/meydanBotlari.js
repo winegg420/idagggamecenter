@@ -39,19 +39,20 @@ export const BOT_HIZI = 4.2;
 
 // Dolaşma halkası: çeşme (6.6) ile bankların iç kenarı (12.5 - 1.6)
 // arası boş. Gövde payıyla birlikte bu aralıkta kalınır.
-const HALKA_MIN = 8.2;
-const HALKA_MAX = 9.8;
+// Paket 13: harita büyüdü (göl 14, bank 20, meydan 26, ağaç 31, bina 44).
+const HALKA_MIN = 16;
+const HALKA_MAX = 18;
 // Paket 13: dolaşma artık yalnız bu dar halkada değil, çeşmeden çevre
 // ağaçlarının (21) iç kenarına kadar tüm meydanda. Bank/lamba engelleri
 // sapmaliYol ile dolaşılır.
-const DOLAS_MIN = 8.2;
-const DOLAS_MAX = 19;
+const DOLAS_MIN = 16;
+const DOLAS_MAX = 30;
 const GOVDE_R = 0.55;          // engelden uzak durma payı
 const SAPMA_PAYI = 0.35;       // engelin etrafından dolaşırken ek boşluk
 const KAPI_PAYI = 0.4;         // kapı noktası bina engelinin bu kadar önünde
 // Dış kenar girişi (Paket 12): binaların iç kenarı ~24, çevre ağaçları 21.
 // 26 birimde binaların ARASI boş; oyuncu merkeze bakarken arkada kalır.
-const KENAR_R = 26;
+const KENAR_R = 40;
 const KENAR_PAYI = 1.5;        // kenar noktası engelden en az bu kadar uzak
 const ENGEL_ICI_PAYI = 0.2;    // plan konumu engelin içine düşerse bu kadar dışına itilir
 const ADIM_ACI = (12 * Math.PI) / 180;
@@ -59,7 +60,7 @@ const ADIM_ACI = (12 * Math.PI) / 180;
 // Çeşme dunya.js'in engel listesinde değil (ayrı çarpışma kontrolü var).
 // Halkanın dışına çıkan yollar (ziyaret, buluşma) için engel sayılır:
 // merkeze en az r + GOVDE_R = 7.05 birim.
-const HAVUZ = { x: 0, z: 0, r: 6.5 };
+const HAVUZ = { x: 0, z: 0, r: 14.5 };
 
 // ---- Grup girişi
 const GRUP_ARA_MS = 1300;      // aynı kapıdan girenler arasında birkaç adım
@@ -68,8 +69,8 @@ const GRUP_ACI = 0.2;          // halkaya varınca yan yana dağılsınlar (rady
 // ---- Oyuncuya yaklaşma (ziyaret)
 const DURMA_MESAFE = 2.0;      // oyuncunun bu kadar önünde durur
 const ZIYARET_GIT_MS = 9000;   // yetişemezse vazgeçer
-const ZIYARET_MENZIL = 19;     // hedef meydan merkezine en çok bu kadar uzak
-const ZIYARET_ULASIM = 20;     // bot hedefe en çok bu kadar uzaksa gider
+const ZIYARET_MENZIL = 32;     // hedef meydan merkezine en çok bu kadar uzak
+const ZIYARET_ULASIM = 32;     // bot hedefe en çok bu kadar uzaksa gider
 const ZIYARET_KILIT_MS = 28000; // git + dur + dön için ayrılan en uzun süre
 const ZIYARET_EMOJI = ["👋", "😄", "🙌", "😎", "🎉", "👍"];
 const EMOJI_MS = 350;          // varınca emoji
@@ -79,7 +80,7 @@ const HOP_OLCEK = 0.6;         // oyuncunun zıplamasının %60'ı kadar
 const DUR_SON_MS = 1500;       // hoplamadan sonra biraz daha bakar
 
 // ---- Bot-bot buluşması (ikram)
-const BULUSMA_R = 9.0;         // halkanın ortası
+const BULUSMA_R = 17.0;         // halkanın ortası
 const BULUSMA_ARA = 1.3;       // karşı karşıya duran iki bot arası
 const KAHVE_MS = 12000;
 const BALON_MS = 7000;
