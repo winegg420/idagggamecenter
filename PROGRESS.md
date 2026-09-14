@@ -4630,3 +4630,10 @@ Görevdeki "iki kez" tespiti bu sayfada doğru değil.
 ### Regresyon
 Lig/gardırop/meydan bina giriş-çıkış dosyalarında yalnız ekleme yapıldı; plan
 testi Paket 6'daki ölçütlerin hepsini geçti. Build temiz.
+
+## 14 Eylül 2026 (7) — Turnuvaya açık bot katılmaz (migration 190)
+Sahibi: gece turnuvasına ÜstatBot gibi açık botlar katılmış. Tüm turnuva bot
+katılımı `turnuva_bot_havuzu`'ndan geçiyor; havuz migration 173'ten beri açık
+botlara ÖNCELİK veriyordu. Artık yalnız gizli botlar (gerçek oyuncu gibi);
+hedef sayı aynı. Bekleyen (lobi) turnuvalardaki açık botlar silindi, yerleri
+gizli botlarla doluyor; aktif/bitmiş turnuvalara dokunulmadı.
