@@ -553,6 +553,11 @@ export default function ChallengesPage() {
   return (
     <div>
       <h1 className="baslik">Meydan Okuma</h1>
+      {/* Paket 9: sahibi otomatik eşleştirmenin kategorisini burada aradı. */}
+      <p className="alt-yazi" style={{ marginTop: -6, marginBottom: 12 }}>
+        Bu sayfa bota ya da arkadaşına meydan okumak içindir. "Hemen oyna" ve
+        "Dereceli Maç"ın rakip arayacağı kategori Ana Sayfa'dan seçilir.
+      </p>
       {hata && <div className="hata-kutu">{hata}</div>}
       {toast && <div className="bd-toast">{toast}</div>}
 

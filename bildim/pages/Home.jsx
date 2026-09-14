@@ -15,6 +15,7 @@ import RankBadge from "../components/RankBadge.jsx";
 import SeriRozeti from "../components/SeriRozeti.jsx";
 import Maskot from "../components/Maskot.jsx";
 import { y } from "../lib/yol.js";
+import { kategoriEtiket, kategorileriSirala } from "../lib/kategoriler.js";
 
 export default function Home() {
   const { user, profile, refreshProfile } = useAuth();
@@ -262,6 +263,40 @@ export default function Home() {
     }
   };
 
+  // ---- ARAMA KATEGORİSİ (Paket 9) ----
+  // "Hemen oyna" ve "Dereceli Maç" profile.tercih_kategori'de rakip arıyor;
+  // bu ayar yalnız Profil → Ayarlar'ın derinindeydi, sahibi ana sayfada
+  // bulamadı. Aynı mekanizma (get_categories + tercih_kategori_kaydet)
+  // burada da: oyuncu basmadan ÖNCE kategoriyi görür ve değiştirir.
+  const [kategoriler, setKategoriler] = useState([]);
+  const [kategoriKaydediliyor, setKategoriKaydediliyor] = useState(false);
+  useEffect(() => {
+    let aktif = true;
+    (async () => {
+      try {
+        const { data, error } = await supabase.rpc("get_categories");
+        if (error) throw error;
+        if (aktif) setKategoriler(data ?? []);
+      } catch (e) {
+        console.error("[Ana sayfa] kategoriler alinamadi:", e);
+      }
+    })();
+    return () => { aktif = false; };
+  }, []);
+  const aramaKategorisiSec = async (deger) => {
+    setMesaj(null);
+    setKategoriKaydediliyor(true);
+    try {
+      const { error } = await supabase.rpc("tercih_kategori_kaydet", { p_kategori: deger || null });
+      if (error) throw error;
+      await refreshProfile?.(user.id);
+    } catch (e) {
+      setMesaj(hataMesaji(e, "Kategori kaydedilemedi."));
+    } finally {
+      setKategoriKaydediliyor(false);
+    }
+  };
+
   // Hemen Oyna: önce tercih edilen kategoride insan rakip aranır (20 sn),
   // bulunamazsa karışığa/bota düşülür. Akış RakipAra bileşeninde.
   const hemenOyna = (dereceli = true) => {
@@ -379,6 +414,23 @@ export default function Home() {
             · Dereceli Maç → 3. katmanda, coin + lig puanı yazar.
             Kural sunucuda da zorlanıyor (migration 162): `matches.dereceli`
             false ise `mac_sonuclandir` coin çağrısını hiç yapmıyor. */}
+        <label className="bd-arama-kategori">
+          <span>Rakip aranacak kategori</span>
+          <select
+            value={profile?.tercih_kategori ?? ""}
+            disabled={kategoriKaydediliyor}
+            onChange={(e) => aramaKategorisiSec(e.target.value)}
+          >
+            <option value="">Karışık</option>
+            {kategorileriSirala(kategoriler).map((k) => (
+              <option key={k.kategori} value={k.kategori}>{kategoriEtiket(k.kategori)}</option>
+            ))}
+            {/* Liste henüz gelmediyse seçili kategori yine görünsün. */}
+            {profile?.tercih_kategori && !kategoriler.some((k) => k.kategori === profile.tercih_kategori) && (
+              <option value={profile.tercih_kategori}>{kategoriEtiket(profile.tercih_kategori)}</option>
+            )}
+          </select>
+        </label>
         <button className="bd-ana-eylem" onClick={() => hemenOyna(false)}>
           <Ikon ad="hizli" boyut={22} />
           <span>Hemen oyna</span>

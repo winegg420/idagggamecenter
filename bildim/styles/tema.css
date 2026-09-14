@@ -5794,3 +5794,18 @@ body.bd-ekle-acik .app { padding-bottom: calc(300px + env(safe-area-inset-bottom
   object-position: 50% 22%;
   margin: -16% 0 0 -16%;
 }
+
+/* ---- Ana sayfa: arama kategorisi seçici (Paket 9) ----
+   "Hemen oyna"nın hemen üstünde; oyuncu hangi kategoride rakip arandığını
+   basmadan önce görür. Dokunma hedefi ≥44 px. */
+.bd-arama-kategori {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  margin: 14px 0 10px; font-size: 13px; font-weight: 800; color: var(--bd-metin-2);
+}
+.bd-arama-kategori select {
+  min-height: 44px; min-width: 0; flex: 0 1 190px;
+  padding: 0 12px; border-radius: 12px;
+  border: 2px solid var(--bd-kenar, rgba(0,0,0,.12));
+  background: var(--bd-yuzey-1); color: var(--bd-metin);
+  font: 800 14px/1 var(--bd-f-govde, inherit);
+}

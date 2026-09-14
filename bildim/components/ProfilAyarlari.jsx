@@ -331,7 +331,7 @@ export default function ProfilAyarlari() {
           <span>Varsayılan kategorim</span>
         </div>
         <div className="alt-yazi" style={{ marginBottom: 10 }}>
-          "Hemen Oyna" önce bu kategoride rakip arar.
+          "Hemen Oyna" ve "Dereceli Maç" bu kategoride rakip arar. Ana Sayfa'dan da değiştirebilirsin.
         </div>
         <div className="bd-kat-grid">
           <button
