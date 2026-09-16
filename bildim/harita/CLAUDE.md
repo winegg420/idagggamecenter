@@ -11,7 +11,9 @@ Onaylanmış görsel referans: repo kökünde `QUIZADOR_MEYDAN_REFERANS.html`
 | Dosya | Sorumluluk |
 |---|---|
 | `HaritaSayfasi.jsx` | Yalnız React yaşam döngüsü + HUD. three.js'e dokunmaz. |
-| `dunya.js` | Saf three.js: sahne, ışık, havuz, 7 bina, ağaç/bank/lamba/bulut, avatar, emoji balonu, çarpışma, kamera, `yokEt()`. |
+| `dunya.js` | Saf three.js: sahne, ışık, karakterler, emoji balonu, çarpışma, kamera, `yokEt()`. Dünya manifestten (Taksim). |
+| `cevre.js` | **2B:** manifest alanlarından GLB proplar (InstancedMesh), atlaslı zemin, boyalı binalar, sokak kedileri. |
+| `karakter/` | **2B:** ortak karakter sistemi (karakter, kozmetik, ifade, pet, vfx, temas, meydanAvatar) — deneme sayfası da bunu kullanır. |
 | `kontrol.js` | Ekran topuzu + WASD/yön tuşları → `{ix, iz}`. |
 | `coklu.js` | Supabase Realtime `meydan` kanalı: presence (kim burada) + broadcast `poz` / `emoji`. |
 | `renk.js` | `user.id`'den deterministik avatar rengi (profilde renk kolonu yok, eklenmedi). |
@@ -25,7 +27,7 @@ Bağlantı: `src/App.jsx` (`/bildim/harita`) ve `src/BildimApp.jsx` (`/harita`)
 three.js indirmez — `three.module-*.js` ayrı chunk'tır (driftgp ile paylaşılır).
 
 ## Kurallar
-- **Harita seçimi (2A):** `/harita?harita=taksim` greybox'ı açar, `?harita=eski` kapatır (cihazda hatırlanır). Parametresiz meydan Paket 13 dünyası.
+- **Tek harita Taksim (2B):** harita seçimi (`?harita=`) ve Paket 13 dünyası (göl, köprü, 7 bina) kaldırıldı. **Balıkçı/su iptal — geri getirilmez.** `avatar.js` silinmez (portre.js, onizleme.js kullanır).
 - **Taksim yerleşimi koda gömülmez:** bina/nokta/alan konumu `yerlesim.json`'da değişir, `yerlesimDunya.js`'te değil.
 - **Veritabanı değişikliği yok.** Konum kalıcı tutulmaz; presence + broadcast.
 - Başka oyun modülünden import yok; yalnız `src/` kabuğu + `bildim/lib`.

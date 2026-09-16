@@ -491,5 +491,3 @@ body.bd-harita-acik { overflow: hidden; }
 @media (prefers-reduced-motion: reduce) { .bd-harita-alt.kilitli { transition: none; } }
 
 /* ---- Balıkçı kutusu (Paket 13, Aşama 2) ---- */
-.bd-harita-npc-metin { font-size: 13px; color: var(--bd-metin-2); text-align: center; line-height: 1.4; padding: 0 4px; }
-.bd-harita-hap.olta { margin-left: 6px; }

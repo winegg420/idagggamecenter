@@ -273,7 +273,7 @@ function cikisYolu(bas, kapi, engeller) {
  * Aynı girdi → aynı plan (tüm istemcilerde).
  * @returns {{noktalar:Array<{t:number,x:number,z:number,aci:number}>, bitisMs:number}}
  */
-export function botPlaniKur({ tohum, baslangicMs, bitisMs, kapilar, engeller, grup = null, kopru = null, balikYuzde = 35 }) {
+export function botPlaniKur({ tohum, baslangicMs, bitisMs, kapilar, engeller, grup = null }) {
   const engel = [...(engeller ?? []), HAVUZ];
   const r = rastgeleUret(tohum);
   const hizMs = 1000 / BOT_HIZI;
@@ -324,42 +324,10 @@ export function botPlaniKur({ tohum, baslangicMs, bitisMs, kapilar, engeller, gr
   // Paket 13 ("aynı tempoda süzülüyorlar, inandırıcı değil"): bacak türü
   // karışık — halkada tur, meydanın rastgele bir yerine düz koşu, sağa-sola
   // zikzak (her hamlede yön ters döner). Hepsi tohumdan: herkes aynısını görür.
-  // Plan başına EN ÇOK BİR balık bacağı (yüzde: bu nöbette köprüye çıkma
-  // olasılığı); hangi bacakta olacağı da tohumdan. Ayrı anahtar: r() dizisi
-  // tüketilmez, eski rota/mola zamanlaması aynen kalır.
-  const balikBacagi = kopru && tohumSayi(tohum, "balik") < balikYuzde / 100
-    ? 1 + Math.floor(tohumSayi(tohum, "balikI") * 5) : -1;
   for (let i = 0; i < 80; i++) {
     const o = son();
     const bacakTuru = r();
     let bacak;
-    // BALIK BACAĞI (Paket 13, Aşama 2): botların bir kısmı köprüye çıkıp olta
-    // atar — yalnız görüntü; bot olta almaz, coin kazanmaz. Yol: kıyıdan
-    // köprünün yakın ucuna (engel denetimli), güvertede düz (göl engeli yok),
-    // korkuluk kenarında suya dönük bekleme, aynı uçtan geri.
-    if (i === balikBacagi) {
-      const isaret = o.x < 0 ? -1 : 1;
-      const uc = { x: isaret * (kopru.L + 1.0), z: 0 };
-      const ucaYol = sapmaliYol(o, uc, engel);
-      const yan = r() < 0.5 ? -1 : 1;
-      const yer = { x: isaret * (kopru.L - 4 - r() * 9), z: yan * (kopru.W / 2 - 0.55) };
-      const beklemeMs = 15000 + r() * 15000;
-      const gidisMs = (uzunluk(o, ucaYol) + Math.hypot(yer.x - uc.x, yer.z - uc.z)) * hizMs;
-      const donusMs = Math.hypot(yer.x - uc.x, yer.z - uc.z) * hizMs;
-      const cikisMs2 = uzunluk(uc, cikisYolu(uc, cikis, engel)) * hizMs;
-      // Süre yetiyorsa köprüye; yetmiyorsa bu bacak sıradan olur.
-      if (o.t + gidisMs + beklemeMs + donusMs + cikisMs2 <= bitisMs) {
-        yuru(ucaYol);
-        yuru([yer]);
-        // Suya dönük dur: yüz +z (yan 1) ya da -z (yan -1). Bekleme parçasının
-        // İKİ ucu da işaretli: planKonumu parçanın başına bakar.
-        const yuz = yan > 0 ? 0 : Math.PI;
-        noktalar.push({ ...son(), aci: yuz, balik: true });
-        noktalar.push({ ...son(), t: son().t + beklemeMs, aci: yuz, balik: true });
-        yuru([uc]);
-        continue;
-      }
-    }
     if (bacakTuru < 0.35) {
       const yon = r() < 0.5 ? -1 : 1;
       const aci = Math.atan2(o.z, o.x) + yon * ((35 + r() * 95) * Math.PI) / 180;
@@ -418,14 +386,9 @@ export function botPlaniKur({ tohum, baslangicMs, bitisMs, kapilar, engeller, gr
   // aralığa yerleşir; giriş ve çıkış yürüyüşü hiç bozulmaz.
   // `engel`: planKonumu hiçbir anda bir engelin (bina, bank, ağaç) içini
   // döndürmesin diye taşınır; planaBacakEkle `...plan` ile korur.
-  return { noktalar, bitisMs, baslaMs, dolasBasMs, cikisBasMs, engel, kopru };
+  return { noktalar, bitisMs, baslaMs, dolasBasMs, cikisBasMs, engel };
 }
 
-/** Nokta köprü ayak izinde mi? (plan.kopru yoksa hiçbir zaman) */
-function kopruUstunde(plan, x, z) {
-  const k = plan?.kopru;
-  return !!k && Math.abs(x) <= k.L && Math.abs(z) <= k.W / 2;
-}
 
 /** Nokta bir engelin İÇİNDEYSE en yakın açık noktaya çıkarır; değilse aynen döner. */
 function engelIcindenCikar(x, z, engel) {
@@ -470,15 +433,10 @@ export function planKonumu(plan, simdiMs) {
   const mesafe = Math.hypot(b.x - a.x, b.z - a.z);
   const yuruyor = mesafe > 1e-3;
   const hx = a.x + (b.x - a.x) * f, hz = a.z + (b.z - a.z) * f;
-  // Köprüde göl engeli geçersiz (Aşama 2): güverte noktası itilmez.
-  const koprude = kopruUstunde(plan, hx, hz);
-  const acik = koprude ? { x: hx, z: hz } : engelIcindenCikar(hx, hz, plan.engel);
+  const acik = engelIcindenCikar(hx, hz, plan.engel);
   return {
     x: acik.x,
     z: acik.z,
-    koprude,
-    // Olta atma bekleyişi (bacağın bekleme noktası işaretli)
-    balik: !yuruyor && !!a.balik,
     aci: yuruyor ? b.aci : a.aci,
     yuruyor,
     // Parçanın gerçek hızı (birim/sn): koşar/ağır bacaklarda adım temposu buna uyar.
@@ -643,7 +601,7 @@ export function ziyaretHedefiSec(pencere, oyuncuIdleri) {
 
 /** Hedef meydanda ve bota yeterince yakın mı? */
 export function ziyaretUygunMu(k, hedef) {
-  if (!k || k.bitti || !hedef || k.koprude) return false;
+  if (!k || k.bitti || !hedef) return false;
   if (!Number.isFinite(hedef.x) || !Number.isFinite(hedef.z)) return false;
   // Hedef köprüdeyse (göl alanının içinde) ulaşılamaz: bot kıyıda takılıp
   // 9 sn "peşinden gitmeye" çalışıyor, o arada balık bacağı geçiyordu (canlıda ölçüldü).
@@ -700,7 +658,6 @@ export function geriDonusYolu(plan, konum, simdiMs, engeller) {
   const bas = { t: simdiMs, x: konum.x, z: konum.z, aci: konum.aci ?? 0 };
   for (let t = simdiMs; t <= sonT; t += TARAMA_MS) {
     const k = planKonumu(plan, t);
-    if (k.koprude) continue;
     const yol = sapmaliYol(bas, k, engel);
     const ms = uzunluk(bas, yol) * hizMs;
     if (simdiMs + ms <= t) {
@@ -817,7 +774,6 @@ function bacakKur(plan, P, basMs, bitMs, yuz, engel) {
   let git = null, gidisYol = null;
   for (let t = basMs; t >= alt; t -= TARAMA_MS) {
     const k = planKonumu(plan, t);
-    if (k.koprude) continue;
     const yol = sapmaliYol(k, P, engel);
     if (t + uzunluk(k, yol) * hizMs <= basMs) { git = t; gidisYol = yol; break; }
   }
@@ -826,7 +782,6 @@ function bacakKur(plan, P, basMs, bitMs, yuz, engel) {
   let don = null, donusYol = null, donusMs = 0;
   for (let t = bitMs; t <= plan.cikisBasMs; t += TARAMA_MS) {
     const k = planKonumu(plan, t);
-    if (k.koprude) continue;
     const yol = sapmaliYol(P, k, engel);
     const ms = uzunluk(P, yol) * hizMs;
     if (bitMs + ms <= t) { don = t; donusYol = yol; donusMs = ms; break; }
