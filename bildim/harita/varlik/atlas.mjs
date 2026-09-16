@@ -28,8 +28,8 @@ const BOY_ESKI = 512, PAY_ESKI = 3;
 const TANIM = [
   // --- karakter (0-8) ---
   ["ten", "#F2C9A7", "puruz"], ["sac", "#D8CBB8", "sac"], ["tisort", "#EDEDED", "kumas"],
-  ["pantolon", "#3B5B8C", "kumas"], ["ayakkabi", "#E6E6E6", "duz"], ["gozBeyaz", "#FFFFFF", "duz"],
-  ["gozBebek", "#1B1B22", "duz"], ["agiz", "#B5453A", "duz"], ["yanak", "#F0A48A", "duz"],
+  ["premiumCam", "#7FA6C8", "premiumCam"], ["ayakkabi", "#E6E6E6", "duz"], ["alevKumas", "#3A2A2A", "alev"],   // 1G: eski pantolon/gozBeyaz hücreleri yeniden amaçlandı
+  ["gozBebek", "#1B1B22", "duz"], ["kanat", "#F4EEE2", "tuy"], ["kanatKoyu", "#D9CDB8", "tuy"],                  // 1G: eski agiz/yanak hücreleri → kanat tüyü
   // --- kozmetik (9-13) ---
   ["sapka", "#2FBF71", "kumas"], ["sapkaSiperi", "#137A45", "duz"], ["gozlukCerceve", "#1B1B22", "duz"],
   ["gozlukCam", "#8ED3F0", "cam"], ["atki", "#C8102E", "orgu"],
@@ -88,6 +88,12 @@ function desen(tur, temel, x, y) {
     case "cimEski": { const t = gurultu(x >> 2, y >> 2, 18) > 0.5 ? 1.12 : 0.9; return karis(temel, t + gurultu(x, (y >> 1), 19) * 0.06 - 0.03); }
     case "orgu": { const ix = x % 8, iy = y % 8, damali = ((x >> 3) + (y >> 3)) % 2; const merkez = Math.hypot(ix - 4, iy - 4) < 3 ? 1.06 : 0.9; return karis(temel, (damali ? 0.92 : 1.0) * merkez); }
     case "demir": return karis(temel, 0.94 + gurultu(x >> 1, y, 20) * 0.1);
+    // 1G B.1 alevli gömlek kumaşı: koyu kömür dokuma + kor çatlakları (turuncu damarlar) — üstündeki gerçek alev VFX'tir
+    case "alev": { const orgu = ((x >> 1) + (y >> 1)) % 2 ? 1.06 : 0.94; const catlak = Math.abs(Math.sin(x * 0.11 + Math.sin(y * 0.07) * 3.0) * Math.sin(y * 0.13 + x * 0.02)); const kor = catlak > 0.93 ? 1 : catlak > 0.86 ? 0.45 : 0; return kor ? harman(karis(temel, orgu), [255, 120, 30], kor * (0.55 + gurultu(x >> 2, y >> 2, 41) * 0.45)) : karis(temel, orgu + gurultu(x, y, 40) * 0.05); }
+    // 1G B.2 kanat tüyü: yatay tüy çizgileri, telek gölgesi
+    case "tuy": { const seg = y % 16; const telek = Math.abs(x - 64) < 2 ? 0.8 : 1; const kenar = seg < 2 ? 0.86 : seg > 13 ? 0.94 : 1; return karis(temel, telek * kenar * (0.97 + gurultu(x >> 2, y, 42) * 0.05)); }
+    // 1G B.3 premium cam: aynalı, çapraz yansıma bandı + gökyüzü gradyanı
+    case "premiumCam": { const bant = ((x - y + 256) % 48); const yans = bant > 6 && bant < 20 ? 1.35 : bant > 24 && bant < 28 ? 1.15 : 1; return karis(harman(temel, [230, 245, 255], (1 - y / 128) * 0.35), yans * (1.05 - (y / 128) * 0.25)); }
     case "metal": return karis(temel, 0.95 + (Math.sin(x * 0.3) * 0.5 + 0.5) * 0.06 + gurultu(x, y >> 2, 25) * 0.03);
     // kaplan kürkü: turuncu + siyah dalgalı şeritler (geometri değil, hücre)
     case "kurk": { const s = Math.sin(y * 0.28 + Math.sin(x * 0.11) * 1.4); if (s > 0.72) return [32, 26, 24]; return karis(temel, 0.94 + gurultu(x >> 1, y >> 1, 26) * 0.1); }

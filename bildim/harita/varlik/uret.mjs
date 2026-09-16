@@ -49,7 +49,7 @@ const CIKTI = path.join(KOK, "public/meydan/deneme");
 fs.mkdirSync(CIKTI, { recursive: true });
 
 // STIL.md §2.3 bütçeleri — aşan varlık REDDEDİLİR
-const BUTCE = { karakterUcgen: 9000, kozmetikUcgen: 600, binaUcgen: 12000, propUcgen: 1500, kediUcgen: 800 };   // robot ≤ 9.000 (Aşama 1D §4)
+const BUTCE = { karakterUcgen: 9000, kozmetikUcgen: 600, heroKozmetikUcgen: 1200, binaUcgen: 12000, propUcgen: 1500, kediUcgen: 800 };   // robot ≤ 9.000 (Aşama 1D §4)
 const AO_KAPALI = process.argv.includes("--ao-kapali");
 /**
  * 1G-A.4 KOZMETİK POLİTİKALARI — tür dışlama hacmi (kulak · muzzle · anten) ile çakışınca ne olur:
@@ -60,6 +60,8 @@ const AO_KAPALI = process.argv.includes("--ao-kapali");
 const POLITIKA = {
   sapka: { kulak: "gecir", anten: { tip: "bicimlendir", kaydir: [0, 0.03, 0] } },
   gozluk: { muzzle: { tip: "it", mesafe: 0.04 } },
+  gozlukPremium: { muzzle: { tip: "it", mesafe: 0.04 } },   // 1G-B.3: kaplan muzzle → 4 cm öne
+  kanat: {},                                                // 1G-B.2: tür hacimleriyle kesişmez
   atki: {},
   kuyruk: {},
 };
@@ -73,6 +75,7 @@ export const BOLGE = {
   ten: 0, sacKase: 1, sacKisa: 2, sacKuyruk: 3, ust: 4, alt: 5, ayakkabi: 6, ceket: 7, kapuson: 8,
   kurk: 9, metal: 10, boya: 11, ekran: 12, gozL: 13, gozR: 14, agiz: 15, cam: 16, diger: 17, yaka: 18, taban: 19, bilek: 20,
   plastik: 21,   // Aşama 1D §4.3: robot eklem halkaları / piston / taban plakası (mat plastik)
+  premiumMetal: 24,   // Aşama 1G-B.3: premium gözlük çerçevesi (metalness 0,9 — shader tablosu); robot 'metal' bölgesi DEĞİŞMEZ
   turKulak: 22, turAnten: 23,   // Aşama 1G-A.4: tür parçaları (kaplan kulağı, robot anteni) — kozmetik sözleşmesi `gizle` politikası bunları çökertir
 };
 
@@ -545,6 +548,39 @@ function karakterKur(tur = "insan") {
       Y(new THREE.TorusGeometry(0.19, 0.055, 6, 16), "atki", [0, 0.02, 0], E(Math.PI / 2, 0, 0)),
       Y(new RoundedBoxGeometry(0.1, 0.34, 0.05, 1, 0.02), "atki", [0.06, -0.16, 0.2], E(0.15, 0, -0.15)),
     ]);
+    // 1G-B.3 PREMİUM GÖZLÜK (aviator): altın metal çerçeve (bolge premiumMetal) · koyu plastik saplar (plastik) · aynalı cam (cam, premiumCam hücresi).
+    // gozlukYuva'yı temel gözlükle paylaşır → çalışma anında karşılıklı dışlayıcı.
+    const premium = [];
+    for (const s of [-1, 1]) {
+      premium.push(Y(new THREE.CircleGeometry(0.062, 14), "premiumCam", [s * 0.085, -0.005, 0], null, [1, 0.9, 1], BOLGE.cam));
+      premium.push(D(new THREE.TorusGeometry(0.062, 0.006, 5, 16), "altin", [s * 0.085, -0.005, 0.004], null, [1, 0.9, 1], BOLGE.premiumMetal));
+      premium.push(D(new THREE.SphereGeometry(0.01, 5, 4), "altin", [s * 0.15, 0.012, -0.002], null, null, BOLGE.premiumMetal));   // menteşe
+      premium.push(D(new THREE.BoxGeometry(0.007, 0.007, 0.2), "gozlukCerceve", [s * 0.15, 0.012, -0.1], null, null, BOLGE.plastik));
+      premium.push(D(new THREE.SphereGeometry(0.008, 5, 4), "gozlukCerceve", [s * 0.03, -0.012, -0.01], null, null, BOLGE.plastik));   // burun yastığı
+    }
+    premium.push(D(new THREE.BoxGeometry(0.05, 0.006, 0.006), "altin", [0, 0.035, 0.002], null, null, BOLGE.premiumMetal));   // çift köprü
+    premium.push(D(new THREE.BoxGeometry(0.05, 0.006, 0.006), "altin", [0, 0.02, 0.004], null, null, BOLGE.premiumMetal));
+    kozmetik("kozmetik_gozlukPremium", "gozlukYuva", premium);
+    // 1G-B.2 KANAT: sirtYuva (kalça hizası, Spine2'ye bağlı; kanat kökü kürek kemiği hizasına +0,36 çıkar). Deri koşum + iki kol + 6'şar tüy levhası
+    // (açık/koyu tüy hücresi dönüşümlü → yelpaze okunur). %100 kozmetik: çalışma anında çırpma + süzülme ötelemesi (koordinat değişmez).
+    const kanat = [
+      D(new RoundedBoxGeometry(0.18, 0.16, 0.035, 1, 0.012), "deri", [0, 0.27, -0.02]),
+      D(new THREE.BoxGeometry(0.05, 0.02, 0.15), "deri", [0.1, 0.35, 0.04], E(0.55, 0, 0)),
+      D(new THREE.BoxGeometry(0.05, 0.02, 0.15), "deri", [-0.1, 0.35, 0.04], E(0.55, 0, 0)),
+    ];
+    for (const s of [-1, 1]) {
+      // kol: kürek kemiğinden yukarı-dışa; tüyler kolun ALTINDAN sarkar — gövdeye yakın olanlar aşağı, uçtakiler dışa (melek kanadı yelpazesi)
+      const P = new THREE.Vector3(s * 0.1, 0.28, -0.05), U = new THREE.Vector3(s * 0.5, 0.62, -0.16);
+      const kolV = U.clone().sub(P), kolL = kolV.length();
+      kanat.push(D(new THREE.CylinderGeometry(0.02, 0.028, kolL, 8), "deri", P.clone().lerp(U, 0.5).toArray(), new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), kolV.clone().normalize())));
+      for (let k = 0; k < 7; k++) {
+        const pivot = P.clone().lerp(U, 0.08 + k * 0.15), a = -1.15 + k * 0.16, L = 0.28 + k * 0.03;
+        const yon = new THREE.Vector3(s * Math.cos(a), Math.sin(a), -0.12).normalize();
+        const merkez = pivot.clone().addScaledVector(yon, L / 2 - 0.02); merkez.z -= k * 0.01;
+        kanat.push(Y(new THREE.BoxGeometry(L, 0.11, 0.014), k % 2 ? "kanatKoyu" : "kanat", merkez.toArray(), new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(s, 0, 0), yon)));
+      }
+    }
+    kozmetik("kozmetik_kanat", "sirtYuva", kanat);
   }
   if (robot) {
     // ROBOT KOZMETİK VARYANTLARI (1D §4.4): şapka kubbesi anten geçiş halkalı; gözlük → vizör (ekran yüzün üstüne kayar). Atkı insanınki.
@@ -788,7 +824,7 @@ for (const tur of ["insan", "kaplan", "robot"]) {
   const o = olcum(`karakter_${tur}.glb`, K.karakter, { kemik: K.kemikler.size, klipler: K.klipler.map((k) => k.name), yuvalar: [...K.kemikler.values()].flatMap((b) => b.children.filter((c) => !c.isBone).map((c) => c.name)), ao: K.ao });
   const govde = o.meshler.find((m) => m.ad === "Govde").ucgen;
   if (govde > BUTCE.karakterUcgen) red.push(`${tur} gövdesi ${govde} > ${BUTCE.karakterUcgen}`);
-  for (const m of o.meshler) if (m.ad.startsWith("kozmetik_") && m.ucgen > BUTCE.kozmetikUcgen) red.push(`${tur} ${m.ad} ${m.ucgen} > ${BUTCE.kozmetikUcgen}`);
+  for (const m of o.meshler) if (m.ad.startsWith("kozmetik_") && m.ucgen > (m.ad === "kozmetik_kanat" ? BUTCE.heroKozmetikUcgen : BUTCE.kozmetikUcgen)) red.push(`${tur} ${m.ad} ${m.ucgen} > ${m.ad === "kozmetik_kanat" ? BUTCE.heroKozmetikUcgen : BUTCE.kozmetikUcgen}`);
   const n = await glbYaz(`karakter_${tur}.glb`, K.karakter, K.klipler);
   console.log(`karakter_${tur}.glb ${(n / 1024).toFixed(0)} KB — gövde ${govde} üçgen (${aoOzet(K.ao.govde)}), kozmetik ${o.meshler.filter((m) => m.ad.startsWith("kozmetik_")).map((m) => m.ad.slice(9) + ":" + m.ucgen).join(", ") || "—"}, yuva ${o.yuvalar.length}`);
 }

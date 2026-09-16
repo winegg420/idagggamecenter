@@ -15,12 +15,17 @@ import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import { clone as iskeletKopyala } from "three/addons/utils/SkeletonUtils.js";
 import { RoomEnvironment } from "three/addons/environments/RoomEnvironment.js";
+import { VfxKit, receteUygula } from "./vfx.js";   // 1G K1/K3: tek paylaşılan VFX kiti
+import { PetSistemi } from "./pet.js";               // 1G B.4: kedi · köpek · kuş (tür başına 1 InstancedMesh)
 import "./deneme.css";
 
 const KOK = "/meydan/deneme/";
 const KLIPLER = ["Idle", "Walk", "Run", "Selam"];
 const TURLER = ["insan", "kaplan", "robot"];
-const KOZMETIK = { sapka: "basYuva", gozluk: "gozlukYuva", atki: "boyunYuva" };
+const KOZMETIK = { sapka: "basYuva", gozluk: "gozlukYuva", atki: "boyunYuva", gozlukPremium: "gozlukYuva", kanat: "sirtYuva" };   // 1G: gozluk ↔ gozlukPremium karşılıklı dışlayıcı (aynı yuva)
+// 1G K1 VFX ayarı — oyun_ayarlari'na taşınabilir. tamSayi: aynı anda TAM VFX alan oyuncu (kameraya en yakın) — §5.2 stres testinden; orta/uzak: LOD mesafeleri (m)
+const VFX_AYAR = { kapasite: 1500, tamSayi: 6, ortaMesafe: 14, uzakMesafe: 28 };
+const PETLER = ["kedi", "kopek", "kus"];
 const PROPLAR = ["prop_agac_govde", "prop_agac_tac", "prop_lamba", "prop_bank", "prop_saksi", "bordur", "prop_kedi", "zemin_deneme"];
 const CAPA_KARELERI = [["Idle", 0.6], ["Walk", 0.15], ["Walk", 0.5], ["Walk", 0.85], ["Run", 0.1], ["Run", 0.35], ["Run", 0.6], ["Selam", 0.9], ["Selam", 1.4]];
 const KAMERALAR = {
@@ -28,12 +33,14 @@ const KAMERALAR = {
   oyun: { egim: 22, fov: 48, uzak: 6.5, yaw: 10, hedef: [0, 1.3, 2] },
   foto: { egim: 8, fov: 32, uzak: 3.2, yaw: 25, hedef: [0, 1.25, 2] },
   capa: { egim: 6, fov: 46, uzak: 13, yaw: 0, hedef: [0, 1.0, 3.5] },
+  vitrin: { egim: 4, fov: 30, uzak: 6.5, yaw: 25, hedef: [0, 1.05, 2] },   // 1G-C: karakter ekran yüksekliğinin ~%53'ü (ölçüldü: 7,4 m → %46,5)
 };
 // Kıyafet setleri: bölge → atlas hücresi (geometri paylaşılır; yalnız UV ve ton değişir) + set özel parçalar
 const SETLER = {
   1: { ad: "Günlük", ust: "tisort", alt: "kot", ayakkabi: "ayakkabi", ekstra: [] },
   2: { ad: "Şık", ust: "ceket", alt: "kumasPantolon", ayakkabi: "deri", ekstra: ["ceket", "yaka"] },
   3: { ad: "Spor", ust: "esofman", alt: "esofman", ayakkabi: "ayakkabi", ekstra: ["kapuson"] },
+  4: { ad: "Alev", ust: "alevKumas", alt: "kot", ayakkabi: "ayakkabi", ekstra: [], vfx: "alevliGomlek" },   // 1G-B.1: kor çatlaklı kömür kumaş + VFX reçetesi
 };
 const hexV = (h) => new THREE.Color(h);
 // Ton paletleri (nötr hücre × ton). Ten, saç 4'er; kıyafet renkleri setlere göre
@@ -45,7 +52,9 @@ const AYAKLAR = ["#2B2B30", "#FFFFFF", "#C8102E", "#6B3A1E"].map(hexV);
 const NOTR = hexV("#FFFFFF");
 const EGIM_Q = new THREE.Quaternion().setFromEuler(new THREE.Euler(0, 0, 0.14));   // 1G: gülümsemede baş eğimi (8°)
 // Bölge → pürüzlülük (Aşama 1C §5.1; shader'da tablo). Sıra BOLGE kodlarıyla aynı (0..21; 21 = plastik, 1D)
-const PURUZ_TABLO = [0.55, 0.65, 0.65, 0.65, 1.0, 0.95, 0.45, 0.9, 0.95, 0.9, 0.35, 0.5, 0.2, 0.3, 0.3, 0.6, 0.15, 0.82, 0.9, 0.6, 0.85, 0.6, 0.9, 0.35];   // 22 turKulak (kürk) · 23 turAnten (metal) — 1G
+const PURUZ_TABLO = [0.55, 0.65, 0.65, 0.65, 1.0, 0.95, 0.45, 0.9, 0.95, 0.9, 0.35, 0.5, 0.2, 0.3, 0.3, 0.6, 0.15, 0.82, 0.9, 0.6, 0.85, 0.6, 0.9, 0.35, 0.22];
+// Bölge → metalness (1G-B.3 malzeme ayrımı): 16 cam 0,45 (aynalı) · 24 premiumMetal 0,9 (altın çerçeve). Robot 'metal' (10) 0 KALIR — 1D görünümü korunur.
+const METAL_TABLO = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.45, 0, 0, 0, 0, 0, 0, 0, 0.9];   // 22 turKulak (kürk) · 23 turAnten (metal) — 1G
 // Yüz hücrelerinin zemin ten rengi (atlas.mjs TEN) — doğrusal uzayda; shader göz/ağız yamasında "ten olan piksel"i bununla ayırır (1D §2.3)
 const TEN_TEMEL = new THREE.Color("#F2C9A7");   // three r152+: hex → çalışma uzayı (doğrusal) otomatik; ek convertSRGBToLinear ÇİFT dönüşüm olurdu (ilk denemede yama tamamen tonsuz kaldı)
 
@@ -57,7 +66,9 @@ export default function DenemeSayfasi() {
   // Aşama 1E §0.2: CPU+GPU (gl.finish) sürekli ölçülmez — düğmeyle istenir; HUD'da ölçüm anıyla durur
   const [kareOlcum, setKareOlcum] = useState(null);   // { cpuGpu, cpuGpuP95, gpu, zaman }
   const [klip, setKlip] = useState("Idle");
-  const [koz, setKoz] = useState({ sapka: true, gozluk: true, atki: true });
+  const [koz, setKoz] = useState({ sapka: true, gozluk: true, atki: true, gozlukPremium: false, kanat: false });
+  const [pet, setPet] = useState(null);           // 1G-B.4: esas karakterin peti
+  const [vitrin, setVitrin] = useState(false);    // 1G-C: mağaza vitrini
   const [kalabalik, setKalabalik] = useState(false);
   const [golge, setGolge] = useState(true);
   const [ao, setAo] = useState(true);
@@ -130,7 +141,7 @@ export default function DenemeSayfasi() {
       if (!m || m.userData.cilali) return;
       m.userData.cilali = true;
       m.envMapIntensity = 0.35;
-      m.customProgramCacheKey = () => "atlas-bolge-v3";
+      m.customProgramCacheKey = () => "atlas-bolge-v4";
       m.onBeforeCompile = (s) => {
         s.vertexShader = s.vertexShader
           .replace("#include <common>", "#include <common>\nattribute float _bolge;\nvarying float vBolge;")
@@ -138,9 +149,11 @@ export default function DenemeSayfasi() {
         s.fragmentShader = s.fragmentShader
           .replace("#include <common>", `#include <common>
 varying float vBolge;
-const float PURUZ[24] = float[24](${PURUZ_TABLO.map((v) => v.toFixed(2)).join(", ")});
+const float PURUZ[25] = float[25](${PURUZ_TABLO.map((v) => v.toFixed(2)).join(", ")});
+const float METAL[25] = float[25](${METAL_TABLO.map((v) => v.toFixed(2)).join(", ")});
+float bolgeMetal(float b) { int i = int(clamp(b + 0.5, 0.0, 24.0)); return METAL[i]; }
 const vec3 TEN_TEMEL = vec3(${TEN_TEMEL.r.toFixed(4)}, ${TEN_TEMEL.g.toFixed(4)}, ${TEN_TEMEL.b.toFixed(4)});
-float bolgePuruz(float b) { int i = int(clamp(b + 0.5, 0.0, 23.0)); return PURUZ[i]; }`)
+float bolgePuruz(float b) { int i = int(clamp(b + 0.5, 0.0, 24.0)); return PURUZ[i]; }`)
           // 1D §2.3: karakter COLOR_0 RGBA — rgb = AO × ton, a = AO. Göz/ağız yamasında (bölge 13–15) ten OLMAYAN piksel
           // (göz akı, iris, dudak) yalnız AO ile çarpılır; ten pikseli kafayla aynı tonu alır → yama kenarı görünmez. Şeffaflık yok.
           .replace("#include <color_fragment>", `
@@ -154,6 +167,7 @@ float bolgePuruz(float b) { int i = int(clamp(b + 0.5, 0.0, 23.0)); return PURUZ
   diffuseColor.rgb *= vColor.rgb;
 #endif`)
           .replace("#include <roughnessmap_fragment>", "#include <roughnessmap_fragment>\nroughnessFactor = bolgePuruz(vBolge);")
+          .replace("#include <metalnessmap_fragment>", "#include <metalnessmap_fragment>\nmetalnessFactor = max(metalnessFactor, bolgeMetal(vBolge));")
           .replace("#include <emissivemap_fragment>", `#include <emissivemap_fragment>
 if (vBolge > 11.5 && vBolge < 12.5) totalEmissiveRadiance += diffuseColor.rgb * 1.2;
 if (vBolge > 12.5 && vBolge < 15.5 && diffuseColor.b > 0.5 && diffuseColor.r < 0.45) totalEmissiveRadiance += diffuseColor.rgb * 1.5;   // robot siyan göz/ağız`);
@@ -170,7 +184,7 @@ if (vBolge > 12.5 && vBolge < 15.5 && diffuseColor.b > 0.5 && diffuseColor.r < 0
     const malzemeler = [];
     const saat = new THREE.Clock();
     let dondur = false;
-    const durumu = { tur: "insan", set: 1, koz: { sapka: true, gozluk: true, atki: true }, klip: "Idle", ifade: "normal" };
+    const durumu = { tur: "insan", set: 1, koz: { sapka: true, gozluk: true, atki: true, gozlukPremium: false, kanat: false }, klip: "Idle", ifade: "normal" };
 
     const malzemeTopla = (kok) => { kok.traverse((o) => { if (o.material) { cilala(o.material); if (!malzemeler.includes(o.material)) malzemeler.push(o.material); } }); };
 
@@ -206,8 +220,8 @@ if (vBolge > 12.5 && vBolge < 15.5 && diffuseColor.b > 0.5 && diffuseColor.r < 0
         if (u.gizliBolge?.includes(b)) pos.setXYZ(i, bas[0], bas[1], bas[2]);   // 1G-A.4 gizle politikası: tür parçası çökertilir
         if (b === B.ten) c = ten;
         else if (b === B.sacKase || b === B.sacKisa || b === B.sacKuyruk) { c = sac; if (b !== B.sacKase + sacIstenen - 1) pos.setXYZ(i, bas[0], bas[1], bas[2]); }
-        else if (b === B.ust) { c = ust; yeniden(i, u.temelHucre.ust, S.ust); if (g.set === 2) c = g.ceket ?? ALTLAR[1]; }
-        else if (b === B.bilek) { c = g.set === 2 ? (g.ceket ?? ALTLAR[1]) : ust; yeniden(i, u.temelHucre.ust, S.ust); }
+        else if (b === B.ust) { c = ust; yeniden(i, u.temelHucre.ust, S.ust); if (g.set === 2) c = g.ceket ?? ALTLAR[1]; if (g.set === 4) c = NOTR; }
+        else if (b === B.bilek) { c = g.set === 2 ? (g.ceket ?? ALTLAR[1]) : g.set === 4 ? NOTR : ust; yeniden(i, u.temelHucre.ust, S.ust); }
         else if (b === B.alt) { c = alt; yeniden(i, u.temelHucre.alt, S.alt); }
         else if (b === B.ayakkabi) { c = ayak; yeniden(i, u.temelHucre.ayakkabi, S.ayakkabi); }
         else if (b === B.taban) { c = g.set === 2 ? ALTLAR[2] : NOTR; }
@@ -227,6 +241,15 @@ if (vBolge > 12.5 && vBolge < 15.5 && diffuseColor.b > 0.5 && diffuseColor.r < 0
       pos.needsUpdate = true; uv.needsUpdate = true; if (renk) renk.needsUpdate = true;
       geo.computeBoundingSphere();
       kok.userData.gorunum = g;
+      vfxEsle(kok);
+    };
+    /** 1G K3: karakterin VFX reçeteleri = kıyafet setinin vfx'i + kanat kozmetiği. Değişmişse grubunu sil, yeniden kur. */
+    const vfxEsle = (kok) => {
+      const S = SETLER[kok.userData.gorunum?.set] ?? SETLER[1];
+      const istenen = [S.vfx, kok.userData.kanatMesh ? "kanat" : null].filter(Boolean).join("+");
+      if (kok.userData.vfxAdlar === istenen) return;
+      vfxKit.silGrup(kok); kok.userData.vfxAdlar = istenen;
+      for (const ad of istenen.split("+").filter(Boolean)) receteUygula(vfxKit, kok, ad);
     };
     /** İfade: göz/ağız dörtgenlerinin UV'sini ifade karesine kaydır (geometri zaten klon başına). */
     const ifadeAyarla = (kok, gozAd, agizAd) => {
@@ -263,11 +286,14 @@ if (vBolge > 12.5 && vBolge < 15.5 && diffuseColor.b > 0.5 && diffuseColor.r < 0
 
     const kozmetikTak = (kok, ad, ac) => {
       const yuva = kok.getObjectByName(KOZMETIK[ad]); if (!yuva) return;
+      if (ac && ad === "gozluk") kozmetikTak(kok, "gozlukPremium", false);   // 1G-B.3: aynı yuva, karşılıklı dışlayıcı
+      if (ac && ad === "gozlukPremium") kozmetikTak(kok, "gozluk", false);
       // 1D §4.4: türün kendi varyantı varsa o (robot: anten halkalı şapka, vizör); yoksa insanınki (atkı)
       const kaynak = turVeri[kok.userData.tur]?.kozmetikler[ad] ?? turVeri.insan?.kozmetikler[ad];
       const eski = yuva.getObjectByName("kozmetik_" + ad);
       if (eski && !ac) yuva.remove(eski);
       if (!eski && ac && kaynak) { const m = kaynak.clone(); m.castShadow = false; yuva.add(m); sozlesmeUygula(kok, m); }
+      if (ad === "kanat") { kok.userData.kanatMesh = ac ? yuva.getObjectByName("kozmetik_kanat") : null; kok.userData.suzulme = ac; if (kok.userData.gorunum) vfxEsle(kok); }   // 1G-B.2: süzülme + parıltı
     };
     /**
      * 1G-A.4 TÜR–KOZMETİK SÖZLEŞMESİ (çalışma anı): kozmetik hacmi ∩ tür dışlama hacmi → politika.
@@ -297,6 +323,7 @@ if (vBolge > 12.5 && vBolge < 15.5 && diffuseColor.b > 0.5 && diffuseColor.r < 0
     };
     const klipOynat = (kok, ad, mixer, zaman = null) => {
       const c = kok.userData.klipler?.find((k) => k.name === ad); if (!c) return;
+      kok.userData.klipAd = ad;   // 1G-B.1: alev sanal hızı klipten türetilir (Idle 0 · Walk 1,4 · Run 4 m/s)
       mixer.stopAllAction();
       const a = mixer.clipAction(c); a.reset().play();
       a.time = zaman ?? Math.random() * c.duration;
@@ -314,17 +341,73 @@ if (vBolge > 12.5 && vBolge < 15.5 && diffuseColor.b > 0.5 && diffuseColor.r < 0
       gorunumUygula(kok, g); ifadeSec(kok, "normal"); canliEkle(kok);
       return kok;
     };
-    const karakterSil = (kok) => { sahne.remove(kok); canliSil(kok); const i = mixerler.indexOf(kok.userData.mixer); if (i >= 0) mixerler.splice(i, 1); kok.userData.mixer?.stopAllAction(); const j = temasHedefler.findIndex((h) => h.nesne === kok); if (j >= 0) temasHedefler.splice(j, 1); };
+    const karakterSil = (kok) => { sahne.remove(kok); canliSil(kok); vfxKit.silGrup(kok); petSistemi?.kaldir(kok); const i = mixerler.indexOf(kok.userData.mixer); if (i >= 0) mixerler.splice(i, 1); kok.userData.mixer?.stopAllAction(); const j = temasHedefler.findIndex((h) => h.nesne === kok); if (j >= 0) temasHedefler.splice(j, 1); };
 
     // ---- zemin temas gölgeleri ----
     const temasDoku = dokuYukleyici.load(KOK + "temas.png");
     const temas = new THREE.InstancedMesh(new THREE.PlaneGeometry(1, 1).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial({ map: temasDoku, transparent: true, depthWrite: false, opacity: 0.55 }), 200);
     temas.count = 0; temas.frustumCulled = false; temas.renderOrder = 1; sahne.add(temas);
     const temasHedefler = [];
+    // ---- 1G K1: TEK paylaşılan VFX kiti (bütün karakterlerin bütün efektleri tek InstancedMesh + tek ShaderMaterial) ----
+    const vfxKit = new VfxKit(sahne, VFX_AYAR);
+    let petSistemi = null;
+    /**
+     * 1G-B.2 SÜZÜLME (%100 kozmetik): oyunculuk koordinatı (kök) değişmez; ÇİZİLEN gövde birkaç cm yukarı ötelenir (kökün çocukları),
+     * kanat çırpar, bacaklar hafif sarkar. Temas gölgesi kökten okunur → zeminde kalır. Kamera hedefi kök → değişmez.
+     */
+    const HIZLAR = { Idle: 0, Walk: 1.4, Run: 4, Selam: 0 };
+    const SARK_Q = new THREE.Quaternion().setFromEuler(new THREE.Euler(0.16, 0, 0));
+    const hareketGuncelle = (dt, zaman) => {
+      const v = new THREE.Vector3();
+      for (const c of canlilar) {
+        const kok = c.kok, u = kok.userData, faz = (u.faz ??= Math.random() * 6.28);
+        // zıplama (görsel): 0,6 s parabol, tepe 0,45 m; alev dağılır (yoğunluk + dikey hız)
+        const zu = u.zipla != null ? (zaman - u.zipla) / 0.6 : 2; if (zu >= 1) u.zipla = null;
+        const ziplaY = zu < 1 ? 1.8 * zu * (1 - zu) : 0;
+        const hedefY = (u.suzulme ? 0.12 + Math.sin(zaman * 1.7 + faz) * 0.03 : 0) + ziplaY + (u.kaideY ?? 0);
+        u.gorselY = (u.gorselY ?? 0) + (hedefY - (u.gorselY ?? 0)) * Math.min(1, dt * (zu < 1 ? 30 : 4));
+        for (const ch of kok.children) { ch.userData.tabanY ??= ch.position.y; ch.position.y = ch.userData.tabanY + u.gorselY; }
+        if (u.kanatMesh) { u.kanatMesh.rotation.x = -0.06 + Math.sin(zaman * 1.7 + faz) * 0.1; u.kanatMesh.scale.x = 1 + Math.sin(zaman * 1.7 + faz + 1) * 0.04; }
+        if (u.suzulme && !dondur) for (const ad of ["LeftUpLeg", "RightUpLeg"]) { const k = (u["k_" + ad] ??= kok.getObjectByName(ad)); if (k) k.quaternion.multiply(SARK_Q); }
+        // VFX sanal hızı: klipten (kök +Z öne) + zıplama dikeyi
+        if (u.vfxAdlar) { const h = HIZLAR[u.klipAd] ?? 0; v.set(Math.sin(kok.rotation.y) * h, zu < 1 ? (1 - 2 * zu) * 3 : 0, Math.cos(kok.rotation.y) * h); for (const y of vfxKit.yayicilar) if (y.grup === kok) { y.hiz.copy(v); y.yogunluk = (y.temelYogun ??= y.yogunluk) * (zu < 1 ? 1.9 : 1); } }
+      }
+    };
+    // ---- 1G-C MAĞAZA VİTRİNİ: çevre/bina/kediler gizli, stüdyo fonu, kaide, arka ışık, karakter ekranın ~%50'si, otomatik döner. Fotoğraf stüdyosuyla aynı sahne. ----
+    let vitrinDurum = null;
+    const vitrinAyarla = (ac) => {
+      if (!esas) return;
+      const zemin = sahne.getObjectByName("zemin"), yazi = sahne.getObjectByName("tabelaYazi");
+      if (ac && !vitrinDurum) {
+        vitrinDurum = { bg: sahne.background, fog: sahne.fog, cevre: cevreGrubu.visible, kedi: kediMesh?.visible, bina: binaMesh?.visible, zemin: zemin?.visible, yazi: yazi?.visible, esasPoz: esas.position.clone(), esasDon: esas.rotation.y, kopya: kopyalar.length, minD: kontrol.minDistance };
+        kopyaAyarla(0);
+        sahne.background = new THREE.Color(0x1b2233); sahne.fog = null;
+        cevreGrubu.visible = false; if (kediMesh) kediMesh.visible = false; if (binaMesh) binaMesh.visible = false; if (zemin) zemin.visible = false; if (yazi) yazi.visible = false;
+        esas.position.set(0, 0, 2); esas.rotation.y = 0;
+        // kaide: atlas malzemesi (yeni malzeme YOK) — 'metal' hücresi + premiumMetal bölgesi (parlak)
+        const govde = esas.getObjectByName("Govde"), r = govde.userData.hucreler.metal;
+        const kg = new THREE.CylinderGeometry(1.15, 1.25, 0.12, 40); const n = kg.attributes.position.count;
+        for (let i = 0; i < n; i++) kg.attributes.uv.setXY(i, (r.u0 + r.u1) / 2, (r.v0 + r.v1) / 2);
+        kg.setAttribute("_bolge", new THREE.BufferAttribute(new Float32Array(n).fill(24), 1)); kg.setAttribute("color", new THREE.BufferAttribute(new Float32Array(n * 3).fill(0.9), 3));
+        const kaide = new THREE.Mesh(kg, govde.material); kaide.name = "vitrinKaide"; kaide.position.set(0, 0.06, 2); kaide.receiveShadow = true; sahne.add(kaide);
+        const arka = new THREE.DirectionalLight(0x9fd8ff, 2.2); arka.position.set(-3, 4, -2); arka.target = esas; arka.name = "vitrinArka"; sahne.add(arka);
+        vitrinDurum.kaide = kaide; vitrinDurum.arka = arka;
+        for (const ch of esas.children) ch.userData.tabanY = (ch.userData.tabanY ?? ch.position.y);   // kaide üstü: görsel taban +0,12
+        esas.userData.kaideY = 0.12;
+        kameraAyarla("vitrin"); kontrol.autoRotate = true; kontrol.autoRotateSpeed = 1.2; kontrol.enablePan = false; kontrol.minDistance = 2;
+      } else if (!ac && vitrinDurum) {
+        const d = vitrinDurum; vitrinDurum = null;
+        sahne.remove(d.kaide); d.kaide.geometry.dispose(); sahne.remove(d.arka);
+        sahne.background = d.bg; sahne.fog = d.fog; cevreGrubu.visible = d.cevre; if (kediMesh) kediMesh.visible = d.kedi; if (binaMesh) binaMesh.visible = d.bina; if (zemin) zemin.visible = d.zemin; if (yazi) yazi.visible = d.yazi;
+        esas.position.copy(d.esasPoz); esas.rotation.y = d.esasDon; esas.userData.kaideY = 0;
+        kontrol.autoRotate = false; kontrol.enablePan = true; kontrol.minDistance = d.minD;
+        kopyaAyarla(d.kopya); kameraAyarla("genis");
+      }
+    };
     const tM = new THREE.Matrix4(), tP = new THREE.Vector3(), tQ = new THREE.Quaternion(), tS = new THREE.Vector3();
     const temasGuncelle = () => {
       let i = 0;
-      for (const h of temasHedefler) { if (!h.nesne.visible || !h.nesne.parent || i >= 200) continue; h.nesne.getWorldPosition(tP); tP.y = 0.02; tM.compose(tP, tQ, tS.set(h.r, 1, h.r)); temas.setMatrixAt(i++, tM); }
+      for (const h of temasHedefler) { if (!h.nesne.visible || !h.nesne.parent || h.nesne.parent.visible === false || i >= 200) continue; /* 1G: gizli çevre/kedi/pet gölge bırakmaz (vitrin) */ h.nesne.getWorldPosition(tP); tP.y = 0.02; tM.compose(tP, tQ, tS.set(h.r, 1, h.r)); temas.setMatrixAt(i++, tM); }
       temas.count = i; temas.instanceMatrix.needsUpdate = true;
     };
 
@@ -447,6 +530,8 @@ if (vBolge > 12.5 && vBolge < 15.5 && diffuseColor.b > 0.5 && diffuseColor.r < 0
         for (const m of Object.values(propMesh)) malzemeTopla(m);
         if (propMesh.zemin_deneme) { const z = propMesh.zemin_deneme.clone(); z.receiveShadow = true; z.castShadow = false; z.name = "zemin"; sahne.add(z); }
         cevreKur(); kediKur();
+        // 1G-B.4 pet sistemi: kedi geometrisi (prop_kedi) + aynı atlas malzemesi; kuş kod geometrisi
+        if (propMesh.prop_kedi && turVeri.insan) petSistemi = new PetSistemi(sahne, { kediGeo: propMesh.prop_kedi.geometry, malzeme: propMesh.prop_kedi.material, hucreler: turVeri.insan.mesh.userData.hucreler, temasHedefler });
         dokular.yeni = malzemeler.find((m) => m.map)?.map ?? null;
         for (const [ad, d] of [["eski", eskiDoku], ["yaprakEski", yaprakDoku]]) if (d) { d.flipY = false; d.colorSpace = THREE.SRGBColorSpace; d.wrapS = d.wrapT = THREE.ClampToEdgeWrapping; d.needsUpdate = true; dokular[ad] = d; }
         // esas karakter
@@ -489,14 +574,14 @@ if (vBolge > 12.5 && vBolge < 15.5 && diffuseColor.b > 0.5 && diffuseColor.r < 0
         if (siyah) {
           sahne.overrideMaterial = new THREE.MeshBasicMaterial({ color: 0x000000 });
           sahne.background = new THREE.Color(0xffffff); sahne.fog = null;
-          cevreGrubu.visible = false; if (kediMesh) kediMesh.visible = false; if (binaMesh) binaMesh.visible = false; temas.visible = false;
+          cevreGrubu.visible = false; if (kediMesh) kediMesh.visible = false; if (binaMesh) binaMesh.visible = false; temas.visible = false; vfxKit.mesh.visible = false; for (const m of Object.values(petSistemi?.mesh ?? {})) m.visible = false;
           if (zemin) zemin.visible = false; if (yazi) yazi.visible = false;
         }
       } else if (!ac && siluetDurum) {
         const d = siluetDurum; siluetDurum = null;
         for (const k of d.ekstra) karakterSil(k);
         sahne.overrideMaterial = null; sahne.background = d.bg; sahne.fog = d.fog;
-        cevreGrubu.visible = d.cevre; if (kediMesh) kediMesh.visible = d.kedi; if (binaMesh) binaMesh.visible = d.bina; temas.visible = d.temas;
+        cevreGrubu.visible = d.cevre; if (kediMesh) kediMesh.visible = d.kedi; if (binaMesh) binaMesh.visible = d.bina; temas.visible = d.temas; vfxKit.mesh.visible = true; for (const m of Object.values(petSistemi?.mesh ?? {})) m.visible = true;
         const zemin = sahne.getObjectByName("zemin"), yazi = sahne.getObjectByName("tabelaYazi");
         if (zemin) zemin.visible = d.zemin; if (yazi) yazi.visible = d.yazi; dondur = d.dondur;
         esas.position.copy(d.esasPoz); esas.rotation.y = d.esasDon; klipOynat(esas, d.klip, esas.userData.mixer);
@@ -510,7 +595,7 @@ if (vBolge > 12.5 && vBolge < 15.5 && diffuseColor.b > 0.5 && diffuseColor.r < 0
       for (let i = 0; i < n; i++) {
         const tur = i % 5 === 3 ? "kaplan" : i % 5 === 4 ? "robot" : "insan";
         const g = { set: (i % 3) + 1, sac: (i % 3) + 1, ten: TENLER[i % 4], sacRenk: SACLAR[(i * 3) % 4], ust: USTLER[(i * 5) % USTLER.length], alt: ALTLAR[(i * 7) % ALTLAR.length], ayak: AYAKLAR[(i * 3) % AYAKLAR.length], ceket: ALTLAR[(i + 1) % ALTLAR.length], metal: i % 2 ? new THREE.Color(0xdfe3e8) : new THREE.Color(0xf3c98b), boya: USTLER[(i * 2) % USTLER.length] };
-        const koz = { sapka: (i * 7) % 5 < 2, gozluk: (i * 3) % 5 < 2, atki: (i * 11) % 5 < 2 };
+        const koz = { sapka: (i * 7) % 5 < 2, gozluk: (i * 3) % 5 < 2, atki: (i * 11) % 5 < 2, gozlukPremium: (i * 3) % 5 === 2, kanat: i % 8 === 5 };   // 1G: kalabalıkta 3 kanat, 5 premium gözlük
         const kok = karakterYap(tur, g, koz);
         const col = i % 6, row = Math.floor(i / 6);
         kok.position.set(-7.5 + col * 3, 0, 4 + row * 2.0); kok.rotation.y = ((i * 37) % 100 / 100 - 0.5) * 1.2;
@@ -548,9 +633,10 @@ if (vBolge > 12.5 && vBolge < 15.5 && diffuseColor.b > 0.5 && diffuseColor.r < 0
       // kaplan kuyruğu: kökten salınım
       sahne.traverse((o) => { if (o.name === "kozmetik_kuyruk") o.rotation.set(Math.sin(zaman * 2.1) * 0.12, Math.sin(zaman * 3.3) * 0.28, 0); });
       kediGuncelle(dt, zaman);
+      hareketGuncelle(dt, zaman); petSistemi?.guncelle(dt, zaman); vfxKit.guncelle(zaman, kam);   // 1G: süzülme/zıplama · petler · tek VFX çağrısı
       kontrol.update(); temasGuncelle();
       const t0 = performance.now(); render.render(sahne, kam); sure += performance.now() - t0; kare++;
-      if (t - sonOlc >= 500) { const i = render.info.render; setOlc({ cagri: i.calls, ucgen: i.triangles, fps: Math.round(kare * 1000 / (t - sonOlc)), ms: +(sure / kare).toFixed(2), kopya: 1 + kopyalar.length }); kare = 0; sure = 0; sonOlc = t; }
+      if (t - sonOlc >= 500) { const i = render.info.render; setOlc({ cagri: i.calls, ucgen: i.triangles, fps: Math.round(kare * 1000 / (t - sonOlc)), ms: +(sure / kare).toFixed(2), kopya: 1 + kopyalar.length, vfx: vfxKit.istatistik.parcacik, vfxTam: vfxKit.istatistik.tam, pet: petSistemi?.petler.length ?? 0 }); kare = 0; sure = 0; sonOlc = t; }
     };
     let raf = 0, worker = null;
     if (new URLSearchParams(location.search).has("otomasyon")) { worker = new Worker(URL.createObjectURL(new Blob(["setInterval(()=>postMessage(0),16)"]))); worker.onmessage = () => { if (calisiyor) cizim(); }; }
@@ -603,6 +689,16 @@ if (vBolge > 12.5 && vBolge < 15.5 && diffuseColor.b > 0.5 && diffuseColor.r < 0
         setKareOlcum(sonuc);
         return sonuc;
       },
+      // ---- 1G API ----
+      pet: (tur) => { if (!esas || !petSistemi) return; petSistemi.kaldir(esas); if (tur) petSistemi.ekle(esas, tur); },
+      petler: (n, tur = null) => { if (!petSistemi) return; for (const [i, k] of kopyalar.entries()) { petSistemi.kaldir(k.kok); if (i < n) petSistemi.ekle(k.kok, tur ?? PETLER[i % 3]); } },   // stres: ilk n kopyaya pet
+      alev: (n) => { const hepsi = [esas, ...kopyalar.map((k) => k.kok)].filter(Boolean); hepsi.forEach((kok, i) => gorunumUygula(kok, { ...(kok.userData.gorunum ?? {}), set: i < n ? 4 : (i % 3) + 1 })); },   // §5.2 stres: n alevli karakter
+      kanatlar: (n) => { for (const [i, k] of kopyalar.entries()) kozmetikTak(k.kok, "kanat", i < n); },
+      zipla: () => { if (esas) esas.userData.zipla = zaman; },
+      vfx: () => ({ ...vfxKit.istatistik, ayar: { ...vfxKit.ayar } }),
+      vfxAyar: (o) => Object.assign(vfxKit.ayar, o),
+      vitrin: (ac) => vitrinAyarla(ac),
+      petSayilari: () => petSistemi?.sayilar() ?? null,
       esas: () => esas, sahne, render, kam,
     };
     window.__deneme = apiRef.current;
@@ -621,6 +717,8 @@ if (vBolge > 12.5 && vBolge < 15.5 && diffuseColor.b > 0.5 && diffuseColor.r < 0
 
   useEffect(() => { apiRef.current?.klip(klip); }, [klip, durum.hazir]);
   useEffect(() => { for (const ad of Object.keys(KOZMETIK)) apiRef.current?.kozmetik(ad, koz[ad]); }, [koz, durum.hazir]);
+  useEffect(() => { if (durum.hazir) apiRef.current?.pet(pet); }, [pet, durum.hazir]);
+  useEffect(() => { if (durum.hazir) apiRef.current?.vitrin(vitrin); }, [vitrin, durum.hazir]);
   useEffect(() => { apiRef.current?.kopya(kalabalik ? 24 : 0); }, [kalabalik, durum.hazir]);
   useEffect(() => { apiRef.current?.golge(golge); }, [golge]);
   useEffect(() => { apiRef.current?.ao(ao); }, [ao, durum.hazir]);
@@ -650,15 +748,16 @@ if (vBolge > 12.5 && vBolge < 15.5 && diffuseColor.b > 0.5 && diffuseColor.r < 0
           <span title="Yalnız CPU gönderim süresi (render.render çevresi). Kare süresi DEĞİL.">CPU {olc.ms.toLocaleString("tr-TR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ms</span> ·{" "}
           <span title="cizim() + gl.finish(), 120 kare ısınma, 300 kare medyan. Düğmeyle ölçülür.">CPU+GPU {kareOlcum ? `${kareOlcum.cpuGpu.toLocaleString("tr-TR", { minimumFractionDigits: 2 })} ms (${kareOlcum.zaman})` : "— ms"}</span>
           {kareOlcum?.gpu != null && <> · <span title="EXT_disjoint_timer_query_webgl2, medyan">GPU {kareOlcum.gpu.toLocaleString("tr-TR", { minimumFractionDigits: 2 })} ms</span></>}
-          {" "}· {olc.kopya} karakter
+          {" "}· {olc.kopya} karakter · <span title="Tek paylaşılan InstancedMesh (1 çağrı). tam = tam VFX alan yayıcı sayısı (LOD)">VFX {olc.vfx ?? 0} parçacık / {olc.vfxTam ?? 0} tam</span> · {olc.pet ?? 0} pet
         </div>
       </div>
       {!durum.hazir && <div className="hd-perde">{durum.hata ? "Yüklenemedi: " + durum.hata : "Varlıklar yükleniyor…"}</div>}
       <div className="hd-alt">
         <div className="hd-grup">{KLIPLER.map((k) => <D key={k} ac={klip === k} onClick={() => setKlip(k)}>{k}</D>)}</div>
         <div className="hd-grup">{TURLER.map((t) => <D key={t} ac={tur === t} onClick={() => setTur(t)}>{t}</D>)}</div>
-        <div className="hd-grup">{[1, 2, 3].map((n) => <D key={n} ac={set === n} onClick={() => setSet(n)}>kıyafet {n}</D>)}</div>
-        <div className="hd-grup">{Object.keys(KOZMETIK).map((k) => <D key={k} ac={koz[k]} onClick={() => setKoz({ ...koz, [k]: !koz[k] })}>{k}</D>)}</div>
+        <div className="hd-grup">{[1, 2, 3, 4].map((n) => <D key={n} ac={set === n} onClick={() => setSet(n)}>{n === 4 ? "kıyafet 4 (alev)" : "kıyafet " + n}</D>)}</div>
+        <div className="hd-grup">{Object.keys(KOZMETIK).map((k) => <D key={k} ac={koz[k]} onClick={() => setKoz({ ...koz, [k]: !koz[k], ...(k === "gozluk" && !koz[k] ? { gozlukPremium: false } : {}), ...(k === "gozlukPremium" && !koz[k] ? { gozluk: false } : {}) })}>{k}</D>)}</div>
+        <div className="hd-grup">{[[null, "pet yok"], ["kedi", "kedi"], ["kopek", "köpek"], ["kus", "kuş"]].map(([k, ad]) => <D key={ad} ac={pet === k} onClick={() => setPet(k)}>{ad}</D>)}<D ac={false} onClick={() => apiRef.current?.zipla()}>zıpla</D></div>
         <div className="hd-grup">{[["normal", "normal"], ["gulumseme", "gülümseme"], ["saskin", "şaşkın"]].map(([k, ad]) => <D key={k} ac={ifade === k} onClick={() => setIfade(k)}>{ad}</D>)}</div>
         <div className="hd-grup">
           <D ac={kalabalik} onClick={() => setKalabalik(!kalabalik)}>25 karakter</D>
@@ -676,7 +775,7 @@ if (vBolge > 12.5 && vBolge < 15.5 && diffuseColor.b > 0.5 && diffuseColor.r < 0
           <D ac={siluet} onClick={() => setSiluet(!siluet)}>siluet</D>
           <D ac={tacVekili} onClick={() => setTacVekili(!tacVekili)}>taç gölgesi: {tacVekili ? "vekil" : "gerçek"}</D>
         </div>
-        <div className="hd-grup">{[["genis", "Geniş"], ["oyun", "Oyun"], ["foto", "Fotoğraf"]].map(([k, ad]) => <D key={k} ac={kamera === k} onClick={() => setKamera(k)}>{ad}</D>)}</div>
+        <div className="hd-grup">{[["genis", "Geniş"], ["oyun", "Oyun"], ["foto", "Fotoğraf"]].map(([k, ad]) => <D key={k} ac={kamera === k} onClick={() => setKamera(k)}>{ad}</D>)}<D ac={vitrin} onClick={() => setVitrin(!vitrin)}>vitrin</D></div>
         <div className="hd-grup"><D ac={false} onClick={() => apiRef.current?.kareOlc()}>CPU+GPU ölç</D></div>
       </div>
     </div>
