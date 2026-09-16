@@ -75,39 +75,39 @@
       "a": {
         "desen": "*",
         "absx": [
-          0.26,
+          0.2,
           1
         ]
       },
       "b": {
         "desen": "*",
         "absx": [
-          0.26,
+          0.2,
           1
         ]
       },
-      "sebep": "kol segmentleri dirsek küresi/halkasına ve el kıskacına geçme montaj (1D §4.2)"
+      "sebep": "kol segmentleri omuz/dirsek küresi-halkasına ve el kıskacına geçme montaj (1D §4.2, 1G: omuz gövde dışında)"
     },
     {
       "a": {
         "desen": "metal:metal",
         "absx": [
           0.26,
-          0.3
+          0.34
         ]
       },
       "b": {
         "desen": "*",
         "absx": [
-          0.15,
-          0.21
+          0.14,
+          0.26
         ],
         "y": [
           1.2,
           1.36
         ]
       },
-      "sebep": "üst kol omuz eklemine takılı"
+      "sebep": "üst kol omuz küresine takılı"
     },
     {
       "a": {
@@ -316,16 +316,142 @@
       },
       "derinlik_max_m": 0.03,
       "sebep": "yan paneller gövde yüzeyine monte"
+    },
+    {
+      "a": {
+        "desen": "plastik:demir",
+        "absx": [
+          0.1,
+          0.16
+        ],
+        "y": [
+          0.75,
+          0.87
+        ]
+      },
+      "b": {
+        "desen": "metal:metal",
+        "y": [
+          0.8,
+          0.95
+        ],
+        "absx": [
+          0,
+          0.02
+        ]
+      },
+      "sebep": "kalça küresi kalça bloğuna takılı (1G: küre bloğun dışına alındı, %38 gömülü)"
+    },
+    {
+      "a": {
+        "desen": "plastik:demir",
+        "y": [
+          1.28,
+          1.42
+        ],
+        "absx": [
+          0,
+          0.02
+        ]
+      },
+      "b": {
+        "desen": "metal:metal",
+        "y": [
+          1.5,
+          1.62
+        ],
+        "absx": [
+          0,
+          0.02
+        ]
+      },
+      "sebep": "boyun pistonu kafa altına girer"
+    },
+    {
+      "a": {
+        "desen": "plastik:demir",
+        "y": [
+          1.28,
+          1.42
+        ],
+        "absx": [
+          0,
+          0.02
+        ]
+      },
+      "b": {
+        "desen": "metal:metal",
+        "y": [
+          1.1,
+          1.25
+        ],
+        "absx": [
+          0,
+          0.02
+        ]
+      },
+      "sebep": "boyun pistonu göğüs üstüne girer"
+    },
+    {
+      "a": {
+        "desen": "plastik:demir",
+        "y": [
+          0.93,
+          1.05
+        ],
+        "absx": [
+          0,
+          0.02
+        ]
+      },
+      "b": {
+        "desen": "metal:metal"
+      },
+      "sebep": "bel halkası iki bloğa 1 cm girer (bağlantı)"
+    },
+    {
+      "a": {
+        "desen": "metal:metal",
+        "absx": [
+          0,
+          0.02
+        ],
+        "y": [
+          0.9,
+          1.1
+        ]
+      },
+      "b": {
+        "desen": "*"
+      },
+      "sebep": "bel iç mili: iki bloğu bağlayan görünmez mil"
+    },
+    {
+      "a": {
+        "desen": "metal:metal",
+        "absx": [
+          0,
+          0.02
+        ],
+        "y": [
+          1.25,
+          1.45
+        ]
+      },
+      "b": {
+        "desen": "*"
+      },
+      "sebep": "boyun iç mili: göğüs–kafa bağlantısı"
     }
   ],
   "gomulu_izinli": [
     {
       "desen": "*",
       "absx": [
-        0.26,
+        0.2,
         1
       ],
-      "sebep": "kısa kol segmentinin çoğu eklem kürelerinin içinde kalır (tasarım)"
+      "sebep": "kol segmentleri eklem kürelerine geçme"
     },
     {
       "desen": "*",
@@ -334,6 +460,30 @@
         0.8
       ],
       "sebep": "bacak segmentleri diz/bilek eklemlerine takılı"
+    },
+    {
+      "desen": "metal:metal",
+      "absx": [
+        0,
+        0.02
+      ],
+      "y": [
+        0.9,
+        1.1
+      ],
+      "sebep": "bel iç mili görünmez bağlantı"
+    },
+    {
+      "desen": "metal:metal",
+      "absx": [
+        0,
+        0.02
+      ],
+      "y": [
+        1.25,
+        1.45
+      ],
+      "sebep": "boyun iç mili görünmez bağlantı"
     }
   ],
   "havada_durabilir": [],
@@ -343,7 +493,7 @@
       "b": {
         "desen": "*",
         "y": [
-          1.1,
+          1,
           1.45
         ],
         "absx": [
@@ -351,7 +501,7 @@
           0.3
         ]
       },
-      "sebep": "atkı boyun pistonu ve omuz çevresine sarılır"
+      "sebep": "atkı boyun pistonu, omuz ve göğüs paneli çevresine sarılır"
     },
     {
       "a": "kozmetik_sapka",

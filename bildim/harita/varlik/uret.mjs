@@ -191,17 +191,22 @@ function karakterKur(tur = "insan") {
   } else {
     // ---- ROBOT GÖVDESİ (Aşama 1D §4): kalça bloğu + bel halkası + göğüs bloğu (ayrık kütleler), yan paneller (set rengi),
     //      göğüs ekranı + göstergeler, havalandırma çizgileri, boyun pistonu. Kumaş yok; malzeme = bölge (metal/boya/plastik/ekran).
-    const gogusM = hips.clone().lerp(neck, 0.62), belM = hips.clone().add(new THREE.Vector3(0, 0.1, 0));
-    ekle(yerlestir(new RoundedBoxGeometry(0.36, 0.22, 0.26, 2, 0.06), hips.clone().add(new THREE.Vector3(0, -0.03, 0)).toArray()), "metal", "Hips", BOLGE.metal);
-    ekle(yerlestir(new THREE.CylinderGeometry(0.12, 0.12, 0.08, 12), belM.toArray()), "demir", "Spine", BOLGE.plastik);
-    ekle(yerlestir(new RoundedBoxGeometry(0.46, 0.34, 0.32, 2, 0.07), gogusM.toArray()), "metal", "Spine1", BOLGE.metal);
-    for (const s of [-1, 1]) ekle(yerlestir(new RoundedBoxGeometry(0.03, 0.22, 0.22, 1, 0.01), gogusM.clone().add(new THREE.Vector3(s * 0.235, 0, 0)).toArray()), "gomlek", "Spine1", BOLGE.boya, { desenli: true });
-    const panel = gogusM.clone().add(new THREE.Vector3(0, 0.02, 0.165));
-    ekle(yerlestir(new RoundedBoxGeometry(0.2, 0.13, 0.02, 1, 0.008), panel.toArray()), "ekran", "Spine1", BOLGE.ekran);
-    for (let i = 0; i < 3; i++) kure(panel.clone().add(new THREE.Vector3(-0.05 + i * 0.05, 0.095, 0)), 0.012, "gomlek", "Spine1", BOLGE.boya, [1, 1, 0.6], 6, true);
-    for (let i = 0; i < 3; i++) ekle(yerlestir(new THREE.BoxGeometry(0.16, 0.008, 0.012), panel.clone().add(new THREE.Vector3(0, -0.1 - i * 0.03, 0)).toArray()), "demir", "Spine1", BOLGE.plastik);
-    ekle(yerlestir(new THREE.CylinderGeometry(0.045, 0.05, 0.16, 10), neck.clone().add(new THREE.Vector3(0, 0.02, 0)).toArray()), "demir", "Neck", BOLGE.plastik);
-    halka(neck.clone().add(new THREE.Vector3(0, 0.07, 0)), new THREE.Vector3(0, 1, 0), 0.06, 0.012, "gomlek", "Neck", BOLGE.boya, true);
+    // 1G-A.1: 1E muayenesi eklemlerin %80–100 gömülü olduğunu ölçtü → kütleler KÜÇÜLDÜ ve ARALANDI. Kalça bloğu ile göğüs bloğu
+    // arasında 8 cm boşluk (bel halkası açıkta), göğüs üstü ile kafa altı arasında boyun pistonu + halka görünür, omuz/kalça
+    // küreleri kütlelerin dışına taşar. Ölçüm: eklem gömülülüğü < %40 (muayene `gomuluOranlar`).
+    const gogusM = new THREE.Vector3(hips.x, 1.16, hips.z), belM = new THREE.Vector3(hips.x, 0.99, hips.z);
+    ekle(yerlestir(new RoundedBoxGeometry(0.22, 0.14, 0.20, 2, 0.05), hips.clone().add(new THREE.Vector3(0, -0.05, 0)).toArray()), "metal", "Hips", BOLGE.metal);
+    ekle(yerlestir(new THREE.CylinderGeometry(0.10, 0.10, 0.07, 12), belM.toArray()), "demir", "Spine", BOLGE.plastik);   // bel halkası 0,955–1,025 tamamen açıkta
+    ekle(yerlestir(new THREE.CylinderGeometry(0.035, 0.035, 0.14, 8), belM.toArray()), "metal", "Spine", BOLGE.metal);   // iç mil: iki bloğu bağlar (görünmez bağlantı)
+    ekle(yerlestir(new RoundedBoxGeometry(0.30, 0.26, 0.26, 2, 0.06), gogusM.toArray()), "metal", "Spine1", BOLGE.metal);
+    for (const s of [-1, 1]) ekle(yerlestir(new RoundedBoxGeometry(0.03, 0.18, 0.18, 1, 0.01), gogusM.clone().add(new THREE.Vector3(s * 0.155, 0, 0)).toArray()), "gomlek", "Spine1", BOLGE.boya, { desenli: true });
+    const panel = gogusM.clone().add(new THREE.Vector3(0, 0.03, 0.135));
+    ekle(yerlestir(new RoundedBoxGeometry(0.16, 0.10, 0.02, 1, 0.008), panel.toArray()), "ekran", "Spine1", BOLGE.ekran);
+    for (let i = 0; i < 3; i++) kure(panel.clone().add(new THREE.Vector3(-0.04 + i * 0.04, 0.062, -0.006)), 0.011, "gomlek", "Spine1", BOLGE.boya, [1, 1, 0.6], 6, true);
+    for (let i = 0; i < 3; i++) ekle(yerlestir(new THREE.BoxGeometry(0.14, 0.008, 0.014), panel.clone().add(new THREE.Vector3(0, -0.075 - i * 0.022, 0)).toArray()), "demir", "Spine1", BOLGE.plastik);
+    ekle(yerlestir(new THREE.CylinderGeometry(0.045, 0.05, 0.08, 10), neck.clone().add(new THREE.Vector3(0, 0.005, 0)).toArray()), "demir", "Neck", BOLGE.plastik);   // piston 1,285–1,365: göğüs üstü–kafa altı boşluğunu tam doldurur
+    ekle(yerlestir(new THREE.CylinderGeometry(0.028, 0.028, 0.16, 8), neck.clone().add(new THREE.Vector3(0, 0.02, 0)).toArray()), "metal", "Neck", BOLGE.metal);   // iç mil: göğüs–kafa bağlantısı
+    halka(neck.clone().add(new THREE.Vector3(0, 0.01, 0)), new THREE.Vector3(0, 1, 0), 0.062, 0.013, "gomlek", "Neck", BOLGE.boya, true);
   }
 
   // ---- BAŞ (Aşama 1D §2): 28×18 küre; anatomi köşe kaydırmayla oyulur; göz/ağız yüzeye oturan yamalar ----
@@ -241,7 +246,7 @@ function karakterKur(tur = "insan") {
       { x: s * 0.125, y: -0.04, rx: 0.06, ry: 0.05, d: 0.003 },                 // elmacık
     ]),
   ];
-  const basOlcek = robot ? [1, 0.9, 0.92] : [1, 1.02, 1];
+  const basOlcek = robot ? [1, 0.84, 0.92] : [1, 1.02, 1];   // robot 1G: kafa altı 1,36 m → boyun pistonu göğüs üstü (1,29) ile kafa arasında görünür
   /** Yön n için kafa yüzeyinin yarıçapı: ölçekli küre + özellik kaydırmaları. Yamalar da bunu örnekler → yüzeye oturur. */
   const yuzeyYaricap = (n) => {
     let r = R / Math.sqrt((n.x / basOlcek[0]) ** 2 + (n.y / basOlcek[1]) ** 2 + (n.z / basOlcek[2]) ** 2);
@@ -375,19 +380,22 @@ function karakterKur(tur = "insan") {
       ekle(yerlestir(new THREE.TorusGeometry(0.07, 0.012, 5, 12), hand.clone().add(yonEl.clone().multiplyScalar(-0.01)).toArray(), new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 0, 1), yonEl)), "tisort", t + "Hand", BOLGE.bilek, { desenli: true });
     } else {
       // ROBOT KOLU (1D §4.2): küresel omuz + halka (gövdeden ayrık) · üst kol silindiri · dirsek küresi + halka · ön kol paneli · üç parmaklı kıskaç
-      kure(arm, 0.085, "gomlek", t + "Arm", BOLGE.boya, [1, 1, 1], 10, true);
-      halka(arm, fore.clone().sub(arm), 0.09, 0.014, "demir", t + "Arm", BOLGE.plastik);
-      silindir(arm, fore, 0.06, 0.055, "metal", t + "Arm", BOLGE.metal);
+      // 1G-A.1: omuz küresi gövdenin DIŞINDA (kol ekseninde 3,5 cm dışa), üst kol dirsek küresine 5 cm kala biter, ön kol 5 cm
+      // sonra başlar → küre ve halka siluetten okunur. El ön kola bağlı (1E: 2 cm kopuktu). Kıskaç: 3 belirgin parmak, uçları kavuşur.
+      const disa = yonEl.clone(), omuz = arm.clone().add(disa.clone().multiplyScalar(0.035));
+      kure(omuz, 0.075, "gomlek", t + "Arm", BOLGE.boya, [1, 1, 1], 10, true);
+      halka(omuz, disa, 0.09, 0.012, "demir", t + "Arm", BOLGE.plastik);
+      silindir(omuz.clone().add(disa.clone().multiplyScalar(0.06)), fore.clone().add(disa.clone().multiplyScalar(-0.05)), 0.05, 0.045, "metal", t + "Arm", BOLGE.metal);
       kure(fore, 0.065, "demir", t + "ForeArm", BOLGE.plastik, [1, 1, 1], 10);
-      halka(fore, yonEl, 0.07, 0.013, "gomlek", t + "ForeArm", BOLGE.boya, true);
-      silindir(fore.clone().add(yonEl.clone().multiplyScalar(0.05)), hand.clone().add(yonEl.clone().multiplyScalar(-0.02)), 0.058, 0.05, "gomlek", t + "ForeArm", BOLGE.boya, true);
+      halka(fore, yonEl, 0.08, 0.011, "gomlek", t + "ForeArm", BOLGE.boya, true);
+      silindir(fore.clone().add(yonEl.clone().multiplyScalar(0.05)), hand.clone().add(yonEl.clone().multiplyScalar(0.015)), 0.05, 0.045, "gomlek", t + "ForeArm", BOLGE.boya, true);
       const yan = new THREE.Vector3().crossVectors(yonEl, new THREE.Vector3(0, 0, 1)).normalize(), on = new THREE.Vector3(0, 0, 1);
       const qEl = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), yonEl);
-      const avuc = hand.clone().add(yonEl.clone().multiplyScalar(0.03));
-      ekle(yerlestir(new RoundedBoxGeometry(0.09, 0.06, 0.07, 1, 0.015), avuc.toArray(), qEl), "metal", t + "Hand", BOLGE.metal);
-      for (const [ky, kz] of [[0.032, 0.015], [-0.032, 0.015], [0, -0.03]]) {
-        const p = avuc.clone().add(yonEl.clone().multiplyScalar(0.06)).add(yan.clone().multiplyScalar(ky)).add(on.clone().multiplyScalar(kz));
-        ekle(yerlestir(new THREE.BoxGeometry(0.022, 0.08, 0.02), p.toArray(), qEl.clone().multiply(E(kz < 0 ? 0.35 : 0, 0, ky * 6))), "demir", t + "Hand", BOLGE.plastik);
+      const avuc = hand.clone().add(yonEl.clone().multiplyScalar(0.035));
+      ekle(yerlestir(new RoundedBoxGeometry(0.08, 0.06, 0.07, 1, 0.015), avuc.toArray(), qEl), "metal", t + "Hand", BOLGE.metal);
+      for (const [ky, kz] of [[0.034, 0.012], [-0.034, 0.012], [0, -0.036]]) {
+        const p = avuc.clone().add(yonEl.clone().multiplyScalar(0.075)).add(yan.clone().multiplyScalar(ky)).add(on.clone().multiplyScalar(kz));
+        ekle(yerlestir(new THREE.BoxGeometry(0.024, 0.095, 0.022), p.toArray(), qEl.clone().multiply(E(kz < 0 ? -0.45 : 0, 0, -ky * 7))), "demir", t + "Hand", BOLGE.plastik);
       }
     }
     const up = W(t + "UpLeg"), leg = W(t + "Leg"), foot = W(t + "Foot"), toe = W(t + "ToeBase");
@@ -399,12 +407,14 @@ function karakterKur(tur = "insan") {
       ekle(yerlestir(new RoundedBoxGeometry(0.2, 0.035, 0.31, 1, 0.012), ayakM.clone().setY(0.02).toArray()), "cerceve", t + "Foot", BOLGE.taban);   // taban çizgisi
     } else {
       // ROBOT BACAĞI: kalça küresi · uyluk silindiri · diz küresi + halka · baldır paneli · bilek pistonu · taban plakası + ayak bloğu (ayakkabı DEĞİL)
-      kure(up, 0.085, "demir", t + "UpLeg", BOLGE.plastik, [1, 1, 1], 10);
-      silindir(up, leg, 0.08, 0.072, "metal", t + "UpLeg", BOLGE.metal);
-      kure(leg, 0.075, "demir", t + "Leg", BOLGE.plastik, [1, 1, 1], 10);
-      halka(leg, foot.clone().sub(leg), 0.08, 0.014, "gomlek", t + "Leg", BOLGE.boya, true);
-      silindir(leg.clone().add(new THREE.Vector3(0, -0.05, 0)), foot.clone().add(new THREE.Vector3(0, 0.08, 0)), 0.068, 0.06, "gomlek", t + "Leg", BOLGE.boya, true);
-      ekle(yerlestir(new THREE.CylinderGeometry(0.03, 0.03, 0.12, 8), foot.clone().add(new THREE.Vector3(0, 0.02, 0)).toArray()), "demir", t + "Foot", BOLGE.plastik);
+      // 1G-A.1: kalça küresi bloğun dışına (yana 3 cm, aşağı 3 cm), uyluk ince ve diz küresine 5 cm kala biter, baldır 5 cm sonra başlar
+      const kalca = up.clone().add(new THREE.Vector3(Math.sign(up.x) * 0.05, -0.06, 0));
+      kure(kalca, 0.065, "demir", t + "UpLeg", BOLGE.plastik, [1, 1, 1], 10);
+      silindir(kalca.clone().add(new THREE.Vector3(0, -0.04, 0)), leg.clone().add(new THREE.Vector3(0, 0.05, 0)), 0.055, 0.05, "metal", t + "UpLeg", BOLGE.metal);
+      kure(leg, 0.065, "demir", t + "Leg", BOLGE.plastik, [1, 1, 1], 10);
+      halka(leg, foot.clone().sub(leg), 0.08, 0.011, "gomlek", t + "Leg", BOLGE.boya, true);
+      silindir(leg.clone().add(new THREE.Vector3(0, -0.05, 0)), foot.clone().add(new THREE.Vector3(0, 0.075, 0)), 0.05, 0.045, "gomlek", t + "Leg", BOLGE.boya, true);
+      ekle(yerlestir(new THREE.CylinderGeometry(0.03, 0.03, 0.08, 8), foot.clone().add(new THREE.Vector3(0, 0.035, 0)).toArray()), "demir", t + "Foot", BOLGE.plastik);
       ekle(yerlestir(new RoundedBoxGeometry(0.2, 0.04, 0.32, 1, 0.012), ayakM.clone().setY(0.02).toArray()), "demir", t + "Foot", BOLGE.plastik);
       ekle(yerlestir(new RoundedBoxGeometry(0.16, 0.09, 0.2, 1, 0.03), ayakM.clone().add(new THREE.Vector3(0, -0.005, -0.03)).toArray()), "metal", t + "Foot", BOLGE.metal);
     }

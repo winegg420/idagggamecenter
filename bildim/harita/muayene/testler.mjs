@@ -209,6 +209,7 @@ function testIcice(adalar, u, sonuc) {
       if (kural) sonuc.susturulan.push({ ...kayit, sebep: kural.sebep }); else sonuc.adaylar.push(kayit);
     }
     const oran = icerdeHerhangi.size / A.ornek.length;
+    if (oran > 0) (sonuc.gomuluOranlar ??= []).push({ ada: adaYazi(A), oran: +oran.toFixed(2) });   // 1G: eklem gömülülük tablosu için (eşikten bağımsız)
     if (oran < gomuluEsik) continue;
     const izinsizOran = icerdeIzinsiz.size / A.ornek.length;
     const kural = (u.gomulu_izinli ?? []).find((d) => eslesir(A, d));

@@ -139,7 +139,8 @@ const rect = (px, py, boy, pay = PAY_YENI) => ({ u0: (px + pay) / BOY_YENI, v0: 
 /** Yüz dokusu dikdörtgenleri (uv). */
 export const YUZ = { insan: rect(...YUZ_PX.insan, 256), kaplan: rect(...YUZ_PX.kaplan, 256), robot: rect(...YUZ_PX.robot, 256) };
 /** İfade karesi i (0..15): 4×4, 64 px. 0-7 göz, 8-15 ağız. */
-export function ifadeRect(i) { const [bx, by] = YUZ_PX.ifade; return rect(bx + (i % 4) * 64, by + Math.floor(i / 4) * 64, 64, 3); }
+// 1G: kenar payı 3 → 6 px. 3 px'te mip/bilineer örnekleme komşu kareye taşıyordu (robot gözünün yanında komşu insan gözünün beyazı ok gibi görünüyordu)
+export function ifadeRect(i) { const [bx, by] = YUZ_PX.ifade; return rect(bx + (i % 4) * 64, by + Math.floor(i / 4) * 64, 64, 6); }
 export const IFADE = {
   goz: { acik: 0, kirpik: 1, mutlu: 2, saskin: 3, kisik: 4, kizgin: 5, robotAcik: 6, robotKapali: 7 },
   agiz: { notr: 8, gulumseme: 9, saskin: 10, sirit: 11, uzgun: 12, kucuk: 13, robotNotr: 14, robotGulus: 15 },
