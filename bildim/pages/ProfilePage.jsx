@@ -374,7 +374,7 @@ export default function ProfilePage() {
       <div className="kart" style={{ textAlign: "center" }}>
         <div className="baslik">Arkadaşını davet et</div>
         <div className="alt-yazi" style={{ marginBottom: 12 }}>
-          Her davet için <b>ikiniz de +50 puan</b>.
+          Her davet için <b>ikiniz de 200 coin</b>.
           {profile.davet_sayisi > 0 && (
             <> Şu ana kadar {profile.davet_sayisi} kişi davet ettin.</>
           )}
@@ -383,7 +383,7 @@ export default function ProfilePage() {
           className="btn"
           onClick={async () => {
             const link = `${window.location.origin}/?davet=${user.id}`;
-            const mesaj = `Quiz Tactics'te benimle yarışmaya var mısın? Bu linkle gel, ikimiz de +50 puan kazanalım: ${link}`;
+            const mesaj = `Quiz Tactics'te benimle yarışmaya var mısın? Bu linkle gel, ikimiz de 200 coin kazanalım: ${link}`;
             if (navigator.share) {
               try {
                 await navigator.share({ title: "Quiz Tactics", text: mesaj });

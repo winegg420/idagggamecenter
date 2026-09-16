@@ -6088,3 +6088,42 @@ body.bd-ekle-acik .app { padding-bottom: calc(300px + env(safe-area-inset-bottom
   color: var(--bd-metin-2); line-height: 1.4;
 }
 .bd-turnuva-kalanlar b { color: var(--bd-odul-metin); font-weight: 900; }
+
+/* ---- Dereceli anahtarı (Paket 14, 3.1) ----
+   Mod seçiminin üstünde tek anahtar. Açıkken turuncu ray; kapalıyken gri.
+   Kabartmalı yüzey (alt kalınlık), basınca 4px iner. */
+.bd-dereceli { margin: 10px 0 8px; }
+.bd-dereceli-dugme {
+  width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  min-height: 52px; padding: 8px 14px; border-radius: 14px; cursor: pointer;
+  background: var(--bd-yuzey, #fff); color: var(--bd-metin);
+  border: 2px solid var(--bd-kenar, #D6E6F2); box-shadow: 0 4px 0 var(--bd-kenar, #D6E6F2);
+  font-family: var(--bd-f-govde); text-align: left;
+  transition: transform .08s ease, box-shadow .08s ease, border-color .15s ease;
+}
+.bd-dereceli.acik .bd-dereceli-dugme { border-color: var(--bd-vurgu); box-shadow: 0 4px 0 var(--bd-vurgu-2); }
+.bd-dereceli-dugme:active { transform: translateY(4px); box-shadow: none; }
+.bd-dereceli-dugme:focus-visible { outline: 3px solid var(--bd-bilgi); outline-offset: 2px; }
+.bd-dereceli-yazi { display: flex; flex-direction: column; min-width: 0; }
+.bd-dereceli-ad { font-family: var(--bd-f-baslik, "Baloo 2", system-ui, sans-serif); font-weight: 800; font-size: 16px; line-height: 1.2; }
+.bd-dereceli-not { font-size: 13px; font-weight: 700; color: var(--bd-metin-2); line-height: 1.3; }
+.bd-dereceli-ray {
+  flex: none; position: relative; width: 50px; height: 28px; border-radius: 14px;
+  background: #B7C4D1; transition: background .15s ease;
+}
+.bd-dereceli.acik .bd-dereceli-ray { background: var(--bd-vurgu); }
+.bd-dereceli-top {
+  position: absolute; top: 3px; left: 3px; width: 22px; height: 22px; border-radius: 50%;
+  background: #fff; box-shadow: 0 2px 0 rgba(0,0,0,.18); transition: left .15s ease;
+}
+.bd-dereceli.acik .bd-dereceli-top { left: 25px; }
+@media (prefers-reduced-motion: reduce) {
+  .bd-dereceli-dugme, .bd-dereceli-ray, .bd-dereceli-top { transition: none; }
+}
+
+/* Ödülsüz arkadaş modu uyarısı (Grup Maçı) ve maç sonu kazanç satırı */
+.bd-odulsuz-not {
+  margin: 8px 0; padding: 8px 12px; border-radius: 12px; font-size: 13px; font-weight: 800;
+  background: var(--bd-kart-alt); color: var(--bd-metin);
+}
+.bd-kazanc-satiri { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-top: 6px; }

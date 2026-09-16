@@ -34,6 +34,13 @@ const HIZLI_SECIMI = `*,
 
 // Bot zorluk etiketi ortak dosyada (RakipAra'daki bot seçimi de kullanır).
 import { botZorluk } from "../lib/botZorluk.js";
+import DereceliAnahtari from "../components/DereceliAnahtari.jsx";
+import { useDereceliTercih } from "../lib/dereceli.js";
+import { useDil } from "../lib/dilKanca.js";
+
+// "Hızlı Olan Kazanır" DONDURULDU (Paket 14, 3.6): kurulum paneli arayüzden
+// kaldırıldı; hizli_maclar / hizli_oyuncular ve /hizli-mac/:id rotası duruyor.
+const HIZLI_OLAN_KAZANIR_ACIK = false;
 
 // Kategori etiketleri ortak dosyada (bildim/lib/kategoriler.js)
 
@@ -105,6 +112,8 @@ export default function ChallengesPage() {
   const [hizliHata, setHizliHata] = useState(null);
   const [grupAcik, setGrupAcik] = useState(false);
   const [hizliAcik, setHizliAcik] = useState(false);
+  const [dereceli, setDereceli] = useDereceliTercih();
+  const { ceviri } = useDil();
   const [iptalEdilen, setIptalEdilen] = useState(null);
   const [iptalHata, setIptalHata] = useState(null);
   // Onay bekleyen 1v1 iptali (maç nesnesi)
@@ -404,6 +413,7 @@ export default function ChallengesPage() {
       const { data, error } = await supabase.rpc("create_challenge", {
         p_rakip: hedefId,
         p_kategori: kategori,
+        p_dereceli: dereceli,
       });
       if (error) throw error;
       const botMu = botlar.some((b) => b.id === hedefId);
@@ -696,6 +706,8 @@ export default function ChallengesPage() {
           );
         })}
 
+      <DereceliAnahtari dereceli={dereceli} onDegistir={setDereceli} />
+
       <div className="kart">
         <div className="bd-kat-baslik">
           <span>Arkadaşlarına meydan oku</span>
@@ -731,6 +743,7 @@ export default function ChallengesPage() {
         </button>
         {grupAcik && (
         <div className="bd-panel-govde">
+        <div className="bd-odulsuz-not">{ceviri("Arkadaş maçı — ödül ve puan yok.")}</div>
         <div style={{ display: "flex", gap: 8, marginBottom: 10 }}>
           {[3, 4, 5].map((n) => (
             <button
@@ -778,6 +791,7 @@ export default function ChallengesPage() {
         )}
       </div>
 
+      {HIZLI_OLAN_KAZANIR_ACIK && (
       <div className="bd-panel">
         <button
           className={`bd-panel-basi ${hizliAcik ? "acik" : ""}`}
@@ -825,6 +839,7 @@ export default function ChallengesPage() {
         </div>
         )}
       </div>
+      )}
 
       {oyuncular.length > 0 && (
         <>
@@ -956,7 +971,7 @@ export default function ChallengesPage() {
                         : "var(--danger)",
                   }}
                 >
-                  {berabere ? "Berabere" : kazandim ? "Kazandın +50" : "Kaybettin"}
+                  {berabere ? "Berabere" : kazandim ? "Kazandın" : "Kaybettin"}
                 </span>
               </div>
             );
@@ -1128,7 +1143,7 @@ export default function ChallengesPage() {
                         : "var(--danger)",
                   }}
                 >
-                  {berabere ? "Berabere" : kazandim ? "Kazandın +20" : "Kaybettin"}
+                  {berabere ? "Berabere" : kazandim ? "Kazandın" : "Kaybettin"}
                 </span>
               </div>
             );

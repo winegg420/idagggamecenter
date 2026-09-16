@@ -149,6 +149,19 @@ const SOZLUK = {
     "Profesör": "Professor", "Viking": "Viking", "Hayalet": "Ghost",
     "Zombi": "Zombie", "Mumya": "Mummy", "Kahraman": "Hero",
     "Palyaço": "Clown", "Kral": "King",
+
+    // ---- Paket 14: Dereceli/Serbest, ödüller, arkadaş maçı ----
+    "Dereceli": "Ranked",
+    "Lig puanı + tam coin": "League points + full coins",
+    "Serbest — puan yok, coin yarı": "Casual — no points, half coins",
+    "Normal Maç — kazanırsan lig puanı ve coin": "Normal Match — win for league points and coins",
+    "Serbest maç — keyfine bak, hiçbir şey kaybetmezsin": "Casual match — just have fun, you lose nothing",
+    "Dereceli: doğru başına +{dogru} lig puanı ve coin (en çok {tavan}).":
+      "Ranked: +{dogru} league points and coins per correct answer (up to {tavan}).",
+    "Serbest: lig puanı yok, coin yarı.": "Casual: no league points, half coins.",
+    "+{puan} lig puanı": "+{puan} league points",
+    "+{coin} coin": "+{coin} coins",
+    "Arkadaş maçı — ödül ve puan yok.": "Friendly match — no rewards or points.",
   },
 };
 

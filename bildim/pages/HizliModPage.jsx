@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import KategoriIkon from "../components/KategoriIkon.jsx";
-import SenRozeti from "../components/SenRozeti.jsx";
 import SureDolduGecis from "../components/SureDolduGecis.jsx";
 import { sesKilidiAc, sesTik, sesDogru, sesYanlis, sesDokunus } from "../lib/ses.js";
 import CevapEfekti from "../components/CevapEfekti.jsx";
@@ -9,13 +8,15 @@ import { hataMesaji } from "../lib/hata.js";
 import { macBittiReklam } from "../lib/reklam.js";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../../src/lib/supabase.js";
-import Avatar from "../../src/components/Avatar.jsx";
 import Ikon from "../components/Ikon.jsx";
 import { kategoriEtiket, kategorileriSirala } from "../lib/kategoriler.js";
 import { y } from "../lib/yol.js";
 import { useGorunurlukTazele } from "../lib/gorunurluk.js";
 import { useAuth } from "../../src/context/AuthContext.jsx";
 import { ayar } from "../lib/ayarlar.js";
+import DereceliAnahtari from "../components/DereceliAnahtari.jsx";
+import { useDereceliTercih } from "../lib/dereceli.js";
+import { useDil } from "../lib/dilKanca.js";
 
 // Süreler sunucudan gelir (oyun_ayarlari: hizli_mod_sure_sn / hizli_mod_soru_sure_sn;
 // oturum açılınca hizli_mod_baslat da döndürür). Bunlar yalnız ilk çizim içindir.
@@ -50,8 +51,9 @@ export default function HizliModPage() {
   const [kalanToplam, setKalanToplam] = useState(VARSAYILAN_TOPLAM_SN);
   const [kalanSoru, setKalanSoru] = useState(VARSAYILAN_SORU_SN);
   const [sonuc, setSonuc] = useState(null);
-  const [siralama, setSiralama] = useState([]);
-  const [kapsam, setKapsam] = useState("global");
+  const [dereceli, setDereceli] = useDereceliTercih();
+  const [odul, setOdul] = useState({ dogru: 3, tavan: 25 });
+  const { ceviri } = useDil();
   const [ozet, setOzet] = useState(null);
   const [hata, setHata] = useState(null);
 
@@ -70,6 +72,10 @@ export default function HizliModPage() {
         const soruSn = await ayar("hizli_mod_soru_sure_sn", VARSAYILAN_SORU_SN);
         soruSnRef.current = soruSn;
         setSureler({ toplam, soru: soruSn });
+        setOdul({
+          dogru: await ayar("hizli_mod_puan_dogru", 3),
+          tavan: await ayar("hizli_mod_lig_tavan", 25),
+        });
       } catch (e) {
         console.error("[Bildim] hizli mod sureleri okunamadi:", e);
       }
@@ -117,6 +123,7 @@ export default function HizliModPage() {
     try {
       const { data, error } = await supabase.rpc("hizli_mod_baslat", {
         p_kategori: kategori,
+        p_dereceli: dereceli,
       });
       if (error) throw error;
       const o = Array.isArray(data) ? data[0] : data;
@@ -156,20 +163,18 @@ export default function HizliModPage() {
       const perdeKalan = Math.max(0, 800 - (Date.now() - perdeBasi));
       setTimeout(() => setAsama("sonuc"), perdeKalan);
       macBittiReklam(profile?.created_at).catch(() => {}); // sıklık kuralı reklam.js'te
+      // Paket 14 (3.9): Hızlı Mod artık ana lige puan yazıyor; ayrı haftalık
+      // skor tablosu arayüzde gösterilmez (hizli_mod_skorlar yazılmaya devam eder).
       try {
-        const { data, error } = await supabase.rpc("hizli_mod_siralama", { p_kapsam: kapsam });
+        const { data, error } = await supabase.rpc("hizli_mod_ozetim");
         if (error) throw error;
-        setSiralama(data ?? []);
-      } catch (e) {
-        console.error("[Bildim] hizli mod siralamasi alinamadi:", e);
-        setSiralama([]);
-      }
-      supabase.rpc("hizli_mod_ozetim").then(({ data }) => {
         const o = Array.isArray(data) ? data[0] : data;
         if (o) setOzet(o);
-      });
+      } catch (e) {
+        console.error("[Bildim] hizli mod ozeti alinamadi:", e);
+      }
     },
-    [kapsam]
+    [profile?.created_at]
   );
 
   // ---------- Cevapla ----------
@@ -251,17 +256,6 @@ export default function HizliModPage() {
     bitir(oturum.oturum_id);
   }, [kalanToplam, asama, oturum, bitir]);
 
-  // Sıralama kapsamı değişince yenile
-  useEffect(() => {
-    if (asama !== "sonuc") return;
-    supabase
-      .rpc("hizli_mod_siralama", { p_kapsam: kapsam })
-      .then(({ data, error }) => {
-        if (!error) setSiralama(data ?? []);
-      })
-      .catch(() => {});
-  }, [kapsam, asama]);
-
   // ============ EKRANLAR ============
 
   if (asama === "secim") {
@@ -274,7 +268,9 @@ export default function HizliModPage() {
             saniyede kaç soru bilebilirsin? Soru başına <b>{SORU_SN} saniye</b>,
             doğru <b>+1</b>, yanlışın cezası yok.
             <br />
-            <b>Lig puanına girmez</b> — kendi haftalık sıralaması var.
+            {dereceli
+              ? ceviri("Dereceli: doğru başına +{dogru} lig puanı ve coin (en çok {tavan}).", odul)
+              : ceviri("Serbest: lig puanı yok, coin yarı.")}
           </div>
           {ozet && (
             <div className="bd-hizli-ozet">
@@ -284,6 +280,8 @@ export default function HizliModPage() {
             </div>
           )}
         </div>
+
+        <DereceliAnahtari dereceli={dereceli} onDegistir={setDereceli} />
 
         <div className="bd-kat-baslik"><span>Kategori</span></div>
         <div className="bd-kat-grid">
@@ -412,52 +410,22 @@ export default function HizliModPage() {
           <div><b>{sonuc?.yanlis ?? 0}</b><span>yanlış</span></div>
           <div><b>{sonuc?.en_iyi_hafta ?? skor}</b><span>hafta en iyi</span></div>
         </div>
+        <div className="bd-kazanc-satiri">
+          {sonuc?.dereceli !== false && (
+            <span className="bd-sonuc-kazanc">
+              {ceviri("+{puan} lig puanı", { puan: sonuc?.lig_puan ?? 0 })}
+            </span>
+          )}
+          <span className="bd-sonuc-kazanc">
+            {ceviri("+{coin} coin", { coin: sonuc?.kazanilan_coin ?? 0 })}
+          </span>
+        </div>
         <div className="bd-konum-butonlar" style={{ marginTop: 16 }}>
           <button className="btn" onClick={() => setAsama("secim")}>Tekrar oyna</button>
           <button className="btn ikincil" onClick={() => navigate(y())}>Ana sayfa</button>
         </div>
       </div>
 
-      <div className="bd-kat-baslik"><span>Haftalık sıralama</span></div>
-      <div className="bd-sekme-ust">
-        {[
-          { id: "sehir", etiket: "ŞEHİR" },
-          { id: "ulke", etiket: "ÜLKE" },
-          { id: "global", etiket: "DÜNYA" },
-        ].map((k) => (
-          <button
-            key={k.id}
-            className={`bd-sekme ${kapsam === k.id ? "aktif" : ""}`}
-            onClick={() => setKapsam(k.id)}
-          >
-            {k.etiket}
-          </button>
-        ))}
-      </div>
-
-      <div className="bd-lig-liste">
-        {siralama.length === 0 ? (
-          <div className="alt-yazi" style={{ textAlign: "center", padding: 18 }}>
-            Bu hafta bu kapsamda henüz skor yok.
-          </div>
-        ) : (
-          siralama.map((s) => (
-            <div key={s.user_id} className={`bd-lig-satir ${s.ben ? "ben" : ""}`}>
-              <span className="bd-sira">{s.sira}</span>
-              <Avatar
-                profile={{ gorunen_ad: s.gorunen_ad, gorunen_avatar: s.gorunen_avatar }}
-                boyut={34}
-              />
-              <div className="bd-lig-bilgi">
-                <div className="bd-lig-isim">
-                  {s.gorunen_ad}{s.ben && <SenRozeti />}
-                </div>
-              </div>
-              <span className="bd-lig-puan">{s.skor}</span>
-            </div>
-          ))
-        )}
-      </div>
     </div>
   );
 }

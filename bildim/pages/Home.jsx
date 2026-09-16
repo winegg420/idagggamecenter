@@ -19,6 +19,9 @@ import { y } from "../lib/yol.js";
 import { kategoriEtiket, kategorileriSirala } from "../lib/kategoriler.js";
 import KategoriIkon from "../components/KategoriIkon.jsx";
 import Modal from "../components/Modal.jsx";
+import DereceliAnahtari from "../components/DereceliAnahtari.jsx";
+import { useDereceliTercih } from "../lib/dereceli.js";
+import { useDil } from "../lib/dilKanca.js";
 
 export default function Home() {
   const { user, profile, refreshProfile } = useAuth();
@@ -34,6 +37,9 @@ export default function Home() {
   // Aranan maçın türü: dereceli (puan/lig etkiler, seviyeye göre eşleşme)
   // ya da normal (puan yok, serbest rakip).
   const [dereceliAra, setDereceliAra] = useState(true);
+  // Paket 14 (3.1): mod seçiminin üstünde tek "Dereceli" anahtarı, son tercih hatırlanır.
+  const [dereceliTercih, setDereceliTercih] = useDereceliTercih();
+  const { ceviri } = useDil();
   const [siraSendeMaclar, setSiraSendeMaclar] = useState([]);
   // Meydan okuman kabul edildi — rakip maçta seni bekliyor (en üstte, vurgulu)
   const [yeniKabuller, setYeniKabuller] = useState([]);
@@ -416,11 +422,11 @@ export default function Home() {
 
         <SeriRozeti />
 
-        {/* İKİ AYRI MOD (sahibinin kararı):
-            · Hemen oyna   → puansız keyfi maç. Ne coin ne lig puanı.
-            · Dereceli Maç → 3. katmanda, coin + lig puanı yazar.
-            Kural sunucuda da zorlanıyor (migration 162): `matches.dereceli`
-            false ise `mac_sonuclandir` coin çağrısını hiç yapmıyor. */}
+        {/* TEK GİRİŞ + DERECELİ ANAHTARI (Paket 14, 3.1):
+            · Dereceli → lig puanı + tam coin
+            · Serbest  → puan yok, coin yarı
+            Kural sunucuda (migration 201): `matches.dereceli` false ise
+            `mac_sonuclandir` lig puanı yazmaz, coin %50 verir. */}
         {/* RAKİP KATEGORİSİ KARTI (Paket 10): çıplak <select> yerine kart;
             satırın tamamı dokunma alanı, liste alttan açılır. Kayıt mantığı
             (aramaKategorisiSec) aynı. */}
@@ -445,7 +451,7 @@ export default function Home() {
             <div className="bd-kategori-sheet">
               <div className="bd-kategori-sheet-tutamac" aria-hidden="true" />
               <h2>Rakip kategorisi</h2>
-              <p>"Hemen oyna" ve "Dereceli Maç" bu kategoride rakip arar.</p>
+              <p>"Hemen oyna" bu kategoride rakip arar.</p>
               <div className="bd-kategori-sheet-liste">
                 {[{ kategori: "", soru_sayisi: null }, ...kategorileriSirala(kategoriler)].map((k) => {
                   const secili = (profile?.tercih_kategori ?? "") === k.kategori;
@@ -472,12 +478,17 @@ export default function Home() {
             </div>
           </Modal>
         )}
-        <button className="bd-ana-eylem" onClick={() => hemenOyna(false)}>
+        <DereceliAnahtari dereceli={dereceliTercih} onDegistir={setDereceliTercih} />
+        <button className="bd-ana-eylem" onClick={() => hemenOyna(dereceliTercih)}>
           <Ikon ad="hizli" boyut={22} />
           <span>Hemen oyna</span>
           <Ikon ad="ok" boyut={20} className="bd-ana-eylem-ok" />
         </button>
-        <div className="bd-ana-eylem-not">Puansız — keyfine bak, hiçbir şey kaybetmezsin</div>
+        <div className="bd-ana-eylem-not">
+          {dereceliTercih
+            ? ceviri("Normal Maç — kazanırsan lig puanı ve coin")
+            : ceviri("Serbest maç — keyfine bak, hiçbir şey kaybetmezsin")}
+        </div>
         {mesaj && <div className="hata-kutu" style={{ marginTop: 10 }}>{mesaj}</div>}
       </section>
       {/* KATMAN 1 BİTTİ.
@@ -645,20 +656,14 @@ export default function Home() {
           Hiçbir ekran erişilemez olmadı; yalnız ikinci kapılar kapandı.
           Başlık da somutlaştı ("Modlar" → ne olduğunu söyleyen bir cümle).
 
-          "Dereceli Maç" GERİ GELDİ: bir süre "Hemen oyna" ile aynı çağrıyı
-          yaptığı için kaldırılmıştı. Artık iki mod gerçekten farklı —
-          yukarıdaki düğme puansız, buradaki puanlı. Puansız maça giden
-          yol da, puanlı maça giden yol da açık olmalı. */}
+          "Dereceli Maç" düğmesi Paket 14'te KALKTI: dereceli/serbest ayrımı
+          artık hero'daki tek "Dereceli" anahtarıyla seçiliyor (3 mod × 2
+          giriş = 6 düğme olmasın). */}
       <section className="bd-katman bd-giris-3">
         <h2 className="bd-katman-baslik">Başka nasıl oynanır</h2>
         <div className="bd-mod-grid">
           {/* Kompakt 2×2 ızgara (referans tasarım): bd-mod-genis bu ızgaradan
               çıktı, açıklama satırı gizli — bilgi title'da duruyor. */}
-          <button className="bd-mod tema-lig" title="Lig puanını ve coin'ini etkiler · seviyene yakın rakip" onClick={() => hemenOyna(true)}>
-            <span className="bd-mod-ikon"><Ikon ad="kupa" boyut={30} /></span>
-            <span className="bd-mod-ad">Dereceli Maç</span>
-            <span className="bd-mod-not">Lig puanını ve coin'ini etkiler · seviyene yakın rakip</span>
-          </button>
           <button className="bd-mod tema-grup" title="Arkadaşına davet gönder · tekli ya da grup" onClick={() => navigate(y("/meydan"))}>
             <span className="bd-mod-ikon"><Ikon ad="kisiler" boyut={26} /></span>
             <span className="bd-mod-ad">Meydan Oku</span>

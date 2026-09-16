@@ -25,6 +25,7 @@ import { HazirKapisi, KopukPerde, GeriSayim } from "../components/MacHazirlik.js
 import { macBittiReklam } from "../lib/reklam.js";
 import { y } from "../lib/yol.js";
 import { GB_MS } from "../lib/geriBildirim.js";
+import { useDil } from "../lib/dilKanca.js";
 
 // acik_bot: maç sonunda hangi rövanş eyleminin gösterileceğini belirler.
 // `is_bot` BİLEREK KULLANILMIYOR (kolon istemciye kapalı, migration 155):
@@ -111,6 +112,9 @@ export default function MatchPage() {
   // kapanıyor ve doğru mu yanlış mı yaptığımız HİÇ görünmeden sonuç ekranı
   // açılıyordu. Sonuç ekranı pencere dolana kadar bekler.
   const [sonucHazir, setSonucHazir] = useState(false);
+  // Maç sonu gerçek kazanç (sunucudan: dereceli/serbest, çift çarpanı, günlük tavan)
+  const [odulum, setOdulum] = useState(null);
+  const { ceviri } = useDil();
   // Uygulanmış en ileri damga (bkz. ilerlemeDamgasi)
   const damgaRef = useRef(-1);
   const advanceKilidi = useRef(false);
@@ -562,6 +566,24 @@ export default function MatchPage() {
     }
   }, [id, macYukle]);
 
+  // Maç bitince bu oyuncunun gerçek kazancı (lig puanı + coin) sunucudan okunur.
+  const macBitti = mac?.durum === "bitti" && sonucHazir;
+  useEffect(() => {
+    if (!macBitti || !id) return;
+    let aktif = true;
+    (async () => {
+      try {
+        const { data, error } = await supabase.rpc("mac_odulum", { p_match_id: id });
+        if (error) throw error;
+        const o = Array.isArray(data) ? data[0] : data;
+        if (aktif && o) setOdulum(o);
+      } catch (e) {
+        console.error("[Bildim] mac odulu alinamadi:", e);
+      }
+    })();
+    return () => { aktif = false; };
+  }, [macBitti, id]);
+
   if (!mac) {
     return (
       <MacYukleniyor
@@ -678,7 +700,16 @@ export default function MatchPage() {
               : `${rakipProfil?.gorunen_ad} maçı terk etti — hükmen kazandın.`}
           </p>
         )}
-        {kazandim && <span className="bd-sonuc-kazanc">+20 puan</span>}
+        {odulum && (odulum.lig_puan > 0 || odulum.coin > 0) && (
+          <div className="bd-kazanc-satiri">
+            {odulum.lig_puan > 0 && (
+              <span className="bd-sonuc-kazanc">{ceviri("+{puan} lig puanı", { puan: odulum.lig_puan })}</span>
+            )}
+            {odulum.coin > 0 && (
+              <span className="bd-sonuc-kazanc">{ceviri("+{coin} coin", { coin: odulum.coin })}</span>
+            )}
+          </div>
+        )}
         <div className="skor-tabela" style={{ marginTop: 20 }}>
           <div className="taraf">
             <div className="isim">{benimProfil?.gorunen_ad}<SenRozeti /></div>
@@ -694,7 +725,7 @@ export default function MatchPage() {
         </div>
         {/* Meydandan girilmişse maç bitince oraya dönülür (harita/donus.js) */}
         <MeydanaDonus />
-        <MacSonuDokum macId={id} kazanilanPuan={kazandim ? 20 : 0} />
+        <MacSonuDokum macId={id} kazanilanPuan={odulum?.lig_puan ?? 0} />
         <MacSonuEklentisi
           macTur="1v1"
           macId={id}

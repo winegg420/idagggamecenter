@@ -79,7 +79,7 @@ export default function TurnuvaTanitim() {
           <li>
             <span className="bd-nasil-no">3</span>
             <span>
-              <b>Son kalan kazanır</b> ve <b>+250 puan</b> alır. Finalde joker
+              <b>Son kalan kazanır</b> ve <b>+150 lig puanı</b> alır; ilk 10'a giren ve katılan herkes de puan kazanır. Finalde joker
               kullanılamaz — sadece bilgi.
             </span>
           </li>

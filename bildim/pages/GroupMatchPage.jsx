@@ -16,6 +16,7 @@ import { y } from "../lib/yol.js";
 import { useGorunurlukTazele, zamanAsimiyla } from "../lib/gorunurluk.js";
 import { useMacNabiz } from "../lib/nabiz.js";
 import { HazirKapisi, KopukPerde } from "../components/MacHazirlik.jsx";
+import { useDil } from "../lib/dilKanca.js";
 
 const GRUP_SECIMI = `*,
   katilimcilar:group_match_players(group_match_id, user_id, davet_durumu, skor, joined_at, hazir, terk_at,
@@ -40,6 +41,7 @@ const KALIPLAR = [
 
 export default function GroupMatchPage() {
   const { id } = useParams();
+  const { ceviri } = useDil();
   const { user, refreshProfile } = useAuth();
   const navigate = useNavigate();
   const [mac, setMac] = useState(null);
@@ -443,8 +445,11 @@ export default function GroupMatchPage() {
       <div className="buyuk-mesaj">
         <div className="emoji"><Ikon ad={berabere ? "kisiler" : kazandim ? "kupa" : "kalkan"} boyut={40} /></div>
         <h2>
-          {berabere ? "Berabere!" : kazandim ? `Kazandın! +${10 * mac.oyuncu_sayisi} puan` : "Kaybettin"}
+          {berabere ? "Berabere!" : kazandim ? "Kazandın!" : "Kaybettin"}
         </h2>
+        <div className="bd-odulsuz-not" style={{ display: "inline-block" }}>
+          {ceviri("Arkadaş maçı — ödül ve puan yok.")}
+        </div>
         <div className="kart" style={{ maxWidth: 340, margin: "20px auto 0" }}>
           {siraliSkor.map((k, i) => (
             <div key={k.user_id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "6px 0" }}>
