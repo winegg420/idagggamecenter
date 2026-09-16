@@ -9,6 +9,7 @@ import Maskot from "../components/Maskot.jsx";
 import { y } from "../lib/yol.js";
 import DavetKodu from "../components/DavetKodu.jsx";
 import { facebookArkadasOnerileri, facebookDavetAc } from "../lib/facebookArkadas.js";
+import { tt } from "../lib/dil.js";
 
 const DOSTLUK_SECIMI = `id, requester, addressee, durum,
   req:profiles!friendships_requester_fkey(id, gorunen_ad, gorunen_avatar, gorunum, puan),
@@ -35,7 +36,7 @@ export default function FriendsPage() {
       if (error) throw error;
       setDostluklar(data ?? []);
     } catch (e) {
-      setHata(hataMesaji(e, "Arkadaş listesi yüklenemedi."));
+      setHata(hataMesaji(e, tt("Arkadaş listesi yüklenemedi.")));
     }
   }, [user.id]);
 
@@ -67,9 +68,9 @@ export default function FriendsPage() {
       const { error } = await supabase.rpc("send_friend_request", { p_target: hedefId });
       if (error) throw error;
       setFbOnerileri((l) => l.filter((o) => o.user_id !== hedefId));
-      setBilgi("Arkadaşlık isteği gönderildi.");
+      setBilgi(tt("Arkadaşlık isteği gönderildi."));
     } catch (e) {
-      setHata(hataMesaji(e, "İstek gönderilemedi."));
+      setHata(hataMesaji(e, tt("İstek gönderilemedi.")));
     } finally {
       setCalisiyor(false);
     }
@@ -81,7 +82,7 @@ export default function FriendsPage() {
     setBilgi(null);
     const temiz = (girilen ?? kod).trim().toUpperCase();
     if (temiz.length !== 8) {
-      setHata("Davet kodu 8 karakter olmalı.");
+      setHata(tt("Davet kodu 8 karakter olmalı."));
       return;
     }
     setCalisiyor(true);
@@ -91,17 +92,17 @@ export default function FriendsPage() {
       });
       if (error) throw error;
       const sonuc = Array.isArray(data) ? data[0] : data;
-      const ad = sonuc?.gorunen_ad ?? "Oyuncu";
+      const ad = sonuc?.gorunen_ad ?? tt("Oyuncu");
       const mesajlar = {
-        istek_gonderildi: `${ad} kişisine arkadaşlık isteği gönderildi`,
-        arkadas_oldu: `${ad} artık arkadaşın!`,
-        zaten_arkadas: `${ad} zaten arkadaşın.`,
+        istek_gonderildi: tt("{0} kişisine arkadaşlık isteği gönderildi", { 0: ad }),
+        arkadas_oldu: tt("{0} artık arkadaşın!", { 0: ad }),
+        zaten_arkadas: tt("{0} zaten arkadaşın.", { 0: ad }),
       };
-      setBilgi(mesajlar[sonuc?.durum] ?? "İstek gönderildi");
+      setBilgi(mesajlar[sonuc?.durum] ?? tt("İstek gönderildi"));
       setKod("");
       yukle();
     } catch (e) {
-      setHata(hataMesaji(e, "Davet kodu kullanılamadı."));
+      setHata(hataMesaji(e, tt("Davet kodu kullanılamadı.")));
     } finally {
       setCalisiyor(false);
     }
@@ -113,7 +114,7 @@ export default function FriendsPage() {
 
   const linkPaylas = async () => {
     if (!davetLinki) return;
-    const mesaj = `Quiz Tactics'te benimle yarış — bu linkle beni arkadaş ekleyebilirsin: ${davetLinki}`;
+    const mesaj = tt("Quiz Tactics'te benimle yarış — bu linkle beni arkadaş ekleyebilirsin: {0}", { 0: davetLinki });
     try {
       if (navigator.share) {
         await navigator.share({ title: "Quiz Tactics", text: mesaj });
@@ -136,7 +137,7 @@ export default function FriendsPage() {
       if (error) throw error;
       yukle();
     } catch (e) {
-      setHata(hataMesaji(e, "İşlem yapılamadı."));
+      setHata(hataMesaji(e, tt("İşlem yapılamadı.")));
     }
   };
 
@@ -146,7 +147,7 @@ export default function FriendsPage() {
       if (error) throw error;
       yukle();
     } catch (e) {
-      setHata(hataMesaji(e, "Arkadaş çıkarılamadı."));
+      setHata(hataMesaji(e, tt("Arkadaş çıkarılamadı.")));
     }
   };
 
@@ -156,10 +157,10 @@ export default function FriendsPage() {
     try {
       const { error } = await supabase.rpc("remove_friend", { p_id: fId });
       if (error) throw error;
-      setBilgi("Arkadaşlık isteği geri çekildi.");
+      setBilgi(tt("Arkadaşlık isteği geri çekildi."));
       yukle();
     } catch (e) {
-      setHata(hataMesaji(e, "İstek geri çekilemedi."));
+      setHata(hataMesaji(e, tt("İstek geri çekilemedi.")));
     }
   };
 
@@ -170,7 +171,7 @@ export default function FriendsPage() {
       if (error) throw error;
       if (data) navigate(y("/meydan"));
     } catch (e) {
-      setHata(hataMesaji(e, "Meydan okuma başlatılamadı."));
+      setHata(hataMesaji(e, tt("Meydan okuma başlatılamadı.")));
     }
   };
 
@@ -185,7 +186,7 @@ export default function FriendsPage() {
 
   return (
     <div>
-      <h1 className="baslik">Arkadaşlar</h1>
+      <h1 className="baslik">{tt("Arkadaşlar")}</h1>
       {hata && <div className="hata-kutu">{hata}</div>}
       {bilgi && <div className="bd-bilgi-kutu">{bilgi}</div>}
 
@@ -194,32 +195,32 @@ export default function FriendsPage() {
           geçiyordu. Kartlar AYNEN korundu, sayfanın sonuna taşındı. */}
       {gelenIstekler.length > 0 && (
         <>
-          <div className="baslik">Gelen istekler</div>
+          <div className="baslik">{tt("Gelen istekler")}</div>
           {gelenIstekler.map((f) => (
             <div key={f.id} className="liste-satir">
               <Avatar profile={f.req} />
               <div className="bilgi">
                 <div className="isim">{f.req?.gorunen_ad}</div>
-                <div className="detay">arkadaşlık isteği gönderdi</div>
+                <div className="detay">{tt("arkadaşlık isteği gönderdi")}</div>
               </div>
               <button className="btn kucuk" onClick={() => cevapla(f.id, true)}>
-                Kabul
+                {tt("Kabul")}
               </button>
               <button className="btn kucuk tehlike" onClick={() => cevapla(f.id, false)}>
-                Sil
+                {tt("Sil")}
               </button>
             </div>
           ))}
         </>
       )}
 
-      <div className="baslik">Arkadaşların ({arkadaslar.length})</div>
+      <div className="baslik">{tt("Arkadaşların (")}{arkadaslar.length})</div>
       {arkadaslar.length === 0 && (
         <div className="bd-bos-durum">
           <Maskot poz="selam" boyut={86} />
-          <p>Henüz arkadaşın yok — davet linkini paylaş, birlikte yarışın.</p>
+          <p>{tt("Henüz arkadaşın yok — davet linkini paylaş, birlikte yarışın.")}</p>
           <button className="btn" onClick={linkPaylas} disabled={!davetLinki}>
-            Davet linkini paylaş
+            {tt("Davet linkini paylaş")}
           </button>
         </div>
       )}
@@ -230,13 +231,13 @@ export default function FriendsPage() {
             <Avatar profile={p} />
             <div className="bilgi">
               <div className="isim">{p?.gorunen_ad}</div>
-              <div className="detay"><Ikon ad="yildiz" boyut={13} /> {p?.puan} puan</div>
+              <div className="detay"><Ikon ad="yildiz" boyut={13} /> {p?.puan} {tt("puan")}</div>
             </div>
             <button
               className="btn kucuk"
               onClick={() => meydanOku(p.id)}
-              aria-label={(p?.gorunen_ad ?? "Arkadaşına") + " meydan oku"}
-              title="Meydan oku"
+              aria-label={(p?.gorunen_ad ?? tt("Arkadaşına")) + tt(" meydan oku")}
+              title={tt("Meydan oku")}
             >
               <Ikon ad="kilic" boyut={17} />
             </button>
@@ -246,18 +247,18 @@ export default function FriendsPage() {
                   className="btn kucuk tehlike"
                   onClick={() => { setSilOnay(null); cikar(f.id); }}
                 >
-                  Sil
+                  {tt("Sil")}
                 </button>
                 <button className="btn kucuk ikincil" onClick={() => setSilOnay(null)}>
-                  Vazgeç
+                  {tt("Vazgeç")}
                 </button>
               </>
             ) : (
               <button
                 className="btn kucuk ikincil"
                 onClick={() => setSilOnay(f.id)}
-                aria-label={(p?.gorunen_ad ?? "Arkadaşını") + " arkadaşlıktan çıkar"}
-                title="Arkadaşlıktan çıkar"
+                aria-label={(p?.gorunen_ad ?? tt("Arkadaşını")) + tt(" arkadaşlıktan çıkar")}
+                title={tt("Arkadaşlıktan çıkar")}
               >
                 <Ikon ad="carpi" boyut={16} />
               </button>
@@ -269,22 +270,22 @@ export default function FriendsPage() {
       {gidenIstekler.length > 0 && (
         <>
           <div className="baslik" style={{ marginTop: 14 }}>
-            Bekleyen istekler
+            {tt("Bekleyen istekler")}
           </div>
           {gidenIstekler.map((f) => (
             <div key={f.id} className="liste-satir">
               <Avatar profile={f.add} />
               <div className="bilgi">
                 <div className="isim">{f.add?.gorunen_ad}</div>
-                <div className="detay">cevap bekleniyor…</div>
+                <div className="detay">{tt("cevap bekleniyor…")}</div>
               </div>
               {/* Paket 13: meydan okumadaki "Geri çek" gibi, gönderilen istek de geri alınır. */}
               <button
                 className="btn kucuk ikincil"
                 onClick={() => geriCek(f.id)}
-                aria-label={(f.add?.gorunen_ad ?? "Bu kişiye") + " gönderilen isteği geri çek"}
+                aria-label={(f.add?.gorunen_ad ?? tt("Bu kişiye")) + tt(" gönderilen isteği geri çek")}
               >
-                Geri çek
+                {tt("Geri çek")}
               </button>
             </div>
           ))}
@@ -292,15 +293,15 @@ export default function FriendsPage() {
       )}
 
       {/* ---------- Davet (listenin altında) ---------- */}
-      <div className="baslik" style={{ marginTop: 18 }}>Arkadaş davet et</div>
+      <div className="baslik" style={{ marginTop: 18 }}>{tt("Arkadaş davet et")}</div>
       <div className="kart bd-davet-kart">
         <div className="bd-kat-baslik">
-          <span>Davet kodun</span>
+          <span>{tt("Davet kodun")}</span>
         </div>
         {/* Kodun kendisi düğme: dokununca YALNIZ kod panoya gider. */}
         <DavetKodu kod={profile?.davet_kodu} />
         <button className="btn" onClick={linkPaylas} disabled={!davetLinki}>
-          {kopyalandi ? "Kopyalandı" : "Davet linkini paylaş"}
+          {kopyalandi ? tt("Kopyalandı") : tt("Davet linkini paylaş")}
         </button>
         {/* Facebook'ta "tüm arkadaşlarını davet et" MÜMKÜN DEĞİL (2014'ten
             beri kapalı); onun yerine paylaşım diyaloğu açılır. */}
@@ -309,7 +310,7 @@ export default function FriendsPage() {
           disabled={!davetLinki}
           onClick={() => facebookDavetAc(davetLinki)}
         >
-          Facebook'ta paylaş
+          {tt("Facebook'ta paylaş")}
         </button>
       </div>
 
@@ -319,21 +320,21 @@ export default function FriendsPage() {
       {fbOnerileri.length > 0 && (
         <div className="kart">
           <div className="bd-kat-baslik">
-            <span>Facebook arkadaşların Quiz Tactics'te</span>
+            <span>{tt("Facebook arkadaşların Quiz Tactics'te")}</span>
           </div>
           {fbOnerileri.map((o) => (
             <div key={o.user_id} className="liste-satir">
               <Avatar profile={o} boyut={38} />
               <div className="bilgi">
                 <div className="isim">{o.gorunen_ad}</div>
-                <div className="detay">Facebook arkadaşın</div>
+                <div className="detay">{tt("Facebook arkadaşın")}</div>
               </div>
               <button
                 className="btn kucuk"
                 disabled={calisiyor}
                 onClick={() => fbArkadasEkle(o.user_id)}
               >
-                Ekle
+                {tt("Ekle")}
               </button>
             </div>
           ))}
@@ -342,13 +343,13 @@ export default function FriendsPage() {
 
       <div className="kart">
         <div className="bd-kat-baslik">
-          <span>Davet koduyla ekle</span>
+          <span>{tt("Davet koduyla ekle")}</span>
         </div>
         <div className="bd-kod-satir">
           <input
             type="text"
             className="bd-kod-giris"
-            placeholder="8 haneli kod"
+            placeholder={tt("8 haneli kod")}
             maxLength={8}
             value={kod}
             onChange={(e) => setKod(e.target.value.toUpperCase())}
@@ -359,7 +360,7 @@ export default function FriendsPage() {
             disabled={calisiyor || kod.trim().length !== 8}
             onClick={() => kodlaEkle()}
           >
-            {calisiyor ? "…" : "Ekle"}
+            {calisiyor ? "…" : tt("Ekle")}
           </button>
         </div>
       </div>

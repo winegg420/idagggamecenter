@@ -15,6 +15,7 @@ import { y } from "../lib/yol.js";
 import { useGorunurlukTazele, zamanAsimiyla } from "../lib/gorunurluk.js";
 import { useMacNabiz } from "../lib/nabiz.js";
 import { HazirKapisi, KopukPerde } from "../components/MacHazirlik.jsx";
+import { tt } from "../lib/dil.js";
 
 const HIZLI_SECIMI = `*,
   katilimcilar:hizli_oyuncular(hizli_mac_id, user_id, davet_durumu, skor, joined_at, hazir, terk_at,
@@ -56,7 +57,7 @@ export default function HizliMacPage() {
       return data;
     } catch (e) {
       console.error("[Bildim] hizli mac yuklenemedi:", e);
-      setYuklemeHatasi(hataMesaji(e, "Maç bilgisi alınamadı."));
+      setYuklemeHatasi(hataMesaji(e, tt("Maç bilgisi alınamadı.")));
       return null;
     }
   }, [id]);
@@ -262,11 +263,11 @@ export default function HizliMacPage() {
     return (
       <div className="buyuk-mesaj">
         <div className="emoji"><Ikon ad="hizli" boyut={40} /></div>
-        <h2>Hızlı yarış bekleniyor</h2>
+        <h2>{tt("Hızlı yarış bekleniyor")}</h2>
         <p className="alt-yazi" style={{ marginBottom: 16 }}>
           {bekleyenler.length > 0
-            ? `${bekleyenler.map((b) => b.profil?.gorunen_ad).join(", ")} henüz kabul etmedi.`
-            : "Herkes hazır olunca yarış otomatik başlayacak."}
+            ? tt("{0} henüz kabul etmedi.", { 0: bekleyenler.map((b) => b.profil?.gorunen_ad).join(", ") })
+            : tt("Herkes hazır olunca yarış otomatik başlayacak.")}
         </p>
         <div className="kart" style={{ maxWidth: 340, margin: "0 auto" }}>
           {katilimcilar.map((k) => (
@@ -286,7 +287,7 @@ export default function HizliMacPage() {
                         : "var(--text-dim)",
                 }}
               >
-                {k.davet_durumu === "kabul" ? "Hazır" : k.davet_durumu === "red" ? "Reddetti" : "Bekliyor…"}
+                {k.davet_durumu === "kabul" ? tt("Hazır") : k.davet_durumu === "red" ? tt("Reddetti") : tt("Bekliyor…")}
               </span>
             </div>
           ))}
@@ -294,15 +295,15 @@ export default function HizliMacPage() {
         {benimKayit?.davet_durumu === "bekliyor" && (
           <div style={{ display: "flex", flexDirection: "column", gap: 10, maxWidth: 340, margin: "20px auto 0" }}>
             <button className="btn" onClick={() => cevapVer(true)}>
-              Kabul Et
+              {tt("Kabul Et")}
             </button>
             <button className="btn tehlike" onClick={() => cevapVer(false)}>
-              Reddet
+              {tt("Reddet")}
             </button>
           </div>
         )}
         <button className="btn ikincil" style={{ marginTop: 16, maxWidth: 340 }} onClick={() => navigate(y("/meydan"))}>
-          Geri dön
+          {tt("Geri dön")}
         </button>
       </div>
     );
@@ -340,10 +341,10 @@ export default function HizliMacPage() {
     return (
       <div className="buyuk-mesaj">
         <div className="emoji"><Ikon ad="carpi" boyut={40} /></div>
-        <h2>Hızlı yarış iptal edildi</h2>
-        <p className="alt-yazi">Davetlilerden biri reddetti.</p>
+        <h2>{tt("Hızlı yarış iptal edildi")}</h2>
+        <p className="alt-yazi">{tt("Davetlilerden biri reddetti.")}</p>
         <button className="btn" style={{ marginTop: 16 }} onClick={() => navigate(y("/meydan"))}>
-          Geri dön
+          {tt("Geri dön")}
         </button>
       </div>
     );
@@ -352,7 +353,7 @@ export default function HizliMacPage() {
   if (mac.durum === "bitti" && !gecisBitti) {
     return (
       <SureDolduGecis
-        baslik="Maç bitti!"
+        baslik={tt("Maç bitti!")}
         skor={benimKayit?.skor ?? 0}
         skorEtiket="puan"
         kazandi={mac.kazanan === user.id}
@@ -369,7 +370,7 @@ export default function HizliMacPage() {
       <div className="buyuk-mesaj">
         <div className="emoji"><Ikon ad={berabere ? "kisiler" : kazandim ? "kupa" : "kalkan"} boyut={40} /></div>
         <h2>
-          {berabere ? "Berabere!" : kazandim ? "Kazandın! +50 puan" : "Kaybettin"}
+          {berabere ? tt("Berabere!") : kazandim ? tt("Kazandın! +50 puan") : tt("Kaybettin")}
         </h2>
         <div className="kart" style={{ maxWidth: 340, margin: "20px auto 0" }}>
           {siraliSkor.map((k, i) => (
@@ -388,10 +389,10 @@ export default function HizliMacPage() {
         </div>
         {/* Yarış bitti ama sayfa kapanmaz; çıkmaya oyuncu karar verir. */}
         <div className="bd-oturum-notu">
-          Yarış bitti ama sayfa açık kalır — sonuçları incele, çıkmak sana kalmış.
+          {tt("Yarış bitti ama sayfa açık kalır — sonuçları incele, çıkmak sana kalmış.")}
         </div>
         <button className="btn ikincil" style={{ marginTop: 16, maxWidth: 340, margin: "16px auto 0" }} onClick={() => navigate(y("/meydan"))}>
-          Meydan okumalara dön
+          {tt("Meydan okumalara dön")}
         </button>
       </div>
     );
@@ -406,12 +407,12 @@ export default function HizliMacPage() {
       )}
 
       <div className="durum-bandi canli" style={{ marginBottom: 12 }}>
-        Hızlı Olan Kazanır · İlk doğru cevap +10
+        {tt("Hızlı Olan Kazanır · İlk doğru cevap +10")}
       </div>
 
       <div className="grup-skor-listesi">
         <div className="alt-yazi" style={{ textAlign: "center", marginBottom: 8 }}>
-          Soru {mac.aktif_soru + 1}/{mac.soru_ids?.length ?? 20}
+          {tt("Soru")} {mac.aktif_soru + 1}/{mac.soru_ids?.length ?? 20}
         </div>
         {siraliSkor.map((k) => (
           <div
@@ -441,10 +442,10 @@ export default function HizliMacPage() {
       {cevapladim && (
         <div className="alt-yazi" style={{ textAlign: "center", marginTop: 14 }}>
           {ilkBildim === true
-            ? "İlk sen bildin! +10 puan"
+            ? tt("İlk sen bildin! +10 puan")
             : ilkBildim === false
-              ? "Birisi senden hızlı davrandı"
-              : "Diğer oyuncular bekleniyor…"}
+              ? tt("Birisi senden hızlı davrandı")
+              : tt("Diğer oyuncular bekleniyor…")}
         </div>
       )}
     </div>

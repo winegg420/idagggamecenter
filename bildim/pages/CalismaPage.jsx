@@ -12,6 +12,7 @@ import { supabase } from "../../src/lib/supabase.js";
 import { kategoriEtiket, kategorileriSirala } from "../lib/kategoriler.js";
 import { y } from "../lib/yol.js";
 import { useGorunurlukTazele } from "../lib/gorunurluk.js";
+import { tt } from "../lib/dil.js";
 
 const SORU_SN = 20;
 const HARFLER = ["A", "B", "C", "D"];
@@ -67,7 +68,7 @@ export default function CalismaPage() {
     } catch (e) {
       // Banka okunamazsa mod yine açılabilmeli
       setBanka({ toplam: 0, ogrenilen: 0, bekleyen: 0, kategoriler: [] });
-      setHata(hataMesaji(e, "Banka özeti alınamadı."));
+      setHata(hataMesaji(e, tt("Banka özeti alınamadı.")));
     } finally {
       setYukleniyor(false);
     }
@@ -89,7 +90,7 @@ export default function CalismaPage() {
       });
       if (error) throw error;
       const s = Array.isArray(data) ? data[0] : data;
-      if (!s) throw new Error("Soru gelmedi");
+      if (!s) throw new Error(tt("Soru gelmedi"));
       setSoru(s);
       setSecim(null);
       setSonucSoru(null);
@@ -97,7 +98,7 @@ export default function CalismaPage() {
       sonTikRef.current = null;
       soruBaslangicRef.current = Date.now();
     } catch (e) {
-      setHata(hataMesaji(e, "Soru alınamadı."));
+      setHata(hataMesaji(e, tt("Soru alınamadı.")));
     }
   }, []);
 
@@ -112,7 +113,7 @@ export default function CalismaPage() {
       if (error) throw error;
       setSonuc(Array.isArray(data) ? data[0] : data);
     } catch (e) {
-      setHata(hataMesaji(e, "Tur kapatılamadı."));
+      setHata(hataMesaji(e, tt("Tur kapatılamadı.")));
     }
     setAsama("sonuc");
     bankaYukle();
@@ -130,13 +131,13 @@ export default function CalismaPage() {
       });
       if (error) throw error;
       const o = Array.isArray(data) ? data[0] : data;
-      if (!o?.oturum_id) throw new Error("Tur açılamadı");
+      if (!o?.oturum_id) throw new Error(tt("Tur açılamadı"));
       setOturum(o);
       setSonuc(null);
       setAsama("oyun");
       await soruGetir(o.oturum_id);
     } catch (e) {
-      setHata(hataMesaji(e, "Çalışma turu başlatılamadı."));
+      setHata(hataMesaji(e, tt("Çalışma turu başlatılamadı.")));
     } finally {
       setCalisiyor(false);
     }
@@ -182,7 +183,7 @@ export default function CalismaPage() {
         s?.ogrenildi ? 1500 : GB_MS
       );
     } catch (e) {
-      setHata(hataMesaji(e, "Cevap gönderilemedi."));
+      setHata(hataMesaji(e, tt("Cevap gönderilemedi.")));
     }
   };
 
@@ -226,30 +227,30 @@ export default function CalismaPage() {
     const bos = (banka?.bekleyen ?? 0) === 0;
     return (
       <div>
-        <h1 className="baslik">Hatalarım</h1>
+        <h1 className="baslik">{tt("Hatalarım")}</h1>
 
         {yukleniyor ? (
           <div className="kart alt-yazi" style={{ textAlign: "center", padding: 22 }}>
-            Yükleniyor…
+            {tt("Yükleniyor…")}
           </div>
         ) : bos ? (
           <div className="kart bd-calisma-bos">
             <Maskot poz="dusunuyor" boyut={72} />
             <div className="bd-calisma-bos-metin">
-              Henüz yanlışın yok — maç yaptıkça burada birikecek.
+              {tt("Henüz yanlışın yok — maç yaptıkça burada birikecek.")}
               <br />
-              Yine de genel havuzdan çalışabilirsin.
+              {tt("Yine de genel havuzdan çalışabilirsin.")}
             </div>
           </div>
         ) : (
           <div className="kart bd-calisma-ozet">
             <div className="bd-calisma-ozet-ust">
               <span>
-                Bankanda <b>{banka.bekleyen} soru</b> var
+                {tt("Bankanda")} <b>{banka.bekleyen} {tt("soru")}</b> {tt("var")}
               </span>
               <span className="bd-calisma-ayrac">·</span>
               <span>
-                <b>{banka.ogrenilen}</b> tanesini öğrendin
+                <b>{banka.ogrenilen}</b> {tt("tanesini öğrendin")}
               </span>
             </div>
             {banka.kategoriler.length > 0 && (
@@ -275,7 +276,7 @@ export default function CalismaPage() {
         )}
 
         <div className="bd-kat-baslik">
-          <span>Kategori</span>
+          <span>{tt("Kategori")}</span>
         </div>
         <div className="bd-kat-grid">
           <button
@@ -283,7 +284,7 @@ export default function CalismaPage() {
             onClick={() => setKategori(null)}
           >
             <KategoriIkon anahtar="karisik" boyut={24} plaka />
-            <span className="bd-kat-ad">Tümü</span>
+            <span className="bd-kat-ad">{tt("Tümü")}</span>
           </button>
           {kategorileriSirala(kategoriler).map((k) => (
             <button
@@ -298,7 +299,7 @@ export default function CalismaPage() {
         </div>
 
         <div className="bd-kat-baslik">
-          <span>Soru sayısı</span>
+          <span>{tt("Soru sayısı")}</span>
         </div>
         <div className="bd-calisma-adet">
           {SORU_SECENEKLERI.map((n) => (
@@ -315,7 +316,7 @@ export default function CalismaPage() {
         {hata && <div className="hata-kutu">{hata}</div>}
         <button className="bd-ana-eylem" onClick={basla} disabled={calisiyor}>
           <Ikon ad="kitap" boyut={22} />
-          <span>{calisiyor ? "Hazırlanıyor…" : "Çalışmaya başla"}</span>
+          <span>{calisiyor ? tt("Hazırlanıyor…") : tt("Çalışmaya başla")}</span>
         </button>
       </div>
     );
@@ -336,21 +337,21 @@ export default function CalismaPage() {
     let geriBildirim = null;
     if (sonucSoru) {
       if (sonucSoru.ogrenildi) {
-        geriBildirim = { tip: "ogrenildi", metin: "Öğrenildi! Bankadan çıktı" };
+        geriBildirim = { tip: "ogrenildi", metin: tt("Öğrenildi! Bankadan çıktı") };
       } else if (sonucSoru.dogru && sonucSoru.bankadan) {
         geriBildirim = {
           tip: "iyi",
           metin: `${sonucSoru.yeni_seri}/2 doğru — bir kez daha bilirsen öğrenilmiş sayılacak`,
         };
       } else if (sonucSoru.dogru) {
-        geriBildirim = { tip: "iyi", metin: "Doğru" };
+        geriBildirim = { tip: "iyi", metin: tt("Doğru") };
       } else if (sonucSoru.bankadan) {
         geriBildirim = {
           tip: "uyari",
-          metin: `Bunu daha önce ${Math.max(1, (sonucSoru.onceki_yanlis ?? 1) - 1)} kez yanlış bilmiştin`,
+          metin: tt("Bunu daha önce {0} kez yanlış bilmiştin", { 0: Math.max(1, (sonucSoru.onceki_yanlis ?? 1) - 1) }),
         };
       } else {
-        geriBildirim = { tip: "uyari", metin: "Yanlış — Hatalarım'a eklendi" };
+        geriBildirim = { tip: "uyari", metin: tt("Yanlış — Hatalarım'a eklendi") };
       }
     }
 
@@ -361,14 +362,14 @@ export default function CalismaPage() {
         <CevapEfekti dogru={Boolean(sonucSoru?.dogru)} puan={0} seri={seri} />
         {secim === -1 && (
           <div className="bd-sure-doldu-bant" role="status">
-            <Ikon ad="saat" boyut={15} /> Süre doldu
+            <Ikon ad="saat" boyut={15} /> {tt("Süre doldu")}
           </div>
         )}
 
         {/* Bu modun puansız olduğu her an görünür */}
         <div className="bd-calisma-serit">
           <Ikon ad="kitap" boyut={14} />
-          <span>ÇALIŞMA · PUAN VERİLMEZ</span>
+          <span>{tt("ÇALIŞMA · PUAN VERİLMEZ")}</span>
         </div>
 
         <div className="bd-calisma-ilerleme">
@@ -376,7 +377,7 @@ export default function CalismaPage() {
             <div className="dolgu" style={{ width: `${oran}%` }} />
           </div>
           <span className="bd-calisma-kalan">
-            {sirada}/{toplam} · {Math.max(0, toplam - sirada)} soru kaldı
+            {sirada}/{toplam} · {Math.max(0, toplam - sirada)} {tt("soru kaldı")}
           </span>
         </div>
 
@@ -389,11 +390,11 @@ export default function CalismaPage() {
               </span>
               {soru.bankadan && (
                 <span className="bd-calisma-rozet">
-                  {soru.onceki_yanlis} kez yanlış
+                  {soru.onceki_yanlis} {tt("kez yanlış")}
                 </span>
               )}
               <span className={`bd-calisma-sn ${kalan <= 3 ? "kritik" : ""}`}>
-                {Math.ceil(kalan)} sn
+                {Math.ceil(kalan)} {tt("sn")}
               </span>
             </div>
 
@@ -442,38 +443,37 @@ export default function CalismaPage() {
       <div className="kart bd-calisma-sonuc">
         <div className="bd-calisma-serit ic">
           <Ikon ad="kitap" boyut={14} />
-          <span>ÇALIŞMA · PUAN VERİLMEZ</span>
+          <span>{tt("ÇALIŞMA · PUAN VERİLMEZ")}</span>
         </div>
 
         <div className="bd-calisma-buyuk">{ogrenilen}</div>
-        <div className="alt-yazi">soru öğrenildi</div>
+        <div className="alt-yazi">{tt("soru öğrenildi")}</div>
 
         <div className="bd-hizli-ozet" style={{ marginTop: 14 }}>
           <div>
             <b>{sonuc?.dogru ?? 0}</b>
-            <span>doğru</span>
+            <span>{tt("doğru")}</span>
           </div>
           <div>
             <b>{sonuc?.yanlis ?? 0}</b>
-            <span>yanlış</span>
+            <span>{tt("yanlış")}</span>
           </div>
           <div>
             <b>{sonuc?.bankada_kalan ?? 0}</b>
-            <span>bankada</span>
+            <span>{tt("bankada")}</span>
           </div>
         </div>
 
         <div className="bd-calisma-toplam">
-          Bugüne kadar toplam <b>{sonuc?.toplam_ogrenilen ?? 0}</b> soru öğrendin.
-          Doğru cevapların kategori ustalığına işlendi.
+          {tt("Bugüne kadar toplam")} <b>{sonuc?.toplam_ogrenilen ?? 0}</b> {tt("soru öğrendin. Doğru cevapların kategori ustalığına işlendi.")}
         </div>
 
         <div className="bd-konum-butonlar" style={{ marginTop: 16 }}>
           <button className="btn" onClick={() => setAsama("secim")}>
-            Tekrar çalış
+            {tt("Tekrar çalış")}
           </button>
           <button className="btn ikincil" onClick={() => navigate(y())}>
-            Ana sayfa
+            {tt("Ana sayfa")}
           </button>
         </div>
       </div>

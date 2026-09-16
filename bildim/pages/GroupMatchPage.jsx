@@ -18,6 +18,7 @@ import { useMacNabiz } from "../lib/nabiz.js";
 import { HazirKapisi, KopukPerde } from "../components/MacHazirlik.jsx";
 import { useDil } from "../lib/dilKanca.js";
 import { GB_MS } from "../lib/geriBildirim.js";
+import { tt } from "../lib/dil.js";
 
 const GRUP_SECIMI = `*,
   katilimcilar:group_match_players(group_match_id, user_id, davet_durumu, skor, joined_at, hazir, terk_at,
@@ -30,13 +31,13 @@ function balonIcerik(mesaj) {
   return ad ? <Ikon ad={ad} boyut={20} /> : mesaj;
 }
 const KALIPLAR = [
-  "İyi şanslar!",
-  "Bunu biliyordum!",
-  "Şanslıydın! 😏",
-  "İyi oyun!",
-  "Hadi bakalım!",
-  "Vay be! 🤯",
-  "AĞLAMA 😂",
+  tt("İyi şanslar!"),
+  tt("Bunu biliyordum!"),
+  tt("Şanslıydın! 😏"),
+  tt("İyi oyun!"),
+  tt("Hadi bakalım!"),
+  tt("Vay be! 🤯"),
+  tt("AĞLAMA 😂"),
   "HAHAHAHAHA",
 ];
 
@@ -128,7 +129,7 @@ export default function GroupMatchPage() {
       return data;
     } catch (e) {
       console.error("[Bildim] grup maci yuklenemedi:", e);
-      setYuklemeHatasi(hataMesaji(e, "Maç bilgisi alınamadı."));
+      setYuklemeHatasi(hataMesaji(e, tt("Maç bilgisi alınamadı.")));
       return null;
     }
   }, [id]);
@@ -353,11 +354,11 @@ export default function GroupMatchPage() {
     return (
       <div className="buyuk-mesaj">
         <div className="emoji"><Ikon ad="saat" boyut={44} /></div>
-        <h2>Grup maçı bekleniyor</h2>
+        <h2>{tt("Grup maçı bekleniyor")}</h2>
         <p className="alt-yazi" style={{ marginBottom: 16 }}>
           {bekleyenler.length > 0
-            ? `${bekleyenler.map((b) => b.profil?.gorunen_ad).join(", ")} henüz kabul etmedi.`
-            : "Herkes hazır olunca maç otomatik başlayacak."}
+            ? tt("{0} henüz kabul etmedi.", { 0: bekleyenler.map((b) => b.profil?.gorunen_ad).join(", ") })
+            : tt("Herkes hazır olunca maç otomatik başlayacak.")}
         </p>
         <div className="kart" style={{ maxWidth: 340, margin: "0 auto" }}>
           {katilimcilar.map((k) => (
@@ -377,7 +378,7 @@ export default function GroupMatchPage() {
                         : "var(--text-dim)",
                 }}
               >
-                {k.davet_durumu === "kabul" ? "Hazır" : k.davet_durumu === "red" ? "Reddetti" : "Bekliyor…"}
+                {k.davet_durumu === "kabul" ? tt("Hazır") : k.davet_durumu === "red" ? tt("Reddetti") : tt("Bekliyor…")}
               </span>
             </div>
           ))}
@@ -385,15 +386,15 @@ export default function GroupMatchPage() {
         {benimKayit?.davet_durumu === "bekliyor" && (
           <div style={{ display: "flex", flexDirection: "column", gap: 10, maxWidth: 340, margin: "20px auto 0" }}>
             <button className="btn" onClick={() => cevapVer(true)}>
-              Kabul Et
+              {tt("Kabul Et")}
             </button>
             <button className="btn tehlike" onClick={() => cevapVer(false)}>
-              Reddet
+              {tt("Reddet")}
             </button>
           </div>
         )}
         <button className="btn ikincil" style={{ marginTop: 16, maxWidth: 340 }} onClick={() => navigate(y("/meydan"))}>
-          Geri dön
+          {tt("Geri dön")}
         </button>
       </div>
     );
@@ -431,10 +432,10 @@ export default function GroupMatchPage() {
     return (
       <div className="buyuk-mesaj">
         <div className="emoji"><Ikon ad="carpi" boyut={40} /></div>
-        <h2>Grup maçı iptal edildi</h2>
-        <p className="alt-yazi">Davetlilerden biri reddetti.</p>
+        <h2>{tt("Grup maçı iptal edildi")}</h2>
+        <p className="alt-yazi">{tt("Davetlilerden biri reddetti.")}</p>
         <button className="btn" style={{ marginTop: 16 }} onClick={() => navigate(y("/meydan"))}>
-          Geri dön
+          {tt("Geri dön")}
         </button>
       </div>
     );
@@ -443,7 +444,7 @@ export default function GroupMatchPage() {
   if (mac.durum === "bitti" && !gecisBitti) {
     return (
       <SureDolduGecis
-        baslik="Maç bitti!"
+        baslik={tt("Maç bitti!")}
         skor={benimKayit?.skor ?? 0}
         skorEtiket="puan"
         kazandi={mac.kazanan === user.id}
@@ -460,7 +461,7 @@ export default function GroupMatchPage() {
       <div className="buyuk-mesaj">
         <div className="emoji"><Ikon ad={berabere ? "kisiler" : kazandim ? "kupa" : "kalkan"} boyut={40} /></div>
         <h2>
-          {berabere ? "Berabere!" : kazandim ? "Kazandın!" : "Kaybettin"}
+          {berabere ? tt("Berabere!") : kazandim ? tt("Kazandın!") : tt("Kaybettin")}
         </h2>
         <div className="bd-odulsuz-not" style={{ display: "inline-block" }}>
           {ceviri("Arkadaş maçı — ödül ve puan yok.")}
@@ -481,13 +482,12 @@ export default function GroupMatchPage() {
           <YanlisSatiri macTur="grup" macId={id} />
         </div>
         <button className="btn ikincil" style={{ marginTop: 16, maxWidth: 340, margin: "16px auto 0" }} onClick={() => navigate(y("/meydan"))}>
-          Meydan okumalara dön
+          {tt("Meydan okumalara dön")}
         </button>
 
         {/* MAÇ BİTTİ AMA OTURUM KAPANMAZ — herkes isterse kalıp konuşur. */}
         <div className="bd-oturum-notu">
-          Maç bitti ama oturum açık: istersen burada kalıp konuşmaya devam
-          edebilirsin. Çıkmak sana kalmış.
+          {tt("Maç bitti ama oturum açık: istersen burada kalıp konuşmaya devam edebilirsin. Çıkmak sana kalmış.")}
         </div>
         <div className="sohbet-bar">
           {TEPKILER.map((t) => (
@@ -520,7 +520,7 @@ export default function GroupMatchPage() {
 
       <div className="grup-skor-listesi">
         <div className="alt-yazi" style={{ textAlign: "center", marginBottom: 8 }}>
-          Soru {mac.aktif_soru + 1}/{mac.soru_ids?.length ?? 20}
+          {tt("Soru")} {mac.aktif_soru + 1}/{mac.soru_ids?.length ?? 20}
         </div>
         {siraliSkor.map((k) => (
           <div
@@ -585,7 +585,7 @@ export default function GroupMatchPage() {
 
       {cevapladim && (
         <div className="alt-yazi" style={{ textAlign: "center", marginTop: 14 }}>
-          Diğer oyuncuların cevaplaması bekleniyor…
+          {tt("Diğer oyuncuların cevaplaması bekleniyor…")}
         </div>
       )}
     </div>

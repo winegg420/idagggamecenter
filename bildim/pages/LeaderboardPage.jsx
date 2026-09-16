@@ -15,29 +15,30 @@ import { bayrak, haftaBitisi, sureMetni } from "../lib/konum.js";
 import OyuncuKarti from "../components/OyuncuKarti.jsx";
 import AvatarCerceve from "../components/AvatarCerceve.jsx";
 import { y } from "../lib/yol.js";
+import { tt } from "../lib/dil.js";
 
 // Lig adları — sunucudaki `lig` kolonuyla birebir (bkz. migration 151).
 export const LIG_ADLARI = {
-  bronz: "Bronz",
-  gumus: "Gümüş",
-  altin: "Altın",
-  elmas: "Elmas",
-  efsane: "Efsane",
+  bronz: tt("Bronz"),
+  gumus: tt("Gümüş"),
+  altin: tt("Altın"),
+  elmas: tt("Elmas"),
+  efsane: tt("Efsane"),
 };
 
 const KAPSAMLAR = [
   // Kademeli lig: oyuncunun kendi 25 kişilik grubu. İlk sekme bu —
   // haftalık yükselme/düşme burada oynanıyor.
-  { id: "lig", etiket: "LİGİM", ikon: "kupa" },
-  { id: "sehir", etiket: "ŞEHİR", ikon: "sehir" },
-  { id: "ulke", etiket: "ÜLKE", ikon: "bayrak" },
-  { id: "global", etiket: "DÜNYA", ikon: "dunya" },
-  { id: "arkadas", etiket: "ARKADAŞ", ikon: "kisiler" },
+  { id: "lig", etiket: tt("LİGİM"), ikon: "kupa" },
+  { id: "sehir", etiket: tt("ŞEHİR"), ikon: "sehir" },
+  { id: "ulke", etiket: tt("ÜLKE"), ikon: "bayrak" },
+  { id: "global", etiket: tt("DÜNYA"), ikon: "dunya" },
+  { id: "arkadas", etiket: tt("ARKADAŞ"), ikon: "kisiler" },
 ];
 
 const DONEMLER = [
-  { id: "hafta", etiket: "BU HAFTA" },
-  { id: "tum_zamanlar", etiket: "TÜM ZAMANLAR" },
+  { id: "hafta", etiket: tt("BU HAFTA") },
+  { id: "tum_zamanlar", etiket: tt("TÜM ZAMANLAR") },
 ];
 
 export default function LeaderboardPage() {
@@ -78,7 +79,7 @@ export default function LeaderboardPage() {
       if (error) throw error;
       if (data) navigate(y(`/mac/${data}`));
     } catch (e) {
-      setHata(hataMesaji(e, "Meydan okuma başlatılamadı."));
+      setHata(hataMesaji(e, tt("Meydan okuma başlatılamadı.")));
     }
   };
 
@@ -163,7 +164,7 @@ export default function LeaderboardPage() {
       } catch (e) {
         if (aktif) {
           setListe([]);
-          setHata(hataMesaji(e, "Sıralama yüklenemedi."));
+          setHata(hataMesaji(e, tt("Sıralama yüklenemedi.")));
         }
       } finally {
         if (aktif) setYukleniyor(false);
@@ -197,7 +198,7 @@ export default function LeaderboardPage() {
       className={`bd-lig-satir tiklanir ${s.user_id === user.id ? "ben" : ""}`}
       role="button"
       tabIndex={0}
-      title={`${s.gorunen_ad} — kartını aç`}
+      title={tt("{0} — kartını aç", { 0: s.gorunen_ad })}
       onClick={() => setKartOyuncu({
         id: s.user_id,
         gorunen_ad: s.gorunen_ad,
@@ -224,7 +225,7 @@ export default function LeaderboardPage() {
       <div className="bd-lig-bilgi">
         <div className="bd-lig-isim">
           {s.gorunen_ad}
-          {s.bot && <span className="bd-bot-rozet" title="Yapay rakip"><Ikon ad="robot" boyut={13} /></span>}
+          {s.bot && <span className="bd-bot-rozet" title={tt("Yapay rakip")}><Ikon ad="robot" boyut={13} /></span>}
           {s.user_id === user.id && <SenRozeti />}
         </div>
         <div className="bd-lig-detay">
@@ -240,8 +241,8 @@ export default function LeaderboardPage() {
       {s.user_id !== user.id && (
         <button
           className="bd-ikon-btn"
-          title="Meydan oku"
-          aria-label={`${s.gorunen_ad} oyuncusuna meydan oku`}
+          title={tt("Meydan oku")}
+          aria-label={tt("{0} oyuncusuna meydan oku", { 0: s.gorunen_ad })}
           onClick={(e) => { e.stopPropagation(); meydanOku(s.user_id); }}
         >
           <Ikon ad="kilic" boyut={17} />
@@ -261,7 +262,7 @@ export default function LeaderboardPage() {
         />
       )}
 
-      <h1 className="baslik">Lig</h1>
+      <h1 className="baslik">{tt("Lig")}</h1>
 
       {hata && <div className="hata-kutu">{hata}</div>}
 
@@ -297,29 +298,30 @@ export default function LeaderboardPage() {
       {/* Kademeli lig şeridi: "Gümüş Lig · 7/25 · ↑ ilk 5 · ↓ son 5 · süre" */}
       {kapsam === "lig" && grupBilgi && (
         <div className="bd-hafta-serit bd-lig-serit">
-          <b>{LIG_ADLARI[grupBilgi.lig] ?? grupBilgi.lig} Lig</b> ·{" "}
+          <b>{LIG_ADLARI[grupBilgi.lig] ?? grupBilgi.lig} {tt("Lig")}</b> ·{" "}
           {benimSiram ?? "—"}/{grupBilgi.grup_boyu}
           <span className="bd-lig-kural">
-            ↑ ilk {grupBilgi.yukselen} yükselir · ↓ son {grupBilgi.dusen} düşer ·{" "}
-            {sureMetni(kalanSezon)} kaldı
+            {tt("↑ ilk")} {grupBilgi.yukselen} {tt("yükselir · ↓ son")} {grupBilgi.dusen} {tt("düşer ·")}{" "}
+            {sureMetni(kalanSezon)} {tt("kaldı")}
           </span>
         </div>
       )}
 
       {kapsam !== "lig" && donem === "hafta" && (
         <div className="bd-hafta-serit">
-          <Ikon ad="saat" boyut={15} /> Hafta bitimine <b>{sureMetni(kalanHafta)}</b> kaldı — ilk 3 rozet kazanır.
+          <Ikon ad="saat" boyut={15} /> {tt("Hafta bitimine")} <b>{sureMetni(kalanHafta)}</b> {tt("kaldı — ilk 3 rozet kazanır.")}
         </div>
       )}
 
       {kapsam === "sehir" && sehirSirasi && (
         <div className="bd-sehir-serit">
           {bayrak(sehirSirasi.ulke)} <b>{sehirSirasi.sehir}</b>{" "}
-          {donem === "hafta" ? "bu hafta" : "tüm zamanlarda"} ülkende{" "}
           {/* Oyuncu sayısı BİLEREK yazılmıyor: oyunun kalabalığı hiçbir
               ekranda açık edilmiyor (bkz. kademeli lig kuralları). */}
-          <b>{sehirSirasi.sira}.</b> sırada ({sehirSirasi.sehir_sayisi} şehir içinde) ·{" "}
-          {sehirSirasi.toplam_puan} puan
+          {tt(donem === "hafta"
+            ? "bu hafta ülkende {sira}. sırada ({sayi} şehir içinde) · {puan} puan"
+            : "tüm zamanlarda ülkende {sira}. sırada ({sayi} şehir içinde) · {puan} puan",
+            { sira: sehirSirasi.sira, sayi: sehirSirasi.sehir_sayisi, puan: sehirSirasi.toplam_puan })}
         </div>
       )}
 
@@ -327,23 +329,23 @@ export default function LeaderboardPage() {
         <div className="kart bd-bos">
           <Maskot poz="dusunuyor" boyut={84} className="bd-orta-maskot" />
           <div style={{ fontWeight: 700, marginBottom: 6 }}>
-            Şehir ve ülke ligleri için konumunu seç
+            {tt("Şehir ve ülke ligleri için konumunu seç")}
           </div>
           <div className="alt-yazi" style={{ marginBottom: 12 }}>
-            Hangi şehir için yarıştığını söyle, şehrinin ve ülkenin sıralamasına gir.
+            {tt("Hangi şehir için yarıştığını söyle, şehrinin ve ülkenin sıralamasına gir.")}
           </div>
           <button className="btn" onClick={() => setKonumAc(true)}>
-            Şehrimi seç
+            {tt("Şehrimi seç")}
           </button>
         </div>
       ) : yukleniyor ? (
-        <div className="yukleniyor">Yükleniyor…</div>
+        <div className="yukleniyor">{tt("Yükleniyor…")}</div>
       ) : ilk100.length === 0 ? (
         <div className="bd-bos-durum">
           <Maskot poz="dusunuyor" boyut={90} />
-          <p>Bu ligde henüz kimse yarışmıyor — ilk sırayı sen kap.</p>
+          <p>{tt("Bu ligde henüz kimse yarışmıyor — ilk sırayı sen kap.")}</p>
           <button className="btn" onClick={() => navigate(y())}>
-            Hemen oyna
+            {tt("Hemen oyna")}
           </button>
         </div>
       ) : ilk100.length === 1 && ilk100[0].user_id === user.id ? (
@@ -351,14 +353,14 @@ export default function LeaderboardPage() {
           <Maskot poz="selam" boyut={90} />
           <p>
             {kapsam === "sehir"
-              ? "Şehrinde ilk oyuncu sensin! Arkadaşlarını çağır, şehrini zirveye taşıyın."
-              : "Bu ligde şimdilik tek başınasın. Arkadaşlarını davet et."}
+              ? tt("Şehrinde ilk oyuncu sensin! Arkadaşlarını çağır, şehrini zirveye taşıyın.")
+              : tt("Bu ligde şimdilik tek başınasın. Arkadaşlarını davet et.")}
           </p>
           <button className="btn" onClick={() => navigate(y("/arkadaslar"))}>
-            Arkadaş davet et
+            {tt("Arkadaş davet et")}
           </button>
           <button className="btn ikincil" onClick={() => setKapsam("global")}>
-            Dünya ligine bak
+            {tt("Dünya ligine bak")}
           </button>
         </div>
       ) : (
@@ -375,7 +377,7 @@ export default function LeaderboardPage() {
                     } ${p.bot ? "bot" : ""}`}
                     role="button"
                     tabIndex={0}
-                    title={`${p.gorunen_ad} — kartını aç`}
+                    title={tt("{0} — kartını aç", { 0: p.gorunen_ad })}
                     onClick={() => setKartOyuncu({
                       id: p.user_id, gorunen_ad: p.gorunen_ad,
                       gorunen_avatar: p.gorunen_avatar, gorunum: p.gorunum, puan: p.puan,
@@ -406,7 +408,7 @@ export default function LeaderboardPage() {
                     <div className="bd-podyum-ad">
                       {p.gorunen_ad}
                       {p.bot && (
-                        <span className="bd-bot-rozet" title="Yapay rakip">
+                        <span className="bd-bot-rozet" title={tt("Yapay rakip")}>
                           <Ikon ad="robot" boyut={12} />
                         </span>
                       )}
@@ -429,10 +431,10 @@ export default function LeaderboardPage() {
                 <div key={`yuva-${s.user_id}`}>
                   {satir(s)}
                   {s.sira === grupBilgi.yukselen && (
-                    <div className="bd-lig-cizgi yukselme">↑ yükselme sınırı</div>
+                    <div className="bd-lig-cizgi yukselme">{tt("↑ yükselme sınırı")}</div>
                   )}
                   {s.sira === dusmeSiniri && dusmeSiniri > grupBilgi.yukselen && (
-                    <div className="bd-lig-cizgi dusme">↓ düşme sınırı</div>
+                    <div className="bd-lig-cizgi dusme">{tt("↓ düşme sınırı")}</div>
                   )}
                 </div>
               );
@@ -446,7 +448,7 @@ export default function LeaderboardPage() {
       )}
 
       {konumAc && (
-        <Modal onKapat={() => setKonumAc(false)} etiket="Şehir seçimi">
+        <Modal onKapat={() => setKonumAc(false)} etiket={tt("Şehir seçimi")}>
           <div className="bd-modal">
             <KonumSecici mod="kart" onKapat={() => setKonumAc(false)} />
           </div>

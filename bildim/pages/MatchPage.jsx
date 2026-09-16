@@ -27,6 +27,7 @@ import { y } from "../lib/yol.js";
 import { GB_MS } from "../lib/geriBildirim.js";
 import { useDil } from "../lib/dilKanca.js";
 import { coinTazele } from "../lib/coin.js";
+import { tt } from "../lib/dil.js";
 
 // acik_bot: maç sonunda hangi rövanş eyleminin gösterileceğini belirler.
 // `is_bot` BİLEREK KULLANILMIYOR (kolon istemciye kapalı, migration 155):
@@ -46,13 +47,13 @@ function balonIcerik(mesaj) {
   return ad ? <Ikon ad={ad} boyut={20} /> : mesaj;
 }
 const KALIPLAR = [
-  "İyi şanslar!",
-  "Bunu biliyordum!",
-  "Şanslıydın! 😏",
-  "İyi oyun!",
-  "Hadi bakalım!",
-  "Vay be! 🤯",
-  "AĞLAMA 😂",
+  tt("İyi şanslar!"),
+  tt("Bunu biliyordum!"),
+  tt("Şanslıydın! 😏"),
+  tt("İyi oyun!"),
+  tt("Hadi bakalım!"),
+  tt("Vay be! 🤯"),
+  tt("AĞLAMA 😂"),
   "HAHAHAHAHA",
 ];
 
@@ -192,7 +193,7 @@ export default function MatchPage() {
       if (data) setYuklemeHatasi(null);
     } catch (e) {
       console.error("[Bildim] mac yuklenemedi:", e);
-      setYuklemeHatasi(hataMesaji(e, "Maç bilgisi alınamadı."));
+      setYuklemeHatasi(hataMesaji(e, tt("Maç bilgisi alınamadı.")));
     }
     // Yoklama 2 saniyede bir dönüyor. Gelen satır bir öncekiyle birebir
     // aynıysa state'e DOKUNMA: yeni nesne yazmak React'e "değişti" dedirtir
@@ -616,8 +617,8 @@ export default function MatchPage() {
       return (
         <div className="buyuk-mesaj">
           <div className="emoji"><Ikon ad="saat" boyut={44} /></div>
-          <h2>Cevap bekleniyor</h2>
-          <p className="alt-yazi">{rakipProfil?.gorunen_ad} henüz kabul etmedi.</p>
+          <h2>{tt("Cevap bekleniyor")}</h2>
+          <p className="alt-yazi">{rakipProfil?.gorunen_ad} {tt("henüz kabul etmedi.")}</p>
         </div>
       );
     }
@@ -667,9 +668,9 @@ export default function MatchPage() {
       return (
         <div className="buyuk-mesaj">
           <div className="emoji"><Ikon ad="carpi" boyut={40} /></div>
-          <h2>Meydan okuma reddedildi</h2>
+          <h2>{tt("Meydan okuma reddedildi")}</h2>
           <button className="btn" style={{ marginTop: 16 }} onClick={() => navigate(y("/meydan"))}>
-            Geri dön
+            {tt("Geri dön")}
           </button>
         </div>
       );
@@ -678,7 +679,7 @@ export default function MatchPage() {
     if (mac.durum === "bitti" && sonucHazir && !gecisBitti) {
       return (
         <SureDolduGecis
-          baslik="Maç bitti!"
+          baslik={tt("Maç bitti!")}
           skor={mac.oyuncu1 === user.id ? mac.oyuncu1_skor : mac.oyuncu2_skor}
           skorEtiket="puan"
           kazandi={mac.kazanan === user.id}
@@ -702,13 +703,13 @@ export default function MatchPage() {
             className="bd-sonuc-maskot"
           />
           <h2 className={`bd-sonuc-baslik ${kazandim ? "kazandi" : berabere ? "" : "kaybetti"}`}>
-            {berabere ? "Berabere!" : kazandim ? "Kazandın!" : "Kaybettin"}
+            {berabere ? tt("Berabere!") : kazandim ? tt("Kazandın!") : tt("Kaybettin")}
           </h2>
           {mac.terk_eden && (
             <p className="alt-yazi" style={{ marginTop: -4 }}>
               {mac.terk_eden === user.id
-                ? "Maçtan ayrıldığın için hükmen mağlup sayıldın."
-                : `${rakipProfil?.gorunen_ad} maçı terk etti — hükmen kazandın.`}
+                ? tt("Maçtan ayrıldığın için hükmen mağlup sayıldın.")
+                : tt("{0} maçı terk etti — hükmen kazandın.", { 0: rakipProfil?.gorunen_ad })}
             </p>
           )}
           {odulum && (odulum.lig_puan > 0 || odulum.coin > 0) && (
@@ -760,16 +761,16 @@ export default function MatchPage() {
                   else navigate(y("/meydan"));
                 }}
               >
-                Rövanş
+                {tt("Rövanş")}
               </button>
             )}
             {(() => {
               const sonucYazi = berabere
-                ? `${rakipProfil?.gorunen_ad} ile ${benimSkor}-${rakipSkor} berabere kaldım`
+                ? tt("{0} ile {1}-{2} berabere kaldım", { 0: rakipProfil?.gorunen_ad, 1: benimSkor, 2: rakipSkor })
                 : kazandim
                   ? `${rakipProfil?.gorunen_ad}'i ${benimSkor}-${rakipSkor} yendim!`
-                  : `${rakipProfil?.gorunen_ad} karşısında kıl payı kaybettim`;
-              const mesaj = `Quiz Tactics'te ${sonucYazi} Sen de gel, kapışalım: ${window.location.origin}/?davet=${user.id}`;
+                  : tt("{0} karşısında kıl payı kaybettim", { 0: rakipProfil?.gorunen_ad });
+              const mesaj = tt("Quiz Tactics'te {0} Sen de gel, kapışalım: {1}/?davet={2}", { 0: sonucYazi, 1: window.location.origin, 2: user.id });
               const enc = encodeURIComponent(mesaj);
               return (
                 <div className="paylas-bar">
@@ -787,7 +788,7 @@ export default function MatchPage() {
                     target="_blank"
                     rel="noreferrer"
                   >
-                    𝕏 Paylaş
+                    {tt("𝕏 Paylaş")}
                   </a>
                   <button
                     className="paylas diger"
@@ -801,7 +802,7 @@ export default function MatchPage() {
                       }
                     }}
                   >
-                    Diğer
+                    {tt("Diğer")}
                   </button>
                 </div>
               );
@@ -809,7 +810,7 @@ export default function MatchPage() {
             {/* Bildirim izni ilk açılışta değil, ilk maç sonucunda sorulur. */}
             <BildirimIzniSor />
             <button className="btn ikincil" onClick={() => navigate(y("/meydan"))}>
-              Meydan okumalara dön
+              {tt("Meydan okumalara dön")}
             </button>
           </div>
 
@@ -818,9 +819,8 @@ export default function MatchPage() {
               konuşmaya devam eder, çıkmaya kendileri karar verir. Sohbet ve
               sesli sohbet bu yüzden sonuç ekranında da duruyor. */}
           <div className="bd-oturum-notu">
-            Maç bitti ama oturum açık: istersen burada kalıp
-            {rakipBot ? " sohbet edebilirsin" : ` ${rakipProfil?.gorunen_ad} ile konuşmaya devam edebilirsin`}.
-            Çıkmak sana kalmış.
+            {tt("Maç bitti ama oturum açık: istersen burada kalıp")}
+            {rakipBot ? tt(" sohbet edebilirsin") : tt(" {0} ile konuşmaya devam edebilirsin", { 0: rakipProfil?.gorunen_ad })}{tt(". Çıkmak sana kalmış.")}
           </div>
 
           <div className="bd-ses-yuva" ref={setSesYuva} />
@@ -882,10 +882,9 @@ export default function MatchPage() {
       return (
         <div className="buyuk-mesaj">
           <Maskot poz="selam" boyut={104} className="bd-sonuc-maskot" />
-          <h2>Senin bölümün bitti</h2>
+          <h2>{tt("Senin bölümün bitti")}</h2>
           <p className="alt-yazi" style={{ marginBottom: 14 }}>
-            {toplamSoru} sorunun tamamını oynadın. <b>{rakipProfil?.gorunen_ad}</b> kendi
-            zamanında oynayınca maç sonuçlanacak — bittiğinde sana haber vereceğiz.
+            {toplamSoru} {tt("sorunun tamamını oynadın.")} <b>{rakipProfil?.gorunen_ad}</b> {tt("kendi zamanında oynayınca maç sonuçlanacak — bittiğinde sana haber vereceğiz.")}
           </p>
           <div className="skor-tabela bd-vs" style={{ maxWidth: 360, margin: "0 auto 16px" }}>
             <div className="taraf bd-vs-taraf">
@@ -901,7 +900,7 @@ export default function MatchPage() {
             </div>
           </div>
           <button className="btn" onClick={() => navigate(y("/meydan"))}>
-            Yeni maça başla
+            {tt("Yeni maça başla")}
           </button>
         </div>
       );
@@ -932,7 +931,7 @@ export default function MatchPage() {
         {/* Maç ekranında alt menü gizli; çıkış sol üstte */}
         <button
           className="bd-mac-cikis"
-          aria-label="Maçtan çık"
+          aria-label={tt("Maçtan çık")}
           onClick={() => navigate(y("/meydan"))}
         >
           <Ikon ad="carpi" boyut={18} />
@@ -944,13 +943,11 @@ export default function MatchPage() {
               <Ikon ad="saat" boyut={18} />
             </span>
             <span style={{ flex: 1 }}>
-              <b>{rakipProfil?.gorunen_ad}</b> senden önde. Bu maç sıra
-              beklemeden oynanır — sen kendi hızında devam et, rakibin de kendi
-              zamanında oynar.
+              <b>{rakipProfil?.gorunen_ad}</b> {tt("senden önde. Bu maç sıra beklemeden oynanır — sen kendi hızında devam et, rakibin de kendi zamanında oynar.")}
             </span>
             <button
               className="btn kucuk ikincil"
-              aria-label="Kapat"
+              aria-label={tt("Kapat")}
               onClick={() => setBilgiKapandi(true)}
             >
               <Ikon ad="carpi" boyut={16} />
@@ -963,8 +960,8 @@ export default function MatchPage() {
         {ciftDurum && Number(ciftDurum.carpan) < 1 && (
           <div className="durum-bandi odul-azaldi">
             {Number(ciftDurum.carpan) === 0
-              ? `Bugün bu rakiple ${ciftDurum.sira}. maçın — bu bir dostluk maçı, puan ve coin vermez.`
-              : `Bugün bu rakiple ${ciftDurum.sira}. maçın — ödül yarıya düşecek.`}
+              ? tt("Bugün bu rakiple {0}. maçın — bu bir dostluk maçı, puan ve coin vermez.", { 0: ciftDurum.sira })
+              : tt("Bugün bu rakiple {0}. maçın — ödül yarıya düşecek.", { 0: ciftDurum.sira })}
           </div>
         )}
 
@@ -1049,8 +1046,8 @@ export default function MatchPage() {
         {cevapladim && (
           <div className="alt-yazi" style={{ textAlign: "center", marginTop: 14 }}>
             {senkron
-              ? `${rakipProfil?.gorunen_ad} cevaplayınca soru geçecek…`
-              : "Sıradaki soru geliyor…"}
+              ? tt("{0} cevaplayınca soru geçecek…", { 0: rakipProfil?.gorunen_ad })
+              : tt("Sıradaki soru geliyor…")}
           </div>
         )}
 
@@ -1068,14 +1065,14 @@ export default function MatchPage() {
           <button
             className={tepkiAcik ? "acik" : ""}
             aria-expanded={tepkiAcik}
-            aria-label="Tepki gönder"
+            aria-label={tt("Tepki gönder")}
             onClick={() => setTepkiAcik((a) => !a)}
           >
             <Ikon ad="sohbet" boyut={18} />
           </button>
         </div>
         {tepkiAcik && (
-          <div className="bd-tepki-panel" role="group" aria-label="Tepkiler">
+          <div className="bd-tepki-panel" role="group" aria-label={tt("Tepkiler")}>
             {TEPKILER.map((t) => (
               <button
                 key={t.deger}
@@ -1089,7 +1086,7 @@ export default function MatchPage() {
             <button
               className={kaliplarAcik ? "acik" : ""}
               onClick={() => setKaliplarAcik((a) => !a)}
-              aria-label="Hazır cümleler"
+              aria-label={tt("Hazır cümleler")}
             >
               <Ikon ad="sohbet" boyut={20} />
             </button>

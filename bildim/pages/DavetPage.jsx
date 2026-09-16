@@ -5,6 +5,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "../../src/lib/supabase.js";
 import { useAuth } from "../../src/context/AuthContext.jsx";
 import { y } from "../lib/yol.js";
+import { tt } from "../lib/dil.js";
 
 const DEPO_ANAHTAR = "bildim_davet_kodu";
 
@@ -18,7 +19,7 @@ export default function DavetPage() {
   const { user, profile } = useAuth();
   const navigate = useNavigate();
   const [durum, setDurum] = useState("bekliyor"); // bekliyor | basarili | hata
-  const [mesaj, setMesaj] = useState("Davet işleniyor…");
+  const [mesaj, setMesaj] = useState(tt("Davet işleniyor…"));
   const calistiRef = useRef(false);
 
   useEffect(() => {
@@ -26,7 +27,7 @@ export default function DavetPage() {
 
     if (!temiz || temiz.length !== 8) {
       setDurum("hata");
-      setMesaj("Bu davet linki geçersiz görünüyor.");
+      setMesaj(tt("Bu davet linki geçersiz görünüyor."));
       return;
     }
 
@@ -37,14 +38,14 @@ export default function DavetPage() {
       } catch {
         /* özel mod */
       }
-      setMesaj("Devam etmek için giriş yapman gerekiyor…");
+      setMesaj(tt("Devam etmek için giriş yapman gerekiyor…"));
       return;
     }
 
     // Kurulum (takma ad/avatar/şehir) bitmeden istek göndermeyelim;
     // Layout zaten sihirbazı gösteriyor, biz bekleyelim.
     if (profile && (!profile.takma_ad_secildi || !profile.ulke)) {
-      setMesaj("Önce profilini tamamla, sonra davet otomatik uygulanacak.");
+      setMesaj(tt("Önce profilini tamamla, sonra davet otomatik uygulanacak."));
       try {
         localStorage.setItem(DEPO_ANAHTAR, temiz);
       } catch {
@@ -63,14 +64,14 @@ export default function DavetPage() {
         });
         if (error) throw error;
         const sonuc = Array.isArray(data) ? data[0] : data;
-        const ad = sonuc?.gorunen_ad ?? "Oyuncu";
+        const ad = sonuc?.gorunen_ad ?? tt("Oyuncu");
         const mesajlar = {
-          istek_gonderildi: `${ad} kişisine arkadaşlık isteği gönderildi`,
-          arkadas_oldu: `${ad} artık arkadaşın!`,
-          zaten_arkadas: `${ad} zaten arkadaşın.`,
+          istek_gonderildi: tt("{0} kişisine arkadaşlık isteği gönderildi", { 0: ad }),
+          arkadas_oldu: tt("{0} artık arkadaşın!", { 0: ad }),
+          zaten_arkadas: tt("{0} zaten arkadaşın.", { 0: ad }),
         };
         setDurum("basarili");
-        setMesaj(mesajlar[sonuc?.durum] ?? "İstek gönderildi");
+        setMesaj(mesajlar[sonuc?.durum] ?? tt("İstek gönderildi"));
         try {
           localStorage.removeItem(DEPO_ANAHTAR);
         } catch {
@@ -79,7 +80,7 @@ export default function DavetPage() {
         setTimeout(() => navigate(y("/arkadaslar")), 1800);
       } catch (e) {
         setDurum("hata");
-        setMesaj(hataMesaji(e, "Davet uygulanamadı."));
+        setMesaj(hataMesaji(e, tt("Davet uygulanamadı.")));
       }
     })();
   }, [kod, user, profile, navigate]);
@@ -90,11 +91,11 @@ export default function DavetPage() {
         <Ikon ad={durum === "basarili" ? "onay" : durum === "hata" ? "uyari" : "hediye"} boyut={34} />
       </div>
       <div style={{ fontWeight: 800, fontSize: 17, marginBottom: 8 }}>
-        {durum === "basarili" ? "Davet uygulandı" : "Arkadaş daveti"}
+        {durum === "basarili" ? tt("Davet uygulandı") : tt("Arkadaş daveti")}
       </div>
       <div className="alt-yazi" style={{ marginBottom: 14 }}>{mesaj}</div>
       <button className="btn ikincil" onClick={() => navigate(y("/arkadaslar"))}>
-        Arkadaşlara git
+        {tt("Arkadaşlara git")}
       </button>
     </div>
   );

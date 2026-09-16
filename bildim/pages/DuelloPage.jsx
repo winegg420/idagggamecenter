@@ -32,17 +32,18 @@ import { y } from "../lib/yol.js";
 import { coinTazele } from "../lib/coin.js";
 import { sesKilidiAc, sesTik, sesDogru, sesYanlis, sesJoker, sesKazandin, sesKaybettin, sesDokunus } from "../lib/ses.js";
 import { titret } from "../lib/geriBildirim.js";
+import { tt } from "../lib/dil.js";
 
 const HARFLER = ["A", "B", "C", "D"];
 
 // Savunma jokerlerinin Düello'daki adları (Ek Süre +5 sn; sunucu ayarı duello_ek_sure_sn)
-const SAVUNMA_AD = { elli: "50:50", sure: "Ek Süre", soru_degistir: "Soru Değiştir" };
+const SAVUNMA_AD = { elli: "50:50", sure: tt("Ek Süre"), soru_degistir: tt("Soru Değiştir") };
 const SAVUNMA_ACIKLAMA = {
-  elli: "İki yanlış şık silinir",
-  sure: "Cevap süresine 5 saniye ekler",
-  soru_degistir: "Aynı kategoriden başka soru gelir",
+  elli: tt("İki yanlış şık silinir"),
+  sure: tt("Cevap süresine 5 saniye ekler"),
+  soru_degistir: tt("Aynı kategoriden başka soru gelir"),
 };
-const SALDIRI_AD = { zaman_baskisi: "Zaman Baskısı", saldiri_degistir: "Soru Değiştir", savunma_kilidi: "Savunma Kilidi" };
+const SALDIRI_AD = { zaman_baskisi: tt("Zaman Baskısı"), saldiri_degistir: tt("Soru Değiştir"), savunma_kilidi: tt("Savunma Kilidi") };
 
 function Kalpler({ can, max = 3, sonCan }) {
   return (
@@ -136,7 +137,7 @@ function DuelloArama({ dereceli, onBulundu, onIptal }) {
       <div className="bd-arama-kutu">
         <div className="bd-arama-halka" aria-hidden="true"><Maskot poz="dusunuyor" boyut={84} /></div>
         <div className="bd-arama-baslik">{ceviri("Düello rakibi aranıyor…")}</div>
-        <div className="alt-yazi">{gecen} sn</div>
+        <div className="alt-yazi">{gecen} {tt("sn")}</div>
         {hata && <div className="hata-kutu">{hata}</div>}
         <button className="btn ikincil" onClick={onIptal}>{ceviri("Vazgeç")}</button>
       </div>

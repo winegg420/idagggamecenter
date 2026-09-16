@@ -26,19 +26,20 @@ import { coinTazele, coinHatasi } from "../lib/coin.js";
 import { nadirligiUnut } from "../lib/nadirlik.js";
 import { y } from "../lib/yol.js";
 import "./gorunum.css";
+import { tt } from "../lib/dil.js";
 
 const YUVALAR = [
-  { kod: "sac", ad: "Saç", ikon: "kisi", renkAlani: "sac_renk" },
-  { kod: "sapka", ad: "Şapka", ikon: "yildiz" },
-  { kod: "gozluk", ad: "Gözlük", ikon: "soru" },
-  { kod: "kupe", ad: "Küpe", ikon: "hediye" },
-  { kod: "ust", ad: "Üst", ikon: "tisort", renkAlani: "ust_renk" },
-  { kod: "ayakkabi", ad: "Ayakkabı", ikon: "kalkan" },
-  { kod: "efekt", ad: "Efekt", ikon: "ates" },
+  { kod: "sac", ad: tt("Saç"), ikon: "kisi", renkAlani: "sac_renk" },
+  { kod: "sapka", ad: tt("Şapka"), ikon: "yildiz" },
+  { kod: "gozluk", ad: tt("Gözlük"), ikon: "soru" },
+  { kod: "kupe", ad: tt("Küpe"), ikon: "hediye" },
+  { kod: "ust", ad: tt("Üst"), ikon: "tisort", renkAlani: "ust_renk" },
+  { kod: "ayakkabi", ad: tt("Ayakkabı"), ikon: "kalkan" },
+  { kod: "efekt", ad: tt("Efekt"), ikon: "ates" },
   // Dans GİYİLMEZ: satın alınır, meydanda oynatılır. Bu yüzden dans yuvası
   // hiçbir zaman `gorunum`a yazılmaz (sunucu da kabul etmez); buradaki
   // dokunuş yalnız önizlemede dansı oynatır.
-  { kod: "dans", ad: "Dans", ikon: "mikrofon", giyilmez: true },
+  { kod: "dans", ad: tt("Dans"), ikon: "mikrofon", giyilmez: true },
 ];
 
 // Boyanabilir eşyalar için 8 renklik palet (oyunun kendi tonları)
@@ -82,7 +83,7 @@ export default function GorunumPage() {
       setGorunum(r?.gorunum && typeof r.gorunum === "object" ? r.gorunum : {});
       setBakiye(Number(r?.bakiye ?? 0));
     } catch (e) {
-      setHata(hataMesaji(e, "Görünüm yüklenemedi."));
+      setHata(hataMesaji(e, tt("Görünüm yüklenemedi.")));
       setGorunum({});
     }
   }, []);
@@ -159,7 +160,7 @@ export default function GorunumPage() {
 
   /** Dansı önizlemede oynatır — dükkânda "nasıl duruyor" görülebilsin. */
   const dansiGoster = (kod) => {
-    setBilgi("Bu dansı Meydan'da 💃 düğmesinden oynatabilirsin.");
+    setBilgi(tt("Bu dansı Meydan'da 💃 düğmesinden oynatabilirsin."));
     onizlemeRef.current?.dansOynat(kod);
   };
 
@@ -173,8 +174,8 @@ export default function GorunumPage() {
       setSahip((s) => [...s, kod]);
       coinTazele();
       setBilgi(yuva === "dans"
-        ? "Dans alındı — Meydan'da 💃 düğmesinden oynatabilirsin."
-        : "Eşya alındı, giyebilirsin.");
+        ? tt("Dans alındı — Meydan'da 💃 düğmesinden oynatabilirsin.")
+        : tt("Eşya alındı, giyebilirsin."));
       if (yuva === "dans") onizlemeRef.current?.dansOynat(kod);
     } catch (e) {
       const m = coinHatasi(e);
@@ -222,17 +223,17 @@ export default function GorunumPage() {
       // oyuncunun avatarı kurulumda seçtiği fotoğraftır. Bu yedek sayfa
       // onu sessizce 3B render'la değiştiriyordu. `fotografiYukle`
       // silinmedi — geri dönülürse hazır duruyor.
-      setBilgi("Görünümün kaydedildi.");
+      setBilgi(tt("Görünümün kaydedildi."));
     } catch (e) {
-      setHata(hataMesaji(e, "Görünüm kaydedilemedi."));
+      setHata(hataMesaji(e, tt("Görünüm kaydedilemedi.")));
     } finally {
       setKaydediliyor(false);
     }
   };
 
   if (gorunum === null) {
-    return <div className="bd-gorunum"><h1 className="baslik">Görünüm</h1>
-      <div className="alt-yazi">Yükleniyor…</div></div>;
+    return <div className="bd-gorunum"><h1 className="baslik">{tt("Görünüm")}</h1>
+      <div className="alt-yazi">{tt("Yükleniyor…")}</div></div>;
   }
 
   const aktifYuva = YUVALAR.find((x) => x.kod === yuva) ?? YUVALAR[0];
@@ -244,7 +245,7 @@ export default function GorunumPage() {
 
   return (
     <div className="bd-gorunum">
-      <div className="baslik">Görünüm</div>
+      <div className="baslik">{tt("Görünüm")}</div>
 
       {hata && <div className="hata-kutu">{hata}</div>}
       {bilgi && <div className="bd-bilgi-kutu">{bilgi}</div>}
@@ -255,7 +256,7 @@ export default function GorunumPage() {
           {sahneHatasi ? (
             <div className="bd-gorunum-sahnesiz">
               <Ikon ad="uyari" boyut={28} />
-              <span>Cihazın 3B önizlemeyi açamıyor. Eşyaları yine de seçip kaydedebilirsin.</span>
+              <span>{tt("Cihazın 3B önizlemeyi açamıyor. Eşyaları yine de seçip kaydedebilirsin.")}</span>
             </div>
           ) : (
             <div className="bd-gorunum-sahne" ref={kapsayiciRef} />
@@ -298,9 +299,9 @@ export default function GorunumPage() {
           })}
         >
           <span className="bd-esya-gorsel bd-esya-bos"><Ikon ad="carpi" boyut={22} /></span>
-          <span className="bd-esya-ad">Yok</span>
+          <span className="bd-esya-ad">{tt("Yok")}</span>
           <span className="bd-esya-fiyat bd-esya-durum">
-            {secili === null ? "Üzerinde" : "Yuvayı boşalt"}
+            {secili === null ? tt("Üzerinde") : tt("Yuvayı boşalt")}
           </span>
         </button>
         )}
@@ -317,7 +318,7 @@ export default function GorunumPage() {
               className={"bd-esya" + (takili ? " secili takili" : "") + (sahipMi ? "" : " kilitli")
                 + (odul ? " bd-esya-odul" : "")}
               aria-pressed={sahipMi && !aktifYuva.giyilmez ? takili : undefined}
-              aria-label={`${e.ad}${sahipMi ? (takili ? " — üzerinde" : "") : (alinabilir ? ` — ${e.coin_fiyat} coin` : " — turnuva ödülü, kilitli")}`}
+              aria-label={`${e.ad}${sahipMi ? (takili ? tt(" — üzerinde") : "") : (alinabilir ? ` — ${e.coin_fiyat} coin` : tt(" — turnuva ödülü, kilitli"))}`}
               onClick={() => {
                 if (!sahipMi) { if (alinabilir) satinAl(e.kod); return; }
                 if (aktifYuva.giyilmez) dansiGoster(e.kod);
@@ -353,10 +354,10 @@ export default function GorunumPage() {
 
               <span className={"bd-esya-fiyat" + (sahipMi ? " bd-esya-durum" : "")}>
                 {sahipMi
-                  ? (takili ? "Üzerinde" : "Sahipsin")
+                  ? (takili ? tt("Üzerinde") : tt("Sahipsin"))
                   : (alinabilir
                       ? <><Ikon ad="coin" boyut={12} /> {Number(e.coin_fiyat).toLocaleString("tr-TR")}</>
-                      : "Turnuva ödülü")}
+                      : tt("Turnuva ödülü"))}
               </span>
             </button>
           );
@@ -366,7 +367,7 @@ export default function GorunumPage() {
       {/* ---- renk paleti ---- */}
       {boyanabilirMi && (
         <div className="kart bd-palet-kart">
-          <div className="bd-kat-baslik"><span>{aktifYuva.ad} rengi</span></div>
+          <div className="bd-kat-baslik"><span>{aktifYuva.ad} {tt("rengi")}</span></div>
           <div className="bd-palet">
             {PALET.map((r) => (
               <button
@@ -383,7 +384,7 @@ export default function GorunumPage() {
 
       {/* ---- ten rengi ---- */}
       <div className="kart bd-palet-kart">
-        <div className="bd-kat-baslik"><span>Ten rengi</span></div>
+        <div className="bd-kat-baslik"><span>{tt("Ten rengi")}</span></div>
         <div className="bd-palet">
           {TEN_PALETI.map((r) => (
             <button
@@ -399,10 +400,10 @@ export default function GorunumPage() {
 
       <div className="bd-gorunum-eylemler">
         <button className="btn" onClick={kaydet} disabled={kaydediliyor}>
-          {kaydediliyor ? "Kaydediliyor…" : "Kaydet"}
+          {kaydediliyor ? tt("Kaydediliyor…") : tt("Kaydet")}
         </button>
         <button className="btn ikincil" onClick={() => navigate(y("/profil"))}>
-          Profile dön
+          {tt("Profile dön")}
         </button>
       </div>
     </div>

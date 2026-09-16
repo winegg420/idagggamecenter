@@ -18,6 +18,7 @@ import { coinTazele } from "../lib/coin.js";
 import DereceliAnahtari from "../components/DereceliAnahtari.jsx";
 import { useDereceliTercih } from "../lib/dereceli.js";
 import { useDil } from "../lib/dilKanca.js";
+import { tt } from "../lib/dil.js";
 
 // Süreler sunucudan gelir (oyun_ayarlari: hizli_mod_sure_sn / hizli_mod_soru_sure_sn;
 // oturum açılınca hizli_mod_baslat da döndürür). Bunlar yalnız ilk çizim içindir.
@@ -99,7 +100,7 @@ export default function HizliModPage() {
       });
       if (error) throw error;
       const s = Array.isArray(data) ? data[0] : data;
-      if (!s) throw new Error("Soru gelmedi");
+      if (!s) throw new Error(tt("Soru gelmedi"));
       setSoru(s);
       setSecim(null);
       setSonucSoru(null);
@@ -111,7 +112,7 @@ export default function HizliModPage() {
       if (/Süre doldu/i.test(e?.message ?? "")) {
         bitir(oturumId);
       } else {
-        setHata(hataMesaji(e, "Soru alınamadı."));
+        setHata(hataMesaji(e, tt("Soru alınamadı.")));
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -128,7 +129,7 @@ export default function HizliModPage() {
       });
       if (error) throw error;
       const o = Array.isArray(data) ? data[0] : data;
-      if (!o?.oturum_id) throw new Error("Oturum açılamadı");
+      if (!o?.oturum_id) throw new Error(tt("Oturum açılamadı"));
       const toplam = Number(o.sure_sn) || VARSAYILAN_TOPLAM_SN;
       const soruSn = Number(o.soru_sure_sn) || VARSAYILAN_SORU_SN;
       soruSnRef.current = soruSn;
@@ -139,7 +140,7 @@ export default function HizliModPage() {
       setAsama("oyun");
       await soruGetir(o.oturum_id);
     } catch (e) {
-      setHata(hataMesaji(e, "Hızlı mod başlatılamadı."));
+      setHata(hataMesaji(e, tt("Hızlı mod başlatılamadı.")));
     }
   };
 
@@ -162,7 +163,7 @@ export default function HizliModPage() {
         coinTazele();
         refreshProfile?.(user?.id);
       } catch (e) {
-        setHata(hataMesaji(e, "Oturum kapatılamadı."));
+        setHata(hataMesaji(e, tt("Oturum kapatılamadı.")));
       }
       const perdeKalan = Math.max(0, 800 - (Date.now() - perdeBasi));
       setTimeout(() => setAsama("sonuc"), perdeKalan);
@@ -215,7 +216,7 @@ export default function HizliModPage() {
         else soruGetir(oturum.oturum_id);
       }, GB_HIZLI_MS);
     } catch (e) {
-      setHata(hataMesaji(e, "Cevap gönderilemedi."));
+      setHata(hataMesaji(e, tt("Cevap gönderilemedi.")));
     }
   };
 
@@ -265,12 +266,11 @@ export default function HizliModPage() {
   if (asama === "secim") {
     return (
       <div>
-        <h1 className="baslik">Hızlı Mod</h1>
+        <h1 className="baslik">{tt("Hızlı Mod")}</h1>
         <div className="kart bd-hizli-tanit">
           <div className="bd-hizli-buyuk">{TOPLAM_SN}</div>
           <div className="alt-yazi">
-            saniyede kaç soru bilebilirsin? Soru başına <b>{SORU_SN} saniye</b>,
-            doğru <b>+1</b>, yanlışın cezası yok.
+            {tt("saniyede kaç soru bilebilirsin? Soru başına")} <b>{SORU_SN} {tt("saniye")}</b>{tt(", doğru")} <b>+1</b>{tt(", yanlışın cezası yok.")}
             <br />
             {dereceli
               ? ceviri("Dereceli: doğru başına +{dogru} lig puanı ve coin (en çok {tavan}).", odul)
@@ -278,23 +278,23 @@ export default function HizliModPage() {
           </div>
           {ozet && (
             <div className="bd-hizli-ozet">
-              <div><b>{ozet.bu_hafta_en_iyi}</b><span>bu hafta</span></div>
-              <div><b>{ozet.tum_zaman_en_iyi}</b><span>rekorun</span></div>
-              <div><b>{ozet.oynanan}</b><span>oyun</span></div>
+              <div><b>{ozet.bu_hafta_en_iyi}</b><span>{tt("bu hafta")}</span></div>
+              <div><b>{ozet.tum_zaman_en_iyi}</b><span>{tt("rekorun")}</span></div>
+              <div><b>{ozet.oynanan}</b><span>{tt("oyun")}</span></div>
             </div>
           )}
         </div>
 
         <DereceliAnahtari dereceli={dereceli} onDegistir={setDereceli} />
 
-        <div className="bd-kat-baslik"><span>Kategori</span></div>
+        <div className="bd-kat-baslik"><span>{tt("Kategori")}</span></div>
         <div className="bd-kat-grid">
           <button
             className={`bd-kat-kart ${kategori === null ? "aktif" : ""}`}
             onClick={() => setKategori(null)}
           >
             <KategoriIkon anahtar="karisik" boyut={24} plaka />
-              <span className="bd-kat-ad">Karışık</span>
+              <span className="bd-kat-ad">{tt("Karışık")}</span>
           </button>
           {kategorileriSirala(kategoriler).map((k) => (
             <button
@@ -304,7 +304,7 @@ export default function HizliModPage() {
             >
               <KategoriIkon anahtar={k.kategori} boyut={24} plaka />
               <span className="bd-kat-ad">{kategoriEtiket(k.kategori)}</span>
-              <span className="bd-kat-alt">{k.soru_sayisi} soru</span>
+              <span className="bd-kat-alt">{k.soru_sayisi} {tt("soru")}</span>
             </button>
           ))}
         </div>
@@ -312,7 +312,7 @@ export default function HizliModPage() {
         {hata && <div className="hata-kutu">{hata}</div>}
         <button className="bd-ana-eylem" onClick={basla}>
           <Ikon ad="hizli" boyut={22} />
-          <span>Başla</span>
+          <span>{tt("Başla")}</span>
         </button>
       </div>
     );
@@ -320,7 +320,7 @@ export default function HizliModPage() {
 
   // Süre doldu perdesi (0.8 sn) — sonuç ekranından önce
   if (asama === "gecis") {
-    return <SureDolduGecis baslik="Süre doldu!" skor={sonuc?.skor ?? skor} skorEtiket="doğru" />;
+    return <SureDolduGecis baslik={tt("Süre doldu!")} skor={sonuc?.skor ?? skor} skorEtiket="doğru" />;
   }
 
   if (asama === "oyun") {
@@ -337,7 +337,7 @@ export default function HizliModPage() {
         <CevapEfekti dogru={Boolean(sonucSoru?.dogru)} puan={0} seri={seri} />
         {secim === -1 && (
           <div className="bd-sure-doldu-bant" role="status">
-            <Ikon ad="saat" boyut={15} /> Süre doldu
+            <Ikon ad="saat" boyut={15} /> {tt("Süre doldu")}
           </div>
         )}
         {/* Toplam süre çubuğu */}
@@ -349,7 +349,7 @@ export default function HizliModPage() {
         </div>
         <div className="bd-hizli-ust">
           <span className="bd-hizli-skor"><Ikon ad="onay" boyut={15} /> {skor}</span>
-          <span className="bd-hizli-sn">{Math.ceil(kalanToplam)} sn</span>
+          <span className="bd-hizli-sn">{Math.ceil(kalanToplam)} {tt("sn")}</span>
         </div>
 
         {soru && (
@@ -408,11 +408,11 @@ export default function HizliModPage() {
     <div>
       <div className="kart bd-hizli-sonuc">
         <div className="bd-hizli-buyuk">{sonuc?.skor ?? skor}</div>
-        <div className="alt-yazi">doğru cevap</div>
+        <div className="alt-yazi">{tt("doğru cevap")}</div>
         <div className="bd-hizli-ozet" style={{ marginTop: 14 }}>
-          <div><b>{sonuc?.dogru ?? skor}</b><span>doğru</span></div>
-          <div><b>{sonuc?.yanlis ?? 0}</b><span>yanlış</span></div>
-          <div><b>{sonuc?.en_iyi_hafta ?? skor}</b><span>hafta en iyi</span></div>
+          <div><b>{sonuc?.dogru ?? skor}</b><span>{tt("doğru")}</span></div>
+          <div><b>{sonuc?.yanlis ?? 0}</b><span>{tt("yanlış")}</span></div>
+          <div><b>{sonuc?.en_iyi_hafta ?? skor}</b><span>{tt("hafta en iyi")}</span></div>
         </div>
         <div className="bd-kazanc-satiri">
           {sonuc?.dereceli !== false && (
@@ -425,8 +425,8 @@ export default function HizliModPage() {
           </span>
         </div>
         <div className="bd-konum-butonlar" style={{ marginTop: 16 }}>
-          <button className="btn" onClick={() => setAsama("secim")}>Tekrar oyna</button>
-          <button className="btn ikincil" onClick={() => navigate(y())}>Ana sayfa</button>
+          <button className="btn" onClick={() => setAsama("secim")}>{tt("Tekrar oyna")}</button>
+          <button className="btn ikincil" onClick={() => navigate(y())}>{tt("Ana sayfa")}</button>
         </div>
       </div>
 

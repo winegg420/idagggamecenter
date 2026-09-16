@@ -14,6 +14,7 @@ import { y } from "../lib/yol.js";
 import GardropVitrini from "../components/GardropVitrini.jsx";
 import { useAuth } from "../../src/context/AuthContext.jsx";
 import { ayarlar } from "../lib/ayarlar.js";
+import { tt } from "../lib/dil.js";
 
 // Dükkân üç sekme: Kıyafet (avatar eşyaları + danslar) / Joker / Coin.
 // Kıyafet sekmesinin içeriği Görünüm sayfasında; buradan oraya köprü var.
@@ -24,9 +25,9 @@ const TEK_JOKER_VARSAYILAN = { elli: 40, sure: 60, soru_degistir: 80,
   zaman_baskisi: 60, saldiri_degistir: 60, savunma_kilidi: 80 };
 
 const SEKMELER = [
-  { kod: "kiyafet", ad: "Görünüm", ikon: "tisort" },
-  { kod: "joker",   ad: "Joker",   ikon: "hediye" },
-  { kod: "coin",    ad: "Coin",    ikon: "coin" },
+  { kod: "kiyafet", ad: tt("Görünüm"), ikon: "tisort" },
+  { kod: "joker",   ad: tt("Joker"),   ikon: "hediye" },
+  { kod: "coin",    ad: tt("Coin"),    ikon: "coin" },
 ];
 
 export default function JokerDukkani() {
@@ -93,7 +94,7 @@ export default function JokerDukkani() {
       if (!pak.error) setPaketler(pak.data ?? []);
       if (!cpak.error) setCoinPaketleri(cpak.data ?? []);
     } catch (e) {
-      setHata(hataMesaji(e, "Dükkân yüklenemedi."));
+      setHata(hataMesaji(e, tt("Dükkân yüklenemedi.")));
     }
   }, []);
 
@@ -125,11 +126,11 @@ export default function JokerDukkani() {
       const { data, error } = await supabase.rpc("reklam_odulu_al", { p_reklam_ref: ref });
       if (error) throw error;
       const s = Array.isArray(data) ? data[0] : data;
-      setBilgi(`+${s?.verilen ?? "?"} coin kazandın! (bugün ${s?.bugun ?? "?"}/${s?.tavan ?? 5})`);
+      setBilgi(tt("+{0} coin kazandın! (bugün {1}/{2})", { 0: s?.verilen ?? "?", 1: s?.bugun ?? "?", 2: s?.tavan ?? 5 }));
       coinTazele();
       await yukle();
     } catch (e) {
-      setHata(hataMesaji(e, "Reklam gösterilemedi."));
+      setHata(hataMesaji(e, tt("Reklam gösterilemedi.")));
     } finally {
       setVideoCalisiyor(false);
     }
@@ -156,14 +157,14 @@ export default function JokerDukkani() {
         body: JSON.stringify({ urun_id: urunId, purchase_token }),
       });
       const sonuc = await cevap.json();
-      if (!cevap.ok) throw new Error(sonuc?.hata ?? "Satın alma doğrulanamadı.");
+      if (!cevap.ok) throw new Error(sonuc?.hata ?? tt("Satın alma doğrulanamadı."));
 
       await tuket(purchase_token);
-      setBilgi("Satın alman tamamlandı, coin hesabına eklendi.");
+      setBilgi(tt("Satın alman tamamlandı, coin hesabına eklendi."));
       coinTazele();
       await yukle();
     } catch (e) {
-      setHata(hataMesaji(e, "Satın alma tamamlanamadı."));
+      setHata(hataMesaji(e, tt("Satın alma tamamlanamadı.")));
     } finally {
       setAlinan(null);
     }
@@ -177,7 +178,7 @@ export default function JokerDukkani() {
     try {
       const { error } = await supabase.rpc("joker_coin_ile_al", { p_urun_id: urunId });
       if (error) throw error;
-      setBilgi("Jokerler hesabına eklendi.");
+      setBilgi(tt("Jokerler hesabına eklendi."));
       coinTazele();
       coinOku();
       await yukle();
@@ -199,7 +200,7 @@ export default function JokerDukkani() {
     try {
       const { error } = await supabase.rpc("joker_tek_al", { p_tur: tur });
       if (error) throw error;
-      setBilgi(`${JOKER_BILGI[tur].ad} hesabına eklendi.`);
+      setBilgi(tt("{0} hesabına eklendi.", { 0: JOKER_BILGI[tur].ad }));
       coinTazele();
       coinOku();
       await yukle();
@@ -216,7 +217,7 @@ export default function JokerDukkani() {
 
   return (
     <div className="bd-dukkan">
-      <h1 className="baslik">Dükkân</h1>
+      <h1 className="baslik">{tt("Dükkân")}</h1>
 
       <div className="bd-dukkan-sekmeler" role="tablist">
         {SEKMELER.map((x) => (
@@ -245,7 +246,7 @@ export default function JokerDukkani() {
       {/* ---------- Envanter ---------- */}
       {sekme === "joker" && (
       <div className="kart">
-        <div className="bd-kat-baslik"><span>Envanterin</span></div>
+        <div className="bd-kat-baslik"><span>{tt("Envanterin")}</span></div>
         <div className="bd-envanter-grid">
           {Object.entries(JOKER_BILGI).map(([tur, b]) => (
             <div key={tur} className="bd-envanter-kutu">
@@ -256,15 +257,13 @@ export default function JokerDukkani() {
           ))}
         </div>
         <div className="alt-yazi" style={{ marginTop: 10 }}>
-          Her maçta <b>1 adet 50:50 ücretsizdir</b> (kullanılmazsa birikmez).
-          Lig maçlarında maç başına en fazla 2 joker, arkadaş maçlarında sınırsız.
-          Turnuva finalinde ve altın soruda joker kullanılamaz.
-          <b> Soru Değiştir</b> maç başına bir kez kullanılır.
+          {tt("Her maçta")} <b>{tt("1 adet 50:50 ücretsizdir")}</b> {tt("(kullanılmazsa birikmez). Lig maçlarında maç başına en fazla 2 joker, arkadaş maçlarında sınırsız. Turnuva finalinde ve altın soruda joker kullanılamaz.")}
+          <b> {tt("Soru Değiştir")}</b> {tt("maç başına bir kez kullanılır.")}
         </div>
 
         {/* Tek tek alım: paket almak istemeyene birim fiyat. */}
         <div className="bd-kat-baslik" style={{ marginTop: 14 }}>
-          <span>Tek tek al</span>
+          <span>{tt("Tek tek al")}</span>
           <span className="alt-yazi">
             <Ikon ad="coin" boyut={14} /> {(bakiye ?? 0).toLocaleString("tr-TR")}
           </span>
@@ -297,20 +296,20 @@ export default function JokerDukkani() {
       {sekme === "coin" && (
       <div className="kart">
         <div className="bd-kat-baslik">
-          <span>Video izle, coin kazan</span>
-          <span className="alt-yazi">bugün {reklam.bugun}/{reklam.tavan}</span>
+          <span>{tt("Video izle, coin kazan")}</span>
+          <span className="alt-yazi">{tt("bugün")} {reklam.bugun}/{reklam.tavan}</span>
         </div>
         <div className="alt-yazi" style={{ marginBottom: 12 }}>
-          Bir video = <b>+{odulCoin} coin</b>. Günde en fazla {reklam.tavan} ödül.
+          {tt("Bir video =")} <b>+{odulCoin} {tt("coin")}</b>{tt(". Günde en fazla")} {reklam.tavan} {tt("ödül.")}
         </div>
 
         {!h5AdsYapilandirildi() ? (
           <>
             <button className="btn ikincil" disabled>
-              Reklam şu an kullanılamıyor
+              {tt("Reklam şu an kullanılamıyor")}
             </button>
             <div className="alt-yazi" style={{ marginTop: 8 }}>
-              Reklam kimliği tanımlı değil (test modu). Sahte ödül verilmez.
+              {tt("Reklam kimliği tanımlı değil (test modu). Sahte ödül verilmez.")}
             </div>
           </>
         ) : (
@@ -320,10 +319,10 @@ export default function JokerDukkani() {
             onClick={videoIzle}
           >
             {videoCalisiyor
-              ? "Reklam açılıyor…"
+              ? tt("Reklam açılıyor…")
               : reklamKaldi <= 0
-                ? "Bugünlük hakkın doldu"
-                : `Video izle (+${odulCoin} coin)`}
+                ? tt("Bugünlük hakkın doldu")
+                : tt("Video izle (+{0} coin)", { 0: odulCoin })}
           </button>
         )}
       </div>
@@ -333,7 +332,7 @@ export default function JokerDukkani() {
       {sekme === "joker" && (
       <div className="kart">
         <div className="bd-kat-baslik">
-          <span>Joker paketleri</span>
+          <span>{tt("Joker paketleri")}</span>
           <span className="alt-yazi">
             <Ikon ad="coin" boyut={14} /> {(bakiye ?? 0).toLocaleString("tr-TR")}
           </span>
@@ -374,7 +373,7 @@ export default function JokerDukkani() {
       {sekme === "coin" && (
       <div className="kart">
         <div className="bd-kat-baslik">
-          <span>Coin paketleri</span>
+          <span>{tt("Coin paketleri")}</span>
           <span className="alt-yazi">
             <Ikon ad="coin" boyut={14} /> {(bakiye ?? 0).toLocaleString("tr-TR")}
           </span>
@@ -382,8 +381,7 @@ export default function JokerDukkani() {
 
         {!playVar && (
           <div className="bd-uyari">
-            Satın alma yalnızca <b>Android uygulamasında</b> yapılabilir.
-            Tarayıcıda paket satın alınamaz.
+            {tt("Satın alma yalnızca")} <b>{tt("Android uygulamasında")}</b> {tt("yapılabilir. Tarayıcıda paket satın alınamaz.")}
           </div>
         )}
 
@@ -406,7 +404,7 @@ export default function JokerDukkani() {
                     </span>
                     {Number(p.bonus) > 0 && (
                       <span className="bd-paket-parca bd-paket-bonus">
-                        +{Number(p.bonus).toLocaleString("tr-TR")} bonus
+                        +{Number(p.bonus).toLocaleString("tr-TR")} {tt("bonus")}
                       </span>
                     )}
                   </div>
@@ -416,7 +414,7 @@ export default function JokerDukkani() {
                   disabled={!playVar || alinan === p.urun_id}
                   onClick={() => paketAl(p.urun_id)}
                 >
-                  {alinan === p.urun_id ? "…" : (f?.fiyat ?? (playVar ? "Satın al" : "Uygulamada"))}
+                  {alinan === p.urun_id ? "…" : (f?.fiyat ?? (playVar ? tt("Satın al") : tt("Uygulamada")))}
                 </button>
               </div>
             );
@@ -427,9 +425,7 @@ export default function JokerDukkani() {
 
       {/* ---------- Yasal ---------- */}
       <div className="kart bd-gizlilik-not">
-        Satın alımlar Google Play üzerinden işlenir; ödeme bilgilerin Quiz Tactics ile
-        paylaşılmaz. Tüketilebilir ürünlerde iade Google Play kurallarına tabidir.
-        Ayrıntı için <Link to="/gizlilik">Gizlilik Politikası</Link>.
+        {tt("Satın alımlar Google Play üzerinden işlenir; ödeme bilgilerin Quiz Tactics ile paylaşılmaz. Tüketilebilir ürünlerde iade Google Play kurallarına tabidir. Ayrıntı için")} <Link to="/gizlilik">{tt("Gizlilik Politikası")}</Link>.
       </div>
     </div>
   );

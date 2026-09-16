@@ -12,6 +12,7 @@
 // 2B görünüm sayfası SİLİNMEDİ — /gorunum-2b altında yedekte duruyor.
 // ============================================================
 import { useEffect } from "react";
+import { tt } from "../lib/dil.js";
 
 /** dist içindeki fiziksel yol; hem hub hem Bildim modunda aynı. */
 export const GARDROP_YOLU = "/bildim/avatar3d/gardrop.html";
@@ -27,11 +28,11 @@ export default function GardropaGit() {
 
   return (
     <div className="bd-gorunum">
-      <h1 className="baslik">Görünüm</h1>
-      <div className="alt-yazi">Gardırop açılıyor…</div>
+      <h1 className="baslik">{tt("Görünüm")}</h1>
+      <div className="alt-yazi">{tt("Gardırop açılıyor…")}</div>
       {/* Yönlendirme engellenirse oyuncu elle gidebilsin. */}
       <div className="bd-gorunum-eylemler">
-        <a className="btn" href={GARDROP_YOLU}>Gardıroba git</a>
+        <a className="btn" href={GARDROP_YOLU}>{tt("Gardıroba git")}</a>
       </div>
     </div>
   );

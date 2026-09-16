@@ -19,6 +19,7 @@ import { useNavigate } from "react-router-dom";
 import { y } from "../lib/yol.js";
 import { useGorunurlukTazele, zamanAsimiyla } from "../lib/gorunurluk.js";
 import { GB_MS } from "../lib/geriBildirim.js";
+import { tt } from "../lib/dil.js";
 
 export default function TournamentPage() {
   const { user, refreshProfile } = useAuth();
@@ -46,7 +47,7 @@ export default function TournamentPage() {
       if (error) throw error;
       if (data) navigate(y(`/mac/${data}`));
     } catch (e) {
-      setHata(hataMesaji(e, "Meydan okuma başlatılamadı."));
+      setHata(hataMesaji(e, tt("Meydan okuma başlatılamadı.")));
     }
   };
   // Süre doldu ama ilerletme henüz başarılı olmadı mı? Dönüşte hemen denenir.
@@ -84,7 +85,7 @@ export default function TournamentPage() {
       }
     } catch (e) {
       console.error("[Bildim] turnuvalar alınamadı:", e);
-      setHata(hataMesaji(e, "Turnuva bilgisi alınamadı."));
+      setHata(hataMesaji(e, tt("Turnuva bilgisi alınamadı.")));
     }
     const liste = data ?? [];
     const secilen =
@@ -265,7 +266,7 @@ export default function TournamentPage() {
 
   useOyunModu(Boolean(soru) && turnuva?.durum === "aktif");
 
-  if (yukleniyor) return <div className="yukleniyor">Yükleniyor…</div>;
+  if (yukleniyor) return <div className="yukleniyor">{tt("Yükleniyor…")}</div>;
 
   // ---- Lobi yok / sıradaki turnuva ----
   if (!turnuva || turnuva.durum === "bitti" || turnuva.durum === "iptal") {
@@ -279,7 +280,7 @@ export default function TournamentPage() {
           <div className="kart" style={{ textAlign: "center" }}>
             <Ikon ad="kupa" boyut={38} />
             <div className="baslik" style={{ marginBottom: 4 }}>
-              Son turnuvanın şampiyonu
+              {tt("Son turnuvanın şampiyonu")}
             </div>
             <div style={{ fontSize: 20, fontWeight: 900, color: "var(--accent)" }}>
               {kazanan.profil?.gorunen_ad}
@@ -295,13 +296,13 @@ export default function TournamentPage() {
         )}
         <div className="geri-sayim-kart">
           <div style={{ fontSize: 14, fontWeight: 700, color: "var(--accent)" }}>
-            SIRADAKİ TURNUVA
+            {tt("SIRADAKİ TURNUVA")}
           </div>
           <Countdown />
           <BugunKalanTurnuvalar />
           {hata && <div className="hata-kutu">{hata}</div>}
           <button className="btn" onClick={lobiyeKatil}>
-            Lobiye katıl
+            {tt("Lobiye katıl")}
           </button>
         </div>
 
@@ -316,18 +317,18 @@ export default function TournamentPage() {
       <div>
         <div className="geri-sayim-kart">
           <div style={{ fontSize: 14, fontWeight: 700, color: "var(--bd-odul-metin)" }}>
-            TURNUVA LOBİSİ
+            {tt("TURNUVA LOBİSİ")}
           </div>
           <Countdown onSifir={turnuvaYukle} />
           <BugunKalanTurnuvalar />
           {hata && <div className="hata-kutu">{hata}</div>}
           {benimKayit ? (
             <button className="btn ikincil" onClick={lobidenAyril}>
-              Lobiden Ayrıl
+              {tt("Lobiden Ayrıl")}
             </button>
           ) : (
             <button className="btn" onClick={lobiyeKatil}>
-              Lobiye katıl
+              {tt("Lobiye katıl")}
             </button>
           )}
         </div>
@@ -340,11 +341,11 @@ export default function TournamentPage() {
               onMeydanOku={kartOyuncu.id === user.id ? undefined : meydanOku}
             />
           )}
-          <div className="baslik">Lobideki Oyuncular ({oyuncular.length})</div>
+          <div className="baslik">{tt("Lobideki Oyuncular (")}{oyuncular.length})</div>
           {oyuncular.length === 0 && (
             <div className="bd-bos-durum">
               <Maskot poz="dusunuyor" boyut={78} />
-              <p>Lobi henüz boş — ilk katılan sen ol, turnuva başlayınca haber veririz.</p>
+              <p>{tt("Lobi henüz boş — ilk katılan sen ol, turnuva başlayınca haber veririz.")}</p>
             </div>
           )}
           {/* Satıra dokunmak oyuncu kartını açar: avatar, rütbe, puan ve
@@ -355,7 +356,7 @@ export default function TournamentPage() {
               type="button"
               className="bd-lobi-oyuncu"
               onClick={() => setKartOyuncu({ id: o.user_id, ...(o.profil ?? {}) })}
-              title={`${o.profil?.gorunen_ad ?? "Oyuncu"} — kartını aç`}
+              title={tt("{0} — kartını aç", { 0: o.profil?.gorunen_ad ?? tt("Oyuncu") })}
             >
               <AvatarCerceve profile={o.profil} boyut={32} userId={o.user_id} />
               <span>{o.profil?.gorunen_ad}</span>
@@ -364,7 +365,7 @@ export default function TournamentPage() {
                   className="bd-lobi-kilic"
                   role="button"
                   tabIndex={0}
-                  aria-label={`${o.profil?.gorunen_ad ?? "Oyuncu"} oyuncusuna meydan oku`}
+                  aria-label={tt("{0} oyuncusuna meydan oku", { 0: o.profil?.gorunen_ad ?? tt("Oyuncu") })}
                   onClick={(e) => { e.stopPropagation(); meydanOku(o.user_id); }}
                   onKeyDown={(e) => {
                     if (e.key === "Enter" || e.key === " ") { e.preventDefault(); e.stopPropagation(); meydanOku(o.user_id); }
@@ -386,29 +387,28 @@ export default function TournamentPage() {
 
   return (
     <div>
-      <h1 className="baslik bd-gorsel-gizli">Turnuva</h1>
+      <h1 className="baslik bd-gorsel-gizli">{tt("Turnuva")}</h1>
       {/* ALTIN SORU: sorular bitti, hayatta kalanlar eşit. Eleme turnuvası
           berabere bitemez — biri kazanana kadar yeni soru gelir. */}
       {soru?.altin ? (
         <div className="durum-bandi altin-soru">
-          <Ikon ad="yildiz" boyut={15} /> ALTIN SORU · {hayatta.length} oyuncu
-          başa baş — biri bilene kadar sürer
+          <Ikon ad="yildiz" boyut={15} /> {tt("ALTIN SORU ·")} {hayatta.length} {tt("oyuncu başa baş — biri bilene kadar sürer")}
         </div>
       ) : (
         <div className="durum-bandi canli">
           <span className="canli-nokta" />
-          CANLI · {hayatta.length} oyuncu hayatta · Soru {turnuva.aktif_soru + 1}/
+          {tt("CANLI ·")} {hayatta.length} {tt("oyuncu hayatta · Soru")} {turnuva.aktif_soru + 1}/
           {turnuva.soru_ids?.length ?? "?"}
         </div>
       )}
 
       {elendim && (
         <div className="durum-bandi elendi">
-          Elendin. Kalan oyuncuları izlemeye devam edebilirsin.
+          {tt("Elendin. Kalan oyuncuları izlemeye devam edebilirsin.")}
         </div>
       )}
       {izleyiciyim && (
-        <div className="durum-bandi elendi">İzleyici modundasın.</div>
+        <div className="durum-bandi elendi">{tt("İzleyici modundasın.")}</div>
       )}
 
       {soru && !elendim && !izleyiciyim ? (
@@ -426,17 +426,17 @@ export default function TournamentPage() {
         soru && (
           <div className="kart">
             <div className="soru-metin">{soru.soru}</div>
-            <div className="alt-yazi">Oyuncular cevaplıyor…</div>
+            <div className="alt-yazi">{tt("Oyuncular cevaplıyor…")}</div>
           </div>
         )
       )}
 
       <div className="kart" style={{ marginTop: 14 }}>
-        <div className="baslik">Hayatta Kalanlar</div>
+        <div className="baslik">{tt("Hayatta Kalanlar")}</div>
         <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
           {hayatta.map((o) => (
             <span key={o.user_id} className="rutbe-chip" style={{ color: "var(--success)" }}>
-              {o.profil?.gorunen_ad} ({o.dogru_sayisi} doğru)
+              {o.profil?.gorunen_ad} ({o.dogru_sayisi} {tt("doğru)")}
             </span>
           ))}
         </div>

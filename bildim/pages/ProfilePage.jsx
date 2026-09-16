@@ -25,9 +25,12 @@ import {
   bildirimleriAc,
   bildirimleriKapat,
 } from "../lib/push.js";
+import { DILLER, tt } from "../lib/dil.js";
+import { useDil } from "../lib/dilKanca.js";
 
 export default function ProfilePage() {
   const { user, profile, refreshProfile, signOut } = useAuth();
+  const { dil, dilDegistir } = useDil();
   const [rozetler, setRozetler] = useState([]);
   const [kazanilan, setKazanilan] = useState(new Set());
   const [kopyalandi, setKopyalandi] = useState(false);
@@ -75,7 +78,7 @@ export default function ProfilePage() {
       .then(({ data }) => setKazanilan(new Set((data ?? []).map((b) => b.badge_id))));
   }, [user.id]);
 
-  if (!profile) return <div className="yukleniyor">Yükleniyor…</div>;
+  if (!profile) return <div className="yukleniyor">{tt("Yükleniyor…")}</div>;
 
   const r = rutbeBul(profile.puan);
   const sonraki = sonrakiRutbe(profile.puan);
@@ -89,7 +92,7 @@ export default function ProfilePage() {
       {/* 2B KARAKTER VİTRİNİ KALKTI (13 Eylül 2026): profilde artık
           seçilen avatar fotoğrafı görünür, 3B karakter yalnız meydanda. */}
 
-      <h1 className="baslik bd-gorsel-gizli">Profil</h1>
+      <h1 className="baslik bd-gorsel-gizli">{tt("Profil")}</h1>
       <div className="bd-profil-ust">
         <AvatarCerceve profile={profile} boyut={92} userId={user?.id} />
 
@@ -106,14 +109,14 @@ export default function ProfilePage() {
       <div className="bd-istatistik-3">
         <div className="bd-istatistik">
           <span className="deger" style={{ color: "var(--bd-odul)" }}><SayanSayi deger={profile.puan} /></span>
-          <span className="etiket">Puan</span>
+          <span className="etiket">{tt("Puan")}</span>
         </div>
         {/* Boş durum: kocaman bir "0" yerine hedefi göster. Sıfır bir başarı
             değil, henüz atılmamış bir adım. */}
         {profile.sampiyonluk > 0 ? (
           <div className="bd-istatistik">
             <span className="deger"><SayanSayi deger={profile.sampiyonluk} /></span>
-            <span className="etiket">Şampiyonluk</span>
+            <span className="etiket">{tt("Şampiyonluk")}</span>
           </div>
         ) : (
           <div className="bd-istatistik">
@@ -121,18 +124,18 @@ export default function ProfilePage() {
                 cümleydi ("İlk şampiyonluğuna / 1 turnuva kaldı") ve aynı
                 hizada üç farklı tür bilgi duruyordu; kutu taşıyordu. */}
             <span className="deger">1</span>
-            <span className="etiket">Turnuvaya kaldı</span>
+            <span className="etiket">{tt("Turnuvaya kaldı")}</span>
           </div>
         )}
         {(profile.seri ?? 0) > 0 ? (
           <div className="bd-istatistik">
             <span className="deger">{profile.seri}</span>
-            <span className="etiket">Günlük Seri</span>
+            <span className="etiket">{tt("Günlük Seri")}</span>
           </div>
         ) : (
           <div className="bd-istatistik">
             <span className="deger">1</span>
-            <span className="etiket">Maç ile seri başlar</span>
+            <span className="etiket">{tt("Maç ile seri başlar")}</span>
           </div>
         )}
       </div>
@@ -141,9 +144,9 @@ export default function ProfilePage() {
           Sayfa 3890 px'ti: kimlik, istatistik, sekiz ayar kartı, rozetler
           ve davet arka arkaya tek sütundaydı. Bloklar AYNEN korundu,
           yalnız dört sekmeye ayrıldı. */}
-      <div className="bd-profil-sekmeler" role="tablist" aria-label="Profil bölümleri">
-        {[["istatistik", "İstatistiklerim"], ["ayarlar", "Ayarlar"],
-          ["rozet", "Rozetler"], ["davet", "Davet"]].map(([id, ad]) => (
+      <div className="bd-profil-sekmeler" role="tablist" aria-label={tt("Profil bölümleri")}>
+        {[["istatistik", tt("İstatistiklerim")], ["ayarlar", tt("Ayarlar")],
+          ["rozet", tt("Rozetler")], ["davet", tt("Davet")]].map(([id, ad]) => (
           <button
             key={id}
             type="button"
@@ -169,9 +172,9 @@ export default function ProfilePage() {
             <Ikon ad="kitap" boyut={20} />
           </span>
           <div className="bd-profil-hatalarim-metin">
-            <div className="ad">Hatalarım</div>
+            <div className="ad">{tt("Hatalarım")}</div>
             <div className="alt-yazi">
-              Öğrenilen soru: <b>{banka.ogrenilen}</b> · Bankada: <b>{banka.bekleyen}</b>
+              {tt("Öğrenilen soru:")} <b>{banka.ogrenilen}</b> {tt("· Bankada:")} <b>{banka.bekleyen}</b>
             </div>
           </div>
           <span className="ok" aria-hidden="true">›</span>
@@ -182,7 +185,7 @@ export default function ProfilePage() {
         <div className="kart">
           <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8 }}>
             <span style={{ fontWeight: 700, fontSize: 14 }}>
-              Sonraki rütbe: <Ikon ad={sonraki.ikon} boyut={15} /> {sonraki.ad}
+              {tt("Sonraki rütbe:")} <Ikon ad={sonraki.ikon} boyut={15} /> {sonraki.ad}
             </span>
             <span className="alt-yazi">
               {profile.puan}/{sonraki.min}
@@ -210,9 +213,9 @@ export default function ProfilePage() {
           <Ikon ad="tisort" boyut={20} />
         </span>
         <div className="bd-profil-hatalarim-metin">
-          <div className="ad">Görünüm</div>
+          <div className="ad">{tt("Görünüm")}</div>
           <div className="alt-yazi">
-            Saç, şapka, gözlük, kıyafet ve efektleri buradan değiştir.
+            {tt("Saç, şapka, gözlük, kıyafet ve efektleri buradan değiştir.")}
           </div>
         </div>
         <span className="ok" aria-hidden="true">›</span>
@@ -226,20 +229,20 @@ export default function ProfilePage() {
       ) : (
         <div className="kart bd-konum-ozet">
           <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ fontWeight: 700, fontSize: 14 }}>Yarıştığın şehir</div>
+            <div style={{ fontWeight: 700, fontSize: 14 }}>{tt("Yarıştığın şehir")}</div>
             <div className="alt-yazi">
               {profile.ulke
                 ? `${bayrak(profile.ulke)} ${profile.sehir ?? "—"}`
-                : "Henüz seçmedin — şehir ve ülke liglerine giremezsin."}
+                : tt("Henüz seçmedin — şehir ve ülke liglerine giremezsin.")}
             </div>
             {konumKilidiKalan(profile.konum_degisti_at) > 0 && (
               <div className="alt-yazi">
-                Değiştirmek için {sureMetni(konumKilidiKalan(profile.konum_degisti_at))} kaldı.
+                {tt("Değiştirmek için")} {sureMetni(konumKilidiKalan(profile.konum_degisti_at))} {tt("kaldı.")}
               </div>
             )}
           </div>
           <button className="btn kucuk ikincil" onClick={() => setKonumDuzenle(true)}>
-            {profile.ulke ? "Değiştir" : "Seç"}
+            {profile.ulke ? tt("Değiştir") : tt("Seç")}
           </button>
         </div>
       )}
@@ -248,13 +251,13 @@ export default function ProfilePage() {
         <div className="kart" style={{ display: "flex", alignItems: "center", gap: 12 }}>
           <div className="bd-ayar-ikon"><Ikon ad="zil" boyut={22} /></div>
           <div style={{ flex: 1 }}>
-            <div style={{ fontWeight: 700, fontSize: 14 }}>Bildirimler</div>
+            <div style={{ fontWeight: 700, fontSize: 14 }}>{tt("Bildirimler")}</div>
             <div className="alt-yazi">
               {bildirim === "acik"
-                ? "Açık"
+                ? tt("Açık")
                 : bildirim === "engelli"
-                  ? "Tarayıcı ayarlarından engellenmiş."
-                  : "Kapalı"}
+                  ? tt("Tarayıcı ayarlarından engellenmiş.")
+                  : tt("Kapalı")}
             </div>
             {bildirimHata && <div className="hata-kutu" style={{ marginTop: 6 }}>{bildirimHata}</div>}
           </div>
@@ -277,7 +280,7 @@ export default function ProfilePage() {
                 }
               }}
             >
-              {bildirim === "acik" ? "Kapat" : "Aç"}
+              {bildirim === "acik" ? tt("Kapat") : tt("Aç")}
             </button>
           )}
         </div>
@@ -287,9 +290,9 @@ export default function ProfilePage() {
       <div className="kart" style={{ display: "flex", alignItems: "center", gap: 12 }}>
         <div className="bd-ayar-ikon"><Ikon ad={ses ? "sesAcik" : "sesKapali"} boyut={22} /></div>
         <div style={{ flex: 1 }}>
-          <div style={{ fontWeight: 700, fontSize: 14 }}>Oyun sesleri</div>
+          <div style={{ fontWeight: 700, fontSize: 14 }}>{tt("Oyun sesleri")}</div>
           <div className="alt-yazi">
-            {ses ? "Açık" : "Kapalı"}
+            {ses ? tt("Açık") : tt("Kapalı")}
           </div>
         </div>
         <button
@@ -301,13 +304,34 @@ export default function ProfilePage() {
             if (yeniDurum) sesTik(3); // örnek ses
           }}
         >
-          {ses ? "Kapat" : "Aç"}
+          {ses ? tt("Kapat") : tt("Aç")}
         </button>
       </div>
 
       {/* SADELEŞTİRME — tema düğmesi üst bardan kalktı ama
           KAYBOLMADI. Ayar, ayarların olduğu yere taşındı; oyuncu kontrolü
           elinde tutuyor. Bileşen aynı bileşen. */}
+      {/* Dil: arayüz + soru dili. Seçim profile yazılır, sayfa bir kez yenilenir. */}
+      <div className="kart bd-ayar-satir">
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontWeight: 700, fontSize: 14 }}>{tt("Dil")}</div>
+          <div className="alt-yazi">{tt("Arayüzün ve soruların dili")}</div>
+        </div>
+        <div className="giris-dil bd-ayar-dil" role="group" aria-label={tt("Dil")}>
+          {DILLER.map((d) => (
+            <button
+              key={d}
+              type="button"
+              className={"giris-dil-btn" + (dil === d ? " aktif" : "")}
+              aria-pressed={dil === d}
+              onClick={() => dilDegistir(d)}
+            >
+              {d.toUpperCase()}
+            </button>
+          ))}
+        </div>
+      </div>
+
       {/* Koyu tema geçici olarak kapalı (lib/tema.js › KOYU_TEMA_KAPALI):
           geri bildirim süresince tek mod, düğme gizli. */}
       {!KOYU_TEMA_KAPALI && (
@@ -315,8 +339,8 @@ export default function ProfilePage() {
         <div style={{ flex: 1, minWidth: 0 }}>
           {/* "Görünüm" adı 3B karakter kartına ait (Paket 8): iki kart aynı
               adı taşıyordu. */}
-          <div style={{ fontWeight: 700, fontSize: 14 }}>Tema</div>
-          <div className="alt-yazi">Açık ve koyu tema arasında geç</div>
+          <div style={{ fontWeight: 700, fontSize: 14 }}>{tt("Tema")}</div>
+          <div className="alt-yazi">{tt("Açık ve koyu tema arasında geç")}</div>
         </div>
         <TemaDugmesi />
       </div>
@@ -324,12 +348,12 @@ export default function ProfilePage() {
 
       {/* ---------- Yasal / hesap ---------- */}
       <div className="kart">
-        <div className="baslik">Hesap</div>
+        <div className="baslik">{tt("Hesap")}</div>
         <Link to="/gizlilik" className="bd-metin-link">
-          Gizlilik politikası
+          {tt("Gizlilik politikası")}
         </Link>
         <Link to="/kosullar" className="bd-metin-link">
-          Kullanım koşulları
+          {tt("Kullanım koşulları")}
         </Link>
 
         <button
@@ -340,23 +364,22 @@ export default function ProfilePage() {
             setSilOnay(true);
           }}
         >
-          Hesabımı sil
+          {tt("Hesabımı sil")}
         </button>
         <div className="alt-yazi" style={{ marginTop: 8 }}>
-          Profilin, puanların, rozetlerin ve tüm oyun kayıtların kalıcı olarak silinir.
-          Bu işlem geri alınamaz.
+          {tt("Profilin, puanların, rozetlerin ve tüm oyun kayıtların kalıcı olarak silinir. Bu işlem geri alınamaz.")}
         </div>
       </div>
 
       <button className="btn tehlike" onClick={signOut}>
-        Çıkış Yap
+        {tt("Çıkış Yap")}
       </button>
       </>)}
 
       {sekme === "rozet" && (<>
       <div className="kart">
         <div className="baslik">
-          Rozetler ({kazanilan.size}/{rozetler.length})
+          {tt("Rozetler (")}{kazanilan.size}/{rozetler.length})
         </div>
         <div className="rozet-grid">
           {rozetler.map((r) => {
@@ -375,18 +398,18 @@ export default function ProfilePage() {
 
       {sekme === "davet" && (<>
       <div className="kart" style={{ textAlign: "center" }}>
-        <div className="baslik">Arkadaşını davet et</div>
+        <div className="baslik">{tt("Arkadaşını davet et")}</div>
         <div className="alt-yazi" style={{ marginBottom: 12 }}>
-          Her davet için <b>ikiniz de 200 coin</b>.
+          {tt("Her davet için")} <b>{tt("ikiniz de 200 coin")}</b>.
           {profile.davet_sayisi > 0 && (
-            <> Şu ana kadar {profile.davet_sayisi} kişi davet ettin.</>
+            <> {tt("Şu ana kadar")} {profile.davet_sayisi} {tt("kişi davet ettin.")}</>
           )}
         </div>
         <button
           className="btn"
           onClick={async () => {
             const link = `${window.location.origin}/?davet=${user.id}`;
-            const mesaj = `Quiz Tactics'te benimle yarışmaya var mısın? Bu linkle gel, ikimiz de 200 coin kazanalım: ${link}`;
+            const mesaj = tt("Quiz Tactics'te benimle yarışmaya var mısın? Bu linkle gel, ikimiz de 200 coin kazanalım: {0}", { 0: link });
             if (navigator.share) {
               try {
                 await navigator.share({ title: "Quiz Tactics", text: mesaj });
@@ -398,21 +421,21 @@ export default function ProfilePage() {
             }
           }}
         >
-          {kopyalandi ? "Kopyalandı" : "Davet linkini paylaş"}
+          {kopyalandi ? tt("Kopyalandı") : tt("Davet linkini paylaş")}
         </button>
       </div>
       </>)}
 
       {silOnay && (
-        <Modal onKapat={siliniyor ? undefined : () => { setSilOnay(false); setSilMetin(""); }} etiket="Hesap silme onayı">
+        <Modal onKapat={siliniyor ? undefined : () => { setSilOnay(false); setSilMetin(""); }} etiket={tt("Hesap silme onayı")}>
           <div className="bd-modal">
-            <div className="bd-konum-baslik">Hesabını silmek üzeresin</div>
+            <div className="bd-konum-baslik">{tt("Hesabını silmek üzeresin")}</div>
             <div className="bd-konum-aciklama">
-              Bu işlem <b>geri alınamaz</b>. Onaylamak için aşağıya{" "}
-              <b>{profile.username}</b> yaz.
+              {tt("Bu işlem")} <b>{tt("geri alınamaz")}</b>{tt(". Onaylamak için aşağıya")}{" "}
+              <b>{profile.username}</b> {tt("yaz.")}
             </div>
             <label className="bd-alan">
-              <span>Hesap kimliğin</span>
+              <span>{tt("Hesap kimliğin")}</span>
               <input
                 type="text"
                 autoComplete="off"
@@ -434,12 +457,12 @@ export default function ProfilePage() {
                     if (error) throw error;
                     await signOut();
                   } catch (e) {
-                    setSilHata(hataMesaji(e, "Hesap silinemedi."));
+                    setSilHata(hataMesaji(e, tt("Hesap silinemedi.")));
                     setSiliniyor(false);
                   }
                 }}
               >
-                {siliniyor ? "Siliniyor…" : "Evet, hesabımı sil"}
+                {siliniyor ? tt("Siliniyor…") : tt("Evet, hesabımı sil")}
               </button>
               <button
                 className="btn ikincil"
@@ -449,7 +472,7 @@ export default function ProfilePage() {
                   setSilMetin("");
                 }}
               >
-                Vazgeç
+                {tt("Vazgeç")}
               </button>
             </div>
           </div>

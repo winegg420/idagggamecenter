@@ -22,6 +22,7 @@ import Modal from "../components/Modal.jsx";
 import DereceliAnahtari from "../components/DereceliAnahtari.jsx";
 import { useDereceliTercih } from "../lib/dereceli.js";
 import { useDil } from "../lib/dilKanca.js";
+import { tt } from "../lib/dil.js";
 
 export default function Home() {
   const { user, profile, refreshProfile } = useAuth();
@@ -304,7 +305,7 @@ export default function Home() {
       if (error) throw error;
       await refreshProfile?.(user.id);
     } catch (e) {
-      setMesaj(hataMesaji(e, "Kategori kaydedilemedi."));
+      setMesaj(hataMesaji(e, tt("Kategori kaydedilemedi.")));
     } finally {
       setKategoriKaydediliyor(false);
     }
@@ -327,7 +328,7 @@ export default function Home() {
 
   return (
     <div className="anasayfa">
-      <h1 className="baslik bd-gorsel-gizli">Ana sayfa</h1>
+      <h1 className="baslik bd-gorsel-gizli">{tt("Ana sayfa")}</h1>
 
       {/* ======== EN ÜST: RAKİP SENİ BEKLİYOR ========
           Meydan okuman kabul edildi ve karşı taraf ŞU AN maç ekranında
@@ -337,10 +338,10 @@ export default function Home() {
         <Link key={m.id} to={y("/mac/") + m.id} className="bd-rakip-bekliyor">
           <span className="bd-rakip-bekliyor-nokta" aria-hidden="true" />
           <span className="bd-rakip-bekliyor-metin">
-            <b>{m.rakipAd || "Rakibin"}</b> meydan okumanı kabul etti
-            <small>Maç ekranında seni bekliyor — hemen gir</small>
+            <b>{m.rakipAd || tt("Rakibin")}</b> {tt("meydan okumanı kabul etti")}
+            <small>{tt("Maç ekranında seni bekliyor — hemen gir")}</small>
           </span>
-          <span className="bd-rakip-bekliyor-btn">Maça gir</span>
+          <span className="bd-rakip-bekliyor-btn">{tt("Maça gir")}</span>
         </Link>
       ))}
 
@@ -361,15 +362,15 @@ export default function Home() {
         <div className="bd-hafta-sonuc">
           <div className="ikon"><Ikon ad="kupa" boyut={20} /></div>
           <div className="metin">
-            Geçen hafta{" "}
             {gecenHafta.sira_sehir
-              ? <>{gecenHafta.sehir} liginde <b>{gecenHafta.sira_sehir}.</b></>
-              : <>dünya liginde <b>{gecenHafta.sira_global}.</b></>}{" "}
-            oldun ({gecenHafta.puan} puan). Yeni hafta başladı!
+              ? tt("Geçen hafta {sehir} liginde {sira}. oldun ({puan} puan). Yeni hafta başladı!",
+                  { sehir: gecenHafta.sehir, sira: gecenHafta.sira_sehir, puan: gecenHafta.puan })
+              : tt("Geçen hafta dünya liginde {sira}. oldun ({puan} puan). Yeni hafta başladı!",
+                  { sira: gecenHafta.sira_global, puan: gecenHafta.puan })}
           </div>
           <button
             className="btn kucuk ikincil"
-            aria-label="Kapat"
+            aria-label={tt("Kapat")}
             onClick={() => {
               try {
                 localStorage.setItem("bildim_hafta_okundu", gecenHafta.hafta);
@@ -390,8 +391,8 @@ export default function Home() {
         <div className="bd-hero-kimlik">
           <Maskot poz="selam" boyut={78} className="bd-hero-maskot" />
           <div className="bd-hero-ad-blok">
-            <div className="bd-hero-selam">Hoş geldin,</div>
-            <div className="bd-hero-ad">{profile?.gorunen_ad ?? "Oyuncu"}</div>
+            <div className="bd-hero-selam">{tt("Hoş geldin,")}</div>
+            <div className="bd-hero-ad">{profile?.gorunen_ad ?? tt("Oyuncu")}</div>
             <RankBadge puan={puan} />
           </div>
           <div className="bd-hero-halka" style={{ "--halka": rutbe.renk }}>
@@ -401,7 +402,7 @@ export default function Home() {
 
         <div className="bd-hero-puan">
           <span className="bd-hero-puan-sayi">{puan}</span>
-          <span className="bd-hero-puan-etiket">puan</span>
+          <span className="bd-hero-puan-etiket">{tt("puan")}</span>
         </div>
 
         <div className="bd-hero-ilerleme">
@@ -411,11 +412,11 @@ export default function Home() {
           <div className="bd-hero-ilerleme-yazi">
             {sonraki ? (
               <>
-                <b style={{ color: sonraki.metinRenk }}>{sonraki.ad}</b> rütbesine{" "}
-                {sonraki.min - puan} puan
+                <b style={{ color: sonraki.metinRenk }}>{sonraki.ad}</b> {tt("rütbesine")}{" "}
+                {sonraki.min - puan} {tt("puan")}
               </>
             ) : (
-              <>En yüksek rütbedesin</>
+              <>{tt("En yüksek rütbedesin")}</>
             )}
           </div>
         </div>
@@ -439,19 +440,19 @@ export default function Home() {
         >
           <KategoriIkon anahtar={profile?.tercih_kategori || "karisik"} boyut={24} plaka />
           <span className="bd-kategori-kart-metin">
-            <span className="bd-kategori-kart-etiket">Rakip kategorisi</span>
+            <span className="bd-kategori-kart-etiket">{tt("Rakip kategorisi")}</span>
             <span className="bd-kategori-kart-deger">
-              {kategoriKaydediliyor ? "Kaydediliyor…" : profile?.tercih_kategori ? kategoriEtiket(profile.tercih_kategori) : "Karışık"}
+              {kategoriKaydediliyor ? tt("Kaydediliyor…") : profile?.tercih_kategori ? kategoriEtiket(profile.tercih_kategori) : tt("Karışık")}
             </span>
           </span>
-          <span className="bd-kategori-kart-degistir" aria-hidden="true">Değiştir ›</span>
+          <span className="bd-kategori-kart-degistir" aria-hidden="true">{tt("Değiştir ›")}</span>
         </button>
         {kategoriSheet && (
-          <Modal etiket="Rakip kategorisi seç" ekSinif="bd-alttan" onKapat={() => setKategoriSheet(false)}>
+          <Modal etiket={tt("Rakip kategorisi seç")} ekSinif="bd-alttan" onKapat={() => setKategoriSheet(false)}>
             <div className="bd-kategori-sheet">
               <div className="bd-kategori-sheet-tutamac" aria-hidden="true" />
-              <h2>Rakip kategorisi</h2>
-              <p>"Hemen oyna" bu kategoride rakip arar.</p>
+              <h2>{tt("Rakip kategorisi")}</h2>
+              <p>{tt("\"Hemen oyna\" bu kategoride rakip arar.")}</p>
               <div className="bd-kategori-sheet-liste">
                 {[{ kategori: "", soru_sayisi: null }, ...kategorileriSirala(kategoriler)].map((k) => {
                   const secili = (profile?.tercih_kategori ?? "") === k.kategori;
@@ -467,9 +468,9 @@ export default function Home() {
                       }}
                     >
                       <KategoriIkon anahtar={k.kategori || "karisik"} boyut={24} plaka />
-                      <span className="bd-kategori-secenek-ad">{k.kategori ? kategoriEtiket(k.kategori) : "Karışık"}</span>
+                      <span className="bd-kategori-secenek-ad">{k.kategori ? kategoriEtiket(k.kategori) : tt("Karışık")}</span>
                       <span className="bd-kategori-secenek-alt">
-                        {k.kategori ? `${k.soru_sayisi} soru` : "Tüm kategoriler"}
+                        {k.kategori ? `${k.soru_sayisi} soru` : tt("Tüm kategoriler")}
                       </span>
                     </button>
                   );
@@ -481,7 +482,7 @@ export default function Home() {
         <DereceliAnahtari dereceli={dereceliTercih} onDegistir={setDereceliTercih} />
         <button className="bd-ana-eylem" onClick={() => hemenOyna(dereceliTercih)}>
           <Ikon ad="hizli" boyut={22} />
-          <span>Hemen oyna</span>
+          <span>{tt("Hemen oyna")}</span>
           <Ikon ad="ok" boyut={20} className="bd-ana-eylem-ok" />
         </button>
         <div className="bd-ana-eylem-not">
@@ -509,7 +510,7 @@ export default function Home() {
           {canliTurnuva ? (
             <div className="bd-turnuva-canli">
               <span className="canli-nokta" />
-              Şu an canlı
+              {tt("Şu an canlı")}
             </div>
           ) : (
             <Countdown />
@@ -517,19 +518,19 @@ export default function Home() {
         </div>
         <div className="bd-turnuva-sag">
           <div className="bd-turnuva-katilim">
-            <Ikon ad="kisiler" boyut={13} /> {lobiSayisi} kişi lobide
+            <Ikon ad="kisiler" boyut={13} /> {lobiSayisi} {tt("kişi lobide")}
           </div>
           {canliTurnuva ? (
             <button className="btn kucuk" onClick={() => navigate(y("/turnuva"))}>
-              Katıl
+              {tt("Katıl")}
             </button>
           ) : lobide ? (
             <button className="btn kucuk ikincil" onClick={() => navigate(y("/turnuva"))}>
-              Lobidesin
+              {tt("Lobidesin")}
             </button>
           ) : (
             <button className="btn kucuk" onClick={lobiyeKatil}>
-              Lobiye katıl
+              {tt("Lobiye katıl")}
             </button>
           )}
         </div>
@@ -542,7 +543,7 @@ export default function Home() {
           olan maçlar, turnuva geri sayımı, ezeli rakip, günlük görevler ve
           haftalık lig durumu. */}
       <section className="bd-katman bd-giris-2">
-        <h2 className="bd-katman-baslik">Seni bekleyenler</h2>
+        <h2 className="bd-katman-baslik">{tt("Seni bekleyenler")}</h2>
 
 
         {/* Yarım kalan maçlar — HER MAÇ AYRI SATIR ve KİMİNLE olduğu yazılı.
@@ -552,8 +553,8 @@ export default function Home() {
           <Link key={m.id} to={y("/mac/") + m.id} className="bd-devam-eden">
             <Ikon ad="saat" boyut={17} />
             <span>
-              <b>{m.rakipAd || "Rakibin"}</b> ile maçın yarım — sıra sende
-              {m.rakipBot && <span className="bd-satir-not">bot</span>}
+              <b>{m.rakipAd || tt("Rakibin")}</b> {tt("ile maçın yarım — sıra sende")}
+              {m.rakipBot && <span className="bd-satir-not">{tt("bot")}</span>}
             </span>
             <span className="ok" aria-hidden="true">›</span>
           </Link>
@@ -565,9 +566,9 @@ export default function Home() {
             <span className="bd-bekleme-nokta" aria-hidden="true" />
             <span>
               {d.tur === "grup" || d.tur === "hizli" ? (
-                <>Davetin gönderildi — <b>{d.bekleyen_sayisi} kişi</b> bekleniyor</>
+                <>{tt("Davetin gönderildi —")} <b>{d.bekleyen_sayisi} {tt("kişi")}</b> {tt("bekleniyor")}</>
               ) : (
-                <><b>{d.gorunen_ad || "Rakibin"}</b> daveti görmedi — bekleniyor</>
+                <><b>{d.gorunen_ad || tt("Rakibin")}</b> {tt("daveti görmedi — bekleniyor")}</>
               )}
             </span>
             {/* Fikir değişebilir: cevaplanmamış davet geri alınabilir. */}
@@ -576,9 +577,9 @@ export default function Home() {
               className="bd-davet-geri"
               onClick={() => davetiGeriCek(d)}
               disabled={geriCekilen === d.tur + d.kayit_id}
-              aria-label="Daveti geri çek"
+              aria-label={tt("Daveti geri çek")}
             >
-              {geriCekilen === d.tur + d.kayit_id ? "…" : "Geri çek"}
+              {geriCekilen === d.tur + d.kayit_id ? "…" : tt("Geri çek")}
             </button>
           </div>
         ))}
@@ -592,10 +593,10 @@ export default function Home() {
               aria-expanded={gorevlerAcik}
             >
               <Ikon ad="liste" boyut={17} />
-              <span>Günlük Görevler</span>
+              <span>{tt("Günlük Görevler")}</span>
               <span className="sayac">
                 {hazirOdul > 0
-                  ? `${hazirOdul} ödül hazır!`
+                  ? tt("{0} ödül hazır!", { 0: hazirOdul })
                   : `${gorevler.filter((g) => g.alindi).length}/${gorevler.length}`}
               </span>
               <span className="ok" aria-hidden="true">›</span>
@@ -625,7 +626,7 @@ export default function Home() {
                         <span className="rutbe-chip" style={{ color: "var(--success)" }}>+{g.odul}</span>
                       ) : tamam ? (
                         <button className="btn kucuk" onClick={() => odulAl(g.quest_id)}>
-                          +{g.odul} al
+                          {`+${g.odul} al`}
                         </button>
                       ) : (
                         <span className="rutbe-chip">+{g.odul}</span>
@@ -644,7 +645,7 @@ export default function Home() {
             Şerit kaldırıldı, haftalık geri sayım kaldı (zamana bağlı bilgi,
             başka yerde yok). */}
         <div className="bd-hero-hafta">
-          <Ikon ad="saat" boyut={13} /> Haftalık lig bitimine <b>{sureMetni(haftaKalan)}</b>
+          <Ikon ad="saat" boyut={13} /> {tt("Haftalık lig bitimine")} <b>{sureMetni(haftaKalan)}</b>
         </div>
       </section>
 
@@ -660,7 +661,7 @@ export default function Home() {
           artık hero'daki tek "Dereceli" anahtarıyla seçiliyor (3 mod × 2
           giriş = 6 düğme olmasın). */}
       <section className="bd-katman bd-giris-3">
-        <h2 className="bd-katman-baslik">Başka nasıl oynanır</h2>
+        <h2 className="bd-katman-baslik">{tt("Başka nasıl oynanır")}</h2>
         <div className="bd-mod-grid">
           {/* Kompakt 2×2 ızgara (referans tasarım): bd-mod-genis bu ızgaradan
               çıktı, açıklama satırı gizli — bilgi title'da duruyor. */}
@@ -670,28 +671,28 @@ export default function Home() {
             <span className="bd-mod-ad">{ceviri("Düello")}</span>
             <span className="bd-mod-not">{ceviri("Taktik Maçı")}</span>
           </button>
-          <button className="bd-mod tema-grup" title="Arkadaşına davet gönder · tekli ya da grup" onClick={() => navigate(y("/meydan"))}>
+          <button className="bd-mod tema-grup" title={tt("Arkadaşına davet gönder · tekli ya da grup")} onClick={() => navigate(y("/meydan"))}>
             <span className="bd-mod-ikon"><Ikon ad="kisiler" boyut={26} /></span>
-            <span className="bd-mod-ad">Meydan Oku</span>
+            <span className="bd-mod-ad">{tt("Meydan Oku")}</span>
             {/* "Grup Maçı" düğmesi buradan kalktı: aynı sayfaya (/meydan)
                 gidiyordu, grup maçı kurma zaten o sayfanın içinde. */}
-            <span className="bd-mod-not">Arkadaşına davet gönder · tekli ya da grup</span>
+            <span className="bd-mod-not">{tt("Arkadaşına davet gönder · tekli ya da grup")}</span>
           </button>
           <button className="bd-mod tema-hizli" onClick={() => navigate(y("/hizli-mod"))}>
             <span className="bd-mod-ikon"><Ikon ad="saat" boyut={26} /></span>
-            <span className="bd-mod-ad">Hızlı Mod</span>
+            <span className="bd-mod-ad">{tt("Hızlı Mod")}</span>
           </button>
 
           <button className="bd-mod tema-turnuva" onClick={() => navigate(y("/turnuva"))}>
             <span className="bd-mod-ikon"><Ikon ad="kupa" boyut={26} /></span>
-            <span className="bd-mod-ad">Turnuva</span>
+            <span className="bd-mod-ad">{tt("Turnuva")}</span>
           </button>
           <button
             className="bd-mod tema-hatalarim"
             onClick={() => navigate(y("/calisma"))}
           >
             <span className="bd-mod-ikon hatalarim"><Ikon ad="kitap" boyut={26} /></span>
-            <span className="bd-mod-ad">Hatalarım</span>
+            <span className="bd-mod-ad">{tt("Hatalarım")}</span>
             {bankaBekleyen > 0 && (
               <span className="bd-mod-rozet">{bankaBekleyen}</span>
             )}
