@@ -14,6 +14,7 @@ import { y } from "../lib/yol.js";
 import { useGorunurlukTazele } from "../lib/gorunurluk.js";
 import { useAuth } from "../../src/context/AuthContext.jsx";
 import { ayar } from "../lib/ayarlar.js";
+import { coinTazele } from "../lib/coin.js";
 import DereceliAnahtari from "../components/DereceliAnahtari.jsx";
 import { useDereceliTercih } from "../lib/dereceli.js";
 import { useDil } from "../lib/dilKanca.js";
@@ -26,7 +27,7 @@ const HARFLER = ["A", "B", "C", "D"];
 
 export default function HizliModPage() {
   const navigate = useNavigate();
-  const { profile } = useAuth();
+  const { user, profile, refreshProfile } = useAuth();
   const [asama, setAsama] = useState("secim"); // secim | oyun | gecis | sonuc
   const [kategoriler, setKategoriler] = useState([]);
   const [kategori, setKategori] = useState(null);
@@ -157,6 +158,9 @@ export default function HizliModPage() {
         });
         if (error) throw error;
         setSonuc(Array.isArray(data) ? data[0] : data);
+        // Kazanılan coin ve lig puanı üst çubuğa/ana sayfaya hemen yansısın
+        coinTazele();
+        refreshProfile?.(user?.id);
       } catch (e) {
         setHata(hataMesaji(e, "Oturum kapatılamadı."));
       }
@@ -174,7 +178,7 @@ export default function HizliModPage() {
         console.error("[Bildim] hizli mod ozeti alinamadi:", e);
       }
     },
-    [profile?.created_at]
+    [profile?.created_at, refreshProfile, user?.id]
   );
 
   // ---------- Cevapla ----------

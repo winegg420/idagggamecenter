@@ -26,6 +26,7 @@ import { macBittiReklam } from "../lib/reklam.js";
 import { y } from "../lib/yol.js";
 import { GB_MS } from "../lib/geriBildirim.js";
 import { useDil } from "../lib/dilKanca.js";
+import { coinTazele } from "../lib/coin.js";
 
 // acik_bot: maç sonunda hangi rövanş eyleminin gösterileceğini belirler.
 // `is_bot` BİLEREK KULLANILMIYOR (kolon istemciye kapalı, migration 155):
@@ -576,7 +577,10 @@ export default function MatchPage() {
         const { data, error } = await supabase.rpc("mac_odulum", { p_match_id: id });
         if (error) throw error;
         const o = Array.isArray(data) ? data[0] : data;
-        if (aktif && o) setOdulum(o);
+        if (aktif && o) {
+          setOdulum(o);
+          if (o.coin > 0) coinTazele();
+        }
       } catch (e) {
         console.error("[Bildim] mac odulu alinamadi:", e);
       }
