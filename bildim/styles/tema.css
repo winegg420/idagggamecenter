@@ -6133,7 +6133,8 @@ body.bd-ekle-acik .app { padding-bottom: calc(300px + env(safe-area-inset-bottom
    iOS: position:fixed yok; son can koyulaşması kabın ::before katmanı
    (absolute). Transform içeren animasyonlar yalnız küçük öğelerde.
    ============================================================ */
-.bd-mod-duello { grid-column: 1 / -1; }
+.bd-mod-duello,
+.app .anasayfa .bd-mod-grid .bd-mod.bd-mod-duello { grid-column: 1 / -1; }
 .bd-duello, .bd-duello-giris { position: relative; padding-bottom: 16px; }
 .bd-duello > * { position: relative; z-index: 1; }
 .bd-duello::before {

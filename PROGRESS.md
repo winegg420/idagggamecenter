@@ -5089,3 +5089,89 @@ en küçük TR 761 (spor), EN 476 (tarih) — hiçbiri 300 altı değil. Sayfa s
 - Doğrulama (geri alınan işlemde, canlı DB): aynı çiftle 11 maç → lig 25×5, 12×5, 0; berabere 10/10; serbest 0 lig/12 coin; serbest+açık bot
   12 (≠6); seri 3/6/9/12/15/15; davet lig 0, coin 200/200, tekrar false; grup maçı lig/coin/seri 0; turnuva 150/80/40/20…/10.
   Canlı Hızlı Mod (dereceli): 5 doğru → +15 lig (110→125), +15 coin (494→509).
+
+## 2026-09-16 — Paket 14 — Aşama 4 (Düello), 5 (iki hata), 6 (dil sözlüğü)
+
+### Aşama 4.8 / 4.9 — Kategori istatistiği + bot kişilikleri (migration 204)
+- `kategori_istatistik` (user × kategori → dogru, toplam), `oyuncu_istatistik.istatistikli_mac`, `bot_kategori_sapma`.
+  Tablolar istemciye kapalı; okuma `oyuncu_kategori_profili` (asgari örneklem 10, altı yüzde null → "veri yok").
+- Tetikleyiciler: match/group/tournament/hizli_cevaplar her cevapta (botlar dahil); `hizli_mod_cevap` ve düello doğrudan yazar.
+  İstatistikli maç sayacı maç bitince (cevabı olanlara).
+- Geri doldurma: 1641 satır, 165 oyuncu (insan satırı 51). Botların bot_puan_tik ile saydığı simüle maçlar kişiliğe göre
+  deterministik istatistiğe çevrildi (yoksa "65 maç, istatistik yok" botu ele verirdi); bot_puan_tik artık her simüle maçta
+  10 soruluk istatistik yazar.
+- Kişilik: bot başına 2 güçlü (+15/+20), 2 zayıf (−20/−25), gerisi ±3; 160 botta 160 farklı desen.
+- `bot_oyna`'daki 4 `random() < bot_isabet` → `bot_kategori_isabet(bot, kategori)` (1v1, turnuva, grup, hızlı maç).
+- Ölçüm: 40 bot × 40.000 deneme güçlü %86 / diğer %71 / zayıf %48. Gerçek düello cron yolu (`duello_tik_hepsi`, 300 saldırı,
+  geri alınan işlem): güçlü kategoride %85,3, zayıf kategoride %45,3 doğru.
+- Unvan: en güçlü kategori, 10 istatistikli maçtan sonra (Bilgin, Tarihçi, Kâşif, Sinemasever…). Kurucu hesapta "Bilgin" açıldı.
+
+### Aşama 4 — Düello sunucusu (migration 205)
+- Tablolar: `duellolar` (istemciye kapalı), `duello_hamleler`, `duello_sinyal` (yalnız sürüm; Realtime), `duello_kuyrugu`.
+- Faz makinesi `duello_ilerlet`: kategori (20 sn, dolunca riskli olmayan rastgele) → hazırlık 4 sn → cevap 15/10 sn (+1 sn ağ payı;
+  geç ilerletilse de savunan tam süre alır) → sonuç 3 sn → sıradaki saldırı / tur sonu. Bitiş yalnız tur sonunda (eşit hamle).
+  10 tur/can bitince: can → doğru → altın soru (iki oyuncuya aynı soru, jokersiz; tek doğru bilen kazanır).
+- Risk kuralı `duello_cozumle`: savunanın maç başında sabitlenen en zayıf kategorisinde doğru → saldıran can kaybeder.
+- Jokerler `joker_kullanimlari` (mac_tur 'duello') + `joker_hareket`: saldırı 2/maç (1'i ücretsiz), savunma 2/maç (50:50 ilk kullanımı
+  ücretsiz, Soru Değiştir 1/maç), Ek Süre +5 sn. Saldırı jokerleri dükkânda tek tek satılıyor (60/60/80 coin).
+- Eşleşme `duello_ara`: aynı giriş türü, lig ±1; 8 sn + insan gibi gecikme sonra `bot_sec` (gizli bot). Rövanş (istek/kabul;
+  bot 2-6 sn'de kabul), roller değişir. Ödül `duello_bitir`: dereceli +50 lig (çift çarpanı; bot kazanırsa bot yüzdesi),
+  coin `coin_mac_odulu(..., 'coin_duello_galibiyet')`, seri bonusu; serbest coin %50. Çift sayacı ve ezeli rakip düelloyu da sayar.
+- Cron `duello_tik` 2 sn: süreler + bot (kategori seçimi rakibin düşük yüzdelerine, en zayıftan %65 kaçınır; %15 saldırı jokeri;
+  savunmada bot_gecikme_sn + kategori isabeti).
+- **Ölçülen iki mevcut hata düzeltildi:** `joker_envanter_tur_check` 'soru_degistir'i içermiyordu → dükkândaki joker paketleri
+  satın alınamıyordu (joker_islemleri tablosu boştu); `joker_hareket` envanterinde satırı olmayan oyuncunun harcamasını hatasız
+  geçiriyordu. Satın alma geri alınan işlemde doğrulandı (paket → elli 4 / sure 3 / soru_degistir 3).
+- Simülasyon (geri alınan işlem): risk kuralı (A 3→2), kilitliyken savunma jokeri "Rakip bu soruda savunma jokeri kullanamaz",
+  envantersiz 2. joker "Yetersiz joker", sınır "en fazla 2", zaman aşımı → can, üst üste kategori ve 3. kullanım engeli
+  (oyuncu başına ayrı), altın soru kazananı, serbest coin 25, `duello_durum` çıktısında is_bot/bot_ yok.
+
+### Aşama 4 — Düello arayüzü
+- `DuelloPage.jsx` (`/duello`, `/duello/:id`): giriş + Dereceli anahtarı + arama katmanı ("bot" kelimesi yok); maç ekranı:
+  oyuncu şeridi (unvan, kalpler), kategori seçimi (rakibin yüzdesi / "veri yok", `n/2` sayacı, soluk kategoriler, kırmızı çerçeve +
+  "RİSKLİ"), hazırlık (yalnız saldıran soruyu görür), cevap (Zaman Baskısı / Savunma Kilidi bantları, "En zayıf kategorin!"),
+  sonuç mesajları, altın soru, sonuç ekranı (ödül, ezeli, rövanş iste/kabul/reddet). Joker alanı yerinde durur, sete göre döner
+  (rotateX animasyonu). Son can: kalp yanıp söner, kabın ::before katmanı koyulaşır, sayaç büyür; reduced-motion/transparency.
+- `KategoriProfili` bileşeni: profil (İstatistik sekmesi) ve oyuncu kartında; "Hiç maç yapmadı, istatistiği yok" /
+  "N maç · M maçın istatistiği". Ana sayfada Düello kartı (tam genişlik).
+- `useDil().ceviri` artık `useMemo` ile sabit (efekt bağımlılığında sonsuz yeniden abonelik olmasın).
+- Canlı test (kurucu hesap tarayıcıda, QuizTestIda sunucuda aynı RPC'lerle): kategori ekranı, Savunma Kilidi → savunanın jokeri
+  reddedildi + bant, Zaman Baskısı savunma görünümü (10 sn, joker alanı savunmaya döndü, 50:50 ücretsiz), riskli Tarih'e saldırı
+  → rakip bildi → "Riskli saldırı geri tepti — sen can kaybettin!" (DB: riskli=true, kaybeden A), son can gerilimi, sonuç ekranı,
+  rövanş → iki taraf yeni düelloya geçti (saldırı sırası değişti). Arayüzden "Rakip ara" → gizli bot "Rasta4" (Sanatsever) ile
+  dereceli maç, bot oynadı ve kazandı. Test hesabına yazılan yapay istatistik silindi, test düelloları iptal edildi.
+- Not: araç gecikmesi (~6 sn) yüzünden 10 sn'lik cevap pencerelerinde tarayıcıdan zamanında basılamadı; süre aşımı sunucuda
+  doğru işledi.
+
+### Aşama 5.1 — Maç bitince sesli sohbet kopuyordu (migration 206)
+- Kök sebep (kodda): MatchPage bitişte başka dal çiziyor → SesliSohbet sökülüp görüşmeyi kapatıyor; sonuç ekranındaki yeni örnek
+  `sesli_sohbet_izni`'ne soruyor, sunucu "maç aktif değil" diyordu.
+- Çözüm: MatchPage dönüşleri tek `ekran` değişkenine alındı, SesliSohbet fragment'in 2. çocuğu olarak hep aynı yerde (arayüzü
+  dalın içindeki `bd-ses-yuva`'ya portal). Sunucu bitişten sonra `mac_sonu_sesli_sn` (30) boyunca izin verir ve `kapanis_sn`
+  döndürür; istemci geri sayım + "Şimdi kapat", süre dolunca karşıya "kapat" yayını.
+- Doğrulanamayan: iki gerçek cihazda sesli görüşme (tek tarayıcı/hesap var). Bileşenin sökülmediği yapısal olarak garanti.
+
+### Aşama 5.2 — Yanlış cevapta doğru şık görünmüyor, ekran takılıyor
+- Canlıda ölçüldü (DOM her 50 ms): rakip önce cevaplamışken yanlış cevap → doğru şık ~150-200 ms'de yeşil, **~450-600 ms'de
+  işaretler siliniyor** (aynı soru metni), yeni soru ~1,6 sn'de. Kök sebep: QuestionCard `key`'i ilerleyen sunucu indeksine
+  bağlı; cevabımız soruyu anında ilerletince Realtime key'i değiştiriyor, kart eski soruyla yeniden bindiriliyordu.
+- Düzeltme: key gösterilen soruya (`soru.soru_index`). Aynı hata grup maçı ve turnuvada da vardı (key `aktif_soru`); ikisinde
+  key düzeltildi ve yeni soru, son cevabın üzerinden GB_MS (1 sn) geçince yükleniyor. Hızlı Mod'da hata yok (ölçüldü: 700 ms
+  pencere korunuyor). "Hızlı Olan Kazanır" donduruldu, dokunulmadı.
+- Düzeltme sonrası canlı ölçüm (5 soru, bot önce cevapladıktan sonra tıklama): işaretler ~200 ms'de geliyor ve yeni soruya
+  (~1,5 sn) kadar kalıyor; ara silinme yok.
+- Ölçümde görülen otomasyon notu: Chrome otomasyon sekmesi `document.hidden=true` → maç nabzı (hazır kapısı) gönderilmiyor;
+  sayfa içinde görünürlük taklit edildi. Gerçek cihazı etkilemez.
+
+### Aşama 6 — Dil sözlüğü
+- Paketteki tüm yeni kullanıcı metinleri (`ceviri(...)`) `bildim/lib/dil.js`'e TR anahtar + EN karşılıkla eklendi: Dereceli
+  anahtarı, ödül satırları, arkadaş maçı notu, Düello ekranları, joker adları/açıklamaları, unvanlar, kategori adları, Düello sunucu
+  hata mesajları, kategori profili, sesli sohbet geri sayımı. Otomatik tarama (`.tmp/eksik_ceviri.cjs`) eksik 0.
+
+### Açık konular / sahibine not
+- Hızlı Mod'da "en fazla 9 soru" sınırı konmadı: hızlı cevaplayan 9'dan fazla soru görebilir (eski 60/5 düzeninde de 12 sınırı
+  yoktu). İstenirse tek ayarla sınır eklenebilir.
+- Turnuva lig puanı dereceye göre TEK miktar (1. 150 … diğer katılan 10); "katılan +10" üst sıralara ayrıca eklenmedi.
+- Davet coin referansı davet edende "davet edilen id" (aksi hâlde davet eden ömründe bir kez alabilirdi).
+- Gizli botla oynanan Düello, 1v1'deki mevcut kural gibi gerçek oyuncu muamelesi görür (lig puanı verir); puan vermeseydi bot
+  olduğu anlaşılırdı. Açık botlar Düello eşleşmesine girmez.

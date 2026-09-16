@@ -245,9 +245,36 @@ Bunlar onaylanmış kararlardır, aksini yapma:
 - Aynı çift aynı gün: 1-5. maç tam ödül, 6-10. %50, 11+ ödülsüz.
   Aynı cihaz/IP'den iki hesap arasında sıralı maç hiç ödül vermez.
 
+### Modlar (Paket 14, 15 Eyl 2026)
+
+- 3 mod: **Normal Maç**, **Hızlı Mod**, **Düello (Taktik Maçı)**. Turnuva mod
+  değil, etkinlik. **Grup Maçı ödülsüz arkadaş modu** (coin/lig/seri yok,
+  rozet var). **"Hızlı Olan Kazanır" donduruldu** (kod ve rota duruyor,
+  arayüzden giriş yok).
+- Her mod iki girişli: **Dereceli** (lig puanı + tam coin) / **Serbest**
+  (puan yok, coin %50). Arayüzde tek "Dereceli" anahtarı, son tercih
+  hatırlanır (localStorage + `profiles.dereceli_tercih`).
+- Hızlı Mod: soru 10 sn, oturum 90 sn, okuma tavanı 170 karakter.
+- **Düello:** 3 can, en çok 10 tur (çift hamle — eşit hamle kuralı); 4 sn
+  Saldırı Hazırlığı; savunan 15 sn (Zaman Baskısı 10). Saldırı jokerleri:
+  Zaman Baskısı, Soru Değiştir (bir kez), Savunma Kilidi. **Saldırı riski:**
+  savunan kendi EN ZAYIF kategorisinde (maç başında sabitlenir) bilirse
+  SALDIRAN can kaybeder. Aynı kategori üst üste yok, maçta en çok 2 kez.
+  Eşitlikte turnuvanın altın soru mekaniği. Botlar kategoriye göre isabetle
+  cevaplar (`bot_kategori_sapma`) — profil hem görünen hem gerçek.
+- Kategori yüzdesi için asgari örneklem 10 soru; altı "veri yok".
+
 ### Ekonomi (hepsi `oyun_ayarlari`'nda)
 
-- Galibiyet 25 · berabere 10 · mağlubiyet 0 (teselli yok)
+- Lig = birikimli emek, **günlük lig tavanı yok**
+- Normal Maç galibiyet 25 · berabere 10 · mağlubiyet 0 (teselli yok) — lig ve coin
+- Düello galibiyet +50 lig / 50 coin (en çok veren mod)
+- Hızlı Mod doğru×3 lig ve coin, tavan 25
+- Turnuva lig: 1. 150 · 2. 80 · 3. 40 · 4-10. 20 · diğer katılan 10
+- Günlük seri bonusu `least(gün×3, 15)`
+- Arkadaş daveti lig puanı VERMEZ — iki tarafa 200 coin
+- İndirimler çarpılmaz: çift koruması / serbest / açık bot → en düşüğü
+- Çift koruması (1-5 tam, 6-10 %50, 11+ yok) lig puanına da uygulanır
 - Günlük tavan 400 · başlangıç 500 · reklam 25 (günde 5)
 - Turnuva 150/75/40 + katılana 10 · meydandan katılma 20
 - Eşya: sıradan 300–600, özel 1.200–2.500
