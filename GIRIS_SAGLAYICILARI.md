@@ -202,7 +202,7 @@ Facebook **2014'ten beri tam arkadaş listesi vermiyor**. `/me/friends`
 yalnız **uygulamayı da kullanan** arkadaşları döndürür ve `user_friends`
 izni **App Review** ister.
 
-- ✅ Yapıldı: "Facebook arkadaşların Quiz Square'de" listesi — eşleşenler
+- ✅ Yapıldı: "Facebook arkadaşların Quiz Tactics'te" listesi — eşleşenler
   arkadaş önerisi olarak çıkar (`bildim/lib/facebookArkadas.js`,
   `facebook_arkadas_onerileri` RPC).
 - ❌ Yapılamaz: "tüm FB arkadaşlarını davet et". Onun yerine **Facebook'ta

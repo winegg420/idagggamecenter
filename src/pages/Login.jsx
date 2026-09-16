@@ -193,9 +193,9 @@ export default function Login() {
       </div>
 
       {/* GİRİŞ EKRANI MARKASI SİTEYE GÖRE DEĞİŞİR.
-          quizsquare.vercel.app (VITE_MOD=bildim) → Quiz Square wordmark,
+          quizsquare.vercel.app (VITE_MOD=bildim) → Quiz Tactics wordmark,
           aynen eskisi gibi. idagg-game-center.vercel.app (hub) → hub
-          kendi adıyla karşılar; Quiz Square orada oyunlardan biridir. */}
+          kendi adıyla karşılar; Quiz Tactics orada oyunlardan biridir. */}
       {BILDIM_MOD ? (
         <div className="buyuk-logo"><Logo boyut={44} /></div>
       ) : (

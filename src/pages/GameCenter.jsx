@@ -10,7 +10,7 @@ import Avatar from "../components/Avatar.jsx";
 // Portala eklenen oyunlar. Yeni oyun eklemek = buraya bir kart eklemek.
 const OYUNLAR = [
   {
-    ad: "Quiz Square",
+    ad: "Quiz Tactics",
     aciklama: "Türkçe bilgi yarışması — turnuva, meydan okuma ve gece yarışı",
     ikon: "🧠",
     yol: "/bildim",
@@ -97,9 +97,9 @@ export default function GameCenter() {
       <header className="gc-header">
         <div className="gc-brand">
           <span className="gc-brand-mark">🎮</span>
-          {/* HUB'IN MARKASI "idaGG Game Center"dır. Quiz Square burada
+          {/* HUB'IN MARKASI "idaGG Game Center"dır. Quiz Tactics burada
               yalnızca oyunlardan biridir (aşağıdaki kartlarda görünür).
-              Bu sayfa Quiz Square sitesinde hiç render edilmez — orada
+              Bu sayfa Quiz Tactics sitesinde hiç render edilmez — orada
               BildimApp var, GameCenter yok — yani o site etkilenmez. */}
           <div className="gc-brand-text">
             <span className="gc-brand-name">idaGG</span>

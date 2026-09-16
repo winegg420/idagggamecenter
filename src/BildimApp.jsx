@@ -72,7 +72,7 @@ export default function BildimApp() {
   if (!supabaseHazir && !bagimsizModul) {
     return (
       <div className="giris">
-        <div className="buyuk-logo">Quiz Square</div>
+        <div className="buyuk-logo">Quiz Tactics</div>
         <div className="hata-kutu">
           Supabase yapılandırması eksik. <code>.env</code> dosyasına
           VITE_SUPABASE_URL ve VITE_SUPABASE_ANON_KEY ekleyin.

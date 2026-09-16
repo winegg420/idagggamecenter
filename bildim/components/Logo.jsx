@@ -1,8 +1,8 @@
 /**
- * QUIZ SQUARE wordmark — çizilmiş logo (gradient renkli düz metin değil).
+ * QUIZ TACTICS wordmark — çizilmiş logo (gradient renkli düz metin değil).
  *
  * Harfler kalın ve sıkı; altta ince altın çizgi. Markada ünlem işareti yok.
- * Marka adı hiçbir dile ÇEVRİLMEZ; Türkçe arayüzde de "Quiz Square".
+ * Marka adı hiçbir dile ÇEVRİLMEZ; Türkçe arayüzde de "Quiz Tactics".
  *
  * ÖLÇÜLER TAHMİN DEĞİL: metin genişliği Baloo 2 800 ile tarayıcıda
  * getComputedTextLength() / getBBox() ile ölçüldü (fontSize 30, letterSpacing -0.6).
@@ -11,7 +11,8 @@
  *   "Bildim"      : metin  83.4 · viewBox 172 · oran 4.3 (sağda uzun çizgi + ünlem)
  *   "QuizzExam"   : metin 144.5 · viewBox 148 · oran 3.7
  *   "Quizador"    : metin 121.6 · viewBox 124 · oran 3.1
- *   "Quiz Square" : metin 157.2 · viewBox 160 · oran 4.0  ← güncel
+ *   "Quiz Square" : metin 157.2 · viewBox 160 · oran 4.0
+ *   "Quiz Tactics": metin 157.4 · viewBox 160 · oran 4.0  ← güncel
  */
 export default function Logo({ boyut = 26, className = "" }) {
   // Yükseklikten genişlik: wordmark oranı 160/40 = 4.0:1
@@ -23,7 +24,7 @@ export default function Logo({ boyut = 26, className = "" }) {
       height={boyut}
       viewBox="0 0 160 40"
       role="img"
-      aria-label="Quiz Square"
+      aria-label="Quiz Tactics"
       focusable="false"
     >
       <text
@@ -35,7 +36,7 @@ export default function Logo({ boyut = 26, className = "" }) {
         fontWeight="800"
         letterSpacing="-0.6"
       >
-        Quiz Square
+        Quiz Tactics
       </text>
       {/* Harflerin altında ince altın çizgi (kelime genişliğince: ilerleme 157.1) */}
       <rect x="1" y="33.5" width="155" height="2.6" rx="1.3" fill="var(--bd-odul)" opacity="0.9" />

@@ -61,7 +61,7 @@ Ayrıntı: aşağıdaki "İKİ VERCEL PROJESİ" bölümü.
 ## Proje
 
 **IDA GG Game Center** — birçok oyunu tek çatı altında toplayan oyun
-portalı (PWA). **Quiz Square** hub içindeki bilgi yarışması oyunudur
+portalı (PWA). **Quiz Tactics** hub içindeki bilgi yarışması oyunudur
 (klasör adı geriye uyum için `bildim/`). Tüm oyunlar tek kimliği
 (`profiles`) ve tek Supabase projesini paylaşır; her oyun kendi
 klasöründe bağımsız, izole bir modüldür.
@@ -95,29 +95,29 @@ Bu depo **iki Vercel projesini** besler:
 | Proje | Adres | Ne derlenir |
 |---|---|---|
 | `idagg-game-center` | idagg-game-center.vercel.app | **Hub** — tüm oyunlar |
-| `quizsquare` | quizsquare.vercel.app | **Yalnız Quiz Square** |
+| `quizsquare` | quizsquare.vercel.app | **Yalnız Quiz Tactics** |
 
 Ayrımı **tek şey** yapar: `VITE_MOD` ortam değişkeni. quizsquare
 projesinde `bildim` olarak tanımlıdır; hub projesinde **tanımsızdır**.
 
 `vercel.json`'daki `buildCommand` **moda özel olmamalıdır.** İki proje de
 aynı `vercel.json`'u okur ve oradaki komut panel ayarını **ezer**; oraya
-`--mode bildim` yazmak hub'ı da Quiz Square'e çevirir. 12 Eylül 2026'da
-tam olarak bu oldu: idagg-game-center adresinde Quiz Square'in gardırobu
+`--mode bildim` yazmak hub'ı da Quiz Tactics'e çevirir. 12 Eylül 2026'da
+tam olarak bu oldu: idagg-game-center adresinde Quiz Tactics'in gardırobu
 açıldı, Kafa Topu / DidaGP / Meyve Kes / PatiRun / RUN / Gladius canlıdan
 erişilemez oldu.
 
 Moda bağlı **her şey** `vite.config.js` içinde `VITE_MOD` kontrolüyle
-yapılır — giriş noktaları (`rollupOptions.input`) dahil. Quiz Square'de
+yapılır — giriş noktaları (`rollupOptions.input`) dahil. Quiz Tactics'te
 `index.html`'in yanına `bildim/avatar3d/` altındaki üç sayfa da
 (gardrop, meydan, atölye) girer; hub'da yalnız `index.html` vardır.
 
-Kökteki `index.html` **hub'ın kimliğini** taşır; Quiz Square'in başlık ve
+Kökteki `index.html` **hub'ın kimliğini** taşır; Quiz Tactics'in başlık ve
 paylaşım alanlarını `vite.config.js`'teki "bildim-modu" eklentisi yazar.
 
 ## 3B AVATAR SİSTEMİ — DERLEME AYARINA DOKUNMA
 
-Quiz Square'in 3B avatar sistemi `bildim/avatar3d/` altındadır. O sayfaların
+Quiz Tactics'in 3B avatar sistemi `bildim/avatar3d/` altındadır. O sayfaların
 (`atolye` + `meydan` + `gardrop`) derlemeye girmesi **çok girişli**
 yapılandırmaya bağlıdır ve bu yapılandırma `vite.config.js` içindeki
 `rollupOptions.input` bloğundadır — **yalnız `VITE_MOD === 'bildim'` iken**.
@@ -192,7 +192,7 @@ kaydırma. Kontrast WCAG AA: küçük metin ≥ 4.5, 24px+ veya 19px+ kalın
 metin ≥ 3.0. `prefers-reduced-motion` ve `prefers-reduced-transparency`
 desteklenir.
 
-## Quiz Square — yerleşik ürün kararları
+## Quiz Tactics — yerleşik ürün kararları
 
 Bunlar onaylanmış kararlardır, aksini yapma:
 
@@ -252,7 +252,7 @@ Bunlar onaylanmış kararlardır, aksini yapma:
 
 ### Dil
 
-- Marka adı her dilde **"Quiz Square"**, çevrilmez
+- Marka adı her dilde **"Quiz Tactics"**, çevrilmez
 - İlk yayın: Türkçe + İngilizce
 - Dil kuralı: giriş yapmışsa profildeki tercih; yoksa tarayıcı dili
   `tr` ile başlıyorsa Türkçe, başka her şeyde İngilizce. IP/ülkeye

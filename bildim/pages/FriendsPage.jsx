@@ -113,10 +113,10 @@ export default function FriendsPage() {
 
   const linkPaylas = async () => {
     if (!davetLinki) return;
-    const mesaj = `Quiz Square'de benimle yarış — bu linkle beni arkadaş ekleyebilirsin: ${davetLinki}`;
+    const mesaj = `Quiz Tactics'te benimle yarış — bu linkle beni arkadaş ekleyebilirsin: ${davetLinki}`;
     try {
       if (navigator.share) {
-        await navigator.share({ title: "Quiz Square", text: mesaj });
+        await navigator.share({ title: "Quiz Tactics", text: mesaj });
       } else {
         await navigator.clipboard.writeText(mesaj);
         setKopyalandi(true);
@@ -319,7 +319,7 @@ export default function FriendsPage() {
       {fbOnerileri.length > 0 && (
         <div className="kart">
           <div className="bd-kat-baslik">
-            <span>Facebook arkadaşların Quiz Square'de</span>
+            <span>Facebook arkadaşların Quiz Tactics'te</span>
           </div>
           {fbOnerileri.map((o) => (
             <div key={o.user_id} className="liste-satir">

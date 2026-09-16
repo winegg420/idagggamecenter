@@ -1,5 +1,5 @@
 // ============================================================
-// FACEBOOK ARKADAŞLARI — "arkadaşların Quiz Square'de" önerisi
+// FACEBOOK ARKADAŞLARI — "arkadaşların Quiz Tactics'te" önerisi
 //
 // KISIT (kabul edilmiş, bilerek): Facebook 2014'ten beri TAM arkadaş
 // listesi vermiyor. `/me/friends` yalnız BU UYGULAMAYI DA KULLANAN

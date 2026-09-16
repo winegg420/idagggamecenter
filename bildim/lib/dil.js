@@ -108,8 +108,8 @@ const SOZLUK = {
     // ---- Kurulum sihirbazı (KurulumSihirbazi.jsx) ----
     "Kurulum": "Setup",
     "Kendine bir takma ad seç": "Choose a nickname",
-    "Quiz Square'de gerçek adın hiçbir zaman gösterilmez. Diğer oyuncular yalnızca burada seçtiğin takma adı görür.":
-      "Your real name is never shown on Quiz Square. Other players only see the nickname you choose here.",
+    "Quiz Tactics'te gerçek adın hiçbir zaman gösterilmez. Diğer oyuncular yalnızca burada seçtiğin takma adı görür.":
+      "Your real name is never shown on Quiz Tactics. Other players only see the nickname you choose here.",
     "Takma ad (3-16 karakter)": "Nickname (3-16 characters)",
     "ör. BilgeKartal": "e.g. WiseEagle",
     "Harf, rakam ve alt çizgi kullanabilirsin. Sonradan günde bir kez değiştirilebilir.":

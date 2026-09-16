@@ -727,7 +727,7 @@ export default function MatchPage() {
               : kazandim
                 ? `${rakipProfil?.gorunen_ad}'i ${benimSkor}-${rakipSkor} yendim!`
                 : `${rakipProfil?.gorunen_ad} karşısında kıl payı kaybettim`;
-            const mesaj = `Quiz Square'de ${sonucYazi} Sen de gel, kapışalım: ${window.location.origin}/?davet=${user.id}`;
+            const mesaj = `Quiz Tactics'te ${sonucYazi} Sen de gel, kapışalım: ${window.location.origin}/?davet=${user.id}`;
             const enc = encodeURIComponent(mesaj);
             return (
               <div className="paylas-bar">
@@ -752,7 +752,7 @@ export default function MatchPage() {
                   onClick={async () => {
                     if (navigator.share) {
                       try {
-                        await navigator.share({ title: "Quiz Square", text: mesaj });
+                        await navigator.share({ title: "Quiz Tactics", text: mesaj });
                       } catch { /* vazgeçti */ }
                     } else {
                       await navigator.clipboard.writeText(mesaj);

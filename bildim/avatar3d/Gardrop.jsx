@@ -76,11 +76,11 @@ function onizlemeyeCevir(gorunum,bolum){
 //
 // Gardırop SPA'nın dışında, kendi HTML'i olan bir sayfa
 // (`/bildim/avatar3d/gardrop.html`); React Router'ın geri yığınına ait
-// değil. Oyuncu Quiz Square'in hangi ekranından geldiyse oraya döner.
+// değil. Oyuncu Quiz Tactics'in hangi ekranından geldiyse oraya döner.
 // Güvenli varsayılan `/bildim`:
 //   • quizsquare (VITE_MOD=bildim): BildimApp `/bildim`i köke (`/`) indirir
-//     → Quiz Square ana sayfası.
-//   • hub (VITE_MOD yok): `/bildim` Quiz Square'in ana sayfasıdır.
+//     → Quiz Tactics ana sayfası.
+//   • hub (VITE_MOD yok): `/bildim` Quiz Tactics'in ana sayfasıdır.
 // Geliş adresi yalnız AYNI KÖKENDEYSE kullanılır. `/gorunum` hariç tutulur:
 // o rota gardıroba yönlendiriyor, oraya dönmek sonsuz döngü olur.
 // avatar3d sayfaları (meydan/atölye) da hariç: onlar menü değil.

@@ -17,10 +17,10 @@ import path from "node:path";
 // ============================================================
 // KÖK `index.html` HUB'IN (idaGG Game Center) KİMLİĞİNİ TAŞIR: başlık,
 // açıklama, og/twitter alanları ve manifest oradaki hâliyle hub'ındır.
-// Quiz Square derlemesinde (VITE_MOD=bildim) aşağıdaki eklenti hepsini
+// Quiz Tactics derlemesinde (VITE_MOD=bildim) aşağıdaki eklenti hepsini
 // kendi değerleriyle DEĞİŞTİRİR. Yani iki sitenin kimliği iki yerde:
 //   hub          → index.html (statik)
-//   Quiz Square  → bu eklenti
+//   Quiz Tactics  → bu eklenti
 function bildimModuEklentisi(mod, siteUrl) {
   const aktif = mod === "bildim";
   return {
@@ -30,21 +30,21 @@ function bildimModuEklentisi(mod, siteUrl) {
     // ---- index.html: başlık, paylaşım kartı, manifest, tema ----
     transformIndexHtml(html) {
       if (!aktif) return html;
-      const ad = "Quiz Square — Bilgi Yarışması";
+      const ad = "Quiz Tactics — Bilgi Yarışması";
       const aciklama =
         "Türkçe bilgi yarışması: 1v1 meydan okuma, günlük turnuvalar, şehir ve ülke ligleri. Binlerce soru, ücretsiz.";
       const gorsel = siteUrl ? `${siteUrl}/bildim-icon-512.png` : "/bildim-icon-512.png";
       let c = html;
       c = c.replace(/<title>[\s\S]*?<\/title>/, `<title>${ad}</title>`);
       c = c.replace(/(<meta name="description" content=")[^"]*(")/, `$1${aciklama}$2`);
-      c = c.replace(/(<meta property="og:site_name" content=")[^"]*(")/, `$1Quiz Square$2`);
+      c = c.replace(/(<meta property="og:site_name" content=")[^"]*(")/, `$1Quiz Tactics$2`);
       c = c.replace(/(<meta property="og:title" content=")[^"]*(")/, `$1${ad}$2`);
       c = c.replace(/(<meta property="og:description" content=")[^"]*(")/, `$1${aciklama}$2`);
       c = c.replace(/(<meta name="twitter:title" content=")[^"]*(")/, `$1${ad}$2`);
       c = c.replace(/(<meta name="twitter:description" content=")[^"]*(")/, `$1${aciklama}$2`);
       c = c.replace(/(<meta property="og:image" content=")[^"]*(")/, `$1${gorsel}$2`);
       c = c.replace(/(<meta name="twitter:image" content=")[^"]*(")/, `$1${gorsel}$2`);
-      c = c.replace(/(<meta name="apple-mobile-web-app-title" content=")[^"]*(")/, `$1Quiz Square$2`);
+      c = c.replace(/(<meta name="apple-mobile-web-app-title" content=")[^"]*(")/, `$1Quiz Tactics$2`);
       c = c.replace(/(<link rel="manifest" href=")[^"]*(")/, `$1/bildim.webmanifest$2`);
       c = c.replace(/(<link rel="icon" type="image\/png" href=")[^"]*(")/, `$1/bildim-icon-192.png$2`);
       c = c.replace(/(<link rel="apple-touch-icon" href=")[^"]*(")/, `$1/bildim-icon-192.png$2`);
@@ -117,7 +117,7 @@ export default defineConfig(({ mode }) => {
   //   • gerçek ortam değişkeni → Cloudflare Pages paneli (öncelikli)
   const env = { ...loadEnv(mode, process.cwd(), ""), ...process.env };
   const uygulamaModu = env.VITE_MOD || "";
-  // Quiz Square'in yayın adresi. VITE_SITE_URL verilmezse bu kullanılır:
+  // Quiz Tactics'in yayın adresi. VITE_SITE_URL verilmezse bu kullanılır:
   // robots/sitemap ve og:url "adres bilinmiyor" diye boş kalmaz.
   //
   // DİKKAT — burada ÇALIŞAN bir adres olmalı. Bir süre `quizsquare.app`
@@ -161,12 +161,12 @@ export default defineConfig(({ mode }) => {
       // yapar (bkz. CLAUDE.md "İKİ VERCEL PROJESİ"):
       //   • VITE_MOD tanımsız → idaGG Game Center (hub). TEK giriş:
       //     index.html. Gardırop/atölye/meydan HTML'leri hub'a girmez.
-      //   • VITE_MOD=bildim   → Quiz Square. index.html'in yanına
+      //   • VITE_MOD=bildim   → Quiz Tactics. index.html'in yanına
       //     bildim/avatar3d/ altındaki üç sayfa da derlenir; yoksa
       //     gardırop ve meydan canlıdan silinir.
       //
       // BU LİSTE `vercel.json`'a TAŞINMAZ. Orada `--mode bildim` yazmak
-      // hub'ı da Quiz Square'e çevirir (12 Eylül'de tam olarak bu oldu:
+      // hub'ı da Quiz Tactics'e çevirir (12 Eylül'de tam olarak bu oldu:
       // idagg-game-center adresinde gardırop açıldı, diğer oyunlar
       // kayboldu). Moda bağlı her şey burada, `VITE_MOD` kontrolüyle.
       // ============================================================

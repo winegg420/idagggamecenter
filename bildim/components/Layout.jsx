@@ -142,7 +142,7 @@ export default function Layout() {
       )}
       <div className="bd-ust-blok">
         <header className="topbar">
-          <Link to={y()} style={{ textDecoration: "none" }} aria-label="Quiz Square ana sayfa">
+          <Link to={y()} style={{ textDecoration: "none" }} aria-label="Quiz Tactics ana sayfa">
             <Logo boyut={24} />
           </Link>
           {/* SADELEŞTİRME (12 Eylül 2026).
@@ -180,7 +180,7 @@ export default function Layout() {
       </main>
 
       {/* SADELEŞTİRME (12 Eylül 2026) — yedi sekme ALTIYA indi.
-          Kaldırılan tek sekme "Merkez": Quiz Square kendi sitesinde "/"
+          Kaldırılan tek sekme "Merkez": Quiz Tactics kendi sitesinde "/"
           zaten Ana Sayfa olduğu için sekme kendini tekrar ediyordu.
           "Harita" → "Meydan": oyun içindeki adı bu.
           ARKADAŞLAR SEKMESİ KALDI — bu oyunda arkadaşlar ikincil ekran

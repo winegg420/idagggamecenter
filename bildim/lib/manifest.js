@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 
-// Quiz Square'in kendi PWA kimliği var (/bildim.webmanifest): ad "Quiz Square",
+// Quiz Tactics'in kendi PWA kimliği var (/bildim.webmanifest): ad "Quiz Tactics",
 // start_url "/bildim", portrait, gece lacivert tema. Hub'ın manifesti ise tüm oyun
 // merkezini temsil ediyor. Bildim rotalarındayken belge başlığındaki
 // <link rel="manifest"> ve theme-color Bildim'e çevrilir; çıkınca geri alınır.

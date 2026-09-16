@@ -189,7 +189,7 @@ export default function KurulumSihirbazi({ onTamam }) {
           <>
             <div className="bd-konum-baslik">{ceviri("Kendine bir takma ad seç")}</div>
             <div className="bd-konum-aciklama">
-              {ceviri("Quiz Square'de gerçek adın hiçbir zaman gösterilmez. Diğer oyuncular yalnızca burada seçtiğin takma adı görür.")}
+              {ceviri("Quiz Tactics'te gerçek adın hiçbir zaman gösterilmez. Diğer oyuncular yalnızca burada seçtiğin takma adı görür.")}
             </div>
             <label className="bd-alan">
               <span>{ceviri("Takma ad (3-16 karakter)")}</span>

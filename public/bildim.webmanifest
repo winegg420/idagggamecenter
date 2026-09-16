@@ -1,7 +1,7 @@
 {
-  "name": "Quiz Square — Bilgi Yarışması",
-  "short_name": "Quiz Square",
-  "description": "Quiz Square: Türkçe bilgi yarışması — 1v1 meydan okuma, günlük turnuvalar, şehir ve ülke ligleri. Binlerce soru.",
+  "name": "Quiz Tactics — Bilgi Yarışması",
+  "short_name": "Quiz Tactics",
+  "description": "Quiz Tactics: Türkçe bilgi yarışması — 1v1 meydan okuma, günlük turnuvalar, şehir ve ülke ligleri. Binlerce soru.",
   "start_url": "/bildim",
   "scope": "/",
   "display": "standalone",

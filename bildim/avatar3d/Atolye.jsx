@@ -17,7 +17,7 @@ function Atolye(){
   const animasyon=v=>{setMod(v);sahne.current?.animasyon(v);};
   const renkler=(liste,k,ad)=><div className="renkler">{liste.map((r,i)=><button key={r} aria-label={ad+' '+(i+1)} aria-pressed={ayar[k]===r} title={r} style={{background:r}} onClick={()=>sec(k,r)}/>)}</div>;
   return <div className="atolye">
-    <header><a href="/">Quiz Square<span>Karakter atölyesi</span></a><span className="etiket">KARAKTER ATÖLYESİ</span></header>
+    <header><a href="/">Quiz Tactics<span>Karakter atölyesi</span></a><span className="etiket">KARAKTER ATÖLYESİ</span></header>
     <main><section className="gosterim"><div className="sahne" ref={alan}/><div className="sahne-baslik"><span>ORTAK GÖVDE / İNSAN</span><h1>Senin karakterin.</h1><p>Çevir, yakından bak, hareket ettir.</p></div>
       <div className="kamera"><button aria-pressed={yakin} onClick={()=>{setYakin(!yakin);sahne.current?.yakin(!yakin);}}>Yüzü incele</button><button aria-pressed={don} onClick={()=>{setDon(!don);sahne.current?.donus(!don);}}>360° döndür</button><button aria-pressed={mekan} onClick={()=>{setMekan(!mekan);sahne.current?.meydan(!mekan);}}>Yürüme alanı</button></div>
       <div className="sahne-alt"><div className="hareketler">{[['bekle','Bekle'],['yuru','Yürü'],['selam','Selam ver'],['dur','Durdur']].map(([v,ad])=><button key={v} aria-pressed={mod===v} onClick={()=>animasyon(v)}>{ad}</button>)}</div><small>{mekan?'W A S D veya yön tuşlarıyla yürü.':'Sürükleyerek çevir · Kaydırarak yakınlaş'}</small></div>

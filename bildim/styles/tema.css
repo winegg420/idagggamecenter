@@ -5212,7 +5212,7 @@ body.bd-ekle-acik .app { padding-bottom: calc(300px + env(safe-area-inset-bottom
 
 /* ============================================================
    ÜST ÇUBUK — DAR EKRANDA TAŞMA
-   Coin hapı eklenince (ve logo "Quiz Square" ile genişleyince) üst çubuk
+   Coin hapı eklenince (ve logo "Quiz Tactics" ile genişleyince) üst çubuk
    375px'lik içerik alanına sığmaz oldu: sağ grup 417px'e taşıp sayfaya
    yatay kaydırma getiriyordu (ölçüldü).
    Çözüm: sağ grup daralabilir olsun, haplar sıkışsın, çok dar ekranda

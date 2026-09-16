@@ -33,7 +33,7 @@ export const RENKLI_YUVALAR = new Set([
   "hat", "glasses", "necklace", "wristband", "hair", "top", "shoes",
 ]);
 
-/** Quiz Square'de kullanılan pozlar. Koşu yok: idle varsayılan. */
+/** Quiz Tactics'te kullanılan pozlar. Koşu yok: idle varsayılan. */
 export const POZLAR = ["idle", "wave", "flex", "laugh"];
 
 /** Görünüm kaydından karakter kimliği (yoksa ilk bedava karakter). */

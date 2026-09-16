@@ -1,7 +1,7 @@
 {
   "name": "idaGG Game Center",
   "short_name": "idaGG",
-  "description": "idaGG Game Center — birçok oyun tek çatı altında: Quiz Square, Kafa Topu, DidaGP, Meyve Kes ve daha fazlası.",
+  "description": "idaGG Game Center — birçok oyun tek çatı altında: Quiz Tactics, Kafa Topu, DidaGP, Meyve Kes ve daha fazlası.",
   "start_url": "/",
   "display": "standalone",
   "orientation": "any",

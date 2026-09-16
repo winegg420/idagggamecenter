@@ -2549,7 +2549,7 @@ p.bd-gizlilik-not {
   color: var(--bd-metin-2, var(--text-dim));
 }
 
-/* Hub'ın giriş ekranı markası. Quiz Square sitesinde bu blok hiç
+/* Hub'ın giriş ekranı markası. Quiz Tactics sitesinde bu blok hiç
    render edilmez; orada Logo bileşeni (wordmark) çıkar. */
 .gc-giris-marka { display: flex; flex-direction: column; line-height: 1; align-items: center; }
 .gc-giris-ad { font-family: var(--bd-f-baslik); font-weight: 900; font-size: 44px; }

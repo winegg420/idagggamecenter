@@ -1,4 +1,4 @@
-// Quiz Square — Google Play satın alma doğrulama
+// Quiz Tactics — Google Play satın alma doğrulama
 //
 // Akış: Android (TWA) istemcisi Digital Goods API + Payment Request ile satın
 // alır, elindeki purchaseToken'ı buraya gönderir. Burada Play Developer API
