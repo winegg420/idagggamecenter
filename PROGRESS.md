@@ -5346,3 +5346,11 @@ en küçük TR 761 (spor), EN 476 (tarih) — hiçbiri 300 altı değil. Sayfa s
 - Muayene hattı genişletildi (yeni araç yazılmadı): aday klasörü, düz ten/çıplak mod, klip karesi, rol hedefli kamera, sabit kamera, `--karsilastir` sayfası.
 - Öneri: hedef kalite = A0'daki kit topolojisi; ama stil için B (Teen) görülmeden karar verilmemeli. D bütçe dostu ama fasetli/giyimli. KARAR SAHİBİNDE. Rapor: `bildim/harita/ASAMA_1H_BAKEOFF.md`.
 - DUR: kazanan seçilmedi, yuva/kaplan/robot/25 karakter yok.
+
+## 17 Eyl 2026 — Harita Aşama 2A: Taksim greybox + yerleşim manifesti (Opus 5)
+- `bildim/harita/yerlesim.json` haritanın tek doğruluk kaynağı: sınır (plaza r42 + İstiklal 12 m koridor), 3 bölge, 27 parsel (9 girilebilir dükkân = oyun modları), 4 nokta, 11 alan, tramvay (2 durak), arka plan kuşağı (Boğaz, köprü silueti).
+- `yerlesimDunya.js` manifestten bilerek çirkin greybox kurar (gri tonlar, etiketler); `dunya.js` manifest verilirse onu, verilmezse Paket 13 dünyasını kurar. Oynanış katmanına dokunulmadı.
+- Canlı: `/harita?harita=taksim` (quizsquare) · `?harita=eski` geri döner; seçim cihazda hatırlanır. Canlı sayfa girişli olduğu için Claude tarafından görülmedi; ölçümler aynı dünya koduyla yerel ölçüm sayfasında (`olcum/greybox.*`, üretim derlemesi).
+- Ölçüm: greybox yalnız en kötü açıda 165 çağrı (sınırın %75'i — nesne sayısı: 121 mesh + gölge), 2,6k üçgen, 1,7 ms. 25 mevcut meydan avatarı ~580 çağrı ekliyor (eski avatar sistemi, 1G hattı değil) → 924 çağrı, 8,6 ms.
+- §7: hız 9 m/s · İstiklal 9,83 sn · taş meydan 5,87 sn, plaza 9,2 sn · 25 oyuncu 81 m²/kişi, komşu 5,5 m · kamera sokak boyunca temiz, SON 10–19 m'de kapanış binası oyuncuyu kapatıyor (Stüdyo/Ayarlar) · doğuştan en uzak dükkân 13,28 sn.
+- Karar bekleyen: kapanış binası (kaldır / 20 m geri çek), meydan yarıçapı. DUR — sanat başlamadı. Rapor: `bildim/harita/ASAMA_2A_GREYBOX.md`.
