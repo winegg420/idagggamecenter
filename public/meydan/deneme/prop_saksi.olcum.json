@@ -3,23 +3,23 @@
  "meshler": [
   {
    "ad": "prop_saksi",
-   "ucgen": 528,
-   "kose": 321,
+   "ucgen": 256,
+   "kose": 186,
    "skinned": false,
    "ao": true
   }
  ],
- "toplamUcgen": 528,
+ "toplamUcgen": 256,
  "malzeme": 1,
  "roughness": 0.82,
  "boyut": [
-  0.92,
+  0.9,
   1.265,
-  0.92
+  0.9
  ],
  "ao": {
-  "ort": 0.82,
-  "min": 0.184,
-  "kose": 321
+  "ort": 0.87,
+  "min": 0.155,
+  "kose": 186
  }
 }

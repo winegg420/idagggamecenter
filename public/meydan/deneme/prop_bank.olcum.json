@@ -3,23 +3,23 @@
  "meshler": [
   {
    "ad": "prop_bank",
-   "ucgen": 972,
-   "kose": 684,
+   "ucgen": 320,
+   "kose": 576,
    "skinned": false,
    "ao": true
   }
  ],
- "toplamUcgen": 972,
+ "toplamUcgen": 320,
  "malzeme": 1,
  "roughness": 0.82,
  "boyut": [
   1.8,
-  0.933,
-  0.647
+  0.937,
+  0.662
  ],
  "ao": {
   "ort": 0.941,
-  "min": 0.588,
-  "kose": 684
+  "min": 0.582,
+  "kose": 576
  }
 }
