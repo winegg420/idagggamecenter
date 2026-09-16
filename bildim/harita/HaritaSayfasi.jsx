@@ -41,6 +41,18 @@ import {
 import { GARDROP_YOLU } from "../pages/GardropaGit.jsx";
 import "./harita.css";
 import { tt } from "../lib/dil.js";
+// AŞAMA 2A: Taksim greybox — yerleşim manifesti. ?harita=taksim açar, ?harita=eski kapatır; seçim bu cihazda hatırlanır
+// (maçtan dönüşte parametre kaybolsa da aynı haritaya dönülsün).
+import taksimYerlesim from "./yerlesim.json";
+const HARITA_ANAHTARI = "bildim_harita_yerlesim";
+function haritaSecimi() {
+  try {
+    const p = new URLSearchParams(window.location.search).get("harita");
+    if (p === "taksim") localStorage.setItem(HARITA_ANAHTARI, "taksim");
+    else if (p === "eski") localStorage.removeItem(HARITA_ANAHTARI);
+    return localStorage.getItem(HARITA_ANAHTARI) === "taksim" ? "taksim" : "eski";
+  } catch { return new URLSearchParams(window.location.search).get("harita") === "taksim" ? "taksim" : "eski"; }
+}
 
 const EMOJILER = ["👋", "😂", "🔥", "🤔", "🎉", "⚔️"];
 const MAKS_CIZILEN = 40;   // aynı anda çizilen uzak oyuncu sayısı
@@ -390,7 +402,7 @@ export default function HaritaSayfasi() {
     try {
       const dusukDonanim = (navigator.hardwareConcurrency || 8) <= 4;
       const hareketAzalt = window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches ?? false;
-      dunya = dunyaKur(kapsayici, { dusukDonanim, hareketAzalt });
+      dunya = dunyaKur(kapsayici, { dusukDonanim, hareketAzalt, yerlesim: haritaSecimi() === "taksim" ? taksimYerlesim : null });
     } catch (e) {
       console.error("[Meydan] sahne kurulamadi:", e);
       setYukleniyor(false);
@@ -424,13 +436,17 @@ export default function HaritaSayfasi() {
       ben.rotation.y = donus.aci ?? 0;
       donusTemizle();
     } else {
-      ben.position.set(0, 0, 16.5);   // Paket 13: göl kıyısı 14,5 ile (0,20) bankı arası
+      // Paket 13: göl kıyısı 14,5 ile (0,20) bankı arası · 2A: manifestteki spawn_varsayilan
+      const dogus = dunya.yerlesim?.dogus ?? { x: 0, z: 16.5, aci: 0 };
+      ben.position.set(dogus.x, 0, dogus.z);
+      ben.rotation.y = dogus.aci;
     }
 
     // BALIKÇI NPC (Aşama 2): köprünün ortasında, korkuluk kenarında durur;
     // dekor — oyuncu değil, presence'a girmez, kişi sayısına eklenmez.
     let balikci = null;
-    try {
+    // 2A greybox'ta göl/köprü yok (donduruldu) → balıkçı kurulmaz
+    if (dunya.kopru) try {
       balikci = dunya.avatarOlustur(tt("Balıkçı"), 0x3a6b8a, 0x222222, "#20324A", null, gorunumVerisi.bilgi);
       balikci.position.set(0, dunya.zeminYuksekligi(0, 1.05), 1.05);
       balikci.rotation.y = Math.PI;
@@ -557,6 +573,8 @@ export default function HaritaSayfasi() {
     });
 
     canliRef.current = { dunya, ben, coklu, renk, uzaklar, botlar, ziplama, balikci };
+    // 2A: greybox'ta ölçüm/görüntü için hata ayıklama kancası (yalnız Taksim haritasında; oynanışa etkisi yok)
+    if (dunya.yerlesim) window.__harita = { dunya, ben, uzaklar, botlar, YURUME_HIZI };
 
     // ---- MEYDAN BOTLARI ----
     // Sunucu nöbeti katmanlara böler (meydan_bot_nobeti.katman); kaçının
@@ -575,7 +593,7 @@ export default function HaritaSayfasi() {
     // Paket 12, madde 2: giriş/çıkış bina kapısı DEĞİL — oyuncunun doğduğu
     // yöne yakın dış kenar (binaların arası). Bina kapısı yedek olarak kalır.
     // Paket 13: tüm dış kenar (her 2°'lik engelsiz nokta) — bot hep aynı yerden gelmesin.
-    const kenarKapilar = kenarKapilariHesapla(dunya.engeller, { x: 0, z: 16.5 }, Infinity);
+    const kenarKapilar = kenarKapilariHesapla(dunya.engeller, dunya.yerlesim ? { x: dunya.yerlesim.dogus.x, z: dunya.yerlesim.dogus.z } : { x: 0, z: 16.5 }, Infinity);
     const kapilar = kenarKapilar.length ? kenarKapilar : kapilariHesapla(dunya.binalar, dunya.engeller);
     // Görünür botların TABAN planları (bir kez kurulur): id -> { id, tohum,
     // plan, ziyaretler, basSira, sira }. Buluşmalar bunların üstüne eklenir.
@@ -1182,6 +1200,7 @@ export default function HaritaSayfasi() {
       if (balikci) { try { dunya.avatarSil(balikci); } catch { /* yut */ } }
       try { ikramlariTemizle(); } catch (e) { console.error("[Meydan] ikram temizle:", e); }
       try { dunya?.yokEt(); } catch (e) { console.error("[Meydan] yokEt:", e); }
+      if (window.__harita?.dunya === dunya) delete window.__harita;
       canliRef.current = null;
     };
     // Sahne oturum sahibi başına BİR KEZ kurulur. `profile` bilerek yok:
