@@ -40,7 +40,7 @@ import { KarakterSistemi, VARLIK_KOK } from "./karakter/karakter.js";
 import { MeydanAvatarlari } from "./karakter/meydanAvatar.js";
 import { TemasGolgeleri } from "./karakter/temas.js";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
-import { cevreKur, PROPLAR, KediSurusu } from "./cevre.js";
+import { cevreKur, PROPLAR, KediSurusu, binalariBoya } from "./cevre.js";
 export { esyaBilgisi };
 
 // roundRect / canvasDoku / isimEtiketi / nesneyiSerbestBirak ORTAK.JS'e taşındı:
@@ -70,6 +70,15 @@ export const BINALAR = [
   { ad: tt("Lig"),        alt: tt("haftalık sıralama"), duvar: "#2FBF71", cati: "#137A45", rota: "/siralama" },
   { ad: tt("Hatalarım"),  alt: tt("çalışma odası"),     duvar: "#20A4A0", cati: "#0F6B68", rota: "/calisma" },
 ];
+
+// 2B §4D: girilebilir dükkân renkleri — BINALAR paleti AYNEN (CLAUDE.md: değiştirme). Paletinde karşılığı olmayan iki mod
+// (Stüdyo, Ayarlar) için ayrı renk: marka turuncusu ve nötr arduvaz. Normal Maç → eski "Grup Maçı" (maç binası), Düello → "Meydan Oku" (1v1).
+const paletRenk = (ad) => { const b = BINALAR.find((x) => x.duvar && x.ad === tt(ad)); return b ? { duvar: b.duvar, cati: b.cati } : null; };
+const MOD_RENK = {
+  "/": paletRenk("Grup Maçı"), "/hizli-mod": paletRenk("Hızlı Mod"), "/duello": paletRenk("Meydan Oku"), "/turnuva": paletRenk("Turnuva"),
+  "/siralama": paletRenk("Lig"), "/calisma": paletRenk("Hatalarım"), "/joker": paletRenk("Dükkân"),
+  "/gorunum": { duvar: "#F4701F", cati: "#C4581A" }, "/profil": { duvar: "#8A8C96", cati: "#5E606A" },
+};
 
 function mat(renk) {
   return new THREE.MeshLambertMaterial({ color: renk });
@@ -167,6 +176,17 @@ export function dunyaKur(kapsayici, s = {}) {
       .catch((e) => console.error("[Meydan] prop yuklenemedi:", ad, e))));
     for (const m of Object.values(proplar)) ks.cilala(m);
     cevre = cevreKur({ M: yerlesim, gb, sahne, render, proplar, hucreler: ks.hucreler, malzeme: proplar.prop_bank?.material ?? ks.malzeme, temas });
+    // 2B §4D: binaları boya (geçici renkli kütle; ayak izleri aynı) + mod renkli levhalar çatının üstünde
+    try {
+      const boya = binalariBoya({ M: yerlesim, gb, hucreler: ks.hucreler, malzeme: proplar.prop_bank?.material ?? ks.malzeme, modRenk: (rota) => MOD_RENK[rota] ?? null });
+      cevre.grup.add(boya.bina); if (boya.arkaplan) cevre.grup.add(boya.arkaplan);
+      cevre.binaRenkleri = boya.renkler;
+      for (const b of binalar) {
+        const r = MOD_RENK[b.rota]; if (!r || !b.g) continue;
+        for (const c of [...b.g.children]) if (c.isSprite) { b.g.remove(c); c.material.map?.dispose(); c.material.dispose(); }
+        const lv = levha(b.ad, r.duvar); lv.position.set(0, b.yukseklik + 1.9, 0); lv.scale.set(5.4, 1.35, 1); b.g.add(lv);
+      }
+    } catch (e) { console.error("[Meydan] binalar boyanamadi:", e); }
     // 2B §4: sokak kedileri her yerde (manifest kedi alanları), tek InstancedMesh, yerel; sayı oyun_ayarlari.meydan_kedi_sayisi
     if (proplar.prop_kedi) kediler = new KediSurusu({ M: yerlesim, gb, kaynak: proplar.prop_kedi, sahne, temas, sayi: kediSayisi });
     return cevre;

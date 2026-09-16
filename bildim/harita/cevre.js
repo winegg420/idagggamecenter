@@ -259,3 +259,74 @@ export class KediSurusu {
     this.mesh.instanceMatrix.needsUpdate = true;
   }
 }
+
+// ---------------------------------------------------------------- BİNALARI BOYA (2B §4D) — geçici renkli kütle, cephe sanatı DEĞİL
+// Ayak izleri manifestten, DEĞİŞMEZ (final cephe modülleri aynı parsel çapalarına takılacak). Tek birleşik mesh.
+// Girilebilir: mod renkleri (dunya.js BINALAR paleti, aynen). Girilemez: nötr şehir tonları (sıva/tuğla), kimlikten kararlı.
+// Zemin kat koyu ton, üst gövde açık ton, çatı ayrı ton. İnce detay (silme, korniş, vitrin çerçevesi) YOK.
+const SEHIR_TONLARI = ["#F1E3CF", "#E6CFB0", "#D9C2A2", "#E9D6C8", "#D8DDE0", "#EAD9B8", "#CDBBA3"].map((h) => new THREE.Color(h));
+const TUGLA_TON = new THREE.Color("#C9876A");
+const cati = (h) => new THREE.Color(h);
+const karmaId = (s) => { let h = 2166136261; for (const c of String(s)) { h ^= c.charCodeAt(0); h = Math.imul(h, 16777619); } return h >>> 0; };
+
+/**
+ * @param {{ M, gb, hucreler, malzeme, modRenk: (rota:string)=>({duvar:string, cati:string}|null) }} o
+ * @returns {{ bina: THREE.Mesh, arkaplan: THREE.Mesh|null, renkler: object }}
+ */
+export function binalariBoya({ M, gb, hucreler: H, malzeme, modRenk }) {
+  const parca = [], arka = [], renkler = {};
+  const kutu = (en, h, d, y, x, z, aci, hucre, tint) => parca.push(hucreli(new THREE.BoxGeometry(en, h, d).translate(0, y + h / 2, 0).rotateY(aci).translate(x, 0, z), H[hucre] ?? H.siva, { tint }));
+  const onde = (x, z, aci, lx, lz) => [x + lx * Math.cos(aci) + lz * Math.sin(aci), z - lx * Math.sin(aci) + lz * Math.cos(aci)];
+  for (const p of M.parseller) {
+    const { en, derinlik: d, yukseklik: h } = p.ayakizi, [x, , z] = p.capa.konum, aci = p.capa.donus_y ?? 0, k = karmaId(p.id);
+    const mr = p.girilebilir ? modRenk(p.mod) : null;
+    const duvar = mr ? new THREE.Color(mr.duvar) : p.tur === "kamusal_yapi" ? new THREE.Color("#E3DCCF") : /^landmark/.test(p.tur) ? new THREE.Color("#EDE6D8") : SEHIR_TONLARI[k % SEHIR_TONLARI.length];
+    const tuglaMi = !mr && (p.tur === "apartman" || p.tur === "kose_binasi") && (k >> 3) % 3 === 0;
+    const catiRenk = mr ? cati(mr.cati) : p.tur === "apartman" || p.tur === "kose_binasi" ? cati(["#B4553E", "#9C4A36", "#7E6A5C"][(k >> 5) % 3]) : cati("#8F8A82");
+    renkler[p.id] = { duvar: "#" + duvar.getHexString(), cati: "#" + catiRenk.getHexString(), tugla: tuglaMi };
+    if (p.yertutucu === "silindir") {   // minare: gövde + şerefe + külah
+      parca.push(hucreli(new THREE.CylinderGeometry(en / 2, en / 2 * 1.1, h, 14).translate(x, h / 2, z), H.tasAcik, { tint: duvar }));
+      parca.push(hucreli(new THREE.CylinderGeometry(en / 2 + 0.5, en / 2 + 0.5, 0.6, 14).translate(x, h * 0.78, z), H.tas, { tint: duvar }));
+      parca.push(hucreli(new THREE.ConeGeometry(en / 2 + 0.1, 5, 14).translate(x, h + 2.5, z), H.demir, { tint: new THREE.Color("#7E8C99") }));
+      continue;
+    }
+    const zeminKat = Math.min(3.6, h * 0.45);
+    const koyu = duvar.clone().multiplyScalar(0.8);
+    kutu(en, zeminKat, d, 0, x, z, aci, p.tur === "kamusal_yapi" || /^landmark/.test(p.tur) ? "tas" : "sivaKoyu", koyu);   // zemin kat
+    if (h - zeminKat > 0.05) kutu(en, h - zeminKat, d, zeminKat, x, z, aci, "siva", tuglaMi ? TUGLA_TON : duvar);   // üst gövde (desenli tuğla/kiremit hücresi büyük yüzeye gerilince metrelik desen çıkıyordu → düz dokulu sıva × ton)
+    kutu(en + 0.3, 0.35, d + 0.3, h, x, z, aci, "sivaKoyu", catiRenk);   // çatı levhası
+    if (p.yertutucu === "kubbe") parca.push(hucreli(new THREE.SphereGeometry(Math.min(en, d) * 0.38, 18, 9, 0, Math.PI * 2, 0, Math.PI / 2).translate(x, h + 0.35, z), H.demir, { tint: new THREE.Color("#8A99A6") }));
+    if (p.girilebilir) {
+      const [kx, kz] = onde(x, z, aci, 0, d / 2 + 0.06);
+      parca.push(hucreli(new THREE.BoxGeometry(2.4, 3.0, 0.14).translate(0, 1.5, 0).rotateY(aci).translate(kx, 0, kz), H.ahsap));   // kapı
+      const [tx, tz] = onde(x, z, aci, 0, d / 2 + 0.1);
+      parca.push(hucreli(new THREE.BoxGeometry(Math.min(en - 0.6, 6.5), 0.8, 0.2).translate(0, zeminKat + 0.1, 0).rotateY(aci).translate(tx, 0, tz), H.cerceve, { tint: catiRenk }));   // tabela bandı (mod rengi)
+    }
+  }
+  for (const n of M.noktalar.filter((q) => q.tip === "landmark" && q.ayakizi)) {   // Cumhuriyet Anıtı: taş taban + gövde
+    const [x, , z] = n.konum, a = n.ayakizi, g = n.govde;
+    kutu(a.en, a.yukseklik, a.derinlik, 0, x, z, 0, "tas", new THREE.Color("#D8CFC0"));
+    if (g) kutu(g.en, g.yukseklik, g.derinlik, a.yukseklik, x, z, 0, "tasAcik", new THREE.Color("#E6DDCD"));
+  }
+  const bina = birlesikMesh(parca, malzeme, "CevreBinalar");
+  bina.castShadow = true; bina.receiveShadow = true;
+  gb.gri.parsel.traverse((o) => { if (o.isMesh) o.visible = false; });   // gri kütleler gizli; tabela yazıları (sprite) ve bina grupları durur
+
+  // arka plan kuşağı: tonlu, gölgesiz, tek mesh
+  for (const b of M.arkaplan ?? []) {
+    if (b.cokgen) {
+      const sekil = new THREE.Shape(b.cokgen.map(([px, pz]) => new THREE.Vector2(px, -pz)));
+      const yuk = b.yukseklik ?? 0;
+      const geo = (yuk > 0 ? new THREE.ExtrudeGeometry(sekil, { depth: yuk, bevelEnabled: false }) : new THREE.ShapeGeometry(sekil)).rotateX(-Math.PI / 2).translate(0, b.tip === "su" ? -0.02 : 0, 0);
+      const ton = { su: "#5FA8CF", tepe: "#7FA36E", siluet: "#C9C2B6" }[b.tip] ?? "#C9C2B6";
+      arka.push(hucreli(geo, { su: H.cam, tepe: H.cim, siluet: H.siva }[b.tip] ?? H.siva, { tint: new THREE.Color(ton), dolu: false }));
+    } else if (b.tip === "kopru") {
+      const [x0, z0] = b.baslangic, [x1, z1] = b.bitis, boy = Math.hypot(x1 - x0, z1 - z0), aci = Math.atan2(x1 - x0, z1 - z0);
+      arka.push(hucreli(new THREE.BoxGeometry(6, 2, boy).rotateY(aci).translate((x0 + x1) / 2, b.guverte_yukseklik, (z0 + z1) / 2), H.demir, { tint: new THREE.Color("#B8C2CC"), dolu: false }));
+      for (const t of [0.22, 0.78]) arka.push(hucreli(new THREE.BoxGeometry(5, b.kule_yukseklik, 5).translate(x0 + (x1 - x0) * t, b.kule_yukseklik / 2, z0 + (z1 - z0) * t), H.demir, { tint: new THREE.Color("#C9D1D8"), dolu: false }));
+    }
+  }
+  let arkaplan = null;
+  if (arka.length) { arkaplan = birlesikMesh(arka, malzeme, "CevreArkaplan"); arkaplan.castShadow = false; arkaplan.receiveShadow = false; gb.gri.arkaplan.visible = false; }
+  return { bina, arkaplan, renkler };
+}
