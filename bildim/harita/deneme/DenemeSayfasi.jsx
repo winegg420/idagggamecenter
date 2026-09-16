@@ -43,8 +43,9 @@ const USTLER = ["#F4701F", "#2FBF71", "#4A9DD9", "#EC4899", "#A855F7", "#FFB020"
 const ALTLAR = ["#3B5B8C", "#2B2B30", "#6B4A3A", "#3F6B4F", "#8A8C96"].map(hexV);
 const AYAKLAR = ["#2B2B30", "#FFFFFF", "#C8102E", "#6B3A1E"].map(hexV);
 const NOTR = hexV("#FFFFFF");
+const EGIM_Q = new THREE.Quaternion().setFromEuler(new THREE.Euler(0, 0, 0.14));   // 1G: gülümsemede baş eğimi (8°)
 // Bölge → pürüzlülük (Aşama 1C §5.1; shader'da tablo). Sıra BOLGE kodlarıyla aynı (0..21; 21 = plastik, 1D)
-const PURUZ_TABLO = [0.55, 0.65, 0.65, 0.65, 1.0, 0.95, 0.45, 0.9, 0.95, 0.9, 0.35, 0.5, 0.2, 0.3, 0.3, 0.6, 0.15, 0.82, 0.9, 0.6, 0.85, 0.6];
+const PURUZ_TABLO = [0.55, 0.65, 0.65, 0.65, 1.0, 0.95, 0.45, 0.9, 0.95, 0.9, 0.35, 0.5, 0.2, 0.3, 0.3, 0.6, 0.15, 0.82, 0.9, 0.6, 0.85, 0.6, 0.9, 0.35];   // 22 turKulak (kürk) · 23 turAnten (metal) — 1G
 // Yüz hücrelerinin zemin ten rengi (atlas.mjs TEN) — doğrusal uzayda; shader göz/ağız yamasında "ten olan piksel"i bununla ayırır (1D §2.3)
 const TEN_TEMEL = new THREE.Color("#F2C9A7");   // three r152+: hex → çalışma uzayı (doğrusal) otomatik; ek convertSRGBToLinear ÇİFT dönüşüm olurdu (ilk denemede yama tamamen tonsuz kaldı)
 
@@ -129,7 +130,7 @@ export default function DenemeSayfasi() {
       if (!m || m.userData.cilali) return;
       m.userData.cilali = true;
       m.envMapIntensity = 0.35;
-      m.customProgramCacheKey = () => "atlas-bolge-v2";
+      m.customProgramCacheKey = () => "atlas-bolge-v3";
       m.onBeforeCompile = (s) => {
         s.vertexShader = s.vertexShader
           .replace("#include <common>", "#include <common>\nattribute float _bolge;\nvarying float vBolge;")
@@ -137,9 +138,9 @@ export default function DenemeSayfasi() {
         s.fragmentShader = s.fragmentShader
           .replace("#include <common>", `#include <common>
 varying float vBolge;
-const float PURUZ[22] = float[22](${PURUZ_TABLO.map((v) => v.toFixed(2)).join(", ")});
+const float PURUZ[24] = float[24](${PURUZ_TABLO.map((v) => v.toFixed(2)).join(", ")});
 const vec3 TEN_TEMEL = vec3(${TEN_TEMEL.r.toFixed(4)}, ${TEN_TEMEL.g.toFixed(4)}, ${TEN_TEMEL.b.toFixed(4)});
-float bolgePuruz(float b) { int i = int(clamp(b + 0.5, 0.0, 21.0)); return PURUZ[i]; }`)
+float bolgePuruz(float b) { int i = int(clamp(b + 0.5, 0.0, 23.0)); return PURUZ[i]; }`)
           // 1D §2.3: karakter COLOR_0 RGBA — rgb = AO × ton, a = AO. Göz/ağız yamasında (bölge 13–15) ten OLMAYAN piksel
           // (göz akı, iris, dudak) yalnız AO ile çarpılır; ten pikseli kafayla aynı tonu alır → yama kenarı görünmez. Şeffaflık yok.
           .replace("#include <color_fragment>", `
@@ -202,6 +203,7 @@ if (vBolge > 12.5 && vBolge < 15.5 && diffuseColor.b > 0.5 && diffuseColor.r < 0
         pos.setXYZ(i, T.pos[i * 3], T.pos[i * 3 + 1], T.pos[i * 3 + 2]);
         uv.setXY(i, T.uv[i * 2], T.uv[i * 2 + 1]);
         let c = NOTR;
+        if (u.gizliBolge?.includes(b)) pos.setXYZ(i, bas[0], bas[1], bas[2]);   // 1G-A.4 gizle politikası: tür parçası çökertilir
         if (b === B.ten) c = ten;
         else if (b === B.sacKase || b === B.sacKisa || b === B.sacKuyruk) { c = sac; if (b !== B.sacKase + sacIstenen - 1) pos.setXYZ(i, bas[0], bas[1], bas[2]); }
         else if (b === B.ust) { c = ust; yeniden(i, u.temelHucre.ust, S.ust); if (g.set === 2) c = g.ceket ?? ALTLAR[1]; }
@@ -211,7 +213,8 @@ if (vBolge > 12.5 && vBolge < 15.5 && diffuseColor.b > 0.5 && diffuseColor.r < 0
         else if (b === B.taban) { c = g.set === 2 ? ALTLAR[2] : NOTR; }
         else if (b === B.ceket || b === B.yaka) { if (g.set !== 2) pos.setXYZ(i, gov[0], gov[1], gov[2]); c = b === B.ceket ? (g.ceket ?? ALTLAR[1]) : NOTR; }
         else if (b === B.kapuson) { if (g.set !== 3) pos.setXYZ(i, gov[0], gov[1], gov[2]); c = ust; }
-        else if (b === B.kurk) c = g.kurk ?? NOTR;
+        else if (b === B.kurk || b === B.turKulak) c = g.kurk ?? NOTR;
+        else if (b === B.turAnten) c = g.metal ?? NOTR;
         else if (b === B.metal) c = g.metal ?? NOTR;
         else if (b === B.boya) {
           // 1D §4.4: robotta kıyafet seti = panel rengi/deseni (kumaş değil): 1 düz üst rengi · 2 koyu metalik · 3 çizgili
@@ -264,7 +267,28 @@ if (vBolge > 12.5 && vBolge < 15.5 && diffuseColor.b > 0.5 && diffuseColor.r < 0
       const kaynak = turVeri[kok.userData.tur]?.kozmetikler[ad] ?? turVeri.insan?.kozmetikler[ad];
       const eski = yuva.getObjectByName("kozmetik_" + ad);
       if (eski && !ac) yuva.remove(eski);
-      if (!eski && ac && kaynak) { const m = kaynak.clone(); m.castShadow = false; yuva.add(m); }
+      if (!eski && ac && kaynak) { const m = kaynak.clone(); m.castShadow = false; yuva.add(m); sozlesmeUygula(kok, m); }
+    };
+    /**
+     * 1G-A.4 TÜR–KOZMETİK SÖZLEŞMESİ (çalışma anı): kozmetik hacmi ∩ tür dışlama hacmi → politika.
+     *   gecir: hiçbir şey · gizle: tür parçasını çökert (bolge turKulak/turAnten) · bicimlendir: ölçek/kaydırma · it: +Z'ye öteleme
+     * Tür: Govde.userData.dislama (küre listesi, bind uzayı). Kozmetik: userData.politika (uret.mjs POLITIKA). Yeni kozmetik = tek satır politika.
+     */
+    const sozlesmeUygula = (kok, m) => {
+      const govde = kok.getObjectByName("Govde"), dislama = govde?.userData?.dislama ?? {}, politika = m.userData?.politika ?? {};
+      if (!Object.keys(dislama).length || !Object.keys(politika).length) return;
+      kok.updateMatrixWorld(true);
+      const kutu = new THREE.Box3().setFromObject(m);
+      for (const [k, kureler] of Object.entries(dislama)) {
+        const p = politika[k]; if (!p) continue;
+        const kesisir = kureler.some((q) => kutu.distanceToPoint(new THREE.Vector3(...q.merkez).applyMatrix4(kok.matrixWorld)) <= q.r);
+        if (!kesisir) continue;
+        const tip = typeof p === "string" ? p : p.tip;
+        if (tip === "gizle") { const hedef = kureler[0]?.bolge; if (hedef != null) { govde.userData.gizliBolge = [...(govde.userData.gizliBolge ?? []), hedef]; gorunumUygula(kok, kok.userData.gorunum ?? { set: 1, sac: 1 }); } }
+        else if (tip === "bicimlendir") { if (p.olcek) m.scale.set(...p.olcek); if (p.kaydir) m.position.add(new THREE.Vector3(...p.kaydir)); }
+        else if (tip === "it") m.position.z += p.mesafe ?? 0.03;
+        m.userData.uygulanan = { ...(m.userData.uygulanan ?? {}), [k]: tip };
+      }
     };
     const kuyrukTak = (kok) => {
       const yuva = kok.getObjectByName("sirtYuva"), kaynak = turVeri.kaplan?.kozmetikler.kuyruk;
@@ -519,6 +543,8 @@ if (vBolge > 12.5 && vBolge < 15.5 && diffuseColor.b > 0.5 && diffuseColor.r < 0
       if (!dondur) for (const m of mixerler) m.update(dt);
       const t = performance.now();
       if (!dondur) kirpmaGuncelle(t);
+      // 1G-A.2: gülümseme = kaş yukarı (göz karesinde) + göz kavisi + HAFİF BAŞ EĞİMİ (mixer'dan sonra ek dönüş)
+      for (const c of canlilar) { if (c.kok.userData.ifade?.agiz === "gulumseme") { const h = (c.kok.userData.headKemik ??= c.kok.getObjectByName("Head")); if (h) h.quaternion.multiply(EGIM_Q); } }
       // kaplan kuyruğu: kökten salınım
       sahne.traverse((o) => { if (o.name === "kozmetik_kuyruk") o.rotation.set(Math.sin(zaman * 2.1) * 0.12, Math.sin(zaman * 3.3) * 0.28, 0); });
       kediGuncelle(dt, zaman);

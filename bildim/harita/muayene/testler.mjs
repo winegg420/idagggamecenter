@@ -222,6 +222,7 @@ function testIcice(adalar, u, sonuc) {
 }
 
 async function testKozmetik(dosyaYolu, gltf, adalar, u, sonuc) {
+  const govdeUD = gltf.scene.getObjectByName("Govde")?.userData;
   const kaynaklar = u.kozmetik ?? {};
   if (!Object.keys(kaynaklar).length) { sonuc.istatistik.kozmetik = "kozmetik yok (atlandı)"; return; }
   const onbellek = new Map();
@@ -232,6 +233,9 @@ async function testKozmetik(dosyaYolu, gltf, adalar, u, sonuc) {
     const yuva = gltf.scene.getObjectByName(KOZ_YUVA[ad]);
     if (!mesh || !yuva) continue;
     denenen++;
+    // 1G-A.4 TÜR–KOZMETİK SÖZLEŞMESİ: kozmetik politikası × tür dışlama hacmi → beyan edilmiş çakışma susturulur (sözleşme:<politika>)
+    const politika = mesh.userData?.politika ?? {}, dislama = govdeUD?.dislama ?? {};
+    const sozlesme = (A) => { for (const [k, kureler] of Object.entries(dislama)) { const p = politika[k]; if (!p) continue; for (const q of kureler) { const d = Math.hypot(A.merkez[0] - q.merkez[0], A.merkez[1] - q.merkez[1], A.merkez[2] - q.merkez[2]); if (d <= q.r + 0.06) return `sözleşme: ${k} → ${typeof p === "string" ? p : p.tip}`; } } return null; };
     const g = mesh.geometry.clone().applyMatrix4(yuva.matrixWorld);
     g.computeBoundingBox();
     const bvh = new MeshBVH(g);
@@ -239,9 +243,9 @@ async function testKozmetik(dosyaYolu, gltf, adalar, u, sonuc) {
     for (const A of adalar) {
       if (!kutuYakin(A.kutu, g.boundingBox, 0)) continue;
       if (!bvh.intersectsGeometry(A.geo, BIRIM)) continue;
-      const kural = izinliKural(u.kozmetik_izinli, koz, A);
+      const kural = izinliKural(u.kozmetik_izinli, koz, A), soz = kural ? null : sozlesme(A);
       const kayit = { test: "kozmetik", adalar: [`kozmetik_${ad} (${glb})`, adaYazi(A)], olcu: { kesisim: "üçgen kesişimi var" }, not: `bağlama pozunda ${KOZ_YUVA[ad]} yuvasına takılı` };
-      if (kural) sonuc.susturulan.push({ ...kayit, sebep: kural.sebep }); else sonuc.adaylar.push(kayit);
+      if (kural) sonuc.susturulan.push({ ...kayit, sebep: kural.sebep }); else if (soz) sonuc.susturulan.push({ ...kayit, sebep: soz }); else sonuc.adaylar.push(kayit);
     }
   }
   sonuc.istatistik.kozmetik = { denenen_kozmetik: denenen };
