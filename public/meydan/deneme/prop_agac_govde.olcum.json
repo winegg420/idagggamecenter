@@ -1,0 +1,25 @@
+{
+ "dosya": "prop_agac_govde.glb",
+ "meshler": [
+  {
+   "ad": "prop_agac_govde",
+   "ucgen": 120,
+   "kose": 136,
+   "skinned": false,
+   "ao": true
+  }
+ ],
+ "toplamUcgen": 120,
+ "malzeme": 1,
+ "roughness": 0.82,
+ "boyut": [
+  1.176,
+  3.106,
+  0.892
+ ],
+ "ao": {
+  "ort": 0.843,
+  "min": 0.262,
+  "kose": 136
+ }
+}

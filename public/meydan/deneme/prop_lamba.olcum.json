@@ -1,0 +1,25 @@
+{
+ "dosya": "prop_lamba.glb",
+ "meshler": [
+  {
+   "ad": "prop_lamba",
+   "ucgen": 500,
+   "kose": 329,
+   "skinned": false,
+   "ao": true
+  }
+ ],
+ "toplamUcgen": 500,
+ "malzeme": 1,
+ "roughness": 0.82,
+ "boyut": [
+  0.915,
+  4.5,
+  0.56
+ ],
+ "ao": {
+  "ort": 0.695,
+  "min": 0.158,
+  "kose": 329
+ }
+}

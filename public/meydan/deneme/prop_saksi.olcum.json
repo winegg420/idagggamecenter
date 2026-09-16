@@ -1,0 +1,25 @@
+{
+ "dosya": "prop_saksi.glb",
+ "meshler": [
+  {
+   "ad": "prop_saksi",
+   "ucgen": 528,
+   "kose": 321,
+   "skinned": false,
+   "ao": true
+  }
+ ],
+ "toplamUcgen": 528,
+ "malzeme": 1,
+ "roughness": 0.82,
+ "boyut": [
+  0.92,
+  1.265,
+  0.92
+ ],
+ "ao": {
+  "ort": 0.82,
+  "min": 0.184,
+  "kose": 321
+ }
+}

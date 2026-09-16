@@ -1,0 +1,25 @@
+{
+ "dosya": "prop_bank.glb",
+ "meshler": [
+  {
+   "ad": "prop_bank",
+   "ucgen": 972,
+   "kose": 684,
+   "skinned": false,
+   "ao": true
+  }
+ ],
+ "toplamUcgen": 972,
+ "malzeme": 1,
+ "roughness": 0.82,
+ "boyut": [
+  1.8,
+  0.933,
+  0.647
+ ],
+ "ao": {
+  "ort": 0.941,
+  "min": 0.588,
+  "kose": 684
+ }
+}

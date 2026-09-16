@@ -1,0 +1,25 @@
+{
+ "dosya": "bordur.glb",
+ "meshler": [
+  {
+   "ad": "bordur",
+   "ucgen": 648,
+   "kose": 672,
+   "skinned": false,
+   "ao": true
+  }
+ ],
+ "toplamUcgen": 648,
+ "malzeme": 1,
+ "roughness": 0.82,
+ "boyut": [
+  80,
+  0.16,
+  8.3
+ ],
+ "ao": {
+  "ort": 1,
+  "min": 1,
+  "kose": 672
+ }
+}

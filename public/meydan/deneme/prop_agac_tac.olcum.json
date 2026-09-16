@@ -1,0 +1,25 @@
+{
+ "dosya": "prop_agac_tac.glb",
+ "meshler": [
+  {
+   "ad": "prop_agac_tac",
+   "ucgen": 360,
+   "kose": 269,
+   "skinned": false,
+   "ao": true
+  }
+ ],
+ "toplamUcgen": 360,
+ "malzeme": 1,
+ "roughness": 0.82,
+ "boyut": [
+  3.05,
+  3.242,
+  2.552
+ ],
+ "ao": {
+  "ort": 0.797,
+  "min": 0.182,
+  "kose": 269
+ }
+}

@@ -4,26 +4,35 @@
   {
    "ad": "Govde",
    "ucgen": 5832,
-   "skinned": true
+   "kose": 2994,
+   "skinned": true,
+   "ao": true
   },
   {
    "ad": "kozmetik_sapka",
    "ucgen": 598,
-   "skinned": false
+   "kose": 328,
+   "skinned": false,
+   "ao": true
   },
   {
    "ad": "kozmetik_gozluk",
    "ucgen": 548,
-   "skinned": false
+   "kose": 346,
+   "skinned": false,
+   "ao": true
   },
   {
    "ad": "kozmetik_atki",
    "ucgen": 300,
-   "skinned": false
+   "kose": 211,
+   "skinned": false,
+   "ao": true
   }
  ],
  "toplamUcgen": 7278,
  "malzeme": 1,
+ "roughness": 0.82,
  "boyut": [
   1.455,
   2.151,
@@ -52,5 +61,27 @@
   "bilekYuva_R",
   "ayakYuva_L",
   "ayakYuva_R"
- ]
+ ],
+ "ao": {
+  "govde": {
+   "ort": 0.678,
+   "min": 0.151,
+   "kose": 2994
+  },
+  "kozmetik_sapka": {
+   "ort": 0.809,
+   "min": 0.155,
+   "kose": 328
+  },
+  "kozmetik_gozluk": {
+   "ort": 0.548,
+   "min": 0.151,
+   "kose": 346
+  },
+  "kozmetik_atki": {
+   "ort": 0.666,
+   "min": 0.153,
+   "kose": 211
+  }
+ }
 }
