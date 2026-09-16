@@ -112,10 +112,14 @@ function iskeletKur() {
 // ------------------------------------------------------------ KARAKTER
 function karakterKur() {
   const { rig, kemikler, sira } = iskeletKur();
-  // Ölçüldü (16 Eyl): Soldier rig'i three uzayında zaten +Z'ye bakıyor — döndürme yok.
+  // AŞAMA 1C §1 — ÖLÇÜLDÜ (bind pozu, A kutusu): Mixamo rig'inin ileri ekseni −Z
+  // (ayak burnu −Z). Kök π döner → rig ileri = dünya +Z. Yüz/yuvalar W() ile DÜNYA
+  // uzayında (π dahil) kurulduğu için ön = +Z (ON = +1). Aşama 1'de kök dönüşü
+  // kaldırılmıştı: yüz kameraya dönüktü diye rig +Z sanılmış, gövde ters yürüyordu.
+  const ON = 1;
   const karakter = new THREE.Group();
   karakter.name = "Karakter";
-  const yon = new THREE.Group(); yon.name = "Yon";
+  const yon = new THREE.Group(); yon.name = "Yon"; yon.rotation.y = Math.PI;
   karakter.add(yon); yon.add(rig);
   karakter.updateMatrixWorld(true);
 
@@ -148,18 +152,18 @@ function karakterKur() {
   ekle(yerlestir(new RoundedBoxGeometry(0.42, 0.30, 0.30, 3, 0.10), hips.clone().add(new THREE.Vector3(0, -0.02, 0)).toArray()), "pantolon", "Hips", true);
   kapsul(hips.clone().add(new THREE.Vector3(0, 0.08, 0)), neck.clone().add(new THREE.Vector3(0, -0.02, 0)), 0.215, "tisort", "Spine1");
   // Baş: büyük küre + saç kapağı + yüz
-  const basM = head.clone().add(new THREE.Vector3(0, 0.20, 0.01));
+  const basM = head.clone().add(new THREE.Vector3(0, 0.20, 0.01 * ON));
   kure(basM, 0.235, "ten", "Head", [1, 1.02, 1], 20);
   const sac = new THREE.SphereGeometry(0.25, 20, 12, 0, Math.PI * 2, 0, Math.PI * 0.56);
-  const sacQ = new THREE.Quaternion().setFromEuler(new THREE.Euler(-0.32, 0, 0));
-  ekle(yerlestir(sac, basM.clone().add(new THREE.Vector3(0, 0.01, -0.02)).toArray(), sacQ), "sac", "Head", true);
+  const sacQ = new THREE.Quaternion().setFromEuler(new THREE.Euler(-0.32 * ON, 0, 0));
+  ekle(yerlestir(sac, basM.clone().add(new THREE.Vector3(0, 0.01, -0.02 * ON)).toArray(), sacQ), "sac", "Head", true);
   for (const s of [-1, 1]) {
-    kure(basM.clone().add(new THREE.Vector3(s * 0.085, 0.01, 0.205)), 0.05, "gozBeyaz", "Head", [1, 1.15, 0.7], 10);
-    kure(basM.clone().add(new THREE.Vector3(s * 0.085, 0.0, 0.238)), 0.026, "gozBebek", "Head", [1, 1.2, 0.6], 8);
-    kure(basM.clone().add(new THREE.Vector3(s * 0.15, -0.06, 0.16)), 0.035, "yanak", "Head", [1, 0.7, 0.5], 8);
+    kure(basM.clone().add(new THREE.Vector3(s * 0.085, 0.01, 0.205 * ON)), 0.05, "gozBeyaz", "Head", [1, 1.15, 0.7], 10);
+    kure(basM.clone().add(new THREE.Vector3(s * 0.085, 0.0, 0.238 * ON)), 0.026, "gozBebek", "Head", [1, 1.2, 0.6], 8);
+    kure(basM.clone().add(new THREE.Vector3(s * 0.15, -0.06, 0.16 * ON)), 0.035, "yanak", "Head", [1, 0.7, 0.5], 8);
   }
   const agiz = new THREE.CapsuleGeometry(0.014, 0.05, 2, 6);
-  ekle(yerlestir(agiz, basM.clone().add(new THREE.Vector3(0, -0.095, 0.228)).toArray(), new THREE.Quaternion().setFromEuler(new THREE.Euler(0, 0, Math.PI / 2))), "agiz", "Head");
+  ekle(yerlestir(agiz, basM.clone().add(new THREE.Vector3(0, -0.095, 0.228 * ON)).toArray(), new THREE.Quaternion().setFromEuler(new THREE.Euler(0, 0, Math.PI / 2))), "agiz", "Head");
   // Kollar + bacaklar
   for (const t of ["Left", "Right"]) {
     const arm = W(t + "Arm"), fore = W(t + "ForeArm"), hand = W(t + "Hand");
@@ -183,8 +187,12 @@ function karakterKur() {
   mesh.castShadow = true;
   mesh.frustumCulled = false;
   const iskelet = new THREE.Skeleton(sira.map((ad) => kemikler.get(ad)));
-  yon.add(mesh);           // dünya (rig'siz) uzayında kurulduğu için Yon altında
-  mesh.bind(iskelet, yon.matrixWorld);
+  // Geometri DÜNYA uzayında kuruldu (W() π dahil). Mesh, dönüşü olmayan kökün çocuğu ve
+  // bindMatrix birim olmalı; Yon (π) altına konursa skinning π kadar kayar (Aşama 1C'de
+  // ölçüldü: eller gövdeden ayrı uçuyordu, yüz arkaya bakıyordu).
+  karakter.add(mesh);
+  karakter.updateMatrixWorld(true);
+  mesh.bind(iskelet);
 
   // ---- KOZMETİK YUVALARI (STIL.md §2.1): dünya hizalı boş düğümler ----
   const yuvaPoz = new Map();
@@ -201,16 +209,16 @@ function karakterKur() {
     return o;
   };
   yuva("basYuva", "Head", basM.clone().add(new THREE.Vector3(0, 0.22, 0)));
-  yuva("gozlukYuva", "Head", basM.clone().add(new THREE.Vector3(0, 0.02, 0.22)));
+  yuva("gozlukYuva", "Head", basM.clone().add(new THREE.Vector3(0, 0.02, 0.22 * ON)));
   yuva("sacYuva", "Head", basM);
-  yuva("sakalYuva", "Head", basM.clone().add(new THREE.Vector3(0, -0.11, 0.2)));
+  yuva("sakalYuva", "Head", basM.clone().add(new THREE.Vector3(0, -0.11, 0.2 * ON)));
   yuva("kulakYuva_L", "Head", basM.clone().add(new THREE.Vector3(-0.235, -0.02, 0)));
   yuva("kulakYuva_R", "Head", basM.clone().add(new THREE.Vector3(0.235, -0.02, 0)));
-  yuva("boyunYuva", "Neck", neck.clone().add(new THREE.Vector3(0, -0.01, 0.02)));
+  yuva("boyunYuva", "Neck", neck.clone().add(new THREE.Vector3(0, -0.01, 0.02 * ON)));
   yuva("elbiseYuva", "Spine2", W("Spine2"));
   yuva("altYuva", "Hips", hips);
-  yuva("capeRoot", "Spine2", W("Spine2").clone().add(new THREE.Vector3(0, 0.06, -0.2)));
-  yuva("sirtYuva", "Spine2", W("Spine2").clone().add(new THREE.Vector3(0, 0, -0.22)));
+  yuva("capeRoot", "Spine2", W("Spine2").clone().add(new THREE.Vector3(0, 0.06, -0.2 * ON)));
+  yuva("sirtYuva", "Spine2", W("Spine2").clone().add(new THREE.Vector3(0, 0, -0.22 * ON)));
   for (const t of ["L", "R"]) {
     const s = t === "L" ? "Left" : "Right";
     yuva("ayakYuva_" + t, s + "Foot", W(s + "Foot"));
@@ -284,8 +292,9 @@ function selamKlibi(idle, kemikler, karakter) {
   };
   // Kol yukarı (2,3 rad); ön kol dışa-içe salınır — pozitif açı ön kolu başa doğru büker, o yüzden eksiye gidilir.
   anahtar(0, 0, 0);
-  anahtar(0.45, 2.3, -0.2);
-  for (let i = 0; i < 4; i++) { anahtar(0.45 + i * 0.32 + 0.16, 2.3, 0.35); anahtar(0.45 + i * 0.32 + 0.32, 2.3, -0.45); }
+  // Kök π döndüğü için sağ kol dünya −X tarafında: dünya Z ekseninde NEGATİF açı kolu dışa/yukarı kaldırır.
+  anahtar(0.45, -2.3, 0.2);
+  for (let i = 0; i < 4; i++) { anahtar(0.45 + i * 0.32 + 0.16, -2.3, -0.35); anahtar(0.45 + i * 0.32 + 0.32, -2.3, 0.45); }
   anahtar(2.2, 0, 0);
   izler.push(new THREE.QuaternionKeyframeTrack("RightArm.quaternion", z1, kol));
   izler.push(new THREE.QuaternionKeyframeTrack("RightForeArm.quaternion", z2, onKol));

@@ -36,7 +36,7 @@
  "boyut": [
   1.455,
   2.151,
-  0.657
+  0.692
  ],
  "kemik": 22,
  "klipler": [
@@ -74,13 +74,13 @@
    "kose": 328
   },
   "kozmetik_gozluk": {
-   "ort": 0.548,
+   "ort": 0.547,
    "min": 0.151,
    "kose": 346
   },
   "kozmetik_atki": {
-   "ort": 0.666,
-   "min": 0.153,
+   "ort": 0.589,
+   "min": 0.156,
    "kose": 211
   }
  }
