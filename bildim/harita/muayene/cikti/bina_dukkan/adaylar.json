@@ -1,0 +1,1503 @@
+{
+ "varlik": "bina_dukkan",
+ "istatistik": {
+  "ada": 93,
+  "kapali_ada": 92,
+  "havada": {
+   "ada": 93,
+   "zemine_bagli_kaynak": 1,
+   "bagli": 87,
+   "bagsiz_grup": 3
+  },
+  "simetri": {
+   "tolerans_m": 0.02,
+   "eksen_x": 0
+  },
+  "icice": {
+   "kapali_ada": 92,
+   "acik_ada": 1,
+   "pay_m": 0.05,
+   "gomulu_oran_esigi": 0.6
+  },
+  "sure_s": 0.1
+ },
+ "adaylar": [
+  {
+   "test": "havada",
+   "adalar": [
+    "diger:baca [x -1.70 · y 0.48 · z 4.90]",
+    "diger:cim [x -1.70 · y 0.96 · z 4.90]"
+   ],
+   "olcu": {
+    "en_yakin_bagli_parca_m": 0.0427
+   },
+   "not": "2 ada, 180 üçgen; bağlı parçaya en yakın mesafe"
+  },
+  {
+   "test": "havada",
+   "adalar": [
+    "diger:baca [x 1.70 · y 0.48 · z 4.90]",
+    "diger:cim [x 1.70 · y 0.96 · z 4.90]"
+   ],
+   "olcu": {
+    "en_yakin_bagli_parca_m": 0.0427
+   },
+   "not": "2 ada, 180 üçgen; bağlı parçaya en yakın mesafe"
+  },
+  {
+   "test": "havada",
+   "adalar": [
+    "diger:bayrak [x 2.00 · y 7.66 · z 5.35]",
+    "diger:demir [x 2.00 · y 7.36 · z 4.70]"
+   ],
+   "olcu": {
+    "en_yakin_bagli_parca_m": 0.0578
+   },
+   "not": "2 ada, 32 üçgen; bağlı parçaya en yakın mesafe"
+  },
+  {
+   "test": "simetri",
+   "adalar": [
+    "diger:ahsapAcik [x 0.66 · y 2.68 · z 4.02]"
+   ],
+   "olcu": {
+    "eslesmeyen_kose_orani": 0.4,
+    "tolerans_m": 0.02
+   },
+   "not": "aynası (x → 0 − x) varlık yüzeyinde yok"
+  }
+ ],
+ "susturulan": [
+  {
+   "test": "simetri",
+   "adalar": [
+    "diger:altin [x 0.35 · y 1.28 · z 4.24]"
+   ],
+   "olcu": {
+    "eslesmeyen_kose_orani": 0.48,
+    "tolerans_m": 0.02
+   },
+   "not": "aynası (x → 0 − x) varlık yüzeyinde yok",
+   "sebep": "kapı kolu tek kanatta (gerçek kapı düzeni)"
+  },
+  {
+   "test": "simetri",
+   "adalar": [
+    "diger:baca [x -2.60 · y 9.46 · z -2.20]"
+   ],
+   "olcu": {
+    "eslesmeyen_kose_orani": 0.82,
+    "tolerans_m": 0.02
+   },
+   "not": "aynası (x → 0 − x) varlık yüzeyinde yok",
+   "sebep": "baca çatının bir yanında (tasarım)"
+  },
+  {
+   "test": "simetri",
+   "adalar": [
+    "diger:bayrak [x 2.00 · y 7.66 · z 5.35]"
+   ],
+   "olcu": {
+    "eslesmeyen_kose_orani": 1,
+    "tolerans_m": 0.02
+   },
+   "not": "aynası (x → 0 − x) varlık yüzeyinde yok",
+   "sebep": "bayrak tek yanda (tasarım)"
+  },
+  {
+   "test": "simetri",
+   "adalar": [
+    "diger:demir [x 2.00 · y 7.36 · z 4.70]"
+   ],
+   "olcu": {
+    "eslesmeyen_kose_orani": 1,
+    "tolerans_m": 0.02
+   },
+   "not": "aynası (x → 0 − x) varlık yüzeyinde yok",
+   "sebep": "bayrak direği tek yanda (tasarım)"
+  },
+  {
+   "test": "icice",
+   "adalar": [
+    "cam:cam [x -2.90 · y 2.23 · z 4.06]",
+    "diger:cerceve [x -2.90 · y 2.23 · z 4.02]"
+   ],
+   "olcu": {
+    "derinlik_m": 0.063,
+    "icteki_ornek": "115/182"
+   },
+   "not": "1. ada 2. adanın içine 6.3 cm giriyor",
+   "sebep": "cam çerçeve/duvar yuvasına oturur"
+  },
+  {
+   "test": "gomulu",
+   "adalar": [
+    "cam:cam [x -2.90 · y 2.23 · z 4.06]"
+   ],
+   "olcu": {
+    "gomulu_yuzey_orani": 0.66,
+    "izinsiz_kaplayicilarla": 0
+   },
+   "not": "yüzey örneklerinin %66'i başka parçaların içinde — görünmeyebilir",
+   "sebep": "cam çerçeve yuvasının içinde; ön yüzü görünür"
+  },
+  {
+   "test": "icice",
+   "adalar": [
+    "cam:cam [x 2.90 · y 2.23 · z 4.06]",
+    "diger:cerceve [x 2.90 · y 2.23 · z 4.02]"
+   ],
+   "olcu": {
+    "derinlik_m": 0.063,
+    "icteki_ornek": "115/182"
+   },
+   "not": "1. ada 2. adanın içine 6.3 cm giriyor",
+   "sebep": "cam çerçeve/duvar yuvasına oturur"
+  },
+  {
+   "test": "gomulu",
+   "adalar": [
+    "cam:cam [x 2.90 · y 2.23 · z 4.06]"
+   ],
+   "olcu": {
+    "gomulu_yuzey_orani": 0.66,
+    "izinsiz_kaplayicilarla": 0
+   },
+   "not": "yüzey örneklerinin %66'i başka parçaların içinde — görünmeyebilir",
+   "sebep": "cam çerçeve yuvasının içinde; ön yüzü görünür"
+  },
+  {
+   "test": "icice",
+   "adalar": [
+    "cam:cam [x -4.56 · y 2.38 · z -2.20]",
+    "diger:cerceve [x -4.52 · y 2.38 · z -2.20]"
+   ],
+   "olcu": {
+    "derinlik_m": 0.05,
+    "icteki_ornek": "23/38"
+   },
+   "not": "1. ada 2. adanın içine 5.0 cm giriyor",
+   "sebep": "cam çerçeve/duvar yuvasına oturur"
+  },
+  {
+   "test": "gomulu",
+   "adalar": [
+    "cam:cam [x -4.56 · y 2.38 · z -2.20]"
+   ],
+   "olcu": {
+    "gomulu_yuzey_orani": 0.61,
+    "izinsiz_kaplayicilarla": 0
+   },
+   "not": "yüzey örneklerinin %61'i başka parçaların içinde — görünmeyebilir",
+   "sebep": "cam çerçeve yuvasının içinde; ön yüzü görünür"
+  },
+  {
+   "test": "icice",
+   "adalar": [
+    "cam:cam [x -4.56 · y 2.38 · z 2.20]",
+    "diger:cerceve [x -4.52 · y 2.38 · z 2.20]"
+   ],
+   "olcu": {
+    "derinlik_m": 0.05,
+    "icteki_ornek": "23/38"
+   },
+   "not": "1. ada 2. adanın içine 5.0 cm giriyor",
+   "sebep": "cam çerçeve/duvar yuvasına oturur"
+  },
+  {
+   "test": "gomulu",
+   "adalar": [
+    "cam:cam [x -4.56 · y 2.38 · z 2.20]"
+   ],
+   "olcu": {
+    "gomulu_yuzey_orani": 0.61,
+    "izinsiz_kaplayicilarla": 0
+   },
+   "not": "yüzey örneklerinin %61'i başka parçaların içinde — görünmeyebilir",
+   "sebep": "cam çerçeve yuvasının içinde; ön yüzü görünür"
+  },
+  {
+   "test": "icice",
+   "adalar": [
+    "cam:cam [x 4.56 · y 2.38 · z -2.20]",
+    "diger:cerceve [x 4.52 · y 2.38 · z -2.20]"
+   ],
+   "olcu": {
+    "derinlik_m": 0.05,
+    "icteki_ornek": "23/38"
+   },
+   "not": "1. ada 2. adanın içine 5.0 cm giriyor",
+   "sebep": "cam çerçeve/duvar yuvasına oturur"
+  },
+  {
+   "test": "gomulu",
+   "adalar": [
+    "cam:cam [x 4.56 · y 2.38 · z -2.20]"
+   ],
+   "olcu": {
+    "gomulu_yuzey_orani": 0.61,
+    "izinsiz_kaplayicilarla": 0
+   },
+   "not": "yüzey örneklerinin %61'i başka parçaların içinde — görünmeyebilir",
+   "sebep": "cam çerçeve yuvasının içinde; ön yüzü görünür"
+  },
+  {
+   "test": "icice",
+   "adalar": [
+    "cam:cam [x 4.56 · y 2.38 · z 2.20]",
+    "diger:cerceve [x 4.52 · y 2.38 · z 2.20]"
+   ],
+   "olcu": {
+    "derinlik_m": 0.05,
+    "icteki_ornek": "23/38"
+   },
+   "not": "1. ada 2. adanın içine 5.0 cm giriyor",
+   "sebep": "cam çerçeve/duvar yuvasına oturur"
+  },
+  {
+   "test": "gomulu",
+   "adalar": [
+    "cam:cam [x 4.56 · y 2.38 · z 2.20]"
+   ],
+   "olcu": {
+    "gomulu_yuzey_orani": 0.61,
+    "izinsiz_kaplayicilarla": 0
+   },
+   "not": "yüzey örneklerinin %61'i başka parçaların içinde — görünmeyebilir",
+   "sebep": "cam çerçeve yuvasının içinde; ön yüzü görünür"
+  },
+  {
+   "test": "icice",
+   "adalar": [
+    "cam:cam [x -4.56 · y 6.01 · z -2.20]",
+    "diger:cerceve [x -4.52 · y 6.01 · z -2.20]"
+   ],
+   "olcu": {
+    "derinlik_m": 0.05,
+    "icteki_ornek": "37/62"
+   },
+   "not": "1. ada 2. adanın içine 5.0 cm giriyor",
+   "sebep": "cam çerçeve/duvar yuvasına oturur"
+  },
+  {
+   "test": "icice",
+   "adalar": [
+    "cam:cam [x -4.56 · y 6.01 · z 2.20]",
+    "diger:cerceve [x -4.52 · y 6.01 · z 2.20]"
+   ],
+   "olcu": {
+    "derinlik_m": 0.05,
+    "icteki_ornek": "37/62"
+   },
+   "not": "1. ada 2. adanın içine 5.0 cm giriyor",
+   "sebep": "cam çerçeve/duvar yuvasına oturur"
+  },
+  {
+   "test": "gomulu",
+   "adalar": [
+    "cam:cam [x -2.90 · y 6.01 · z 4.06]"
+   ],
+   "olcu": {
+    "gomulu_yuzey_orani": 0.66,
+    "izinsiz_kaplayicilarla": 0
+   },
+   "not": "yüzey örneklerinin %66'i başka parçaların içinde — görünmeyebilir",
+   "sebep": "cam çerçeve yuvasının içinde; ön yüzü görünür"
+  },
+  {
+   "test": "gomulu",
+   "adalar": [
+    "cam:cam [x 2.90 · y 6.01 · z 4.06]"
+   ],
+   "olcu": {
+    "gomulu_yuzey_orani": 0.66,
+    "izinsiz_kaplayicilarla": 0
+   },
+   "not": "yüzey örneklerinin %66'i başka parçaların içinde — görünmeyebilir",
+   "sebep": "cam çerçeve yuvasının içinde; ön yüzü görünür"
+  },
+  {
+   "test": "icice",
+   "adalar": [
+    "cam:cam [x 4.56 · y 6.01 · z -2.20]",
+    "diger:cerceve [x 4.52 · y 6.01 · z -2.20]"
+   ],
+   "olcu": {
+    "derinlik_m": 0.05,
+    "icteki_ornek": "37/62"
+   },
+   "not": "1. ada 2. adanın içine 5.0 cm giriyor",
+   "sebep": "cam çerçeve/duvar yuvasına oturur"
+  },
+  {
+   "test": "icice",
+   "adalar": [
+    "cam:cam [x 4.56 · y 6.01 · z 2.20]",
+    "diger:cerceve [x 4.52 · y 6.01 · z 2.20]"
+   ],
+   "olcu": {
+    "derinlik_m": 0.05,
+    "icteki_ornek": "37/62"
+   },
+   "not": "1. ada 2. adanın içine 5.0 cm giriyor",
+   "sebep": "cam çerçeve/duvar yuvasına oturur"
+  },
+  {
+   "test": "icice",
+   "adalar": [
+    "diger:ahsap [x 0.00 · y 1.33 · z 4.12]",
+    "diger:ahsapAcik [x 0.00 · y 1.43 · z 4.02]"
+   ],
+   "olcu": {
+    "derinlik_m": 0.125,
+    "icteki_ornek": "103/182"
+   },
+   "not": "1. ada 2. adanın içine 12.5 cm giriyor",
+   "sebep": "kapı ve kapı kasası duvar girintisine oturur"
+  },
+  {
+   "test": "gomulu",
+   "adalar": [
+    "diger:ahsap [x 0.00 · y 1.33 · z 4.12]"
+   ],
+   "olcu": {
+    "gomulu_yuzey_orani": 0.6,
+    "izinsiz_kaplayicilarla": 0
+   },
+   "not": "yüzey örneklerinin %60'i başka parçaların içinde — görünmeyebilir",
+   "sebep": "kaplayan parçaların tümü izinli_ortusme kuralında"
+  },
+  {
+   "test": "icice",
+   "adalar": [
+    "diger:ahsapAcik [x 0.00 · y 1.43 · z 4.02]",
+    "diger:ahsap [x 0.00 · y 1.33 · z 4.12]"
+   ],
+   "olcu": {
+    "derinlik_m": 0.075,
+    "icteki_ornek": "11/326"
+   },
+   "not": "1. ada 2. adanın içine 7.5 cm giriyor",
+   "sebep": "kapı ve kapı kasası duvar girintisine oturur"
+  },
+  {
+   "test": "icice",
+   "adalar": [
+    "diger:ahsapAcik [x 0.00 · y 1.43 · z 4.02]",
+    "diger:tas [x 0.00 · y 2.08 · z 0.00]"
+   ],
+   "olcu": {
+    "derinlik_m": 0.105,
+    "icteki_ornek": "147/326"
+   },
+   "not": "1. ada 2. adanın içine 10.5 cm giriyor",
+   "sebep": "kapı ve kapı kasası duvar girintisine oturur"
+  },
+  {
+   "test": "icice",
+   "adalar": [
+    "diger:ahsapAcik [x 0.66 · y 2.68 · z 4.02]",
+    "diger:ahsap [x 0.00 · y 1.33 · z 4.12]"
+   ],
+   "olcu": {
+    "derinlik_m": 0.075,
+    "icteki_ornek": "52/223"
+   },
+   "not": "1. ada 2. adanın içine 7.5 cm giriyor",
+   "sebep": "kapı ve kapı kasası duvar girintisine oturur"
+  },
+  {
+   "test": "icice",
+   "adalar": [
+    "diger:ahsapAcik [x 0.66 · y 2.68 · z 4.02]",
+    "diger:ahsapAcik [x 0.00 · y 1.43 · z 4.02]"
+   ],
+   "olcu": {
+    "derinlik_m": 0.125,
+    "icteki_ornek": "72/223"
+   },
+   "not": "1. ada 2. adanın içine 12.5 cm giriyor",
+   "sebep": "kapı ve kapı kasası duvar girintisine oturur"
+  },
+  {
+   "test": "icice",
+   "adalar": [
+    "diger:ahsapAcik [x 0.66 · y 2.68 · z 4.02]",
+    "diger:tas [x 0.00 · y 2.08 · z 0.00]"
+   ],
+   "olcu": {
+    "derinlik_m": 0.105,
+    "icteki_ornek": "93/223"
+   },
+   "not": "1. ada 2. adanın içine 10.5 cm giriyor",
+   "sebep": "kapı ve kapı kasası duvar girintisine oturur"
+  },
+  {
+   "test": "gomulu",
+   "adalar": [
+    "diger:ahsapAcik [x 0.66 · y 2.68 · z 4.02]"
+   ],
+   "olcu": {
+    "gomulu_yuzey_orani": 0.67,
+    "izinsiz_kaplayicilarla": 0
+   },
+   "not": "yüzey örneklerinin %67'i başka parçaların içinde — görünmeyebilir",
+   "sebep": "kaplayan parçaların tümü izinli_ortusme kuralında"
+  },
+  {
+   "test": "icice",
+   "adalar": [
+    "diger:altin [x 0.00 · y 1.33 · z 4.14]",
+    "diger:ahsap [x 0.00 · y 1.33 · z 4.12]"
+   ],
+   "olcu": {
+    "derinlik_m": 0.083,
+    "icteki_ornek": "51/86"
+   },
+   "not": "1. ada 2. adanın içine 8.3 cm giriyor",
+   "sebep": "kapı ve kapı kasası duvar girintisine oturur"
+  },
+  {
+   "test": "icice",
+   "adalar": [
+    "diger:altin [x 0.00 · y 1.33 · z 4.14]",
+    "diger:ahsapAcik [x 0.00 · y 1.43 · z 4.02]"
+   ],
+   "olcu": {
+    "derinlik_m": 0.115,
+    "icteki_ornek": "48/86"
+   },
+   "not": "1. ada 2. adanın içine 11.5 cm giriyor",
+   "sebep": "kapı ve kapı kasası duvar girintisine oturur"
+  },
+  {
+   "test": "gomulu",
+   "adalar": [
+    "diger:altin [x 0.00 · y 1.33 · z 4.14]"
+   ],
+   "olcu": {
+    "gomulu_yuzey_orani": 0.67,
+    "izinsiz_kaplayicilarla": 0
+   },
+   "not": "yüzey örneklerinin %67'i başka parçaların içinde — görünmeyebilir",
+   "sebep": "kaplayan parçaların tümü izinli_ortusme kuralında"
+  },
+  {
+   "test": "icice",
+   "adalar": [
+    "diger:baca [x -1.70 · y 0.48 · z 4.90]",
+    "diger:cim [x -1.70 · y 0.96 · z 4.90]"
+   ],
+   "olcu": {
+    "derinlik_m": 0.176,
+    "icteki_ornek": "21/122"
+   },
+   "not": "1. ada 2. adanın içine 17.6 cm giriyor",
+   "sebep": "cephe saksısı: çalı saksıya oturur"
+  },
+  {
+   "test": "icice",
+   "adalar": [
+    "diger:baca [x 1.70 · y 0.48 · z 4.90]",
+    "diger:cim [x 1.70 · y 0.96 · z 4.90]"
+   ],
+   "olcu": {
+    "derinlik_m": 0.176,
+    "icteki_ornek": "21/122"
+   },
+   "not": "1. ada 2. adanın içine 17.6 cm giriyor",
+   "sebep": "cephe saksısı: çalı saksıya oturur"
+  },
+  {
+   "test": "icice",
+   "adalar": [
+    "diger:baca [x -2.60 · y 9.46 · z -2.20]",
+    "diger:kiremit [x 0.00 · y 8.86 · z 0.00]"
+   ],
+   "olcu": {
+    "derinlik_m": 0.385,
+    "icteki_ornek": "129/326"
+   },
+   "not": "1. ada 2. adanın içine 38.5 cm giriyor",
+   "sebep": "baca çatıdan çıkar"
+  },
+  {
+   "test": "icice",
+   "adalar": [
+    "diger:cerceve [x -2.90 · y 2.23 · z 4.08]",
+    "cam:cam [x -2.90 · y 2.23 · z 4.06]"
+   ],
+   "olcu": {
+    "derinlik_m": 0.063,
+    "icteki_ornek": "51/86"
+   },
+   "not": "1. ada 2. adanın içine 6.3 cm giriyor",
+   "sebep": "cam çerçeve/duvar yuvasına oturur"
+  },
+  {
+   "test": "icice",
+   "adalar": [
+    "diger:cerceve [x -2.90 · y 2.23 · z 4.08]",
+    "diger:cerceve [x -2.90 · y 2.23 · z 4.02]"
+   ],
+   "olcu": {
+    "derinlik_m": 0.06,
+    "icteki_ornek": "51/86"
+   },
+   "not": "1. ada 2. adanın içine 6.0 cm giriyor",
+   "sebep": "pencere/vitrin çerçeveleri duvara gömülü montaj"
+  },
+  {
+   "test": "gomulu",
+   "adalar": [
+    "diger:cerceve [x -2.90 · y 2.23 · z 4.08]"
+   ],
+   "olcu": {
+    "gomulu_yuzey_orani": 0.67,
+    "izinsiz_kaplayicilarla": 0
+   },
+   "not": "yüzey örneklerinin %67'i başka parçaların içinde — görünmeyebilir",
+   "sebep": "iç çerçeve dış çerçeveye gömülü"
+  },
+  {
+   "test": "icice",
+   "adalar": [
+    "diger:cerceve [x 2.90 · y 2.23 · z 4.08]",
+    "cam:cam [x 2.90 · y 2.23 · z 4.06]"
+   ],
+   "olcu": {
+    "derinlik_m": 0.063,
+    "icteki_ornek": "51/86"
+   },
+   "not": "1. ada 2. adanın içine 6.3 cm giriyor",
+   "sebep": "cam çerçeve/duvar yuvasına oturur"
+  },
+  {
+   "test": "icice",
+   "adalar": [
+    "diger:cerceve [x 2.90 · y 2.23 · z 4.08]",
+    "diger:cerceve [x 2.90 · y 2.23 · z 4.02]"
+   ],
+   "olcu": {
+    "derinlik_m": 0.06,
+    "icteki_ornek": "51/86"
+   },
+   "not": "1. ada 2. adanın içine 6.0 cm giriyor",
+   "sebep": "pencere/vitrin çerçeveleri duvara gömülü montaj"
+  },
+  {
+   "test": "gomulu",
+   "adalar": [
+    "diger:cerceve [x 2.90 · y 2.23 · z 4.08]"
+   ],
+   "olcu": {
+    "gomulu_yuzey_orani": 0.67,
+    "izinsiz_kaplayicilarla": 0
+   },
+   "not": "yüzey örneklerinin %67'i başka parçaların içinde — görünmeyebilir",
+   "sebep": "iç çerçeve dış çerçeveye gömülü"
+  },
+  {
+   "test": "icice",
+   "adalar": [
+    "diger:cerceve [x -2.90 · y 2.23 · z 4.02]",
+    "diger:tas [x 0.00 · y 2.08 · z 0.00]"
+   ],
+   "olcu": {
+    "derinlik_m": 0.06,
+    "icteki_ornek": "151/326"
+   },
+   "not": "1. ada 2. adanın içine 6.0 cm giriyor",
+   "sebep": "pencere/vitrin çerçeveleri duvara gömülü montaj"
+  },
+  {
+   "test": "icice",
+   "adalar": [
+    "diger:cerceve [x 2.90 · y 2.23 · z 4.02]",
+    "diger:tas [x 0.00 · y 2.08 · z 0.00]"
+   ],
+   "olcu": {
+    "derinlik_m": 0.06,
+    "icteki_ornek": "151/326"
+   },
+   "not": "1. ada 2. adanın içine 6.0 cm giriyor",
+   "sebep": "pencere/vitrin çerçeveleri duvara gömülü montaj"
+  },
+  {
+   "test": "gomulu",
+   "adalar": [
+    "diger:cerceve [x -2.90 · y 6.01 · z 4.02]"
+   ],
+   "olcu": {
+    "gomulu_yuzey_orani": 0.6,
+    "izinsiz_kaplayicilarla": 0
+   },
+   "not": "yüzey örneklerinin %60'i başka parçaların içinde — görünmeyebilir",
+   "sebep": "iç çerçeve dış çerçeveye gömülü"
+  },
+  {
+   "test": "gomulu",
+   "adalar": [
+    "diger:cerceve [x 2.90 · y 6.01 · z 4.02]"
+   ],
+   "olcu": {
+    "gomulu_yuzey_orani": 0.6,
+    "izinsiz_kaplayicilarla": 0
+   },
+   "not": "yüzey örneklerinin %60'i başka parçaların içinde — görünmeyebilir",
+   "sebep": "iç çerçeve dış çerçeveye gömülü"
+  },
+  {
+   "test": "gomulu",
+   "adalar": [
+    "diger:cerceve [x -2.90 · y 6.01 · z 4.08]"
+   ],
+   "olcu": {
+    "gomulu_yuzey_orani": 0.63,
+    "izinsiz_kaplayicilarla": 0
+   },
+   "not": "yüzey örneklerinin %63'i başka parçaların içinde — görünmeyebilir",
+   "sebep": "iç çerçeve dış çerçeveye gömülü"
+  },
+  {
+   "test": "gomulu",
+   "adalar": [
+    "diger:cerceve [x 2.90 · y 6.01 · z 4.08]"
+   ],
+   "olcu": {
+    "gomulu_yuzey_orani": 0.63,
+    "izinsiz_kaplayicilarla": 0
+   },
+   "not": "yüzey örneklerinin %63'i başka parçaların içinde — görünmeyebilir",
+   "sebep": "iç çerçeve dış çerçeveye gömülü"
+  },
+  {
+   "test": "icice",
+   "adalar": [
+    "diger:cim [x -1.70 · y 0.96 · z 4.90]",
+    "diger:baca [x -1.70 · y 0.48 · z 4.90]"
+   ],
+   "olcu": {
+    "derinlik_m": 0.18,
+    "icteki_ornek": "131/422"
+   },
+   "not": "1. ada 2. adanın içine 18.0 cm giriyor",
+   "sebep": "cephe saksısı: çalı saksıya oturur"
+  },
+  {
+   "test": "icice",
+   "adalar": [
+    "diger:cim [x 1.70 · y 0.96 · z 4.90]",
+    "diger:baca [x 1.70 · y 0.48 · z 4.90]"
+   ],
+   "olcu": {
+    "derinlik_m": 0.18,
+    "icteki_ornek": "131/422"
+   },
+   "not": "1. ada 2. adanın içine 18.0 cm giriyor",
+   "sebep": "cephe saksısı: çalı saksıya oturur"
+  },
+  {
+   "test": "icice",
+   "adalar": [
+    "diger:demir [x -4.20 · y 3.80 · z 4.85]",
+    "diger:tasAcik [x 0.00 · y 4.12 · z 0.00]"
+   ],
+   "olcu": {
+    "derinlik_m": 0.088,
+    "icteki_ornek": "11/38"
+   },
+   "not": "1. ada 2. adanın içine 8.8 cm giriyor",
+   "sebep": "korkuluk ve tente demiri balkon/duvara ankrajlı"
+  },
+  {
+   "test": "gomulu",
+   "adalar": [
+    "diger:demir [x -4.20 · y 3.80 · z 4.85]"
+   ],
+   "olcu": {
+    "gomulu_yuzey_orani": 0.66,
+    "izinsiz_kaplayicilarla": 0
+   },
+   "not": "yüzey örneklerinin %66'i başka parçaların içinde — görünmeyebilir",
+   "sebep": "korkuluk çubukları küpeşte ve plakaya gömülü"
+  },
+  {
+   "test": "icice",
+   "adalar": [
+    "diger:demir [x 4.20 · y 3.80 · z 4.85]",
+    "diger:tasAcik [x 0.00 · y 4.12 · z 0.00]"
+   ],
+   "olcu": {
+    "derinlik_m": 0.088,
+    "icteki_ornek": "11/38"
+   },
+   "not": "1. ada 2. adanın içine 8.8 cm giriyor",
+   "sebep": "korkuluk ve tente demiri balkon/duvara ankrajlı"
+  },
+  {
+   "test": "gomulu",
+   "adalar": [
+    "diger:demir [x 4.20 · y 3.80 · z 4.85]"
+   ],
+   "olcu": {
+    "gomulu_yuzey_orani": 0.66,
+    "izinsiz_kaplayicilarla": 0
+   },
+   "not": "yüzey örneklerinin %66'i başka parçaların içinde — görünmeyebilir",
+   "sebep": "korkuluk çubukları küpeşte ve plakaya gömülü"
+  },
+  {
+   "test": "gomulu",
+   "adalar": [
+    "diger:demir [x -2.10 · y 5.36 · z 4.58]"
+   ],
+   "olcu": {
+    "gomulu_yuzey_orani": 0.71,
+    "izinsiz_kaplayicilarla": 0
+   },
+   "not": "yüzey örneklerinin %71'i başka parçaların içinde — görünmeyebilir",
+   "sebep": "korkuluk çubukları küpeşte ve plakaya gömülü"
+  },
+  {
+   "test": "gomulu",
+   "adalar": [
+    "diger:demir [x 3.70 · y 5.36 · z 4.58]"
+   ],
+   "olcu": {
+    "gomulu_yuzey_orani": 0.71,
+    "izinsiz_kaplayicilarla": 0
+   },
+   "not": "yüzey örneklerinin %71'i başka parçaların içinde — görünmeyebilir",
+   "sebep": "korkuluk çubukları küpeşte ve plakaya gömülü"
+  },
+  {
+   "test": "icice",
+   "adalar": [
+    "diger:kiremit [x 0.00 · y 8.86 · z 0.00]",
+    "diger:tasAcik [x 0.00 · y 10.01 · z 0.00]"
+   ],
+   "olcu": {
+    "derinlik_m": 0.075,
+    "icteki_ornek": "9/98"
+   },
+   "not": "1. ada 2. adanın içine 7.5 cm giriyor",
+   "sebep": "kat silmesi, korniş, balkon plakası duvara gömülü"
+  },
+  {
+   "test": "icice",
+   "adalar": [
+    "diger:siva [x 0.00 · y 6.26 · z 4.35]",
+    "diger:tasAcik [x 0.00 · y 5.24 · z 4.40]"
+   ],
+   "olcu": {
+    "derinlik_m": 0.055,
+    "icteki_ornek": "139/326"
+   },
+   "not": "1. ada 2. adanın içine 5.5 cm giriyor",
+   "sebep": "kat silmesi, korniş, balkon plakası duvara gömülü"
+  },
+  {
+   "test": "gomulu",
+   "adalar": [
+    "diger:tabela [x 0.00 · y 4.72 · z 4.10]"
+   ],
+   "olcu": {
+    "gomulu_yuzey_orani": 0.85,
+    "izinsiz_kaplayicilarla": 0
+   },
+   "not": "yüzey örneklerinin %85'i başka parçaların içinde — görünmeyebilir",
+   "sebep": "kaplayan parçaların tümü izinli_ortusme kuralında"
+  },
+  {
+   "test": "icice",
+   "adalar": [
+    "diger:tas [x 0.00 · y 2.08 · z 0.00]",
+    "diger:ahsapAcik [x 0.00 · y 1.43 · z 4.02]"
+   ],
+   "olcu": {
+    "derinlik_m": 0.105,
+    "icteki_ornek": "67/854"
+   },
+   "not": "1. ada 2. adanın içine 10.5 cm giriyor",
+   "sebep": "kapı ve kapı kasası duvar girintisine oturur"
+  },
+  {
+   "test": "icice",
+   "adalar": [
+    "diger:tas [x 0.00 · y 2.08 · z 0.00]",
+    "diger:cerceve [x -2.90 · y 2.23 · z 4.02]"
+   ],
+   "olcu": {
+    "derinlik_m": 0.06,
+    "icteki_ornek": "70/854"
+   },
+   "not": "1. ada 2. adanın içine 6.0 cm giriyor",
+   "sebep": "pencere/vitrin çerçeveleri duvara gömülü montaj"
+  },
+  {
+   "test": "icice",
+   "adalar": [
+    "diger:tas [x 0.00 · y 2.08 · z 0.00]",
+    "diger:cerceve [x 2.90 · y 2.23 · z 4.02]"
+   ],
+   "olcu": {
+    "derinlik_m": 0.06,
+    "icteki_ornek": "70/854"
+   },
+   "not": "1. ada 2. adanın içine 6.0 cm giriyor",
+   "sebep": "pencere/vitrin çerçeveleri duvara gömülü montaj"
+  },
+  {
+   "test": "icice",
+   "adalar": [
+    "diger:tas [x 0.00 · y 2.08 · z 0.00]",
+    "diger:tasAcik [x -2.90 · y 0.68 · z 4.10]"
+   ],
+   "olcu": {
+    "derinlik_m": 0.075,
+    "icteki_ornek": "13/854"
+   },
+   "not": "1. ada 2. adanın içine 7.5 cm giriyor",
+   "sebep": "kat silmesi, korniş, balkon plakası duvara gömülü"
+  },
+  {
+   "test": "icice",
+   "adalar": [
+    "diger:tas [x 0.00 · y 2.08 · z 0.00]",
+    "diger:tasAcik [x 2.90 · y 0.68 · z 4.10]"
+   ],
+   "olcu": {
+    "derinlik_m": 0.075,
+    "icteki_ornek": "13/854"
+   },
+   "not": "1. ada 2. adanın içine 7.5 cm giriyor",
+   "sebep": "kat silmesi, korniş, balkon plakası duvara gömülü"
+  },
+  {
+   "test": "icice",
+   "adalar": [
+    "diger:tasAcik [x -2.90 · y 0.68 · z 4.10]",
+    "diger:tas [x 0.00 · y 2.08 · z 0.00]"
+   ],
+   "olcu": {
+    "derinlik_m": 0.075,
+    "icteki_ornek": "139/326"
+   },
+   "not": "1. ada 2. adanın içine 7.5 cm giriyor",
+   "sebep": "kat silmesi, korniş, balkon plakası duvara gömülü"
+  },
+  {
+   "test": "icice",
+   "adalar": [
+    "diger:tasAcik [x 2.90 · y 0.68 · z 4.10]",
+    "diger:tas [x 0.00 · y 2.08 · z 0.00]"
+   ],
+   "olcu": {
+    "derinlik_m": 0.075,
+    "icteki_ornek": "139/326"
+   },
+   "not": "1. ada 2. adanın içine 7.5 cm giriyor",
+   "sebep": "kat silmesi, korniş, balkon plakası duvara gömülü"
+  },
+  {
+   "test": "icice",
+   "adalar": [
+    "diger:tasAcik [x 0.00 · y 5.24 · z 4.40]",
+    "diger:siva [x 0.00 · y 6.26 · z 4.35]"
+   ],
+   "olcu": {
+    "derinlik_m": 0.055,
+    "icteki_ornek": "3/326"
+   },
+   "not": "1. ada 2. adanın içine 5.5 cm giriyor",
+   "sebep": "kat silmesi, korniş, balkon plakası duvara gömülü"
+  },
+  {
+   "test": "icice",
+   "adalar": [
+    "diger:tasAcik [x 0.00 · y 10.01 · z 0.00]",
+    "diger:kiremit [x 0.00 · y 8.86 · z 0.00]"
+   ],
+   "olcu": {
+    "derinlik_m": 0.075,
+    "icteki_ornek": "139/326"
+   },
+   "not": "1. ada 2. adanın içine 7.5 cm giriyor",
+   "sebep": "kat silmesi, korniş, balkon plakası duvara gömülü"
+  },
+  {
+   "test": "icice",
+   "adalar": [
+    "diger:tente [x 0.00 · y 3.80 · z 4.85]",
+    "diger:tasAcik [x 0.00 · y 4.12 · z 0.00]"
+   ],
+   "olcu": {
+    "derinlik_m": 0.088,
+    "icteki_ornek": "91/278"
+   },
+   "not": "1. ada 2. adanın içine 8.8 cm giriyor",
+   "sebep": "kat silmesi, korniş, balkon plakası duvara gömülü"
+  }
+ ],
+ "adaListesi": [
+  {
+   "no": 0,
+   "ada": "cam:cam [x -2.90 · y 2.23 · z 4.06]",
+   "ucgen": 60,
+   "kapali": true
+  },
+  {
+   "no": 1,
+   "ada": "cam:cam [x 2.90 · y 2.23 · z 4.06]",
+   "ucgen": 60,
+   "kapali": true
+  },
+  {
+   "no": 2,
+   "ada": "cam:cam [x -4.56 · y 2.38 · z -2.20]",
+   "ucgen": 12,
+   "kapali": true
+  },
+  {
+   "no": 3,
+   "ada": "cam:cam [x -4.56 · y 2.38 · z 2.20]",
+   "ucgen": 12,
+   "kapali": true
+  },
+  {
+   "no": 4,
+   "ada": "cam:cam [x 4.56 · y 2.38 · z -2.20]",
+   "ucgen": 12,
+   "kapali": true
+  },
+  {
+   "no": 5,
+   "ada": "cam:cam [x 4.56 · y 2.38 · z 2.20]",
+   "ucgen": 12,
+   "kapali": true
+  },
+  {
+   "no": 6,
+   "ada": "cam:cam [x -4.56 · y 6.01 · z -2.20]",
+   "ucgen": 20,
+   "kapali": true
+  },
+  {
+   "no": 7,
+   "ada": "cam:cam [x -4.56 · y 6.01 · z 2.20]",
+   "ucgen": 20,
+   "kapali": true
+  },
+  {
+   "no": 8,
+   "ada": "cam:cam [x -2.90 · y 6.01 · z 4.06]",
+   "ucgen": 20,
+   "kapali": true
+  },
+  {
+   "no": 9,
+   "ada": "cam:cam [x 2.90 · y 6.01 · z 4.06]",
+   "ucgen": 20,
+   "kapali": true
+  },
+  {
+   "no": 10,
+   "ada": "cam:cam [x 4.56 · y 6.01 · z -2.20]",
+   "ucgen": 20,
+   "kapali": true
+  },
+  {
+   "no": 11,
+   "ada": "cam:cam [x 4.56 · y 6.01 · z 2.20]",
+   "ucgen": 20,
+   "kapali": true
+  },
+  {
+   "no": 12,
+   "ada": "cam:cam [x 0.00 · y 6.31 · z 4.76]",
+   "ucgen": 32,
+   "kapali": true
+  },
+  {
+   "no": 13,
+   "ada": "diger:ahsap [x 0.00 · y 1.33 · z 4.12]",
+   "ucgen": 60,
+   "kapali": true
+  },
+  {
+   "no": 14,
+   "ada": "diger:ahsapAcik [x 0.00 · y 1.43 · z 4.02]",
+   "ucgen": 108,
+   "kapali": true
+  },
+  {
+   "no": 15,
+   "ada": "diger:ahsapAcik [x 0.66 · y 2.68 · z 4.02]",
+   "ucgen": 72,
+   "kapali": false
+  },
+  {
+   "no": 16,
+   "ada": "diger:altin [x 0.35 · y 1.28 · z 4.24]",
+   "ucgen": 80,
+   "kapali": true
+  },
+  {
+   "no": 17,
+   "ada": "diger:altin [x 0.00 · y 1.33 · z 4.14]",
+   "ucgen": 28,
+   "kapali": true
+  },
+  {
+   "no": 18,
+   "ada": "diger:altin [x 0.00 · y 4.32 · z 4.10]",
+   "ucgen": 52,
+   "kapali": true
+  },
+  {
+   "no": 19,
+   "ada": "diger:altin [x 0.00 · y 5.12 · z 4.10]",
+   "ucgen": 52,
+   "kapali": true
+  },
+  {
+   "no": 20,
+   "ada": "diger:baca [x -1.70 · y 0.48 · z 4.90]",
+   "ucgen": 40,
+   "kapali": true
+  },
+  {
+   "no": 21,
+   "ada": "diger:baca [x 1.70 · y 0.48 · z 4.90]",
+   "ucgen": 40,
+   "kapali": true
+  },
+  {
+   "no": 22,
+   "ada": "diger:baca [x -2.60 · y 9.46 · z -2.20]",
+   "ucgen": 108,
+   "kapali": true
+  },
+  {
+   "no": 23,
+   "ada": "diger:bayrak [x 2.00 · y 7.66 · z 5.35]",
+   "ucgen": 12,
+   "kapali": true
+  },
+  {
+   "no": 24,
+   "ada": "diger:cerceve [x -2.90 · y 2.23 · z 4.08]",
+   "ucgen": 28,
+   "kapali": true
+  },
+  {
+   "no": 25,
+   "ada": "diger:cerceve [x 2.90 · y 2.23 · z 4.08]",
+   "ucgen": 28,
+   "kapali": true
+  },
+  {
+   "no": 26,
+   "ada": "diger:cerceve [x -2.90 · y 2.23 · z 4.02]",
+   "ucgen": 108,
+   "kapali": true
+  },
+  {
+   "no": 27,
+   "ada": "diger:cerceve [x 2.90 · y 2.23 · z 4.02]",
+   "ucgen": 108,
+   "kapali": true
+  },
+  {
+   "no": 28,
+   "ada": "diger:cerceve [x -4.52 · y 2.38 · z -2.20]",
+   "ucgen": 20,
+   "kapali": true
+  },
+  {
+   "no": 29,
+   "ada": "diger:cerceve [x -4.52 · y 2.38 · z 2.20]",
+   "ucgen": 20,
+   "kapali": true
+  },
+  {
+   "no": 30,
+   "ada": "diger:cerceve [x 4.52 · y 2.38 · z -2.20]",
+   "ucgen": 20,
+   "kapali": true
+  },
+  {
+   "no": 31,
+   "ada": "diger:cerceve [x 4.52 · y 2.38 · z 2.20]",
+   "ucgen": 20,
+   "kapali": true
+  },
+  {
+   "no": 32,
+   "ada": "diger:cerceve [x -2.90 · y 6.01 · z 4.02]",
+   "ucgen": 108,
+   "kapali": true
+  },
+  {
+   "no": 33,
+   "ada": "diger:cerceve [x 2.90 · y 6.01 · z 4.02]",
+   "ucgen": 108,
+   "kapali": true
+  },
+  {
+   "no": 34,
+   "ada": "diger:cerceve [x -4.52 · y 6.01 · z -2.20]",
+   "ucgen": 20,
+   "kapali": true
+  },
+  {
+   "no": 35,
+   "ada": "diger:cerceve [x -4.52 · y 6.01 · z 2.20]",
+   "ucgen": 20,
+   "kapali": true
+  },
+  {
+   "no": 36,
+   "ada": "diger:cerceve [x -2.90 · y 6.01 · z 4.08]",
+   "ucgen": 20,
+   "kapali": true
+  },
+  {
+   "no": 37,
+   "ada": "diger:cerceve [x 2.90 · y 6.01 · z 4.08]",
+   "ucgen": 20,
+   "kapali": true
+  },
+  {
+   "no": 38,
+   "ada": "diger:cerceve [x 4.52 · y 6.01 · z -2.20]",
+   "ucgen": 20,
+   "kapali": true
+  },
+  {
+   "no": 39,
+   "ada": "diger:cerceve [x 4.52 · y 6.01 · z 2.20]",
+   "ucgen": 20,
+   "kapali": true
+  },
+  {
+   "no": 40,
+   "ada": "diger:cerceve [x 0.00 · y 6.31 · z 4.72]",
+   "ucgen": 108,
+   "kapali": true
+  },
+  {
+   "no": 41,
+   "ada": "diger:cim [x -1.70 · y 0.96 · z 4.90]",
+   "ucgen": 140,
+   "kapali": true
+  },
+  {
+   "no": 42,
+   "ada": "diger:cim [x 1.70 · y 0.96 · z 4.90]",
+   "ucgen": 140,
+   "kapali": true
+  },
+  {
+   "no": 43,
+   "ada": "diger:demir [x -1.55 · y 2.91 · z 4.42]",
+   "ucgen": 108,
+   "kapali": true
+  },
+  {
+   "no": 44,
+   "ada": "diger:demir [x 1.55 · y 2.91 · z 4.42]",
+   "ucgen": 108,
+   "kapali": true
+  },
+  {
+   "no": 45,
+   "ada": "diger:demir [x -1.55 · y 2.93 · z 4.22]",
+   "ucgen": 12,
+   "kapali": true
+  },
+  {
+   "no": 46,
+   "ada": "diger:demir [x 1.55 · y 2.93 · z 4.22]",
+   "ucgen": 12,
+   "kapali": true
+  },
+  {
+   "no": 47,
+   "ada": "diger:demir [x -4.20 · y 3.80 · z 4.85]",
+   "ucgen": 12,
+   "kapali": true
+  },
+  {
+   "no": 48,
+   "ada": "diger:demir [x 4.20 · y 3.80 · z 4.85]",
+   "ucgen": 12,
+   "kapali": true
+  },
+  {
+   "no": 49,
+   "ada": "diger:demir [x -3.73 · y 5.36 · z 4.30]",
+   "ucgen": 12,
+   "kapali": true
+  },
+  {
+   "no": 50,
+   "ada": "diger:demir [x -3.70 · y 5.36 · z 4.58]",
+   "ucgen": 12,
+   "kapali": true
+  },
+  {
+   "no": 51,
+   "ada": "diger:demir [x -3.50 · y 5.36 · z 4.58]",
+   "ucgen": 12,
+   "kapali": true
+  },
+  {
+   "no": 52,
+   "ada": "diger:demir [x -3.30 · y 5.36 · z 4.58]",
+   "ucgen": 12,
+   "kapali": true
+  },
+  {
+   "no": 53,
+   "ada": "diger:demir [x -3.10 · y 5.36 · z 4.58]",
+   "ucgen": 12,
+   "kapali": true
+  },
+  {
+   "no": 54,
+   "ada": "diger:demir [x -2.90 · y 5.36 · z 4.58]",
+   "ucgen": 12,
+   "kapali": true
+  },
+  {
+   "no": 55,
+   "ada": "diger:demir [x -2.70 · y 5.36 · z 4.58]",
+   "ucgen": 12,
+   "kapali": true
+  },
+  {
+   "no": 56,
+   "ada": "diger:demir [x -2.50 · y 5.36 · z 4.58]",
+   "ucgen": 12,
+   "kapali": true
+  },
+  {
+   "no": 57,
+   "ada": "diger:demir [x -2.30 · y 5.36 · z 4.58]",
+   "ucgen": 12,
+   "kapali": true
+  },
+  {
+   "no": 58,
+   "ada": "diger:demir [x -2.10 · y 5.36 · z 4.58]",
+   "ucgen": 12,
+   "kapali": true
+  },
+  {
+   "no": 59,
+   "ada": "diger:demir [x -2.07 · y 5.36 · z 4.30]",
+   "ucgen": 12,
+   "kapali": true
+  },
+  {
+   "no": 60,
+   "ada": "diger:demir [x 2.07 · y 5.36 · z 4.30]",
+   "ucgen": 12,
+   "kapali": true
+  },
+  {
+   "no": 61,
+   "ada": "diger:demir [x 2.10 · y 5.36 · z 4.58]",
+   "ucgen": 12,
+   "kapali": true
+  },
+  {
+   "no": 62,
+   "ada": "diger:demir [x 2.30 · y 5.36 · z 4.58]",
+   "ucgen": 12,
+   "kapali": true
+  },
+  {
+   "no": 63,
+   "ada": "diger:demir [x 2.50 · y 5.36 · z 4.58]",
+   "ucgen": 12,
+   "kapali": true
+  },
+  {
+   "no": 64,
+   "ada": "diger:demir [x 2.70 · y 5.36 · z 4.58]",
+   "ucgen": 12,
+   "kapali": true
+  },
+  {
+   "no": 65,
+   "ada": "diger:demir [x 2.90 · y 5.36 · z 4.58]",
+   "ucgen": 12,
+   "kapali": true
+  },
+  {
+   "no": 66,
+   "ada": "diger:demir [x 3.10 · y 5.36 · z 4.58]",
+   "ucgen": 12,
+   "kapali": true
+  },
+  {
+   "no": 67,
+   "ada": "diger:demir [x 3.30 · y 5.36 · z 4.58]",
+   "ucgen": 12,
+   "kapali": true
+  },
+  {
+   "no": 68,
+   "ada": "diger:demir [x 3.50 · y 5.36 · z 4.58]",
+   "ucgen": 12,
+   "kapali": true
+  },
+  {
+   "no": 69,
+   "ada": "diger:demir [x 3.70 · y 5.36 · z 4.58]",
+   "ucgen": 12,
+   "kapali": true
+  },
+  {
+   "no": 70,
+   "ada": "diger:demir [x 3.73 · y 5.36 · z 4.30]",
+   "ucgen": 12,
+   "kapali": true
+  },
+  {
+   "no": 71,
+   "ada": "diger:demir [x -2.90 · y 5.76 · z 4.58]",
+   "ucgen": 20,
+   "kapali": true
+  },
+  {
+   "no": 72,
+   "ada": "diger:demir [x 2.90 · y 5.76 · z 4.58]",
+   "ucgen": 20,
+   "kapali": true
+  },
+  {
+   "no": 73,
+   "ada": "diger:demir [x 2.00 · y 7.36 · z 4.70]",
+   "ucgen": 20,
+   "kapali": true
+  },
+  {
+   "no": 74,
+   "ada": "diger:kaldirim [x 0.00 · y 0.09 · z 0.00]",
+   "ucgen": 108,
+   "kapali": true
+  },
+  {
+   "no": 75,
+   "ada": "diger:kiremit [x 0.00 · y 8.86 · z 0.00]",
+   "ucgen": 32,
+   "kapali": true
+  },
+  {
+   "no": 76,
+   "ada": "diger:lamba [x -1.55 · y 2.68 · z 4.42]",
+   "ucgen": 108,
+   "kapali": true
+  },
+  {
+   "no": 77,
+   "ada": "diger:lamba [x 1.55 · y 2.68 · z 4.42]",
+   "ucgen": 108,
+   "kapali": true
+  },
+  {
+   "no": 78,
+   "ada": "diger:siva [x 0.00 · y 5.86 · z 0.00]",
+   "ucgen": 236,
+   "kapali": true
+  },
+  {
+   "no": 79,
+   "ada": "diger:siva [x 0.00 · y 6.26 · z 4.35]",
+   "ucgen": 108,
+   "kapali": true
+  },
+  {
+   "no": 80,
+   "ada": "diger:tabela [x 0.00 · y 4.72 · z 4.10]",
+   "ucgen": 108,
+   "kapali": true
+  },
+  {
+   "no": 81,
+   "ada": "diger:tas [x 0.00 · y 2.08 · z 0.00]",
+   "ucgen": 284,
+   "kapali": true
+  },
+  {
+   "no": 82,
+   "ada": "diger:tasAcik [x -2.90 · y 0.68 · z 4.10]",
+   "ucgen": 108,
+   "kapali": true
+  },
+  {
+   "no": 83,
+   "ada": "diger:tasAcik [x 2.90 · y 0.68 · z 4.10]",
+   "ucgen": 108,
+   "kapali": true
+  },
+  {
+   "no": 84,
+   "ada": "diger:tasAcik [x 0.00 · y 4.12 · z 0.00]",
+   "ucgen": 108,
+   "kapali": true
+  },
+  {
+   "no": 85,
+   "ada": "diger:tasAcik [x -2.90 · y 4.96 · z 4.30]",
+   "ucgen": 108,
+   "kapali": true
+  },
+  {
+   "no": 86,
+   "ada": "diger:tasAcik [x 2.90 · y 4.96 · z 4.30]",
+   "ucgen": 108,
+   "kapali": true
+  },
+  {
+   "no": 87,
+   "ada": "diger:tasAcik [x 0.00 · y 5.24 · z 4.40]",
+   "ucgen": 108,
+   "kapali": true
+  },
+  {
+   "no": 88,
+   "ada": "diger:tasAcik [x 0.00 · y 7.61 · z 0.00]",
+   "ucgen": 108,
+   "kapali": true
+  },
+  {
+   "no": 89,
+   "ada": "diger:tasAcik [x 0.00 · y 10.01 · z 0.00]",
+   "ucgen": 108,
+   "kapali": true
+  },
+  {
+   "no": 90,
+   "ada": "diger:tente [x 0.00 · y 0.20 · z 4.60]",
+   "ucgen": 28,
+   "kapali": true
+  },
+  {
+   "no": 91,
+   "ada": "diger:tente [x 0.00 · y 3.33 · z 5.60]",
+   "ucgen": 92,
+   "kapali": true
+  },
+  {
+   "no": 92,
+   "ada": "diger:tente [x 0.00 · y 3.80 · z 4.85]",
+   "ucgen": 92,
+   "kapali": true
+  }
+ ]
+}

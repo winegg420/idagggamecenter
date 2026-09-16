@@ -1,0 +1,121 @@
+{
+ "varlik": "zemin_deneme",
+ "istatistik": {
+  "ada": 16,
+  "kapali_ada": 0,
+  "havada": {
+   "ada": 16,
+   "zemine_bagli_kaynak": 16,
+   "bagli": 16,
+   "bagsiz_grup": 0
+  },
+  "simetri": "beyan yok (atlandı)",
+  "icice": {
+   "kapali_ada": 0,
+   "acik_ada": 16,
+   "pay_m": 0.01,
+   "gomulu_oran_esigi": 0.6
+  },
+  "sure_s": 0
+ },
+ "adaylar": [],
+ "susturulan": [],
+ "adaListesi": [
+  {
+   "no": 0,
+   "ada": "diger:asfalt [x 0.00 · y 0.00 · z 6.00]",
+   "ucgen": 80,
+   "kapali": false
+  },
+  {
+   "no": 1,
+   "ada": "diger:cerceve [x 8.50 · y 0.01 · z 6.00]",
+   "ucgen": 2,
+   "kapali": false
+  },
+  {
+   "no": 2,
+   "ada": "diger:cerceve [x 9.40 · y 0.01 · z 6.00]",
+   "ucgen": 2,
+   "kapali": false
+  },
+  {
+   "no": 3,
+   "ada": "diger:cerceve [x 10.30 · y 0.01 · z 6.00]",
+   "ucgen": 2,
+   "kapali": false
+  },
+  {
+   "no": 4,
+   "ada": "diger:cerceve [x 11.20 · y 0.01 · z 6.00]",
+   "ucgen": 2,
+   "kapali": false
+  },
+  {
+   "no": 5,
+   "ada": "diger:cerceve [x 12.10 · y 0.01 · z 6.00]",
+   "ucgen": 2,
+   "kapali": false
+  },
+  {
+   "no": 6,
+   "ada": "diger:cerceve [x 13.00 · y 0.01 · z 6.00]",
+   "ucgen": 2,
+   "kapali": false
+  },
+  {
+   "no": 7,
+   "ada": "diger:cerceve [x 13.90 · y 0.01 · z 6.00]",
+   "ucgen": 2,
+   "kapali": false
+  },
+  {
+   "no": 8,
+   "ada": "diger:cimAcik [x -30.00 · y 0.01 · z 12.50]",
+   "ucgen": 14,
+   "kapali": false
+  },
+  {
+   "no": 9,
+   "ada": "diger:cimAcik [x -22.00 · y 0.01 · z -3.00]",
+   "ucgen": 14,
+   "kapali": false
+  },
+  {
+   "no": 10,
+   "ada": "diger:cimAcik [x -9.00 · y 0.01 · z 13.50]",
+   "ucgen": 14,
+   "kapali": false
+  },
+  {
+   "no": 11,
+   "ada": "diger:cimAcik [x 16.00 · y 0.01 · z -4.00]",
+   "ucgen": 14,
+   "kapali": false
+  },
+  {
+   "no": 12,
+   "ada": "diger:cimAcik [x 27.00 · y 0.01 · z 14.00]",
+   "ucgen": 14,
+   "kapali": false
+  },
+  {
+   "no": 13,
+   "ada": "diger:cimAcik [x 34.00 · y 0.01 · z -2.50]",
+   "ucgen": 14,
+   "kapali": false
+  },
+  {
+   "no": 14,
+   "ada": "diger:kaldirim [x 0.00 · y -0.00 · z -19.00]",
+   "ucgen": 1680,
+   "kapali": false
+  },
+  {
+   "no": 15,
+   "ada": "diger:kaldirim [x 0.00 · y -0.00 · z 25.00]",
+   "ucgen": 1200,
+   "kapali": false
+  }
+ ]
+}

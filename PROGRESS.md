@@ -5303,3 +5303,23 @@ en küçük TR 761 (spor), EN 476 (tarih) — hiçbiri 300 altı değil. Sayfa s
   Eski "2,14 ↔ 2,8–3,2" farkının büyük kısmı ölçüm koşuluydu (aynı koşulda 1C de 2,7–2,8).
 - rAF toplam kare süresi ölçülmedi (gizli otomasyon sekmesi). HUD'a çift etiketli ms eklenmedi (kod kapsam dışı).
 - Rapor `bildim/harita/ASAMA_2_S0_OLCUM.md`. Ölçüm düzeneği `.tmp/olcum/` (git dışı).
+
+## Harita Yenileme — Aşama 1E: muayene altyapısı (16 Eyl 2026)
+- Adım 0: ölçüm düzeneği depoya (`bildim/harita/olcum/`: `hazirla.mjs` commit çıkar → üretim derlemesi → preview; `olcum.js`;
+  README zorunlu sabitler). HUD iki metrik etiketli: `CPU … ms` (sürekli, yalnız gönderim) · `CPU+GPU … ms (saat)` (düğmeyle,
+  120 ısınma + 300 kare medyan, gl.finish) · `GPU … ms` (EXT_disjoint_timer_query_webgl2). `window.__deneme.kareOlc()`.
+- Adım 1–3: `bildim/harita/muayene/` — `npm run muayene` (ya da `uret.mjs --muayene`): Node mekanik testler + vite + headless
+  Chrome (`playwright-core` devDep, kurulu Chrome, indirme yok) → varlık başına 6 ortografik + 3 yakın + 1 beauty PNG (git dışı)
+  + tek kontakt JPEG + `adaylar.json` (commit). Commit edilen çıktı 25 dosya / ~3 MB.
+- Testler: havada · simetri · icice · gomulu · kozmetik. "Ada" = konumla kaynaşan üçgen kümesi, etiket bölge:hücre + merkez.
+  Üstveri (`ustveri/*.json`) beyanları adayı susturur, susturulan ayrıca sayılır. Bulunan test hatası: gömülü testi yalnız köşe
+  örnekliyordu (tek bölümlü silindir "%100 gömülü") → köşe + üçgen merkezi + kenar ortası.
+- Tuzak: `skeleton.pose()` kök kemiğin ebeveyni ölçekli `Rig` düğümü olduğunda rig dönüşümünü ikinci kez uygular (karakter yatık,
+  100× büyük) → bağlama pozu kemik yerel TRS'si saklanıp geri yüklenerek kurulur.
+- Adım 4 sonucu (`bildim/harita/MUAYENE_RAPORU.md`): bilinen 7 hatadan mekanik 4/7, görsel 6/7, toplam 6/7 (şartlar ≥5 ve ≥2
+  karşılandı). Kapı kolu havada hatası mevcut GLB'de yeniden üretilemedi (kol kapıya 4 cm gömülü, 3/4 yandan bağlı görünüyor).
+  16 yeni bulgu: bank sırtlığı 7 cm havada (yüksek), bina cephe saksıları plakanın dışında havada, robot elleri 2 cm kopuk,
+  robot yüz ekranında beyaz çizgi izleri, bordür dokusu uzamış, robot bel/boyun halkaları gömülü, lamba/ağaç küçük kopukluklar.
+  Kozmetik testi en kötü oranda (4 gerçek / 15 aday) → genişletilmeyecek.
+- Görsel muayene gerçekten yapıldı: 12 kontakt sayfası + 8 görünüm tam çözünürlükte açıldı; kalan görünümler kontakt ölçeğinde.
+- **DUR NOKTASI:** hata düzeltme, karakter işi, CC0 çevre, İstiklal başlamadı.

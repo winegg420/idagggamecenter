@@ -1,0 +1,100 @@
+{
+ "varlik": "prop_agac_govde",
+ "istatistik": {
+  "ada": 4,
+  "kapali_ada": 4,
+  "havada": {
+   "ada": 4,
+   "zemine_bagli_kaynak": 2,
+   "bagli": 3,
+   "bagsiz_grup": 1
+  },
+  "simetri": "beyan yok (atlandı)",
+  "icice": {
+   "kapali_ada": 4,
+   "acik_ada": 0,
+   "pay_m": 0.01,
+   "gomulu_oran_esigi": 0.6
+  },
+  "sure_s": 0
+ },
+ "adaylar": [
+  {
+   "test": "havada",
+   "adalar": [
+    "diger:ahsap [x -0.30 · y 3.70 · z -0.20]"
+   ],
+   "olcu": {
+    "en_yakin_bagli_parca_m": 0.052
+   },
+   "not": "1 ada, 24 üçgen; bağlı parçaya en yakın mesafe"
+  }
+ ],
+ "susturulan": [
+  {
+   "test": "icice",
+   "adalar": [
+    "diger:ahsap [x -0.00 · y 0.17 · z -0.00]",
+    "diger:ahsap [x 0.00 · y 1.70 · z -0.00]"
+   ],
+   "olcu": {
+    "derinlik_m": 0.27,
+    "icteki_ornek": "19/110"
+   },
+   "not": "1. ada 2. adanın içine 27.0 cm giriyor",
+   "sebep": "dallar ve kök kaidesi gövdeye geçer"
+  },
+  {
+   "test": "icice",
+   "adalar": [
+    "diger:ahsap [x 0.00 · y 1.70 · z -0.00]",
+    "diger:ahsap [x 0.35 · y 3.60 · z 0.10]"
+   ],
+   "olcu": {
+    "derinlik_m": 0.045,
+    "icteki_ornek": "4/110"
+   },
+   "not": "1. ada 2. adanın içine 4.5 cm giriyor",
+   "sebep": "dallar ve kök kaidesi gövdeye geçer"
+  },
+  {
+   "test": "icice",
+   "adalar": [
+    "diger:ahsap [x 0.35 · y 3.60 · z 0.10]",
+    "diger:ahsap [x 0.00 · y 1.70 · z -0.00]"
+   ],
+   "olcu": {
+    "derinlik_m": 0.155,
+    "icteki_ornek": "22/74"
+   },
+   "not": "1. ada 2. adanın içine 15.5 cm giriyor",
+   "sebep": "dallar ve kök kaidesi gövdeye geçer"
+  }
+ ],
+ "adaListesi": [
+  {
+   "no": 0,
+   "ada": "diger:ahsap [x -0.00 · y 0.17 · z -0.00]",
+   "ucgen": 36,
+   "kapali": true
+  },
+  {
+   "no": 1,
+   "ada": "diger:ahsap [x 0.00 · y 1.70 · z -0.00]",
+   "ucgen": 36,
+   "kapali": true
+  },
+  {
+   "no": 2,
+   "ada": "diger:ahsap [x 0.35 · y 3.60 · z 0.10]",
+   "ucgen": 24,
+   "kapali": true
+  },
+  {
+   "no": 3,
+   "ada": "diger:ahsap [x -0.30 · y 3.70 · z -0.20]",
+   "ucgen": 24,
+   "kapali": true
+  }
+ ]
+}

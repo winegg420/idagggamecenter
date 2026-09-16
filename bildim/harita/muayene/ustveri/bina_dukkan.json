@@ -3,18 +3,18 @@
   "tip": "bina",
   "yakin": [
     {
-      "ad": "kapı",
+      "ad": "kapı 3/4 yandan (kol + kemer)",
       "hedef": [
-        0,
-        1.6,
-        4.3
+        0.2,
+        1.9,
+        4.2
       ],
       "yon": [
-        0.35,
-        0.08,
-        1
+        1.1,
+        0.1,
+        0.8
       ],
-      "mesafe": 4.6
+      "mesafe": 4.2
     },
     {
       "ad": "tabela",

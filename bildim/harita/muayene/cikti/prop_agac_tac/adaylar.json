@@ -1,0 +1,277 @@
+{
+ "varlik": "prop_agac_tac",
+ "istatistik": {
+  "ada": 5,
+  "kapali_ada": 5,
+  "havada": {
+   "ada": 5,
+   "zemine_bagli_kaynak": 1,
+   "bagli": 5,
+   "bagsiz_grup": 0
+  },
+  "simetri": "beyan yok (atlandı)",
+  "icice": {
+   "kapali_ada": 5,
+   "acik_ada": 0,
+   "pay_m": 0.01,
+   "gomulu_oran_esigi": 0.6
+  },
+  "sure_s": 0
+ },
+ "adaylar": [],
+ "susturulan": [
+  {
+   "test": "icice",
+   "adalar": [
+    "diger:cim [x 0.00 · y 4.60 · z -0.00]",
+    "diger:cim [x 0.10 · y 5.75 · z -0.20]"
+   ],
+   "olcu": {
+    "derinlik_m": 0.702,
+    "icteki_ornek": "59/362"
+   },
+   "not": "1. ada 2. adanın içine 70.2 cm giriyor",
+   "sebep": "çok loblu taç: loblar iç içe tek kütle (1C §6)"
+  },
+  {
+   "test": "icice",
+   "adalar": [
+    "diger:cim [x 0.00 · y 4.60 · z -0.00]",
+    "diger:cimAcik [x -0.20 · y 4.40 · z 0.95]"
+   ],
+   "olcu": {
+    "derinlik_m": 0.435,
+    "icteki_ornek": "34/362"
+   },
+   "not": "1. ada 2. adanın içine 43.5 cm giriyor",
+   "sebep": "çok loblu taç: loblar iç içe tek kütle (1C §6)"
+  },
+  {
+   "test": "icice",
+   "adalar": [
+    "diger:cim [x 0.00 · y 4.60 · z -0.00]",
+    "diger:cimAcik [x -0.80 · y 5.00 · z -0.35]"
+   ],
+   "olcu": {
+    "derinlik_m": 0.567,
+    "icteki_ornek": "46/362"
+   },
+   "not": "1. ada 2. adanın içine 56.7 cm giriyor",
+   "sebep": "çok loblu taç: loblar iç içe tek kütle (1C §6)"
+  },
+  {
+   "test": "icice",
+   "adalar": [
+    "diger:cim [x 0.00 · y 4.60 · z -0.00]",
+    "diger:cimAcik [x 0.75 · y 5.15 · z 0.40]"
+   ],
+   "olcu": {
+    "derinlik_m": 0.624,
+    "icteki_ornek": "58/362"
+   },
+   "not": "1. ada 2. adanın içine 62.4 cm giriyor",
+   "sebep": "çok loblu taç: loblar iç içe tek kütle (1C §6)"
+  },
+  {
+   "test": "icice",
+   "adalar": [
+    "diger:cim [x 0.10 · y 5.75 · z -0.20]",
+    "diger:cim [x 0.00 · y 4.60 · z -0.00]"
+   ],
+   "olcu": {
+    "derinlik_m": 0.792,
+    "icteki_ornek": "103/272"
+   },
+   "not": "1. ada 2. adanın içine 79.2 cm giriyor",
+   "sebep": "çok loblu taç: loblar iç içe tek kütle (1C §6)"
+  },
+  {
+   "test": "icice",
+   "adalar": [
+    "diger:cim [x 0.10 · y 5.75 · z -0.20]",
+    "diger:cimAcik [x -0.80 · y 5.00 · z -0.35]"
+   ],
+   "olcu": {
+    "derinlik_m": 0.458,
+    "icteki_ornek": "45/272"
+   },
+   "not": "1. ada 2. adanın içine 45.8 cm giriyor",
+   "sebep": "çok loblu taç: loblar iç içe tek kütle (1C §6)"
+  },
+  {
+   "test": "icice",
+   "adalar": [
+    "diger:cim [x 0.10 · y 5.75 · z -0.20]",
+    "diger:cimAcik [x 0.75 · y 5.15 · z 0.40]"
+   ],
+   "olcu": {
+    "derinlik_m": 0.627,
+    "icteki_ornek": "58/272"
+   },
+   "not": "1. ada 2. adanın içine 62.7 cm giriyor",
+   "sebep": "çok loblu taç: loblar iç içe tek kütle (1C §6)"
+  },
+  {
+   "test": "icice",
+   "adalar": [
+    "diger:cimAcik [x -0.20 · y 4.40 · z 0.95]",
+    "diger:cim [x 0.00 · y 4.60 · z -0.00]"
+   ],
+   "olcu": {
+    "derinlik_m": 0.923,
+    "icteki_ornek": "109/242"
+   },
+   "not": "1. ada 2. adanın içine 92.3 cm giriyor",
+   "sebep": "çok loblu taç: loblar iç içe tek kütle (1C §6)"
+  },
+  {
+   "test": "icice",
+   "adalar": [
+    "diger:cimAcik [x -0.20 · y 4.40 · z 0.95]",
+    "diger:cimAcik [x -0.80 · y 5.00 · z -0.35]"
+   ],
+   "olcu": {
+    "derinlik_m": 0.035,
+    "icteki_ornek": "4/242"
+   },
+   "not": "1. ada 2. adanın içine 3.5 cm giriyor",
+   "sebep": "çok loblu taç: loblar iç içe tek kütle (1C §6)"
+  },
+  {
+   "test": "icice",
+   "adalar": [
+    "diger:cimAcik [x -0.20 · y 4.40 · z 0.95]",
+    "diger:cimAcik [x 0.75 · y 5.15 · z 0.40]"
+   ],
+   "olcu": {
+    "derinlik_m": 0.326,
+    "icteki_ornek": "29/242"
+   },
+   "not": "1. ada 2. adanın içine 32.6 cm giriyor",
+   "sebep": "çok loblu taç: loblar iç içe tek kütle (1C §6)"
+  },
+  {
+   "test": "icice",
+   "adalar": [
+    "diger:cimAcik [x -0.80 · y 5.00 · z -0.35]",
+    "diger:cim [x 0.00 · y 4.60 · z -0.00]"
+   ],
+   "olcu": {
+    "derinlik_m": 1.06,
+    "icteki_ornek": "118/272"
+   },
+   "not": "1. ada 2. adanın içine 106.0 cm giriyor",
+   "sebep": "çok loblu taç: loblar iç içe tek kütle (1C §6)"
+  },
+  {
+   "test": "icice",
+   "adalar": [
+    "diger:cimAcik [x -0.80 · y 5.00 · z -0.35]",
+    "diger:cim [x 0.10 · y 5.75 · z -0.20]"
+   ],
+   "olcu": {
+    "derinlik_m": 0.449,
+    "icteki_ornek": "39/272"
+   },
+   "not": "1. ada 2. adanın içine 44.9 cm giriyor",
+   "sebep": "çok loblu taç: loblar iç içe tek kütle (1C §6)"
+  },
+  {
+   "test": "icice",
+   "adalar": [
+    "diger:cimAcik [x -0.80 · y 5.00 · z -0.35]",
+    "diger:cimAcik [x -0.20 · y 4.40 · z 0.95]"
+   ],
+   "olcu": {
+    "derinlik_m": 0.047,
+    "icteki_ornek": "2/272"
+   },
+   "not": "1. ada 2. adanın içine 4.7 cm giriyor",
+   "sebep": "çok loblu taç: loblar iç içe tek kütle (1C §6)"
+  },
+  {
+   "test": "icice",
+   "adalar": [
+    "diger:cimAcik [x -0.80 · y 5.00 · z -0.35]",
+    "diger:cimAcik [x 0.75 · y 5.15 · z 0.40]"
+   ],
+   "olcu": {
+    "derinlik_m": 0.041,
+    "icteki_ornek": "2/272"
+   },
+   "not": "1. ada 2. adanın içine 4.1 cm giriyor",
+   "sebep": "çok loblu taç: loblar iç içe tek kütle (1C §6)"
+  },
+  {
+   "test": "icice",
+   "adalar": [
+    "diger:cimAcik [x 0.75 · y 5.15 · z 0.40]",
+    "diger:cim [x 0.00 · y 4.60 · z -0.00]"
+   ],
+   "olcu": {
+    "derinlik_m": 1.023,
+    "icteki_ornek": "105/272"
+   },
+   "not": "1. ada 2. adanın içine 102.3 cm giriyor",
+   "sebep": "çok loblu taç: loblar iç içe tek kütle (1C §6)"
+  },
+  {
+   "test": "icice",
+   "adalar": [
+    "diger:cimAcik [x 0.75 · y 5.15 · z 0.40]",
+    "diger:cim [x 0.10 · y 5.75 · z -0.20]"
+   ],
+   "olcu": {
+    "derinlik_m": 0.656,
+    "icteki_ornek": "43/272"
+   },
+   "not": "1. ada 2. adanın içine 65.6 cm giriyor",
+   "sebep": "çok loblu taç: loblar iç içe tek kütle (1C §6)"
+  },
+  {
+   "test": "icice",
+   "adalar": [
+    "diger:cimAcik [x 0.75 · y 5.15 · z 0.40]",
+    "diger:cimAcik [x -0.20 · y 4.40 · z 0.95]"
+   ],
+   "olcu": {
+    "derinlik_m": 0.332,
+    "icteki_ornek": "21/272"
+   },
+   "not": "1. ada 2. adanın içine 33.2 cm giriyor",
+   "sebep": "çok loblu taç: loblar iç içe tek kütle (1C §6)"
+  }
+ ],
+ "adaListesi": [
+  {
+   "no": 0,
+   "ada": "diger:cim [x 0.00 · y 4.60 · z -0.00]",
+   "ucgen": 120,
+   "kapali": true
+  },
+  {
+   "no": 1,
+   "ada": "diger:cim [x 0.10 · y 5.75 · z -0.20]",
+   "ucgen": 90,
+   "kapali": true
+  },
+  {
+   "no": 2,
+   "ada": "diger:cimAcik [x -0.20 · y 4.40 · z 0.95]",
+   "ucgen": 80,
+   "kapali": true
+  },
+  {
+   "no": 3,
+   "ada": "diger:cimAcik [x -0.80 · y 5.00 · z -0.35]",
+   "ucgen": 90,
+   "kapali": true
+  },
+  {
+   "no": 4,
+   "ada": "diger:cimAcik [x 0.75 · y 5.15 · z 0.40]",
+   "ucgen": 90,
+   "kapali": true
+  }
+ ]
+}

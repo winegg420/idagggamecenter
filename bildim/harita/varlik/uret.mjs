@@ -751,3 +751,10 @@ if (red.length) { console.error("BÜTÇE AŞILDI — reddedildi:\n  " + red.join
 console.log(`bina_dukkan.glb ${((await glbYaz("bina_dukkan.glb", B.mesh)) / 1024).toFixed(0)} KB — ${oB.toplamUcgen} üçgen, ${oB.meshler[0].kose} köşe (${aoOzet(B.ao)})`);
 for (const p of Object.values(P)) await glbYaz(p.mesh.name + ".glb", p.mesh);
 console.log("atlas.png", fs.statSync(path.join(CIKTI, "atlas.png")).size, "bayt · süre", ((Date.now() - t0) / 1000).toFixed(1), "s");
+// Aşama 1E: render-ve-bak döngüsü — `node uret.mjs --muayene` üretimden sonra 12 varlığı muayeneden geçirir
+// (testler + görünümler + kontakt sayfası; bildim/harita/muayene/calistir.mjs). Geometri koduna etkisi yok.
+if (process.argv.includes("--muayene")) {
+  const { spawnSync } = await import("child_process");
+  const r = spawnSync(process.execPath, [path.join(BURASI, "../muayene/calistir.mjs")], { stdio: "inherit" });
+  if (r.status !== 0) process.exitCode = r.status ?? 1;
+}

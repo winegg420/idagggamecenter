@@ -1,0 +1,325 @@
+{
+ "varlik": "prop_kedi",
+ "istatistik": {
+  "ada": 13,
+  "kapali_ada": 12,
+  "havada": {
+   "ada": 13,
+   "zemine_bagli_kaynak": 4,
+   "bagli": 13,
+   "bagsiz_grup": 0
+  },
+  "simetri": {
+   "tolerans_m": 0.01,
+   "eksen_x": 0
+  },
+  "icice": {
+   "kapali_ada": 12,
+   "acik_ada": 1,
+   "pay_m": 0.01,
+   "gomulu_oran_esigi": 0.6
+  },
+  "sure_s": 0
+ },
+ "adaylar": [],
+ "susturulan": [
+  {
+   "test": "simetri",
+   "adalar": [
+    "diger:kedi [x 0.02 · y 0.34 · z -0.25]"
+   ],
+   "olcu": {
+    "eslesmeyen_kose_orani": 0.5,
+    "tolerans_m": 0.01
+   },
+   "not": "aynası (x → 0 − x) varlık yüzeyinde yok",
+   "sebep": "kuyruk bilerek yana kıvrık"
+  },
+  {
+   "test": "icice",
+   "adalar": [
+    "diger:kedi [x -0.05 · y 0.08 · z -0.10]",
+    "diger:kedi [x 0.00 · y 0.20 · z 0.00]"
+   ],
+   "olcu": {
+    "derinlik_m": 0.02,
+    "icteki_ornek": "19/74"
+   },
+   "not": "1. ada 2. adanın içine 2.0 cm giriyor",
+   "sebep": "gövde kapsülü, kafa, bacaklar, kulaklar ve kuyruk iç içe"
+  },
+  {
+   "test": "icice",
+   "adalar": [
+    "diger:kedi [x -0.05 · y 0.08 · z 0.10]",
+    "diger:kedi [x 0.00 · y 0.20 · z 0.00]"
+   ],
+   "olcu": {
+    "derinlik_m": 0.02,
+    "icteki_ornek": "19/74"
+   },
+   "not": "1. ada 2. adanın içine 2.0 cm giriyor",
+   "sebep": "gövde kapsülü, kafa, bacaklar, kulaklar ve kuyruk iç içe"
+  },
+  {
+   "test": "icice",
+   "adalar": [
+    "diger:kedi [x 0.05 · y 0.08 · z -0.10]",
+    "diger:kedi [x 0.00 · y 0.20 · z 0.00]"
+   ],
+   "olcu": {
+    "derinlik_m": 0.021,
+    "icteki_ornek": "16/74"
+   },
+   "not": "1. ada 2. adanın içine 2.1 cm giriyor",
+   "sebep": "gövde kapsülü, kafa, bacaklar, kulaklar ve kuyruk iç içe"
+  },
+  {
+   "test": "icice",
+   "adalar": [
+    "diger:kedi [x 0.05 · y 0.08 · z 0.10]",
+    "diger:kedi [x 0.00 · y 0.20 · z 0.00]"
+   ],
+   "olcu": {
+    "derinlik_m": 0.021,
+    "icteki_ornek": "16/74"
+   },
+   "not": "1. ada 2. adanın içine 2.1 cm giriyor",
+   "sebep": "gövde kapsülü, kafa, bacaklar, kulaklar ve kuyruk iç içe"
+  },
+  {
+   "test": "icice",
+   "adalar": [
+    "diger:kedi [x 0.00 · y 0.20 · z 0.00]",
+    "diger:kedi [x 0.00 · y 0.27 · z 0.17]"
+   ],
+   "olcu": {
+    "derinlik_m": 0.048,
+    "icteki_ornek": "61/346"
+   },
+   "not": "1. ada 2. adanın içine 4.8 cm giriyor",
+   "sebep": "gövde kapsülü, kafa, bacaklar, kulaklar ve kuyruk iç içe"
+  },
+  {
+   "test": "icice",
+   "adalar": [
+    "diger:kedi [x 0.00 · y 0.27 · z 0.17]",
+    "diger:kedi [x 0.00 · y 0.20 · z 0.00]"
+   ],
+   "olcu": {
+    "derinlik_m": 0.049,
+    "icteki_ornek": "70/422"
+   },
+   "not": "1. ada 2. adanın içine 4.9 cm giriyor",
+   "sebep": "gövde kapsülü, kafa, bacaklar, kulaklar ve kuyruk iç içe"
+  },
+  {
+   "test": "icice",
+   "adalar": [
+    "diger:kedi [x 0.00 · y 0.27 · z 0.17]",
+    "diger:kedi [x -0.04 · y 0.32 · z 0.15]"
+   ],
+   "olcu": {
+    "derinlik_m": 0.013,
+    "icteki_ornek": "7/422"
+   },
+   "not": "1. ada 2. adanın içine 1.3 cm giriyor",
+   "sebep": "gövde kapsülü, kafa, bacaklar, kulaklar ve kuyruk iç içe"
+  },
+  {
+   "test": "icice",
+   "adalar": [
+    "diger:kedi [x 0.00 · y 0.27 · z 0.17]",
+    "diger:kurkKarin [x 0.00 · y 0.24 · z 0.25]"
+   ],
+   "olcu": {
+    "derinlik_m": 0.013,
+    "icteki_ornek": "8/422"
+   },
+   "not": "1. ada 2. adanın içine 1.3 cm giriyor",
+   "sebep": "ağız yaması kafaya gömülü"
+  },
+  {
+   "test": "icice",
+   "adalar": [
+    "diger:kedi [x -0.04 · y 0.32 · z 0.15]",
+    "diger:kedi [x 0.00 · y 0.27 · z 0.17]"
+   ],
+   "olcu": {
+    "derinlik_m": 0.025,
+    "icteki_ornek": "24/32"
+   },
+   "not": "1. ada 2. adanın içine 2.5 cm giriyor",
+   "sebep": "gövde kapsülü, kafa, bacaklar, kulaklar ve kuyruk iç içe"
+  },
+  {
+   "test": "gomulu",
+   "adalar": [
+    "diger:kedi [x -0.04 · y 0.32 · z 0.15]"
+   ],
+   "olcu": {
+    "gomulu_yuzey_orani": 0.75,
+    "izinsiz_kaplayicilarla": 0
+   },
+   "not": "yüzey örneklerinin %75'i başka parçaların içinde — görünmeyebilir",
+   "sebep": "kaplayan parçaların tümü izinli_ortusme kuralında"
+  },
+  {
+   "test": "icice",
+   "adalar": [
+    "diger:kedi [x 0.04 · y 0.32 · z 0.15]",
+    "diger:kedi [x 0.00 · y 0.27 · z 0.17]"
+   ],
+   "olcu": {
+    "derinlik_m": 0.025,
+    "icteki_ornek": "24/32"
+   },
+   "not": "1. ada 2. adanın içine 2.5 cm giriyor",
+   "sebep": "gövde kapsülü, kafa, bacaklar, kulaklar ve kuyruk iç içe"
+  },
+  {
+   "test": "gomulu",
+   "adalar": [
+    "diger:kedi [x 0.04 · y 0.32 · z 0.15]"
+   ],
+   "olcu": {
+    "gomulu_yuzey_orani": 0.75,
+    "izinsiz_kaplayicilarla": 0
+   },
+   "not": "yüzey örneklerinin %75'i başka parçaların içinde — görünmeyebilir",
+   "sebep": "kaplayan parçaların tümü izinli_ortusme kuralında"
+  },
+  {
+   "test": "icice",
+   "adalar": [
+    "diger:kedi [x 0.02 · y 0.34 · z -0.25]",
+    "diger:kedi [x 0.00 · y 0.20 · z 0.00]"
+   ],
+   "olcu": {
+    "derinlik_m": 0.012,
+    "icteki_ornek": "12/300"
+   },
+   "not": "1. ada 2. adanın içine 1.2 cm giriyor",
+   "sebep": "gövde kapsülü, kafa, bacaklar, kulaklar ve kuyruk iç içe"
+  },
+  {
+   "test": "icice",
+   "adalar": [
+    "diger:kediGoz [x -0.03 · y 0.29 · z 0.24]",
+    "diger:kedi [x 0.00 · y 0.27 · z 0.17]"
+   ],
+   "olcu": {
+    "derinlik_m": 0.016,
+    "icteki_ornek": "86/146"
+   },
+   "not": "1. ada 2. adanın içine 1.6 cm giriyor",
+   "sebep": "gözler kafaya gömülü"
+  },
+  {
+   "test": "icice",
+   "adalar": [
+    "diger:kediGoz [x 0.03 · y 0.29 · z 0.24]",
+    "diger:kedi [x 0.00 · y 0.27 · z 0.17]"
+   ],
+   "olcu": {
+    "derinlik_m": 0.016,
+    "icteki_ornek": "87/146"
+   },
+   "not": "1. ada 2. adanın içine 1.6 cm giriyor",
+   "sebep": "gözler kafaya gömülü"
+  },
+  {
+   "test": "icice",
+   "adalar": [
+    "diger:kurkKarin [x 0.00 · y 0.24 · z 0.25]",
+    "diger:kedi [x 0.00 · y 0.27 · z 0.17]"
+   ],
+   "olcu": {
+    "derinlik_m": 0.014,
+    "icteki_ornek": "43/146"
+   },
+   "not": "1. ada 2. adanın içine 1.4 cm giriyor",
+   "sebep": "ağız yaması kafaya gömülü"
+  }
+ ],
+ "adaListesi": [
+  {
+   "no": 0,
+   "ada": "diger:gozBebek [x 0.00 · y 0.25 · z 0.27]",
+   "ucgen": 30,
+   "kapali": true
+  },
+  {
+   "no": 1,
+   "ada": "diger:kedi [x -0.05 · y 0.08 · z -0.10]",
+   "ucgen": 24,
+   "kapali": true
+  },
+  {
+   "no": 2,
+   "ada": "diger:kedi [x -0.05 · y 0.08 · z 0.10]",
+   "ucgen": 24,
+   "kapali": true
+  },
+  {
+   "no": 3,
+   "ada": "diger:kedi [x 0.05 · y 0.08 · z -0.10]",
+   "ucgen": 24,
+   "kapali": true
+  },
+  {
+   "no": 4,
+   "ada": "diger:kedi [x 0.05 · y 0.08 · z 0.10]",
+   "ucgen": 24,
+   "kapali": true
+  },
+  {
+   "no": 5,
+   "ada": "diger:kedi [x 0.00 · y 0.20 · z 0.00]",
+   "ucgen": 126,
+   "kapali": true
+  },
+  {
+   "no": 6,
+   "ada": "diger:kedi [x 0.00 · y 0.27 · z 0.17]",
+   "ucgen": 140,
+   "kapali": true
+  },
+  {
+   "no": 7,
+   "ada": "diger:kedi [x -0.04 · y 0.32 · z 0.15]",
+   "ucgen": 10,
+   "kapali": true
+  },
+  {
+   "no": 8,
+   "ada": "diger:kedi [x 0.04 · y 0.32 · z 0.15]",
+   "ucgen": 10,
+   "kapali": true
+  },
+  {
+   "no": 9,
+   "ada": "diger:kedi [x 0.02 · y 0.34 · z -0.25]",
+   "ucgen": 96,
+   "kapali": false
+  },
+  {
+   "no": 10,
+   "ada": "diger:kediGoz [x -0.03 · y 0.29 · z 0.24]",
+   "ucgen": 48,
+   "kapali": true
+  },
+  {
+   "no": 11,
+   "ada": "diger:kediGoz [x 0.03 · y 0.29 · z 0.24]",
+   "ucgen": 48,
+   "kapali": true
+  },
+  {
+   "no": 12,
+   "ada": "diger:kurkKarin [x 0.00 · y 0.24 · z 0.25]",
+   "ucgen": 48,
+   "kapali": true
+  }
+ ]
+}

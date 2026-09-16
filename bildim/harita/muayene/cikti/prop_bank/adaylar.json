@@ -1,0 +1,89 @@
+{
+ "varlik": "prop_bank",
+ "istatistik": {
+  "ada": 8,
+  "kapali_ada": 4,
+  "havada": {
+   "ada": 8,
+   "zemine_bagli_kaynak": 2,
+   "bagli": 5,
+   "bagsiz_grup": 1
+  },
+  "simetri": {
+   "tolerans_m": 0.01,
+   "eksen_x": 0
+  },
+  "icice": {
+   "kapali_ada": 4,
+   "acik_ada": 4,
+   "pay_m": 0.01,
+   "gomulu_oran_esigi": 0.6
+  },
+  "sure_s": 0
+ },
+ "adaylar": [
+  {
+   "test": "havada",
+   "adalar": [
+    "diger:ahsapAcik [x 0.00 · y 0.80 · z -0.27]",
+    "diger:demir [x -0.80 · y 0.68 · z -0.30]",
+    "diger:demir [x 0.80 · y 0.68 · z -0.30]"
+   ],
+   "olcu": {
+    "en_yakin_bagli_parca_m": 0.0731
+   },
+   "not": "3 ada, 92 üçgen; bağlı parçaya en yakın mesafe"
+  }
+ ],
+ "susturulan": [],
+ "adaListesi": [
+  {
+   "no": 0,
+   "ada": "diger:ahsapAcik [x 0.00 · y 0.45 · z -0.16]",
+   "ucgen": 68,
+   "kapali": false
+  },
+  {
+   "no": 1,
+   "ada": "diger:ahsapAcik [x 0.00 · y 0.45 · z 0.00]",
+   "ucgen": 68,
+   "kapali": false
+  },
+  {
+   "no": 2,
+   "ada": "diger:ahsapAcik [x 0.00 · y 0.45 · z 0.16]",
+   "ucgen": 68,
+   "kapali": false
+  },
+  {
+   "no": 3,
+   "ada": "diger:ahsapAcik [x 0.00 · y 0.80 · z -0.27]",
+   "ucgen": 68,
+   "kapali": false
+  },
+  {
+   "no": 4,
+   "ada": "diger:demir [x -0.80 · y 0.22 · z 0.00]",
+   "ucgen": 12,
+   "kapali": true
+  },
+  {
+   "no": 5,
+   "ada": "diger:demir [x 0.80 · y 0.22 · z 0.00]",
+   "ucgen": 12,
+   "kapali": true
+  },
+  {
+   "no": 6,
+   "ada": "diger:demir [x -0.80 · y 0.68 · z -0.30]",
+   "ucgen": 12,
+   "kapali": true
+  },
+  {
+   "no": 7,
+   "ada": "diger:demir [x 0.80 · y 0.68 · z -0.30]",
+   "ucgen": 12,
+   "kapali": true
+  }
+ ]
+}

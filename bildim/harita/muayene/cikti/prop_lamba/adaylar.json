@@ -1,0 +1,103 @@
+{
+ "varlik": "prop_lamba",
+ "istatistik": {
+  "ada": 7,
+  "kapali_ada": 3,
+  "havada": {
+   "ada": 7,
+   "zemine_bagli_kaynak": 1,
+   "bagli": 4,
+   "bagsiz_grup": 2
+  },
+  "simetri": "beyan yok (atlandı)",
+  "icice": {
+   "kapali_ada": 3,
+   "acik_ada": 4,
+   "pay_m": 0.01,
+   "gomulu_oran_esigi": 0.6
+  },
+  "sure_s": 0
+ },
+ "adaylar": [
+  {
+   "test": "havada",
+   "adalar": [
+    "diger:altin [x 0.42 · y 4.45 · z 0.00]",
+    "diger:demir [x 0.42 · y 4.21 · z -0.00]"
+   ],
+   "olcu": {
+    "en_yakin_bagli_parca_m": 0.0322
+   },
+   "not": "2 ada, 28 üçgen; bağlı parçaya en yakın mesafe"
+  },
+  {
+   "test": "havada",
+   "adalar": [
+    "diger:demir [x 0.00 · y 0.55 · z 0.00]"
+   ],
+   "olcu": {
+    "en_yakin_bagli_parca_m": 0.0103
+   },
+   "not": "1 ada, 16 üçgen; bağlı parçaya en yakın mesafe"
+  }
+ ],
+ "susturulan": [
+  {
+   "test": "icice",
+   "adalar": [
+    "diger:demir [x 0.20 · y 4.15 · z 0.00]",
+    "diger:lamba [x 0.42 · y 4.05 · z 0.00]"
+   ],
+   "olcu": {
+    "derinlik_m": 0.03,
+    "icteki_ornek": "5/40"
+   },
+   "not": "1. ada 2. adanın içine 3.0 cm giriyor",
+   "sebep": "kaide/direk/kol/fener geçme montaj"
+  }
+ ],
+ "adaListesi": [
+  {
+   "no": 0,
+   "ada": "diger:altin [x 0.42 · y 4.45 · z 0.00]",
+   "ucgen": 20,
+   "kapali": true
+  },
+  {
+   "no": 1,
+   "ada": "diger:demir [x 0.00 · y 0.25 · z -0.00]",
+   "ucgen": 32,
+   "kapali": true
+  },
+  {
+   "no": 2,
+   "ada": "diger:demir [x 0.00 · y 0.55 · z 0.00]",
+   "ucgen": 16,
+   "kapali": false
+  },
+  {
+   "no": 3,
+   "ada": "diger:demir [x 0.00 · y 2.30 · z 0.00]",
+   "ucgen": 14,
+   "kapali": false
+  },
+  {
+   "no": 4,
+   "ada": "diger:demir [x 0.20 · y 4.15 · z 0.00]",
+   "ucgen": 10,
+   "kapali": false
+  },
+  {
+   "no": 5,
+   "ada": "diger:demir [x 0.42 · y 4.21 · z -0.00]",
+   "ucgen": 8,
+   "kapali": false
+  },
+  {
+   "no": 6,
+   "ada": "diger:lamba [x 0.42 · y 4.05 · z 0.00]",
+   "ucgen": 120,
+   "kapali": true
+  }
+ ]
+}

@@ -1,0 +1,40 @@
+{
+ "varlik": "bordur",
+ "istatistik": {
+  "ada": 2,
+  "kapali_ada": 2,
+  "havada": {
+   "ada": 2,
+   "zemine_bagli_kaynak": 2,
+   "bagli": 2,
+   "bagsiz_grup": 0
+  },
+  "simetri": {
+   "tolerans_m": 0.01,
+   "eksen_x": 0
+  },
+  "icice": {
+   "kapali_ada": 2,
+   "acik_ada": 0,
+   "pay_m": 0.01,
+   "gomulu_oran_esigi": 0.6
+  },
+  "sure_s": 0
+ },
+ "adaylar": [],
+ "susturulan": [],
+ "adaListesi": [
+  {
+   "no": 0,
+   "ada": "diger:tasAcik [x 0.00 · y 0.08 · z 2.00]",
+   "ucgen": 324,
+   "kapali": true
+  },
+  {
+   "no": 1,
+   "ada": "diger:tasAcik [x 0.00 · y 0.08 · z 10.00]",
+   "ucgen": 324,
+   "kapali": true
+  }
+ ]
+}
