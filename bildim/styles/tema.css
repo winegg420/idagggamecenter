@@ -6273,3 +6273,7 @@ body.bd-ekle-acik .app { padding-bottom: calc(300px + env(safe-area-inset-bottom
 @media (prefers-reduced-transparency: reduce) {
   .bd-duello.son-can::before { background: rgba(22, 30, 52, .22); }
 }
+
+/* Maç sonu sesli sohbet geri sayımı (Paket 14, 5.1) */
+.bd-ses-geri-sayim { display: flex; align-items: center; justify-content: center; gap: 8px; flex-wrap: wrap; margin: 6px 0; font-size: 13px; font-weight: 800; color: var(--bd-metin); }
+.bd-ses-yuva:empty { display: none; }

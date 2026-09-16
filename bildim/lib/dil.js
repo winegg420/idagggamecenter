@@ -275,6 +275,10 @@ const SOZLUK = {
     "Düello bulunamadı": "Duel not found",
     "Bu düelloda değilsin": "You're not in this duel",
     "Bir şeyler ters gitti. Tekrar dener misin?": "Something went wrong. Could you try again?",
+
+    // Maç sonu sesli sohbet (5.1)
+    "Sesli sohbet {sn} sn sonra kapanacak": "Voice chat closes in {sn} s",
+    "Şimdi kapat": "Close now",
   },
 };
 

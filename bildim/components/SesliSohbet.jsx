@@ -1,4 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
+import { useDil } from "../lib/dilKanca.js";
 import { supabase } from "../../src/lib/supabase.js";
 import Ikon from "./Ikon.jsx";
 import {
@@ -30,7 +32,18 @@ const DURUMLAR = {
   BAGLI: "bagli",
 };
 
-export default function SesliSohbet({ macId, benimId }) {
+/**
+ * @param {object} o
+ * @param {string} o.macId
+ * @param {string} o.benimId
+ * @param {HTMLElement|null} [o.yuva]  arayüzün çizileceği yer (verilmezse yerinde çizilir)
+ * @param {boolean} [o.macBitti]       maç bitti mi — bitince görüşme mac_sonu_sesli_sn kadar sürer
+ */
+export default function SesliSohbet({ macId, benimId, yuva, macBitti = false }) {
+  const { ceviri } = useDil();
+  // Maç bitince kapanma anı (istemci saati, ms). Sunucudan kalan saniyeyle kurulur.
+  const [kapanisAn, setKapanisAn] = useState(null);
+  const [simdi, setSimdi] = useState(Date.now());
   const [izin, setIzin] = useState(null); // sunucudan: { izinli, neden, rakip_id }
   const [rakipBurada, setRakipBurada] = useState(false);
   const [durum, setDurum] = useState(DURUMLAR.KAPALI);
@@ -148,6 +161,45 @@ export default function SesliSohbet({ macId, benimId }) {
     [kapat, yayinla]
   );
 
+  // ---- Maç bitti: sunucudan kalan süreyi al, geri say, süre dolunca kapat ----
+  useEffect(() => {
+    if (!macBitti) return undefined;
+    let iptal = false;
+    (async () => {
+      try {
+        const { data, error } = await supabase.rpc("sesli_sohbet_izni", { p_match_id: macId });
+        if (error) throw error;
+        const s = Array.isArray(data) ? data[0] : data;
+        if (iptal) return;
+        if (!s?.izinli) { setKapanisAn(Date.now()); return; }
+        setKapanisAn(Date.now() + Math.max(0, Number(s.kapanis_sn ?? 0)) * 1000);
+      } catch (e) {
+        console.error("[Bildim] mac sonu sesli sohbet suresi alinamadi:", e);
+        if (!iptal) setKapanisAn(Date.now());
+      }
+    })();
+    return () => { iptal = true; };
+  }, [macBitti, macId]);
+
+  useEffect(() => {
+    if (!kapanisAn) return undefined;
+    const t = setInterval(() => setSimdi(Date.now()), 500);
+    return () => clearInterval(t);
+  }, [kapanisAn]);
+
+  const kalanSn = kapanisAn ? Math.max(0, Math.ceil((kapanisAn - simdi) / 1000)) : null;
+  useEffect(() => {
+    if (kalanSn !== 0) return;
+    // Süre doldu: görüşmeyi kapat, karşı tarafa bildir, düğmeyi gizle
+    try {
+      kanalRef.current?.send({ type: "broadcast", event: "ses", payload: { tur: "kapat", veri: null, kimden: benimId } });
+    } catch {
+      /* kanal kopmuş olabilir */
+    }
+    kapat();
+    setIzin(null);
+  }, [kalanSn, kapat, benimId]);
+
   // ---- Realtime: varlık (rakip burada mı) + sinyalleşme ----
   useEffect(() => {
     if (!izin?.izinli) return undefined;
@@ -250,10 +302,18 @@ export default function SesliSohbet({ macId, benimId }) {
     kapat();
   };
 
-  return (
+  const arayuz = (
     <div className="bd-ses">
-      {/* Karşı tarafın sesi. Görünmez; kontroller aşağıda. */}
-      <audio ref={sesElemaniRef} autoPlay playsInline />
+      {macBitti && kalanSn !== null && kalanSn > 0 && (
+        <div className="bd-ses-geri-sayim" role="timer">
+          <span>{ceviri("Sesli sohbet {sn} sn sonra kapanacak", { sn: kalanSn })}</span>
+          {durum !== DURUMLAR.KAPALI && (
+            <button className="bd-ses-kucuk tehlike" onClick={() => { bitir(); setIzin(null); }}>
+              {ceviri("Şimdi kapat")}
+            </button>
+          )}
+        </div>
+      )}
 
       {durum === DURUMLAR.KAPALI && (
         <>
@@ -347,5 +407,13 @@ export default function SesliSohbet({ macId, benimId }) {
         </div>
       )}
     </div>
+  );
+
+  return (
+    <>
+      {/* Karşı tarafın sesi: ekran dalı değişse de SÖKÜLMEZ (görüşme sürer) */}
+      <audio ref={sesElemaniRef} autoPlay playsInline />
+      {yuva === undefined ? arayuz : yuva ? createPortal(arayuz, yuva) : null}
+    </>
   );
 }
