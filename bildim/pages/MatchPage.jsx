@@ -1029,7 +1029,14 @@ export default function MatchPage() {
             //
             // Soruyu çeken effect de `kendiIndeks`e bağlı; key onunla aynı
             // kaynağa bakar.
-            key={`${mac.id}-${kendiIndeks}-${duraklamaTuru}`}
+            // KEY GÖSTERİLEN SORUYA BAĞLI (Paket 14, 5.2 — ölçüldü): eskiden
+            // `kendiIndeks`e bağlıydı. Rakip önce cevaplamışsa bizim cevabımız
+            // sunucuda soruyu anında ilerletiyor, Realtime ~300-500 ms'de indeksi
+            // değiştiriyor ve kart ESKİ soruyla yeniden bindiriliyordu: seçim ve
+            // doğru cevap işareti siliniyor, yeni soru 1 sn sonra geldiği için
+            // ekran işaretsiz/donmuş görünüyordu. Yeni soru geri bildirim
+            // penceresi (GB_MS) dolunca çekiliyor; kart da ancak o zaman değişir.
+            key={`${mac.id}-${soru.soru_index ?? kendiIndeks}-${duraklamaTuru}`}
             soru={soru}
             onCevapla={cevapla}
             onSureDoldu={sureDoldu}

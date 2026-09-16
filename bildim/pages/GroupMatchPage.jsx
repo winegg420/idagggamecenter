@@ -17,6 +17,7 @@ import { useGorunurlukTazele, zamanAsimiyla } from "../lib/gorunurluk.js";
 import { useMacNabiz } from "../lib/nabiz.js";
 import { HazirKapisi, KopukPerde } from "../components/MacHazirlik.jsx";
 import { useDil } from "../lib/dilKanca.js";
+import { GB_MS } from "../lib/geriBildirim.js";
 
 const GRUP_SECIMI = `*,
   katilimcilar:group_match_players(group_match_id, user_id, davet_durumu, skor, joined_at, hazir, terk_at,
@@ -47,6 +48,8 @@ export default function GroupMatchPage() {
   const [mac, setMac] = useState(null);
   const [yuklemeHatasi, setYuklemeHatasi] = useState(null);
   const [soru, setSoru] = useState(null);
+  // Kendi son cevabımızın zamanı (geri bildirim penceresi için)
+  const cevapZamaniRef = useRef(0);
   const [cevapladim, setCevapladim] = useState(false);
   const [jokerKullanildi, setJokerKullanildi] = useState({ elli: false, sure: false });
   const [jokerHata, setJokerHata] = useState(null);
@@ -219,15 +222,26 @@ export default function GroupMatchPage() {
       setSoru(null);
       return;
     }
-    advanceKilidi.current = false;
-    bekleyenIlerletme.current = false;
-    setCevapladim(false);
-    if (pollRef.current) clearInterval(pollRef.current);
-    supabase
-      .rpc("get_group_match_question", { p_group_match_id: mac.id })
-      .then(({ data, error }) => {
-        if (!error && data?.[0]) setSoru(data[0]);
-      });
+    // Son cevaplayanın geri bildirimi (doğru şık) GB_MS boyunca kalsın: herkes
+    // cevaplayınca sunucu soruyu anında ilerletiyor, yeni soru hemen basılınca
+    // işaret ~300 ms'de siliniyordu (Paket 14, 5.2).
+    const bekle = Math.max(0, GB_MS - (Date.now() - cevapZamaniRef.current));
+    let iptal = false;
+    const zamanlayici = setTimeout(() => {
+      if (iptal) return;
+      advanceKilidi.current = false;
+      bekleyenIlerletme.current = false;
+      setCevapladim(false);
+      if (pollRef.current) clearInterval(pollRef.current);
+      supabase
+        .rpc("get_group_match_question", { p_group_match_id: mac.id })
+        .then(({ data, error }) => {
+          if (iptal) return;
+          if (error) { console.error("[Bildim] grup sorusu alinamadi:", error); return; }
+          if (data?.[0]) setSoru(data[0]);
+        });
+    }, bekle);
+    return () => { iptal = true; clearTimeout(zamanlayici); };
   }, [mac?.id, mac?.durum, mac?.aktif_soru, mac?.soru_baslangic, mac?.basladi, mac?.duraklatildi_at]);
 
   // ---- NABIZ ----
@@ -288,6 +302,7 @@ export default function GroupMatchPage() {
       p_cevap: i,
     });
     if (error) throw error;
+    cevapZamaniRef.current = Date.now();
     setCevapladim(true);
     if (pollRef.current) clearInterval(pollRef.current);
     pollRef.current = setInterval(ilerletmeyiDene, 2500);
@@ -556,7 +571,9 @@ export default function GroupMatchPage() {
 
       {soru && (
         <QuestionCard
-          key={`${mac.id}-${mac.aktif_soru}`}
+          // Key gösterilen soruya bağlı: aktif_soru ilerleyince kart eski soruyla
+          // yeniden bindirilip geri bildirim silinmesin (Paket 14, 5.2).
+          key={`${mac.id}-${soru.soru_index ?? mac.aktif_soru}`}
           soru={soru}
           onCevapla={cevapla}
           onSureDoldu={sureDoldu}

@@ -18,12 +18,15 @@ import AvatarCerceve from "../components/AvatarCerceve.jsx";
 import { useNavigate } from "react-router-dom";
 import { y } from "../lib/yol.js";
 import { useGorunurlukTazele, zamanAsimiyla } from "../lib/gorunurluk.js";
+import { GB_MS } from "../lib/geriBildirim.js";
 
 export default function TournamentPage() {
   const { user, refreshProfile } = useAuth();
   const [turnuva, setTurnuva] = useState(null);
   const [oyuncular, setOyuncular] = useState([]);
   const [soru, setSoru] = useState(null);
+  // Kendi son cevabımızın zamanı (geri bildirim penceresi için)
+  const cevapZamaniRef = useRef(0);
   const [yukleniyor, setYukleniyor] = useState(true);
   const [hata, setHata] = useState(null);
   // Lobide bir oyuncuya dokununca açılan kart
@@ -179,13 +182,22 @@ export default function TournamentPage() {
       setSoru(null);
       return;
     }
-    advanceKilidi.current = false;
-    bekleyenIlerletme.current = false;
-    supabase
-      .rpc("get_tournament_question", { p_tournament_id: turnuva.id })
-      .then(({ data, error }) => {
-        if (!error && data?.[0]) setSoru(data[0]);
-      });
+    // Son cevaplayanın geri bildirimi GB_MS kalsın (Paket 14, 5.2 — grup maçıyla aynı hata)
+    const bekle = Math.max(0, GB_MS - (Date.now() - cevapZamaniRef.current));
+    let iptal = false;
+    const zamanlayici = setTimeout(() => {
+      if (iptal) return;
+      advanceKilidi.current = false;
+      bekleyenIlerletme.current = false;
+      supabase
+        .rpc("get_tournament_question", { p_tournament_id: turnuva.id })
+        .then(({ data, error }) => {
+          if (iptal) return;
+          if (error) { console.error("[Bildim] turnuva sorusu alinamadi:", error); return; }
+          if (data?.[0]) setSoru(data[0]);
+        });
+    }, bekle);
+    return () => { iptal = true; clearTimeout(zamanlayici); };
   }, [turnuva?.id, turnuva?.durum, turnuva?.aktif_soru]);
 
   // Turnuva bitince puanlar değişmiş olabilir
@@ -202,6 +214,7 @@ export default function TournamentPage() {
       p_cevap: i,
     });
     if (error) throw error;
+    cevapZamaniRef.current = Date.now();
     return data?.[0];
   };
 
@@ -400,7 +413,8 @@ export default function TournamentPage() {
 
       {soru && !elendim && !izleyiciyim ? (
         <QuestionCard
-          key={`${turnuva.id}-${turnuva.aktif_soru}`}
+          // Key gösterilen soruya bağlı (Paket 14, 5.2)
+          key={`${turnuva.id}-${soru.soru_index ?? turnuva.aktif_soru}`}
           className={soru.altin ? "bd-altin-soru" : ""}
           soru={soru}
           onCevapla={cevapla}
