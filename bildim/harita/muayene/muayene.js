@@ -32,20 +32,20 @@ gunes.castShadow = true; gunes.shadow.mapSize.set(2048, 2048); gunes.shadow.radi
 sahne.add(gunes, gunes.target);
 
 // ---- tek malzeme cilası (DenemeSayfasi.jsx › cilala kopyası) ----
-const PURUZ_TABLO = [0.55, 0.65, 0.65, 0.65, 1.0, 0.95, 0.45, 0.9, 0.95, 0.9, 0.35, 0.5, 0.2, 0.3, 0.3, 0.6, 0.15, 0.82, 0.9, 0.6, 0.85, 0.6];
+const PURUZ_TABLO = [0.55, 0.65, 0.65, 0.65, 1.0, 0.95, 0.45, 0.9, 0.95, 0.9, 0.35, 0.5, 0.2, 0.3, 0.3, 0.6, 0.15, 0.82, 0.9, 0.6, 0.85, 0.6, 0.9, 0.35];
 const TEN_TEMEL = new THREE.Color("#F2C9A7");
 function cilala(m) {
   if (!m || m.userData.cilali) return;
   m.userData.cilali = true; m.envMapIntensity = 0.35; m.vertexColors = true;
-  m.customProgramCacheKey = () => "atlas-bolge-v2";
+  m.customProgramCacheKey = () => "atlas-bolge-v3";
   m.onBeforeCompile = (s) => {
     s.vertexShader = s.vertexShader.replace("#include <common>", "#include <common>\nattribute float _bolge;\nvarying float vBolge;").replace("#include <begin_vertex>", "#include <begin_vertex>\nvBolge = _bolge;");
     s.fragmentShader = s.fragmentShader
       .replace("#include <common>", `#include <common>
 varying float vBolge;
-const float PURUZ[22] = float[22](${PURUZ_TABLO.map((v) => v.toFixed(2)).join(", ")});
+const float PURUZ[24] = float[24](${PURUZ_TABLO.map((v) => v.toFixed(2)).join(", ")});
 const vec3 TEN_TEMEL = vec3(${TEN_TEMEL.r.toFixed(4)}, ${TEN_TEMEL.g.toFixed(4)}, ${TEN_TEMEL.b.toFixed(4)});
-float bolgePuruz(float b) { int i = int(clamp(b + 0.5, 0.0, 21.0)); return PURUZ[i]; }`)
+float bolgePuruz(float b) { int i = int(clamp(b + 0.5, 0.0, 23.0)); return PURUZ[i]; }`)
       .replace("#include <color_fragment>", `
 #if defined( USE_COLOR_ALPHA )
   vec3 tonK = vColor.rgb;
@@ -184,8 +184,23 @@ function gorunumListesi(u) {
   return liste;
 }
 
+/** İfade (1G): göz/ağız yamalarının UV'sini ifade karesine kaydır — DenemeSayfasi ifadeAyarla ile aynı eşleme. */
+function ifadeUygula(gozAd = "acik", agizAd = "notr") {
+  const mesh = durum.govde; if (!mesh?.userData?.ifade) return;
+  const u = mesh.userData, geo = mesh.geometry, uv = geo.attributes.uv, bolge = geo.attributes._bolge;
+  if (!durum.temelUV) durum.temelUV = uv.array.slice();
+  const T = durum.temelUV, K = u.ifade.kareler, robot = u.tur === "robot";
+  const gozNo = u.ifade.goz[robot ? (gozAd === "kirpik" || gozAd === "mutlu" ? "robotKapali" : "robotAcik") : gozAd] ?? u.ifade.temelGoz;
+  const agizNo = u.ifade.agiz[robot ? (agizAd === "gulumseme" || agizAd === "sirit" ? "robotGulus" : "robotNotr") : agizAd] ?? u.ifade.temelAgiz;
+  const tasi = (i, a0, b0) => { const a = K[a0], b = K[b0]; const ou = T[i * 2], ov = T[i * 2 + 1]; uv.setXY(i, b.u0 + (b.u1 - b.u0) * (ou - a.u0) / (a.u1 - a.u0), b.v0 + (b.v1 - b.v0) * (ov - a.v0) / (a.v1 - a.v0)); };
+  for (let i = 0; i < uv.count; i++) { const b = bolge.getX(i); if (b === u.bolge.gozL || b === u.bolge.gozR) tasi(i, u.ifade.temelGoz, gozNo); else if (b === u.bolge.agiz) tasi(i, u.ifade.temelAgiz, agizNo); }
+  uv.needsUpdate = true;
+}
+const IFADE_SET = { normal: ["acik", "notr"], gulumseme: ["mutlu", "gulumseme"], saskin: ["saskin", "saskin"] };
+
 function ciz(i) {
   const g = durum.gorunumler[i], u = durum.ustveri;
+  const [gz, ag] = IFADE_SET[g.ifade] ?? IFADE_SET.normal; ifadeUygula(gz, ag);
   const guzel = g.tip === "guzel";
   poz(guzel ? "idle" : "bind");
   for (const m of durum.kozmetikler) m.visible = guzel || !!g.kozmetik;
@@ -244,7 +259,8 @@ function kontakt(bilgi) {
   const K = 480, SUT = 5, ETIKET = 30, UST = 118, SATIR = 21, MAKS = 34;
   const satirlar = bilgi.adaylar.map((a) => `[${a.test}] ${a.adalar.join("  ↔  ")}   ${Object.entries(a.olcu ?? {}).map(([k, v]) => `${k}=${v}`).join(" · ")}`);
   const gosterilen = satirlar.slice(0, MAKS);
-  const listeY = UST + 2 * (K + ETIKET) + 16;
+  const satirSay = Math.ceil(durum.gorunumler.length / SUT);
+  const listeY = UST + satirSay * (K + ETIKET) + 16;
   const c = document.createElement("canvas");
   c.width = SUT * K; c.height = listeY + 44 + Math.max(1, gosterilen.length + (satirlar.length > MAKS ? 1 : 0)) * SATIR + 24;
   const x = c.getContext("2d");

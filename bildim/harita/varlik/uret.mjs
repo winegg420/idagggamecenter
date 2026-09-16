@@ -51,6 +51,18 @@ fs.mkdirSync(CIKTI, { recursive: true });
 // STIL.md §2.3 bütçeleri — aşan varlık REDDEDİLİR
 const BUTCE = { karakterUcgen: 9000, kozmetikUcgen: 600, binaUcgen: 12000, propUcgen: 1500, kediUcgen: 800 };   // robot ≤ 9.000 (Aşama 1D §4)
 const AO_KAPALI = process.argv.includes("--ao-kapali");
+/**
+ * 1G-A.4 KOZMETİK POLİTİKALARI — tür dışlama hacmi (kulak · muzzle · anten) ile çakışınca ne olur:
+ *   gecir        → tür parçası kozmetiğin içinden çıkar (kasıtlı)       · gizle → tür parçası çökertilir
+ *   bicimlendir  → kozmetik ölçeklenir/kaydırılır ({olcek, kaydir})     · it    → kozmetik +Z'ye itilir ({mesafe})
+ * Yeni kozmetikte tek satır politika yazılır; tür başına varyant modeli yazılmaz. Muayene `kozmetik` testi bunu okur ve susturur.
+ */
+const POLITIKA = {
+  sapka: { kulak: "gecir", anten: { tip: "bicimlendir", kaydir: [0, 0.03, 0] } },
+  gozluk: { muzzle: { tip: "it", mesafe: 0.04 } },
+  atki: {},
+  kuyruk: {},
+};
 const PURUZ = 0.82;
 
 /**
@@ -61,6 +73,7 @@ export const BOLGE = {
   ten: 0, sacKase: 1, sacKisa: 2, sacKuyruk: 3, ust: 4, alt: 5, ayakkabi: 6, ceket: 7, kapuson: 8,
   kurk: 9, metal: 10, boya: 11, ekran: 12, gozL: 13, gozR: 14, agiz: 15, cam: 16, diger: 17, yaka: 18, taban: 19, bilek: 20,
   plastik: 21,   // Aşama 1D §4.3: robot eklem halkaları / piston / taban plakası (mat plastik)
+  turKulak: 22, turAnten: 23,   // Aşama 1G-A.4: tür parçaları (kaplan kulağı, robot anteni) — kozmetik sözleşmesi `gizle` politikası bunları çökertir
 };
 
 // ------------------------------------------------------------ uv / geometri yardımcıları
@@ -181,7 +194,7 @@ function karakterKur(tur = "insan") {
   if (!robot) {
     // ---- gövde: kalça + göğüs (tıknaz) ----
     ekle(yerlestir(new RoundedBoxGeometry(0.42, 0.30, 0.30, 2, 0.10), hips.clone().add(new THREE.Vector3(0, -0.02, 0)).toArray()), "kot", "Hips", BOLGE.alt, { desenli: true });
-    kapsul(hips.clone().add(new THREE.Vector3(0, 0.08, 0)), neck.clone().add(new THREE.Vector3(0, -0.02, 0)), 0.215, "tisort", "Spine1", BOLGE.ust, true);
+    kapsul(hips.clone().add(new THREE.Vector3(0, 0.08, 0)), neck.clone().add(new THREE.Vector3(0, -0.02, 0)), kaplan ? 0.232 : 0.215, "tisort", "Spine1", BOLGE.ust, true);   // 1G-A.3: kaplan göğsü daha geniş (hayvansı oran)
     // set 2 (şık): ceket kabuğu + gömlek yakası — diğer setlerde çalışma anında çökertilir
     kapsul(hips.clone().add(new THREE.Vector3(0, 0.1, 0)), neck.clone().add(new THREE.Vector3(0, -0.03, 0)), 0.228, "ceket", "Spine1", BOLGE.ceket, true);
     ekle(yerlestir(new RoundedBoxGeometry(0.16, 0.2, 0.03, 1, 0.01), neck.clone().add(new THREE.Vector3(0, -0.2, 0.235)).toArray()), "gomlek", "Spine2", BOLGE.yaka);
@@ -204,7 +217,7 @@ function karakterKur(tur = "insan") {
     ekle(yerlestir(new RoundedBoxGeometry(0.16, 0.10, 0.02, 1, 0.008), panel.toArray()), "ekran", "Spine1", BOLGE.ekran);
     for (let i = 0; i < 3; i++) kure(panel.clone().add(new THREE.Vector3(-0.04 + i * 0.04, 0.062, -0.006)), 0.011, "gomlek", "Spine1", BOLGE.boya, [1, 1, 0.6], 6, true);
     for (let i = 0; i < 3; i++) ekle(yerlestir(new THREE.BoxGeometry(0.14, 0.008, 0.014), panel.clone().add(new THREE.Vector3(0, -0.075 - i * 0.022, 0)).toArray()), "demir", "Spine1", BOLGE.plastik);
-    ekle(yerlestir(new THREE.CylinderGeometry(0.045, 0.05, 0.08, 10), neck.clone().add(new THREE.Vector3(0, 0.005, 0)).toArray()), "demir", "Neck", BOLGE.plastik);   // piston 1,285–1,365: göğüs üstü–kafa altı boşluğunu tam doldurur
+    ekle(yerlestir(new THREE.CylinderGeometry(0.045, 0.05, 0.08, 10, 1, true), neck.clone().add(new THREE.Vector3(0, 0.005, 0)).toArray()), "demir", "Neck", BOLGE.plastik);   // piston 1,285–1,365: göğüs üstü–kafa altı boşluğunu tam doldurur
     ekle(yerlestir(new THREE.CylinderGeometry(0.028, 0.028, 0.16, 8), neck.clone().add(new THREE.Vector3(0, 0.02, 0)).toArray()), "metal", "Neck", BOLGE.metal);   // iç mil: göğüs–kafa bağlantısı
     halka(neck.clone().add(new THREE.Vector3(0, 0.01, 0)), new THREE.Vector3(0, 1, 0), 0.062, 0.013, "gomlek", "Neck", BOLGE.boya, true);
   }
@@ -246,7 +259,7 @@ function karakterKur(tur = "insan") {
       { x: s * 0.125, y: -0.04, rx: 0.06, ry: 0.05, d: 0.003 },                 // elmacık
     ]),
   ];
-  const basOlcek = robot ? [1, 0.84, 0.92] : [1, 1.02, 1];   // robot 1G: kafa altı 1,36 m → boyun pistonu göğüs üstü (1,29) ile kafa arasında görünür
+  const basOlcek = robot ? [1, 0.84, 0.92] : kaplan ? [1.06, 1.0, 1.04] : [1, 1.02, 1];   // 1G-A.3: kaplan kafası daha geniş ve basık   // robot 1G: kafa altı 1,36 m → boyun pistonu göğüs üstü (1,29) ile kafa arasında görünür
   /** Yön n için kafa yüzeyinin yarıçapı: ölçekli küre + özellik kaydırmaları. Yamalar da bunu örnekler → yüzeye oturur. */
   const yuzeyYaricap = (n) => {
     let r = R / Math.sqrt((n.x / basOlcek[0]) ** 2 + (n.y / basOlcek[1]) ** 2 + (n.z / basOlcek[2]) ** 2);
@@ -328,10 +341,10 @@ function karakterKur(tur = "insan") {
   };
   const gozKare = robot ? IFADE.goz.robotAcik : IFADE.goz.acik, agizKare = robot ? IFADE.agiz.robotNotr : IFADE.agiz.notr;
   // Göz 0,115 → 0,088 m (§2.4). Kaplan gözleri yana + yukarı; ağız muzzle'ın alt ön yüzünde.
-  const gozP = robot ? { x: 0.07, y: 0.03, w: 0.075, h: 0.06 } : kaplan ? { x: 0.095, y: 0.035, w: 0.084, h: 0.066 } : { x: 0.082, y: 0.02, w: 0.088, h: 0.07 };
+  const gozP = robot ? { x: 0.07, y: 0.03, w: 0.075, h: 0.06 } : kaplan ? { x: 0.095, y: 0.05, w: 0.084, h: 0.098 } : { x: 0.082, y: 0.035, w: 0.088, h: 0.1 };   // 1G-A.2: insan/kaplan yaması uzadı — kaş da karede
   const agizP = robot ? { y: -0.06, w: 0.09, h: 0.036 } : kaplan ? { y: -0.115, w: 0.075, h: 0.045 } : { y: -0.105, w: 0.07, h: 0.045 };
   if (robot) yama(0, 0, 0.30, 0.22, yuzR, BOLGE.ekran, { ofset: 0.0015, bicim: "dikdortgen", halka: 5 });   // yüz = kafaya oturan emissive ekran paneli (200 üçgen; 30 cm panelde sarkma 0,5 mm)
-  const yOfs = robot ? 0.003 : 0.001;   // robotta göz/ağız ekran panelinin üstünde
+  const yOfs = robot ? 0.002 : 0.001;   // robotta göz/ağız ekranın 0,5 mm üstünde (1G: 1,5 mm kenar çıkıntısı parlak "ok" izi yapıyordu)
   yama(-gozP.x, gozP.y, gozP.w, gozP.h, ifadeRect(gozKare), BOLGE.gozL, { ofset: yOfs });
   yama(gozP.x, gozP.y, gozP.w, gozP.h, ifadeRect(gozKare), BOLGE.gozR, { ofset: yOfs, ayna: true });
   yama(0, agizP.y, agizP.w, agizP.h, ifadeRect(agizKare), BOLGE.agiz, { ofset: yOfs });
@@ -340,22 +353,23 @@ function karakterKur(tur = "insan") {
     for (const s of [-1, 1]) {
       if (insan) kure(basM.clone().add(new THREE.Vector3(s * 0.228, -0.02, 0.01)), 0.045, "ten", "Head", BOLGE.ten, [0.5, 1, 0.8], 8);
       else {
-        kure(basM.clone().add(new THREE.Vector3(s * 0.165, 0.225, -0.01)), 0.085, "kurk", "Head", BOLGE.kurk, [1, 1.3, 0.55], 10, true);
-        kure(basM.clone().add(new THREE.Vector3(s * 0.165, 0.23, 0.03)), 0.05, "kurkKarin", "Head", BOLGE.diger, [1, 1.25, 0.4], 8);
+        kure(basM.clone().add(new THREE.Vector3(s * 0.165, 0.225, -0.01)), 0.085, "kurk", "Head", BOLGE.turKulak, [1, 1.3, 0.55], 10, true);
+        kure(basM.clone().add(new THREE.Vector3(s * 0.165, 0.23, 0.03)), 0.05, "kurkKarin", "Head", BOLGE.turKulak, [1, 1.25, 0.4], 8);
       }
     }
   } else {
     // robot: tepede anten (şapka kubbesinin üstünden çıkar), yanlarda hoparlör kapakları
-    ekle(yerlestir(new THREE.CylinderGeometry(0.012, 0.016, 0.22, 8), basM.clone().add(new THREE.Vector3(0, 0.31, 0)).toArray()), "metal", "Head", BOLGE.metal);
-    kure(basM.clone().add(new THREE.Vector3(0, 0.44, 0)), 0.035, "gomlek", "Head", BOLGE.boya, [1, 1, 1], 10, true);
+    ekle(yerlestir(new THREE.CylinderGeometry(0.012, 0.016, 0.22, 8), basM.clone().add(new THREE.Vector3(0, 0.31, 0)).toArray()), "metal", "Head", BOLGE.turAnten);
+    kure(basM.clone().add(new THREE.Vector3(0, 0.44, 0)), 0.035, "gomlek", "Head", BOLGE.turAnten, [1, 1, 1], 10, true);
     for (const s of [-1, 1]) ekle(yerlestir(new THREE.CylinderGeometry(0.06, 0.06, 0.03, 12), basM.clone().add(new THREE.Vector3(s * 0.235, -0.01, 0)).toArray(), E(0, 0, Math.PI / 2)), "demir", "Head", BOLGE.plastik);
   }
   // ---- saç varyantları (yalnız insan; çalışma anında biri kalır, diğerleri çökertilir) ----
   if (insan) {
     const sacQ = E(-0.32, 0, 0);
     // 1 kâse: ana kabuk + kâkül lobu + arka lob (siluet kırılır, §5.2)
-    ekle(yerlestir(new THREE.SphereGeometry(0.25, 12, 7, 0, Math.PI * 2, 0, Math.PI * 0.5), basM.clone().add(new THREE.Vector3(0, 0.01, -0.02)).toArray(), sacQ), "sac", "Head", BOLGE.sacKase, { desenli: true });
-    kure(basM.clone().add(new THREE.Vector3(0, 0.13, 0.17)), 0.11, "sac", "Head", BOLGE.sacKase, [1.5, 0.75, 0.75], 8, true);
+    // 1G-A.2: kabuk 0,5π → 0,56π (şakaktaki sert basamak saç çizgisinin altına iner); kâkül lobu kabuğun içine gömülü, yalnız alın üstünde hafif kabartı
+    ekle(yerlestir(new THREE.SphereGeometry(0.25, 12, 7, 0, Math.PI * 2, 0, Math.PI * 0.56), basM.clone().add(new THREE.Vector3(0, 0.02, -0.02)).toArray(), sacQ), "sac", "Head", BOLGE.sacKase, { desenli: true });
+    kure(basM.clone().add(new THREE.Vector3(0, 0.11, 0.16)), 0.11, "sac", "Head", BOLGE.sacKase, [1.5, 0.55, 0.6], 8, true);
     kure(basM.clone().add(new THREE.Vector3(0, 0.02, -0.19)), 0.12, "sac", "Head", BOLGE.sacKase, [1.4, 1.1, 0.7], 8, true);
     // 2 kısa: üst kapak + favoriler
     ekle(yerlestir(new THREE.SphereGeometry(0.245, 12, 6, 0, Math.PI * 2, 0, Math.PI * 0.4), basM.clone().add(new THREE.Vector3(0, 0.02, -0.01)).toArray(), E(-0.15, 0, 0)), "sac", "Head", BOLGE.sacKisa, { desenli: true });
@@ -374,9 +388,26 @@ function karakterKur(tur = "insan") {
       kure(arm, 0.105, "tisort", t + "Arm", BOLGE.ust, [1, 1, 1], 10, true);
       kapsul(arm, fore, 0.082, "tisort", t + "Arm", BOLGE.ust, true);
       kapsul(fore, hand, 0.072, TEN, t + "ForeArm", TEN_B, kaplan);
-      const el = hand.clone().add(yonEl.clone().multiplyScalar(0.05));
-      // el: başparmak yönünde yassı + bilek halkası (§5.4)
-      kure(el, 0.085, TEN, t + "Hand", TEN_B, [1.05, 0.72, 1.15], 10, kaplan);
+      kure(fore, 0.078, TEN, t + "ForeArm", TEN_B, [1, 1, 1], 8, kaplan);   // 1G-A.2: dirsek küresi — kol iki ayrı silindir gibi durmasın
+      const qEl = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), yonEl);
+      if (insan) {
+        // 1G-A.2 EL PROTOTİPİ ("3+1"): yassı avuç + 3 birleşik parmak kapsülü + öne bakan başparmak. Anatomik el hedef değil; siluet.
+        // Maliyet: kapsül (r, l, 1, 6) = 36 üçgen × 4 = 144 + avuç 120 → ~264 / el (ölçüm .olcum.json'da).
+        const avuc = hand.clone().add(yonEl.clone().multiplyScalar(0.035));
+        kure(avuc, 0.07, TEN, t + "Hand", TEN_B, [1.0, 0.55, 1.25], 10);
+        for (const dz of [-0.036, 0, 0.036]) {
+          const g = new THREE.CapsuleGeometry(0.019, 0.055, 1, 6);
+          ekle(yerlestir(g, hand.clone().add(yonEl.clone().multiplyScalar(0.105)).add(new THREE.Vector3(0, -0.004, dz)).toArray(), qEl), TEN, t + "Hand", TEN_B);
+        }
+        const bas = hand.clone().add(yonEl.clone().multiplyScalar(0.035)).add(new THREE.Vector3(0, -0.005, 0.078));
+        ekle(yerlestir(new THREE.CapsuleGeometry(0.017, 0.045, 1, 6), bas.toArray(), qEl.clone().multiply(E(0.9, 0, 0))), TEN, t + "Hand", TEN_B);
+      } else {
+        // 1G-A.3 KAPLAN PATİSİ: yuvarlak pati + 3 parmak yumrusu + siyah taban yastıkları (insan elinden farklı siluet)
+        const pati = hand.clone().add(yonEl.clone().multiplyScalar(0.045));
+        kure(pati, 0.085, TEN, t + "Hand", TEN_B, [1.0, 0.8, 1.15], 10, true);
+        for (const dz of [-0.05, 0, 0.05]) kure(hand.clone().add(yonEl.clone().multiplyScalar(0.11)).add(new THREE.Vector3(0, 0.005, dz)), 0.03, TEN, t + "Hand", TEN_B, [1.1, 0.8, 1], 8, true);
+        kure(pati.clone().add(new THREE.Vector3(0, -0.07, 0)), 0.03, "gozBebek", t + "Hand", BOLGE.diger, [1.3, 0.35, 1.3], 8);
+      }
       ekle(yerlestir(new THREE.TorusGeometry(0.07, 0.012, 5, 12), hand.clone().add(yonEl.clone().multiplyScalar(-0.01)).toArray(), new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 0, 1), yonEl)), "tisort", t + "Hand", BOLGE.bilek, { desenli: true });
     } else {
       // ROBOT KOLU (1D §4.2): küresel omuz + halka (gövdeden ayrık) · üst kol silindiri · dirsek küresi + halka · ön kol paneli · üç parmaklı kıskaç
@@ -403,6 +434,8 @@ function karakterKur(tur = "insan") {
     if (!robot) {
       kapsul(up, leg, 0.105, "kot", t + "UpLeg", BOLGE.alt, true);
       kapsul(leg, foot, 0.09, "kot", t + "Leg", BOLGE.alt, true);
+      kure(leg, 0.1, "kot", t + "Leg", BOLGE.alt, [1, 0.9, 1], 8, true);   // 1G-A.2: diz küresi — bacak iki silindir gibi durmasın
+      kure(foot.clone().add(new THREE.Vector3(0, 0.05, 0)), 0.075, "kot", t + "Foot", BOLGE.alt, [1, 0.8, 1], 8, true);   // bilek: paça ayakkabıya kaynar
       ekle(yerlestir(new RoundedBoxGeometry(0.19, 0.14, 0.30, 2, 0.06), ayakM.clone().add(new THREE.Vector3(0, 0.02, 0)).toArray()), "ayakkabi", t + "Foot", BOLGE.ayakkabi, { desenli: true });
       ekle(yerlestir(new RoundedBoxGeometry(0.2, 0.035, 0.31, 1, 0.012), ayakM.clone().setY(0.02).toArray()), "cerceve", t + "Foot", BOLGE.taban);   // taban çizgisi
     } else {
@@ -424,6 +457,11 @@ function karakterKur(tur = "insan") {
   const aoGovde = AO_KAPALI ? null : aoHesapla(govde, { R: 0.25 });
   // Göz/ağız dörtgenleri kafa yüzeyinden 4 mm dışarıda → AO'ları kafadan açık kalıyordu (ekranda
   // açık kare gibi görünüyordu). Her dörtgen köşesine en yakın kafa köşesinin AO'su kopyalanır.
+  // 1G-A.2/A.3: kalça bloğunun alt yüzü bacaklar arasında tam kapalı → AO 0,15 (1E: "gri, dokusuz"). Aşağı bakan alt-giyim köşelerinde AO ≥ 0,55.
+  if (aoGovde) {
+    const nrm = govde.attributes.normal, b = govde.attributes.bolge, c = govde.attributes.color;
+    for (let i = 0; i < c.count; i++) if (b.getX(i) === BOLGE.alt && nrm.getY(i) < -0.7 && c.getX(i) < 0.55) c.setXYZ(i, 0.55, 0.55, 0.55);
+  }
   if (aoGovde) {
     const p = govde.attributes.position, b = govde.attributes.bolge, c = govde.attributes.color;
     const kafa = []; for (let i = 0; i < p.count; i++) if (b.getX(i) === TEN_B && Math.abs(p.getY(i) - basM.y) < 0.3 && Math.abs(p.getX(i) - basM.x) < 0.3) kafa.push(i);
@@ -443,6 +481,11 @@ function karakterKur(tur = "insan") {
     tur, bolge: BOLGE, hucreler: hucreTablosu(), ifade: { kareler: Array.from({ length: 16 }, (_, i) => ifadeRect(i)), ...IFADE, temelGoz: gozKare, temelAgiz: agizKare },
     temelHucre: { ust: "tisort", alt: "kot", ayakkabi: "ayakkabi", ceket: "ceket", kapuson: "esofman", boya: "gomlek" },   // boya: robot paneli (set → gomlek/metal/tente)
     merkez: { bas: basM.toArray(), govde: hips.clone().lerp(neck, 0.5).toArray() },
+    // 1G-A.4 TÜR–KOZMETİK SÖZLEŞMESİ: türün DIŞLAMA HACİMLERİ (küre listesi, dünya/bind uzayı). Kozmetik `politika`sı bunlarla eşleşir.
+    dislama: kaplan ? {
+      kulak: [-1, 1].map((s) => ({ merkez: basM.clone().add(new THREE.Vector3(s * 0.165, 0.24, 0)).toArray(), r: 0.12, bolge: BOLGE.turKulak })),
+      muzzle: [{ merkez: basM.clone().add(new THREE.Vector3(0, -0.07, 0.25)).toArray(), r: 0.11 }],
+    } : robot ? { anten: [{ merkez: basM.clone().add(new THREE.Vector3(0, 0.33, 0)).toArray(), r: 0.13, bolge: BOLGE.turAnten }] } : {},
   };
   const iskelet = new THREE.Skeleton(sira.map((ad) => kemikler.get(ad)));
   karakter.add(mesh); karakter.updateMatrixWorld(true);
@@ -460,7 +503,7 @@ function karakterKur(tur = "insan") {
     return o;
   };
   yuva("basYuva", "Head", basM.clone().add(new THREE.Vector3(0, 0.22, 0)));
-  yuva("gozlukYuva", "Head", basM.clone().add(new THREE.Vector3(0, 0.02, 0.22)));
+  yuva("gozlukYuva", "Head", basM.clone().add(new THREE.Vector3(0, 0.02, 0.245)));   // 1G-A.2: 0,22 → 0,245 — çerçeve göz yamalarının (z ≈ 0,22) önünde
   yuva("sacYuva", "Head", basM);
   yuva("sakalYuva", "Head", basM.clone().add(new THREE.Vector3(0, -0.11, 0.2)));
   yuva("kulakYuva_L", "Head", basM.clone().add(new THREE.Vector3(-0.235, -0.02, 0)));
@@ -480,6 +523,8 @@ function karakterKur(tur = "insan") {
     const g = birlestir(geos);
     if (!AO_KAPALI) aoKoz[ad] = aoHesapla(g, { engeller: [g, govde.clone().translate(...yuvaPoz.get(yuvaAd).clone().negate().toArray())], R: 0.25 });
     const m = new THREE.Mesh(g, malzeme); m.name = ad; m.castShadow = false;
+    // 1G-A.4: kozmetiğin tür dışlama hacimlerine karşı POLİTİKASI (gecir · gizle · bicimlendir · it). Çalışma anı ve muayene bunu okur.
+    m.userData.politika = POLITIKA[ad.replace("kozmetik_", "")] ?? {};
     kozmetikler.add(m); return m;
   };
   if (insan) {
@@ -488,13 +533,13 @@ function karakterKur(tur = "insan") {
       D(new RoundedBoxGeometry(0.30, 0.03, 0.17, 2, 0.012), "sapkaSiperi", [0, -0.11, 0.3], E(-0.12, 0, 0)),
       D(new THREE.TorusGeometry(0.258, 0.018, 4, 18), "sapkaSiperi", [0, -0.12, 0], E(Math.PI / 2, 0, 0)),
     ]);
+    // 1G-A.2: cam dolgusu KALKTI (opak cam göz bebeğini örtüyordu, "camlar yarım" hissi) — çerçeve halka, göz yamasının 2,5 cm önünde; köprü burun sırtının üstüne
     const gozluk = [];
     for (const s of [-1, 1]) {
       gozluk.push(D(new THREE.TorusGeometry(0.06, 0.011, 6, 20), "gozlukCerceve", [s * 0.085, 0, 0]));
-      gozluk.push(Y(new THREE.CircleGeometry(0.056, 16), "gozlukCam", [s * 0.085, 0, -0.002], null, null, BOLGE.cam));
       gozluk.push(D(new THREE.BoxGeometry(0.012, 0.012, 0.2), "gozlukCerceve", [s * 0.15, 0.01, -0.1]));
     }
-    gozluk.push(D(new THREE.BoxGeometry(0.05, 0.012, 0.012), "gozlukCerceve", [0, 0.01, 0]));
+    gozluk.push(D(new THREE.BoxGeometry(0.05, 0.012, 0.012), "gozlukCerceve", [0, 0.03, -0.006]));
     kozmetik("kozmetik_gozluk", "gozlukYuva", gozluk);
     kozmetik("kozmetik_atki", "boyunYuva", [
       Y(new THREE.TorusGeometry(0.19, 0.055, 6, 16), "atki", [0, 0.02, 0], E(Math.PI / 2, 0, 0)),

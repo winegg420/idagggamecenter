@@ -169,10 +169,7 @@ function yuzInsan(x, y) {
   // Aşama 1D: boyalı burun gölgesi KALKTI — burun artık kafa geometrisinde (köşe itme); gölgesini ışık yapar.
   for (const s of [-1, 1]) {
     c = kat(c, PEMBE, 0.32 * elips(x, y, 128 + s * 52, 152, 17, 11));                                          // allık
-    // kaş: kavisli, iç uç kalın
-    const kx = 128 + s * 42;
-    const kas = s < 0 ? [[kx - 22, 96], [kx - 10, 90], [kx + 6, 89], [kx + 20, 93]] : [[kx - 20, 93], [kx - 6, 89], [kx + 10, 90], [kx + 22, 96]];
-    c = kat(c, KOYU, 0.9 * cizgi(x, y, kas, 5));
+    // 1G-A.2: boyalı kaş KALKTI — kaş artık göz ifade karesinin içinde (ifadeyle birlikte hareket eder)
     // göz altı gölgesi kaldırıldı (göz dörtgeni zemini düz ten; fark oluşturuyordu)
   }
   return c;
@@ -191,7 +188,7 @@ function yuzKaplan(x, y) {
     c = kat(c, KOYU, 0.88 * cizgi(x, y, [[128 + s * 118, 120], [128 + s * 98, 140], [128 + s * 106, 162]], 5));
     c = kat(c, KOYU, 0.88 * cizgi(x, y, [[128 + s * 122, 158], [128 + s * 102, 178]], 4));
     c = kat(c, TEN, 0.97 * elips(x, y, 128 + s * 46, 111, 26, 22));    // göz yaması (1D: gözler yana + yukarı; göz yamasının zemini)
-    c = kat(c, KOYU, 0.85 * cizgi(x, y, [[128 + s * 24, 90], [128 + s * 46, 84], [128 + s * 68, 90]], 4)); // kaş
+    // 1G-A.2: kaş göz karesine taşındı
   }
   // 1D §3: muzzle geometrik — krem yama muzzle kütlesini kaplar; burun üçgeni koyu (tepe y 136 geniş, uç y 158); philtrum; bıyık delikleri
   c = kat(c, TEN, 0.98 * elips(x, y, 128, 160, 54, 40));
@@ -220,22 +217,24 @@ function yuzRobot(x, y) {
 function ifadeKare(i, x, y) {
   const robot = i === 6 || i === 7 || i === 14 || i === 15;
   let c = (robot ? EKRAN : TEN).slice();
-  const goz = (rx, ry, bebek = 6, irisR = 11, bebekY = 36) => {
-    c = kat(c, BEYAZ, elips(x, y, 32, 34, rx, ry));
+  // 1G-A.2: göz karesi = KAŞ (üstte, y 6–18) + göz (merkez y 40). Kaş ifadeyle birlikte kayar: normal düz, mutlu/şaşkın yukarı kavis, kısık/kızgın aşağı.
+  const goz = (rx, ry, bebek = 6, irisR = 11, bebekY = 42, cy = 40) => {
+    c = kat(c, BEYAZ, elips(x, y, 32, cy, rx, ry));
     c = kat(c, IRIS, elips(x, y, 33, bebekY, irisR, irisR));
     c = kat(c, KOYU, elips(x, y, 33, bebekY, bebek, bebek));
-    c = kat(c, BEYAZ, 0.9 * elips(x, y, 28, 30, 3.2, 3.2));
-    c = kat(c, KOYU, 0.9 * cizgi(x, y, yay(32, 34, rx, Math.PI + 0.35, Math.PI * 2 - 0.35), 2.6)); // üst kapak
-    c = kat(c, KOYU, 0.9 * cizgi(x, y, [[32 - rx * 0.92, 24], [32 - rx * 1.25, 18]], 2.2));           // kirpik
-    c = kat(c, KOYU, 0.9 * cizgi(x, y, [[32 - rx * 0.6, 14], [32 - rx * 0.75, 8]], 2));
+    c = kat(c, BEYAZ, 0.9 * elips(x, y, 28, cy - 5, 3.2, 3.2));
+    c = kat(c, KOYU, 0.9 * cizgi(x, y, yay(32, cy, rx, Math.PI + 0.35, Math.PI * 2 - 0.35), 2.6)); // üst kapak
+    c = kat(c, KOYU, 0.9 * cizgi(x, y, [[32 - rx * 0.92, cy - 10], [32 - rx * 1.25, cy - 16]], 2.2));   // kirpik (dış yan)
   };
+  /** kaş: y0 yükseklik (küçük = yukarı), egim > 0 iç ucu (x büyük) aşağı çeker, kavis kavis */
+  const kas = (y0, egim = 0, kavis = 3, kalin = 4.5) => { c = kat(c, KOYU, 0.92 * cizgi(x, y, [[13, y0 + kavis], [22, y0 + kavis * 0.3], [32, y0], [42, y0 + kavis * 0.3 + egim * 0.5], [51, y0 + kavis + egim]], kalin)); };
   switch (i) {
-    case 0: goz(23, 26, 7, 12.5, 35); break;                                                // açık (1D: yama küçüldü, çizim kareyi doldurur)
-    case 1: c = kat(c, KOYU, cizgi(x, y, yay(32, 26, 21, 0.25, Math.PI - 0.25), 3.4)); break; // kırpma (aşağı kavis)
-    case 2: c = kat(c, KOYU, cizgi(x, y, yay(32, 44, 21, Math.PI + 0.3, Math.PI * 2 - 0.3), 3.6)); break; // mutlu (yukarı kavis)
-    case 3: goz(25, 28, 5, 10, 36); break;                                                  // şaşkın
-    case 4: goz(19, 23); c = kat(c, TEN, x >= 0 && y < 30 ? 1 : 0); c = kat(c, KOYU, 0.9 * cizgi(x, y, [[12, 30], [52, 30]], 2.8)); break; // kısık
-    case 5: goz(19, 22); c = kat(c, TEN, y < 18 + (x - 12) * 0.35 ? 1 : 0); c = kat(c, KOYU, 0.9 * cizgi(x, y, [[12, 18], [52, 32]], 2.8)); break; // kızgın
+    case 0: goz(21, 17, 6.5, 11.5, 42); kas(13); break;                                                          // açık + düz kaş
+    case 1: c = kat(c, KOYU, cizgi(x, y, yay(32, 34, 19, 0.25, Math.PI - 0.25), 3.4)); kas(13); break;           // kırpma (aşağı kavis), kaş aynı
+    case 2: c = kat(c, KOYU, cizgi(x, y, yay(32, 50, 19, Math.PI + 0.3, Math.PI * 2 - 0.3), 3.6)); kas(8, 0, 5); break; // mutlu: yukarı kavisli kapalı göz + KAŞ YUKARI
+    case 3: goz(23, 20, 5, 10, 42); kas(5, 0, 6); break;                                                         // şaşkın: göz büyür + KAŞ EN YUKARI
+    case 4: goz(21, 17); c = kat(c, TEN, y < 33 && y > 20 ? 1 : 0); c = kat(c, KOYU, 0.9 * cizgi(x, y, [[12, 33], [52, 33]], 2.8)); kas(19, 0, 1); break; // kısık: kapak iner, kaş alçak
+    case 5: goz(21, 17); c = kat(c, TEN, y > 20 && y < 24 + (x - 12) * 0.3 ? 1 : 0); c = kat(c, KOYU, 0.9 * cizgi(x, y, [[12, 24], [52, 36]], 2.8)); kas(16, 9, 1); break; // kızgın: iç uç aşağı
     case 6: c = kat(c, SIYAN, 0.3 * elips(x, y, 32, 32, 22, 18)); c = kat(c, SIYAN, elips(x, y, 32, 32, 11, 11)); c = kat(c, BEYAZ, 0.85 * elips(x, y, 28, 28, 3.5, 3.5)); break; // robot açık: halo + parlak göz (shader'da emissive)
     case 7: c = kat(c, SIYAN, cizgi(x, y, [[16, 32], [48, 32]], 4)); break; // robot kapalı
     case 8: c = kat(c, DUDAK, cizgi(x, y, yay(32, 22, 14, 0.5, Math.PI - 0.5), 3)); break;   // nötr (hafif kavis)

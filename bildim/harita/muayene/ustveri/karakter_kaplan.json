@@ -26,21 +26,21 @@
       "mesafe": 1.15
     },
     {
-      "ad": "sağ el",
+      "ad": "sağ el (parmaklar)",
       "hedef": {
         "kemik": "RightHand",
         "ofset": [
-          -0.05,
+          -0.07,
           0,
-          0
+          0.01
         ]
       },
       "yon": [
-        -0.35,
-        0.25,
-        1
+        -0.25,
+        0.9,
+        0.7
       ],
-      "mesafe": 0.75
+      "mesafe": 0.55
     },
     {
       "ad": "sol ayak",
@@ -58,6 +58,60 @@
         0.8
       ],
       "mesafe": 0.85
+    },
+    {
+      "ad": "ifade normal",
+      "hedef": {
+        "kemik": "Head",
+        "ofset": [
+          0,
+          0.17,
+          0.03
+        ]
+      },
+      "yon": [
+        0.2,
+        0.05,
+        1
+      ],
+      "mesafe": 0.9,
+      "ifade": "normal"
+    },
+    {
+      "ad": "ifade gülümseme",
+      "hedef": {
+        "kemik": "Head",
+        "ofset": [
+          0,
+          0.17,
+          0.03
+        ]
+      },
+      "yon": [
+        0.2,
+        0.05,
+        1
+      ],
+      "mesafe": 0.9,
+      "ifade": "gulumseme"
+    },
+    {
+      "ad": "ifade şaşkın",
+      "hedef": {
+        "kemik": "Head",
+        "ofset": [
+          0,
+          0.17,
+          0.03
+        ]
+      },
+      "yon": [
+        0.2,
+        0.05,
+        1
+      ],
+      "mesafe": 0.9,
+      "ifade": "saskin"
     }
   ],
   "guzel": {
@@ -143,9 +197,19 @@
       "sebep": "ağız yaması kafa yüzeyine 1 mm"
     },
     {
-      "a": "diger:kurkKarin",
-      "b": "kurk",
+      "a": "turKulak*",
+      "b": "turKulak*",
       "sebep": "iç kulak kulağa gömülü (1C)"
+    },
+    {
+      "a": "turKulak*",
+      "b": "kurk:yuz",
+      "sebep": "kulak kökü kafaya girer"
+    },
+    {
+      "a": "diger:gozBebek",
+      "b": "kurk",
+      "sebep": "pati taban yastığı patiye gömülü (1G)"
     }
   ],
   "gomulu_izinli": [
@@ -178,8 +242,16 @@
       "sebep": "kulak kafaya yarı gömülü"
     },
     {
-      "desen": "diger:kurkKarin",
+      "desen": "turKulak:kurkKarin",
       "sebep": "iç kulak kulağa gömülü"
+    },
+    {
+      "desen": "diger:gozBebek",
+      "absx": [
+        0.5,
+        0.8
+      ],
+      "sebep": "taban yastığı yalnız alttan görünür"
     }
   ],
   "havada_durabilir": [],
@@ -210,7 +282,16 @@
         ]
       },
       "sebep": "kuyruk kökü sırta gömülü (sirtYuva)"
+    },
+    {
+      "a": "kozmetik_sapka",
+      "b": "kurk:yuz",
+      "sebep": "şapka kafaya oturur"
+    },
+    {
+      "a": "kozmetik_atki",
+      "b": "kurk:yuz",
+      "sebep": "atkı çeneye dayanır"
     }
-  ],
-  "_not_kozmetik": "Kulak ↔ şapka izni YOK: 1C tasarım niyeti 'kulaklar şapkanın iki yanından çıkar'."
+  ]
 }

@@ -2,7 +2,7 @@
  "varlik": "karakter_robot",
  "istatistik": {
   "ada": 59,
-  "kapali_ada": 55,
+  "kapali_ada": 54,
   "havada": {
    "ada": 59,
    "zemine_bagli_kaynak": 2,
@@ -14,8 +14,8 @@
    "eksen_x": 0
   },
   "icice": {
-   "kapali_ada": 55,
-   "acik_ada": 4,
+   "kapali_ada": 54,
+   "acik_ada": 5,
    "pay_m": 0.015,
    "gomulu_oran_esigi": 0.6
   },
@@ -234,28 +234,15 @@
    "sebep": "boyun iç mili: göğüs–kafa bağlantısı"
   },
   {
-   "test": "icice",
-   "adalar": [
-    "metal:metal [x -0.00 · y 1.35 · z -0.05]",
-    "plastik:demir [x -0.00 · y 1.34 · z -0.05]"
-   ],
-   "olcu": {
-    "derinlik_m": 0.021,
-    "icteki_ornek": "24/98"
-   },
-   "not": "1. ada 2. adanın içine 2.1 cm giriyor",
-   "sebep": "boyun iç mili: göğüs–kafa bağlantısı"
-  },
-  {
    "test": "gomulu",
    "adalar": [
     "metal:metal [x -0.00 · y 1.35 · z -0.05]"
    ],
    "olcu": {
-    "gomulu_yuzey_orani": 1,
+    "gomulu_yuzey_orani": 0.76,
     "izinsiz_kaplayicilarla": 0
    },
-   "not": "yüzey örneklerinin %100'i başka parçaların içinde — görünmeyebilir",
+   "not": "yüzey örneklerinin %76'i başka parçaların içinde — görünmeyebilir",
    "sebep": "boyun iç mili görünmez bağlantı"
   },
   {
@@ -415,29 +402,16 @@
    "sebep": "kol segmentleri omuz/dirsek küresi-halkasına ve el kıskacına geçme montaj (1D §4.2, 1G: omuz gövde dışında)"
   },
   {
-   "test": "icice",
-   "adalar": [
-    "plastik:demir [x -0.00 · y 1.34 · z -0.05]",
-    "metal:metal [x -0.00 · y 1.35 · z -0.05]"
-   ],
-   "olcu": {
-    "derinlik_m": 0.026,
-    "icteki_ornek": "22/122"
-   },
-   "not": "1. ada 2. adanın içine 2.6 cm giriyor",
-   "sebep": "boyun iç mili: göğüs–kafa bağlantısı"
-  },
-  {
    "test": "kozmetik",
    "adalar": [
     "kozmetik_sapka (karakter_robot)",
-    "metal:metal [x -0.00 · y 1.87 · z -0.04]"
+    "turAnten:metal [x -0.00 · y 1.87 · z -0.04]"
    ],
    "olcu": {
     "kesisim": "üçgen kesişimi var"
    },
    "not": "bağlama pozunda basYuva yuvasına takılı",
-   "sebep": "anten şapka kubbesindeki halkadan geçer (1D §4.4)"
+   "sebep": "sözleşme: anten → bicimlendir"
   },
   {
    "test": "kozmetik",
@@ -594,10 +568,6 @@
    "oran": 0.34
   },
   {
-   "ada": "boya:gomlek [x -0.00 · y 2.00 · z -0.04]",
-   "oran": 0.05
-  },
-  {
    "ada": "boya:kumasPantolon [x 0.09 · y 0.24 · z -0.01]",
    "oran": 0.27
   },
@@ -659,15 +629,11 @@
   },
   {
    "ada": "metal:metal [x -0.00 · y 1.35 · z -0.05]",
-   "oran": 1
+   "oran": 0.76
   },
   {
    "ada": "metal:metal [x -0.00 · y 1.56 · z -0.04]",
-   "oran": 0.06
-  },
-  {
-   "ada": "metal:metal [x -0.00 · y 1.87 · z -0.04]",
-   "oran": 0.34
+   "oran": 0.04
   },
   {
    "ada": "plastik:demir [x -0.10 · y 0.02 · z 0.05]",
@@ -739,7 +705,7 @@
   },
   {
    "ada": "plastik:demir [x -0.00 · y 1.34 · z -0.05]",
-   "oran": 0.43
+   "oran": 0.25
   },
   {
    "ada": "plastik:demir [x -0.24 · y 1.55 · z -0.04]",
@@ -748,12 +714,20 @@
   {
    "ada": "plastik:demir [x 0.23 · y 1.55 · z -0.04]",
    "oran": 0.3
+  },
+  {
+   "ada": "turAnten:gomlek [x -0.00 · y 2.00 · z -0.04]",
+   "oran": 0.05
+  },
+  {
+   "ada": "turAnten:metal [x -0.00 · y 1.87 · z -0.04]",
+   "oran": 0.34
   }
  ],
  "adaListesi": [
   {
    "no": 0,
-   "ada": "agiz:ifade [x -0.00 · y 1.50 · z 0.17]",
+   "ada": "agiz:ifade [x -0.00 · y 1.51 · z 0.17]",
    "ucgen": 72,
    "kapali": false
   },
@@ -843,266 +817,266 @@
   },
   {
    "no": 15,
-   "ada": "boya:gomlek [x -0.00 · y 2.00 · z -0.04]",
-   "ucgen": 140,
-   "kapali": true
-  },
-  {
-   "no": 16,
    "ada": "boya:kumasPantolon [x 0.09 · y 0.24 · z -0.01]",
    "ucgen": 72,
    "kapali": true
   },
   {
-   "no": 17,
+   "no": 16,
    "ada": "boya:kumasPantolon [x -0.08 · y 0.24 · z -0.01]",
    "ucgen": 72,
    "kapali": true
   },
   {
-   "no": 18,
+   "no": 17,
    "ada": "ekran:ekran [x 0.00 · y 1.19 · z 0.14]",
    "ucgen": 108,
    "kapali": true
   },
   {
-   "no": 19,
+   "no": 18,
    "ada": "ekran:yuz [x -0.00 · y 1.56 · z 0.15]",
    "ucgen": 200,
    "kapali": false
   },
   {
-   "no": 20,
+   "no": 19,
    "ada": "gozL:ifade [x -0.07 · y 1.59 · z 0.17]",
    "ucgen": 72,
    "kapali": false
   },
   {
-   "no": 21,
-   "ada": "gozR:ifade [x 0.07 · y 1.59 · z 0.17]",
+   "no": 20,
+   "ada": "gozR:ifade [x 0.06 · y 1.59 · z 0.17]",
    "ucgen": 72,
    "kapali": false
   },
   {
-   "no": 22,
+   "no": 21,
    "ada": "metal:metal [x -0.10 · y 0.07 · z 0.02]",
    "ucgen": 108,
    "kapali": true
   },
   {
-   "no": 23,
+   "no": 22,
    "ada": "metal:metal [x 0.10 · y 0.07 · z 0.02]",
    "ucgen": 108,
    "kapali": true
   },
   {
-   "no": 24,
+   "no": 23,
    "ada": "metal:metal [x 0.11 · y 0.66 · z 0.01]",
    "ucgen": 40,
    "kapali": true
   },
   {
-   "no": 25,
+   "no": 24,
    "ada": "metal:metal [x -0.11 · y 0.66 · z 0.01]",
    "ucgen": 40,
    "kapali": true
   },
   {
-   "no": 26,
+   "no": 25,
    "ada": "metal:metal [x 0.00 · y 0.87 · z 0.01]",
    "ucgen": 300,
    "kapali": true
   },
   {
-   "no": 27,
+   "no": 26,
    "ada": "metal:metal [x 0.00 · y 0.99 · z 0.01]",
    "ucgen": 32,
    "kapali": true
   },
   {
-   "no": 28,
+   "no": 27,
    "ada": "metal:metal [x 0.00 · y 1.16 · z 0.01]",
    "ucgen": 300,
    "kapali": true
   },
   {
-   "no": 29,
+   "no": 28,
    "ada": "metal:metal [x -0.63 · y 1.28 · z -0.05]",
    "ucgen": 108,
    "kapali": true
   },
   {
-   "no": 30,
+   "no": 29,
    "ada": "metal:metal [x -0.30 · y 1.28 · z -0.05]",
    "ucgen": 40,
    "kapali": true
   },
   {
-   "no": 31,
+   "no": 30,
    "ada": "metal:metal [x 0.30 · y 1.28 · z -0.05]",
    "ucgen": 40,
    "kapali": true
   },
   {
-   "no": 32,
+   "no": 31,
    "ada": "metal:metal [x 0.63 · y 1.28 · z -0.05]",
    "ucgen": 108,
    "kapali": true
   },
   {
-   "no": 33,
+   "no": 32,
    "ada": "metal:metal [x -0.00 · y 1.35 · z -0.05]",
    "ucgen": 32,
    "kapali": true
   },
   {
-   "no": 34,
+   "no": 33,
    "ada": "metal:metal [x -0.00 · y 1.56 · z -0.04]",
    "ucgen": 952,
    "kapali": true
   },
   {
-   "no": 35,
-   "ada": "metal:metal [x -0.00 · y 1.87 · z -0.04]",
-   "ucgen": 32,
-   "kapali": true
-  },
-  {
-   "no": 36,
+   "no": 34,
    "ada": "plastik:demir [x -0.10 · y 0.02 · z 0.05]",
    "ucgen": 108,
    "kapali": true
   },
   {
-   "no": 37,
+   "no": 35,
    "ada": "plastik:demir [x 0.10 · y 0.02 · z 0.05]",
    "ucgen": 108,
    "kapali": true
   },
   {
-   "no": 38,
+   "no": 36,
    "ada": "plastik:demir [x 0.09 · y 0.50 · z 0.01]",
    "ucgen": 140,
    "kapali": true
   },
   {
-   "no": 39,
+   "no": 37,
    "ada": "plastik:demir [x -0.09 · y 0.50 · z 0.02]",
    "ucgen": 140,
    "kapali": true
   },
   {
-   "no": 40,
+   "no": 38,
    "ada": "plastik:demir [x -0.13 · y 0.81 · z -0.00]",
    "ucgen": 140,
    "kapali": true
   },
   {
-   "no": 41,
+   "no": 39,
    "ada": "plastik:demir [x 0.13 · y 0.81 · z 0.00]",
    "ucgen": 140,
    "kapali": true
   },
   {
-   "no": 42,
+   "no": 40,
    "ada": "plastik:demir [x 0.00 · y 0.99 · z 0.01]",
    "ucgen": 48,
    "kapali": true
   },
   {
-   "no": 43,
+   "no": 41,
    "ada": "plastik:demir [x 0.00 · y 1.07 · z 0.14]",
    "ucgen": 12,
    "kapali": true
   },
   {
-   "no": 44,
+   "no": 42,
    "ada": "plastik:demir [x 0.00 · y 1.09 · z 0.14]",
    "ucgen": 12,
    "kapali": true
   },
   {
-   "no": 45,
+   "no": 43,
    "ada": "plastik:demir [x 0.00 · y 1.11 · z 0.14]",
    "ucgen": 12,
    "kapali": true
   },
   {
-   "no": 46,
+   "no": 44,
    "ada": "plastik:demir [x -0.70 · y 1.25 · z -0.04]",
    "ucgen": 12,
    "kapali": true
   },
   {
-   "no": 47,
+   "no": 45,
    "ada": "plastik:demir [x 0.70 · y 1.25 · z -0.04]",
    "ucgen": 12,
    "kapali": true
   },
   {
-   "no": 48,
+   "no": 46,
    "ada": "plastik:demir [x -0.70 · y 1.28 · z -0.09]",
    "ucgen": 12,
    "kapali": true
   },
   {
-   "no": 49,
+   "no": 47,
    "ada": "plastik:demir [x -0.38 · y 1.28 · z -0.05]",
    "ucgen": 140,
    "kapali": true
   },
   {
-   "no": 50,
+   "no": 48,
    "ada": "plastik:demir [x -0.22 · y 1.28 · z -0.05]",
    "ucgen": 144,
    "kapali": true
   },
   {
-   "no": 51,
+   "no": 49,
    "ada": "plastik:demir [x 0.38 · y 1.28 · z -0.05]",
    "ucgen": 140,
    "kapali": true
   },
   {
-   "no": 52,
+   "no": 50,
    "ada": "plastik:demir [x 0.22 · y 1.28 · z -0.05]",
    "ucgen": 144,
    "kapali": true
   },
   {
-   "no": 53,
+   "no": 51,
    "ada": "plastik:demir [x 0.70 · y 1.28 · z -0.09]",
    "ucgen": 12,
    "kapali": true
   },
   {
-   "no": 54,
+   "no": 52,
    "ada": "plastik:demir [x -0.70 · y 1.32 · z -0.04]",
    "ucgen": 12,
    "kapali": true
   },
   {
-   "no": 55,
+   "no": 53,
    "ada": "plastik:demir [x 0.70 · y 1.32 · z -0.04]",
    "ucgen": 12,
    "kapali": true
   },
   {
-   "no": 56,
+   "no": 54,
    "ada": "plastik:demir [x -0.00 · y 1.34 · z -0.05]",
-   "ucgen": 40,
-   "kapali": true
+   "ucgen": 20,
+   "kapali": false
   },
   {
-   "no": 57,
+   "no": 55,
    "ada": "plastik:demir [x -0.24 · y 1.55 · z -0.04]",
    "ucgen": 48,
    "kapali": true
   },
   {
-   "no": 58,
+   "no": 56,
    "ada": "plastik:demir [x 0.23 · y 1.55 · z -0.04]",
    "ucgen": 48,
+   "kapali": true
+  },
+  {
+   "no": 57,
+   "ada": "turAnten:gomlek [x -0.00 · y 2.00 · z -0.04]",
+   "ucgen": 140,
+   "kapali": true
+  },
+  {
+   "no": 58,
+   "ada": "turAnten:metal [x -0.00 · y 1.87 · z -0.04]",
+   "ucgen": 32,
    "kapali": true
   }
  ]

@@ -25,21 +25,21 @@
       "mesafe": 1.15
     },
     {
-      "ad": "sağ el",
+      "ad": "sağ el (parmaklar)",
       "hedef": {
         "kemik": "RightHand",
         "ofset": [
-          -0.05,
+          -0.07,
           0,
-          0
+          0.01
         ]
       },
       "yon": [
-        -0.35,
-        0.25,
-        1
+        -0.25,
+        0.9,
+        0.7
       ],
-      "mesafe": 0.75
+      "mesafe": 0.55
     },
     {
       "ad": "sol ayak",
@@ -57,6 +57,60 @@
         0.8
       ],
       "mesafe": 0.85
+    },
+    {
+      "ad": "ifade normal",
+      "hedef": {
+        "kemik": "Head",
+        "ofset": [
+          0,
+          0.17,
+          0.03
+        ]
+      },
+      "yon": [
+        0.2,
+        0.05,
+        1
+      ],
+      "mesafe": 0.9,
+      "ifade": "normal"
+    },
+    {
+      "ad": "ifade gülümseme",
+      "hedef": {
+        "kemik": "Head",
+        "ofset": [
+          0,
+          0.17,
+          0.03
+        ]
+      },
+      "yon": [
+        0.2,
+        0.05,
+        1
+      ],
+      "mesafe": 0.9,
+      "ifade": "gulumseme"
+    },
+    {
+      "ad": "ifade şaşkın",
+      "hedef": {
+        "kemik": "Head",
+        "ofset": [
+          0,
+          0.17,
+          0.03
+        ]
+      },
+      "yon": [
+        0.2,
+        0.05,
+        1
+      ],
+      "mesafe": 0.9,
+      "ifade": "saskin"
     }
   ],
   "guzel": {
@@ -213,6 +267,16 @@
         ]
       },
       "sebep": "atkı boyun ve göğse sarılır"
+    },
+    {
+      "a": "kozmetik_atki",
+      "b": "ten:yuz",
+      "sebep": "atkı çeneye dayanır"
+    },
+    {
+      "a": "kozmetik_atki",
+      "b": "sacKuyruk*",
+      "sebep": "at kuyruğu (saç 3) atkının içinden geçer"
     }
   ]
 }
