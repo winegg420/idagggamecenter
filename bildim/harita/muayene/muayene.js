@@ -235,4 +235,39 @@ function ciz(i) {
   return render.domElement.toDataURL("image/png");
 }
 
-window.muayene = { hazirla, ciz, hazir: true };
+/**
+ * KONTAKT SAYFASI (Adım 3): 10 görünüm (2 × 5) + başlık (varlık, üçgen, malzeme, aday sayısı) + FAIL adayı listesi.
+ * bilgi: { varlik, ucgen, malzeme, adaylar: [{test, adalar[], olcu}], susturulanSayisi, tarih }
+ * Tek JPEG döner (insanın baktığı ve commit edilen tek dosya; ham PNG'ler git dışı).
+ */
+function kontakt(bilgi) {
+  const K = 480, SUT = 5, ETIKET = 30, UST = 118, SATIR = 21, MAKS = 34;
+  const satirlar = bilgi.adaylar.map((a) => `[${a.test}] ${a.adalar.join("  ↔  ")}   ${Object.entries(a.olcu ?? {}).map(([k, v]) => `${k}=${v}`).join(" · ")}`);
+  const gosterilen = satirlar.slice(0, MAKS);
+  const listeY = UST + 2 * (K + ETIKET) + 16;
+  const c = document.createElement("canvas");
+  c.width = SUT * K; c.height = listeY + 44 + Math.max(1, gosterilen.length + (satirlar.length > MAKS ? 1 : 0)) * SATIR + 24;
+  const x = c.getContext("2d");
+  x.fillStyle = "#f6f8fa"; x.fillRect(0, 0, c.width, c.height);
+  x.fillStyle = "#20324a"; x.font = "800 40px system-ui, sans-serif"; x.fillText(bilgi.varlik, 20, 52);
+  x.font = "600 22px system-ui, sans-serif";
+  const aday = bilgi.adaylar.length;
+  x.fillText(`${bilgi.ucgen.toLocaleString("tr-TR")} üçgen · ${bilgi.malzeme} malzeme · ${aday} FAIL adayı · ${bilgi.susturulanSayisi} üstveriyle susturuldu · ${bilgi.tarih}`, 20, 92);
+  x.fillStyle = aday ? "#c0392b" : "#1e8e5a"; x.fillRect(c.width - 230, 26, 210, 60);
+  x.fillStyle = "#fff"; x.font = "800 26px system-ui, sans-serif"; x.fillText(aday ? `${aday} ADAY` : "ADAY YOK", c.width - 212, 66);
+  durum.gorunumler.forEach((g, i) => {
+    const gx = (i % SUT) * K, gy = UST + Math.floor(i / SUT) * (K + ETIKET);
+    x.fillStyle = "#20324a"; x.fillRect(gx, gy, K, ETIKET);
+    x.fillStyle = "#fff"; x.font = "700 16px system-ui, sans-serif"; x.fillText(`${i + 1}. ${g.ad}`, gx + 10, gy + 21);
+    if (durum.cizimler[i]) x.drawImage(durum.cizimler[i], gx, gy + ETIKET, K, K);
+    x.strokeStyle = "#f6f8fa"; x.lineWidth = 2; x.strokeRect(gx, gy, K, K + ETIKET);
+  });
+  x.fillStyle = "#20324a"; x.font = "800 22px system-ui, sans-serif";
+  x.fillText(aday ? "FAIL ADAYLARI (insan incelemesine; otomatik red değil)" : "FAIL ADAYI YOK (mekanik testler) — görsel muayene ayrıca yapılır", 20, listeY + 26);
+  x.font = "500 15px ui-monospace, Consolas, monospace";
+  gosterilen.forEach((s, i) => { x.fillStyle = i % 2 ? "#44546a" : "#20324a"; x.fillText(s.length > 250 ? s.slice(0, 247) + "…" : s, 20, listeY + 44 + (i + 1) * SATIR); });
+  if (satirlar.length > MAKS) { x.fillStyle = "#c0392b"; x.fillText(`… +${satirlar.length - MAKS} aday daha — tam liste adaylar.json`, 20, listeY + 44 + (gosterilen.length + 1) * SATIR); }
+  return c.toDataURL("image/jpeg", 0.86);
+}
+
+window.muayene = { hazirla, ciz, kontakt, hazir: true };

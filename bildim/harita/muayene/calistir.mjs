@@ -56,6 +56,9 @@ try {
       fs.writeFileSync(path.join(klasor, dosya), Buffer.from(url.split(",")[1], "base64"));
       dosyalar.push(dosya);
     }
+    // (4) kontakt sayfası — varlık başına TEK dosya (commit edilen)
+    const jpeg = await sayfa.evaluate((b) => window.muayene.kontakt(b), { varlik: ad, ucgen: bilgi.ucgen, malzeme: bilgi.malzeme, adaylar: test.adaylar, susturulanSayisi: test.susturulan.length, tarih: new Date().toLocaleDateString("tr-TR") });
+    fs.writeFileSync(path.join(klasor, "kontakt.jpg"), Buffer.from(jpeg.split(",")[1], "base64"));
     const sayac = (liste) => liste.reduce((m, a) => ((m[a.test] = (m[a.test] ?? 0) + 1), m), {});
     ozet.varliklar[ad] = { ucgen: bilgi.ucgen, malzeme: bilgi.malzeme, gorunumler: bilgi.gorunumler, dosyalar, aday: sayac(test.adaylar), susturulan: sayac(test.susturulan) };
     ozet.gpu = bilgi.gpu;
