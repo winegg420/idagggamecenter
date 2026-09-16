@@ -16,12 +16,17 @@ Onaylanmış görsel referans: repo kökünde `QUIZADOR_MEYDAN_REFERANS.html`
 | `coklu.js` | Supabase Realtime `meydan` kanalı: presence (kim burada) + broadcast `poz` / `emoji`. |
 | `renk.js` | `user.id`'den deterministik avatar rengi (profilde renk kolonu yok, eklenmedi). |
 | `harita.css` | HUD; tüm sınıflar `.bd-harita-` önekli. |
+| `yerlesim.json` | **Aşama 2A:** Taksim haritasının TEK doğruluk kaynağı (bölge, parsel, nokta, alan, tramvay, arka plan). Elle düzenlenir. |
+| `yerlesimDunya.js` | Manifestten greybox dünya kurar; konum HESAPLAMAZ. Yönlü kutu çarpışması + birleşik sınır + kapı önü ipucu. |
+| `olcum/greybox.*` | Greybox ölçüm sayfası (üretim derlemesi, yerel; canlıya çıkmaz). |
 
 Bağlantı: `src/App.jsx` (`/bildim/harita`) ve `src/BildimApp.jsx` (`/harita`)
 **lazy** route; `Layout.jsx`'te "Harita" sekmesi. Harita'ya girmeyen oyuncu
 three.js indirmez — `three.module-*.js` ayrı chunk'tır (driftgp ile paylaşılır).
 
 ## Kurallar
+- **Harita seçimi (2A):** `/harita?harita=taksim` greybox'ı açar, `?harita=eski` kapatır (cihazda hatırlanır). Parametresiz meydan Paket 13 dünyası.
+- **Taksim yerleşimi koda gömülmez:** bina/nokta/alan konumu `yerlesim.json`'da değişir, `yerlesimDunya.js`'te değil.
 - **Veritabanı değişikliği yok.** Konum kalıcı tutulmaz; presence + broadcast.
 - Başka oyun modülünden import yok; yalnız `src/` kabuğu + `bildim/lib`.
 - Bina listesi/renkleri `dunya.js › BINALAR` — mod renkleriyle aynı, değiştirme.

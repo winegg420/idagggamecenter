@@ -1,0 +1,493 @@
+{
+  "harita": "istanbul-taksim",
+  "surum": 1,
+  "olcek": "1 birim = 1 metre",
+  "not": "Aşama 2A greybox. Konumlar [x, y, z]; +X doğu, −Z kuzey. donus_y radyan: parselin yerel +Z yüzü (kapı/ön cephe) atan2(dx, dz) yönüne bakar. Parsel konumu ayak izinin MERKEZİ, zemin y=0.",
+  "sinir": {
+    "tip": "birlesim",
+    "aciklama": "Yürünebilir alan = parçaların birleşimi. Dışına çıkan oyuncu en yakın parçanın kenarına itilir.",
+    "parcalar": [
+      {"tip": "daire", "merkez": [0, 0], "r": 42},
+      {"tip": "koridor", "baslangic": [-18.22, 23.83], "bitis": [-80.18, 104.86], "genislik": 12}
+    ]
+  },
+  "bolgeler": [
+    {"id": "plaza", "tip": "kaldirim", "sekil": "daire", "merkez": [0, 0], "r": 42},
+    {"id": "meydan", "tip": "sosyal", "sekil": "daire", "merkez": [0, 0], "r": 26},
+    {"id": "istiklal", "tip": "islevsel", "sekil": "koridor", "baslangic": [-18.22, 23.83], "bitis": [-80.18, 104.86], "genislik": 12, "kaldirim": 2}
+  ],
+  "parseller": [
+    {
+      "id": "kose_istiklal_a",
+      "tur": "kose_binasi",
+      "kat": 3,
+      "girilebilir": false,
+      "capa": {"konum": [-37.47, 0, 29.25], "donus_y": 0.92},
+      "ayakizi": {"en": 12, "derinlik": 12, "yukseklik": 10},
+      "yuva": "bina_kose_binasi",
+      "yertutucu": "kutu"
+    },
+    {
+      "id": "dukkan_normal",
+      "tur": "kucuk_dukkan",
+      "kat": 2,
+      "girilebilir": true,
+      "capa": {"konum": [-42.97, 0, 38.9], "donus_y": 0.92},
+      "ayakizi": {"en": 8, "derinlik": 9, "yukseklik": 7},
+      "yuva": "bina_kucuk_dukkan",
+      "yertutucu": "kutu",
+      "mod": "/",
+      "ad": "Normal Maç",
+      "alt": "hemen oyna"
+    },
+    {
+      "id": "dar_istiklal_a1",
+      "tur": "dar_uzun",
+      "kat": 4,
+      "girilebilir": false,
+      "capa": {"konum": [-47.92, 0, 44.55], "donus_y": 0.92},
+      "ayakizi": {"en": 5, "derinlik": 10, "yukseklik": 13.2},
+      "yuva": "bina_dar_uzun",
+      "yertutucu": "kutu"
+    },
+    {
+      "id": "dukkan_hizli",
+      "tur": "kucuk_dukkan",
+      "kat": 1,
+      "girilebilir": true,
+      "capa": {"konum": [-52.08, 0, 50.82], "donus_y": 0.92},
+      "ayakizi": {"en": 8, "derinlik": 9, "yukseklik": 3.8},
+      "yuva": "bina_kucuk_dukkan",
+      "yertutucu": "kutu",
+      "mod": "/hizli-mod",
+      "ad": "Hızlı Mod",
+      "alt": "90 saniye"
+    },
+    {
+      "id": "apartman_istiklal_a1",
+      "tur": "apartman",
+      "kat": 5,
+      "girilebilir": false,
+      "capa": {"konum": [-59.95, 0, 58.64], "donus_y": 0.92},
+      "ayakizi": {"en": 12, "derinlik": 12, "yukseklik": 16.4},
+      "yuva": "bina_apartman",
+      "yertutucu": "kutu"
+    },
+    {
+      "id": "dukkan_duello",
+      "tur": "kucuk_dukkan",
+      "kat": 2,
+      "girilebilir": true,
+      "capa": {"konum": [-65.44, 0, 68.29], "donus_y": 0.92},
+      "ayakizi": {"en": 8, "derinlik": 9, "yukseklik": 7},
+      "yuva": "bina_kucuk_dukkan",
+      "yertutucu": "kutu",
+      "mod": "/duello",
+      "ad": "Düello",
+      "alt": "taktik maçı"
+    },
+    {
+      "id": "dar_istiklal_a2",
+      "tur": "dar_uzun",
+      "kat": 5,
+      "girilebilir": false,
+      "capa": {"konum": [-71.1, 0, 74.04], "donus_y": 0.92},
+      "ayakizi": {"en": 6, "derinlik": 11, "yukseklik": 16.4},
+      "yuva": "bina_dar_uzun",
+      "yertutucu": "kutu"
+    },
+    {
+      "id": "dukkan_turnuva",
+      "tur": "kucuk_dukkan",
+      "kat": 2,
+      "girilebilir": true,
+      "capa": {"konum": [-75.86, 0, 81.09], "donus_y": 0.92},
+      "ayakizi": {"en": 9, "derinlik": 10, "yukseklik": 7},
+      "yuva": "bina_kucuk_dukkan",
+      "yertutucu": "kutu",
+      "mod": "/turnuva",
+      "ad": "Turnuva",
+      "alt": null
+    },
+    {
+      "id": "apartman_istiklal_a2",
+      "tur": "apartman",
+      "kat": 4,
+      "girilebilir": false,
+      "capa": {"konum": [-83.34, 0, 89.23], "donus_y": 0.92},
+      "ayakizi": {"en": 11, "derinlik": 12, "yukseklik": 13.2},
+      "yuva": "bina_apartman",
+      "yertutucu": "kutu"
+    },
+    {
+      "id": "kose_istiklal_b",
+      "tur": "kose_binasi",
+      "kat": 4,
+      "girilebilir": false,
+      "capa": {"konum": [-18.41, 0, 43.83], "donus_y": -2.22},
+      "ayakizi": {"en": 12, "derinlik": 12, "yukseklik": 13.2},
+      "yuva": "bina_kose_binasi",
+      "yertutucu": "kutu"
+    },
+    {
+      "id": "dukkan_lig",
+      "tur": "kucuk_dukkan",
+      "kat": 2,
+      "girilebilir": true,
+      "capa": {"konum": [-26.28, 0, 51.66], "donus_y": -2.22},
+      "ayakizi": {"en": 8, "derinlik": 9, "yukseklik": 7},
+      "yuva": "bina_kucuk_dukkan",
+      "yertutucu": "kutu",
+      "mod": "/siralama",
+      "ad": "Lig",
+      "alt": "haftalık sıralama"
+    },
+    {
+      "id": "apartman_istiklal_b1",
+      "tur": "apartman",
+      "kat": 4,
+      "girilebilir": false,
+      "capa": {"konum": [-31.17, 0, 60.51], "donus_y": -2.22},
+      "ayakizi": {"en": 10, "derinlik": 12, "yukseklik": 13.2},
+      "yuva": "bina_apartman",
+      "yertutucu": "kutu"
+    },
+    {
+      "id": "dukkan_hatalarim",
+      "tur": "kucuk_dukkan",
+      "kat": 1,
+      "girilebilir": true,
+      "capa": {"konum": [-38.43, 0, 67.54], "donus_y": -2.22},
+      "ayakizi": {"en": 8, "derinlik": 9, "yukseklik": 3.8},
+      "yuva": "bina_kucuk_dukkan",
+      "yertutucu": "kutu",
+      "mod": "/calisma",
+      "ad": "Hatalarım",
+      "alt": "çalışma odası"
+    },
+    {
+      "id": "kamusal_istiklal",
+      "tur": "kamusal_yapi",
+      "kat": 3,
+      "girilebilir": false,
+      "capa": {"konum": [-43.55, 0, 80], "donus_y": -2.22},
+      "ayakizi": {"en": 16, "derinlik": 16, "yukseklik": 14},
+      "yuva": "bina_kamusal_yapi",
+      "yertutucu": "kutu"
+    },
+    {
+      "id": "dukkan_dukkan",
+      "tur": "kucuk_dukkan",
+      "kat": 2,
+      "girilebilir": true,
+      "capa": {"konum": [-54.23, 0, 88.2], "donus_y": -2.22},
+      "ayakizi": {"en": 8, "derinlik": 9, "yukseklik": 7},
+      "yuva": "bina_kucuk_dukkan",
+      "yertutucu": "kutu",
+      "mod": "/joker",
+      "ad": "Dükkân",
+      "alt": "joker ve paketler"
+    },
+    {
+      "id": "dar_istiklal_b1",
+      "tur": "dar_uzun",
+      "kat": 5,
+      "girilebilir": false,
+      "capa": {"konum": [-58.39, 0, 94.46], "donus_y": -2.22},
+      "ayakizi": {"en": 5, "derinlik": 10, "yukseklik": 16.4},
+      "yuva": "bina_dar_uzun",
+      "yertutucu": "kutu"
+    },
+    {
+      "id": "dukkan_studyo",
+      "tur": "kucuk_dukkan",
+      "kat": 2,
+      "girilebilir": true,
+      "capa": {"konum": [-63.34, 0, 100.11], "donus_y": -2.22},
+      "ayakizi": {"en": 8, "derinlik": 9, "yukseklik": 7},
+      "yuva": "bina_kucuk_dukkan",
+      "yertutucu": "kutu",
+      "mod": "/gorunum",
+      "ad": "Stüdyo",
+      "alt": "fotoğraf ve görünüm"
+    },
+    {
+      "id": "dukkan_ayarlar",
+      "tur": "kucuk_dukkan",
+      "kat": 1,
+      "girilebilir": true,
+      "capa": {"konum": [-68.81, 0, 107.26], "donus_y": -2.22},
+      "ayakizi": {"en": 8, "derinlik": 9, "yukseklik": 3.8},
+      "yuva": "bina_kucuk_dukkan",
+      "yertutucu": "kutu",
+      "mod": "/profil",
+      "ad": "Ayarlar",
+      "alt": "profil ve tercihler"
+    },
+    {
+      "id": "apartman_istiklal_ucu",
+      "tur": "apartman",
+      "kat": 5,
+      "girilebilir": false,
+      "capa": {"konum": [-84.44, 0, 110.42], "donus_y": 2.49},
+      "ayakizi": {"en": 20, "derinlik": 12, "yukseklik": 16.4},
+      "yuva": "bina_apartman",
+      "yertutucu": "kutu"
+    },
+    {
+      "id": "kamusal_akm",
+      "tur": "kamusal_yapi",
+      "kat": 4,
+      "girilebilir": false,
+      "capa": {"konum": [52, 0, 0], "donus_y": -1.57},
+      "ayakizi": {"en": 52, "derinlik": 20, "yukseklik": 20},
+      "yuva": "bina_kamusal_yapi",
+      "yertutucu": "kutu"
+    },
+    {
+      "id": "apartman_guneydogu",
+      "tur": "apartman",
+      "kat": 5,
+      "girilebilir": false,
+      "capa": {"konum": [33.34, 0, 34.53], "donus_y": -2.37},
+      "ayakizi": {"en": 18, "derinlik": 12, "yukseklik": 16.4},
+      "yuva": "bina_apartman",
+      "yertutucu": "kutu"
+    },
+    {
+      "id": "kose_guney",
+      "tur": "kose_binasi",
+      "kat": 3,
+      "girilebilir": false,
+      "capa": {"konum": [14.83, 0, 45.65], "donus_y": -2.83},
+      "ayakizi": {"en": 14, "derinlik": 12, "yukseklik": 10},
+      "yuva": "bina_kose_binasi",
+      "yertutucu": "kutu"
+    },
+    {
+      "id": "dar_guney",
+      "tur": "dar_uzun",
+      "kat": 5,
+      "girilebilir": false,
+      "capa": {"konum": [-1.66, 0, 47.47], "donus_y": 3.11},
+      "ayakizi": {"en": 6, "derinlik": 11, "yukseklik": 16.4},
+      "yuva": "bina_dar_uzun",
+      "yertutucu": "kutu"
+    },
+    {
+      "id": "apartman_bati",
+      "tur": "apartman",
+      "kat": 4,
+      "girilebilir": false,
+      "capa": {"konum": [-48, 0, 0], "donus_y": 1.57},
+      "ayakizi": {"en": 20, "derinlik": 12, "yukseklik": 13.2},
+      "yuva": "bina_apartman",
+      "yertutucu": "kutu"
+    },
+    {
+      "id": "dar_bati",
+      "tur": "dar_uzun",
+      "kat": 4,
+      "girilebilir": false,
+      "capa": {"konum": [-44.64, 0, 16.25], "donus_y": 1.92},
+      "ayakizi": {"en": 6, "derinlik": 11, "yukseklik": 13.2},
+      "yuva": "bina_dar_uzun",
+      "yertutucu": "kutu"
+    },
+    {
+      "id": "landmark_taksim_camii",
+      "tur": "landmark_cami",
+      "kat": 0,
+      "girilebilir": false,
+      "capa": {"konum": [-42.36, 0, -38.14], "donus_y": 0.84},
+      "ayakizi": {"en": 22, "derinlik": 22, "yukseklik": 18},
+      "yuva": "bina_landmark_cami",
+      "yertutucu": "kubbe"
+    },
+    {
+      "id": "landmark_minare",
+      "tur": "landmark_minare",
+      "kat": 0,
+      "girilebilir": false,
+      "capa": {"konum": [-23.24, 0, -43.71], "donus_y": 0.49},
+      "ayakizi": {"en": 3, "derinlik": 3, "yukseklik": 42},
+      "yuva": "bina_landmark_minare",
+      "yertutucu": "silindir"
+    }
+  ],
+  "noktalar": [
+    {"id": "spawn_varsayilan", "tip": "spawn", "konum": [0, 0, 16], "donus_y": 3.14},
+    {
+      "id": "anit",
+      "tip": "landmark",
+      "ad": "Cumhuriyet Anıtı",
+      "konum": [0, 0, 0],
+      "ayakizi": {"en": 10, "derinlik": 10, "yukseklik": 1.2},
+      "govde": {"en": 4, "derinlik": 4, "yukseklik": 11},
+      "yuva": "landmark_cumhuriyet_aniti"
+    },
+    {"id": "npc_yemci", "tip": "npc", "konum": [11, 0, -8], "yuva": "npc_yemci"},
+    {"id": "tabela_istiklal", "tip": "tabela", "metin": "İstiklal Caddesi / İstiklal Street", "konum": [-18.34, 0, 32.55], "donus_y": 2.49, "yuva": "tabela_istiklal"}
+  ],
+  "alanlar": [
+    {
+      "id": "agac_meydan_kuzey",
+      "tip": "bitki",
+      "cokgen": [
+        [-28.19, -10.26],
+        [-24.87, -16.78],
+        [-20.07, -22.29],
+        [-14.08, -26.49],
+        [-7.26, -29.11],
+        [0, -30],
+        [7.26, -29.11],
+        [14.08, -26.49],
+        [20.07, -22.29],
+        [24.87, -16.78],
+        [28.19, -10.26],
+        [35.71, -13],
+        [31.5, -21.25],
+        [25.43, -28.24],
+        [17.84, -33.55],
+        [9.19, -36.87],
+        [0, -38],
+        [-9.19, -36.87],
+        [-17.84, -33.55],
+        [-25.43, -28.24],
+        [-31.5, -21.25],
+        [-35.71, -13]
+      ]
+    },
+    {
+      "id": "agac_meydan_dogu",
+      "tip": "bitki",
+      "cokgen": [
+        [29.13, 10.6],
+        [27.37, 14.55],
+        [25.08, 18.22],
+        [22.3, 21.53],
+        [19.09, 24.43],
+        [15.5, 26.85],
+        [19, 32.91],
+        [23.4, 29.94],
+        [27.33, 26.4],
+        [30.74, 22.34],
+        [33.55, 17.84],
+        [35.71, 13]
+      ]
+    },
+    {"id": "agac_kusagi_gezi", "tip": "bitki", "cokgen": [[-30, -48], [40, -48], [46, -95], [-34, -95]], "not": "Gezi Parkı — yürünebilir sınırın dışında"},
+    {
+      "id": "bank_meydan_bati",
+      "tip": "bank",
+      "cokgen": [[-23.82, 13.75], [-25.63, 9.97], [-26.85, 5.95], [-27.44, 1.8], [-27.4, -2.4], [-29.89, -2.61], [-29.94, 1.96], [-29.29, 6.49], [-27.96, 10.87], [-25.98, 15]]
+    },
+    {
+      "id": "bank_meydan_guney",
+      "tip": "bank",
+      "cokgen": [[13.75, 23.82], [9.41, 25.84], [4.78, 27.08], [0, 27.5], [-4.78, 27.08], [-5.21, 29.54], [0, 30], [5.21, 29.54], [10.26, 28.19], [15, 25.98]]
+    },
+    {
+      "id": "bank_meydan_kuzeydogu",
+      "tip": "bank",
+      "cokgen": [[13.75, -23.82], [17.68, -21.07], [21.07, -17.68], [23.82, -13.75], [25.84, -9.41], [28.19, -10.26], [25.98, -15], [22.98, -19.28], [19.28, -22.98], [15, -25.98]]
+    },
+    {
+      "id": "kedi_gezinti",
+      "tip": "pet_npc",
+      "cokgen": [
+        [-26.9, -2.35],
+        [-26.36, -5.84],
+        [-25.37, -9.23],
+        [-23.95, -12.47],
+        [-22.12, -15.49],
+        [-19.91, -18.24],
+        [-17.36, -20.68],
+        [-23.14, -27.58],
+        [-26.54, -24.32],
+        [-29.49, -20.65],
+        [-31.93, -16.62],
+        [-33.83, -12.31],
+        [-35.15, -7.79],
+        [-35.86, -3.14]
+      ]
+    },
+    {
+      "id": "marti_alani",
+      "tip": "pet_npc",
+      "cokgen": [
+        [1.22, -6.89],
+        [2.62, -6.49],
+        [3.91, -5.8],
+        [5.04, -4.86],
+        [5.94, -3.71],
+        [6.58, -2.39],
+        [6.93, -0.97],
+        [6.98, 0.49],
+        [6.73, 1.93],
+        [6.18, 3.29],
+        [5.36, 4.5],
+        [13.79, 11.57],
+        [15.89, 8.45],
+        [17.3, 4.96],
+        [17.96, 1.26],
+        [17.82, -2.51],
+        [16.91, -6.16],
+        [15.26, -9.54],
+        [12.95, -12.5],
+        [10.07, -14.92],
+        [6.74, -16.69],
+        [3.13, -17.73]
+      ]
+    },
+    {
+      "id": "aydinlatma_meydan",
+      "tip": "lamba",
+      "hat": [
+        [32.5, -5.73],
+        [32.87, 2.88],
+        [31.01, 11.29],
+        [27.03, 18.93],
+        [21.21, 25.28],
+        [13.95, 29.91],
+        [5.73, 32.5],
+        [-2.88, 32.87],
+        [-11.29, 31.01],
+        [-18.93, 27.03],
+        [-25.28, 21.21],
+        [-29.91, 13.95],
+        [-32.5, 5.73],
+        [-32.87, -2.88],
+        [-31.01, -11.29],
+        [-27.03, -18.93],
+        [-21.21, -25.28],
+        [-13.95, -29.91],
+        [-5.73, -32.5],
+        [2.88, -32.87],
+        [11.29, -31.01],
+        [18.93, -27.03],
+        [25.28, -21.21],
+        [29.91, -13.95],
+        [32.5, -5.73]
+      ],
+      "aralik": 12
+    },
+    {"id": "aydinlatma_istiklal_a", "tip": "lamba", "hat": [[-29.8, 30.08], [-83.26, 99.99]], "aralik": 12},
+    {"id": "aydinlatma_istiklal_b", "tip": "lamba", "hat": [[-24.87, 41.41], [-74.68, 106.55]], "aralik": 12}
+  ],
+  "tramvay": {
+    "hat": [[-18.22, 23.83], [-80.18, 104.86]],
+    "duraklar": [
+      {"id": "durak_taksim", "konum": [-26.73, 34.95]},
+      {"id": "durak_tunel", "konum": [-75.32, 98.5]}
+    ],
+    "not": "Nostaljik tramvay (Taksim–Tünel). Ray + durak noktası; araç bu pakette yok."
+  },
+  "arkaplan": [
+    {"id": "bogaz", "tip": "su", "cokgen": [[150, -420], [420, -420], [420, 300], [150, 300]], "not": "Boğaz — yürünebilir sınırın ötesinde, doğu"},
+    {"id": "karsi_yaka", "tip": "tepe", "cokgen": [[330, -420], [520, -420], [520, 300], [330, 300]], "yukseklik": 30},
+    {"id": "kopru_15_temmuz", "tip": "kopru", "baslangic": [180, -330], "bitis": [360, -180], "kule_yukseklik": 70, "guverte_yukseklik": 32},
+    {"id": "sehir_kusagi_kuzey", "tip": "siluet", "cokgen": [[-140, -130], [120, -130], [120, -170], [-140, -170]], "yukseklik": 24},
+    {"id": "sehir_kusagi_bati", "tip": "siluet", "cokgen": [[-190, -120], [-150, -120], [-150, 200], [-190, 200]], "yukseklik": 20}
+  ]
+}

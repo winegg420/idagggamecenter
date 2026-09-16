@@ -32,6 +32,8 @@ import { esyaBilgisi, esyaOnbelleginiTemizle } from "./esyalar.js";
 import { dansBaslat, dansKaresi, dansiDurdur } from "./danslar.js";
 import { turnuvaSaatleri } from "../lib/zaman.js";
 import { tt } from "../lib/dil.js";
+// AŞAMA 2A: yerleşim manifesti (yerlesim.json) verilirse dünya ondan kurulur — konumlar koda gömülü değil.
+import { yerlesimKur } from "./yerlesimDunya.js";
 export { esyaBilgisi };
 
 // roundRect / canvasDoku / isimEtiketi / nesneyiSerbestBirak ORTAK.JS'e taşındı:
@@ -94,23 +96,27 @@ function levha(metin, renk) {
  * Dünyayı kurar ve döngü/yok etme arayüzünü döndürür.
  *
  * @param {HTMLElement} kapsayici  canvas'ın ekleneceği eleman
- * @param {object} s  { dusukDonanim:boolean, hareketAzalt:boolean }
+ * @param {object} s  { dusukDonanim:boolean, hareketAzalt:boolean, yerlesim?:object }
+ *   yerlesim: Aşama 2A manifesti (yerlesim.json). Verilirse greybox dünya MANİFESTTEN kurulur; verilmezse
+ *   Paket 13 dünyası (göl, köprü, 7 bina) eskisi gibi. Oynanış (çoklu, kontrol, kamera, zıplama, dans, ikram) iki durumda da aynı.
  */
 export function dunyaKur(kapsayici, s = {}) {
   const dusukDonanim = Boolean(s.dusukDonanim);
   const hareketAzalt = Boolean(s.hareketAzalt);
+  const yerlesim = s.yerlesim ?? null;
 
   let W = kapsayici.clientWidth || window.innerWidth;
   let H = kapsayici.clientHeight || window.innerHeight;
 
   const sahne = new THREE.Scene();
   sahne.background = new THREE.Color(0xbfe8ff);
-  sahne.fog = new THREE.Fog(0xcdeeff, 85, 190);
+  // Greybox gerçek ölçekte ~250 m + arka plan kuşağı (Boğaz ~300 m): sis ve uzak kırpma oraya kadar açılır
+  sahne.fog = yerlesim ? new THREE.Fog(0xcdeeff, 260, 780) : new THREE.Fog(0xcdeeff, 85, 190);
 
   // GÖRÜŞ AÇISI: dikeyde 42°, yatayda 48°. Telefon yan çevrilince ekran
   // alçalıyor ve sahne dar bir şeritten bakılıyormuş gibi görünüyordu.
   const fov = () => (W > H ? 48 : 42);
-  const kamera = new THREE.PerspectiveCamera(fov(), W / H, 0.5, 400);
+  const kamera = new THREE.PerspectiveCamera(fov(), W / H, 0.5, yerlesim ? 1000 : 400);
   const render = new THREE.WebGLRenderer({ antialias: !dusukDonanim, powerPreference: "high-performance" });
   render.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
   render.setSize(W, H);
@@ -133,6 +139,14 @@ export function dunyaKur(kapsayici, s = {}) {
 
   const engeller = [];
   const binalar = [];
+  // Eski dünyanın dışarıdan kullanılan parçaları (greybox'ta yok): su, dalgalar, bulutlar, köprü/zemin sorguları
+  let su = null, kopruUstundeMi = () => false, zeminYuksekligi = () => 0;
+  const dalgalar = [], bulutlar = [];
+  const gb = yerlesim
+    ? yerlesimKur({ sahne, manifest: yerlesim, tt, turnuvaAlt: () => tt("günde {0} turnuva", { 0: turnuvaSaatleri().length }) })
+    : null;
+  if (gb) { engeller.push(...gb.engeller); binalar.push(...gb.binalar); }
+  if (!gb) {   // ======== PAKET 13 DÜNYASI (manifest yoksa) — içerik değişmedi, girinti bilerek korunuyor ========
 
   // ---------- zemin: çim ----------
   const cim = new THREE.Mesh(new THREE.CircleGeometry(92, 64), mat(0x86ce6b));
@@ -172,9 +186,8 @@ export function dunyaKur(kapsayici, s = {}) {
   const kenarlik = new THREE.Mesh(new THREE.TorusGeometry(HAVUZ_YARICAP, 0.5, 10, 72), mat(0xdcd1b8));
   kenarlik.rotation.x = Math.PI / 2; kenarlik.position.y = 0.45; kenarlik.castShadow = true; havuz.add(kenarlik);
   const suMat = new THREE.MeshLambertMaterial({ color: 0x4fc3e8, transparent: true, opacity: 0.88 });
-  const su = new THREE.Mesh(new THREE.CircleGeometry(HAVUZ_YARICAP - 0.3, 72), suMat);
+  su = new THREE.Mesh(new THREE.CircleGeometry(HAVUZ_YARICAP - 0.3, 72), suMat);
   su.rotation.x = -Math.PI / 2; su.position.y = 0.4; havuz.add(su);
-  const dalgalar = [];
   for (let i = 0; i < 3; i++) {
     const dm = new THREE.Mesh(new THREE.TorusGeometry(1.2, 0.05, 6, 30), suMat.clone());
     dm.rotation.x = Math.PI / 2; dm.position.set((i - 1) * 7, 0.44, (i % 2 ? -1 : 1) * 5);
@@ -183,16 +196,16 @@ export function dunyaKur(kapsayici, s = {}) {
 
   // ---------- köprü ----------
   /** Köprü ayak izinde mi (x boyunca, gölün üstünden)? */
-  function kopruUstundeMi(x, z) {
+  kopruUstundeMi = function (x, z) {
     return Math.abs(x) <= KOPRU.L && Math.abs(z) <= KOPRU.W / 2;
-  }
+  };
   /** Kemerin (x) noktasındaki yüksekliği; ayak izi dışında 0. */
   function kemer(x) { return Math.max(0, KOPRU.H * (1 - (x / KOPRU.L) ** 2)); }
   /**
    * Zemin yüksekliği: köprüdeyse kemer, değilse 0. TEK KAYNAK — avatar y,
    * çarpışma ve ağ paketi buna bakar. (Zıplama yüksekliği bunun üstüne eklenir.)
    */
-  function zeminYuksekligi(x, z) { return kopruUstundeMi(x, z) ? kemer(x) : 0; }
+  zeminYuksekligi = function (x, z) { return kopruUstundeMi(x, z) ? kemer(x) : 0; };
   {
     const kopru = new THREE.Group(); sahne.add(kopru);
     const guverteMat = mat(0xe3d9c2), korkulukMat = mat(0xc9bc9e), ayakMat = mat(0xd6cbb2);
@@ -409,7 +422,6 @@ export function dunyaKur(kapsayici, s = {}) {
   }
 
   // bulutlar
-  const bulutlar = [];
   for (let bl = 0; bl < 9; bl++) {
     const bg = new THREE.Group();
     for (let p2 = 0; p2 < 4; p2++) {
@@ -425,6 +437,7 @@ export function dunyaKur(kapsayici, s = {}) {
     bg.userData.hiz = 0.3 + Math.random() * 0.4;
     sahne.add(bg); bulutlar.push(bg);
   }
+  }   // ======== /PAKET 13 DÜNYASI ========
 
   // ---------- avatar ----------
   /**
@@ -559,6 +572,7 @@ export function dunyaKur(kapsayici, s = {}) {
 
   // ---------- çarpışma ----------
   function carpismaDuzelt(poz, yaricap) {
+    if (gb) { gb.carpismaDuzelt(poz, yaricap); return; }   // 2A: parsel ayak izleri (yönlü kutu) + manifest sınırı
     for (let i = 0; i < engeller.length; i++) {
       const e = engeller[i];
       const dx = poz.x - e.x, dz = poz.z - e.z;
@@ -624,6 +638,7 @@ export function dunyaKur(kapsayici, s = {}) {
   }
 
   function yakinBina(poz) {
+    if (gb) return gb.yakinBina(poz);   // 2A: kapı önü noktasından 5 m
     let yakin = null, enYakin = 8;
     for (const b of binalar) {
       const u = Math.hypot(poz.x - b.x, poz.z - b.z);
@@ -658,6 +673,7 @@ export function dunyaKur(kapsayici, s = {}) {
   function zumOku() { return { zum: zumHedef, enAz: ZUM_EN_AZ, enCok: ZUM_EN_COK }; }
 
   const kamHedef = new THREE.Vector3();
+  let kameraSabit = null;   // { konum:[x,y,z], hedef:[x,y,z] } | null
   kamera.position.set(-13, 17, 28);
 
   /** Her karede çağrılır: su, jetler, balonlar, bulutlar, kamera. */
@@ -673,7 +689,7 @@ export function dunyaKur(kapsayici, s = {}) {
       b.isima.scale.setScalar(1 + Math.sin(zaman * 3.2) * 0.04);
     }
 
-    if (!hareketAzalt) {
+    if (!hareketAzalt && su) {
       su.position.y = 0.4 + Math.sin(zaman * 1.6) * 0.02;
       for (const dl of dalgalar) {
         const f = ((zaman / 3.4) + dl.f) % 1;
@@ -702,10 +718,14 @@ export function dunyaKur(kapsayici, s = {}) {
     zum += (zumHedef - zum) * Math.min(1, dt * (hareketAzalt ? 60 : 7));
     const yatay = Math.pow(zum, 0.8);    // uzaklık
     const dikey = Math.pow(zum, 1.25);   // yükseklik (daha hızlı → kuş bakışı)
+    if (kameraSabit) {   // 2A ölçüm/görüntü: sabit kamera (oyun kamerası değil; yalnız ?harita=taksim hata ayıklama API'si)
+      kamera.position.set(...kameraSabit.konum); kamera.lookAt(...kameraSabit.hedef);
+    } else {
     kamHedef.set(ben.position.x - 13 * yatay, 17 * dikey + ben.position.y * 0.6, ben.position.z + 17 * yatay);
     // Hareket azaltmada kamera yumuşatmadan doğrudan takip eder
     kamera.position.lerp(kamHedef, hareketAzalt ? 1 : Math.min(1, dt * 3.2));
     kamera.lookAt(ben.position.x, ben.position.y * 0.6 + 2.2 * Math.min(1, zum), ben.position.z);
+    }
 
     render.render(sahne, kamera);
   }
@@ -765,6 +785,7 @@ export function dunyaKur(kapsayici, s = {}) {
    * @returns {{x:number,z:number}|null} su yüzeyindeki nokta
    */
   function suSec(nx, ny) {
+    if (!su) return null;   // 2A greybox: göl yok (donduruldu)
     _nokta.set(nx, ny);
     _isin.setFromCamera(_nokta, kamera);
     const k = _isin.intersectObject(su, false);
@@ -775,7 +796,10 @@ export function dunyaKur(kapsayici, s = {}) {
   }
 
   return {
-    sahne, kamera, render, engeller, binalar, kopru: KOPRU,
+    sahne, kamera, render, engeller, binalar, kopru: gb ? null : KOPRU,
+    // 2A: manifest dünyası bilgisi (yoksa null) — doğuş noktası, nokta sorgusu, etiket aç/kapa, özet sayılar
+    yerlesim: gb ? { dogus: gb.dogus, nokta: gb.nokta, etiketGoster: gb.etiketGoster, ozet: gb.ozet, sinirIcinde: gb.sinirIcinde, manifest: yerlesim } : null,
+    kameraSabitle: (o) => { kameraSabit = o && o.konum && o.hedef ? o : null; },
     avatarOlustur, avatarSil, avatarAdiDegistir, avatarGorunumu, yurumeAnimasyonu, yumusakDon,
     emojiGoster, carpismaDuzelt, zeminYuksekligi, kopruUstundeMi, suSec, yakinBina, turnuvaKapisi, avatarSec,
     dansEttir: (av, kod) => dansBaslat(av, kod),
