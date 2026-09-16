@@ -112,6 +112,32 @@
    "sebep": "süs topları çalıya gömülü"
   }
  ],
+ "gomuluOranlar": [
+  {
+   "ada": "diger:baca [x -0.00 · y 0.35 · z 0.00]",
+   "oran": 0.09
+  },
+  {
+   "ada": "diger:bayrak [x -0.12 · y 1.18 · z 0.28]",
+   "oran": 0.23
+  },
+  {
+   "ada": "diger:bayrak [x 0.12 · y 1.18 · z -0.28]",
+   "oran": 0.23
+  },
+  {
+   "ada": "diger:cim [x 0.00 · y 0.95 · z -0.00]",
+   "oran": 0.19
+  },
+  {
+   "ada": "diger:lamba [x -0.28 · y 1.18 · z -0.12]",
+   "oran": 0.18
+  },
+  {
+   "ada": "diger:lamba [x 0.28 · y 1.18 · z 0.12]",
+   "oran": 0.24
+  }
+ ],
  "adaListesi": [
   {
    "no": 0,

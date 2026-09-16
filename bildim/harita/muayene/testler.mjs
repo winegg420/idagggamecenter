@@ -21,7 +21,7 @@ import { hucreTablosu, YUZ, ifadeRect } from "../varlik/atlas.mjs";
 import { glbOku } from "./glbOku.mjs";
 
 const VARSAYILAN_BOLGE = { ten: 0, sacKase: 1, sacKisa: 2, sacKuyruk: 3, ust: 4, alt: 5, ayakkabi: 6, ceket: 7, kapuson: 8, kurk: 9, metal: 10, boya: 11, ekran: 12, gozL: 13, gozR: 14, agiz: 15, cam: 16, diger: 17, yaka: 18, taban: 19, bilek: 20, plastik: 21 };
-const KOZ_YUVA = { sapka: "basYuva", gozluk: "gozlukYuva", atki: "boyunYuva", kuyruk: "sirtYuva" };
+const KOZ_YUVA = { sapka: "basYuva", gozluk: "gozlukYuva", atki: "boyunYuva", kuyruk: "sirtYuva", gozlukPremium: "gozlukYuva", kanat: "sirtYuva" };
 const HUCRELER = Object.entries(hucreTablosu());
 const YUZ_RECT = [["yuz", YUZ.insan], ["yuz", YUZ.kaplan], ["yuz", YUZ.robot]];
 

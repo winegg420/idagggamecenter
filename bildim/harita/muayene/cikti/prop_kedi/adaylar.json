@@ -242,6 +242,60 @@
    "sebep": "ağız yaması kafaya gömülü"
   }
  ],
+ "gomuluOranlar": [
+  {
+   "ada": "diger:gozBebek [x 0.00 · y 0.25 · z 0.27]",
+   "oran": 0.07
+  },
+  {
+   "ada": "diger:kedi [x -0.05 · y 0.08 · z -0.10]",
+   "oran": 0.26
+  },
+  {
+   "ada": "diger:kedi [x -0.05 · y 0.08 · z 0.10]",
+   "oran": 0.26
+  },
+  {
+   "ada": "diger:kedi [x 0.05 · y 0.08 · z -0.10]",
+   "oran": 0.22
+  },
+  {
+   "ada": "diger:kedi [x 0.05 · y 0.08 · z 0.10]",
+   "oran": 0.22
+  },
+  {
+   "ada": "diger:kedi [x 0.00 · y 0.20 · z 0.00]",
+   "oran": 0.22
+  },
+  {
+   "ada": "diger:kedi [x 0.00 · y 0.27 · z 0.17]",
+   "oran": 0.23
+  },
+  {
+   "ada": "diger:kedi [x -0.04 · y 0.32 · z 0.15]",
+   "oran": 0.75
+  },
+  {
+   "ada": "diger:kedi [x 0.04 · y 0.32 · z 0.15]",
+   "oran": 0.75
+  },
+  {
+   "ada": "diger:kedi [x 0.02 · y 0.34 · z -0.25]",
+   "oran": 0.04
+  },
+  {
+   "ada": "diger:kediGoz [x -0.03 · y 0.29 · z 0.24]",
+   "oran": 0.59
+  },
+  {
+   "ada": "diger:kediGoz [x 0.03 · y 0.29 · z 0.24]",
+   "oran": 0.6
+  },
+  {
+   "ada": "diger:kurkKarin [x 0.00 · y 0.24 · z 0.25]",
+   "oran": 0.32
+  }
+ ],
  "adaListesi": [
   {
    "no": 0,

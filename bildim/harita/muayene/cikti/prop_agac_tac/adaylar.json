@@ -242,6 +242,28 @@
    "sebep": "çok loblu taç: loblar iç içe tek kütle (1C §6)"
   }
  ],
+ "gomuluOranlar": [
+  {
+   "ada": "diger:cim [x 0.00 · y 4.60 · z -0.00]",
+   "oran": 0.47
+  },
+  {
+   "ada": "diger:cim [x 0.10 · y 5.75 · z -0.20]",
+   "oran": 0.47
+  },
+  {
+   "ada": "diger:cimAcik [x -0.20 · y 4.40 · z 0.95]",
+   "oran": 0.45
+  },
+  {
+   "ada": "diger:cimAcik [x -0.80 · y 5.00 · z -0.35]",
+   "oran": 0.5
+  },
+  {
+   "ada": "diger:cimAcik [x 0.75 · y 5.15 · z 0.40]",
+   "oran": 0.48
+  }
+ ],
  "adaListesi": [
   {
    "no": 0,

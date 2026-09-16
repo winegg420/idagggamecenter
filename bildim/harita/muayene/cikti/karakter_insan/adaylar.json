@@ -20,9 +20,9 @@
    "gomulu_oran_esigi": 0.6
   },
   "kozmetik": {
-   "denenen_kozmetik": 3
+   "denenen_kozmetik": 5
   },
-  "sure_s": 0.4
+  "sure_s": 0.6
  },
  "adaylar": [],
  "susturulan": [
@@ -2837,6 +2837,90 @@
    },
    "not": "bağlama pozunda boyunYuva yuvasına takılı",
    "sebep": "atkı boyun ve göğse sarılır"
+  },
+  {
+   "test": "kozmetik",
+   "adalar": [
+    "kozmetik_gozlukPremium (karakter_insan)",
+    "sacKase:sac [x -0.00 · y 1.69 · z -0.10]"
+   ],
+   "olcu": {
+    "kesisim": "üçgen kesişimi var"
+   },
+   "not": "bağlama pozunda gozlukYuva yuvasına takılı",
+   "sebep": "premium gözlük sapı kâkülün/şakak saçının altından geçer"
+  },
+  {
+   "test": "kozmetik",
+   "adalar": [
+    "kozmetik_gozlukPremium (karakter_insan)",
+    "ten:yuz [x -0.00 · y 1.56 · z -0.04]"
+   ],
+   "olcu": {
+    "kesisim": "üçgen kesişimi var"
+   },
+   "not": "bağlama pozunda gozlukYuva yuvasına takılı",
+   "sebep": "premium gözlük sapları ve burun yastıkları kafaya/burna oturur"
+  },
+  {
+   "test": "kozmetik",
+   "adalar": [
+    "kozmetik_kanat (karakter_insan)",
+    "ceket:ceket [x 0.00 · y 1.16 · z -0.02]"
+   ],
+   "olcu": {
+    "kesisim": "üçgen kesişimi var"
+   },
+   "not": "bağlama pozunda sirtYuva yuvasına takılı",
+   "sebep": "kanat koşumu ve omuz kayışları gövdeye/kıyafete sarılır (sırt bağlantısı)"
+  },
+  {
+   "test": "kozmetik",
+   "adalar": [
+    "kozmetik_kanat (karakter_insan)",
+    "kapuson:esofman [x -0.00 · y 1.31 · z -0.11]"
+   ],
+   "olcu": {
+    "kesisim": "üçgen kesişimi var"
+   },
+   "not": "bağlama pozunda sirtYuva yuvasına takılı",
+   "sebep": "kanat koşumu ve omuz kayışları gövdeye/kıyafete sarılır (sırt bağlantısı)"
+  },
+  {
+   "test": "kozmetik",
+   "adalar": [
+    "kozmetik_kanat (karakter_insan)",
+    "ust:tisort [x 0.00 · y 1.16 · z -0.02]"
+   ],
+   "olcu": {
+    "kesisim": "üçgen kesişimi var"
+   },
+   "not": "bağlama pozunda sirtYuva yuvasına takılı",
+   "sebep": "kanat koşumu ve omuz kayışları gövdeye/kıyafete sarılır (sırt bağlantısı)"
+  },
+  {
+   "test": "kozmetik",
+   "adalar": [
+    "kozmetik_kanat (karakter_insan)",
+    "ust:tisort [x -0.18 · y 1.28 · z -0.05]"
+   ],
+   "olcu": {
+    "kesisim": "üçgen kesişimi var"
+   },
+   "not": "bağlama pozunda sirtYuva yuvasına takılı",
+   "sebep": "kanat koşumu ve omuz kayışları gövdeye/kıyafete sarılır (sırt bağlantısı)"
+  },
+  {
+   "test": "kozmetik",
+   "adalar": [
+    "kozmetik_kanat (karakter_insan)",
+    "ust:tisort [x 0.18 · y 1.28 · z -0.05]"
+   ],
+   "olcu": {
+    "kesisim": "üçgen kesişimi var"
+   },
+   "not": "bağlama pozunda sirtYuva yuvasına takılı",
+   "sebep": "kanat koşumu ve omuz kayışları gövdeye/kıyafete sarılır (sırt bağlantısı)"
   }
  ],
  "gomuluOranlar": [

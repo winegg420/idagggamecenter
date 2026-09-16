@@ -940,6 +940,372 @@
    "sebep": "kat silmesi, korniş, balkon plakası duvara gömülü"
   }
  ],
+ "gomuluOranlar": [
+  {
+   "ada": "cam:cam [x -2.90 · y 2.23 · z 4.06]",
+   "oran": 0.66
+  },
+  {
+   "ada": "cam:cam [x 2.90 · y 2.23 · z 4.06]",
+   "oran": 0.66
+  },
+  {
+   "ada": "cam:cam [x -4.56 · y 2.38 · z -2.20]",
+   "oran": 0.61
+  },
+  {
+   "ada": "cam:cam [x -4.56 · y 2.38 · z 2.20]",
+   "oran": 0.61
+  },
+  {
+   "ada": "cam:cam [x 4.56 · y 2.38 · z -2.20]",
+   "oran": 0.61
+  },
+  {
+   "ada": "cam:cam [x 4.56 · y 2.38 · z 2.20]",
+   "oran": 0.61
+  },
+  {
+   "ada": "cam:cam [x -4.56 · y 6.01 · z -2.20]",
+   "oran": 0.6
+  },
+  {
+   "ada": "cam:cam [x -4.56 · y 6.01 · z 2.20]",
+   "oran": 0.6
+  },
+  {
+   "ada": "cam:cam [x -2.90 · y 6.01 · z 4.06]",
+   "oran": 0.66
+  },
+  {
+   "ada": "cam:cam [x 2.90 · y 6.01 · z 4.06]",
+   "oran": 0.66
+  },
+  {
+   "ada": "cam:cam [x 4.56 · y 6.01 · z -2.20]",
+   "oran": 0.6
+  },
+  {
+   "ada": "cam:cam [x 4.56 · y 6.01 · z 2.20]",
+   "oran": 0.6
+  },
+  {
+   "ada": "cam:cam [x 0.00 · y 6.31 · z 4.76]",
+   "oran": 0.58
+  },
+  {
+   "ada": "diger:ahsap [x 0.00 · y 1.33 · z 4.12]",
+   "oran": 0.6
+  },
+  {
+   "ada": "diger:ahsapAcik [x 0.00 · y 1.43 · z 4.02]",
+   "oran": 0.48
+  },
+  {
+   "ada": "diger:ahsapAcik [x 0.66 · y 2.68 · z 4.02]",
+   "oran": 0.67
+  },
+  {
+   "ada": "diger:altin [x 0.35 · y 1.28 · z 4.24]",
+   "oran": 0.29
+  },
+  {
+   "ada": "diger:altin [x 0.00 · y 1.33 · z 4.14]",
+   "oran": 0.67
+  },
+  {
+   "ada": "diger:altin [x 0.00 · y 4.32 · z 4.10]",
+   "oran": 0.15
+  },
+  {
+   "ada": "diger:altin [x 0.00 · y 5.12 · z 4.10]",
+   "oran": 0.15
+  },
+  {
+   "ada": "diger:baca [x -1.70 · y 0.48 · z 4.90]",
+   "oran": 0.17
+  },
+  {
+   "ada": "diger:baca [x 1.70 · y 0.48 · z 4.90]",
+   "oran": 0.17
+  },
+  {
+   "ada": "diger:baca [x -2.60 · y 9.46 · z -2.20]",
+   "oran": 0.4
+  },
+  {
+   "ada": "diger:cerceve [x -2.90 · y 2.23 · z 4.08]",
+   "oran": 0.67
+  },
+  {
+   "ada": "diger:cerceve [x 2.90 · y 2.23 · z 4.08]",
+   "oran": 0.67
+  },
+  {
+   "ada": "diger:cerceve [x -2.90 · y 2.23 · z 4.02]",
+   "oran": 0.47
+  },
+  {
+   "ada": "diger:cerceve [x 2.90 · y 2.23 · z 4.02]",
+   "oran": 0.47
+  },
+  {
+   "ada": "diger:cerceve [x -4.52 · y 2.38 · z -2.20]",
+   "oran": 0.42
+  },
+  {
+   "ada": "diger:cerceve [x -4.52 · y 2.38 · z 2.20]",
+   "oran": 0.42
+  },
+  {
+   "ada": "diger:cerceve [x 4.52 · y 2.38 · z -2.20]",
+   "oran": 0.42
+  },
+  {
+   "ada": "diger:cerceve [x 4.52 · y 2.38 · z 2.20]",
+   "oran": 0.42
+  },
+  {
+   "ada": "diger:cerceve [x -2.90 · y 6.01 · z 4.02]",
+   "oran": 0.6
+  },
+  {
+   "ada": "diger:cerceve [x 2.90 · y 6.01 · z 4.02]",
+   "oran": 0.6
+  },
+  {
+   "ada": "diger:cerceve [x -4.52 · y 6.01 · z -2.20]",
+   "oran": 0.42
+  },
+  {
+   "ada": "diger:cerceve [x -4.52 · y 6.01 · z 2.20]",
+   "oran": 0.42
+  },
+  {
+   "ada": "diger:cerceve [x -2.90 · y 6.01 · z 4.08]",
+   "oran": 0.63
+  },
+  {
+   "ada": "diger:cerceve [x 2.90 · y 6.01 · z 4.08]",
+   "oran": 0.63
+  },
+  {
+   "ada": "diger:cerceve [x 4.52 · y 6.01 · z -2.20]",
+   "oran": 0.42
+  },
+  {
+   "ada": "diger:cerceve [x 4.52 · y 6.01 · z 2.20]",
+   "oran": 0.42
+  },
+  {
+   "ada": "diger:cerceve [x 0.00 · y 6.31 · z 4.72]",
+   "oran": 0.44
+  },
+  {
+   "ada": "diger:cim [x -1.70 · y 0.96 · z 4.90]",
+   "oran": 0.31
+  },
+  {
+   "ada": "diger:cim [x 1.70 · y 0.96 · z 4.90]",
+   "oran": 0.31
+  },
+  {
+   "ada": "diger:demir [x -1.55 · y 2.91 · z 4.42]",
+   "oran": 0.02
+  },
+  {
+   "ada": "diger:demir [x 1.55 · y 2.91 · z 4.42]",
+   "oran": 0.02
+  },
+  {
+   "ada": "diger:demir [x -1.55 · y 2.93 · z 4.22]",
+   "oran": 0.53
+  },
+  {
+   "ada": "diger:demir [x 1.55 · y 2.93 · z 4.22]",
+   "oran": 0.53
+  },
+  {
+   "ada": "diger:demir [x -4.20 · y 3.80 · z 4.85]",
+   "oran": 0.66
+  },
+  {
+   "ada": "diger:demir [x 4.20 · y 3.80 · z 4.85]",
+   "oran": 0.66
+  },
+  {
+   "ada": "diger:demir [x -3.73 · y 5.36 · z 4.30]",
+   "oran": 0.18
+  },
+  {
+   "ada": "diger:demir [x -3.70 · y 5.36 · z 4.58]",
+   "oran": 0.58
+  },
+  {
+   "ada": "diger:demir [x -3.50 · y 5.36 · z 4.58]",
+   "oran": 0.58
+  },
+  {
+   "ada": "diger:demir [x -3.30 · y 5.36 · z 4.58]",
+   "oran": 0.58
+  },
+  {
+   "ada": "diger:demir [x -3.10 · y 5.36 · z 4.58]",
+   "oran": 0.58
+  },
+  {
+   "ada": "diger:demir [x -2.90 · y 5.36 · z 4.58]",
+   "oran": 0.58
+  },
+  {
+   "ada": "diger:demir [x -2.70 · y 5.36 · z 4.58]",
+   "oran": 0.58
+  },
+  {
+   "ada": "diger:demir [x -2.50 · y 5.36 · z 4.58]",
+   "oran": 0.58
+  },
+  {
+   "ada": "diger:demir [x -2.30 · y 5.36 · z 4.58]",
+   "oran": 0.58
+  },
+  {
+   "ada": "diger:demir [x -2.10 · y 5.36 · z 4.58]",
+   "oran": 0.71
+  },
+  {
+   "ada": "diger:demir [x -2.07 · y 5.36 · z 4.30]",
+   "oran": 0.18
+  },
+  {
+   "ada": "diger:demir [x 2.07 · y 5.36 · z 4.30]",
+   "oran": 0.18
+  },
+  {
+   "ada": "diger:demir [x 2.10 · y 5.36 · z 4.58]",
+   "oran": 0.58
+  },
+  {
+   "ada": "diger:demir [x 2.30 · y 5.36 · z 4.58]",
+   "oran": 0.58
+  },
+  {
+   "ada": "diger:demir [x 2.50 · y 5.36 · z 4.58]",
+   "oran": 0.58
+  },
+  {
+   "ada": "diger:demir [x 2.70 · y 5.36 · z 4.58]",
+   "oran": 0.58
+  },
+  {
+   "ada": "diger:demir [x 2.90 · y 5.36 · z 4.58]",
+   "oran": 0.58
+  },
+  {
+   "ada": "diger:demir [x 3.10 · y 5.36 · z 4.58]",
+   "oran": 0.58
+  },
+  {
+   "ada": "diger:demir [x 3.30 · y 5.36 · z 4.58]",
+   "oran": 0.58
+  },
+  {
+   "ada": "diger:demir [x 3.50 · y 5.36 · z 4.58]",
+   "oran": 0.58
+  },
+  {
+   "ada": "diger:demir [x 3.70 · y 5.36 · z 4.58]",
+   "oran": 0.71
+  },
+  {
+   "ada": "diger:demir [x 3.73 · y 5.36 · z 4.30]",
+   "oran": 0.18
+  },
+  {
+   "ada": "diger:demir [x -2.90 · y 5.76 · z 4.58]",
+   "oran": 0.02
+  },
+  {
+   "ada": "diger:demir [x 2.90 · y 5.76 · z 4.58]",
+   "oran": 0.02
+  },
+  {
+   "ada": "diger:demir [x 2.00 · y 7.36 · z 4.70]",
+   "oran": 0.05
+  },
+  {
+   "ada": "diger:kiremit [x 0.00 · y 8.86 · z 0.00]",
+   "oran": 0.21
+  },
+  {
+   "ada": "diger:lamba [x -1.55 · y 2.68 · z 4.42]",
+   "oran": 0.03
+  },
+  {
+   "ada": "diger:lamba [x 1.55 · y 2.68 · z 4.42]",
+   "oran": 0.03
+  },
+  {
+   "ada": "diger:siva [x 0.00 · y 5.86 · z 0.00]",
+   "oran": 0.4
+  },
+  {
+   "ada": "diger:siva [x 0.00 · y 6.26 · z 4.35]",
+   "oran": 0.44
+  },
+  {
+   "ada": "diger:tabela [x 0.00 · y 4.72 · z 4.10]",
+   "oran": 0.85
+  },
+  {
+   "ada": "diger:tas [x 0.00 · y 2.08 · z 0.00]",
+   "oran": 0.38
+  },
+  {
+   "ada": "diger:tasAcik [x -2.90 · y 0.68 · z 4.10]",
+   "oran": 0.43
+  },
+  {
+   "ada": "diger:tasAcik [x 2.90 · y 0.68 · z 4.10]",
+   "oran": 0.43
+  },
+  {
+   "ada": "diger:tasAcik [x 0.00 · y 4.12 · z 0.00]",
+   "oran": 0.01
+  },
+  {
+   "ada": "diger:tasAcik [x -2.90 · y 4.96 · z 4.30]",
+   "oran": 0.34
+  },
+  {
+   "ada": "diger:tasAcik [x 2.90 · y 4.96 · z 4.30]",
+   "oran": 0.34
+  },
+  {
+   "ada": "diger:tasAcik [x 0.00 · y 5.24 · z 4.40]",
+   "oran": 0.44
+  },
+  {
+   "ada": "diger:tasAcik [x 0.00 · y 7.61 · z 0.00]",
+   "oran": 0.02
+  },
+  {
+   "ada": "diger:tasAcik [x 0.00 · y 10.01 · z 0.00]",
+   "oran": 0.43
+  },
+  {
+   "ada": "diger:tente [x 0.00 · y 0.20 · z 4.60]",
+   "oran": 0.31
+  },
+  {
+   "ada": "diger:tente [x 0.00 · y 3.33 · z 5.60]",
+   "oran": 0.16
+  },
+  {
+   "ada": "diger:tente [x 0.00 · y 3.80 · z 4.85]",
+   "oran": 0.41
+  }
+ ],
  "adaListesi": [
   {
    "no": 0,

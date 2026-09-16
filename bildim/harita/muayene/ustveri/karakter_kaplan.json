@@ -5,7 +5,9 @@
     "sapka": "karakter_insan",
     "gozluk": "karakter_insan",
     "atki": "karakter_insan",
-    "kuyruk": "karakter_kaplan"
+    "kuyruk": "karakter_kaplan",
+    "gozlukPremium": "karakter_insan",
+    "kanat": "karakter_insan"
   },
   "yakin": [
     {
@@ -112,6 +114,24 @@
       ],
       "mesafe": 0.9,
       "ifade": "saskin"
+    },
+    {
+      "ad": "kanat sırt bağlantısı (kanat kozmetiği)",
+      "hedef": {
+        "kemik": "Spine2",
+        "ofset": [
+          0,
+          0.12,
+          -0.12
+        ]
+      },
+      "yon": [
+        0.35,
+        0.25,
+        -1
+      ],
+      "mesafe": 1,
+      "kozmetik": true
     }
   ],
   "guzel": {
@@ -292,6 +312,47 @@
       "a": "kozmetik_atki",
       "b": "kurk:yuz",
       "sebep": "atkı çeneye dayanır"
+    },
+    {
+      "a": "kozmetik_gozlukPremium",
+      "b": "ten",
+      "sebep": "premium gözlük sapları ve burun yastıkları kafaya/burna oturur"
+    },
+    {
+      "a": "kozmetik_gozlukPremium",
+      "b": "sac*",
+      "sebep": "premium gözlük sapı kâkülün/şakak saçının altından geçer"
+    },
+    {
+      "a": "kozmetik_gozlukPremium",
+      "b": "kurk*",
+      "sebep": "kaplan: saplar kürkün içinden geçer"
+    },
+    {
+      "a": "kozmetik_gozlukPremium",
+      "b": "metal*",
+      "sebep": "robot: saplar kafa kasasının içinden geçer"
+    },
+    {
+      "a": "kozmetik_gozlukPremium",
+      "b": "plastik*",
+      "sebep": "robot: saplar kafa kasasının içinden geçer"
+    },
+    {
+      "a": "kozmetik_kanat",
+      "b": {
+        "desen": "*",
+        "y": [
+          0.9,
+          1.5
+        ]
+      },
+      "sebep": "kanat koşumu ve omuz kayışları gövdeye/kıyafete sarılır (sırt bağlantısı)"
+    },
+    {
+      "a": "kozmetik_kanat",
+      "b": "kozmetik_kuyruk",
+      "sebep": "kaplan: kuyruk ve kanat aynı sırt yuvasında, kuyruk kökü koşumun altından çıkar"
     }
   ]
 }

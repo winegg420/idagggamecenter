@@ -5323,3 +5323,16 @@ en küçük TR 761 (spor), EN 476 (tarih) — hiçbiri 300 altı değil. Sayfa s
   Kozmetik testi en kötü oranda (4 gerçek / 15 aday) → genişletilmeyecek.
 - Görsel muayene gerçekten yapıldı: 12 kontakt sayfası + 8 görünüm tam çözünürlükte açıldı; kalan görünümler kontakt ölçeğinde.
 - **DUR NOKTASI:** hata düzeltme, karakter işi, CC0 çevre, İstiklal başlamadı.
+
+## 16 Eyl 2026 — Harita yenileme Aşama 1G-7..12: VFX kiti, alevli gömlek, kanat, premium gözlük, pet ×3, vitrin (Fable)
+- `bildim/harita/deneme/vfx.js`: TEK InstancedMesh + TEK ShaderMaterial VFX kiti; 5 parametrik modül (alev·parıltı·iz·parlama·duman),
+  reçete = kozmetik (`RECETE`), LOD (en yakın 6 grup tam · 14 m orta · 28 m uzak, `VFX_AYAR`). Stres 0/1/6/12/25 alevli: 3,1 ms sabit.
+- Alevli gömlek = kıyafet seti 4 (`alevKumas` hücresi, eski gozBeyaz) + reçete; hız klipten (Idle/Walk/Run), `zipla()` dağılma.
+- Kanat (`kozmetik_kanat`, sirtYuva, 364 üçgen) + süzülme %100 kozmetik (kök sabit, çocuklar +12 cm, çırpma, bacak sarkma, gölge zeminde).
+- Premium gözlük (aviator; yeni bölge 24 `premiumMetal`, shader METAL tablosu; gözlükle aynı yuva → dışlayıcı; kaplanda `it` +4 cm).
+- `pet.js`: kedi/köpek/kuş, tür başına 1 InstancedMesh (3 çağrı, 25 pet 13.262 üçgen), yaylı takip, boşta davranış, ağ durumu yok.
+- Vitrin: koyu fon + kaide + arka ışık + otomatik dönen kamera; karakter ekranın ~%53'ü.
+- Kapılar: 25 karakter Geniş 3,4 → 3,6 ms (≤4,0), 113 çağrı, 401k üçgen (HUD, gölge dahil); muayene 0/0/0 aday (1E: 4/7/41).
+- Rapor: `bildim/harita/ASAMA_1G_RAPOR.md`; görseller `bildim/harita/gorsel/1g/`.
+- Açık soru (sahibine): kanatla havalanan sahibin peti — varsayılan yerde takip, kuş +30 cm; alternatif öneri raporda.
+- DUR: 25 karaktere/kataloğa yayma yok. Ölçüm not: otomasyon sekmesi düzeneği, S0 düzeneğiyle mutlak değer karşılaştırılmaz.

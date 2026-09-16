@@ -20,7 +20,7 @@
    "gomulu_oran_esigi": 0.6
   },
   "kozmetik": {
-   "denenen_kozmetik": 3
+   "denenen_kozmetik": 5
   },
   "sure_s": 0.2
  },
@@ -520,6 +520,30 @@
    },
    "not": "bağlama pozunda boyunYuva yuvasına takılı",
    "sebep": "atkı boyun pistonu, omuz ve göğüs paneli çevresine sarılır"
+  },
+  {
+   "test": "kozmetik",
+   "adalar": [
+    "kozmetik_gozlukPremium (karakter_insan)",
+    "metal:metal [x -0.00 · y 1.56 · z -0.04]"
+   ],
+   "olcu": {
+    "kesisim": "üçgen kesişimi var"
+   },
+   "not": "bağlama pozunda gozlukYuva yuvasına takılı",
+   "sebep": "robot: saplar kafa kasasının içinden geçer"
+  },
+  {
+   "test": "kozmetik",
+   "adalar": [
+    "kozmetik_kanat (karakter_insan)",
+    "metal:metal [x 0.00 · y 1.16 · z 0.01]"
+   ],
+   "olcu": {
+    "kesisim": "üçgen kesişimi var"
+   },
+   "not": "bağlama pozunda sirtYuva yuvasına takılı",
+   "sebep": "kanat koşumu ve omuz kayışları gövdeye/kıyafete sarılır (sırt bağlantısı)"
   }
  ],
  "gomuluOranlar": [

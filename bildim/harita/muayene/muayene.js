@@ -15,7 +15,7 @@ import { RoomEnvironment } from "three/addons/environments/RoomEnvironment.js";
 
 const KOK = "/meydan/deneme/";
 const BOY = 640;
-const KOZ_YUVA = { sapka: "basYuva", gozluk: "gozlukYuva", atki: "boyunYuva", kuyruk: "sirtYuva" };
+const KOZ_YUVA = { sapka: "basYuva", gozluk: "gozlukYuva", atki: "boyunYuva", kuyruk: "sirtYuva", gozlukPremium: "gozlukYuva", kanat: "sirtYuva" };
 
 // ---- render + ışık B+ (DenemeSayfasi isikAyarla("B+") ile aynı değerler) ----
 const render = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
@@ -32,20 +32,24 @@ gunes.castShadow = true; gunes.shadow.mapSize.set(2048, 2048); gunes.shadow.radi
 sahne.add(gunes, gunes.target);
 
 // ---- tek malzeme cilası (DenemeSayfasi.jsx › cilala kopyası) ----
-const PURUZ_TABLO = [0.55, 0.65, 0.65, 0.65, 1.0, 0.95, 0.45, 0.9, 0.95, 0.9, 0.35, 0.5, 0.2, 0.3, 0.3, 0.6, 0.15, 0.82, 0.9, 0.6, 0.85, 0.6, 0.9, 0.35];
+const PURUZ_TABLO = [0.55, 0.65, 0.65, 0.65, 1.0, 0.95, 0.45, 0.9, 0.95, 0.9, 0.35, 0.5, 0.2, 0.3, 0.3, 0.6, 0.15, 0.82, 0.9, 0.6, 0.85, 0.6, 0.9, 0.35, 0.22];
+// Bölge → metalness (1G-B.3 malzeme ayrımı): 16 cam 0,45 (aynalı) · 24 premiumMetal 0,9 (altın çerçeve). Robot 'metal' (10) 0 KALIR — 1D görünümü korunur.
+const METAL_TABLO = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.45, 0, 0, 0, 0, 0, 0, 0, 0.9];
 const TEN_TEMEL = new THREE.Color("#F2C9A7");
 function cilala(m) {
   if (!m || m.userData.cilali) return;
   m.userData.cilali = true; m.envMapIntensity = 0.35; m.vertexColors = true;
-  m.customProgramCacheKey = () => "atlas-bolge-v3";
+  m.customProgramCacheKey = () => "atlas-bolge-v4";
   m.onBeforeCompile = (s) => {
     s.vertexShader = s.vertexShader.replace("#include <common>", "#include <common>\nattribute float _bolge;\nvarying float vBolge;").replace("#include <begin_vertex>", "#include <begin_vertex>\nvBolge = _bolge;");
     s.fragmentShader = s.fragmentShader
       .replace("#include <common>", `#include <common>
 varying float vBolge;
-const float PURUZ[24] = float[24](${PURUZ_TABLO.map((v) => v.toFixed(2)).join(", ")});
+const float PURUZ[25] = float[25](${PURUZ_TABLO.map((v) => v.toFixed(2)).join(", ")});
+const float METAL[25] = float[25](${METAL_TABLO.map((v) => v.toFixed(2)).join(", ")});
+float bolgeMetal(float b) { int i = int(clamp(b + 0.5, 0.0, 24.0)); return METAL[i]; }
 const vec3 TEN_TEMEL = vec3(${TEN_TEMEL.r.toFixed(4)}, ${TEN_TEMEL.g.toFixed(4)}, ${TEN_TEMEL.b.toFixed(4)});
-float bolgePuruz(float b) { int i = int(clamp(b + 0.5, 0.0, 23.0)); return PURUZ[i]; }`)
+float bolgePuruz(float b) { int i = int(clamp(b + 0.5, 0.0, 24.0)); return PURUZ[i]; }`)
       .replace("#include <color_fragment>", `
 #if defined( USE_COLOR_ALPHA )
   vec3 tonK = vColor.rgb;
@@ -57,6 +61,7 @@ float bolgePuruz(float b) { int i = int(clamp(b + 0.5, 0.0, 23.0)); return PURUZ
   diffuseColor.rgb *= vColor.rgb;
 #endif`)
       .replace("#include <roughnessmap_fragment>", "#include <roughnessmap_fragment>\nroughnessFactor = bolgePuruz(vBolge);")
+      .replace("#include <metalnessmap_fragment>", "#include <metalnessmap_fragment>\nmetalnessFactor = max(metalnessFactor, bolgeMetal(vBolge));")
       .replace("#include <emissivemap_fragment>", `#include <emissivemap_fragment>
 if (vBolge > 11.5 && vBolge < 12.5) totalEmissiveRadiance += diffuseColor.rgb * 1.2;
 if (vBolge > 12.5 && vBolge < 15.5 && diffuseColor.b > 0.5 && diffuseColor.r < 0.45) totalEmissiveRadiance += diffuseColor.rgb * 1.5;`);
@@ -203,7 +208,8 @@ function ciz(i) {
   const [gz, ag] = IFADE_SET[g.ifade] ?? IFADE_SET.normal; ifadeUygula(gz, ag);
   const guzel = g.tip === "guzel";
   poz(guzel ? "idle" : "bind");
-  for (const m of durum.kozmetikler) m.visible = guzel || !!g.kozmetik;
+  const premiumVar = durum.kozmetikler.some((k) => k.name === "kozmetik_gozlukPremium");   // 1G-B.3: aynı yuva — görsel sayfada premium gözlük temel gözlüğü dışlar
+  for (const m of durum.kozmetikler) m.visible = (guzel || !!g.kozmetik) && !(premiumVar && m.name === "kozmetik_gozluk");
   const kutu = gorunurKutu(durum.kok), merkez = kutu.getCenter(new THREE.Vector3()), R = Math.max(0.05, kutu.getSize(new THREE.Vector3()).length() / 2);
   sahne.background = new THREE.Color(guzel ? 0xbfe8ff : 0xdfe7ec);
   // zemin gölgesi ve y=0 çizgisi (havada parça görsel ipucu); alt görünümde ve zemin varlığında gizli

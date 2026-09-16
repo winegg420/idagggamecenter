@@ -71,6 +71,20 @@
    "sebep": "dallar ve kök kaidesi gövdeye geçer"
   }
  ],
+ "gomuluOranlar": [
+  {
+   "ada": "diger:ahsap [x -0.00 · y 0.17 · z -0.00]",
+   "oran": 0.17
+  },
+  {
+   "ada": "diger:ahsap [x 0.00 · y 1.70 · z -0.00]",
+   "oran": 0.37
+  },
+  {
+   "ada": "diger:ahsap [x 0.35 · y 3.60 · z 0.10]",
+   "oran": 0.3
+  }
+ ],
  "adaListesi": [
   {
    "no": 0,

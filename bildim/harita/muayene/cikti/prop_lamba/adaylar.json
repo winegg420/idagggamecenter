@@ -56,6 +56,16 @@
    "sebep": "kaide/direk/kol/fener geçme montaj"
   }
  ],
+ "gomuluOranlar": [
+  {
+   "ada": "diger:demir [x 0.20 · y 4.15 · z 0.00]",
+   "oran": 0.13
+  },
+  {
+   "ada": "diger:demir [x 0.42 · y 4.21 · z -0.00]",
+   "oran": 0.03
+  }
+ ],
  "adaListesi": [
   {
    "no": 0,
