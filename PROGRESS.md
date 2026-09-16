@@ -5175,3 +5175,14 @@ en küçük TR 761 (spor), EN 476 (tarih) — hiçbiri 300 altı değil. Sayfa s
 - Davet coin referansı davet edende "davet edilen id" (aksi hâlde davet eden ömründe bir kez alabilirdi).
 - Gizli botla oynanan Düello, 1v1'deki mevcut kural gibi gerçek oyuncu muamelesi görür (lig puanı verir); puan vermeseydi bot
   olduğu anlaşılırdı. Açık botlar Düello eşleşmesine girmez.
+
+### Ek doğrulamalar (16 Eyl 12:05 TSİ sonrası)
+- 15:00 turnuvası yeni ödül koduyla hatasız bitti (63 katılımcının hepsi bot, coin hareketi beklenmediği gibi yok). Bu turnuvadaki
+  **gerçek** bot cevapları: güçlü kategori %92,1 (38) · diğer %77,3 (150) · zayıf %52,8 (53).
+- Migration 207: düellodaki gizli bot da çevrimiçi görünür; `gizli_bot_nabiz` kilitli satırı atlar (son 7 günde 8 deadlock ölçüldü).
+- Regresyon (canlı, Chrome): ana sayfa + Dereceli anahtarı, Hemen oyna (dereceli, gizli bot, hazır kapısı), lig tablosu, dükkân (joker
+  sekmesinde saldırı jokerleri), meydan (kanvas + HUD, 2 kişi), profil. Joker paketi/tek joker satın alma geri alınan işlemde çalıştı.
+  Sızıntı taraması: yeni RPC imzalarında ve gerçek çıktılarında is_bot/bot alanı yok.
+- Test edilemeyen: çıkış yapıp giriş/kurulum sihirbazı (tek hesap, oturum kapatılmadı), iki cihaz arası gerçek sesli görüşme, iOS
+  Safari gerçek cihaz (CSS kuralları kod düzeyinde kontrol edildi: yeni öğelerde position:fixed yok, transform animasyonu sabit
+  öğe atası değil, 100dvh).
