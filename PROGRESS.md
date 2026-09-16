@@ -5256,3 +5256,22 @@ en küçük TR 761 (spor), EN 476 (tarih) — hiçbiri 300 altı değil. Sayfa s
   STIL.md §2.3 bütçe tablosu kilitlendi (karakterler ≤143 / ≤340k, çevre ≤60 / ≤80k, toplam ≤220 / ≤420k).
 - Toplam ölçüm: 25 karakter + çevre + bina 111 çağrı · 381.904 üçgen · 2,45 ms (masaüstü). Telefon FPS ölçülmedi.
 - **DUR NOKTASI:** Aşama 2 (13 karakter) sahibinin onayını bekliyor; otomatik devam edilmedi.
+
+## Harita Yenileme — Aşama 1C: karakter kalitesi, kıyafet çeşitliliği, türler (16 Eyl 2026)
+- §1 yön hatası teşhisi **A kutusu** (bind matrisi / kök dönüşü): Node testi `.tmp/varlik/yon_testi.mjs` bind pozunda
+  yüz +Z, ayak −Z gösterdi → klip değil, kurulum. Kök sebep: rig ileri −Z + kök π, skinned mesh kök altına bağlanınca
+  π ikinci kez uygulanıyordu. Düzeltme: birim `karakter` kökü + `mesh.bind(iskelet)`, ON=+1. (İlk deneme ON=−1 ters etki.)
+- §3 kıyafet: 3 set (Günlük/Şık/Spor) `bolge` köşe özniteliğiyle aç/kapa + UV taşıma + köşe rengi ton; yeni doku/malzeme
+  yok. 3 saç, 4 ten, 4 saç rengi; 25 kopyada 24 farklı görünüm (periyot 3·4·4·8).
+- §4 kaplan + robot aynı iskelet/15 yuva (kuyruk sirtYuva, kulak kulakYuva, anten, emissive göz); 3 sokak kedisi tek
+  InstancedMesh, 652 üçgen, yerel deterministik davranış.
+- §5 tek malzemede bölge başına pürüzlülük (shader tablosu), boyalı yüz atlas çeyreğinde (3 tür + 8 göz/8 ağız ifade
+  şeridi), göz/ağız dörtgeni UV kaydırmalı ifade, 3–6 s kırpma 120 ms, Selam'da gülümseme. Yüz dörtgenleri kafa AO'sunu
+  kopyalıyor (kare izi giderildi); burun altı/göz altı gölgesi kaldırıldı.
+- §6–9: yaprak kontrastı %22→%12 + A/B, ağaç 0,7 ölçek + A/B, dış kaldırım hattı; ışık B+ (1,29π/0,405π/r3/1,08) A/B;
+  döşeli zemin GLB (karo, bordür, yaya geçidi, çim) 1 çağrı; bina 0,8 m yalnız ön cephe 9.840→4.804 üçgen.
+- Ölçüm (Geniş): karakterler 88 çağrı / 275.160 üçgen (≤143/≤340k) · çevre+bina+kedi 14 / 67.890 (≤60/≤80k) ·
+  toplam **102 / 343.050** (≤220/≤420k), 2,14 ms masaüstü. Telefon ölçülmedi. Konsol hatası 0.
+- Rapor `bildim/harita/ASAMA_1C_RAPOR.md`, görseller `.tmp/asama1c-gorseller/`. STIL.md: §1.4 çevre kuralı, §2.3 1C
+  sütunu, §6 tür/bölge sözleşmesi + tessellation kararı.
+- **DUR NOKTASI:** 13 karakter üretimine geçilmedi; sahibinin onayı bekleniyor.

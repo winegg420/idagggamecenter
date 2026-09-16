@@ -61,6 +61,11 @@ doğru oranlar, hacimli gövdeler, gerçek gölgeler, malzemesi belli yüzeyler.
 
 Doygunluk yüksek ama parlaklık yumuşak: saf `#FF0000` gibi tonlar yok.
 
+### 1.4 Çevre–oyuncu ilişkisi (Aşama 1C, 16 Eyl 2026)
+**Çevre oyuncuyu çerçeveler, oyuncunun önüne geçmez. Kamera ile oyuncu arasına yüksek bitki/prop konmaz.**
+Ağaçlar dış kaldırım hattında durur, taç altı karakter boyunun (2,1 m) üstünden başlar, taç çok loblu ve
+yaprak deseni düşük kontrastlıdır (%12). Ağaç ölçeği 0,7 (eski 1,0 kamerayı kapatıyordu).
+
 ---
 
 ## 2. Teknik şartname — varlık üretiminden ÖNCE kilitlenir
@@ -124,12 +129,17 @@ uzaklığını (offset) tür başına bir kez taşır; kozmetik dosyası her tü
 Ölçülen gerçeğe göre sabitlendi; eski "karakterler ≤120" satırı yanlıştı, silindi.
 Sayılar `renderer.info` çağrı/üçgen değeridir (gölge geçişi DAHİL).
 
-| Katman | Çizim çağrısı | Üçgen | Ölçülen (Aşama 1B) |
-|---|---|---|---|
-| Karakterler (25 adet) | **≤ 143** | **≤ 340.000 (SERT SINIR)** | 97 çağrı · 314.236 üçgen |
-| Çevre + binalar | **≤ 60** | **≤ 80.000** | 12 çağrı · 67.700 üçgen (1 bina + 62 prop + bordür) |
-| Arayüz + efekt | **≤ 20** | — | 2 (tabela yazısı, temas gölgesi) |
-| **TOPLAM** | **≤ 220** | **≤ 420.000** | **111 çağrı · 381.904 üçgen** |
+| Katman | Çizim çağrısı | Üçgen | Ölçülen (Aşama 1B) | Ölçülen (Aşama 1C) |
+|---|---|---|---|---|
+| Karakterler (25 adet) | **≤ 143** | **≤ 340.000 (SERT SINIR)** | 97 çağrı · 314.236 üçgen | 88 çağrı · 275.160 üçgen (3 tür, 3 set karışık) |
+| Çevre + binalar | **≤ 60** | **≤ 80.000** | 12 çağrı · 67.700 üçgen (1 bina + 62 prop + bordür) | 14 çağrı · 67.890 üçgen (+ döşeli zemin, 3 kedi) |
+| Arayüz + efekt | **≤ 20** | — | 2 (tabela yazısı, temas gölgesi) | 2 |
+| **TOPLAM** | **≤ 220** | **≤ 420.000** | **111 çağrı · 381.904 üçgen** | **102 çağrı · 343.050 üçgen** |
+
+Bütçe sayıları 1C'de **değişmedi**. Tür başına tek karakter (gövde, gölge dahil) ≤ 5,5 çağrı / ≤ 13,5k üçgen:
+insan 2 / 10.596 · kaplan 3 / 9.700 · robot 2 / 10.292.
+Bina tessellation kararı (1B'de açık bırakılmıştı): **0,8 m ızgara, yalnız ön cephe** — dükkân 9.840 → 4.804 üçgen,
+AO okunurluğu korunuyor (`ASAMA_1C_RAPOR.md` §9).
 
 Yollar: karakter = tek skinned mesh + tek atlas, kozmetik 1 çağrı ve **gölge atmaz**; çevrede
 tekrar eden her prop `InstancedMesh` (tür başına 1 çağrı), küçük prop'lar (bank, saksı, bordür)
@@ -269,3 +279,27 @@ canlıda `/harita-deneme` HUD'undan okunur.
 Bilinen sınırlar: modeller Blender yerine kodla kurulmuş test varlıklarıdır (Stumble Guys
 kalitesinde sanat değil, boru hattı kanıtı); Mixamo hesabı gerektirmeden Soldier klipleri
 kullanıldı — sahibi kendi Adobe ID'siyle ek klip indirirse aynı yol çalışır.
+
+---
+
+## 6. Aşama 1C — tür ve bölge sözleşmesi (16 Eyl 2026)
+
+Üç avatar türü **aynı Mixamo iskeleti (22 kemik) ve aynı 15 yuvayı** paylaşır: `insan`, `kaplan`, `robot`.
+Kozmetikler türden bağımsız yuvaya oturur; tür özel parçalar da yuvaya bağlıdır (kaplan kuyruğu `sirtYuva`,
+kulaklar `kulakYuva_L/R`, robot anteni kafa üstü). Şapka kulakların arasında/üstünde durur.
+
+**Bölge özniteliği** (`bolge` → glTF `_BOLGE` → three `_bolge`, köşe başına tek sayı) tek malzemede şu işleri görür:
+kıyafet seti aç/kapa ve UV taşıma (Günlük/Şık/Spor), bölge başına pürüzlülük tablosu (shader), emissive (robot ekran/göz),
+köşe rengiyle ton (ten, saç, üst, alt, ayakkabı, ceket, metal, boya). Kodlar:
+`ten 0 · sacKase 1 · sacKisa 2 · sacKuyruk 3 · ust 4 · alt 5 · ayakkabi 6 · ceket 7 · kapuson 8 · kurk 9 · metal 10 ·
+boya 11 · ekran 12 · gozL 13 · gozR 14 · agiz 15 · cam 16 · diger 17 · yaka 18 · taban 19 · bilek 20`.
+Yeni tür/set eklemek = yeni kod + atlas hücresi; **yeni doku dosyası veya malzeme eklenmez.**
+
+**Yüz:** atlasın 4×4 hücrelik çeyreği (sütun 4–7, satır 4–7): insan / kaplan / robot yüzü 256² + ifade şeridi
+(8 göz, 8 ağız kareleri). Kafa küresinin ön yarısı düzlemsel UV ile yüz dikdörtgenine, arkası kenar şeridine düşer.
+Göz ve ağız ayrı dörtgen; ifade UV kaydırmadır (ek çağrı yok). Kırpma 3–6 s arayla 120 ms; Selam → gülümseme.
+
+**Sokak kedileri:** `prop_kedi.glb` ≤ 800 üçgen, 3 adet tek `InstancedMesh`, gölge atmaz (temas gölgesi), davranış
+yerel ve tohumlu deterministik, ağ trafiği ve etkileşim yok.
+
+**Işık B+** varsayılan: güneş 1,29π · gök 0,405π · gölge radius 3 · pozlama 1,08 · ortam haritası 0,25.
