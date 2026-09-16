@@ -192,3 +192,70 @@ export function cevreKur({ M, gb, sahne, render, proplar, hucreler, malzeme, tem
   }
   return { grup, sayilar };
 }
+
+// ---------------------------------------------------------------- SOKAK KEDİLERİ (Aşama 1C davranışı → 2B §4: her yerde)
+// Tek InstancedMesh. Yerel, tohumlu (her istemcide aynı başlangıç), ağ trafiği yok. Alanlar: manifest `alanlar[kedi: true]`,
+// kediler alanlara sırayla dağıtılır. Davranış döngüsü: yürü → dur → otur → yat → (yön değiştir) yürü.
+// Alanın dışına ya da bir engele (parsel, bank, saksı, anıt) değerse geri döner. Sayı oyun_ayarlari.meydan_kedi_sayisi.
+const KEDI_RENKLERI = [0xd08a45, 0x8a8a90, 0x3a3230, 0xf2efe8, 0xb8743a, 0x55504a].map((h) => new THREE.Color(h));
+const KEDI_HIZ = 0.6;
+export class KediSurusu {
+  constructor({ M, gb, kaynak, sahne, temas = null, sayi = 8, kapasite = 40 }) {
+    this.alanlar = M.alanlar.filter((a) => a.kedi && a.cokgen?.length >= 3);
+    this.gb = gb; this.temas = temas; this.kapasite = kapasite;
+    this.mesh = new THREE.InstancedMesh(kaynak.geometry, kaynak.material, kapasite);
+    this.mesh.name = "kediler"; this.mesh.castShadow = false; this.mesh.frustumCulled = false; this.mesh.count = 0;
+    sahne.add(this.mesh);
+    this.kediler = [];
+    this._M = new THREE.Matrix4(); this._p = new THREE.Vector3(); this._q = new THREE.Quaternion(); this._s = new THREE.Vector3(); this._e = new THREE.Euler();
+    this.sayiAyarla(sayi);
+  }
+  sayiAyarla(n) {
+    n = Math.max(0, Math.min(this.kapasite, Math.round(Number(n) || 0)));
+    for (const k of this.kediler) this.temas?.sil(k.golge);
+    this.kediler = [];
+    if (!this.alanlar.length) { this.mesh.count = 0; return 0; }
+    let t = 7;
+    const rnd = () => { t = (t * 1103515245 + 12345) & 0x7fffffff; return t / 0x7fffffff; };
+    for (let i = 0; i < n; i++) {
+      const alan = this.alanlar[i % this.alanlar.length], xs = alan.cokgen.map((p) => p[0]), zs = alan.cokgen.map((p) => p[1]);
+      let x = xs[0], z = zs[0];
+      for (let d = 0; d < 60; d++) {
+        const px = Math.min(...xs) + rnd() * (Math.max(...xs) - Math.min(...xs)), pz = Math.min(...zs) + rnd() * (Math.max(...zs) - Math.min(...zs));
+        if (icinde(alan.cokgen, [px, pz])) { const p = { x: px, z: pz }; this.gb.carpismaDuzelt(p, 0.3); if (icinde(alan.cokgen, [p.x, p.z])) { x = p.x; z = p.z; break; } }
+      }
+      const k = { alan, x, z, yon: rnd() * Math.PI * 2, hal: ["yuru", "dur", "otur", "yat"][i % 4], sure: 1 + rnd() * 4, rnd, faz: rnd() * 6 };
+      k.golge = { visible: true, parent: this.mesh, getWorldPosition: (v) => v.set(k.x, 0, k.z) };
+      this.temas?.ekle(k.golge, 0.5);
+      this.mesh.setColorAt(i, KEDI_RENKLERI[i % KEDI_RENKLERI.length]);
+      this.kediler.push(k);
+    }
+    this.mesh.count = this.kediler.length;
+    if (this.mesh.instanceColor) this.mesh.instanceColor.needsUpdate = true;
+    return this.kediler.length;
+  }
+  guncelle(dt, t) {
+    if (!this.mesh.visible || !this.kediler.length) return;
+    const SIRA = { yuru: "dur", dur: "otur", otur: "yat", yat: "yuru" };
+    this.kediler.forEach((k, i) => {
+      k.sure -= dt;
+      if (k.sure <= 0) { k.hal = SIRA[k.hal]; k.sure = k.hal === "yuru" ? 3 + k.rnd() * 4 : 1.5 + k.rnd() * 3; if (k.hal === "yuru") k.yon = k.rnd() * Math.PI * 2; }
+      if (k.hal === "yuru") {
+        const p = { x: k.x + Math.sin(k.yon) * KEDI_HIZ * dt, z: k.z + Math.cos(k.yon) * KEDI_HIZ * dt };
+        const hedefX = p.x, hedefZ = p.z;
+        this.gb.carpismaDuzelt(p, 0.3);
+        const engel = Math.hypot(p.x - hedefX, p.z - hedefZ) > 1e-4;
+        if (engel || !icinde(k.alan.cokgen, [p.x, p.z])) k.yon += Math.PI * (0.6 + k.rnd() * 0.5);   // geri dön, yerinde kal
+        else { k.x = p.x; k.z = p.z; }
+      }
+      const yuru = k.hal === "yuru";
+      const bob = yuru ? Math.abs(Math.sin(t * 9 + k.faz)) * 0.02 : 0;
+      const egim = k.hal === "otur" ? -0.35 : yuru ? Math.sin(t * 9 + k.faz) * 0.06 : 0;
+      const olcY = k.hal === "otur" ? 0.85 : k.hal === "yat" ? 0.55 : 1;
+      this._e.set(egim, k.yon, yuru ? Math.sin(t * 4.5 + k.faz) * 0.05 : 0);
+      this._M.compose(this._p.set(k.x, bob, k.z), this._q.setFromEuler(this._e), this._s.set(1, olcY, 1));
+      this.mesh.setMatrixAt(i, this._M);
+    });
+    this.mesh.instanceMatrix.needsUpdate = true;
+  }
+}

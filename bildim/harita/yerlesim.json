@@ -433,8 +433,37 @@
       "yerlestir": {"prop": "bank", "hat": [[14.38, -24.9], [18.48, -22.02], [22.02, -18.48], [24.9, -14.37], [27.02, -9.83]], "aralik": 5, "yuz": "merkez"}
     },
     {
-      "id": "kedi_gezinti",
+      "id": "kedi_meydan",
       "tip": "pet_npc",
+      "kedi": true,
+      "cokgen": [
+        [24, 0],
+        [22.83, 7.42],
+        [19.42, 14.11],
+        [14.11, 19.42],
+        [7.42, 22.83],
+        [0, 24],
+        [-7.42, 22.83],
+        [-14.11, 19.42],
+        [-19.42, 14.11],
+        [-22.83, 7.42],
+        [-24, 0],
+        [-22.83, -7.42],
+        [-19.42, -14.11],
+        [-14.11, -19.42],
+        [-7.42, -22.83],
+        [0, -24],
+        [7.42, -22.83],
+        [14.11, -19.42],
+        [19.42, -14.11],
+        [22.83, -7.42]
+      ],
+      "not": "anıt tabanına çarpışma engel olur"
+    },
+    {
+      "id": "kedi_plaza_bati",
+      "tip": "pet_npc",
+      "kedi": true,
       "cokgen": [
         [-26.9, -2.35],
         [-26.36, -5.84],
@@ -451,6 +480,62 @@
         [-35.15, -7.79],
         [-35.86, -3.14]
       ]
+    },
+    {
+      "id": "kedi_plaza_dogu",
+      "tip": "pet_npc",
+      "kedi": true,
+      "cokgen": [
+        [27.05, -7.25],
+        [27.7, -4.06],
+        [27.99, -0.81],
+        [27.89, 2.44],
+        [27.42, 5.66],
+        [26.58, 8.81],
+        [25.38, 11.83],
+        [36.25, 16.9],
+        [37.97, 12.58],
+        [39.17, 8.09],
+        [39.85, 3.49],
+        [39.98, -1.16],
+        [39.58, -5.8],
+        [38.64, -10.35]
+      ]
+    },
+    {
+      "id": "kedi_plaza_guney",
+      "tip": "pet_npc",
+      "kedi": true,
+      "cokgen": [
+        [14, 24.25],
+        [10.34, 26.02],
+        [6.46, 27.25],
+        [2.44, 27.89],
+        [-1.63, 27.95],
+        [-5.66, 27.42],
+        [-9.58, 26.31],
+        [-13.68, 37.59],
+        [-8.09, 39.17],
+        [-2.33, 39.93],
+        [3.49, 39.85],
+        [9.22, 38.92],
+        [14.77, 37.17],
+        [20, 34.64]
+      ]
+    },
+    {
+      "id": "kedi_istiklal_a",
+      "tip": "pet_npc",
+      "kedi": true,
+      "cokgen": [[-31.28, 33.99], [-82.3, 100.72], [-83.49, 99.81], [-32.47, 33.08]],
+      "not": "A cephesi kaldırımı (bina önü)"
+    },
+    {
+      "id": "kedi_istiklal_b",
+      "tip": "pet_npc",
+      "kedi": true,
+      "cokgen": [[-23.41, 40], [-74.43, 106.73], [-75.63, 105.82], [-24.6, 39.09]],
+      "not": "B cephesi kaldırımı (bina önü)"
     },
     {
       "id": "marti_alani",
@@ -532,5 +617,8 @@
     {"id": "sehir_kusagi_bati", "tip": "siluet", "cokgen": [[-190, -120], [-150, -120], [-150, 200], [-190, 200]], "yukseklik": 20}
   ],
   "dis_zemin": {"hucre": "asfalt", "not": "yürünebilir sınırın dışı: tek düz yüzey (hücre rengi)"},
-  "kurallar": {"girilebilir_cephe": {"saksi": {"yan": 2.3, "on": 0.8, "not": "her girilebilir parselin kapısının iki yanında (ayak izi önünde)"}}}
+  "kurallar": {
+    "girilebilir_cephe": {"saksi": {"yan": 2.3, "on": 0.8, "not": "her girilebilir parselin kapısının iki yanında (ayak izi önünde)"}},
+    "kediler": {"varsayilan_sayi": 8, "ayar": "oyun_ayarlari.meydan_kedi_sayisi", "dagitim": "alanlara sırayla (round-robin)"}
+  }
 }

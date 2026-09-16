@@ -40,7 +40,7 @@ import { KarakterSistemi, VARLIK_KOK } from "./karakter/karakter.js";
 import { MeydanAvatarlari } from "./karakter/meydanAvatar.js";
 import { TemasGolgeleri } from "./karakter/temas.js";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
-import { cevreKur, PROPLAR } from "./cevre.js";
+import { cevreKur, PROPLAR, KediSurusu } from "./cevre.js";
 export { esyaBilgisi };
 
 // roundRect / canvasDoku / isimEtiketi / nesneyiSerbestBirak ORTAK.JS'e taşındı:
@@ -158,7 +158,7 @@ export function dunyaKur(kapsayici, s = {}) {
     .then(() => { avatarlar.hazirOlunca(); return true; })
     .catch((e) => { console.error("[Meydan] karakterler yuklenemedi:", e); return false; });
   // 2B §3: çevre sanat katmanı (GLB proplar + atlaslı zemin) — karakter atlası/malzemesiyle aynı; konumlar manifestten
-  let cevre = null;
+  let cevre = null, kediler = null, kediSayisi = 8;
   const cevreHazir = karakterHazir.then(async (tamam) => {
     if (!tamam || !gb) return null;
     const yukleyici = new GLTFLoader(), proplar = {};
@@ -167,6 +167,8 @@ export function dunyaKur(kapsayici, s = {}) {
       .catch((e) => console.error("[Meydan] prop yuklenemedi:", ad, e))));
     for (const m of Object.values(proplar)) ks.cilala(m);
     cevre = cevreKur({ M: yerlesim, gb, sahne, render, proplar, hucreler: ks.hucreler, malzeme: proplar.prop_bank?.material ?? ks.malzeme, temas });
+    // 2B §4: sokak kedileri her yerde (manifest kedi alanları), tek InstancedMesh, yerel; sayı oyun_ayarlari.meydan_kedi_sayisi
+    if (proplar.prop_kedi) kediler = new KediSurusu({ M: yerlesim, gb, kaynak: proplar.prop_kedi, sahne, temas, sayi: kediSayisi });
     return cevre;
   }).catch((e) => { console.error("[Meydan] cevre kurulamadi:", e); return null; });
 
@@ -769,6 +771,7 @@ export function dunyaKur(kapsayici, s = {}) {
 
     // 2B: karakter karesi (animasyon, göz kırpma, süzülme, VFX) → dans/ikram vekilleri kemiklere → temas gölgeleri
     try { ks.kare(dt, zaman, kamera); avatarlar.vekilleriUygula(); } catch (e) { console.error("[Meydan] karakter karesi:", e); }
+    kediler?.guncelle(dt, zaman);
     temas.guncelle();
     gunes.target.position.set(ben.position.x, 0, ben.position.z);
     gunes.position.copy(gunes.target.position).add(GUNES_YON);
@@ -853,6 +856,8 @@ export function dunyaKur(kapsayici, s = {}) {
     // 2B: tam karakter sayısı (oyun_ayarlari.meydan_uc_boyutlu_sinir) · karakter sistemi hazır sözü · ölçüm için yöneticiler
     kalabalikSiniri: (n) => { if (Number.isFinite(n) && n >= 0) avatarlar.sinir = n; return avatarlar.sinir; },
     karakterHazir, karakterler: avatarlar, karakterSistemi: ks, cevreHazir, cevre: () => cevre,
+    kediSayisi: (n) => { if (Number.isFinite(n)) { kediSayisi = n; kediler?.sayiAyarla(n); } return kediler?.kediler.length ?? kediSayisi; },
+    kediler: () => kediler,
     zumla, zumAyarla, zumOku,
     guncelle, boyutlandir, yokEt,
   };
