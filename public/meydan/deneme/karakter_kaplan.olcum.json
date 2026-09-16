@@ -1,0 +1,63 @@
+{
+ "dosya": "karakter_kaplan.glb",
+ "meshler": [
+  {
+   "ad": "Govde",
+   "ucgen": 4714,
+   "kose": 3021,
+   "skinned": true,
+   "ao": true
+  },
+  {
+   "ad": "kozmetik_kuyruk",
+   "ucgen": 272,
+   "kose": 159,
+   "skinned": false,
+   "ao": true
+  }
+ ],
+ "toplamUcgen": 4986,
+ "malzeme": 1,
+ "roughness": 0.82,
+ "boyut": [
+  1.46,
+  2.064,
+  0.816
+ ],
+ "kemik": 22,
+ "klipler": [
+  "Idle",
+  "Run",
+  "Walk",
+  "Selam"
+ ],
+ "yuvalar": [
+  "altYuva",
+  "elbiseYuva",
+  "capeRoot",
+  "sirtYuva",
+  "boyunYuva",
+  "basYuva",
+  "gozlukYuva",
+  "sacYuva",
+  "sakalYuva",
+  "kulakYuva_L",
+  "kulakYuva_R",
+  "bilekYuva_L",
+  "bilekYuva_R",
+  "ayakYuva_L",
+  "ayakYuva_R"
+ ],
+ "ao": {
+  "govde": {
+   "ort": 0.634,
+   "min": 0.152,
+   "kose": 3021
+  },
+  "kozmetik_kuyruk": {
+   "ort": 0.886,
+   "min": 0.151,
+   "kose": 159
+  }
+ }
+}

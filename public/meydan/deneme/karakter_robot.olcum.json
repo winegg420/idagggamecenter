@@ -1,0 +1,51 @@
+{
+ "dosya": "karakter_robot.glb",
+ "meshler": [
+  {
+   "ad": "Govde",
+   "ucgen": 5146,
+   "kose": 3073,
+   "skinned": true,
+   "ao": true
+  }
+ ],
+ "toplamUcgen": 5146,
+ "malzeme": 1,
+ "roughness": 0.82,
+ "boyut": [
+  1.46,
+  1.953,
+  0.55
+ ],
+ "kemik": 22,
+ "klipler": [
+  "Idle",
+  "Run",
+  "Walk",
+  "Selam"
+ ],
+ "yuvalar": [
+  "altYuva",
+  "elbiseYuva",
+  "capeRoot",
+  "sirtYuva",
+  "boyunYuva",
+  "basYuva",
+  "gozlukYuva",
+  "sacYuva",
+  "sakalYuva",
+  "kulakYuva_L",
+  "kulakYuva_R",
+  "bilekYuva_L",
+  "bilekYuva_R",
+  "ayakYuva_L",
+  "ayakYuva_R"
+ ],
+ "ao": {
+  "govde": {
+   "ort": 0.611,
+   "min": 0.15,
+   "kose": 3073
+  }
+ }
+}

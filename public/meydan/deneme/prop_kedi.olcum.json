@@ -1,0 +1,25 @@
+{
+ "dosya": "prop_kedi.glb",
+ "meshler": [
+  {
+   "ad": "prop_kedi",
+   "ucgen": 652,
+   "kose": 479,
+   "skinned": false,
+   "ao": true
+  }
+ ],
+ "toplamUcgen": 652,
+ "malzeme": 1,
+ "roughness": 0.82,
+ "boyut": [
+  0.16,
+  0.474,
+  0.597
+ ],
+ "ao": {
+  "ort": 0.761,
+  "min": 0.158,
+  "kose": 479
+ }
+}
