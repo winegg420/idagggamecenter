@@ -5052,3 +5052,40 @@ Aşama 1 ve 2 canlıda; son commit `6c050e3` (bot ziyareti köprüdeki oyuncuyu 
 5. Test kabuğu `.tmp/harita-test/` (git dışı): `npx vite --port 5175 --mode bildim` + Playwright
    `scratchpad/kopru.cjs`, `botplan.cjs <tohum> <sn>`. Chrome otomasyonunda Worker-RAF şart (aşağıda).
 Ölçülen ama bırakılan küçük şey: bulutlar (y 22-31, r 60-105) zumlu kameranın önünden geçebiliyor (eskiden de).
+
+## 2026-09-16 — Paket 14 (Quiz Tactics revizyonu) — Aşama 1-3
+
+Not: görevde "son migration 191, yeniler 192'den" yazıyordu; depoda 199'a kadar dolu (Paket 13). Yeni migration'lar **200'den** devam etti.
+`boks/` altındaki commit edilmemiş değişiklikler bu oturuma ait değil — dokunulmadı, commit'lere katılmadı.
+
+### Aşama 1 — Marka: Quiz Square → Quiz Tactics (`92dfb1a`)
+Kullanıcıya görünen tüm metinler (vite "bildim-modu" başlık/og/apple-title, `bildim.webmanifest`, `manifest.webmanifest`, `index.html` meta,
+Logo/Login/Kurulum sihirbazı, dil.js TR+EN, paylaşım/push metinleri, sw.js bildirim başlığı, Gizlilik/Koşullar, README/CLAUDE/AGENTS başlıkları).
+Teknik adlar (`bildim/`, `VITE_MOD=bildim`, `quizsquare.vercel.app`, localStorage anahtarları) değişmedi. Logo ölçüldü: "Quiz Tactics" 157.4 birim
+(eski 157.2) → viewBox 160 aynen. Eski migration yorumları ve PROGRESS geçmişi bilerek bırakıldı. Canlı: başlık + manifest "Quiz Tactics".
+
+### Aşama 2 — Hızlı Mod 10 sn / 90 sn (migration 200, `2d4cb24`, `f93fc96`)
+`oyun_ayarlari`: hizli_mod_sure_sn 90, hizli_mod_soru_sure_sn 10, hizli_mod_okuma_tavani 170. Havuz ölçümü (aktif, zorluk≥2, 170 tavan):
+en küçük TR 761 (spor), EN 476 (tarih) — hiçbiri 300 altı değil. Sayfa süreleri sunucudan alır. Canlıda ölçülen ek hata: toplam süre sayacı
+100 ms'de 0.1 düşüyordu, zamanlayıcı kısılınca geride kalıyordu → duvar saatine bağlandı. Canlı oturum: soru 10 sn'de süre doldu, oturum
+91 sn'de sunucuda kapandı, 110 üstü sorular geldi (147). **Not:** hızlı cevaplayan 9'dan fazla soru görebilir (eskiden de 12 sınırı yoktu).
+
+### Aşama 3 — Ekonomi (migration 201, 202, 203)
+- Normal Maç dereceli 25/10 lig, coin 25/10; Hızlı Mod doğru×3 (tavan 25) lig + coin; Düello ayarları hazır (50/50);
+  turnuva 150/80/40, 4-10. 20, diğer katılan 10 (tek miktar, eklenmez); serbest: lig 0, coin %50.
+- `odul_carpani` = çift/serbest/açık-bot çarpanlarının **en düşüğü** (çarpım yok); `coin_mac_odulu` bunu kullanır. Eski
+  `coin_mac_odulu` anon+authenticated'a açıktı → kapatıldı.
+- Çift koruması 1v1 lig puanına **zaten** uygulanıyordu (ölçüldü); beraberlik de aynı çarpanla. Çift sayacı serbest maçları da sayar.
+- Seri bonusu `least(gün×3, 15)`. **Ölçülen hata:** maç bitiş tetikleyicisi `son_seri_tarihi`'ni bonustan önce güncellediği için lig seri
+  bonusu 1v1'de hiç ödenmiyordu → ayrı damga `seri_bonus_tarihi` (203).
+- Davet: lig puanı yok, iki tarafa 200 coin ('davet', günlük tavan dışı). Referans: davet edilende davet eden id; davet edende davet edilen id
+  (aksi hâlde davet eden ömründe bir kez alabilirdi). Aynı cihaz/IP → coin yok.
+- Grup Maçı ödülsüz: coin/lig/seri yok, rozet var. Tetikleyici de artık seriyi ilerletmiyor/seri coin'i vermiyor (203).
+- "Hızlı Olan Kazanır" **donduruldu, kod duruyor**: meydan sayfasındaki kurulum paneli gizli (`HIZLI_OLAN_KAZANIR_ACIK=false`), rota ve tablolar yerinde.
+- Hızlı Mod haftalık skor tablosu arayüzden kalktı; `hizli_mod_skorlar` yazılmaya devam ediyor.
+- Arayüz: tek "Dereceli" anahtarı (`DereceliAnahtari` + `lib/dereceli.js`, localStorage + `profiles.dereceli_tercih`) — ana sayfa, Hızlı Mod,
+  Meydan (arkadaşa meydan okuma `create_challenge(p_dereceli)`). Ana sayfadaki "Dereceli Maç" kartı kalktı. Maç sonu sabit "+20 puan" yerine
+  `mac_odulum` (sunucunun gerçekte yazdığı lig/coin).
+- Doğrulama (geri alınan işlemde, canlı DB): aynı çiftle 11 maç → lig 25×5, 12×5, 0; berabere 10/10; serbest 0 lig/12 coin; serbest+açık bot
+  12 (≠6); seri 3/6/9/12/15/15; davet lig 0, coin 200/200, tekrar false; grup maçı lig/coin/seri 0; turnuva 150/80/40/20…/10.
+  Canlı Hızlı Mod (dereceli): 5 doğru → +15 lig (110→125), +15 coin (494→509).
