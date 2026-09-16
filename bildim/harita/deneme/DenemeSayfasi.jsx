@@ -53,6 +53,8 @@ export default function DenemeSayfasi() {
   const apiRef = useRef(null);
   const [durum, setDurum] = useState({ hazir: false, hata: null });
   const [olc, setOlc] = useState({ cagri: 0, ucgen: 0, fps: 0, ms: 0, kopya: 1 });
+  // Aşama 1E §0.2: CPU+GPU (gl.finish) sürekli ölçülmez — düğmeyle istenir; HUD'da ölçüm anıyla durur
+  const [kareOlcum, setKareOlcum] = useState(null);   // { cpuGpu, cpuGpuP95, gpu, zaman }
   const [klip, setKlip] = useState("Idle");
   const [koz, setKoz] = useState({ sapka: true, gozluk: true, atki: true });
   const [kalabalik, setKalabalik] = useState(false);
@@ -552,6 +554,29 @@ if (vBolge > 12.5 && vBolge < 15.5 && diffuseColor.b > 0.5 && diffuseColor.r < 0
       bak: (p, h) => { kam.position.set(...p); kontrol.target.set(...h); kontrol.update(); },
       olc: () => { const i = render.info.render; return { cagri: i.calls, ucgen: i.triangles, kopya: 1 + kopyalar.length, geometri: render.info.memory.geometries, doku: render.info.memory.textures, program: render.info.programs.length }; },
       kareSuresi: (n = 30) => { const gl = render.getContext(); const t0 = performance.now(); for (let i = 0; i < n; i++) { cizim(); gl.finish(); } return +((performance.now() - t0) / n).toFixed(2); },
+      /**
+       * Aşama 1E §0.2 — ölçüm hijyeniyle kare süresi: `isinma` kare atılır, `ornek` kare örneklenir, MEDYAN + p95.
+       * cpuGpu = cizim() + gl.finish() (CPU+GPU vekili). gpu = EXT_disjoint_timer_query_webgl2 (destek yoksa null).
+       * gl.finish boru hattını sıraya sokar: karşılaştırma için tutarlı, mutlak değer için değil. HUD CPU sayısıyla karıştırma.
+       */
+      kareOlc: async ({ isinma = 120, ornek = 300 } = {}) => {
+        const gl = render.getContext(), ext = gl.getExtension("EXT_disjoint_timer_query_webgl2");
+        for (let i = 0; i < isinma; i++) { cizim(); gl.finish(); }
+        const sure = [], sorgular = [];
+        for (let i = 0; i < ornek; i++) {
+          const q = ext ? gl.createQuery() : null; if (q) gl.beginQuery(ext.TIME_ELAPSED_EXT, q);
+          const t0 = performance.now(); cizim(); gl.finish(); sure.push(performance.now() - t0);
+          if (q) { gl.endQuery(ext.TIME_ELAPSED_EXT); sorgular.push(q); }
+        }
+        await new Promise((r) => setTimeout(r, 200));
+        const gpu = [];
+        const bozuk = ext ? gl.getParameter(ext.GPU_DISJOINT_EXT) : true;
+        for (const q of sorgular) { if (!bozuk && gl.getQueryParameter(q, gl.QUERY_RESULT_AVAILABLE)) gpu.push(gl.getQueryParameter(q, gl.QUERY_RESULT) / 1e6); gl.deleteQuery(q); }
+        const yuzde = (a, p) => { if (!a.length) return null; const s = [...a].sort((x, y) => x - y); return +s[Math.min(s.length - 1, Math.floor(p * (s.length - 1) + 0.5))].toFixed(2); };
+        const sonuc = { cpuGpu: yuzde(sure, 0.5), cpuGpuP95: yuzde(sure, 0.95), gpu: yuzde(gpu, 0.5), zaman: new Date().toLocaleTimeString("tr-TR"), ornek, isinma };
+        setKareOlcum(sonuc);
+        return sonuc;
+      },
       esas: () => esas, sahne, render, kam,
     };
     window.__deneme = apiRef.current;
@@ -593,7 +618,14 @@ if (vBolge > 12.5 && vBolge < 15.5 && diffuseColor.b > 0.5 && diffuseColor.r < 0
       <div className="hd-kanvas" ref={kapRef} />
       <div className="hd-ust">
         <a className="hd-geri" href="/">‹ Oyuna dön</a>
-        <div className="hd-olc"><b>{olc.cagri}</b> çağrı · <b>{olc.ucgen.toLocaleString("tr-TR")}</b> üçgen · <b>{olc.fps}</b> fps · {olc.ms} ms · {olc.kopya} karakter</div>
+        {/* Aşama 1E §0.2: iki metrik etiketli. CPU = yalnız render.render gönderim süresi (sürekli); CPU+GPU = cizim + gl.finish medyanı (istenince) */}
+        <div className="hd-olc">
+          <b>{olc.cagri}</b> çağrı · <b>{olc.ucgen.toLocaleString("tr-TR")}</b> üçgen · <b>{olc.fps}</b> fps ·{" "}
+          <span title="Yalnız CPU gönderim süresi (render.render çevresi). Kare süresi DEĞİL.">CPU {olc.ms.toLocaleString("tr-TR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ms</span> ·{" "}
+          <span title="cizim() + gl.finish(), 120 kare ısınma, 300 kare medyan. Düğmeyle ölçülür.">CPU+GPU {kareOlcum ? `${kareOlcum.cpuGpu.toLocaleString("tr-TR", { minimumFractionDigits: 2 })} ms (${kareOlcum.zaman})` : "— ms"}</span>
+          {kareOlcum?.gpu != null && <> · <span title="EXT_disjoint_timer_query_webgl2, medyan">GPU {kareOlcum.gpu.toLocaleString("tr-TR", { minimumFractionDigits: 2 })} ms</span></>}
+          {" "}· {olc.kopya} karakter
+        </div>
       </div>
       {!durum.hazir && <div className="hd-perde">{durum.hata ? "Yüklenemedi: " + durum.hata : "Varlıklar yükleniyor…"}</div>}
       <div className="hd-alt">
@@ -619,6 +651,7 @@ if (vBolge > 12.5 && vBolge < 15.5 && diffuseColor.b > 0.5 && diffuseColor.r < 0
           <D ac={tacVekili} onClick={() => setTacVekili(!tacVekili)}>taç gölgesi: {tacVekili ? "vekil" : "gerçek"}</D>
         </div>
         <div className="hd-grup">{[["genis", "Geniş"], ["oyun", "Oyun"], ["foto", "Fotoğraf"]].map(([k, ad]) => <D key={k} ac={kamera === k} onClick={() => setKamera(k)}>{ad}</D>)}</div>
+        <div className="hd-grup"><D ac={false} onClick={() => apiRef.current?.kareOlc()}>CPU+GPU ölç</D></div>
       </div>
     </div>
   );
