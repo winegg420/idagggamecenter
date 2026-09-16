@@ -3,23 +3,23 @@
  "meshler": [
   {
    "ad": "prop_agac_tac",
-   "ucgen": 360,
-   "kose": 269,
+   "ucgen": 470,
+   "kose": 351,
    "skinned": false,
    "ao": true
   }
  ],
- "toplamUcgen": 360,
+ "toplamUcgen": 470,
  "malzeme": 1,
  "roughness": 0.82,
  "boyut": [
-  3.05,
-  3.242,
-  2.552
+  3.343,
+  3.17,
+  2.986
  ],
  "ao": {
-  "ort": 0.797,
-  "min": 0.182,
-  "kose": 269
+  "ort": 0.815,
+  "min": 0.21,
+  "kose": 351
  }
 }

@@ -1,0 +1,21 @@
+{
+ "dosya": "zemin_deneme.glb",
+ "meshler": [
+  {
+   "ad": "zemin_deneme",
+   "ucgen": 3058,
+   "kose": 6038,
+   "skinned": false,
+   "ao": true
+  }
+ ],
+ "toplamUcgen": 3058,
+ "malzeme": 1,
+ "roughness": 0.82,
+ "boyut": [
+  80,
+  0.012,
+  80
+ ],
+ "ao": null
+}

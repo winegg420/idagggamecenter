@@ -3,13 +3,13 @@
  "meshler": [
   {
    "ad": "Bina_Dukkan",
-   "ucgen": 9840,
-   "kose": 7720,
+   "ucgen": 4804,
+   "kose": 4546,
    "skinned": false,
    "ao": true
   }
  ],
- "toplamUcgen": 9840,
+ "toplamUcgen": 4804,
  "malzeme": 1,
  "roughness": 0.82,
  "boyut": [
@@ -24,8 +24,8 @@
   4.3
  ],
  "ao": {
-  "ort": 0.659,
+  "ort": 0.654,
   "min": 0.15,
-  "kose": 7720
+  "kose": 4546
  }
 }
