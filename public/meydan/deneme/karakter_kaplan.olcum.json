@@ -3,8 +3,8 @@
  "meshler": [
   {
    "ad": "Govde",
-   "ucgen": 4714,
-   "kose": 3021,
+   "ucgen": 5112,
+   "kose": 3317,
    "skinned": true,
    "ao": true
   },
@@ -16,13 +16,13 @@
    "ao": true
   }
  ],
- "toplamUcgen": 4986,
+ "toplamUcgen": 5384,
  "malzeme": 1,
  "roughness": 0.82,
  "boyut": [
   1.46,
   2.064,
-  0.816
+  0.857
  ],
  "kemik": 22,
  "klipler": [
@@ -50,9 +50,9 @@
  ],
  "ao": {
   "govde": {
-   "ort": 0.634,
+   "ort": 0.668,
    "min": 0.152,
-   "kose": 3021
+   "kose": 3317
   },
   "kozmetik_kuyruk": {
    "ort": 0.886,
