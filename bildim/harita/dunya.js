@@ -461,7 +461,7 @@ export function dunyaKur(kapsayici, s = {}) {
     emojiGoster, carpismaDuzelt, zeminYuksekligi, yakinBina, turnuvaKapisi, avatarSec,
     dansEttir: (av, kod) => dansBaslat(av, kod),
     // 2B: tam karakter sayısı (oyun_ayarlari.meydan_uc_boyutlu_sinir) · karakter sistemi hazır sözü · ölçüm için yöneticiler
-    kalabalikSiniri: (n) => { if (Number.isFinite(n) && n >= 0) avatarlar.sinir = n; return avatarlar.sinir; },
+    kalabalikSiniri: (n) => { if (Number.isFinite(n) && n >= 0 && n !== avatarlar.sinir) avatarlar.sinirAyarla(n); return avatarlar.sinir; },
     karakterHazir, karakterler: avatarlar, karakterSistemi: ks, cevreHazir, cevre: () => cevre,
     kediSayisi: (n) => { if (Number.isFinite(n)) { kediSayisi = n; kediler?.sayiAyarla(n); } return kediler?.kediler.length ?? kediSayisi; },
     kediler: () => kediler,

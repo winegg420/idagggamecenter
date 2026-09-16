@@ -381,7 +381,7 @@ export default function HaritaSayfasi() {
       try { localStorage.removeItem("bildim_harita_yerlesim"); } catch { /* özel mod */ }   // 2A harita seçimi kalktı
       // 2B §2.3: tam (kozmetik + gölge + kırpma) karakter sayısı oyun_ayarlari'ndan — koda gömülmez
       const kurulanDunya = dunya;
-      oyunAyari("meydan_uc_boyutlu_sinir", 25).then((n) => kurulanDunya.kalabalikSiniri(n)).catch((e) => console.error("[Meydan] kalabalik siniri:", e));
+      oyunAyari("meydan_uc_boyutlu_sinir", 8).then((n) => kurulanDunya.kalabalikSiniri(n)).catch((e) => console.error("[Meydan] kalabalik siniri:", e));
       // 2B §4: sokak kedisi sayısı oyun_ayarlari'ndan
       oyunAyari("meydan_kedi_sayisi", 8).then((n) => kurulanDunya.kediSayisi(n)).catch((e) => console.error("[Meydan] kedi sayisi:", e));
     } catch (e) {

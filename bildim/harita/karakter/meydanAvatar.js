@@ -90,7 +90,7 @@ export class MeydanAvatarlari {
   constructor({ ks, temas = null }) {
     this.ks = ks; this.temas = temas;
     this.hepsi = new Set();
-    this.sinir = 25;        // tam karakter sayısı (oyun_ayarlari'ndan ayarlanır)
+    this.sinir = 8;         // tam karakter sayısı (oyun_ayarlari.meydan_uc_boyutlu_sinir; 2B ölçümü)
     this.tamSayisi = 0;
   }
 
@@ -126,10 +126,10 @@ export class MeydanAvatarlari {
     return tohumdanGorunum("bot|" + u.tohum, { tur });
   }
 
-  #govdeTak(av) {
+  #govdeTak(av, tamIste = null) {
     const u = av.userData;
     const { tur, g, koz } = this.#cozum(av);
-    const tam = this.tamSayisi < this.sinir;
+    const tam = tamIste ?? this.tamSayisi < this.sinir;
     const karakter = this.ks.kur(tur, g, tam ? koz : {}, { golge: tam, kirpma: tam });
     if (!karakter) return;
     if (tam) this.tamSayisi++;
@@ -143,6 +143,24 @@ export class MeydanAvatarlari {
       LeftUpLeg: karakter.getObjectByName("LeftUpLeg"), RightUpLeg: karakter.getObjectByName("RightUpLeg"),
     };
     this.ks.klip(karakter, "Idle");
+  }
+
+  /**
+   * Sınır sonradan değişirse (ayar geç geldi / ölçüm) mevcut karakterlere de uygulanır: katılış sırasıyla ilk `n` tam,
+   * gerisi hafif; yalnız durumu değişen gövdeler yeniden kurulur.
+   */
+  sinirAyarla(n) {
+    this.sinir = n;
+    let i = 0;
+    for (const av of this.hepsi) {
+      const u = av.userData;
+      if (!u.karakter) continue;
+      const iste = i++ < n;
+      if (u.tam === iste) continue;
+      this.ks.sil(u.karakter); u.karakter = null;
+      if (u.tam) this.tamSayisi = Math.max(0, this.tamSayisi - 1);
+      this.#govdeTak(av, iste);
+    }
   }
 
   /** Kıyafet/tür değişimi: gövde yeniden kurulur (sahne yıkılmaz). */

@@ -5354,3 +5354,10 @@ en küçük TR 761 (spor), EN 476 (tarih) — hiçbiri 300 altı değil. Sayfa s
 - Ölçüm: greybox yalnız en kötü açıda 165 çağrı (sınırın %75'i — nesne sayısı: 121 mesh + gölge), 2,6k üçgen, 1,7 ms. 25 mevcut meydan avatarı ~580 çağrı ekliyor (eski avatar sistemi, 1G hattı değil) → 924 çağrı, 8,6 ms.
 - §7: hız 9 m/s · İstiklal 9,83 sn · taş meydan 5,87 sn, plaza 9,2 sn · 25 oyuncu 81 m²/kişi, komşu 5,5 m · kamera sokak boyunca temiz, SON 10–19 m'de kapanış binası oyuncuyu kapatıyor (Stüdyo/Ayarlar) · doğuştan en uzak dükkân 13,28 sn.
 - Karar bekleyen: kapanış binası (kaldır / 20 m geri çek), meydan yarıçapı. DUR — sanat başlamadı. Rapor: `bildim/harita/ASAMA_2A_GREYBOX.md`.
+
+## 17 Eyl 2026 — Harita Aşama 2B: yeni karakter + proplar gerçek haritada, eski harita kalktı
+- Adımlar ayrı commit: 2B-1 modül (`bildim/harita/karakter/`), 2B-2/3 oyuncular, 2B-4 proplar, 2B-5 kediler, 2B-6 botlar, 2B-7 boya, 2B-8 eski harita + balıkçı/su silindi, 2B-9 ölçüm + rapor.
+- Tek harita Taksim; `?harita=` seçimi yok. Balıkçı/olta/su istemciden silindi (**iptal, geri gelmez**); sunucu RPC/tabloları duruyor (ayrı temizlik). `avatar.js` duruyor (portre.js, onizleme.js).
+- **§6 kapısı PASS DEĞİL:** en kötü açıda (İstiklal ucu, 25 oyuncu) 25 tam karakter 5,8 ms > 4,0. `meydan_uc_boyutlu_sinir` = 8 (3,7–3,8 ms). Doğuş kamerasında sınır 8 ile 3,9–4,0 ms — sınırda; kalan maliyet iskeletli karakter sayısının kendisi (LOD/animasyon seyreltme kararı gerekiyor). Migration 209 (oyun_ayarlari: sınır 8, kedi 8) uygulandı.
+- Bilinen tutarsızlık: harita yeni karakter, gardırop/portre eski avatar. Tür seçimi arayüzü yok; bot kaplan/robot olabiliyor → gizli bot riski (rapora yazıldı).
+- Ölçüm düzeneği: `olcum/meydan-test/` (sahte Supabase, `--uretim`), `__kare.durdur/olc`, `sahne2b.js`. Rapor: `bildim/harita/ASAMA_2B_RAPOR.md`. DUR.
