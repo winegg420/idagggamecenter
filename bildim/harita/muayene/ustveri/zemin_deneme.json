@@ -1,0 +1,9 @@
+{
+  "glb": "zemin_deneme", "tip": "zemin", "zeminCizgisi": false, "zeminGolgesi": false,
+  "yakin": [
+    { "ad": "yaya geçidi", "hedef": [11.2, 0, 6], "yon": [0, 1, 0.55], "mesafe": 12 },
+    { "ad": "kaldırım–asfalt kenarı", "hedef": [0, 0, 2], "yon": [0.3, 0.45, 1], "mesafe": 3.5 },
+    { "ad": "çim yaması", "hedef": [-22, 0, -3], "yon": [0.2, 1, 0.5], "mesafe": 7 }
+  ],
+  "guzel": { "az": 35, "el": 30, "mesafe": 60, "hedef": [0, 0, 4] }
+}

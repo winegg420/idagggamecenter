@@ -1,0 +1,10 @@
+{
+  "glb": "karakter_kaplan", "tip": "karakter",
+  "kozmetik": { "sapka": "karakter_insan", "gozluk": "karakter_insan", "atki": "karakter_insan", "kuyruk": "karakter_kaplan" },
+  "yakin": [
+    { "ad": "kafa 3/4 (kozmetiksiz)", "hedef": { "kemik": "Head", "ofset": [0, 0.17, 0.02] }, "yon": [0.55, 0.12, 1], "mesafe": 1.15 },
+    { "ad": "sağ el", "hedef": { "kemik": "RightHand", "ofset": [-0.05, 0, 0] }, "yon": [-0.35, 0.25, 1], "mesafe": 0.75 },
+    { "ad": "sol ayak", "hedef": { "kemik": "LeftFoot", "ofset": [0, -0.04, 0.06] }, "yon": [1, 0.35, 0.8], "mesafe": 0.85 }
+  ],
+  "guzel": { "az": 30, "el": 8 }
+}

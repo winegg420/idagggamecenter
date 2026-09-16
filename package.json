@@ -11,7 +11,8 @@
     "test:bildim": "node bildim/_test/joker-kurallari-test.mjs",
     "uyumluluk": "node araclar/tarayici-uyumluluk.mjs",
     "postbuild": "node araclar/tarayici-uyumluluk.mjs",
-    "test:dans": "node bildim/_test/dans-testi.mjs"
+    "test:dans": "node bildim/_test/dans-testi.mjs",
+    "muayene": "node bildim/harita/muayene/calistir.mjs"
   },
   "dependencies": {
     "@react-three/drei": "^10.7.7",
@@ -27,6 +28,7 @@
   },
   "devDependencies": {
     "@vitejs/plugin-react": "^5.0.0",
+    "playwright-core": "^1.63.0",
     "supabase": "^2.0.0",
     "three-mesh-bvh": "^0.9.15",
     "vite": "^7.0.0"

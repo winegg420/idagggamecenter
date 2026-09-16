@@ -1,0 +1,8 @@
+{
+  "glb": "prop_saksi", "tip": "prop",
+  "yakin": [
+    { "ad": "çalı + toplar", "hedef": [0, 1.05, 0], "yon": [0.5, 0.7, 1], "mesafe": 1.6 },
+    { "ad": "bilezik", "hedef": [0.42, 0.7, 0], "yon": [1, 0.25, 0.4], "mesafe": 0.9 },
+    { "ad": "taban", "hedef": [0, 0.1, 0.33], "yon": [0.3, 0.2, 1], "mesafe": 1.1 }
+  ]
+}

@@ -1,0 +1,8 @@
+{
+  "glb": "prop_agac_tac", "tip": "prop", "zeminCizgisi": false,
+  "yakin": [
+    { "ad": "taç altı", "hedef": [0, 3.8, 0], "yon": [1, -0.7, 1], "mesafe": 3.8 },
+    { "ad": "taç üstü", "hedef": [0, 5.8, 0], "yon": [0.5, 1, 0.5], "mesafe": 4.2 },
+    { "ad": "lob birleşimi", "hedef": [0.8, 4.9, 0.4], "yon": [1, 0.1, 0.6], "mesafe": 3.2 }
+  ]
+}

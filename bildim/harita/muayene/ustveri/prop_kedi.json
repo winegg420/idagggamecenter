@@ -1,0 +1,8 @@
+{
+  "glb": "prop_kedi", "tip": "prop",
+  "yakin": [
+    { "ad": "kafa", "hedef": [0, 0.28, 0.2], "yon": [0.45, 0.1, 1], "mesafe": 0.45 },
+    { "ad": "kuyruk", "hedef": [0.03, 0.34, -0.24], "yon": [1, 0.2, -0.6], "mesafe": 0.55 },
+    { "ad": "ayaklar", "hedef": [0, 0.08, 0], "yon": [1, 0.1, 0.35], "mesafe": 0.55 }
+  ]
+}

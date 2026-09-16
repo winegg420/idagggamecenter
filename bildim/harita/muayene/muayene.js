@@ -1,0 +1,238 @@
+// ============================================================
+// VARLIK MUAYENESİ — tarayıcı tarafı (Aşama 1E).
+// Bir GLB'yi oyunun ışığı (B+) ve malzeme kuralıyla yükler; istenen görünümü çizer, PNG verir.
+//   window.muayene.hazirla(ustveri)  → varlığı kur, görünüm listesini döndür
+//   window.muayene.ciz(i)            → i. görünümü çiz, PNG dataURL döndür
+//   window.muayene.kontakt(bilgi)    → kontakt sayfası (JPEG dataURL)
+//
+// DİKKAT — KOPYA: malzeme cilası ve varsayılan görünüm (varyant çökertme + ton) oyun test sayfasındaki
+// `DenemeSayfasi.jsx › cilala / gorunumUygula`nın sadeleştirilmiş kopyasıdır. Orada değişirse burası da
+// güncellenmeli; yoksa muayene oyunda görünenden farklı bir şeyi gösterir.
+// ============================================================
+import * as THREE from "three";
+import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
+import { RoomEnvironment } from "three/addons/environments/RoomEnvironment.js";
+
+const KOK = "/meydan/deneme/";
+const BOY = 640;
+const KOZ_YUVA = { sapka: "basYuva", gozluk: "gozlukYuva", atki: "boyunYuva", kuyruk: "sirtYuva" };
+
+// ---- render + ışık B+ (DenemeSayfasi isikAyarla("B+") ile aynı değerler) ----
+const render = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
+render.setPixelRatio(1); render.setSize(BOY, BOY);
+render.shadowMap.enabled = true; render.shadowMap.type = THREE.PCFShadowMap;
+render.toneMapping = THREE.ACESFilmicToneMapping; render.toneMappingExposure = 1.08;
+document.body.appendChild(render.domElement);
+const sahne = new THREE.Scene();
+sahne.environment = new THREE.PMREMGenerator(render).fromScene(new RoomEnvironment(), 0.04).texture;
+sahne.environmentIntensity = 0.25;
+const gok = new THREE.HemisphereLight(0xeaf7ff, 0xe8dfcb, 0.405 * Math.PI); sahne.add(gok);
+const gunes = new THREE.DirectionalLight(0xfff3dc, 1.29 * Math.PI);
+gunes.castShadow = true; gunes.shadow.mapSize.set(2048, 2048); gunes.shadow.radius = 3; gunes.shadow.bias = -0.0004;
+sahne.add(gunes, gunes.target);
+
+// ---- tek malzeme cilası (DenemeSayfasi.jsx › cilala kopyası) ----
+const PURUZ_TABLO = [0.55, 0.65, 0.65, 0.65, 1.0, 0.95, 0.45, 0.9, 0.95, 0.9, 0.35, 0.5, 0.2, 0.3, 0.3, 0.6, 0.15, 0.82, 0.9, 0.6, 0.85, 0.6];
+const TEN_TEMEL = new THREE.Color("#F2C9A7");
+function cilala(m) {
+  if (!m || m.userData.cilali) return;
+  m.userData.cilali = true; m.envMapIntensity = 0.35; m.vertexColors = true;
+  m.customProgramCacheKey = () => "atlas-bolge-v2";
+  m.onBeforeCompile = (s) => {
+    s.vertexShader = s.vertexShader.replace("#include <common>", "#include <common>\nattribute float _bolge;\nvarying float vBolge;").replace("#include <begin_vertex>", "#include <begin_vertex>\nvBolge = _bolge;");
+    s.fragmentShader = s.fragmentShader
+      .replace("#include <common>", `#include <common>
+varying float vBolge;
+const float PURUZ[22] = float[22](${PURUZ_TABLO.map((v) => v.toFixed(2)).join(", ")});
+const vec3 TEN_TEMEL = vec3(${TEN_TEMEL.r.toFixed(4)}, ${TEN_TEMEL.g.toFixed(4)}, ${TEN_TEMEL.b.toFixed(4)});
+float bolgePuruz(float b) { int i = int(clamp(b + 0.5, 0.0, 21.0)); return PURUZ[i]; }`)
+      .replace("#include <color_fragment>", `
+#if defined( USE_COLOR_ALPHA )
+  vec3 tonK = vColor.rgb;
+  #ifdef USE_MAP
+  if (vBolge > 12.5 && vBolge < 15.5) { float k = smoothstep(0.03, 0.12, distance(sampledDiffuseColor.rgb, TEN_TEMEL)); tonK = mix(vColor.rgb, vec3(vColor.a), k); }
+  #endif
+  diffuseColor.rgb *= tonK;
+#elif defined( USE_COLOR )
+  diffuseColor.rgb *= vColor.rgb;
+#endif`)
+      .replace("#include <roughnessmap_fragment>", "#include <roughnessmap_fragment>\nroughnessFactor = bolgePuruz(vBolge);")
+      .replace("#include <emissivemap_fragment>", `#include <emissivemap_fragment>
+if (vBolge > 11.5 && vBolge < 12.5) totalEmissiveRadiance += diffuseColor.rgb * 1.2;
+if (vBolge > 12.5 && vBolge < 15.5 && diffuseColor.b > 0.5 && diffuseColor.r < 0.45) totalEmissiveRadiance += diffuseColor.rgb * 1.5;`);
+  };
+  m.needsUpdate = true;
+}
+
+// ---- varsayılan görünüm (DenemeSayfasi gorunumUygula, set 1 · saç 1 · ilk tonlar) ----
+const hex = (h) => new THREE.Color(h);
+const TON = { ten: hex("#F2C9A7"), sac: hex("#5B3A29"), ust: hex("#F4701F"), alt: hex("#3B5B8C"), ayak: hex("#2B2B30"), notr: hex("#FFFFFF") };
+function varsayilanGorunum(mesh) {
+  const u = mesh.userData, B = u.bolge; if (!B) return;
+  const geo = mesh.geometry = mesh.geometry.clone();
+  const pos = geo.attributes.position, bolge = geo.attributes._bolge, c3 = geo.attributes.color;
+  const renk = new Float32Array(pos.count * 4);
+  const bas = u.merkez.bas, gov = u.merkez.govde;
+  for (let i = 0; i < pos.count; i++) {
+    const b = bolge.getX(i);
+    let c = TON.notr;
+    if (b === B.ten) c = TON.ten;
+    else if (b === B.sacKase || b === B.sacKisa || b === B.sacKuyruk) { c = TON.sac; if (b !== B.sacKase) pos.setXYZ(i, bas[0], bas[1], bas[2]); }
+    else if (b === B.ust || b === B.bilek) c = TON.ust;
+    else if (b === B.alt) c = TON.alt;
+    else if (b === B.ayakkabi) c = TON.ayak;
+    else if (b === B.ceket || b === B.yaka || b === B.kapuson) pos.setXYZ(i, gov[0], gov[1], gov[2]);
+    else if (b === B.boya && u.tur === "robot") c = TON.ust;
+    else if ((b === B.gozL || b === B.gozR || b === B.agiz) && u.tur === "insan") c = TON.ten;
+    const ao = c3 ? c3.getX(i) : 1;
+    renk[i * 4] = (c3 ? c3.getX(i) : 1) * c.r; renk[i * 4 + 1] = (c3 ? c3.getY(i) : 1) * c.g; renk[i * 4 + 2] = (c3 ? c3.getZ(i) : 1) * c.b; renk[i * 4 + 3] = ao;
+  }
+  geo.setAttribute("color", new THREE.BufferAttribute(renk, 4));
+  pos.needsUpdate = true; geo.computeBoundingBox(); geo.computeBoundingSphere();
+}
+
+// ---- yardımcılar: zemin gölgesi, y=0 çizgisi ----
+const zeminGolge = new THREE.Mesh(new THREE.PlaneGeometry(1, 1).rotateX(-Math.PI / 2), new THREE.ShadowMaterial({ opacity: 0.35 }));
+zeminGolge.receiveShadow = true; sahne.add(zeminGolge);
+const zeminCizgi = new THREE.LineSegments(new THREE.BufferGeometry(), new THREE.LineBasicMaterial({ color: 0xd0342c }));
+sahne.add(zeminCizgi);
+
+const yukleyici = new GLTFLoader();
+const onbellek = new Map();
+const yukle = (ad) => { if (!onbellek.has(ad)) onbellek.set(ad, yukleyici.loadAsync(KOK + ad + ".glb")); return onbellek.get(ad); };
+
+let durum = null;
+/** Yalnız GÖRÜNÜR meshlerin kutusu (Box3.setFromObject görünmez kozmetikleri de sayar). Skinned mesh pozlu hesaplanır. */
+function gorunurKutu(kok) {
+  const kutu = new THREE.Box3();
+  kok.traverseVisible((o) => { if (o.isMesh) kutu.union(new THREE.Box3().setFromObject(o, true)); });
+  return kutu;
+}   // { ustveri, kok, merkez, R, kutu, mixer, klipler, kozmetikler: [Object3D], gorunumler, cizimler: [canvas] }
+
+async function hazirla(ustveri) {
+  if (durum?.kok) sahne.remove(durum.kok);
+  const gltf = await yukle(ustveri.glb);
+  // her hazırlıkta temiz kopya: SkinnedMesh için SkeletonUtils yerine GLB'yi yeniden ayrıştırmak en güvenlisi
+  onbellek.delete(ustveri.glb);
+  const kok = gltf.scene;
+  const karakter = ustveri.tip === "karakter";
+  let govde = null;
+  const kozKaynak = {};
+  kok.traverse((o) => { if (o.isMesh) { cilala(o.material); o.castShadow = true; o.receiveShadow = true; o.frustumCulled = false; if (o.name === "Govde") govde = o; } });
+  const grup = kok.getObjectByName("Kozmetikler");
+  if (grup) { for (const m of [...grup.children]) kozKaynak[`${ustveri.glb}:${m.name.replace("kozmetik_", "")}`] = m; grup.parent.remove(grup); }
+  if (govde) varsayilanGorunum(govde);
+  // kozmetikler: üstverideki kaynak GLB'den (kaplan insanın şapkasını takar — oyundaki kural) yuvaya takılır
+  const kozmetikler = [];
+  for (const [ad, kaynakGlb] of Object.entries(ustveri.kozmetik ?? {})) {
+    let m = kozKaynak[`${kaynakGlb}:${ad}`];
+    if (!m) {
+      const g = await yukle(kaynakGlb);
+      const k = g.scene.getObjectByName("kozmetik_" + ad);
+      if (!k) continue;
+      k.traverse((o) => { if (o.isMesh) cilala(o.material); });
+      m = k.clone();
+    }
+    m.castShadow = false;
+    const yuva = kok.getObjectByName(KOZ_YUVA[ad]); if (!yuva) continue;
+    yuva.add(m); m.visible = false; kozmetikler.push(m);
+  }
+  sahne.add(kok);
+  let mixer = null;
+  if (karakter && gltf.animations.length) mixer = new THREE.AnimationMixer(kok);
+  // Bağlama pozu = GLB'deki kemik yerel TRS'si. skeleton.pose() KULLANILMAZ: kök kemiğin ebeveyni ölçekli/dönük
+  // `Rig` düğümü (kemik değil) olduğundan pose() Hips'e dünya matrisini yerel diye yazar → rig 0,01 ölçek ve −90° X
+  // ikinci kez uygulanır (ilk denemede karakter yatık ve 100× büyük çıktı).
+  const kemikTRS = [];
+  kok.traverse((o) => { if (o.isBone) kemikTRS.push([o, o.position.clone(), o.quaternion.clone(), o.scale.clone()]); });
+  durum = { ustveri, kok, govde, mixer, klipler: gltf.animations, kozmetikler, cizimler: [], kemikTRS };
+  poz("bind");
+  const kutu = gorunurKutu(kok);
+  durum.kutu = kutu; durum.merkez = kutu.getCenter(new THREE.Vector3()); durum.R = kutu.getSize(new THREE.Vector3()).length() / 2;
+  durum.gorunumler = gorunumListesi(ustveri);
+  let ucgen = 0, malzeme = new Set();
+  kok.traverse((o) => { if (o.isMesh && o.visible !== false) { ucgen += o.geometry.index ? o.geometry.index.count / 3 : o.geometry.attributes.position.count / 3; malzeme.add(o.material.uuid); } });
+  const gl = render.getContext(), dbg = gl.getExtension("WEBGL_debug_renderer_info");
+  return { gorunumler: durum.gorunumler.map((g) => g.ad), ucgen, malzeme: malzeme.size, kutu: [kutu.min.toArray(), kutu.max.toArray()], gpu: dbg ? gl.getParameter(dbg.UNMASKED_RENDERER_WEBGL) : "?" };
+}
+
+/** bind: iskelet bağlama pozu (simetri/ortografik) · idle: Idle klibi 0,5 s (beauty shot, oyundaki duruş) */
+function poz(ad) {
+  if (!durum.govde?.skeleton) return;
+  if (ad === "idle" && durum.mixer) {
+    const k = durum.klipler.find((c) => c.name === "Idle");
+    durum.mixer.stopAllAction(); const a = durum.mixer.clipAction(k); a.reset().play(); durum.mixer.setTime(0.5);
+  } else { durum.mixer?.stopAllAction(); for (const [b, p, q, s] of durum.kemikTRS) { b.position.copy(p); b.quaternion.copy(q); b.scale.copy(s); } }
+  durum.kok.updateMatrixWorld(true);
+}
+
+function hedefNokta(h) {
+  if (Array.isArray(h)) return new THREE.Vector3(...h);
+  const k = durum.kok.getObjectByName(h.kemik);
+  const p = k ? k.getWorldPosition(new THREE.Vector3()) : durum.merkez.clone();
+  return p.add(new THREE.Vector3(...(h.ofset ?? [0, 0, 0])));
+}
+
+function gorunumListesi(u) {
+  const liste = [
+    { ad: "ön (+Z)", tip: "orto", yon: [0, 0, 1] }, { ad: "arka (−Z)", tip: "orto", yon: [0, 0, -1] },
+    { ad: "sol (−X)", tip: "orto", yon: [-1, 0, 0] }, { ad: "sağ (+X)", tip: "orto", yon: [1, 0, 0] },
+    { ad: "üst (+Y)", tip: "orto", yon: [0, 1, 0] }, { ad: "alt (−Y)", tip: "orto", yon: [0, -1, 0] },
+  ];
+  for (const y of u.yakin ?? []) liste.push({ ad: "yakın: " + y.ad, tip: "yakin", ...y });
+  liste.push({ ad: "beauty (perspektif, B+, gölgeli" + (durum.kozmetikler.length ? ", kozmetikli, Idle" : "") + ")", tip: "guzel", ...(u.guzel ?? {}) });
+  return liste;
+}
+
+function ciz(i) {
+  const g = durum.gorunumler[i], u = durum.ustveri;
+  const guzel = g.tip === "guzel";
+  poz(guzel ? "idle" : "bind");
+  for (const m of durum.kozmetikler) m.visible = guzel || !!g.kozmetik;
+  const kutu = gorunurKutu(durum.kok), merkez = kutu.getCenter(new THREE.Vector3()), R = Math.max(0.05, kutu.getSize(new THREE.Vector3()).length() / 2);
+  sahne.background = new THREE.Color(guzel ? 0xbfe8ff : 0xdfe7ec);
+  // zemin gölgesi ve y=0 çizgisi (havada parça görsel ipucu); alt görünümde ve zemin varlığında gizli
+  const altGorunum = g.tip === "orto" && g.yon[1] < 0;
+  zeminGolge.visible = !altGorunum && u.zeminGolgesi !== false;
+  zeminGolge.scale.setScalar(R * 6); zeminGolge.position.set(merkez.x, 0, merkez.z);
+  zeminCizgi.visible = g.tip === "orto" && !altGorunum && u.zeminCizgisi !== false;
+  const L = R * 1.6;
+  zeminCizgi.geometry.dispose();
+  zeminCizgi.geometry = new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(merkez.x - L, 0, merkez.z), new THREE.Vector3(merkez.x + L, 0, merkez.z), new THREE.Vector3(merkez.x, 0, merkez.z - L), new THREE.Vector3(merkez.x, 0, merkez.z + L)]);
+  // güneş: B+ yönü (yükseklik 42°, yan 40°), gölge kamerası varlığı kapsar
+  const el = THREE.MathUtils.degToRad(42), az = THREE.MathUtils.degToRad(40);
+  gunes.target.position.copy(merkez);
+  gunes.position.copy(merkez).add(new THREE.Vector3(Math.sin(az) * Math.cos(el), Math.sin(el), Math.cos(az) * Math.cos(el)).multiplyScalar(R * 4));
+  Object.assign(gunes.shadow.camera, { left: -R * 1.6, right: R * 1.6, top: R * 1.6, bottom: -R * 1.6, near: 0.01, far: R * 10 });
+  gunes.shadow.camera.updateProjectionMatrix(); render.shadowMap.needsUpdate = true;
+
+  let kam;
+  if (g.tip === "orto") {
+    const d = new THREE.Vector3(...g.yon);
+    kam = new THREE.OrthographicCamera(-1, 1, 1, -1, 0.001, R * 10);
+    kam.up.set(0, 1, 0); if (Math.abs(d.y) > 0.9) kam.up.set(0, 0, d.y > 0 ? -1 : 1);
+    kam.position.copy(merkez).addScaledVector(d, R * 4); kam.lookAt(merkez); kam.updateMatrixWorld(true);
+    let m = 0; const inv = kam.matrixWorldInverse;
+    for (const x of [kutu.min.x, kutu.max.x]) for (const y of [kutu.min.y, kutu.max.y]) for (const z of [kutu.min.z, kutu.max.z]) { const p = new THREE.Vector3(x, y, z).applyMatrix4(inv); m = Math.max(m, Math.abs(p.x), Math.abs(p.y)); }
+    m *= 1.08; Object.assign(kam, { left: -m, right: m, top: m, bottom: -m }); kam.updateProjectionMatrix();
+  } else if (g.tip === "yakin") {
+    kam = new THREE.PerspectiveCamera(g.fov ?? 30, 1, 0.005, R * 20);
+    const h = hedefNokta(g.hedef);
+    kam.position.copy(h).addScaledVector(new THREE.Vector3(...g.yon).normalize(), g.mesafe);
+    kam.lookAt(h);
+  } else {
+    const fov = g.fov ?? 32, yan = THREE.MathUtils.degToRad(g.az ?? 35), yuk = THREE.MathUtils.degToRad(g.el ?? 12);
+    kam = new THREE.PerspectiveCamera(fov, 1, 0.01, R * 30);
+    const h = g.hedef ? hedefNokta(g.hedef) : merkez;
+    const mesafe = g.mesafe ?? (R / Math.sin(THREE.MathUtils.degToRad(fov / 2))) * 1.02;
+    kam.position.copy(h).add(new THREE.Vector3(Math.sin(yan) * Math.cos(yuk), Math.sin(yuk), Math.cos(yan) * Math.cos(yuk)).multiplyScalar(mesafe));
+    kam.lookAt(h);
+  }
+  render.render(sahne, kam);
+  const kopya = document.createElement("canvas"); kopya.width = kopya.height = BOY;
+  kopya.getContext("2d").drawImage(render.domElement, 0, 0);
+  durum.cizimler[i] = kopya;
+  return render.domElement.toDataURL("image/png");
+}
+
+window.muayene = { hazirla, ciz, hazir: true };
