@@ -9,6 +9,7 @@
 // ============================================================
 import { useCallback, useEffect, useState } from "react";
 import { supabase } from "../../src/lib/supabase.js";
+import { tt } from "./dil.js";
 
 const OLAY = "bildim-coin-degisti";
 
@@ -58,6 +59,6 @@ export function useCoin() {
 /** Sunucu hata metnini kullanıcıya uygun hâle getirir. */
 export function coinHatasi(e) {
   const m = String(e?.message ?? e ?? "");
-  if (m.includes("Yetersiz coin")) return "Coin yetmiyor";
-  return m || "İşlem tamamlanamadı";
+  if (m.includes("Yetersiz coin")) return tt("Coin yetmiyor");
+  return m || tt("İşlem tamamlanamadı");
 }

@@ -41,6 +41,7 @@ import ChallengesPage from "../bildim/pages/ChallengesPage.jsx";
 import MatchPage from "../bildim/pages/MatchPage.jsx";
 import GroupMatchPage from "../bildim/pages/GroupMatchPage.jsx";
 import HizliMacPage from "../bildim/pages/HizliMacPage.jsx";
+import { tt } from "../bildim/lib/dil.js";
 const LeaderboardPage = lazy(() => import("../bildim/pages/LeaderboardPage.jsx"));
 const FriendsPage = lazy(() => import("../bildim/pages/FriendsPage.jsx"));
 const ProfilePage = lazy(() => import("../bildim/pages/ProfilePage.jsx"));
@@ -101,7 +102,7 @@ export default function App() {
   }
 
   if (loading && !bagimsizModul)
-    return <div className="yukleniyor">Yükleniyor…</div>;
+    return <div className="yukleniyor">{tt("Yükleniyor…")}</div>;
 
   if (!session && !bagimsizModul) return <Login />;
 

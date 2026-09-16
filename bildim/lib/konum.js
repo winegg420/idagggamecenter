@@ -1,3 +1,4 @@
+import { tt } from "./dil.js";
 // Konum (ülke/şehir) ve haftalık lig yardımcıları.
 // Ülke/şehir listeleri DB'deki `ulkeler` / `sehirler` tablolarından gelir
 // (sunucu doğrulaması için); burada yalnızca gösterim yardımcıları var.
@@ -41,7 +42,7 @@ export function sureMetni(ms) {
   const gun = Math.floor(sn / 86400);
   const saat = Math.floor((sn % 86400) / 3600);
   const dk = Math.floor((sn % 3600) / 60);
-  if (gun > 0) return `${gun} gün ${saat} saat`;
-  if (saat > 0) return `${saat} saat ${dk} dk`;
+  if (gun > 0) return tt("{0} gün {1} saat", { 0: gun, 1: saat });
+  if (saat > 0) return tt("{0} saat {1} dk", { 0: saat, 1: dk });
   return `${dk} dk`;
 }

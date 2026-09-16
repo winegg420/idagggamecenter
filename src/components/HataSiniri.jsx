@@ -1,5 +1,6 @@
 import { Component } from "react";
 import { hataBildir } from "../lib/hataIzleme.js";
+import { tt } from "../../bildim/lib/dil.js";
 
 /**
  * Uygulama genelinde hata sınırı.
@@ -35,14 +36,13 @@ export default class HataSiniri extends Component {
     return (
       <div className="hata-siniri">
         <div className="hata-siniri-kart">
-          <h1>Bir şeyler ters gitti</h1>
+          <h1>{tt("Bir şeyler ters gitti")}</h1>
           <p>
-            Beklenmedik bir hata oluştu. Sayfayı yenilemek çoğu zaman yeterli
-            oluyor; sorun sürerse ana sayfaya dönebilirsin.
+            {tt("Beklenmedik bir hata oluştu. Sayfayı yenilemek çoğu zaman yeterli oluyor; sorun sürerse ana sayfaya dönebilirsin.")}
           </p>
           <div className="hata-siniri-butonlar">
             <button className="btn" onClick={() => window.location.reload()}>
-              Sayfayı yenile
+              {tt("Sayfayı yenile")}
             </button>
             <button
               className="btn ikincil"
@@ -50,11 +50,11 @@ export default class HataSiniri extends Component {
                 window.location.href = "/";
               }}
             >
-              Ana sayfa
+              {tt("Ana sayfa")}
             </button>
           </div>
           <details>
-            <summary>Teknik ayrıntı</summary>
+            <summary>{tt("Teknik ayrıntı")}</summary>
             <code>{String(this.state.hata?.message ?? this.state.hata)}</code>
           </details>
         </div>

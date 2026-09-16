@@ -1,3 +1,4 @@
+import { tt } from "./dil.js";
 // Google H5 Games Ads (AdSense for Games — Ad Placement API) sarmalayıcısı.
 //
 // NEDEN AdMob DEĞİL: AdMob yalnızca yerel (native) uygulamalar içindir; web ve
@@ -15,8 +16,8 @@ export function h5AdsYapilandirildi() {
 
 /** Ad Placement API betiğini bir kez yükler. */
 export function h5AdsYukle() {
-  if (!ISTEMCI) return Promise.reject(new Error("Reklam yapılandırılmamış"));
-  if (typeof window === "undefined") return Promise.reject(new Error("Tarayıcı yok"));
+  if (!ISTEMCI) return Promise.reject(new Error(tt("Reklam yapılandırılmamış")));
+  if (typeof window === "undefined") return Promise.reject(new Error(tt("Tarayıcı yok")));
   if (window.adBreak) return Promise.resolve();
   if (yukleniyor) return yukleniyor;
 
@@ -39,7 +40,7 @@ export function h5AdsYukle() {
           window.adConfig || ((o) => window.adsbygoogle.push(o));
         coz();
       };
-      s.onerror = () => red(new Error("Reklam betiği yüklenemedi"));
+      s.onerror = () => red(new Error(tt("Reklam betiği yüklenemedi")));
       document.head.appendChild(s);
     } catch (e) {
       red(e);
@@ -58,7 +59,7 @@ export function h5AdsYukle() {
  * Reklam yüklenemez/gösterilemezse reddedilir; sahte ödül üretilmez.
  */
 export function odulluVideoGoster() {
-  if (!ISTEMCI) return Promise.reject(new Error("Reklam yapılandırılmamış"));
+  if (!ISTEMCI) return Promise.reject(new Error(tt("Reklam yapılandırılmamış")));
 
   return h5AdsYukle().then(
     () =>
@@ -71,7 +72,7 @@ export function odulluVideoGoster() {
           bitti = true;
           if (hata) red(hata);
           else if (odulVerildi) coz({ izlendi: true });
-          else red(new Error("Reklam tamamlanmadı"));
+          else red(new Error(tt("Reklam tamamlanmadı")));
         };
 
         try {
@@ -86,7 +87,7 @@ export function odulluVideoGoster() {
                 kapat(e);
               }
             },
-            adDismissed: () => kapat(new Error("Reklam kapatıldı")),
+            adDismissed: () => kapat(new Error(tt("Reklam kapatıldı"))),
             adViewed: () => {
               odulVerildi = true;
               kapat();
@@ -94,7 +95,7 @@ export function odulluVideoGoster() {
             adBreakDone: (yer) => {
               // beforeReward hiç çağrılmadıysa reklam yoktu
               if (!odulVerildi && yer?.breakStatus !== "viewed") {
-                kapat(new Error("Şu an gösterilecek reklam yok"));
+                kapat(new Error(tt("Şu an gösterilecek reklam yok")));
               }
             },
           });
@@ -103,7 +104,7 @@ export function odulluVideoGoster() {
         }
 
         // Güvenlik ağı: 60 sn içinde sonuç yoksa reddet
-        setTimeout(() => kapat(new Error("Reklam zaman aşımına uğradı")), 60000);
+        setTimeout(() => kapat(new Error(tt("Reklam zaman aşımına uğradı"))), 60000);
       })
   );
 }

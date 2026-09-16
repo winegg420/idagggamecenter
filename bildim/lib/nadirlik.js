@@ -12,9 +12,10 @@
 // kimlikler tek sorguda alınır, sonuç oturum boyunca önbellekte kalır.
 // ============================================================
 import { supabase } from "../../src/lib/supabase.js";
+import { tt } from "./dil.js";
 
 export const NADIRLIK_SIRA = { sirali: 0, ozel: 1, etkinlik: 2 };
-export const NADIRLIK_ETIKET = { sirali: "Sıradan", ozel: "Özel", etkinlik: "Etkinlik" };
+export const NADIRLIK_ETIKET = { sirali: tt("Sıradan"), ozel: tt("Özel"), etkinlik: tt("Etkinlik") };
 
 /** Görünüm kaydında eşya KODU tutan alanlar (renkler hariç). */
 const YUVALAR = ["sac", "gozluk", "kupe", "sapka", "ust", "alt", "ayakkabi", "efekt"];

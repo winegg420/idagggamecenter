@@ -1,20 +1,21 @@
+import { tt } from "./dil.js";
 // Kategori etiketleri (tek kaynak). İkonlar KategoriIkon.jsx içinde SVG.
 // 'genel' kategorisine dokunulmadı; "Genel Kültür" ayrı bir anahtardır
 // ve listede her zaman en üstte gelir (sunucudaki get_categories da öyle sıralar).
 
 export const KATEGORI_BILGI = {
-  genel_kultur: { ad: "Genel Kültür" },
-  genel: { ad: "Genel" },
-  bilim: { ad: "Bilim" },
-  tarih: { ad: "Tarih" },
-  cografya: { ad: "Coğrafya" },
-  edebiyat: { ad: "Edebiyat" },
-  spor: { ad: "Spor" },
-  sanat: { ad: "Sanat" },
-  sinema: { ad: "Sinema" },
-  muzik: { ad: "Müzik" },
-  teknoloji: { ad: "Teknoloji" },
-  karisik: { ad: "Karışık" },
+  genel_kultur: { ad: tt("Genel Kültür") },
+  genel: { ad: tt("Genel") },
+  bilim: { ad: tt("Bilim") },
+  tarih: { ad: tt("Tarih") },
+  cografya: { ad: tt("Coğrafya") },
+  edebiyat: { ad: tt("Edebiyat") },
+  spor: { ad: tt("Spor") },
+  sanat: { ad: tt("Sanat") },
+  sinema: { ad: tt("Sinema") },
+  muzik: { ad: tt("Müzik") },
+  teknoloji: { ad: tt("Teknoloji") },
+  karisik: { ad: tt("Karışık") },
 };
 
 export function kategoriAdi(anahtar) {

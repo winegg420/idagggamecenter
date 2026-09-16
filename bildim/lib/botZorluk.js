@@ -1,3 +1,4 @@
+import { tt } from "./dil.js";
 // Açık botun zorluk etiketi — isabetten türetilir. ChallengesPage'teki bot
 // listesi ve "Beklemeden bot ile oyna" seçimi (RakipAra) aynı eşikleri
 // kullansın diye tek yerde (Paket 12, madde 6).
@@ -9,11 +10,11 @@
 // ayrı gösterecek şekilde ayarlandı — önceden üçü aynı etikete düşüyordu.
 export const botZorluk = (isabet) =>
   isabet <= 0.30
-    ? { etiket: "Çok kolay", renk: "var(--bd-basari-metin)" }
+    ? { etiket: tt("Çok kolay"), renk: "var(--bd-basari-metin)" }
     : isabet <= 0.45
-      ? { etiket: "Kolay", renk: "var(--bd-basari-metin)" }
+      ? { etiket: tt("Kolay"), renk: "var(--bd-basari-metin)" }
       : isabet <= 0.60
-        ? { etiket: "Orta", renk: "var(--bd-odul-metin)" }
+        ? { etiket: tt("Orta"), renk: "var(--bd-odul-metin)" }
         : isabet <= 0.75
-          ? { etiket: "Zor", renk: "var(--bd-vurgu-metin)" }
-          : { etiket: "Çok zor", renk: "var(--bd-hata-metin)" };
+          ? { etiket: tt("Zor"), renk: "var(--bd-vurgu-metin)" }
+          : { etiket: tt("Çok zor"), renk: "var(--bd-hata-metin)" };

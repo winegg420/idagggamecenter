@@ -1,4 +1,5 @@
 import { supabase } from "../../src/lib/supabase.js";
+import { tt } from "./dil.js";
 
 const VAPID_PUBLIC_KEY =
   "BMO4oFOLsEG16O6hkaSSNg68MMBQ9mEMfQXYcBzRlIQ5qixPCr3BnpRCcrJJcwYnRd53Ap26GKdhtcHYQf0eT_0";
@@ -23,9 +24,9 @@ export async function pushDurumu() {
 }
 
 export async function bildirimleriAc() {
-  if (!pushDestekleniyor()) throw new Error("Bu tarayıcı bildirimleri desteklemiyor.");
+  if (!pushDestekleniyor()) throw new Error(tt("Bu tarayıcı bildirimleri desteklemiyor."));
   const izin = await Notification.requestPermission();
-  if (izin !== "granted") throw new Error("Bildirim izni verilmedi.");
+  if (izin !== "granted") throw new Error(tt("Bildirim izni verilmedi."));
   const kayit = await navigator.serviceWorker.ready;
   let abone = await kayit.pushManager.getSubscription();
   if (!abone) {

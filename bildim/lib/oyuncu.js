@@ -1,10 +1,11 @@
+import { tt } from "./dil.js";
 // Oyuncu görünen adı yardımcıları.
 //
 // Takma ad seçmemiş herkesin görünen adı sunucuda "Oyuncu" oluyor; aynı ekranda
 // birden fazla "Oyuncu" yan yana gelince kim kim belli olmuyordu. Bu durumda
 // kullanıcı kimliğinin son 4 hanesiyle ayırt edici bir etiket üretilir.
 
-const VARSAYILAN = "Oyuncu";
+const VARSAYILAN = tt("Oyuncu");
 
 /**
  * @param {{gorunen_ad?: string|null, id?: string|null}|null} profil

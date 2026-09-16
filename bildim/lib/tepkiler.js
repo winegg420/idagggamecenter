@@ -1,3 +1,4 @@
+import { tt } from "./dil.js";
 // Maç içi tepkiler — işletim sistemi emojisi yerine kendi SVG ikonlarımız.
 //
 // Neden: 👍😂😮😡🔥😎 her cihazda farklı çiziliyor (Android/iOS/Windows üç
@@ -9,12 +10,12 @@
 // Böylece eski istemcilerle ve kayıtlı mesajlarla uyum bozulmuyor.
 
 export const TEPKILER = [
-  { ad: "begeni",   deger: "👍", etiket: "Beğendim" },
-  { ad: "gulen",    deger: "😂", etiket: "Çok komik" },
-  { ad: "sasirmis", deger: "😮", etiket: "Şaşırdım" },
-  { ad: "kizgin",   deger: "😡", etiket: "Sinirlendim" },
-  { ad: "ates",     deger: "🔥", etiket: "Harika" },
-  { ad: "havali",   deger: "😎", etiket: "Havalı" },
+  { ad: "begeni",   deger: "👍", etiket: tt("Beğendim") },
+  { ad: "gulen",    deger: "😂", etiket: tt("Çok komik") },
+  { ad: "sasirmis", deger: "😮", etiket: tt("Şaşırdım") },
+  { ad: "kizgin",   deger: "😡", etiket: tt("Sinirlendim") },
+  { ad: "ates",     deger: "🔥", etiket: tt("Harika") },
+  { ad: "havali",   deger: "😎", etiket: tt("Havalı") },
 ];
 
 /** Mesaj bir tepki emojisiyse ikon adını döndürür, değilse null. */

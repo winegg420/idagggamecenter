@@ -1,3 +1,4 @@
+import { tt } from "./dil.js";
 // Google Play Billing — TWA içinde Digital Goods API + Payment Request API.
 //
 // NEDEN BU YOL: TWA (Trusted Web Activity) ile paketlenmiş web uygulamasında
@@ -22,7 +23,7 @@ export function desteklenirMi() {
 }
 
 async function servis() {
-  if (!desteklenirMi()) throw new Error("Digital Goods API bu ortamda yok");
+  if (!desteklenirMi()) throw new Error(tt("Digital Goods API bu ortamda yok"));
   return window.getDigitalGoodsService(PLAY_SERVICE);
 }
 
@@ -62,19 +63,19 @@ export async function fiyatlariAl(urunKimlikleri) {
  */
 export async function satinAl(urunId) {
   if (!desteklenirMi()) {
-    throw new Error("Satın alma yalnızca Android uygulamasında yapılabilir.");
+    throw new Error(tt("Satın alma yalnızca Android uygulamasında yapılabilir."));
   }
 
   const istek = new window.PaymentRequest(
     [{ supportedMethods: PLAY_SERVICE, data: { sku: urunId } }],
-    { total: { label: "Toplam", amount: { currency: "TRY", value: "0" } } }
+    { total: { label: tt("Toplam"), amount: { currency: "TRY", value: "0" } } }
   );
 
   const cevap = await istek.show();
   try {
     const jeton =
       cevap?.details?.purchaseToken ?? cevap?.details?.token ?? null;
-    if (!jeton) throw new Error("Satın alma jetonu alınamadı");
+    if (!jeton) throw new Error(tt("Satın alma jetonu alınamadı"));
     await cevap.complete("success");
     return { urun_id: urunId, purchase_token: jeton };
   } catch (e) {

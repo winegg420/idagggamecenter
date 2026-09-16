@@ -1,16 +1,17 @@
+import { tt } from "./dil.js";
 // Joker türleri ve arayüz bilgileri (tek kaynak).
 // Kurallar ve envanter SUNUCUDA; burası yalnız gösterim.
 
 export const JOKER_BILGI = {
   elli: {
     ad: "50:50",
-    aciklama: "İki yanlış şık silinir",
+    aciklama: tt("İki yanlış şık silinir"),
     ikon: "terazi",
     macIci: true,
   },
   sure: {
-    ad: "+10 sn",
-    aciklama: "Soruya 10 saniye ekler",
+    ad: tt("+10 sn"),
+    aciklama: tt("Soruya 10 saniye ekler"),
     ikon: "saat",
     macIci: true,
   },
@@ -18,36 +19,36 @@ export const JOKER_BILGI = {
   // rastgele bir şıkka basmaktan kötüydü, joker işlevsizdi. Artık soru
   // atlanmaz; yerine yeni bir soru gelir ve süre baştan başlar.
   soru_degistir: {
-    ad: "Soru Değiştir",
-    aciklama: "Soruyu değiştirir, süre baştan başlar",
+    ad: tt("Soru Değiştir"),
+    aciklama: tt("Soruyu değiştirir, süre baştan başlar"),
     ikon: "ileriAtla",
     macIci: true,
   },
   // ---- Düello saldırı jokerleri (Paket 14, 4.5) — yalnız Saldırı Hazırlığı'nda ----
   zaman_baskisi: {
-    ad: "Zaman Baskısı",
-    aciklama: "Rakibin cevap süresi 15 sn'den 10 sn'ye düşer",
+    ad: tt("Zaman Baskısı"),
+    aciklama: tt("Rakibin cevap süresi 15 sn'den 10 sn'ye düşer"),
     ikon: "hizli",
     macIci: false,
     saldiri: true,
   },
   saldiri_degistir: {
-    ad: "Soru Değiştir (saldırı)",
-    aciklama: "Aynı kategoriden başka bir soru gönderir",
+    ad: tt("Soru Değiştir (saldırı)"),
+    aciklama: tt("Aynı kategoriden başka bir soru gönderir"),
     ikon: "yenile",
     macIci: false,
     saldiri: true,
   },
   savunma_kilidi: {
-    ad: "Savunma Kilidi",
-    aciklama: "Rakip bu soruda savunma jokeri kullanamaz",
+    ad: tt("Savunma Kilidi"),
+    aciklama: tt("Rakip bu soruda savunma jokeri kullanamaz"),
     ikon: "kilit",
     macIci: false,
     saldiri: true,
   },
   seri_koruma: {
-    ad: "Seri Koruma",
-    aciklama: "Kaçırdığın bir günü telafi eder",
+    ad: tt("Seri Koruma"),
+    aciklama: tt("Kaçırdığın bir günü telafi eder"),
     ikon: "kalkan",
     macIci: false,
   },

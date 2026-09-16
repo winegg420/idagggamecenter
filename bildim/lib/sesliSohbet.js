@@ -1,3 +1,4 @@
+import { tt } from "./dil.js";
 // ============================================================
 // SESLİ SOHBET — WebRTC motoru (yalnız ses, görüntü yok)
 //
@@ -56,15 +57,15 @@ export async function mikrofonAc() {
 export function mikrofonHatasi(e) {
   const ad = String(e?.name ?? "");
   if (ad === "NotAllowedError" || ad === "SecurityError") {
-    return "Mikrofon izni verilmedi. Tarayıcı adres çubuğundaki kilit simgesinden izin verebilirsin.";
+    return tt("Mikrofon izni verilmedi. Tarayıcı adres çubuğundaki kilit simgesinden izin verebilirsin.");
   }
   if (ad === "NotFoundError" || ad === "OverconstrainedError") {
-    return "Mikrofon bulunamadı. Cihazına bir mikrofon bağlı mı?";
+    return tt("Mikrofon bulunamadı. Cihazına bir mikrofon bağlı mı?");
   }
   if (ad === "NotReadableError") {
-    return "Mikrofona ulaşılamadı — başka bir uygulama kullanıyor olabilir.";
+    return tt("Mikrofona ulaşılamadı — başka bir uygulama kullanıyor olabilir.");
   }
-  return "Mikrofon açılamadı. Tekrar dene.";
+  return tt("Mikrofon açılamadı. Tekrar dene.");
 }
 
 /**
