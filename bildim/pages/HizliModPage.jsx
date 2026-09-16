@@ -40,6 +40,13 @@ export default function HizliModPage() {
   const TOPLAM_SN = sureler.toplam;
   const SORU_SN = sureler.soru;
   const soruSnRef = useRef(VARSAYILAN_SORU_SN);
+  // Toplam süre duvar saatine göre akar: { kalan: sunucunun son bildirdiği sn, an: o anın Date.now() }.
+  // (Eskiden her 100 ms tikte 0.1 düşülüyordu; tarayıcı zamanlayıcıyı kısınca sayaç geride kalıyordu.)
+  const toplamRef = useRef({ kalan: VARSAYILAN_TOPLAM_SN, an: Date.now() });
+  const toplamAyarla = (kalan) => {
+    toplamRef.current = { kalan, an: Date.now() };
+    setKalanToplam(kalan);
+  };
   const [kalanToplam, setKalanToplam] = useState(VARSAYILAN_TOPLAM_SN);
   const [kalanSoru, setKalanSoru] = useState(VARSAYILAN_SORU_SN);
   const [sonuc, setSonuc] = useState(null);
@@ -90,7 +97,7 @@ export default function HizliModPage() {
       setSecim(null);
       setSonucSoru(null);
       setKalanSoru(soruSnRef.current);
-      setKalanToplam(s.kalan_toplam_sn ?? 0);
+      toplamAyarla(s.kalan_toplam_sn ?? 0);
       sonTikRef.current = null;
       soruBaslangicRef.current = Date.now();
     } catch (e) {
@@ -120,7 +127,7 @@ export default function HizliModPage() {
       setSureler({ toplam, soru: soruSn });
       setOturum(o);
       setSkor(0);
-      setKalanToplam(toplam);
+      toplamAyarla(toplam);
       setAsama("oyun");
       await soruGetir(o.oturum_id);
     } catch (e) {
@@ -180,7 +187,7 @@ export default function HizliModPage() {
       const s = Array.isArray(data) ? data[0] : data;
       setSonucSoru(s);
       setSkor(s?.skor ?? skor);
-      setKalanToplam(s?.kalan_toplam_sn ?? 0);
+      toplamAyarla(s?.kalan_toplam_sn ?? 0);
       if (s?.dogru) {
         sesDogru();
         titret(10);
@@ -210,7 +217,8 @@ export default function HizliModPage() {
       const gecen = (Date.now() - soruBaslangicRef.current) / 1000;
       const ks = Math.max(0, soruSnRef.current - gecen);
       setKalanSoru(ks);
-      setKalanToplam((k) => Math.max(0, k - 0.1));
+      const t = toplamRef.current;
+      setKalanToplam(Math.max(0, t.kalan - (Date.now() - t.an) / 1000));
       // Son 2 saniyede saniyede bir tik
       if (ks > 0 && ks <= 2) {
         const sn = Math.ceil(ks);
