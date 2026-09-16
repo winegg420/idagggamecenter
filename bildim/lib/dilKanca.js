@@ -9,7 +9,7 @@
 //   • profiles.dil — giriş yapmışsa, cihazdan bağımsız olsun diye
 // ============================================================
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { supabase } from "../../src/lib/supabase.js";
 import { useAuth } from "../../src/context/AuthContext.jsx";
 import { DILLER, dilCoz, dilKaydet, tYap } from "./dil.js";
@@ -51,5 +51,7 @@ export function useDil() {
     [user?.id, refreshProfile]
   );
 
-  return { dil, ceviri: tYap(dil), dilDegistir };
+  // Dil değişmedikçe aynı fonksiyon: efekt bağımlılığında kullanılabilsin.
+  const ceviri = useMemo(() => tYap(dil), [dil]);
+  return { dil, ceviri, dilDegistir };
 }

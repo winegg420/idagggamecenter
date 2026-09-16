@@ -6127,3 +6127,149 @@ body.bd-ekle-acik .app { padding-bottom: calc(300px + env(safe-area-inset-bottom
   background: var(--bd-kart-alt); color: var(--bd-metin);
 }
 .bd-kazanc-satiri { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-top: 6px; }
+
+/* ============================================================
+   DÜELLO (Paket 14, aşama 4)
+   iOS: position:fixed yok; son can koyulaşması kabın ::before katmanı
+   (absolute). Transform içeren animasyonlar yalnız küçük öğelerde.
+   ============================================================ */
+.bd-mod-duello { grid-column: 1 / -1; }
+.bd-duello, .bd-duello-giris { position: relative; padding-bottom: 16px; }
+.bd-duello > * { position: relative; z-index: 1; }
+.bd-duello::before {
+  content: ""; position: absolute; inset: -10px -10px 0; border-radius: 18px; z-index: 0;
+  background: rgba(22, 30, 52, 0); pointer-events: none; transition: background .6s ease;
+}
+.bd-duello.son-can::before { background: rgba(22, 30, 52, .16); }
+
+.bd-duello-tanit { display: flex; gap: 14px; align-items: flex-start; }
+.bd-duello-tanit-metin b { font-family: var(--bd-f-baslik, "Baloo 2", system-ui, sans-serif); font-size: 20px; }
+.bd-duello-tanit-metin p { margin: 4px 0 6px; font-size: 14px; }
+.bd-duello-tanit-metin ul { margin: 0; padding-left: 18px; font-size: 13.5px; font-weight: 700; color: var(--bd-metin-2); }
+
+.bd-duello-ust { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); gap: 8px; align-items: center; margin-bottom: 8px; }
+.bd-duello-oyuncu {
+  display: flex; align-items: center; gap: 8px; min-width: 0; padding: 8px; border-radius: 14px;
+  background: var(--bd-yuzey, #fff); box-shadow: 0 4px 0 var(--bd-kart-alt); border: 2px solid transparent;
+}
+.bd-duello-oyuncu.sag { flex-direction: row-reverse; text-align: right; }
+.bd-duello-oyuncu.saldiriyor { border-color: var(--bd-vurgu); }
+.bd-duello-oyuncu-bilgi { min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.bd-duello-oyuncu.sag .bd-duello-oyuncu-bilgi { align-items: flex-end; }
+.bd-duello-oyuncu-ad { font-weight: 900; font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%; }
+.bd-duello-tur { display: flex; flex-direction: column; align-items: center; font-size: 11px; font-weight: 800; color: var(--bd-metin-2); }
+.bd-duello-tur b { font-family: var(--bd-f-baslik, "Baloo 2", system-ui, sans-serif); font-size: 20px; color: var(--bd-metin); line-height: 1; }
+.bd-duello-tur small { color: var(--bd-metin-2); font-weight: 800; }
+
+.bd-unvan {
+  display: inline-block; padding: 1px 8px; border-radius: 999px; font-size: 12px; font-weight: 900;
+  background: var(--bd-odul); color: #3A2A00;
+}
+.bd-unvan.kucuk { font-size: 10.5px; padding: 0 6px; }
+
+.bd-duello-kalpler { display: inline-flex; gap: 2px; }
+.bd-duello-kalpler svg.dolu { fill: var(--bd-hata); }
+.bd-duello-kalpler svg.bos { fill: none; stroke: #B7C4D1; stroke-width: 2; }
+.bd-duello-kalpler.son svg.dolu { animation: bd-kalp-yanip 0.9s ease-in-out infinite; }
+@keyframes bd-kalp-yanip { 0%, 100% { opacity: 1; } 50% { opacity: .25; } }
+
+.bd-duello-ezeli {
+  text-align: center; font-weight: 900; font-size: 13.5px; margin: 4px 0 8px;
+  color: var(--bd-metin); background: var(--bd-kart-alt); border-radius: 999px; padding: 4px 12px;
+}
+.bd-duello-sahne { animation: bd-duello-giris .25s ease-out; }
+@keyframes bd-duello-giris { from { opacity: 0; } to { opacity: 1; } }
+
+.bd-duello-baslik-satir { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.bd-duello-baslik-satir h2 { font-size: 18px; margin: 6px 0; }
+.bd-duello-sayac {
+  flex: none; min-width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center;
+  font-family: var(--bd-f-baslik, "Baloo 2", system-ui, sans-serif); font-weight: 800; font-size: 20px;
+  background: var(--bd-yuzey, #fff); box-shadow: 0 3px 0 var(--bd-kart-alt); color: var(--bd-metin);
+  transition: min-width .3s ease, height .3s ease, font-size .3s ease;
+}
+.bd-duello-sayac.kritik { color: #fff; background: var(--bd-hata-2); box-shadow: 0 3px 0 #7A1717; }
+.bd-duello-sayac.buyuk { min-width: 60px; height: 60px; font-size: 28px; }
+
+.bd-duello-kat-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin-top: 8px; }
+.bd-duello-kat {
+  position: relative; display: grid; grid-template-columns: auto minmax(0, 1fr) auto; grid-template-rows: auto auto;
+  column-gap: 8px; align-items: center; text-align: left; min-height: 60px; padding: 8px 10px; border-radius: 14px;
+  background: var(--bd-yuzey, #fff); color: var(--bd-metin); border: 2px solid var(--bd-kenar, #D6E6F2);
+  box-shadow: 0 4px 0 var(--bd-kenar, #D6E6F2); cursor: pointer; font-family: var(--bd-f-govde);
+  transition: transform .08s ease, box-shadow .08s ease;
+}
+.bd-duello-kat > :first-child { grid-row: 1 / 3; }
+.bd-duello-kat:active:not(:disabled) { transform: translateY(4px); box-shadow: none; }
+.bd-duello-kat:disabled { opacity: .45; cursor: default; }
+.bd-duello-kat.riskli { border-color: var(--bd-hata); box-shadow: 0 4px 0 var(--bd-hata-2); }
+.bd-duello-kat-ad { font-weight: 900; font-size: 14px; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.bd-duello-kat-yuzde { grid-column: 2; font-size: 13px; font-weight: 800; color: var(--bd-metin-2); }
+.bd-duello-kat-sayac { grid-column: 3; grid-row: 1; font-size: 12px; font-weight: 900; color: var(--bd-metin-2); }
+.bd-duello-riskli {
+  grid-column: 3; grid-row: 2; font-size: 11px; font-weight: 900; color: #fff; background: var(--bd-hata-2);
+  border-radius: 999px; padding: 0 6px; text-transform: uppercase;
+}
+
+.bd-duello-bekle { text-align: center; padding: 16px 8px; display: flex; flex-direction: column; align-items: center; gap: 8px; }
+.bd-duello-bekle h2 { font-size: 18px; margin: 0; }
+.bd-duello-bant { margin: 6px 0; padding: 8px 12px; border-radius: 12px; font-weight: 900; font-size: 13.5px; }
+.bd-duello-bant.baski { background: #FFE3CC; color: #7A3300; }
+.bd-duello-bant.kilit { background: #FFD9D9; color: #7A1717; }
+.bd-duello-bant.firsat { background: #D8F5E4; color: #0E5A32; }
+.bd-secenek-bos { visibility: hidden; }
+.bd-secenek-isaret { margin-left: auto; flex: none; }
+
+.bd-duello-hamle { text-align: center; font-weight: 900; font-size: 15px; padding: 8px 12px; border-radius: 12px; margin: 8px 0; background: var(--bd-kart-alt); color: var(--bd-metin); }
+.bd-duello-hamle.buyuk { font-size: 18px; }
+.bd-duello-hamle.iyi { background: #D8F5E4; color: #0E5A32; }
+.bd-duello-hamle.kotu { background: #FFD9D9; color: #7A1717; }
+
+/* Joker alanı: yeri sabit, içerik faza göre döner */
+.bd-duello-jokerler { margin-top: 12px; padding: 10px; border-radius: 16px; background: var(--bd-yuzey, #fff); box-shadow: 0 4px 0 var(--bd-kart-alt); animation: bd-joker-don .35s ease-out; }
+@keyframes bd-joker-don { from { transform: rotateX(80deg); opacity: 0; } to { transform: rotateX(0); opacity: 1; } }
+.bd-duello-joker-baslik { font-size: 12px; font-weight: 900; color: var(--bd-metin-2); text-transform: uppercase; margin-bottom: 6px; display: flex; gap: 6px; align-items: center; }
+.bd-duello-jokerler.saldiri .bd-duello-joker-baslik { color: var(--bd-vurgu-2); }
+.bd-duello-joker-sira { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.bd-duello-joker {
+  display: flex; flex-direction: column; align-items: center; gap: 2px; min-height: 64px; padding: 6px 4px;
+  border-radius: 12px; border: 2px solid var(--bd-kenar, #D6E6F2); background: var(--bd-yuzey, #fff); color: var(--bd-metin);
+  box-shadow: 0 4px 0 var(--bd-kenar, #D6E6F2); cursor: pointer; font-family: var(--bd-f-govde);
+  transition: transform .08s ease, box-shadow .08s ease;
+}
+.bd-duello-jokerler.saldiri .bd-duello-joker:not(:disabled) { border-color: var(--bd-vurgu); box-shadow: 0 4px 0 var(--bd-vurgu-2); }
+.bd-duello-joker:active:not(:disabled) { transform: translateY(4px); box-shadow: none; }
+.bd-duello-joker:disabled { opacity: .5; cursor: default; }
+.bd-duello-joker.kullanildi { opacity: .35; }
+.bd-duello-joker-ad { font-size: 12px; font-weight: 900; text-align: center; line-height: 1.15; }
+.bd-duello-joker-adet { font-size: 11px; font-weight: 800; color: var(--bd-metin-2); }
+
+.bd-duello-terk { display: block; margin: 16px auto 0; background: none; border: 0; color: var(--bd-metin-2); font-weight: 800; text-decoration: underline; cursor: pointer; min-height: 44px; }
+.bd-duello-terk-onay { margin-top: 12px; padding: 10px; border-radius: 12px; background: var(--bd-yuzey, #fff); text-align: center; font-weight: 800; }
+.bd-duello-sonuc-canlar { display: flex; align-items: center; justify-content: center; gap: 6px; flex-wrap: wrap; font-weight: 900; margin: 8px 0; }
+.bd-duello-sonuc-canlar .vs { color: var(--bd-metin-2); }
+.bd-duello-rovans { margin-top: 12px; display: flex; flex-direction: column; align-items: center; gap: 8px; }
+.bd-duello-rovans-soru { font-weight: 900; }
+.bd-duello-yukleniyor { display: grid; place-items: center; min-height: 40dvh; }
+
+/* Kategori profili (oyuncu kartı / profil) */
+.bd-kprofil { margin: 10px 0; text-align: left; }
+.bd-kprofil-yukleniyor { min-height: 60px; }
+.bd-kprofil-ust { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 6px; }
+.bd-kprofil-mac { font-size: 13px; font-weight: 800; color: var(--bd-metin-2); }
+.bd-kprofil-bos { font-size: 13.5px; font-weight: 800; color: var(--bd-metin-2); text-align: center; padding: 6px; }
+.bd-kprofil-liste { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
+.bd-kprofil-satir { display: grid; grid-template-columns: auto minmax(0, 1fr) minmax(0, 1fr) auto; gap: 8px; align-items: center; font-size: 13px; font-weight: 800; }
+.bd-kprofil-ad { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.bd-kprofil-bar { height: 8px; border-radius: 4px; background: var(--bd-kart-alt); overflow: hidden; }
+.bd-kprofil-bar .dolgu { display: block; height: 100%; background: var(--bd-basari); }
+.bd-kprofil-yuzde { min-width: 36px; text-align: right; }
+.bd-kprofil-veri-yok { grid-column: 3 / 5; text-align: right; color: var(--bd-metin-2); font-size: 12px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .bd-duello::before, .bd-duello-sayac, .bd-duello-kat, .bd-duello-joker { transition: none; }
+  .bd-duello-kalpler.son svg.dolu, .bd-duello-sahne, .bd-duello-jokerler { animation: none; }
+}
+@media (prefers-reduced-transparency: reduce) {
+  .bd-duello.son-can::before { background: rgba(22, 30, 52, .22); }
+}

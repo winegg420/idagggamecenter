@@ -20,7 +20,8 @@ import { ayarlar } from "../lib/ayarlar.js";
 // Bütün rakamlar sunucudaki oyun_ayarlari tablosundan gelir; aşağıdakiler
 // yalnız tablo okunamazsa kullanılan varsayılanlardır (bkz. lib/ayarlar.js).
 const ODUL_COIN_VARSAYILAN = 25;
-const TEK_JOKER_VARSAYILAN = { elli: 40, sure: 60, soru_degistir: 80 };
+const TEK_JOKER_VARSAYILAN = { elli: 40, sure: 60, soru_degistir: 80,
+  zaman_baskisi: 60, saldiri_degistir: 60, savunma_kilidi: 80 };
 
 const SEKMELER = [
   { kod: "kiyafet", ad: "Görünüm", ikon: "tisort" },
@@ -52,6 +53,10 @@ export default function JokerDukkani() {
         elli: Number(o.coin_joker_elli ?? TEK_JOKER_VARSAYILAN.elli),
         sure: Number(o.coin_joker_sure ?? TEK_JOKER_VARSAYILAN.sure),
         soru_degistir: Number(o.coin_joker_soru_degistir ?? TEK_JOKER_VARSAYILAN.soru_degistir),
+        // Düello saldırı jokerleri (Paket 14)
+        zaman_baskisi: Number(o.coin_joker_zaman_baskisi ?? TEK_JOKER_VARSAYILAN.zaman_baskisi),
+        saldiri_degistir: Number(o.coin_joker_saldiri_degistir ?? TEK_JOKER_VARSAYILAN.saldiri_degistir),
+        savunma_kilidi: Number(o.coin_joker_savunma_kilidi ?? TEK_JOKER_VARSAYILAN.savunma_kilidi),
       });
     });
     return () => { aktif = false; };
@@ -265,7 +270,7 @@ export default function JokerDukkani() {
           </span>
         </div>
         <div className="bd-paket-liste">
-          {["elli", "sure", "soru_degistir"].map((tur) => (
+          {["elli", "sure", "soru_degistir", "zaman_baskisi", "saldiri_degistir", "savunma_kilidi"].map((tur) => (
             <div key={tur} className="bd-paket">
               <div className="bd-paket-bilgi">
                 <div className="bd-paket-ad">

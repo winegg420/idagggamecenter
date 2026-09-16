@@ -15,6 +15,7 @@ import ProfilAyarlari from "../components/ProfilAyarlari.jsx";
 import TemaDugmesi from "../components/TemaDugmesi.jsx";
 import { KOYU_TEMA_KAPALI } from "../lib/tema.js";
 import UstalikIzgarasi from "../components/UstalikIzgarasi.jsx";
+import KategoriProfili from "../components/KategoriProfili.jsx";
 import { bayrak, konumKilidiKalan, sureMetni } from "../lib/konum.js";
 import { rutbeBul, sonrakiRutbe } from "../lib/ranks.js";
 import { y } from "../lib/yol.js";
@@ -157,6 +158,8 @@ export default function ProfilePage() {
       </div>
 
       {sekme === "istatistik" && (<>
+      {/* Kategori başarısı + unvan (Paket 14, 4.8/4.10) */}
+      <div className="kart"><KategoriProfili userId={user?.id} /></div>
       <UstalikIzgarasi />
 
       {/* ---------- Hatalarım bankası ---------- */}

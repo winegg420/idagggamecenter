@@ -31,6 +31,7 @@ const ProfilePage = lazy(() => import("../bildim/pages/ProfilePage.jsx"));
 const DavetPage = lazy(() => import("../bildim/pages/DavetPage.jsx"));
 const JokerDukkani = lazy(() => import("../bildim/pages/JokerDukkani.jsx"));
 const HizliModPage = lazy(() => import("../bildim/pages/HizliModPage.jsx"));
+const DuelloPage = lazy(() => import("../bildim/pages/DuelloPage.jsx"));
 const CalismaPage = lazy(() => import("../bildim/pages/CalismaPage.jsx"));
 // Meydan (3B): three.js yalniz bu rotaya girilince iner (ayri chunk)
 const HaritaSayfasi = lazy(() => import("../bildim/harita/HaritaSayfasi.jsx"));
@@ -112,6 +113,8 @@ export default function BildimApp() {
           <Route path="davet/:kod" element={<DavetPage />} />
           <Route path="joker" element={<JokerDukkani />} />
           <Route path="hizli-mod" element={<HizliModPage />} />
+          <Route path="duello" element={<DuelloPage />} />
+          <Route path="duello/:id" element={<DuelloPage />} />
           <Route path="calisma" element={<CalismaPage />} />
           <Route path="harita" element={<HaritaSayfasi />} />
           <Route path="gorunum" element={<GardropaGit />} />

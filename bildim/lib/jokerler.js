@@ -23,6 +23,28 @@ export const JOKER_BILGI = {
     ikon: "ileriAtla",
     macIci: true,
   },
+  // ---- Düello saldırı jokerleri (Paket 14, 4.5) — yalnız Saldırı Hazırlığı'nda ----
+  zaman_baskisi: {
+    ad: "Zaman Baskısı",
+    aciklama: "Rakibin cevap süresi 15 sn'den 10 sn'ye düşer",
+    ikon: "hizli",
+    macIci: false,
+    saldiri: true,
+  },
+  saldiri_degistir: {
+    ad: "Soru Değiştir (saldırı)",
+    aciklama: "Aynı kategoriden başka bir soru gönderir",
+    ikon: "yenile",
+    macIci: false,
+    saldiri: true,
+  },
+  savunma_kilidi: {
+    ad: "Savunma Kilidi",
+    aciklama: "Rakip bu soruda savunma jokeri kullanamaz",
+    ikon: "kilit",
+    macIci: false,
+    saldiri: true,
+  },
   seri_koruma: {
     ad: "Seri Koruma",
     aciklama: "Kaçırdığın bir günü telafi eder",
@@ -32,6 +54,7 @@ export const JOKER_BILGI = {
 };
 
 export const MAC_ICI_JOKERLER = ["elli", "sure", "soru_degistir"];
+export const SALDIRI_JOKERLERI = ["zaman_baskisi", "saldiri_degistir", "savunma_kilidi"];
 
 export function jokerAdi(tur) {
   return JOKER_BILGI[tur]?.ad ?? tur;
@@ -44,7 +67,8 @@ export function jokerIkon(tur) {
 
 /** RPC'den gelen envanter dizisini { tur: adet } nesnesine çevirir. */
 export function envanterNesne(satirlar) {
-  const cikti = { elli: 0, sure: 0, soru_degistir: 0, seri_koruma: 0 };
+  const cikti = { elli: 0, sure: 0, soru_degistir: 0, seri_koruma: 0,
+    zaman_baskisi: 0, saldiri_degistir: 0, savunma_kilidi: 0 };
   for (const s of satirlar ?? []) cikti[s.tur] = s.adet ?? 0;
   return cikti;
 }

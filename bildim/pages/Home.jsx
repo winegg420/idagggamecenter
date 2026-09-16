@@ -664,6 +664,12 @@ export default function Home() {
         <div className="bd-mod-grid">
           {/* Kompakt 2×2 ızgara (referans tasarım): bd-mod-genis bu ızgaradan
               çıktı, açıklama satırı gizli — bilgi title'da duruyor. */}
+          {/* DÜELLO (Paket 14): oyunun ana taktik modu, ızgarada ilk sırada */}
+          <button className="bd-mod tema-lig bd-mod-duello" title={ceviri("Taktik Maçı")} onClick={() => navigate(y("/duello"))}>
+            <span className="bd-mod-ikon"><Ikon ad="kilic" boyut={28} /></span>
+            <span className="bd-mod-ad">{ceviri("Düello")}</span>
+            <span className="bd-mod-not">{ceviri("Taktik Maçı")}</span>
+          </button>
           <button className="bd-mod tema-grup" title="Arkadaşına davet gönder · tekli ya da grup" onClick={() => navigate(y("/meydan"))}>
             <span className="bd-mod-ikon"><Ikon ad="kisiler" boyut={26} /></span>
             <span className="bd-mod-ad">Meydan Oku</span>

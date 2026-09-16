@@ -17,6 +17,7 @@ import Ikon from "./Ikon.jsx";
 import RankBadge from "./RankBadge.jsx";
 import { hataMesaji } from "../lib/hata.js";
 import { bayrak } from "../lib/konum.js";
+import KategoriProfili from "./KategoriProfili.jsx";
 
 const ALANLAR =
   // `is_bot` BİLEREK YOK: gizli botlar gerçek oyuncudan ayırt edilmemeli
@@ -90,6 +91,9 @@ export default function OyuncuKarti({ userId, onIzleme = null, onKapat, onMeydan
           <div><b>{Number(p?.sampiyonluk ?? 0).toLocaleString("tr-TR")}</b><span>kupa</span></div>
           <div><b>{Number(p?.seri_gun ?? 0).toLocaleString("tr-TR")}</b><span>gün seri</span></div>
         </div>
+
+        {/* Kaç maç yaptı, kaç maçın istatistiği var, kategori yüzdeleri (Paket 14) */}
+        <KategoriProfili userId={userId} kucuk />
 
         {onMeydanOku && (
           <button type="button" className="btn" onClick={() => onMeydanOku(userId)}>
