@@ -21,7 +21,7 @@ import { GARDROP_YOLU } from "../pages/GardropaGit.jsx";
 // `.bd-gardrop-*` stilleri burada; dükkân sayfası gorunum.css'i kendiliğinden
 // yüklemiyor, bu yüzden bileşen kendi stilini getiriyor.
 import "../pages/gorunum.css";
-import { tt } from "../lib/dil.js";
+import { tt, ttSunucu } from "../lib/dil.js";
 
 const YUVA_ADLARI = {
   sac: tt("Saç"), kiyafet: tt("Üst giyim"), alt: tt("Alt giyim"), ayakkabi: tt("Ayakkabı"),
@@ -168,7 +168,7 @@ export default function GardropVitrini() {
                     <span className="bd-gardrop-satir-sol">
                       <EsyaOnizleme gorunum={veri.gorunum} parca={p} />
                       <span className="bd-gardrop-satir-ad">
-                        {p.ad}
+                        {ttSunucu(p.ad)}
                         <small>{YUVA_ADLARI[p.yuva] ?? p.yuva}</small>
                       </span>
                     </span>

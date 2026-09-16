@@ -26,7 +26,7 @@ import { coinTazele, coinHatasi } from "../lib/coin.js";
 import { nadirligiUnut } from "../lib/nadirlik.js";
 import { y } from "../lib/yol.js";
 import "./gorunum.css";
-import { tt } from "../lib/dil.js";
+import { tt, ttSunucu } from "../lib/dil.js";
 
 const YUVALAR = [
   { kod: "sac", ad: tt("Saç"), ikon: "kisi", renkAlani: "sac_renk" },
@@ -350,7 +350,7 @@ export default function GorunumPage() {
                 </span>
               )}
 
-              <span className="bd-esya-ad">{e.ad}</span>
+              <span className="bd-esya-ad">{ttSunucu(e.ad)}</span>
 
               <span className={"bd-esya-fiyat" + (sahipMi ? " bd-esya-durum" : "")}>
                 {sahipMi

@@ -27,7 +27,7 @@ import { y } from "../lib/yol.js";
 import { COSMETIC_COLORS, COSMETIC_LABELS, getCharacter } from "./karakterler.js";
 import { YUVALAR, RENKLI_YUVALAR, avatarUri, kozmetikCoz, karakterId, renkAlani } from "./gorunum.js";
 import "./gorunum.css";
-import { tt } from "../lib/dil.js";
+import { tt, ttSunucu } from "../lib/dil.js";
 
 /** Nadirlik → çerçeve sınıfı (AvatarCerceve ile aynı aile). */
 const NADIRLIK_SINIF = { sirali: "n-sirali", ozel: "n-ozel", etkinlik: "n-etkinlik" };
@@ -196,10 +196,10 @@ export default function KarakterPage() {
               aria-selected={aktif}
               className={"bd-kar-kart " + (aktif ? "aktif " : "") + (bende ? "" : "kilitli ") + (NADIRLIK_SINIF[k.nadirlik] ?? "")}
               onClick={() => karakterSec(k)}
-              title={k.ad}
+              title={ttSunucu(k.ad)}
             >
               <img src={avatarUri({ karakter: k.id }, "idle")} alt="" loading="lazy" />
-              <span className="bd-kar-ad">{k.ad}</span>
+              <span className="bd-kar-ad">{ttSunucu(k.ad)}</span>
               {!bende && (
                 <span className="bd-kar-fiyat">
                   <Ikon ad="coin" boyut={12} /> {Number(k.coin_fiyat).toLocaleString("tr-TR")}
@@ -255,7 +255,7 @@ export default function KarakterPage() {
                         type="button"
                         className={"bd-parca " + (simdiki === p.anahtar ? "aktif " : "") + (bende ? "" : "kilitli ") + (NADIRLIK_SINIF[p.nadirlik] ?? "")}
                         onClick={() => parcaSec(yuva, p.anahtar)}
-                        title={p.ad}
+                        title={ttSunucu(p.ad)}
                       >
                         <img
                           src={avatarUri(
@@ -265,7 +265,7 @@ export default function KarakterPage() {
                           alt=""
                           loading="lazy"
                         />
-                        <span className="bd-parca-ad">{p.ad}</span>
+                        <span className="bd-parca-ad">{ttSunucu(p.ad)}</span>
                         {!bende && (
                           <span className="bd-parca-fiyat">
                             {etkinlik ? (
@@ -311,7 +311,7 @@ export default function KarakterPage() {
       {onay && (
         <Modal onKapat={() => setOnay(null)} etiket={tt("Satın alma")}>
           <div className="bd-modal">
-            <div className="baslik">{onay.ad}</div>
+            <div className="baslik">{ttSunucu(onay.ad)}</div>
             <div className="alt-yazi" style={{ marginBottom: 12 }}>
               {tt("Fiyat:")} <b>{onay.fiyat.toLocaleString("tr-TR")} {tt("coin")}</b> {tt("· Bakiyen:")}{" "}
               <b>{bakiye.toLocaleString("tr-TR")} {tt("coin")}</b>

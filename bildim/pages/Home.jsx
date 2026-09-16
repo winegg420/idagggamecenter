@@ -22,7 +22,7 @@ import Modal from "../components/Modal.jsx";
 import DereceliAnahtari from "../components/DereceliAnahtari.jsx";
 import { useDereceliTercih } from "../lib/dereceli.js";
 import { useDil } from "../lib/dilKanca.js";
-import { tt } from "../lib/dil.js";
+import { tt, ttSunucu } from "../lib/dil.js";
 
 export default function Home() {
   const { user, profile, refreshProfile } = useAuth();
@@ -609,7 +609,7 @@ export default function Home() {
                     <div key={g.quest_id} className="gorev-satir">
                       <div style={{ flex: 1, minWidth: 0 }}>
                         <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, fontWeight: 800, marginBottom: 4 }}>
-                          <span>{g.ad}</span>
+                          <span>{ttSunucu(g.ad)}</span>
                           <span className="alt-yazi">{g.ilerleme}/{g.hedef}</span>
                         </div>
                         <div className="bd-gorev-bar">

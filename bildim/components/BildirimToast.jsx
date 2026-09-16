@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "../../src/lib/supabase.js";
 import { useAuth } from "../../src/context/AuthContext.jsx";
 import Ikon from "./Ikon.jsx";
-import { tt } from "../lib/dil.js";
+import { tt, ttSunucu } from "../lib/dil.js";
 
 // Davet tipleri burada YOK: onları üstteki davet bandı (DavetBandi) gösterir —
 // bandda "Kabul Et" butonu da var, toast aynı şeyi ikinci kez söylemesin.
@@ -87,7 +87,7 @@ export default function BildirimToast() {
         <span className="bd-toast-ikon"><Ikon ad={stil.ikon} boyut={20} /></span>
         <button className="bd-toast-govde" onClick={git}>
           <span className="bd-toast-baslik">{stil.baslik}</span>
-          <span className="bd-toast-metin">{aktif.metin}</span>
+          <span className="bd-toast-metin">{ttSunucu(aktif.metin)}</span>
         </button>
         <button className="bd-toast-kapat" onClick={kapat} aria-label={tt("Kapat")}>
           <Ikon ad="carpi" boyut={15} />

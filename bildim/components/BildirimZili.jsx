@@ -5,7 +5,7 @@ import { supabase } from "../../src/lib/supabase.js";
 import { useAuth } from "../../src/context/AuthContext.jsx";
 import Ikon from "./Ikon.jsx";
 import { y } from "../lib/yol.js";
-import { tt } from "../lib/dil.js";
+import { tt, ttSunucu } from "../lib/dil.js";
 
 const TIP_IKON = {
   mac_daveti: "kilic",
@@ -219,7 +219,7 @@ export default function BildirimZili() {
             >
               <span className="ikon" aria-hidden="true"><Ikon ad={TIP_IKON[b.tip] ?? "zil"} boyut={18} /></span>
               <span className="govde">
-                <span className="metin">{b.metin}</span>
+                <span className="metin">{ttSunucu(b.metin)}</span>
                 <span className="zaman">{zamanMetni(b.created_at)}</span>
               </span>
             </button>

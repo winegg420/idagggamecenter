@@ -25,7 +25,7 @@ import {
   bildirimleriAc,
   bildirimleriKapat,
 } from "../lib/push.js";
-import { DILLER, tt } from "../lib/dil.js";
+import { DILLER, tt, ttSunucu } from "../lib/dil.js";
 import { useDil } from "../lib/dilKanca.js";
 
 export default function ProfilePage() {
@@ -387,8 +387,8 @@ export default function ProfilePage() {
             return (
               <div key={r.id} className={`rozet ${var_mi ? "" : "kilitli"}`}>
                 <div className="rozet-ikon">{var_mi ? r.ikon : <Ikon ad="kilit" boyut={18} />}</div>
-                <div className="rozet-ad">{r.ad}</div>
-                <div className="rozet-aciklama">{r.aciklama}</div>
+                <div className="rozet-ad">{ttSunucu(r.ad)}</div>
+                <div className="rozet-aciklama">{ttSunucu(r.aciklama)}</div>
               </div>
             );
           })}

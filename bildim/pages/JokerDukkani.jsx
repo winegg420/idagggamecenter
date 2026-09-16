@@ -14,7 +14,7 @@ import { y } from "../lib/yol.js";
 import GardropVitrini from "../components/GardropVitrini.jsx";
 import { useAuth } from "../../src/context/AuthContext.jsx";
 import { ayarlar } from "../lib/ayarlar.js";
-import { tt } from "../lib/dil.js";
+import { tt, ttSunucu } from "../lib/dil.js";
 
 // Dükkân üç sekme: Kıyafet (avatar eşyaları + danslar) / Joker / Coin.
 // Kıyafet sekmesinin içeriği Görünüm sayfasında; buradan oraya köprü var.
@@ -342,8 +342,8 @@ export default function JokerDukkani() {
           {paketler.filter((p) => p.coin_fiyat != null).map((p) => (
             <div key={p.urun_id} className="bd-paket">
               <div className="bd-paket-bilgi">
-                <div className="bd-paket-ad">{p.ad}</div>
-                <div className="alt-yazi">{p.aciklama}</div>
+                <div className="bd-paket-ad">{ttSunucu(p.ad)}</div>
+                <div className="alt-yazi">{ttSunucu(p.aciklama)}</div>
                 <div className="bd-paket-icerik">
                   {Object.entries(p.icerik ?? {}).map(([tur, adet]) => (
                     <span key={tur} className="bd-paket-parca">
@@ -397,7 +397,7 @@ export default function JokerDukkani() {
                   <CoinGorseli boyut={coinBoyutu(Number(p.coin) + Number(p.bonus || 0))} genislik={58} />
                 </span>
                 <div className="bd-paket-bilgi">
-                  <div className="bd-paket-ad">{f?.ad ?? p.ad}</div>
+                  <div className="bd-paket-ad">{f?.ad ?? ttSunucu(p.ad)}</div>
                   <div className="bd-paket-icerik">
                     <span className="bd-paket-parca">
                       <Ikon ad="coin" boyut={15} /> {Number(p.coin).toLocaleString("tr-TR")}
