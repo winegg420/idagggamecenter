@@ -5292,3 +5292,14 @@ en küçük TR 761 (spor), EN 476 (tarih) — hiçbiri 300 altı değil. Sayfa s
 - Ek görev: `bildim/harita/ASAMA_2_BUTCE_NOTU.md` yazıldı; Aşama 2 işlerine başlanmadı. Rapor `ASAMA_1D_RAPOR.md`,
   görseller `.tmp/asama1d-gorseller/`. Kamera en yakın mesafe 0,5 m (yüz kontrolü için).
 - **DUR NOKTASI:** İstiklal / 13 karakter yapılmadı; kalite değerlendirmesi sahibinde.
+
+## Harita Yenileme — Aşama 2 hazırlık: S-1 + S0 kare süresi ölçümü (16 Eyl 2026)
+- `ASAMA_2_BUTCE_NOTU.md` sonuna EK (S-1…S5 kare süresi / karakter maliyeti sert kapısı) + eski ölçümlerin nasıl alındığı kaydı eklendi.
+- Sahibinin kapsamı: yalnız S-1 ve S0; S1/S2 yalnız regresyon çıkarsa; S3–S5'e dokunma; çıktı ölçüm raporu (kod değil).
+- S0: 1C (`02511f8`) ve 1D (`53fe5c7`) `git archive` ile ayrı klasöre çıkarıldı, ikisi de **üretim derlemesi** (`vite build` +
+  `vite preview`), aynı sekmede dönüşümlü 3'er koşu, DPR 1, 1536×735, 120 ısınma + 300 kare, medyan/p95.
+- Sonuç: `kareSuresi()` (CPU+GPU, gl.finish) medyan 1C 2,8 ms · 1D 3,0 ms → **+%7,1 < %10 → S1/S2 tetiklenmedi.**
+  Fark üç çiftte de aynı yönde; GPU zamanlayıcı (EXT_disjoint_timer_query_webgl2, destekleniyor) +%6,5 → küçük ama gerçek ~0,2 ms.
+  Eski "2,14 ↔ 2,8–3,2" farkının büyük kısmı ölçüm koşuluydu (aynı koşulda 1C de 2,7–2,8).
+- rAF toplam kare süresi ölçülmedi (gizli otomasyon sekmesi). HUD'a çift etiketli ms eklenmedi (kod kapsam dışı).
+- Rapor `bildim/harita/ASAMA_2_S0_OLCUM.md`. Ölçüm düzeneği `.tmp/olcum/` (git dışı).
