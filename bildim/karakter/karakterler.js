@@ -1,3 +1,4 @@
+import { tt } from "../lib/dil.js";
 // 20 özgün, komik hayvan karakteri — tamamı parametrik low-poly tanım.
 // Hiçbir oyundan/markadan kopya değildir.
 
@@ -14,18 +15,18 @@ export const COSMETIC_OPTIONS = {
 };
 
 export const COSMETIC_LABELS = {
-  yok: 'Yok', kep: 'Kep', silindir: 'Silindir Şapka', ascibone: 'Aşçı Bonesi',
-  fedora: 'Fedora', tac: 'Taç', kask: 'Kask', bere: 'Bere',
-  gunes: 'Güneş Gözlüğü', yuvarlak: 'Yuvarlak Gözlük', kare: 'Kare Gözlük', pilot: 'Pilot Gözlük',
-  altin: 'Altın Kolye', papyon: 'Papyon', atki: 'Atkı', kravat: 'Kravat',
-  bant: 'Bileklik', saat: 'Saat',
-  rasta: 'Rasta', sari: 'Sarı Peruk', kisa: 'Kısa Saç', mohawk: 'Mohawk', peruk: 'Kabarık Peruk',
-  pos: 'Pos Bıyık', ince: 'İnce Bıyık',
-  keci: 'Keçi Sakal', tam: 'Tam Sakal',
-  tisort: 'Tişört', atlet: 'Atlet', gomlek: 'Gömlek', takim: 'Takım Elbise',
-  esofman: 'Eşofman', onluk: 'Aşçı Önlüğü', ceket: 'Deri Ceket',
-  uzaykiyafeti: 'Uzay Kıyafeti', pelerin: 'Pelerin',
-  spor: 'Spor Ayakkabı', topuklu: 'Topuklu', bot: 'Bot', terlik: 'Terlik',
+  yok: tt("Yok"), kep: tt("Kep"), silindir: tt("Silindir Şapka"), ascibone: tt("Aşçı Bonesi"),
+  fedora: tt("Fedora"), tac: tt("Taç"), kask: tt("Kask"), bere: tt("Bere"),
+  gunes: tt("Güneş Gözlüğü"), yuvarlak: tt("Yuvarlak Gözlük"), kare: tt("Kare Gözlük"), pilot: tt("Pilot Gözlük"),
+  altin: tt("Altın Kolye"), papyon: 'Papyon', atki: tt("Atkı"), kravat: tt("Kravat"),
+  bant: tt("Bileklik"), saat: 'Saat',
+  rasta: tt("Rasta"), sari: tt("Sarı Peruk"), kisa: tt("Kısa Saç"), mohawk: tt("Mohawk"), peruk: tt("Kabarık Peruk"),
+  pos: tt("Pos Bıyık"), ince: tt("İnce Bıyık"),
+  keci: tt("Keçi Sakal"), tam: tt("Tam Sakal"),
+  tisort: tt("Tişört"), atlet: tt("Atlet"), gomlek: tt("Gömlek"), takim: tt("Takım Elbise"),
+  esofman: tt("Eşofman"), onluk: tt("Aşçı Önlüğü"), ceket: tt("Deri Ceket"),
+  uzaykiyafeti: tt("Uzay Kıyafeti"), pelerin: tt("Pelerin"),
+  spor: tt("Spor Ayakkabı"), topuklu: tt("Topuklu"), bot: tt("Bot"), terlik: tt("Terlik"),
 };
 
 export const COSMETIC_COLORS = [

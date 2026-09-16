@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import Ikon from "./Ikon.jsx";
 import { etkinTema, temaDegistir, temayaAbone } from "../lib/tema.js";
+import { tt } from "../lib/dil.js";
 
 /**
  * Üst çubuktaki açık/koyu tema düğmesi.
@@ -19,8 +20,8 @@ export default function TemaDugmesi() {
       type="button"
       className="bd-tema-dugme"
       onClick={() => setTema(temaDegistir())}
-      aria-label={koyu ? "Açık temaya geç" : "Koyu temaya geç"}
-      title={koyu ? "Açık tema" : "Koyu tema"}
+      aria-label={koyu ? tt("Açık temaya geç") : tt("Koyu temaya geç")}
+      title={koyu ? tt("Açık tema") : tt("Koyu tema")}
     >
       <Ikon ad={koyu ? "gunes" : "ay"} boyut={18} />
     </button>

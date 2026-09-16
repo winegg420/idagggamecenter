@@ -7,12 +7,13 @@ import Avatar from "../../src/components/Avatar.jsx";
 import Ikon from "./Ikon.jsx";
 import { kategoriEtiket } from "../lib/kategoriler.js";
 import { y } from "../lib/yol.js";
+import { tt } from "../lib/dil.js";
 
 const TUR_BILGI = {
-  mac: { etiket: "sana meydan okudu", ikon: "kilic", sinif: "tur-mac", yol: "mac" },
-  rovans: { etiket: "rövanş istiyor", ikon: "kilic", sinif: "tur-rovans", yol: "mac" },
-  grup: { etiket: "grup maçına çağırdı", ikon: "kisiler", sinif: "tur-grup", yol: "grup-mac" },
-  hizli: { etiket: "hızlı maça çağırdı", ikon: "hizli", sinif: "tur-hizli", yol: "hizli-mac" },
+  mac: { etiket: tt("sana meydan okudu"), ikon: "kilic", sinif: "tur-mac", yol: "mac" },
+  rovans: { etiket: tt("rövanş istiyor"), ikon: "kilic", sinif: "tur-rovans", yol: "mac" },
+  grup: { etiket: tt("grup maçına çağırdı"), ikon: "kisiler", sinif: "tur-grup", yol: "grup-mac" },
+  hizli: { etiket: tt("hızlı maça çağırdı"), ikon: "hizli", sinif: "tur-hizli", yol: "hizli-mac" },
 };
 
 const CEVAP_RPC = {
@@ -71,7 +72,7 @@ export default function DavetBandi() {
       setDavetler((l) => l.filter((x) => x.kayit_id !== d.kayit_id));
       if (kabul) navigate(y(`/${bilgi.yol}/${d.kayit_id}`));
     } catch (e) {
-      setHata(hataMesaji(e, "İşlem başarısız"));
+      setHata(hataMesaji(e, tt("İşlem başarısız")));
     } finally {
       setIslemde(false);
     }
@@ -94,14 +95,14 @@ export default function DavetBandi() {
 
         <div className="bd-davet-metin">
           <div className="bd-davet-satir">
-            <b>{d.gorunen_ad ?? "Bir oyuncu"}</b> {bilgi.etiket}!
+            <b>{d.gorunen_ad ?? tt("Bir oyuncu")}</b> {bilgi.etiket}!
           </div>
           <div className="bd-davet-alt">
-            {d.kategori ? kategoriEtiket(d.kategori) : "Karışık"}
+            {d.kategori ? kategoriEtiket(d.kategori) : tt("Karışık")}
             {d.tur !== "mac" && d.tur !== "rovans" && d.kisi_sayisi
-              ? ` · ${d.kisi_sayisi} kişi`
+              ? tt(" · {0} kişi", { 0: d.kisi_sayisi })
               : ""}
-            {davetler.length > 1 ? ` · +${davetler.length - 1} davet daha` : ""}
+            {davetler.length > 1 ? tt(" · +{0} davet daha", { 0: davetler.length - 1 }) : ""}
           </div>
         </div>
       </div>
@@ -112,12 +113,12 @@ export default function DavetBandi() {
           disabled={islemde}
           onClick={() => cevapla(true)}
         >
-          Kabul Et
+          {tt("Kabul Et")}
         </button>
         <button
           className="bd-davet-btn ret"
           disabled={islemde}
-          aria-label="Daveti reddet"
+          aria-label={tt("Daveti reddet")}
           onClick={() => cevapla(false)}
         >
           <Ikon ad="carpi" boyut={16} />

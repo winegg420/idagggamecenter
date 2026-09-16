@@ -1,4 +1,5 @@
 import {PARCALAR,TEMEL,sahiplikDogrula} from './envanter.js';
+import { tt } from '../lib/dil.js';
 export const ENVANTER_ANAHTAR='qs_avatar3d_deneme_envanter_v1';
 // Gerçek ekonomi değildir. Aynı hizmet arayüzü sunucu adaptöründe de kullanılır.
 export function denemeServisi(depo,ayar){
@@ -8,7 +9,7 @@ export function denemeServisi(depo,ayar){
     const ham=depo.getItem(ENVANTER_ANAHTAR);
     if(!ham)return baslangic();
     const s=JSON.parse(ham);
-    if(s.surum!==1||!Number.isSafeInteger(s.bakiye)||s.bakiye<0||!Array.isArray(s.sahip)||!Array.isArray(s.oduller))throw new Error('Deneme kaydı okunamadı. Denemeyi yeniden başlat.');
+    if(s.surum!==1||!Number.isSafeInteger(s.bakiye)||s.bakiye<0||!Array.isArray(s.sahip)||!Array.isArray(s.oduller))throw new Error(tt("Deneme kaydı okunamadı. Denemeyi yeniden başlat."));
     s.gorunum=sahiplikDogrula(s.gorunum,s.sahip);return s;
   };
   const yaz=s=>{depo.setItem(ENVANTER_ANAHTAR,JSON.stringify(s));return {...s,katalog};};
@@ -21,10 +22,10 @@ export function denemeServisi(depo,ayar){
     yukle:async()=>({...oku(),katalog}),
     satinAl:id=>kilitli(()=>{
       const s=oku(),p=katalog.find(p=>p.id===id);
-      if(!p)throw new Error('Eşya bulunamadı.');
+      if(!p)throw new Error(tt("Eşya bulunamadı."));
       if(s.sahip.includes(id))return {...s,katalog};
-      if(p.odul||p.fiyat===null)throw new Error('Bu eşya yalnız ödül olarak kazanılır.');
-      if(s.bakiye<p.fiyat)throw new Error('Deneme coin bakiyen yetersiz.');
+      if(p.odul||p.fiyat===null)throw new Error(tt("Bu eşya yalnız ödül olarak kazanılır."));
+      if(s.bakiye<p.fiyat)throw new Error(tt("Deneme coin bakiyen yetersiz."));
       return yaz({...s,bakiye:s.bakiye-p.fiyat,sahip:[...s.sahip,id]});
     }),
     kaydet:g=>kilitli(()=>{const s=oku();return yaz({...s,gorunum:sahiplikDogrula(g,s.sahip)});}),

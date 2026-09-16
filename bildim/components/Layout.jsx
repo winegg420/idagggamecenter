@@ -21,10 +21,14 @@ import { y, BILDIM_MOD } from "../lib/yol.js";
 import { cihazBildir } from "../lib/cihaz.js";
 import { ayarlar } from "../lib/ayarlar.js";
 import { turnuvaSaatleriniAyarla, turnuvaListesiniAyarla } from "../lib/zaman.js";
+import { tt } from "../lib/dil.js";
+import { useDil } from "../lib/dilKanca.js";
 
 export default function Layout() {
   const { profile, user } = useAuth();
   const navigate = useNavigate();
+  // Profildeki dil tercihi bu tarayıcıdaki sayfa dilinden farklıysa bir kez eşitler.
+  useDil();
   const [bekleyen, setBekleyen] = useState(0);
 
   // Bildim rotalarında PWA kimliği Bildim'in kendi manifesti olsun
@@ -142,7 +146,7 @@ export default function Layout() {
       )}
       <div className="bd-ust-blok">
         <header className="topbar">
-          <Link to={y()} style={{ textDecoration: "none" }} aria-label="Quiz Tactics ana sayfa">
+          <Link to={y()} style={{ textDecoration: "none" }} aria-label={tt("Quiz Tactics ana sayfa")}>
             <Logo boyut={24} />
           </Link>
           {/* SADELEŞTİRME (12 Eylül 2026).
@@ -161,10 +165,10 @@ export default function Layout() {
                   sayfası (SPA rotası değil) → düz bağlantı. Profil düğmesiyle
                   aynı sınıf: aynı boy/renk, dar ekran kuralları da geçerli. */}
               <a href={GARDROP_YOLU} className="bd-profil-link bd-gorunum-kisayol"
-                 aria-label="Görünüm — karakterini giydir" title="Görünüm">
+                 aria-label={tt("Görünüm — karakterini giydir")} title={tt("Görünüm")}>
                 <Ikon ad="tisort" boyut={20} />
               </a>
-              <Link to={y("/profil")} className="bd-profil-link" aria-label="Profilim ve ayarlar" title="Profilim">
+              <Link to={y("/profil")} className="bd-profil-link" aria-label={tt("Profilim ve ayarlar")} title={tt("Profilim")}>
                 <Avatar profile={profile} boyut={34} />
               </Link>
             </div>
@@ -189,26 +193,26 @@ export default function Layout() {
           Yeni rota açılmadı; hepsi var olan yollar. */}
       <nav className="tabbar">
         <NavLink to={y()} end className={({ isActive }) => (isActive ? "aktif" : "")}>
-          <span className="ikon"><Ikon ad="ev" boyut={26} /></span>Ana Sayfa
+          <span className="ikon"><Ikon ad="ev" boyut={26} /></span>{tt("Ana Sayfa")}
         </NavLink>
         <NavLink to={y("/arkadaslar")} className={({ isActive }) => (isActive ? "aktif" : "")}>
-          <span className="ikon"><Ikon ad="kisiler" boyut={26} /></span>Arkadaşlar
+          <span className="ikon"><Ikon ad="kisiler" boyut={26} /></span>{tt("Arkadaşlar")}
           {/* Bekleyen meydan okuma/arkadaş isteği: sayı değil nokta */}
           {bekleyen > 0 && <span className="rozet nokta" aria-label={`${bekleyen} bekleyen`} />}
         </NavLink>
         <NavLink to={y("/siralama")} className={({ isActive }) => (isActive ? "aktif" : "")}>
-          <span className="ikon"><Ikon ad="grafik" boyut={26} /></span>Lig
+          <span className="ikon"><Ikon ad="grafik" boyut={26} /></span>{tt("Lig")}
         </NavLink>
         <NavLink to={y("/joker")} className={({ isActive }) => (isActive ? "aktif" : "")}>
-          <span className="ikon"><Ikon ad="yildiz" boyut={26} /></span>Dükkân
+          <span className="ikon"><Ikon ad="yildiz" boyut={26} /></span>{tt("Dükkân")}
         </NavLink>
         {/* Meydan (3B buluşma alanı) — sahne lazy yüklenir, sekmeye
             basılmadan three.js inmez. */}
         <NavLink to={y("/harita")} className={({ isActive }) => (isActive ? "aktif" : "")}>
-          <span className="ikon"><Ikon ad="haritaPini" boyut={26} /></span>Meydan
+          <span className="ikon"><Ikon ad="haritaPini" boyut={26} /></span>{tt("Meydan")}
         </NavLink>
         <NavLink to={y("/profil")} className={({ isActive }) => (isActive ? "aktif" : "")}>
-          <span className="ikon"><Ikon ad="kisi" boyut={26} /></span>Profil
+          <span className="ikon"><Ikon ad="kisi" boyut={26} /></span>{tt("Profil")}
         </NavLink>
       </nav>
     </div>

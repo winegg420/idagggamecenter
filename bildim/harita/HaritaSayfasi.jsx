@@ -40,6 +40,7 @@ import {
 } from "./meydanBotlari.js";
 import { GARDROP_YOLU } from "../pages/GardropaGit.jsx";
 import "./harita.css";
+import { tt } from "../lib/dil.js";
 
 const EMOJILER = ["👋", "😂", "🔥", "🤔", "🎉", "⚔️"];
 const MAKS_CIZILEN = 40;   // aynı anda çizilen uzak oyuncu sayısı
@@ -55,7 +56,7 @@ const KAPI_MS = 10 * 60 * 1000;
 
 /** Geri sayımı levhaya yazılacak kısa metne çevirir. */
 function turnuvaMetni(kalanSn) {
-  if (kalanSn <= 0) return "TURNUVA BAŞLADI";
+  if (kalanSn <= 0) return tt("TURNUVA BAŞLADI");
   const dk = Math.floor(kalanSn / 60);
   const sn = kalanSn % 60;
   return `TURNUVA ${dk}:${String(sn).padStart(2, "0")}`;
@@ -355,7 +356,7 @@ export default function HaritaSayfasi() {
   // Sahip olunan danslar (dans tepsisi bunları listeler)
   const danslar = gorunumVerisi?.danslar ?? [];
 
-  const ad = profile?.gorunen_ad || "Oyuncu";
+  const ad = profile?.gorunen_ad || tt("Oyuncu");
   // Ad, sahnenin KURULUM koşulu değil; yalnız avatarın etiketi.
   // Effect bağımlılığına girerse profil bir an boşalınca (oturum tazeleme,
   // profilim RPC'sinin başarısız dönmesi) sahne yıkılıyor ve bir daha
@@ -369,7 +370,7 @@ export default function HaritaSayfasi() {
 
     if (!webglVarMi()) {
       setYukleniyor(false);
-      setHata({ mesaj: "Cihazın 3B grafik desteklemiyor.", tekrar: false });
+      setHata({ mesaj: tt("Cihazın 3B grafik desteklemiyor."), tekrar: false });
       return undefined;
     }
 
@@ -393,7 +394,7 @@ export default function HaritaSayfasi() {
     } catch (e) {
       console.error("[Meydan] sahne kurulamadi:", e);
       setYukleniyor(false);
-      setHata({ mesaj: "Sahne kurulamadı.", ayrinti: String(e?.message ?? e), tekrar: true });
+      setHata({ mesaj: tt("Sahne kurulamadı."), ayrinti: String(e?.message ?? e), tekrar: true });
       return undefined;
     }
 
@@ -412,7 +413,7 @@ export default function HaritaSayfasi() {
       console.error("[Meydan] avatar kurulamadi:", e);
       try { dunya.yokEt(); } catch { /* yut */ }
       setYukleniyor(false);
-      setHata({ mesaj: "Avatarın çizilemedi.", ayrinti: String(e?.message ?? e), tekrar: true });
+      setHata({ mesaj: tt("Avatarın çizilemedi."), ayrinti: String(e?.message ?? e), tekrar: true });
       return undefined;
     }
     // Meydandan bir maça girip dönen oyuncu AYRILDIĞI noktada doğar.
@@ -430,11 +431,11 @@ export default function HaritaSayfasi() {
     // dekor — oyuncu değil, presence'a girmez, kişi sayısına eklenmez.
     let balikci = null;
     try {
-      balikci = dunya.avatarOlustur("Balıkçı", 0x3a6b8a, 0x222222, "#20324A", null, gorunumVerisi.bilgi);
+      balikci = dunya.avatarOlustur(tt("Balıkçı"), 0x3a6b8a, 0x222222, "#20324A", null, gorunumVerisi.bilgi);
       balikci.position.set(0, dunya.zeminYuksekligi(0, 1.05), 1.05);
       balikci.rotation.y = Math.PI;
       balikci.userData.npc = true;
-      balikci.userData.ad = "Balıkçı";
+      balikci.userData.ad = tt("Balıkçı");
       // Engel DEĞİL: dekor; engel listesine girse bot planları köprüde takılırdı.
     } catch (e) {
       console.error("[Meydan] balikci kurulamadi:", e);
@@ -459,7 +460,7 @@ export default function HaritaSayfasi() {
         if (!bekleyen || p?.ikram !== bekleyen.id) return;
         bekleyenIkramRef.current = null;
         if (!p.kabul) {
-          setIkramNotu("Teklifin kabul edilmedi — coinin iade edildi.");
+          setIkramNotu(tt("Teklifin kabul edilmedi — coinin iade edildi."));
           return;
         }
         ikramKabulOynat(bekleyen.id, bekleyen.tur, user.id, bekleyen.alan);
@@ -471,7 +472,7 @@ export default function HaritaSayfasi() {
         const sac = typeof bilgi?.sac === "number" ? bilgi.sac : varsayilan.sac;
         // Uzak oyuncunun görünümü presence yükünde geldi (kare kare değil).
         const av = dunya.avatarOlustur(
-          String(bilgi?.ad || "Oyuncu"), govde, sac, "#" + govde.toString(16).padStart(6, "0"),
+          String(bilgi?.ad || tt("Oyuncu")), govde, sac, "#" + govde.toString(16).padStart(6, "0"),
           bilgi?.gorunum ?? null, gorunumVerisi.bilgi
         );
         const eski = sonKonum.get(id);
@@ -660,10 +661,10 @@ export default function HaritaSayfasi() {
           const r = renkUret(b.user_id);
           try {
             const av = dunya.avatarOlustur(
-              String(b.gorunen_ad || "Oyuncu"), r.govde, r.sac, r.etiket,
+              String(b.gorunen_ad || tt("Oyuncu")), r.govde, r.sac, r.etiket,
               b.gorunum ?? null, gorunumVerisi.bilgi
             );
-            av.userData.ad = String(b.gorunen_ad || "Oyuncu");
+            av.userData.ad = String(b.gorunen_ad || tt("Oyuncu"));
             const ilk = planKonumu(t.plan, simdi);
             av.position.set(ilk.x, 0, ilk.z);
             av.rotation.y = ilk.aci;
@@ -749,7 +750,7 @@ export default function HaritaSayfasi() {
       if (secilen.userData.npc) { setBalikciAcik(true); return; }
       setSecilenOyuncu({
         id: secilen.userData.oyuncuId,
-        ad: secilen.userData.ad ?? "Oyuncu",
+        ad: secilen.userData.ad ?? tt("Oyuncu"),
       });
     };
     kapsayici.addEventListener("pointerdown", basildi);
@@ -797,7 +798,7 @@ export default function HaritaSayfasi() {
       if (!aktif || !ilkKare) return;
       if (document.hidden) { perdeSaat = setTimeout(perdeBek, 2000); return; }
       setYukleniyor(false);
-      setHata({ mesaj: "Sahne yüklenemedi.", tekrar: true });
+      setHata({ mesaj: tt("Sahne yüklenemedi."), tekrar: true });
     };
     perdeSaat = setTimeout(perdeBek, PERDE_SURESI);
 
@@ -815,16 +816,16 @@ export default function HaritaSayfasi() {
           balikSonuc(ben, "yakalandi");
           try { dunya.emojiGoster(ben, "🐟"); } catch { /* yut */ }
           setBalikBugun((b) => ({ ...b, bugun: b.bugun + 1 }));
-          setIkramNotu("Balık tuttun: +1 coin 🐟");
+          setIkramNotu(tt("Balık tuttun: +1 coin 🐟"));
         } else if (data === "tavan") {
           const b = balikRef.current;
-          if (b && !b.tavanDendi) { b.tavanDendi = true; setIkramNotu("Bugünkü balık hakkın doldu — yarın yine gel."); }
+          if (b && !b.tavanDendi) { b.tavanDendi = true; setIkramNotu(tt("Bugünkü balık hakkın doldu — yarın yine gel.")); }
         } else if (data === "olta_yok") {
           oltaRef.current = null;
           setOlta(null);
           balikDurdur(ben);
           balikRef.current = null;
-          setIkramNotu("Oltanın süresi doldu.");
+          setIkramNotu(tt("Oltanın süresi doldu."));
         }
       } catch (e) {
         console.error("[Meydan] balik yakala:", e);
@@ -1152,7 +1153,7 @@ export default function HaritaSayfasi() {
         cancelAnimationFrame(raf);
         clearTimeout(perdeSaat);
         setYukleniyor(false);
-        setHata({ mesaj: "Sahne çizilemedi.", ayrinti: String(e?.message ?? e), tekrar: true });
+        setHata({ mesaj: tt("Sahne çizilemedi."), ayrinti: String(e?.message ?? e), tekrar: true });
       }
     };
     raf = requestAnimationFrame(cizim);
@@ -1275,7 +1276,7 @@ export default function HaritaSayfasi() {
       if (kalan <= 0) {
         oltaRef.current = null;
         setOlta(null);
-        setIkramNotu("Oltanın süresi doldu.");
+        setIkramNotu(tt("Oltanın süresi doldu."));
       } else setOltaKalanDk(kalan);
     };
     tik();
@@ -1306,10 +1307,10 @@ export default function HaritaSayfasi() {
       oltaRef.current = { bitisMs };
       setOlta({ bitisMs });
       setBalikciAcik(false);
-      setIkramNotu("Olta sende! Köprüdeyken göle dokun, olta atılsın.");
+      setIkramNotu(tt("Olta sende! Köprüdeyken göle dokun, olta atılsın."));
     } catch (e) {
       console.error("[Meydan] olta alinamadi:", e);
-      setIkramNotu(hataMesaji(e, "Olta alınamadı."));
+      setIkramNotu(hataMesaji(e, tt("Olta alınamadı.")));
     }
   }, []);
 
@@ -1421,7 +1422,7 @@ export default function HaritaSayfasi() {
       const { error } = await supabase.rpc("send_friend_request", { p_target: hedef.id });
       if (error) throw error;
       setArkadasDurum(kabulMu ? "arkadas" : "gonderildi");
-      setIkramNotu(kabulMu ? `${hedef.ad} ile artık arkadaşsınız.` : `${hedef.ad} kişisine arkadaşlık isteği gönderildi.`);
+      setIkramNotu(kabulMu ? tt("{0} ile artık arkadaşsınız.", { 0: hedef.ad }) : tt("{0} kişisine arkadaşlık isteği gönderildi.", { 0: hedef.ad }));
       // Geri çekilebilsin diye yeni satırın kimliği okunur (RPC kimlik döndürmüyor).
       const { data: satir, error: okuHata } = await supabase
         .from("friendships")
@@ -1433,7 +1434,7 @@ export default function HaritaSayfasi() {
       setArkadaslikId(satir?.id ?? null);
     } catch (e) {
       console.error("[Meydan] arkadaslik istegi:", e);
-      setIkramNotu(hataMesaji(e, "Arkadaşlık isteği gönderilemedi."));
+      setIkramNotu(hataMesaji(e, tt("Arkadaşlık isteği gönderilemedi.")));
     }
   }, [secilenOyuncu, arkadasDurum, user.id]);
 
@@ -1451,17 +1452,17 @@ export default function HaritaSayfasi() {
       if (okuHata) throw okuHata;
       if (guncel?.durum === "arkadas") {
         setArkadasDurum("arkadas");
-        setIkramNotu(`${hedef.ad} isteğini zaten kabul etmiş — artık arkadaşsınız.`);
+        setIkramNotu(tt("{0} isteğini zaten kabul etmiş — artık arkadaşsınız.", { 0: hedef.ad }));
         return;
       }
       const { error } = await supabase.rpc("remove_friend", { p_id: arkadaslikId });
       if (error) throw error;
       setArkadasDurum("yok");
       setArkadaslikId(null);
-      setIkramNotu(`${hedef.ad} kişisine gönderdiğin arkadaşlık isteği geri çekildi.`);
+      setIkramNotu(tt("{0} kişisine gönderdiğin arkadaşlık isteği geri çekildi.", { 0: hedef.ad }));
     } catch (e) {
       console.error("[Meydan] arkadaslik istegi geri cekilemedi:", e);
-      setIkramNotu(hataMesaji(e, "İstek geri çekilemedi."));
+      setIkramNotu(hataMesaji(e, tt("İstek geri çekilemedi.")));
     }
   }, [secilenOyuncu, arkadaslikId]);
 
@@ -1490,7 +1491,7 @@ export default function HaritaSayfasi() {
         }
       } catch (e) {
         console.error("[Meydan] meydan okuma:", e);
-        setIkramNotu(hataMesaji(e, "Meydan okuma başlatılamadı."));
+        setIkramNotu(hataMesaji(e, tt("Meydan okuma başlatılamadı.")));
       }
       return;
     }
@@ -1503,7 +1504,7 @@ export default function HaritaSayfasi() {
         ikram: sonuc.id, tur: kod, alan: hedef.id, ad: adRef.current,
       });
       setSecilenOyuncu(null);
-      setIkramNotu("Teklif gönderildi, yanıt bekleniyor…");
+      setIkramNotu(tt("Teklif gönderildi, yanıt bekleniyor…"));
       // Yanıt broadcast'le gelir (onIkramYanit). Gelmezse — paket kaybı ya
       // da alanın istemcisi yok — sunucuya sorulur. İkisinden hangisi önce
       // işlerse `bekleyenIkramRef` boşalır, öteki sessizce çıkar.
@@ -1525,21 +1526,21 @@ export default function HaritaSayfasi() {
             setIkramNotu(null);
             ikramKabulOynat(sonuc.id, kod, user.id, hedef.id);
           } else if (d === "red") {
-            setIkramNotu("Teklifin kabul edilmedi — coinin iade edildi.");
+            setIkramNotu(tt("Teklifin kabul edilmedi — coinin iade edildi."));
           } else {
-            setIkramNotu("Yanıt gelmedi — coinin iade edildi.");
+            setIkramNotu(tt("Yanıt gelmedi — coinin iade edildi."));
           }
           return;
         }
         // Süre doldu, yanıt yok: sunucu iptal edip coini iade ediyor.
         if (bekleyenIkramRef.current?.id === sonuc.id) {
           bekleyenIkramRef.current = null;
-          setIkramNotu("Yanıt gelmedi — coinin iade edildi.");
+          setIkramNotu(tt("Yanıt gelmedi — coinin iade edildi."));
         }
       })();
     } catch (e) {
       console.error("[Meydan] ikram gonderilemedi:", e);
-      setIkramNotu(hataMesaji(e, "İkram gönderilemedi."));
+      setIkramNotu(hataMesaji(e, tt("İkram gönderilemedi.")));
     } finally {
       setIkramCalisiyor(false);
     }
@@ -1554,10 +1555,10 @@ export default function HaritaSayfasi() {
       const sonuc = await ikramYanitla(t.id, kabul);
       canliRef.current?.coklu?.ikramYanitGonder({ ikram: t.id, kabul: sonuc === "kabul" });
       if (sonuc === "kabul") ikramKabulOynat(t.id, t.tur, t.gonderenId, user.id);
-      else if (sonuc === "zaman_asimi") setIkramNotu("Teklifin süresi dolmuştu.");
+      else if (sonuc === "zaman_asimi") setIkramNotu(tt("Teklifin süresi dolmuştu."));
     } catch (e) {
       console.error("[Meydan] ikram yaniti:", e);
-      setIkramNotu(hataMesaji(e, "Yanıt gönderilemedi."));
+      setIkramNotu(hataMesaji(e, tt("Yanıt gönderilemedi.")));
     }
   }, [gelenIkram, ikramKabulOynat, user.id]);
 
@@ -1640,7 +1641,7 @@ export default function HaritaSayfasi() {
     }
     const sonuc = await yatayaGec(kapsayiciRef.current?.parentElement ?? document.documentElement);
     setYatayKilitli(sonuc.oldu);
-    if (!sonuc.oldu) setYonUyari(sonuc.mesaj ?? "Yatay moda geçilemedi.");
+    if (!sonuc.oldu) setYonUyari(sonuc.mesaj ?? tt("Yatay moda geçilemedi."));
     setYon(yonDurumu());
   };
 
@@ -1663,19 +1664,18 @@ export default function HaritaSayfasi() {
       <div className="bd-harita">
         <div className="bd-harita-yukleniyor">
           <div className="bd-harita-hata">
-            <b>Önce karakterini oluştur</b>
+            <b>{tt("Önce karakterini oluştur")}</b>
             <span>
-              Meydanda herkes kendi karakteriyle dolaşıyor. Gardıropta
-              karakterini kurup kaydedince buraya girebilirsin.
+              {tt("Meydanda herkes kendi karakteriyle dolaşıyor. Gardıropta karakterini kurup kaydedince buraya girebilirsin.")}
             </span>
             <div className="bd-harita-hata-dugmeler">
-              <a className="bd-harita-btn" href={GARDROP_YOLU}>Gardıroba git</a>
+              <a className="bd-harita-btn" href={GARDROP_YOLU}>{tt("Gardıroba git")}</a>
               <button
                 type="button"
                 className="bd-harita-btn beyaz"
                 onClick={() => { donusTemizle(); navigate(y()); }}
               >
-                Oyuna dön
+                {tt("Oyuna dön")}
               </button>
             </div>
           </div>
@@ -1691,8 +1691,8 @@ export default function HaritaSayfasi() {
       {yukleniyor && !hata && (
         <div className="bd-harita-yukleniyor">
           <div>
-            <b>Meydan</b>
-            <span>sahne hazırlanıyor…</span>
+            <b>{tt("Meydan")}</b>
+            <span>{tt("sahne hazırlanıyor…")}</span>
           </div>
         </div>
       )}
@@ -1700,7 +1700,7 @@ export default function HaritaSayfasi() {
       {hata && (
         <div className="bd-harita-yukleniyor" role="alert">
           <div className="bd-harita-hata">
-            <b>Meydan açılamadı</b>
+            <b>{tt("Meydan açılamadı")}</b>
             <span>{hata.mesaj}</span>
             {/* Gerçek hata metni: genel mesaj bir ReferenceError'ı saatlerce
                 gizledi. Ekranda görünürse kullanıcı doğrudan iletebiliyor. */}
@@ -1708,11 +1708,11 @@ export default function HaritaSayfasi() {
             <div className="bd-harita-hata-dugmeler">
               {hata.tekrar && (
                 <button type="button" className="bd-harita-btn" onClick={tekrarDene}>
-                  Tekrar dene
+                  {tt("Tekrar dene")}
                 </button>
               )}
               <button type="button" className="bd-harita-btn beyaz" onClick={() => { donusTemizle(); navigate(y()); }}>
-                Oyuna dön
+                {tt("Oyuna dön")}
               </button>
             </div>
           </div>
@@ -1723,30 +1723,30 @@ export default function HaritaSayfasi() {
         {/* Ana menüye çıkış: meydana dönüş kaydı burada temizlenir —
             haritadan çıkan oyuncu maç sonunda buraya çekilmesin. */}
         <button type="button" className="bd-harita-btn beyaz" onClick={() => { donusTemizle(); navigate(y()); }}>
-          ‹ Oyuna dön
+          {tt("‹ Oyuna dön")}
         </button>
         <span className="bd-harita-hap" role="status">
           <span className={"canli" + (bagli ? "" : " kopuk")} />
-          {bagli ? `${kisi + botSayisi} kişi burada` : "bağlantı yok"}
+          {bagli ? tt("{0} kişi burada", { 0: kisi + botSayisi }) : tt("bağlantı yok")}
         </span>
         {olta && (
-          <span className="bd-harita-hap olta" role="status" title="Olta süresi">
-            🎣 {oltaKalanDk} dk
+          <span className="bd-harita-hap olta" role="status" title={tt("Olta süresi")}>
+            🎣 {oltaKalanDk} {tt("dk")}
           </span>
         )}
       </div>
 
       {/* ---- zum: iki parmakla da olur, düğmeyle de ---- */}
       <div className="bd-harita-hud bd-harita-zum">
-        <button type="button" className="bd-harita-yuvarlak" onClick={() => zumDegistir(1 / 1.35)} aria-label="Yakınlaştır">+</button>
-        <button type="button" className="bd-harita-yuvarlak" onClick={() => zumDegistir(1.35)} aria-label="Uzaklaştır">−</button>
-        <button type="button" className="bd-harita-yuvarlak kus" onClick={() => zumDegistir(99)} aria-label="Kuş bakışı" title="Kuş bakışı">🦅</button>
+        <button type="button" className="bd-harita-yuvarlak" onClick={() => zumDegistir(1 / 1.35)} aria-label={tt("Yakınlaştır")}>+</button>
+        <button type="button" className="bd-harita-yuvarlak" onClick={() => zumDegistir(1.35)} aria-label={tt("Uzaklaştır")}>−</button>
+        <button type="button" className="bd-harita-yuvarlak kus" onClick={() => zumDegistir(99)} aria-label={tt("Kuş bakışı")} title={tt("Kuş bakışı")}>🦅</button>
         <button
           type="button"
           className={"bd-harita-yuvarlak kus" + (yatayKilitli ? " acik" : "")}
           onClick={yonDegistir}
-          aria-label={yatayKilitli ? "Dikey moda dön" : "Yatay moda geç"}
-          title={yatayKilitli ? "Dikey moda dön" : "Yatay moda geç"}
+          aria-label={yatayKilitli ? tt("Dikey moda dön") : tt("Yatay moda geç")}
+          title={yatayKilitli ? tt("Dikey moda dön") : tt("Yatay moda geç")}
         >
           ⟳
         </button>
@@ -1759,17 +1759,17 @@ export default function HaritaSayfasi() {
           onClick={() => binayaGir(ipucu.rota)}
         >
           {ipucu.ad}
-          <small>{ipucu.alt} — girmek için dokun</small>
+          <small>{ipucu.alt} {tt("— girmek için dokun")}</small>
         </button>
       )}
 
       {bilgiAcik && (
         <div className="bd-harita-bilgi">
-          <b>Meydandasın</b>
-          Yürümek için sol alttaki topuzu sürükle (veya WASD / yön tuşları). Binalara yaklaşınca kapı açılır.
+          <b>{tt("Meydandasın")}</b>
+          {tt("Yürümek için sol alttaki topuzu sürükle (veya WASD / yön tuşları). Binalara yaklaşınca kapı açılır.")}
           {/* Teşhis: ekran yönü durumu — sahibi ekran görüntüsüyle iletebilsin */}
           <span className="bd-harita-yon-tesis">{yonOzeti(yon)}</span>
-          <button type="button" className="bd-harita-btn" onClick={bilgiKapat}>Anladım</button>
+          <button type="button" className="bd-harita-btn" onClick={bilgiKapat}>{tt("Anladım")}</button>
         </div>
       )}
 
@@ -1777,7 +1777,7 @@ export default function HaritaSayfasi() {
           Avatara dokununca açılır. Seçeneklerin listesi ve fiyatları
           etkilesim.js'te (MENU); burada yalnız çizim var. */}
       {secilenOyuncu && (
-        <div className="bd-harita-kisi-menu" role="dialog" aria-label="Oyuncu menüsü"
+        <div className="bd-harita-kisi-menu" role="dialog" aria-label={tt("Oyuncu menüsü")}
              onPointerDown={() => { menuBasisRef.current = true; }}>
           <div className="bd-harita-kisi-ad">{secilenOyuncu.ad}</div>
           {MENU.map((m) => (
@@ -1807,12 +1807,12 @@ export default function HaritaSayfasi() {
               else arkadasEkle();
             }}
           >
-            {arkadasDurum === "arkadas" ? "Arkadaşsınız ✓"
-              : arkadasDurum === "gonderildi" ? "İsteği geri çek"
-              : arkadasDurum === "gelen" ? "Arkadaşlık isteğini kabul et"
-              : arkadasDurum === null ? "Arkadaş ekle…" : "Arkadaş ekle"}
+            {arkadasDurum === "arkadas" ? tt("Arkadaşsınız ✓")
+              : arkadasDurum === "gonderildi" ? tt("İsteği geri çek")
+              : arkadasDurum === "gelen" ? tt("Arkadaşlık isteğini kabul et")
+              : arkadasDurum === null ? tt("Arkadaş ekle…") : tt("Arkadaş ekle")}
           </button>
-          <button type="button" className="bd-harita-dans-kapat" aria-label="Kapat"
+          <button type="button" className="bd-harita-dans-kapat" aria-label={tt("Kapat")}
                   onClick={(e) => {
                     // Aynı hayalet tıklama menüyü açılır açılmaz kapatıyordu.
                     if (e.detail !== 0 && !menuBasisRef.current) return;
@@ -1824,23 +1824,23 @@ export default function HaritaSayfasi() {
 
       {/* ---- BALIKÇI (Aşama 2) ---- */}
       {balikciAcik && (
-        <div className="bd-harita-kisi-menu" role="dialog" aria-label="Balıkçı"
+        <div className="bd-harita-kisi-menu" role="dialog" aria-label={tt("Balıkçı")}
              onPointerDown={() => { menuBasisRef.current = true; }}>
-          <div className="bd-harita-kisi-ad">Balıkçı</div>
+          <div className="bd-harita-kisi-ad">{tt("Balıkçı")}</div>
           {olta ? (
-            <div className="bd-harita-npc-metin">Oltan var — kalan {oltaKalanDk} dk. Köprüdeyken göle dokun, olta atılsın.</div>
+            <div className="bd-harita-npc-metin">{tt("Oltan var — kalan")} {oltaKalanDk} {tt("dk. Köprüdeyken göle dokun, olta atılsın.")}</div>
           ) : (
             <>
               <div className="bd-harita-npc-metin">
-                Olta 1 saat geçerli; haritadan çıkınca biter. Her balık 1 coin, günde en çok {balikBugun.tavan} coin.
+                {tt("Olta 1 saat geçerli; haritadan çıkınca biter. Her balık 1 coin, günde en çok")} {balikBugun.tavan} {tt("coin.")}
               </div>
               <button type="button" className="bd-harita-btn"
                       onClick={(e) => { if (e.detail !== 0 && !menuBasisRef.current) return; menuBasisRef.current = false; oltaAl(); }}>
-                Olta — {oltaFiyat} coin
+                {tt("Olta —")} {oltaFiyat} {tt("coin")}
               </button>
             </>
           )}
-          <button type="button" className="bd-harita-dans-kapat" aria-label="Kapat"
+          <button type="button" className="bd-harita-dans-kapat" aria-label={tt("Kapat")}
                   onClick={(e) => { if (e.detail !== 0 && !menuBasisRef.current) return; menuBasisRef.current = false; setBalikciAcik(false); }}>✕</button>
         </div>
       )}
@@ -1848,11 +1848,11 @@ export default function HaritaSayfasi() {
       {/* ---- GELEN İKRAM ---- */}
       {gelenIkram && (
         <div className="bd-harita-ikram" role="alert">
-          <b>{gelenIkram.gonderenAd || "Bir oyuncu"}</b>{" "}
-          sana {gelenIkram.tur === "kahve" ? "kahve" : "balon"} ikram etmek istiyor.
+          <b>{gelenIkram.gonderenAd || tt("Bir oyuncu")}</b>{" "}
+          {gelenIkram.tur === "kahve" ? tt("sana kahve ikram etmek istiyor.") : tt("sana balon ikram etmek istiyor.")}
           <div className="bd-harita-ikram-dugmeler">
-            <button type="button" className="bd-harita-btn" onClick={() => ikramYanit(true)}>Kabul et</button>
-            <button type="button" className="bd-harita-btn beyaz" onClick={() => ikramYanit(false)}>Teşekkürler</button>
+            <button type="button" className="bd-harita-btn" onClick={() => ikramYanit(true)}>{tt("Kabul et")}</button>
+            <button type="button" className="bd-harita-btn beyaz" onClick={() => ikramYanit(false)}>{tt("Teşekkürler")}</button>
           </div>
         </div>
       )}
@@ -1871,11 +1871,9 @@ export default function HaritaSayfasi() {
 
       {yatayBilgi && (
         <div className="bd-harita-bilgi bd-harita-yatay-bilgi">
-          <b>Yatay oynamak için</b>
-          Ana ekrandaki kısayolu silip yeniden ekle, ya da telefonun otomatik
-          döndürme ayarını aç. (Kurulu uygulama ekran kilidini kurulum anında
-          hatırlıyor.)
-          <button type="button" className="bd-harita-btn" onClick={yatayBilgiKapat}>Anladım</button>
+          <b>{tt("Yatay oynamak için")}</b>
+          {tt("Ana ekrandaki kısayolu silip yeniden ekle, ya da telefonun otomatik döndürme ayarını aç. (Kurulu uygulama ekran kilidini kurulum anında hatırlıyor.)")}
+          <button type="button" className="bd-harita-btn" onClick={yatayBilgiKapat}>{tt("Anladım")}</button>
         </div>
       )}
 
@@ -1884,10 +1882,10 @@ export default function HaritaSayfasi() {
           sanıyordu. Dans emoji değil: karakterin kendisi oynuyor. Bu yüzden
           ayrı, adı yazan bir düğme ve tam genişlikte bir panel. */}
       {dansAcik && (
-        <div className="bd-harita-dans-panel" role="dialog" aria-label="Dans seç">
+        <div className="bd-harita-dans-panel" role="dialog" aria-label={tt("Dans seç")}>
           <div className="bd-harita-dans-panel-ust">
-            <b>Dans et</b>
-            <button type="button" className="bd-harita-dans-kapat" onClick={() => setDansAcik(false)} aria-label="Kapat">
+            <b>{tt("Dans et")}</b>
+            <button type="button" className="bd-harita-dans-kapat" onClick={() => setDansAcik(false)} aria-label={tt("Kapat")}>
               ✕
             </button>
           </div>
@@ -1907,8 +1905,8 @@ export default function HaritaSayfasi() {
               kaldırıldı; dansın yeni evi ayrı bir karar. */}
           <div className="bd-harita-dans-bos">
             {danslar.length === 0
-              ? "Henüz dansın yok. Yeni dans dükkânı yakında."
-              : "Yeni dans dükkânı yakında."}
+              ? tt("Henüz dansın yok. Yeni dans dükkânı yakında.")
+              : tt("Yeni dans dükkânı yakında.")}
           </div>
         </div>
       )}
@@ -1924,10 +1922,10 @@ export default function HaritaSayfasi() {
               type="button"
               className="bd-harita-zipla"
               onClick={zipla}
-              aria-label="Zıpla"
-              title="Zıpla — boşluk tuşu"
+              aria-label={tt("Zıpla")}
+              title={tt("Zıpla — boşluk tuşu")}
             >
-              <span aria-hidden="true">⤴</span> Zıpla
+              <span aria-hidden="true">⤴</span> {tt("Zıpla")}
             </button>
             <button
               type="button"
@@ -1935,7 +1933,7 @@ export default function HaritaSayfasi() {
               onClick={() => setDansAcik((a) => !a)}
               aria-expanded={dansAcik}
             >
-              <span aria-hidden="true">🕺</span> Dans
+              <span aria-hidden="true">🕺</span> {tt("Dans")}
             </button>
           </div>
         <div className="bd-harita-emojiler">
@@ -1946,7 +1944,7 @@ export default function HaritaSayfasi() {
           ))}
         </div>
         </div>
-        <div className="bd-harita-pad" ref={padRef} aria-label="Yürüme topuzu">
+        <div className="bd-harita-pad" ref={padRef} aria-label={tt("Yürüme topuzu")}>
           <div className="bd-harita-topuz" ref={topuzRef} />
         </div>
       </div>

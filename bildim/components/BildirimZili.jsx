@@ -5,6 +5,7 @@ import { supabase } from "../../src/lib/supabase.js";
 import { useAuth } from "../../src/context/AuthContext.jsx";
 import Ikon from "./Ikon.jsx";
 import { y } from "../lib/yol.js";
+import { tt } from "../lib/dil.js";
 
 const TIP_IKON = {
   mac_daveti: "kilic",
@@ -53,13 +54,13 @@ const oncelikSirala = (liste) =>
 
 // Aynı türden birden fazla OKUNMAMIŞ bildirim varsa tek satırda toplanır.
 const TOPLAMA = {
-  sira_sende: { metin: (n) => `${n} maçta sıra sende`, yol: y("/meydan") },
-  mac_daveti: { metin: (n) => `${n} yeni meydan okuma`, yol: y("/meydan") },
-  rovans: { metin: (n) => `${n} rövanş isteği`, yol: y("/meydan") },
-  grup_daveti: { metin: (n) => `${n} grup maçı daveti`, yol: y("/meydan") },
-  hizli_daveti: { metin: (n) => `${n} hızlı maç daveti`, yol: y("/meydan") },
-  seri: { metin: (n) => `${n} seri bildirimi`, yol: y() },
-  arkadas_istek: { metin: (n) => `${n} arkadaşlık isteği`, yol: y("/arkadaslar") },
+  sira_sende: { metin: (n) => tt("{0} maçta sıra sende", { 0: n }), yol: y("/meydan") },
+  mac_daveti: { metin: (n) => tt("{0} yeni meydan okuma", { 0: n }), yol: y("/meydan") },
+  rovans: { metin: (n) => tt("{0} rövanş isteği", { 0: n }), yol: y("/meydan") },
+  grup_daveti: { metin: (n) => tt("{0} grup maçı daveti", { 0: n }), yol: y("/meydan") },
+  hizli_daveti: { metin: (n) => tt("{0} hızlı maç daveti", { 0: n }), yol: y("/meydan") },
+  seri: { metin: (n) => tt("{0} seri bildirimi", { 0: n }), yol: y() },
+  arkadas_istek: { metin: (n) => tt("{0} arkadaşlık isteği", { 0: n }), yol: y("/arkadaslar") },
 };
 
 /** Okunmamış tekrarları tek satıra indirger; okunmuşlara dokunmaz. */
@@ -96,11 +97,11 @@ function grupla(liste) {
 function zamanMetni(iso) {
   const fark = Date.now() - new Date(iso).getTime();
   const dk = Math.floor(fark / 60000);
-  if (dk < 1) return "az önce";
-  if (dk < 60) return `${dk} dk önce`;
+  if (dk < 1) return tt("az önce");
+  if (dk < 60) return tt("{0} dk önce", { 0: dk });
   const saat = Math.floor(dk / 60);
-  if (saat < 24) return `${saat} saat önce`;
-  return `${Math.floor(saat / 24)} gün önce`;
+  if (saat < 24) return tt("{0} saat önce", { 0: saat });
+  return tt("{0} gün önce", { 0: Math.floor(saat / 24) });
 }
 
 /** Üst çubuktaki bildirim zili: okunmamış sayısı + açılır liste. */
@@ -197,14 +198,14 @@ export default function BildirimZili() {
       <div
         className="bd-zil-liste"
         role="dialog"
-        aria-label="Bildirimler"
+        aria-label={tt("Bildirimler")}
         style={konum ? { top: konum.ust } : undefined}
       >
-        <div className="bd-zil-baslik">Bildirimler</div>
+        <div className="bd-zil-baslik">{tt("Bildirimler")}</div>
         {liste.length === 0 ? (
           <div className="bd-zil-bos">
-            Henüz bildirim yok.<br />
-            Maç davetleri, lig hareketleri ve arkadaşlık istekleri burada görünür.
+            {tt("Henüz bildirim yok.")}<br />
+            {tt("Maç davetleri, lig hareketleri ve arkadaşlık istekleri burada görünür.")}
           </div>
         ) : (
           liste.map((b) => (
@@ -233,7 +234,7 @@ export default function BildirimZili() {
       <button
         className="bd-zil"
         onClick={ac}
-        aria-label={`Bildirimler${okunmamis > 0 ? `, ${okunmamis} okunmamış` : ""}`}
+        aria-label={`Bildirimler${okunmamis > 0 ? tt(", {0} okunmamış", { 0: okunmamis }) : ""}`}
       >
         <Ikon ad="zil" boyut={19} />
         {okunmamis > 0 && <span className="bd-zil-rozet">{okunmamis > 9 ? "9+" : okunmamis}</span>}

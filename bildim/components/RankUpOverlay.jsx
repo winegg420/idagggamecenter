@@ -3,6 +3,7 @@ import Ikon from "./Ikon.jsx";
 import { sesRutbeAtladi } from "../lib/ses.js";
 import { useAuth } from "../../src/context/AuthContext.jsx";
 import { RUTBELER, rutbeBul } from "../lib/ranks.js";
+import { tt } from "../lib/dil.js";
 
 /**
  * Rütbe atlanınca tam ekran kutlama gösterir.
@@ -21,7 +22,8 @@ export default function RankUpOverlay() {
     if (eskiAd && eskiAd !== yeni.ad) {
       const eskiIdx = RUTBELER.findIndex((r) => r.ad === eskiAd);
       const yeniIdx = RUTBELER.findIndex((r) => r.ad === yeni.ad);
-      if (yeniIdx > eskiIdx) {
+      // Dil değişince kayıtlı ad başka dilde kalır (eskiIdx -1): kutlama değil, yalnız güncelle.
+      if (eskiIdx >= 0 && yeniIdx > eskiIdx) {
         setGoster(yeni);
         try { sesRutbeAtladi(); } catch { /* ses kapalı olabilir */ }
         const id = setTimeout(() => setGoster(null), 3500);
@@ -43,7 +45,7 @@ export default function RankUpOverlay() {
           ))}
         </div>
         <div className="buyuk-ikon"><Ikon ad={goster.ikon} boyut={46} /></div>
-        <div className="etiket">RÜTBE ATLADIN!</div>
+        <div className="etiket">{tt("RÜTBE ATLADIN!")}</div>
         <div className="rutbe-adi" style={{ color: goster.metinRenk }}>
           {goster.ad}
         </div>

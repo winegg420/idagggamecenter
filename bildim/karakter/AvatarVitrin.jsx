@@ -14,6 +14,7 @@ import RankBadge from "./RankBadge.jsx";
 import { NADIRLIK_ETIKET, nadirlikGorunumden } from "../lib/nadirlik.js";
 import { avatarUri, karakterId } from "./gorunum.js";
 import { getCharacter } from "./karakterler.js";
+import { tt } from "../lib/dil.js";
 
 /**
  * @param {object} o
@@ -59,7 +60,7 @@ export default function AvatarVitrin({ ad, puan = 0, baslik = null, poz = "idle"
         {gorsel ? (
           <img src={gorsel} alt={ad ?? def.name} className="bd-vitrin-gorsel" />
         ) : (
-          <div className="yukleniyor">Yükleniyor…</div>
+          <div className="yukleniyor">{tt("Yükleniyor…")}</div>
         )}
       </div>
       <div className="bd-vitrin-alt">
@@ -67,7 +68,7 @@ export default function AvatarVitrin({ ad, puan = 0, baslik = null, poz = "idle"
         <div className="alt-yazi">{def.bio}</div>
         <div className="bd-vitrin-rozetler">
           <RankBadge puan={puan} />
-          <span className={`rutbe-chip n-${nadirlik}`}>{NADIRLIK_ETIKET[nadirlik] ?? "Sıradan"}</span>
+          <span className={`rutbe-chip n-${nadirlik}`}>{NADIRLIK_ETIKET[nadirlik] ?? tt("Sıradan")}</span>
         </div>
       </div>
     </div>

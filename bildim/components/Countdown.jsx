@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { sonrakiTurnuvaZamani, geriSayim } from "../lib/zaman.js";
+import { tt } from "../lib/dil.js";
 
 export default function Countdown({ onSifir }) {
   const [kalan, setKalan] = useState(() => geriSayim(sonrakiTurnuvaZamani()));
@@ -19,15 +20,15 @@ export default function Countdown({ onSifir }) {
     <div className="geri-sayim-rakamlar">
       <div className="gs-kutu">
         <div className="deger">{pad(kalan.saat)}</div>
-        <div className="etiket">SAAT</div>
+        <div className="etiket">{tt("SAAT")}</div>
       </div>
       <div className="gs-kutu">
         <div className="deger">{pad(kalan.dakika)}</div>
-        <div className="etiket">DAKİKA</div>
+        <div className="etiket">{tt("DAKİKA")}</div>
       </div>
       <div className="gs-kutu">
         <div className="deger">{pad(kalan.saniye)}</div>
-        <div className="etiket">SANİYE</div>
+        <div className="etiket">{tt("SANİYE")}</div>
       </div>
     </div>
   );

@@ -21,24 +21,25 @@ import { GARDROP_YOLU } from "../pages/GardropaGit.jsx";
 // `.bd-gardrop-*` stilleri burada; dükkân sayfası gorunum.css'i kendiliğinden
 // yüklemiyor, bu yüzden bileşen kendi stilini getiriyor.
 import "../pages/gorunum.css";
+import { tt } from "../lib/dil.js";
 
 const YUVA_ADLARI = {
-  sac: "Saç", kiyafet: "Üst giyim", alt: "Alt giyim", ayakkabi: "Ayakkabı",
-  bas: "Baş aksesuarı", gozluk: "Gözlük", sakal: "Sakal", pelerin: "Sırt",
-  kolye: "Kolye", saat: "Saat", kupe: "Küpe",
+  sac: tt("Saç"), kiyafet: tt("Üst giyim"), alt: tt("Alt giyim"), ayakkabi: tt("Ayakkabı"),
+  bas: tt("Baş aksesuarı"), gozluk: tt("Gözlük"), sakal: tt("Sakal"), pelerin: tt("Sırt"),
+  kolye: tt("Kolye"), saat: "Saat", kupe: tt("Küpe"),
 };
 
 /** Vitrin bölümleri ve sırası; "Takı" kolye + saat + küpeyi toplar. */
 const VITRIN_BOLUMLERI = [
-  { anahtar: "sac", ad: "Saç", yuvalar: ["sac"] },
-  { anahtar: "kiyafet", ad: "Üst giyim", yuvalar: ["kiyafet"] },
-  { anahtar: "alt", ad: "Alt giyim", yuvalar: ["alt"] },
-  { anahtar: "ayakkabi", ad: "Ayakkabı", yuvalar: ["ayakkabi"] },
-  { anahtar: "bas", ad: "Baş aksesuarı", yuvalar: ["bas"] },
-  { anahtar: "gozluk", ad: "Gözlük", yuvalar: ["gozluk"] },
-  { anahtar: "sakal", ad: "Sakal", yuvalar: ["sakal"] },
-  { anahtar: "taki", ad: "Takı", yuvalar: ["kolye", "saat", "kupe"] },
-  { anahtar: "pelerin", ad: "Sırt", yuvalar: ["pelerin"] },
+  { anahtar: "sac", ad: tt("Saç"), yuvalar: ["sac"] },
+  { anahtar: "kiyafet", ad: tt("Üst giyim"), yuvalar: ["kiyafet"] },
+  { anahtar: "alt", ad: tt("Alt giyim"), yuvalar: ["alt"] },
+  { anahtar: "ayakkabi", ad: tt("Ayakkabı"), yuvalar: ["ayakkabi"] },
+  { anahtar: "bas", ad: tt("Baş aksesuarı"), yuvalar: ["bas"] },
+  { anahtar: "gozluk", ad: tt("Gözlük"), yuvalar: ["gozluk"] },
+  { anahtar: "sakal", ad: tt("Sakal"), yuvalar: ["sakal"] },
+  { anahtar: "taki", ad: tt("Takı"), yuvalar: ["kolye", "saat", "kupe"] },
+  { anahtar: "pelerin", ad: tt("Sırt"), yuvalar: ["pelerin"] },
 ];
 
 /** Parçaları bölümlere ayırır; boş bölüm çıkmaz, bilinmeyen yuva sona eklenir. */
@@ -108,14 +109,14 @@ export default function GardropVitrini() {
         gorunum: r?.avatar3d_gorunum ?? null,
       });
     } catch (e) {
-      setHata(hataMesaji(e, "Gardırop kataloğu yüklenemedi."));
+      setHata(hataMesaji(e, tt("Gardırop kataloğu yüklenemedi.")));
     }
   }, []);
 
   useEffect(() => { yukle(); }, [yukle]);
 
   if (hata) return <div className="hata-kutu">{hata}</div>;
-  if (!veri) return <div className="kart"><div className="alt-yazi">Yükleniyor…</div></div>;
+  if (!veri) return <div className="kart"><div className="alt-yazi">{tt("Yükleniyor…")}</div></div>;
 
   const sahipSayisi = veri.parcalar.filter((p) => veri.sahip.has(p.id)).length;
 
@@ -123,21 +124,21 @@ export default function GardropVitrini() {
     <>
       {/* ---- Şu anki görünüm ---- */}
       <div className="kart bd-gardrop-vitrin">
-        <div className="bd-kat-baslik"><span>Şu anki karakterin</span></div>
+        <div className="bd-kat-baslik"><span>{tt("Şu anki karakterin")}</span></div>
         <div className="bd-gardrop-vitrin-ic">
           {/* Burada AVATAR FOTOĞRAFI DEĞİL, 3B karakterin kendisi gösterilir:
               bu sekme meydana girdiğin karakteri kurduğun yer. Listelerdeki
               avatar (Avatar.jsx) seçilen fotoğraf olmaya devam ediyor. */}
           <KarakterPortresi gorunum={veri.gorunum} boyut={96} />
           <div>
-            <div className="bd-gardrop-vitrin-ad">{profile?.gorunen_ad ?? "Karakterin"}</div>
+            <div className="bd-gardrop-vitrin-ad">{profile?.gorunen_ad ?? tt("Karakterin")}</div>
             <div className="alt-yazi">
               {veri.kurulmus
-                ? `${sahipSayisi} / ${veri.parcalar.length} parça sende`
-                : "Henüz karakterini kurmadın."}
+                ? tt("{0} / {1} parça sende", { 0: sahipSayisi, 1: veri.parcalar.length })
+                : tt("Henüz karakterini kurmadın.")}
             </div>
             <a className="btn" href={GARDROP_YOLU} style={{ marginTop: 10 }}>
-              {veri.kurulmus ? "Gardıroba git" : "Karakterini oluştur"}
+              {veri.kurulmus ? tt("Gardıroba git") : tt("Karakterini oluştur")}
             </a>
           </div>
         </div>
@@ -145,7 +146,7 @@ export default function GardropVitrini() {
 
       {/* ---- Katalog ---- */}
       <div className="kart">
-        <div className="bd-kat-baslik"><span>Gardırop</span></div>
+        <div className="bd-kat-baslik"><span>{tt("Gardırop")}</span></div>
         {/* YUVAYA GÖRE GRUPLU (Paket 12, madde 4): tek uzun liste yerine
             bölümler; başlıkta adet, içinde ızgara. Bölümler açılıp kapanır,
             varsayılan açık. Tanınmayan yuva en sonda kendi adıyla durur. */}
@@ -173,9 +174,9 @@ export default function GardropVitrini() {
                     </span>
                     <span className="bd-gardrop-satir-fiyat">
                       {sende
-                        ? "Sende"
+                        ? tt("Sende")
                         : odul
-                          ? <><Ikon ad="kilit" boyut={12} /> Turnuva ödülü</>
+                          ? <><Ikon ad="kilit" boyut={12} /> {tt("Turnuva ödülü")}</>
                           : <><Ikon ad="coin" boyut={12} /> {Number(p.coin_fiyat).toLocaleString("tr-TR")}</>}
                     </span>
                   </a>
@@ -185,8 +186,7 @@ export default function GardropVitrini() {
           </details>
         ))}
         <div className="alt-yazi" style={{ marginTop: 10 }}>
-          Parçalar gardıropta denenir ve satın alınır — orada karakterinin
-          üstünde nasıl durduğunu görürsün.
+          {tt("Parçalar gardıropta denenir ve satın alınır — orada karakterinin üstünde nasıl durduğunu görürsün.")}
         </div>
       </div>
     </>

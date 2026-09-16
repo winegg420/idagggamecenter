@@ -27,6 +27,7 @@ import { y } from "../lib/yol.js";
 import { COSMETIC_COLORS, COSMETIC_LABELS, getCharacter } from "./karakterler.js";
 import { YUVALAR, RENKLI_YUVALAR, avatarUri, kozmetikCoz, karakterId, renkAlani } from "./gorunum.js";
 import "./gorunum.css";
+import { tt } from "../lib/dil.js";
 
 /** Nadirlik → çerçeve sınıfı (AvatarCerceve ile aynı aile). */
 const NADIRLIK_SINIF = { sirali: "n-sirali", ozel: "n-ozel", etkinlik: "n-etkinlik" };
@@ -68,7 +69,7 @@ export default function KarakterPage() {
       const ham = g.kozmetik && typeof g.kozmetik === "object" ? g.kozmetik : {};
       setSecili({ karakter: karakterId(g), kozmetik: ham });
     } catch (e) {
-      setHata(hataMesaji(e, "Görünüm yüklenemedi."));
+      setHata(hataMesaji(e, tt("Görünüm yüklenemedi.")));
     } finally {
       setYukleniyor(false);
     }
@@ -92,7 +93,7 @@ export default function KarakterPage() {
   );
 
   if (yukleniyor || !secili) {
-    return <div className="yukleniyor">Yükleniyor…</div>;
+    return <div className="yukleniyor">{tt("Yükleniyor…")}</div>;
   }
 
   const def = getCharacter(secili.karakter);
@@ -119,7 +120,7 @@ export default function KarakterPage() {
     const p = parcaHaritasi[yuva + ":" + anahtar];
     if (!p) return;
     if (p.coin_fiyat === null || p.coin_fiyat === undefined) {
-      setHata("Bu parça yalnız turnuva ödülü olarak kazanılır.");
+      setHata(tt("Bu parça yalnız turnuva ödülü olarak kazanılır."));
       return;
     }
     setOnay({ tur: "parca", kod: p.kod, yuva, anahtar, ad: p.ad, fiyat: Number(p.coin_fiyat) });
@@ -148,7 +149,7 @@ export default function KarakterPage() {
       }
       setBakiye((b) => b - onay.fiyat);
       coinTazele();
-      setBilgi(onay.ad + " alındı.");
+      setBilgi(onay.ad + tt(" alındı."));
       setOnay(null);
     } catch (e) {
       setHata(coinHatasi(e));
@@ -167,10 +168,10 @@ export default function KarakterPage() {
       if (error) throw error;
       nadirligiUnut(profile?.id);
       refreshProfile?.(profile?.id);
-      setBilgi("Görünümün kaydedildi.");
+      setBilgi(tt("Görünümün kaydedildi."));
       try { localStorage.setItem("bildim_karakter_secildi", "1"); } catch { /* özel mod */ }
     } catch (e) {
-      setHata(hataMesaji(e, "Kaydedilemedi."));
+      setHata(hataMesaji(e, tt("Kaydedilemedi.")));
     } finally {
       setCalisiyor(false);
     }
@@ -178,12 +179,12 @@ export default function KarakterPage() {
 
   return (
     <div className="bd-karakter-sayfa">
-      <div className="baslik">Görünümün</div>
+      <div className="baslik">{tt("Görünümün")}</div>
       {hata && <div className="hata-kutu">{hata}</div>}
       {bilgi && <div className="bd-bilgi-kutu">{bilgi}</div>}
 
       {/* ---- Karakter şeridi ---- */}
-      <div className="bd-kar-serit" role="listbox" aria-label="Karakterler">
+      <div className="bd-kar-serit" role="listbox" aria-label={tt("Karakterler")}>
         {karakterler.map((k) => {
           const bende = karSahip.includes(k.id);
           const aktif = k.id === secili.karakter;
@@ -214,7 +215,7 @@ export default function KarakterPage() {
         <img src={onizleme} alt={def.name} className="bd-kar-buyuk" />
         <div className="bd-kar-baslik">{def.name}</div>
         <button className="btn" disabled={calisiyor} onClick={kaydet}>
-          {calisiyor ? "Kaydediliyor…" : "Kaydet"}
+          {calisiyor ? tt("Kaydediliyor…") : tt("Kaydet")}
         </button>
       </div>
 
@@ -232,7 +233,7 @@ export default function KarakterPage() {
               onClick={() => setAcikYuva(acik ? null : yuva)}
             >
               <span>{ad}</span>
-              <span className="alt-yazi">{COSMETIC_LABELS[simdiki] ?? "Yok"}</span>
+              <span className="alt-yazi">{COSMETIC_LABELS[simdiki] ?? tt("Yok")}</span>
             </button>
 
             {acik && (
@@ -243,7 +244,7 @@ export default function KarakterPage() {
                     className={"bd-parca " + (simdiki === "yok" ? "aktif" : "")}
                     onClick={() => parcaSec(yuva, "yok")}
                   >
-                    <span className="bd-parca-ad">Yok</span>
+                    <span className="bd-parca-ad">{tt("Yok")}</span>
                   </button>
                   {liste.map((p) => {
                     const bende = parcaSahip.includes(p.kod);
@@ -268,7 +269,7 @@ export default function KarakterPage() {
                         {!bende && (
                           <span className="bd-parca-fiyat">
                             {etkinlik ? (
-                              <><Ikon ad="kilit" boyut={11} /> Etkinlik ödülü</>
+                              <><Ikon ad="kilit" boyut={11} /> {tt("Etkinlik ödülü")}</>
                             ) : (
                               <><Ikon ad="coin" boyut={11} /> {Number(p.coin_fiyat).toLocaleString("tr-TR")}</>
                             )}
@@ -281,14 +282,14 @@ export default function KarakterPage() {
 
                 {/* Renk ÜCRETSİZ: parça satılır, rengi hediye edilir. */}
                 {RENKLI_YUVALAR.has(yuva) && (
-                  <div className="bd-renk-satir" role="group" aria-label={ad + " rengi"}>
+                  <div className="bd-renk-satir" role="group" aria-label={ad + tt(" rengi")}>
                     {COSMETIC_COLORS.map((r) => (
                       <button
                         key={r}
                         type="button"
                         className={"bd-renk " + (koz[renkAlani(yuva)] === r ? "aktif" : "")}
                         style={{ background: r }}
-                        aria-label={"Renk " + r}
+                        aria-label={tt("Renk ") + r}
                         onClick={() => renkSec(yuva, r)}
                       />
                     ))}
@@ -301,28 +302,28 @@ export default function KarakterPage() {
       })}
 
       <div className="alt-yazi" style={{ textAlign: "center", margin: "12px 0 4px" }}>
-        Coin bakiyen: <b>{bakiye.toLocaleString("tr-TR")}</b> · Renkler ücretsiz
+        {tt("Coin bakiyen:")} <b>{bakiye.toLocaleString("tr-TR")}</b> {tt("· Renkler ücretsiz")}
       </div>
       <button className="btn ikincil" onClick={() => navigate(y("/joker?sekme=gorunum"))}>
-        Dükkânda tüm parçalar
+        {tt("Dükkânda tüm parçalar")}
       </button>
 
       {onay && (
-        <Modal onKapat={() => setOnay(null)} etiket="Satın alma">
+        <Modal onKapat={() => setOnay(null)} etiket={tt("Satın alma")}>
           <div className="bd-modal">
             <div className="baslik">{onay.ad}</div>
             <div className="alt-yazi" style={{ marginBottom: 12 }}>
-              Fiyat: <b>{onay.fiyat.toLocaleString("tr-TR")} coin</b> · Bakiyen:{" "}
-              <b>{bakiye.toLocaleString("tr-TR")} coin</b>
+              {tt("Fiyat:")} <b>{onay.fiyat.toLocaleString("tr-TR")} {tt("coin")}</b> {tt("· Bakiyen:")}{" "}
+              <b>{bakiye.toLocaleString("tr-TR")} {tt("coin")}</b>
             </div>
             {bakiye < onay.fiyat && (
-              <div className="hata-kutu" style={{ marginBottom: 10 }}>Coinin yetmiyor.</div>
+              <div className="hata-kutu" style={{ marginBottom: 10 }}>{tt("Coinin yetmiyor.")}</div>
             )}
             <div className="bd-konum-butonlar">
               <button className="btn" disabled={calisiyor || bakiye < onay.fiyat} onClick={satinAl}>
-                {calisiyor ? "…" : "Satın al"}
+                {calisiyor ? "…" : tt("Satın al")}
               </button>
-              <button className="btn ikincil" onClick={() => setOnay(null)}>Vazgeç</button>
+              <button className="btn ikincil" onClick={() => setOnay(null)}>{tt("Vazgeç")}</button>
             </div>
           </div>
         </Modal>

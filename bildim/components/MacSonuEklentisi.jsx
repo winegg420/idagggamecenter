@@ -6,6 +6,7 @@ import { supabase } from "../../src/lib/supabase.js";
 import { JOKER_BILGI } from "../lib/jokerler.js";
 import YanlisSatiri from "./YanlisSatiri.jsx";
 import { y } from "../lib/yol.js";
+import { tt } from "../lib/dil.js";
 
 /**
  * Maç sonucu ekranına eklenen blok:
@@ -58,7 +59,7 @@ export default function MacSonuEklentisi({ macTur, macId, kaybettim, rakipBot = 
       if (data) navigate(y(`/mac/${data}`));
       else navigate(y("/meydan"));
     } catch (e) {
-      setHata(hataMesaji(e, "Rövanş istenemedi."));
+      setHata(hataMesaji(e, tt("Rövanş istenemedi.")));
     } finally {
       setCalisiyor(false);
     }
@@ -71,18 +72,18 @@ export default function MacSonuEklentisi({ macTur, macId, kaybettim, rakipBot = 
 
       {seri && (seri.seri_gun ?? 0) > 0 && (
         <div className="bd-sonuc-seri">
-          <Ikon ad="ates" boyut={16} /> <b>{seri.seri_gun}.</b> gün — serin sürüyor
+          <Ikon ad="ates" boyut={16} /> <b>{seri.seri_gun}.</b> {tt("gün — serin sürüyor")}
         </div>
       )}
 
       {jokerler.length > 0 && (
         <div className="bd-sonuc-jokerler">
-          <span className="alt-yazi">Bu maçta kullandığın jokerler:</span>
+          <span className="alt-yazi">{tt("Bu maçta kullandığın jokerler:")}</span>
           <span className="bd-sonuc-joker-liste">
             {jokerler.map((j, i) => (
               <span key={i} className="bd-sonuc-joker">
                 <Ikon ad={JOKER_BILGI[j.tur]?.ikon ?? "soru"} boyut={15} /> {JOKER_BILGI[j.tur]?.ad ?? j.tur}
-                {j.ucretsiz && <em> (ücretsiz)</em>}
+                {j.ucretsiz && <em> {tt("(ücretsiz)")}</em>}
               </span>
             ))}
           </span>
@@ -94,10 +95,10 @@ export default function MacSonuEklentisi({ macTur, macId, kaybettim, rakipBot = 
       {kaybettim && macTur === "1v1" && !rakipBot && (
         <>
           <button className="bd-rovans" disabled={calisiyor} onClick={rovans}>
-            Rövanş
+            {tt("Rövanş")}
           </button>
           <div className="alt-yazi" style={{ textAlign: "center", marginTop: 6 }}>
-            Rakibine istek gönderilir · aynı kategori · 24 saat geçerli
+            {tt("Rakibine istek gönderilir · aynı kategori · 24 saat geçerli")}
           </div>
         </>
       )}

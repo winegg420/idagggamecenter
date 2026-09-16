@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Maskot from "./Maskot.jsx";
 import { y } from "../lib/yol.js";
+import { tt } from "../lib/dil.js";
 
 const ZAMAN_ASIMI_MS = 8000;
 
@@ -23,17 +24,17 @@ export default function MacYukleniyor({ hata, onTekrarDene, onIptal }) {
   }, []);
 
   if (!gecikti && !hata) {
-    return <div className="yukleniyor">Yükleniyor…</div>;
+    return <div className="yukleniyor">{tt("Yükleniyor…")}</div>;
   }
 
   return (
     <div className="bd-hata-kart">
       <Maskot poz="dusunuyor" boyut={78} />
-      <div className="bd-hata-baslik">Maç açılamadı</div>
+      <div className="bd-hata-baslik">{tt("Maç açılamadı")}</div>
       <div className="bd-hata-metin">
         {hata
           ? hata
-          : "Maç bilgisi gelmedi. Bağlantın kesilmiş olabilir ya da maç artık geçerli değil."}
+          : tt("Maç bilgisi gelmedi. Bağlantın kesilmiş olabilir ya da maç artık geçerli değil.")}
       </div>
       <div style={{ display: "flex", gap: 8, flexWrap: "wrap", justifyContent: "center" }}>
         {onTekrarDene && (
@@ -44,16 +45,16 @@ export default function MacYukleniyor({ hata, onTekrarDene, onIptal }) {
               onTekrarDene();
             }}
           >
-            Tekrar dene
+            {tt("Tekrar dene")}
           </button>
         )}
         {onIptal && (
           <button className="btn ikincil" onClick={onIptal}>
-            Maçı iptal et
+            {tt("Maçı iptal et")}
           </button>
         )}
         <button className="btn ikincil" onClick={() => navigate(y("/meydan"))}>
-          Meydan okumalara dön
+          {tt("Meydan okumalara dön")}
         </button>
       </div>
     </div>

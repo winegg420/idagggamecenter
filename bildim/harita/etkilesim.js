@@ -19,12 +19,13 @@
 // ============================================================
 
 import { supabase } from "../../src/lib/supabase.js";
+import { tt } from "../lib/dil.js";
 
 /** Menüdeki seçenekler. Görsel katman yalnız `kod` değerlerini bilir. */
 export const MENU = [
-  { kod: "meydan", ad: "Meydan oku", ikon: "kilic", coin: 0 },
-  { kod: "kahve", ad: "Kahve ikram et", ikon: "kahve", coin: 5 },
-  { kod: "balon", ad: "Balon ikram et", ikon: "hediye", coin: 5 },
+  { kod: "meydan", ad: tt("Meydan oku"), ikon: "kilic", coin: 0 },
+  { kod: "kahve", ad: tt("Kahve ikram et"), ikon: "kahve", coin: 5 },
+  { kod: "balon", ad: tt("Balon ikram et"), ikon: "hediye", coin: 5 },
 ];
 
 /** İkram teklifi gönderir. Coin sunucuda düşer. */

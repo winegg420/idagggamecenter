@@ -7,6 +7,7 @@ import { MAC_ICI_JOKERLER, JOKER_BILGI, envanterNesne } from "../lib/jokerler.js
 import { y } from "../lib/yol.js";
 import { sesJoker } from "../lib/ses.js";
 import { titret } from "../lib/geriBildirim.js";
+import { tt } from "../lib/dil.js";
 
 /**
  * Maç içi joker çubuğu. Tüm kararlar sunucudadır (joker_kullan RPC);
@@ -78,22 +79,22 @@ export default function JokerCubugu({ macTur, macId, soruIndex, onEtki, kilit })
       onEtki?.(data);
       await yukle();
     } catch (e) {
-      setHata(hataMesaji(e, "Joker kullanılamadı."));
+      setHata(hataMesaji(e, tt("Joker kullanılamadı.")));
     } finally {
       setCalisan(null);
     }
   };
 
   const neden = (tur) => {
-    if (kilit) return "Bu soruyu zaten cevapladın";
-    if (finalYasak) return "Turnuva finalinde joker kullanılamaz";
-    if (sinirDoldu) return `Bu maçta en fazla ${durum.sinir} joker`;
+    if (kilit) return tt("Bu soruyu zaten cevapladın");
+    if (finalYasak) return tt("Turnuva finalinde joker kullanılamaz");
+    if (sinirDoldu) return tt("Bu maçta en fazla {0} joker", { 0: durum.sinir });
     // Turnuva herkese AYNI soruyu sorar ve elemelidir: soru değiştirilemez.
-    if (macTur === "turnuva" && tur === "soru_degistir") return "Turnuvada soru değiştirilemez";
+    if (macTur === "turnuva" && tur === "soru_degistir") return tt("Turnuvada soru değiştirilemez");
     // Maç başına tek hak: sunucu da aynı kuralı uygular.
-    if (tur === "soru_degistir" && soruDegistirdim) return "Bu maçta soruyu bir kez değiştirebilirsin";
+    if (tur === "soru_degistir" && soruDegistirdim) return tt("Bu maçta soruyu bir kez değiştirebilirsin");
     const ucretsiz = tur === "elli" && durum.ucretsiz_elli_kaldi;
-    if (!ucretsiz && (envanter[tur] ?? 0) <= 0) return "Jokerin kalmadı";
+    if (!ucretsiz && (envanter[tur] ?? 0) <= 0) return tt("Jokerin kalmadı");
     return null;
   };
 
@@ -116,7 +117,7 @@ export default function JokerCubugu({ macTur, macId, soruIndex, onEtki, kilit })
             <span className="bd-joker-ikon" aria-hidden="true"><Ikon ad={bilgi.ikon} boyut={18} /></span>
             <span className="bd-joker-ad">{bilgi.ad}</span>
             <span className={`bd-joker-adet ${ucretsiz ? "bedava" : ""}`}>
-              {calisan === tur ? "…" : ucretsiz ? "ÜCRETSİZ" : adet}
+              {calisan === tur ? "…" : ucretsiz ? tt("ÜCRETSİZ") : adet}
             </span>
           </button>
         );
@@ -125,8 +126,8 @@ export default function JokerCubugu({ macTur, macId, soruIndex, onEtki, kilit })
       {(sinirDoldu || finalYasak) && (
         <div className="bd-joker-not">
           {finalYasak
-            ? "Finalde joker yok — sadece bilgi."
-            : `Bu maçta joker hakkın doldu (${durum.kullanilan}/${durum.sinir}).`}
+            ? tt("Finalde joker yok — sadece bilgi.")
+            : tt("Bu maçta joker hakkın doldu ({0}/{1}).", { 0: durum.kullanilan, 1: durum.sinir })}
         </div>
       )}
 
@@ -136,7 +137,7 @@ export default function JokerCubugu({ macTur, macId, soruIndex, onEtki, kilit })
           {/kalmadı/i.test(hata) && (
             <>
               {" "}
-              <Link to={y("/joker")}>Joker al</Link>
+              <Link to={y("/joker")}>{tt("Joker al")}</Link>
             </>
           )}
         </div>

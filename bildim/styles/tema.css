@@ -5487,6 +5487,7 @@ body.bd-ekle-acik .app { padding-bottom: calc(300px + env(safe-area-inset-bottom
 /* ---- Profil sayfasındaki ayar satırı (tema/ses üst bardan buraya) ---- */
 .bd-ayar-satir { display: flex; align-items: center; gap: var(--bd-b-3); }
 .bd-ayar-satir .bd-tema-dugme { flex: none; }
+.bd-ayar-satir .bd-ayar-dil { flex: none; align-self: center; margin-bottom: 0; }
 
 /* ============================================================
    MAÇ EKRANI — tek iş: soruyu cevaplamak

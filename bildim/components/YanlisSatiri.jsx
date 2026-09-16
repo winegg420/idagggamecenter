@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import Ikon from "./Ikon.jsx";
 import { supabase } from "../../src/lib/supabase.js";
 import { y } from "../lib/yol.js";
+import { tt } from "../lib/dil.js";
 
 /**
  * Maç sonucu ekranlarında görünen küçük satır:
@@ -42,7 +43,7 @@ export default function YanlisSatiri({ macTur, macId }) {
         <Ikon ad="kitap" boyut={16} />
       </span>
       <span className="metin">
-        <b>{adet} soruyu</b> yanlış bildin — Hatalarım'a eklendi
+        <b>{adet} {tt("soruyu")}</b> {tt("yanlış bildin — Hatalarım'a eklendi")}
       </span>
       <span className="ok" aria-hidden="true">›</span>
     </Link>

@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import Ikon from "./Ikon.jsx";
 import { meydanaDonulecek } from "../harita/donus.js";
 import { y } from "../lib/yol.js";
+import { tt } from "../lib/dil.js";
 
 // Maç sonu ekranlarında çizilen "Meydana dön" şeridi.
 //
@@ -34,12 +35,12 @@ export default function MeydanaDonus() {
   return (
     <div className="bd-meydan-donus">
       <button className="btn" onClick={() => navigate(y("/meydan"))}>
-        <Ikon ad="dunya" boyut={15} /> Meydana dön
+        <Ikon ad="dunya" boyut={15} /> {tt("Meydana dön")}
         {!iptal && kalan > 0 ? ` (${kalan})` : ""}
       </button>
       {!iptal && (
         <button className="btn ikincil kucuk" onClick={() => setIptal(true)}>
-          Burada kal
+          {tt("Burada kal")}
         </button>
       )}
     </div>

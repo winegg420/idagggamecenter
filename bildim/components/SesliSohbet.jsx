@@ -9,6 +9,7 @@ import {
   mikrofonHatasi,
   oturumKur,
 } from "../lib/sesliSohbet.js";
+import { tt } from "../lib/dil.js";
 
 // ============================================================
 // MAÇ İÇİ SESLİ SOHBET (yalnız 1v1, yalnız arkadaşlar)
@@ -142,8 +143,8 @@ export default function SesliSohbet({ macId, benimId, yuva, macBitti = false }) 
           } else if (d === "basarisiz") {
             kapat(
               ayrinti === "zaman_asimi" || ayrinti === "ice_basarisiz"
-                ? "Ses bağlantısı kurulamadı. Ev ağlarınız doğrudan bağlanmaya izin vermiyor olabilir — yazılı sohbeti kullanabilirsiniz."
-                : "Sesli sohbet başlatılamadı. Tekrar dene."
+                ? tt("Ses bağlantısı kurulamadı. Ev ağlarınız doğrudan bağlanmaya izin vermiyor olabilir — yazılı sohbeti kullanabilirsiniz.")
+                : tt("Sesli sohbet başlatılamadı. Tekrar dene.")
             );
             yayinla("kapat", null);
           }
@@ -217,7 +218,7 @@ export default function SesliSohbet({ macId, benimId, yuva, macBitti = false }) 
           setRakipBurada(baskasiVar);
           // Rakip maçtan çıktıysa görüşmeyi düşür
           if (!baskasiVar && durumRef.current !== DURUMLAR.KAPALI) {
-            kapat("Rakibin maçtan ayrıldı.");
+            kapat(tt("Rakibin maçtan ayrıldı."));
           }
         } catch {
           /* presence okunamadıysa düğme gizli kalır */
@@ -242,12 +243,12 @@ export default function SesliSohbet({ macId, benimId, yuva, macBitti = false }) 
         if (tur === "red") {
           if (durumRef.current === DURUMLAR.CAGRILIYOR) {
             setDurum(DURUMLAR.KAPALI);
-            setHata("Rakibin sesli sohbeti kabul etmedi.");
+            setHata(tt("Rakibin sesli sohbeti kabul etmedi."));
           }
           return;
         }
         if (tur === "kapat") {
-          if (durumRef.current !== DURUMLAR.KAPALI) kapat("Sesli sohbet kapandı.");
+          if (durumRef.current !== DURUMLAR.KAPALI) kapat(tt("Sesli sohbet kapandı."));
           return;
         }
         // teklif / cevap / aday → WebRTC motoruna
@@ -323,18 +324,18 @@ export default function SesliSohbet({ macId, benimId, yuva, macBitti = false }) 
             disabled={!rakipBurada}
             title={
               rakipBurada
-                ? "Sesli sohbet başlat"
-                : "Rakibin şu an maçta değil — geldiğinde açılır"
+                ? tt("Sesli sohbet başlat")
+                : tt("Rakibin şu an maçta değil — geldiğinde açılır")
             }
           >
             <Ikon ad="mikrofon" boyut={18} />
-            <span>{rakipBurada ? "Sesli sohbet" : "Rakibin yok"}</span>
+            <span>{rakipBurada ? tt("Sesli sohbet") : tt("Rakibin yok")}</span>
           </button>
           <button
             className="bd-ses-bilgi-dugme"
             onClick={() => setBilgiAcik((a) => !a)}
-            aria-label="Sesli sohbet nasıl çalışır?"
-            title="Sesli sohbet nasıl çalışır?"
+            aria-label={tt("Sesli sohbet nasıl çalışır?")}
+            title={tt("Sesli sohbet nasıl çalışır?")}
           >
             ?
           </button>
@@ -344,9 +345,9 @@ export default function SesliSohbet({ macId, benimId, yuva, macBitti = false }) 
       {durum === DURUMLAR.CAGRILIYOR && (
         <div className="bd-ses-durum">
           <span className="bd-ses-nokta" aria-hidden="true" />
-          Cevap bekleniyor…
+          {tt("Cevap bekleniyor…")}
           <button className="bd-ses-kucuk" onClick={bitir}>
-            Vazgeç
+            {tt("Vazgeç")}
           </button>
         </div>
       )}
@@ -354,14 +355,14 @@ export default function SesliSohbet({ macId, benimId, yuva, macBitti = false }) 
       {durum === DURUMLAR.CAGRI_GELDI && (
         <div className="bd-ses-cagri">
           <div className="bd-ses-cagri-metin">
-            <b>Sesli sohbet daveti</b>
-            <span>Kabul edersen mikrofonun açılır. Konuşma kaydedilmez.</span>
+            <b>{tt("Sesli sohbet daveti")}</b>
+            <span>{tt("Kabul edersen mikrofonun açılır. Konuşma kaydedilmez.")}</span>
           </div>
           <button className="bd-ses-kabul" onClick={kabulEt}>
-            Kabul et
+            {tt("Kabul et")}
           </button>
           <button className="bd-ses-kucuk" onClick={reddet}>
-            Reddet
+            {tt("Reddet")}
           </button>
         </div>
       )}
@@ -369,9 +370,9 @@ export default function SesliSohbet({ macId, benimId, yuva, macBitti = false }) 
       {durum === DURUMLAR.BAGLANIYOR && (
         <div className="bd-ses-durum">
           <span className="bd-ses-nokta" aria-hidden="true" />
-          Bağlanıyor…
+          {tt("Bağlanıyor…")}
           <button className="bd-ses-kucuk" onClick={bitir}>
-            İptal
+            {tt("İptal")}
           </button>
         </div>
       )}
@@ -379,7 +380,7 @@ export default function SesliSohbet({ macId, benimId, yuva, macBitti = false }) 
       {durum === DURUMLAR.BAGLI && (
         <div className="bd-ses-durum bagli">
           <span className="bd-ses-nokta canli" aria-hidden="true" />
-          Sesli sohbet açık
+          {tt("Sesli sohbet açık")}
           <button
             className="bd-ses-kucuk"
             onClick={() => {
@@ -388,10 +389,10 @@ export default function SesliSohbet({ macId, benimId, yuva, macBitti = false }) 
               oturumRef.current?.sesiKes(yeni);
             }}
           >
-            {sesKesik ? "Sesi aç" : "Sustur"}
+            {sesKesik ? tt("Sesi aç") : tt("Sustur")}
           </button>
           <button className="bd-ses-kucuk tehlike" onClick={bitir}>
-            Kapat
+            {tt("Kapat")}
           </button>
         </div>
       )}
@@ -400,10 +401,7 @@ export default function SesliSohbet({ macId, benimId, yuva, macBitti = false }) 
 
       {bilgiAcik && (
         <div className="bd-ses-bilgi">
-          Ses <b>doğrudan iki cihaz arasında</b> gider; sunucularımızda
-          saklanmaz ve <b>kaydedilmez</b>. Bağlantı kurulurken cihazlarınızın IP
-          adresleri karşı tarafa görünebilir — bu yüzden yalnız arkadaşlarınla
-          açılır. İstediğin an kapatabilirsin.
+          {tt("Ses")} <b>{tt("doğrudan iki cihaz arasında")}</b> {tt("gider; sunucularımızda saklanmaz ve")} <b>{tt("kaydedilmez")}</b>{tt(". Bağlantı kurulurken cihazlarınızın IP adresleri karşı tarafa görünebilir — bu yüzden yalnız arkadaşlarınla açılır. İstediğin an kapatabilirsin.")}
         </div>
       )}
     </div>

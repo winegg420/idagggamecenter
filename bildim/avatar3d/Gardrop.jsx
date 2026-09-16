@@ -14,6 +14,7 @@ import {portreMakinesiniKapat,yeniPortre} from './portre.js';
 import './atolye.css';
 import './yerlesim.css';
 import './gardrop.css';
+import { tt } from '../lib/dil.js';
 
 // Renk kategorileri — ayrı "Karakter" sekmesi kalktı, bunlar da
 // alttaki tek listeye kategori olarak girdi.
@@ -21,11 +22,11 @@ const CEKET_RENKLERI=['#be542d','#275c63','#354469','#71344c','#292b30','#c9b899
 const ALT_RENKLERI=['#253341','#3a3f4a','#5a4632','#2f4a3a','#6b4a55','#1f2933'];
 const AYAKKABI_RENKLERI=['#eee7d8','#2b2b30','#c04a34','#3a5a8c','#d9c27a','#8a8f98'];
 const RENK_BOLUMLERI=[
- {id:'ten',ad:'Ten',alan:'ten',liste:TENLER},
- {id:'sacRenk',ad:'Saç rengi',alan:'sacRenk',liste:SAC_RENKLERI},
- {id:'ceketRenk',ad:'Ceket rengi',alan:'ceketRenk',liste:CEKET_RENKLERI},
- {id:'altRenk',ad:'Alt giyim rengi',alan:'altRenk',liste:ALT_RENKLERI},
- {id:'ayakkabiRenk',ad:'Ayakkabı rengi',alan:'ayakkabiRenk',liste:AYAKKABI_RENKLERI},
+ {id:'ten',ad:tt("Ten"),alan:'ten',liste:TENLER},
+ {id:'sacRenk',ad:tt("Saç rengi"),alan:'sacRenk',liste:SAC_RENKLERI},
+ {id:'ceketRenk',ad:tt("Ceket rengi"),alan:'ceketRenk',liste:CEKET_RENKLERI},
+ {id:'altRenk',ad:tt("Alt giyim rengi"),alan:'altRenk',liste:ALT_RENKLERI},
+ {id:'ayakkabiRenk',ad:tt("Ayakkabı rengi"),alan:'ayakkabiRenk',liste:AYAKKABI_RENKLERI},
 ];
 
 // ------------------------------------------------------------
@@ -181,9 +182,9 @@ function Gardrop(){
     if(!aktif)return;
     if(session){servis.current=sunucuServisi(supabase);setKullanici(session.user.id);setDenemeMi(false);}
     else if(denemeCuzdaniMi()){servis.current=denemeServisi(localStorage,denemeKatalog);setDenemeMi(true);}
-    else{setHata('Gardıroba girmek için önce giriş yapmalısın.');return;}
+    else{setHata(tt("Gardıroba girmek için önce giriş yapmalısın."));return;}
     yukle();
-   }catch(e){if(aktif)setHata(e.message||'Gardırop açılamadı.');}
+   }catch(e){if(aktif)setHata(e.message||tt("Gardırop açılamadı."));}
   })();
 
   const degisti=e=>{if(e.key===ENVANTER_ANAHTAR)yukle();};window.addEventListener('storage',degisti);
@@ -278,7 +279,7 @@ function Gardrop(){
  };
 
  /** Bedava dönemde tek tık: onay penceresi açılmaz. */
- const hemenAl=(p)=>islem(()=>servis.current.satinAl(p.id),p.ad+' envanterine eklendi.');
+ const hemenAl=(p)=>islem(()=>servis.current.satinAl(p.id),p.ad+tt(" envanterine eklendi."));
 
  // ------------------------------------------------------------
  // KAYDET NEDEN KAPALI — oyuncuya SÖYLENİR
@@ -300,8 +301,8 @@ function Gardrop(){
  };
  const hepsiniAl=()=>{
   if(!alinabilir.length)return;
-  if(bedavaMi)islem(()=>sirayla(alinabilir),adlariYaz(alinabilir)+' envanterine eklendi. Şimdi kaydedebilirsin.');
-  else setOnay({ad:alinabilir.length===1?alinabilir[0].ad:alinabilir.length+' parça',fiyat:toplamFiyat,parcalar:alinabilir});
+  if(bedavaMi)islem(()=>sirayla(alinabilir),adlariYaz(alinabilir)+tt(" envanterine eklendi. Şimdi kaydedebilirsin."));
+  else setOnay({ad:alinabilir.length===1?alinabilir[0].ad:alinabilir.length+tt(" parça"),fiyat:toplamFiyat,parcalar:alinabilir});
  };
  /** Denenen (sahip olunmayan) parçaları çıkarır: kayıtlı hâl sende varsa ona döner. */
  const denenenleriGeriAl=()=>{
@@ -314,15 +315,15 @@ function Gardrop(){
    }
    return o;
   });
-  setBilgi('Denediğin parçalar çıkarıldı.');
+  setBilgi(tt("Denediğin parçalar çıkarıldı."));
  };
  const kurulmamis=durum?.kurulmus===false;
- const kayitBasligi=!durum?(hata?'Gardırop açılamadı':'Gardırop yükleniyor…')
-  :kaydediyor?'Kaydediliyor…'
-  :kilitli.length?`Sende olmayan ${kilitli.length===1?'bir parça':kilitli.length+' parça'} deneniyor: ${adlariYaz(kilitli)}`
-  :kurulmamis?'Karakterini bir kez kaydet, meydana öyle girilir.'
-  :fark?'Kaydedilmemiş değişiklik var.'
-  :'Kaydedildi. Oyunda bu görünümle görünüyorsun.';
+ const kayitBasligi=!durum?(hata?tt("Gardırop açılamadı"):tt("Gardırop yükleniyor…"))
+  :kaydediyor?tt("Kaydediliyor…")
+  :kilitli.length?tt("Sende olmayan {0} deneniyor: {1}", { 0: kilitli.length===1?tt("bir parça"):kilitli.length+tt(" parça"), 1: adlariYaz(kilitli) })
+  :kurulmamis?tt("Karakterini bir kez kaydet, meydana öyle girilir.")
+  :fark?tt("Kaydedilmemiş değişiklik var.")
+  :tt("Kaydedildi. Oyunda bu görünümle görünüyorsun.");
 
  // Bilgi mesajı kalıcı değil: eski "kaydedildi" yazısı yeni değişiklikte
  // yanıltmasın. Kalıcı durum yukarıdaki başlıkta, her an doğru.
@@ -337,25 +338,25 @@ function Gardrop(){
   const gz=new ResizeObserver(yaz);gz.observe(el);return()=>gz.disconnect();
  },[]);
 
- const sec=p=>{setG(a=>parcayiTak(a,p));setBilgi(p.ad+(sahip.includes(p.id)?' seçildi. Kaydederek oyuna uygula.':' deneniyor. Kaydetmek için önce edinmelisin.'));};
+ const sec=p=>{setG(a=>parcayiTak(a,p));setBilgi(p.ad+(sahip.includes(p.id)?tt(" seçildi. Kaydederek oyuna uygula."):tt(" deneniyor. Kaydetmek için önce edinmelisin.")));};
  const bakiyeYazi=durum?(Number(durum.bakiye)||0).toLocaleString('tr-TR'):'—';
- const kaydetYazi=!durum?'Yükleniyor…':kaydediyor?'Kaydediliyor…':mesgul?'Bekle…':!fark?'Kaydedildi ✓':kurulmamis?'Karakterimi kaydet':'Görünümü kaydet';
+ const kaydetYazi=!durum?tt("Yükleniyor…"):kaydediyor?tt("Kaydediliyor…"):mesgul?tt("Bekle…"):!fark?tt("Kaydedildi ✓"):kurulmamis?tt("Karakterimi kaydet"):tt("Görünümü kaydet");
  return <div ref={kok} className={'atolye gardrop'+(kucukSahne?' kucuk-sahne':'')} data-aktif-bolum={aktifBolum||''}>
  {/* YAPIŞIK ALAN — menü düğmesi, karakter ve kayıt çubuğu HEP görünür.
      Tek sticky kap: iOS kuralı gereği fixed değil, atalarında transform yok. */}
  <div ref={sabitRef} className="sabit-alan">
   <header className="g-ust">
    {/* Ok SVG: "←" karakteri Baloo 2'de yok, bazı cihazlarda hiç çizilmiyordu. */}
-   <a className="g-geri" href={geriHedef}><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M15 5l-7 7 7 7"/></svg>Menüye dön</a>
-   <h1 className="g-baslik">Gardırop{denemeMi&&<span className="g-deneme">Deneme</span>}</h1>
-   <p className="g-bakiye" aria-label={(denemeMi?'Deneme bakiyesi: ':'Coin bakiyen: ')+bakiyeYazi}><span className="coin" aria-hidden="true">◎</span> {bakiyeYazi}</p>
+   <a className="g-geri" href={geriHedef}><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M15 5l-7 7 7 7"/></svg>{tt("Menüye dön")}</a>
+   <h1 className="g-baslik">{tt("Gardırop")}{denemeMi&&<span className="g-deneme">{tt("Deneme")}</span>}</h1>
+   <p className="g-bakiye" aria-label={(denemeMi?tt("Deneme bakiyesi: "):tt("Coin bakiyen: "))+bakiyeYazi}><span className="coin" aria-hidden="true">◎</span> {bakiyeYazi}</p>
   </header>
   <div className="sabit-orta">
-   <section className="gosterim" aria-label="Karakter önizlemesi">
+   <section className="gosterim" aria-label={tt("Karakter önizlemesi")}>
     <div className="sahne" ref={alan}/>
-    <div className="kamera" role="group" aria-label="Kamera">
-     <button type="button" aria-pressed={yakin} onClick={()=>{setYakin(true);sahne.current?.yakin(true);}}>Yüzü incele</button>
-     <button type="button" aria-pressed={!yakin} onClick={()=>{setYakin(false);sahne.current?.yakin(false);}}>Tüm karakter</button>
+    <div className="kamera" role="group" aria-label={tt("Kamera")}>
+     <button type="button" aria-pressed={yakin} onClick={()=>{setYakin(true);sahne.current?.yakin(true);}}>{tt("Yüzü incele")}</button>
+     <button type="button" aria-pressed={!yakin} onClick={()=>{setYakin(false);sahne.current?.yakin(false);}}>{tt("Tüm karakter")}</button>
     </div>
     {/* Bekle / Yürü / Selam ver düğmeleri kaldırıldı (Paket 12, madde 1):
         gardıropta gereksiz. Karakter varsayılan "bekle" duruşunda kalır;
@@ -373,9 +374,9 @@ function Gardrop(){
     <div className="kayit-eylem">
      {kilitli.length?<>
       {!!alinabilir.length&&<button type="button" className="birincil" disabled={mesgul||bakiyeYetmez} onClick={hepsiniAl}>
-       {mesgul?'Alınıyor…':bakiyeYetmez?'Coin yetmiyor':alinabilir.length===kilitli.length?(kilitli.length===1?'Al':'Hepsini al'):'Satılanları al'}{!mesgul&&!bakiyeYetmez&&<small>{bedavaMi?'Ücretsiz':toplamFiyat.toLocaleString('tr-TR')+' coin'}</small>}
+       {mesgul?tt("Alınıyor…"):bakiyeYetmez?tt("Coin yetmiyor"):alinabilir.length===kilitli.length?(kilitli.length===1?'Al':tt("Hepsini al")):tt("Satılanları al")}{!mesgul&&!bakiyeYetmez&&<small>{bedavaMi?tt("Ücretsiz"):toplamFiyat.toLocaleString('tr-TR')+tt(" coin")}</small>}
       </button>}
-      <button type="button" disabled={mesgul} onClick={denenenleriGeriAl}>Geri al</button>
+      <button type="button" disabled={mesgul} onClick={denenenleriGeriAl}>{tt("Geri al")}</button>
      </>:<button type="button" className={'kaydet birincil'+(durum&&!fark?' kayitli':'')} disabled={!durum||mesgul||!fark} onClick={()=>islem(async()=>{
       setKaydediyor(true);
       try{
@@ -384,22 +385,22 @@ function Gardrop(){
        await portreyiYukle(guncel.current);
        return s;
       }finally{setKaydediyor(false);}
-     },'Görünümün kaydedildi. Meydanda aynı kıyafetlerle görüneceksin.',true)}>{kaydetYazi}</button>}
+     },tt("Görünümün kaydedildi. Meydanda aynı kıyafetlerle görüneceksin."),true)}>{kaydetYazi}</button>}
     </div>
-    {!!kilitli.length&&kilitli.length!==alinabilir.length&&<p className="kayit-not">{adlariYaz(kilitli.filter(p=>!alinabilir.includes(p)))} satılmaz, yalnız turnuva ödülüyle kazanılır.</p>}
+    {!!kilitli.length&&kilitli.length!==alinabilir.length&&<p className="kayit-not">{adlariYaz(kilitli.filter(p=>!alinabilir.includes(p)))} {tt("satılmaz, yalnız turnuva ödülüyle kazanılır.")}</p>}
    </div>
 
    {/* Gizleme geçici ve yalnız görsel: oyuncu eşyasının silindiğini sanmasın.
        Karakterin ÜSTÜNDE değil, altında ayrı satır: kafayı örtmesin. */}
-   {!!gizlenen.length&&<p className="gecici-gizli">Bu bölümde görünsün diye geçici olarak çıkarıldı: {gizlenen.map(yv=>YUVA_ADLARI[yv]).join(', ')}. Başka bölüme geçince geri gelir.</p>}
+   {!!gizlenen.length&&<p className="gecici-gizli">{tt("Bu bölümde görünsün diye geçici olarak çıkarıldı:")} {gizlenen.map(yv=>YUVA_ADLARI[yv]).join(', ')}{tt(". Başka bölüme geçince geri gelir.")}</p>}
   </div>
  </div>
 
  <main><aside>
  <section className="g-giris">
-  <h2>Karakterini giydir</h2>
-  <p>Bir karta dokun, karakterinde hemen dene. Sende olmayanı al, sonra <b>Görünümü kaydet</b>’e bas.</p>
-  <div className="cuzdan"><div><small>{denemeMi?'DENEME CÜZDANI':'COIN BAKİYEN'}</small><strong>{bakiyeYazi} coin</strong></div><span>{denemeMi?'Gerçek bakiyeni etkilemez':'Satın alınan parçalar bakiyenden düşer'}</span></div>
+  <h2>{tt("Karakterini giydir")}</h2>
+  <p>{tt("Bir karta dokun, karakterinde hemen dene. Sende olmayanı al, sonra")} <b>{tt("Görünümü kaydet")}</b>{tt("’e bas.")}</p>
+  <div className="cuzdan"><div><small>{denemeMi?tt("DENEME CÜZDANI"):tt("COIN BAKİYEN")}</small><strong>{bakiyeYazi} {tt("coin")}</strong></div><span>{denemeMi?tt("Gerçek bakiyeni etkilemez"):tt("Satın alınan parçalar bakiyenden düşer")}</span></div>
   {/* "Kaydedilen karakterle meydana git" kaldırıldı (Paket 12, madde 1):
       oyuncu kaydeder, meydana alt menüdeki Meydan sekmesinden kendisi gider. */}
  </section>
@@ -409,8 +410,8 @@ function Gardrop(){
      hâlinde; şerit yalnız ilgili bölüme kaydırır. Yuva sayısı sabit
      varsayılmaz: YUVA_ADLARI'na eklenen her yuva (katalogda parçası
      varsa) kendiliğinden şeride ve listeye girer, şerit satıra sarar. */}
- <nav className="kategori-serit" aria-label="Kozmetik kategorileri">
-  {[...Object.entries(YUVA_ADLARI).filter(([yv])=>katalog.some(p=>p.yuva===yv)),...RENK_BOLUMLERI.map(b=>[b.id,b.ad]),['hazir','Hazır görünümler']].map(([id,ad])=>
+ <nav className="kategori-serit" aria-label={tt("Kozmetik kategorileri")}>
+  {[...Object.entries(YUVA_ADLARI).filter(([yv])=>katalog.some(p=>p.yuva===yv)),...RENK_BOLUMLERI.map(b=>[b.id,b.ad]),['hazir',tt("Hazır görünümler")]].map(([id,ad])=>
    <button key={id} type="button" aria-pressed={aktifBolum===id} onClick={()=>bolumeGit(id)}>{ad}</button>)}
  </nav>
 
@@ -424,23 +425,23 @@ function Gardrop(){
     {/* Her bölümün başında "boşalt" seçeneği: oyuncu ayrı düğme aramasın. */}
     <article className={'esya-bos'+(bosTakili?' takili':'')}>
      <button type="button" className="kart-dokun" aria-pressed={bosTakili}
-       aria-label={yuvaAd+' yuvasını boşalt'}
-       onClick={()=>{setG(a=>parcayiCikar(a,yv));setBilgi(yuvaAd+' çıkarıldı.');}}>
+       aria-label={yuvaAd+tt(" yuvasını boşalt")}
+       onClick={()=>{setG(a=>parcayiCikar(a,yv));setBilgi(yuvaAd+tt(" çıkarıldı."));}}>
       <span className="esya-gorsel esya-yok" aria-hidden="true">✕</span>
-      <h3>{yv==='kiyafet'?'Tişört':'Yok'}</h3>
-      <small className={'cip '+(bosTakili?'cip-uzerinde':'cip-envanter')}>{bosTakili?'Üzerinde':'Çıkar'}</small>
+      <h3>{yv==='kiyafet'?tt("Tişört"):tt("Yok")}</h3>
+      <small className={'cip '+(bosTakili?'cip-uzerinde':'cip-envanter')}>{bosTakili?tt("Üzerinde"):tt("Çıkar")}</small>
      </button>
     </article>
 
     {liste.map(p=>{
      const sende=sahip.includes(p.id),takili=g[p.yuva]===p.deger;
      // Kart durumu tek bakışta: Üzerinde / Deneniyor / Envanterinde / Ücretsiz / fiyat.
-     const cip=takili&&sende?['uzerinde','Üzerinde']:takili?['deneniyor','Deneniyor']:sende?['envanter','Envanterinde']
-      :bedavaMi?['bedava','Ücretsiz']:p.odul?['odul','Satılmaz']:['fiyat',<><span className="coin" aria-hidden="true">◎</span> {Number(p.fiyat||0).toLocaleString('tr-TR')} coin</>];
+     const cip=takili&&sende?['uzerinde',tt("Üzerinde")]:takili?['deneniyor',tt("Deneniyor")]:sende?['envanter',tt("Envanterinde")]
+      :bedavaMi?['bedava',tt("Ücretsiz")]:p.odul?['odul',tt("Satılmaz")]:['fiyat',<><span className="coin" aria-hidden="true">◎</span> {Number(p.fiyat||0).toLocaleString('tr-TR')} {tt("coin")}</>];
      return <article key={p.id} className={(takili?'takili':'')+(takili&&!sende?' deneniyor':'')+(p.odul&&!sende?' odul':'')}>
       {/* KARTIN KENDİSİ DÜĞME: tıklayınca ara onay olmadan karakterde denenir. */}
       <button type="button" className="kart-dokun" aria-pressed={takili}
-        aria-label={p.ad+(sende?' tak':' dene')} onClick={()=>sec(p)}>
+        aria-label={p.ad+(sende?tt(" tak"):tt(" dene"))} onClick={()=>sec(p)}>
        <ParcaPortresi gorunum={portreTemeli} parca={p}/>
        <h3 title={p.ad}>{p.ad}</h3>
        {/* Kartın altında TEK satır: hap varsa çip yok. Fiyat/"Ücretsiz" hapın
@@ -450,12 +451,12 @@ function Gardrop(){
       </button>
       {/* Nadirlik etiketi bedava dönemde de KALIR: oyuncu normalde nasıl
           kazanılacağını görsün. */}
-      {p.odul&&<span className="odul-rozet">{sende?'Turnuva ödülü':<><span aria-hidden="true">🔒</span> Turnuva ödülü</>}</span>}
+      {p.odul&&<span className="odul-rozet">{sende?tt("Turnuva ödülü"):<><span aria-hidden="true">🔒</span> {tt("Turnuva ödülü")}</>}</span>}
       <div className="esya-eylem">
-       {takili&&yv!=='kiyafet'&&<button type="button" aria-label={p.ad+' çıkar'} onClick={()=>setG(a=>parcayiCikar(a,p.yuva))}>Çıkar</button>}
+       {takili&&yv!=='kiyafet'&&<button type="button" aria-label={p.ad+tt(" çıkar")} onClick={()=>setG(a=>parcayiCikar(a,p.yuva))}>{tt("Çıkar")}</button>}
        {!sende&&(bedavaMi||!p.odul)&&<button type="button" className="al" disabled={mesgul}
-         aria-label={p.ad+(bedavaMi?' al':' satın al')}
-         onClick={()=>bedavaMi?hemenAl(p):setOnay(p)}>{bedavaMi?'Ücretsiz al':<>{Number(p.fiyat||0).toLocaleString('tr-TR')} <span className="coin" aria-hidden="true">◎</span></>}</button>}
+         aria-label={p.ad+(bedavaMi?' al':tt(" satın al"))}
+         onClick={()=>bedavaMi?hemenAl(p):setOnay(p)}>{bedavaMi?tt("Ücretsiz al"):<>{Number(p.fiyat||0).toLocaleString('tr-TR')} <span className="coin" aria-hidden="true">◎</span></>}</button>}
       </div></article>;
     })}
    </div>
@@ -478,24 +479,24 @@ function Gardrop(){
  {/* HAZIR GÖRÜNÜMLER — takılı saç ve ekipmanları korur, yalnız
      ten/yüz/saç rengini uygular. */}
  <section id="yuva-hazir" className="yuva-bolum">
-  <h2>Hazır görünümler</h2>
+  <h2>{tt("Hazır görünümler")}</h2>
   <div className="kimlikler">
    {KOLEKSIYON.map(k=>
     <button key={k.id} type="button"
       aria-pressed={g.ten===k.kimlik.ten&&g.yuz===k.kimlik.yuz&&g.sacRenk===k.kimlik.sacRenk}
-      onClick={()=>{setG(a=>({...a,ten:k.kimlik.ten,yuz:k.kimlik.yuz,sacRenk:k.kimlik.sacRenk}));setBilgi(k.ad+' uygulandı.');}}>
+      onClick={()=>{setG(a=>({...a,ten:k.kimlik.ten,yuz:k.kimlik.yuz,sacRenk:k.kimlik.sacRenk}));setBilgi(k.ad+tt(" uygulandı."));}}>
      {/* Önizleme rozeti (Atolye.jsx'teki desen): ten dolgusu + saç rengi çerçeve. */}
      <span className="kimlik-rozet" aria-hidden="true" style={{background:k.kimlik.ten,borderColor:k.kimlik.sacRenk}}/>
      <span className="kimlik-ad">{k.ad}</span>
     </button>)}
   </div>
  </section>
- {denemeMi&&<details className="deneme-panel"><summary>Deneme araçları</summary><p>Bu düğmeler yalnız önizleme içindir. Gerçek turnuva ve coin hesabına bağlı değildir.</p><button disabled={mesgul||durum?.oduller?.includes('ilk-turnuva-denemesi')} onClick={()=>islem(()=>servis.current.odulDene(),'Deneme turnuva ödülü geldi: taç ve pelerin envanterinde.')}>Turnuva ödülünü dene</button><button disabled={mesgul} onClick={()=>islem(()=>servis.current.sifirla(),'Deneme cüzdanı ve envanteri yeniden başlatıldı.',true)}>Denemeyi yeniden başlat</button></details>}
- <nav className="g-alt-baglanti" aria-label="Diğer sayfalar"><a className="meydan-link" href={geriHedef}>← Menüye dön</a><a className="meydan-link" href="./index.html">Serbest tasarım atölyesine dön</a></nav>{denemeMi&&<p className="not">Satın alma ve ödül denemeleri bu tarayıcıda saklanır. Yeni ürün fiyatları örnektir. Serbest atölyedeki seçimler envanter sahipliği vermez.</p>}</aside></main>
+ {denemeMi&&<details className="deneme-panel"><summary>{tt("Deneme araçları")}</summary><p>{tt("Bu düğmeler yalnız önizleme içindir. Gerçek turnuva ve coin hesabına bağlı değildir.")}</p><button disabled={mesgul||durum?.oduller?.includes('ilk-turnuva-denemesi')} onClick={()=>islem(()=>servis.current.odulDene(),tt("Deneme turnuva ödülü geldi: taç ve pelerin envanterinde."))}>{tt("Turnuva ödülünü dene")}</button><button disabled={mesgul} onClick={()=>islem(()=>servis.current.sifirla(),tt("Deneme cüzdanı ve envanteri yeniden başlatıldı."),true)}>{tt("Denemeyi yeniden başlat")}</button></details>}
+ <nav className="g-alt-baglanti" aria-label={tt("Diğer sayfalar")}><a className="meydan-link" href={geriHedef}>{tt("← Menüye dön")}</a><a className="meydan-link" href="./index.html">{tt("Serbest tasarım atölyesine dön")}</a></nav>{denemeMi&&<p className="not">{tt("Satın alma ve ödül denemeleri bu tarayıcıda saklanır. Yeni ürün fiyatları örnektir. Serbest atölyedeki seçimler envanter sahipliği vermez.")}</p>}</aside></main>
  {onay&&<div className="onay-zemin"><section role="dialog" aria-modal="true" aria-labelledby="satin-baslik" className="satin-onay" onKeyDown={e=>{if(e.key==='Escape'&&!mesgul)setOnay(null);if(e.key==='Tab'){const btns=[...e.currentTarget.querySelectorAll('button:not(:disabled)')];if(btns.length){e.preventDefault();const i=btns.indexOf(document.activeElement);btns[(i+(e.shiftKey?-1:1)+btns.length)%btns.length].focus();}}}}><h2 id="satin-baslik">{onay.ad}</h2>
-  {onay.parcalar&&<ul className="onay-liste">{onay.parcalar.map(p=><li key={p.id}>{p.ad} <span>{Number(p.fiyat||0).toLocaleString('tr-TR')} coin</span></li>)}</ul>}
-  <p>{Number(onay.fiyat||0).toLocaleString('tr-TR')} {denemeMi?'deneme ':''}coin harcanacak.</p><p>Kalan: {Math.max(0,(durum?.bakiye||0)-onay.fiyat).toLocaleString('tr-TR')} coin</p>{durum?.bakiye<onay.fiyat&&<p className="hata">{denemeMi?'Deneme bakiyen':'Bakiyen'} yetersiz.</p>}
-  <div className="onay-eylem"><button type="button" autoFocus disabled={mesgul} onClick={()=>setOnay(null)}>Vazgeç</button><button type="button" className="birincil" disabled={mesgul||durum?.bakiye<onay.fiyat} onClick={()=>{const liste=onay.parcalar||[onay];islem(()=>sirayla(liste),adlariYaz(liste)+' envanterine eklendi. Takıp kaydedebilirsin.');}}>Satın almayı onayla</button></div></section></div>}
- <footer><span>{denemeMi?'Önizleme · Envanter ve giydirme':'Gardırop'}</span><output>{stat.hata?stat.hata:stat.gizli?'Sekme arka planda — çizim duraklatıldı':stat.fps?stat.fps+' FPS':'Ölçülüyor…'}</output></footer></div>;
+  {onay.parcalar&&<ul className="onay-liste">{onay.parcalar.map(p=><li key={p.id}>{p.ad} <span>{Number(p.fiyat||0).toLocaleString('tr-TR')} {tt("coin")}</span></li>)}</ul>}
+  <p>{Number(onay.fiyat||0).toLocaleString('tr-TR')} {denemeMi?tt("deneme "):''}{tt("coin harcanacak.")}</p><p>{tt("Kalan:")} {Math.max(0,(durum?.bakiye||0)-onay.fiyat).toLocaleString('tr-TR')} {tt("coin")}</p>{durum?.bakiye<onay.fiyat&&<p className="hata">{denemeMi?tt("Deneme bakiyen"):tt("Bakiyen")} {tt("yetersiz.")}</p>}
+  <div className="onay-eylem"><button type="button" autoFocus disabled={mesgul} onClick={()=>setOnay(null)}>{tt("Vazgeç")}</button><button type="button" className="birincil" disabled={mesgul||durum?.bakiye<onay.fiyat} onClick={()=>{const liste=onay.parcalar||[onay];islem(()=>sirayla(liste),adlariYaz(liste)+tt(" envanterine eklendi. Takıp kaydedebilirsin."));}}>{tt("Satın almayı onayla")}</button></div></section></div>}
+ <footer><span>{denemeMi?tt("Önizleme · Envanter ve giydirme"):tt("Gardırop")}</span><output>{stat.hata?stat.hata:stat.gizli?tt("Sekme arka planda — çizim duraklatıldı"):stat.fps?stat.fps+' FPS':tt("Ölçülüyor…")}</output></footer></div>;
 }
 createRoot(document.getElementById('root')).render(<Gardrop/>);

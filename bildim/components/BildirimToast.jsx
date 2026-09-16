@@ -3,16 +3,17 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "../../src/lib/supabase.js";
 import { useAuth } from "../../src/context/AuthContext.jsx";
 import Ikon from "./Ikon.jsx";
+import { tt } from "../lib/dil.js";
 
 // Davet tipleri burada YOK: onları üstteki davet bandı (DavetBandi) gösterir —
 // bandda "Kabul Et" butonu da var, toast aynı şeyi ikinci kez söylemesin.
 const TIP_STIL = {
-  arkadas_istek: { ikon: "kisiler", sinif: "bilgi", baslik: "Arkadaşlık isteği" },
-  arkadas_kabul: { ikon: "kisiler", sinif: "bilgi", baslik: "Yeni arkadaş" },
-  gecildin: { ikon: "grafik", sinif: "uyari", baslik: "Sıran düştü" },
-  lige_girdin: { ikon: "sehir", sinif: "bilgi", baslik: "Ligdesin" },
-  hafta_sonuc: { ikon: "kupa", sinif: "odul", baslik: "Hafta bitti" },
-  seri_hatirlatma: { ikon: "ates", sinif: "uyari", baslik: "Serini koru" },
+  arkadas_istek: { ikon: "kisiler", sinif: "bilgi", baslik: tt("Arkadaşlık isteği") },
+  arkadas_kabul: { ikon: "kisiler", sinif: "bilgi", baslik: tt("Yeni arkadaş") },
+  gecildin: { ikon: "grafik", sinif: "uyari", baslik: tt("Sıran düştü") },
+  lige_girdin: { ikon: "sehir", sinif: "bilgi", baslik: tt("Ligdesin") },
+  hafta_sonuc: { ikon: "kupa", sinif: "odul", baslik: tt("Hafta bitti") },
+  seri_hatirlatma: { ikon: "ates", sinif: "uyari", baslik: tt("Serini koru") },
 };
 
 // Bant tarafından gösterilenler toast'a hiç girmez.
@@ -72,7 +73,7 @@ export default function BildirimToast() {
 
   if (!aktif) return null;
 
-  const stil = TIP_STIL[aktif.tip] ?? { ikon: "zil", sinif: "bilgi", baslik: "Bildirim" };
+  const stil = TIP_STIL[aktif.tip] ?? { ikon: "zil", sinif: "bilgi", baslik: tt("Bildirim") };
 
   const git = () => {
     window.clearTimeout(sayacRef.current);
@@ -88,7 +89,7 @@ export default function BildirimToast() {
           <span className="bd-toast-baslik">{stil.baslik}</span>
           <span className="bd-toast-metin">{aktif.metin}</span>
         </button>
-        <button className="bd-toast-kapat" onClick={kapat} aria-label="Kapat">
+        <button className="bd-toast-kapat" onClick={kapat} aria-label={tt("Kapat")}>
           <Ikon ad="carpi" boyut={15} />
         </button>
         <span className="bd-toast-sure" style={{ animationDuration: `${SURE}ms` }} />

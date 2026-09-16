@@ -19,6 +19,7 @@ import { coinTazele, coinHatasi } from "../lib/coin.js";
 import { y } from "../lib/yol.js";
 import { avatarUri, kozmetikCoz, karakterId, YUVALAR } from "./gorunum.js";
 import "../pages/gorunum.css";
+import { tt } from "../lib/dil.js";
 
 const NADIRLIK_SINIF = { sirali: "n-sirali", ozel: "n-ozel", etkinlik: "n-etkinlik" };
 
@@ -35,7 +36,7 @@ export default function GorunumDukkani() {
       if (error) throw error;
       setVeri(Array.isArray(data) ? data[0] : data);
     } catch (e) {
-      setHata(hataMesaji(e, "Dükkân yüklenemedi."));
+      setHata(hataMesaji(e, tt("Dükkân yüklenemedi.")));
     }
   }, []);
 
@@ -47,7 +48,7 @@ export default function GorunumDukkani() {
   }, [veri, profile]);
 
   if (hata) return <div className="hata-kutu">{hata}</div>;
-  if (!veri) return <div className="yukleniyor">Yükleniyor…</div>;
+  if (!veri) return <div className="yukleniyor">{tt("Yükleniyor…")}</div>;
 
   const karSahip = veri.karakter_sahip ?? [];
   const parcaSahip = veri.parca_sahip ?? [];
@@ -62,7 +63,7 @@ export default function GorunumDukkani() {
           ? await supabase.rpc("karakter_satin_al", { p_id: anahtar })
           : await supabase.rpc("esya_satin_al", { p_kod: anahtar });
       if (error) throw error;
-      setBilgi(ad + " alındı.");
+      setBilgi(ad + tt(" alındı."));
       coinTazele();
       await yukle();
     } catch (e) {
@@ -79,9 +80,9 @@ export default function GorunumDukkani() {
         <img src={gorsel} alt="" loading="lazy" />
         <span className="bd-parca-ad">{ad}</span>
         {bende ? (
-          <span className="bd-parca-fiyat"><Ikon ad="onay" boyut={11} /> Sahipsin</span>
+          <span className="bd-parca-fiyat"><Ikon ad="onay" boyut={11} /> {tt("Sahipsin")}</span>
         ) : etkinlik ? (
-          <span className="bd-parca-fiyat"><Ikon ad="kilit" boyut={11} /> Etkinlik ödülü</span>
+          <span className="bd-parca-fiyat"><Ikon ad="kilit" boyut={11} /> {tt("Etkinlik ödülü")}</span>
         ) : (
           <button
             className="btn kucuk"
@@ -100,7 +101,7 @@ export default function GorunumDukkani() {
       {bilgi && <div className="bd-bilgi-kutu">{bilgi}</div>}
 
       <div className="kart bd-yuva-kart">
-        <div className="bd-yuva-baslik"><span>Karakterler</span></div>
+        <div className="bd-yuva-baslik"><span>{tt("Karakterler")}</span></div>
         <div className="bd-parca-grid">
           {(veri.karakterler ?? []).map((k) =>
             kart({
@@ -134,7 +135,7 @@ export default function GorunumDukkani() {
         );
       })}
 
-      <Link className="btn ikincil" to={y("/gorunum")}>Görünümü düzenle</Link>
+      <Link className="btn ikincil" to={y("/gorunum")}>{tt("Görünümü düzenle")}</Link>
     </>
   );
 }

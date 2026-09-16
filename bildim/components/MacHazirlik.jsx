@@ -5,6 +5,7 @@
 // ============================================================
 import Maskot from "./Maskot.jsx";
 import Ikon from "./Ikon.jsx";
+import { tt } from "../lib/dil.js";
 
 /** Rakip dönmezse maçın hükmen biteceği süre (sunucudaki değerle aynı). */
 export const TERK_SN = 45;
@@ -39,20 +40,19 @@ export function HazirKapisi({
   return (
     <div className="buyuk-mesaj">
       <Maskot poz={benHazir ? "kutluyor" : "selam"} boyut={104} className="bd-sonuc-maskot" />
-      <h2>{hepsiHazir ? "Maç başlıyor…" : benHazir ? "Rakip bekleniyor" : "Hazır mısın?"}</h2>
+      <h2>{hepsiHazir ? tt("Maç başlıyor…") : benHazir ? tt("Rakip bekleniyor") : tt("Hazır mısın?")}</h2>
       <p className="alt-yazi" style={{ marginBottom: 14 }}>
-        Bu maç <b>eş zamanlı</b> oynanır: herkes aynı soruyu aynı anda görür,
-        soru herkes için aynı anda geçer. Maç <b>hepiniz hazır olunca</b> başlar.
+        {tt("Bu maç")} <b>{tt("eş zamanlı")}</b> {tt("oynanır: herkes aynı soruyu aynı anda görür, soru herkes için aynı anda geçer. Maç")} <b>{tt("hepiniz hazır olunca")}</b> {tt("başlar.")}
       </p>
 
       {tabela}
 
       <div className="bd-hazir-durum">
         <span className={"bd-hazir-sayac" + (hepsiHazir ? " tamam" : "")}>
-          {hazirSayisi}/{toplamOyuncu} hazır
+          {hazirSayisi}/{toplamOyuncu} {tt("hazır")}
         </span>
         {!hepsiHazir && bekleyenAdlar.length > 0 && (
-          <span className="alt-yazi">Beklenen: {bekleyenAdlar.join(", ")}</span>
+          <span className="alt-yazi">{tt("Beklenen:")} {bekleyenAdlar.join(", ")}</span>
         )}
       </div>
 
@@ -60,12 +60,11 @@ export function HazirKapisi({
           (asenkron) oyun mu. Beklemeye mahkûm bırakılmıyor. */}
       {onAsenkron && bekleyenSn >= LOBI_BEKLEME_SN && !hepsiHazir && (
         <div className="bd-lobi-secenek">
-          <b>Rakibin {Math.floor(bekleyenSn / 60)} dakikadır gelmedi.</b>
+          <b>{tt("Rakibin {0} dakikadır gelmedi.", { 0: Math.floor(bekleyenSn / 60) })}</b>
           <span>
-            İstersen maçı <b>sıra tabanlı</b> bırak: sen kendi bölümünü şimdi
-            oynarsın, rakibin kendi zamanında oynar.
+            {tt("İstersen maçı")} <b>{tt("sıra tabanlı")}</b> {tt("bırak: sen kendi bölümünü şimdi oynarsın, rakibin kendi zamanında oynar.")}
           </span>
-          <button className="btn kucuk" onClick={onAsenkron}>Asenkron bırak</button>
+          <button className="btn kucuk" onClick={onAsenkron}>{tt("Asenkron bırak")}</button>
         </div>
       )}
 
@@ -73,16 +72,16 @@ export function HazirKapisi({
         {!benHazir ? (
           <button className="btn bd-hazir-btn" onClick={onHazir}>
             <Ikon ad="onay" boyut={20} />
-            Hazırım
+            {tt("Hazırım")}
           </button>
         ) : (
           <div className="bd-hazir-beklemede">
             <span className="bd-hazir-nokta" aria-hidden="true" />
-            Hazırsın — diğerleri bekleniyor
+            {tt("Hazırsın — diğerleri bekleniyor")}
           </div>
         )}
         <button className="btn ikincil" onClick={onCik}>
-          {bekleyenSn >= LOBI_BEKLEME_SN ? "İptal et" : "Vazgeç"}
+          {bekleyenSn >= LOBI_BEKLEME_SN ? tt("İptal et") : tt("Vazgeç")}
         </button>
       </div>
     </div>
@@ -100,7 +99,7 @@ export function GeriSayim({ kalan }) {
     <div className="bd-geri-sayim" role="status" aria-live="assertive">
       <div className="bd-geri-sayim-kutu">
         <span className="bd-geri-sayim-sayi" key={n}>{n}</span>
-        <span className="bd-geri-sayim-not">Hazır ol!</span>
+        <span className="bd-geri-sayim-not">{tt("Hazır ol!")}</span>
       </div>
     </div>
   );
@@ -115,20 +114,19 @@ export function GeriSayim({ kalan }) {
  */
 export function KopukPerde({ bekleyenAdlar = [], gecenSn = 0 }) {
   const kalan = Math.max(0, TERK_SN - gecenSn);
-  const kim = bekleyenAdlar.length ? bekleyenAdlar.join(", ") : "Rakibin";
+  const kim = bekleyenAdlar.length ? bekleyenAdlar.join(", ") : tt("Rakibin");
   return (
     <div className="bd-kopuk-perde" role="alert" aria-live="assertive">
       <div className="bd-kopuk-kutu">
         <span className="bd-kopuk-halka" aria-hidden="true" />
-        <b>Rakip bekleniyor</b>
+        <b>{tt("Rakip bekleniyor")}</b>
         <span>
-          <b>{kim}</b> oyundan ayrıldı. Maç duraklatıldı — süre işlemiyor,
-          bu yüzden bir şey kaybetmiyorsun.
+          <b>{kim}</b> {tt("oyundan ayrıldı. Maç duraklatıldı — süre işlemiyor, bu yüzden bir şey kaybetmiyorsun.")}
         </span>
         <span className="bd-kopuk-sayac">
           {kalan > 0
-            ? `${kalan} sn içinde dönmezse maçı terk etmiş sayılacak`
-            : "Maç sonlandırılıyor…"}
+            ? tt("{0} sn içinde dönmezse maçı terk etmiş sayılacak", { 0: kalan })
+            : tt("Maç sonlandırılıyor…")}
         </span>
       </div>
     </div>

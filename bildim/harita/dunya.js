@@ -31,6 +31,7 @@ import { meydanModelYuru } from "../avatar3d/meydan-model.js";
 import { esyaBilgisi, esyaOnbelleginiTemizle } from "./esyalar.js";
 import { dansBaslat, dansKaresi, dansiDurdur } from "./danslar.js";
 import { turnuvaSaatleri } from "../lib/zaman.js";
+import { tt } from "../lib/dil.js";
 export { esyaBilgisi };
 
 // roundRect / canvasDoku / isimEtiketi / nesneyiSerbestBirak ORTAK.JS'e taşındı:
@@ -50,15 +51,15 @@ const KOPRU = { L: 15.8, W: 3.4, H: 3.0 };
 
 /** Bina listesi — renkler mevcut mod renkleriyle aynı, değiştirme. */
 export const BINALAR = [
-  { ad: "Meydan Oku", alt: "1v1 düello",        duvar: "#FF5B4A", cati: "#C03225", rota: "/meydan" },
-  { ad: "Hızlı Mod",  alt: "90 saniye",         duvar: "#FFB020", cati: "#C98A22", rota: "/hizli-mod" },
-  { ad: "Grup Maçı",  alt: "3-5 kişi",          duvar: "#4A9DD9", cati: "#2B6BA3", rota: "/meydan" },
+  { ad: tt("Meydan Oku"), alt: tt("1v1 düello"),        duvar: "#FF5B4A", cati: "#C03225", rota: "/meydan" },
+  { ad: tt("Hızlı Mod"),  alt: tt("90 saniye"),         duvar: "#FFB020", cati: "#C98A22", rota: "/hizli-mod" },
+  { ad: tt("Grup Maçı"),  alt: tt("3-5 kişi"),          duvar: "#4A9DD9", cati: "#2B6BA3", rota: "/meydan" },
   // Alt yazı sunucudaki turnuva saatlerinden okunur (bkz. lib/zaman.js);
   // saat değişirse levha da değişir.
-  { ad: "Turnuva",    alt: null,                duvar: "#A855F7", cati: "#6D21B0", rota: "/turnuva" },
-  { ad: "Dükkân",     alt: "joker ve paketler", duvar: "#EC4899", cati: "#A81B62", rota: "/joker" },
-  { ad: "Lig",        alt: "haftalık sıralama", duvar: "#2FBF71", cati: "#137A45", rota: "/siralama" },
-  { ad: "Hatalarım",  alt: "çalışma odası",     duvar: "#20A4A0", cati: "#0F6B68", rota: "/calisma" },
+  { ad: tt("Turnuva"),    alt: null,                duvar: "#A855F7", cati: "#6D21B0", rota: "/turnuva" },
+  { ad: tt("Dükkân"),     alt: tt("joker ve paketler"), duvar: "#EC4899", cati: "#A81B62", rota: "/joker" },
+  { ad: tt("Lig"),        alt: tt("haftalık sıralama"), duvar: "#2FBF71", cati: "#137A45", rota: "/siralama" },
+  { ad: tt("Hatalarım"),  alt: tt("çalışma odası"),     duvar: "#20A4A0", cati: "#0F6B68", rota: "/calisma" },
 ];
 
 function mat(renk) {
@@ -308,7 +309,7 @@ export function dunyaKur(kapsayici, s = {}) {
     binalar.push({
       // alt null ise turnuva binası: saatler ayar tablosundan gelir
       ad: cfg.ad,
-      alt: cfg.alt ?? `günde ${turnuvaSaatleri().length} turnuva`,
+      alt: cfg.alt ?? tt("günde {0} turnuva", { 0: turnuvaSaatleri().length }),
       rota: cfg.rota, x: cfg.x, z: cfg.z, g,
       isima, sayacLevha, yukseklik: h,
     });

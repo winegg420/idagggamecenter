@@ -1,3 +1,4 @@
+import { tt } from "../lib/dil.js";
 /**
  * BİLGE — Quiz Tactics'in kuşu.
  *
@@ -32,7 +33,7 @@ export default function Maskot({ poz = "selam", boyut = 64, className = "" }) {
       height={boyut}
       viewBox="0 0 100 110"
       role="img"
-      aria-label="Bilge"
+      aria-label={tt("Bilge")}
       focusable="false"
     >
       {/* Gövde — altı daralan altıgen panel */}

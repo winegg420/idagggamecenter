@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import Logo from "./Logo.jsx";
+import { tt } from "../lib/dil.js";
 
 // ============================================================
 // iPhone / iPad — "Ana Ekrana Ekle" yönlendirmesi
@@ -162,10 +163,10 @@ export default function AnaEkranaEkle() {
       className={`bd-ekle-katman ${kapaniyor ? "kapaniyor" : ""}`}
       role="dialog"
       aria-modal="false"
-      aria-label="Uygulamayı ana ekrana ekle"
+      aria-label={tt("Uygulamayı ana ekrana ekle")}
     >
       <div className="bd-ekle">
-        <button className="bd-ekle-kapat" onClick={kapat} aria-label="Kapat">
+        <button className="bd-ekle-kapat" onClick={kapat} aria-label={tt("Kapat")}>
           ×
         </button>
 
@@ -183,7 +184,7 @@ export default function AnaEkranaEkle() {
               <Logo boyut={19} />
             </div>
             <div className="bd-ekle-alt">
-              Uygulama gibi kullan — tam ekran açılır, tarayıcı çubuğu olmaz.
+              {tt("Uygulama gibi kullan — tam ekran açılır, tarayıcı çubuğu olmaz.")}
             </div>
           </div>
         </div>
@@ -193,20 +194,20 @@ export default function AnaEkranaEkle() {
               çubukta, ama "Tek Sekme" ayarında ve yatay modda sağ ÜSTTE.
               Konum vaat etmek yerine ikonu gösteriyoruz. */}
           <li>
-            Safari'nin <PaylasIkonu /> <b>Paylaş</b> düğmesine dokun
+            {tt("Safari'nin")} <PaylasIkonu /> <b>{tt("Paylaş")}</b> {tt("düğmesine dokun")}
           </li>
           <li>
-            Listeden <ArtiKutuIkonu /> <b>Ana Ekrana Ekle</b>'yi seç
+            {tt("Listeden")} <ArtiKutuIkonu /> <b>{tt("Ana Ekrana Ekle")}</b>{tt("'yi seç")}
           </li>
           <li>
-            Sağ üstten <b>Ekle</b>'ye bas — kısayol ana ekranında
+            {tt("Sağ üstten")} <b>{tt("Ekle")}</b>{tt("'ye bas — kısayol ana ekranında")}
           </li>
         </ol>
 
         {/* .btn kullanılmıyor: o kural `.app` altında tanımlı, giriş ekranında
             `.app` sarmalayıcısı yok — düğme stilsiz kalırdı. */}
         <button className="bd-ekle-tamam" onClick={kapat}>
-          Anladım
+          {tt("Anladım")}
         </button>
       </div>
     </div>

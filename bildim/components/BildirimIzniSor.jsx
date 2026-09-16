@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import Ikon from "./Ikon.jsx";
 import { pushDestekleniyor, bildirimleriAc } from "../lib/push.js";
+import { tt } from "../lib/dil.js";
 
 const DEPO = "bildim_bildirim_sorma";
 
@@ -40,10 +41,9 @@ export default function BildirimIzniSor() {
     <div className="bd-izin-kart">
       <div className="ikon" aria-hidden="true"><Ikon ad="zil" boyut={22} /></div>
       <div className="govde">
-        <div className="bd-izin-baslik">Bir sonraki maçı kaçırma</div>
+        <div className="bd-izin-baslik">{tt("Bir sonraki maçı kaçırma")}</div>
         <div className="alt-yazi">
-          Sana meydan okunduğunda, turnuva başladığında ve haftalık lig
-          sonuçlandığında haber verelim mi?
+          {tt("Sana meydan okunduğunda, turnuva başladığında ve haftalık lig sonuçlandığında haber verelim mi?")}
         </div>
       </div>
       <div className="bd-izin-butonlar">
@@ -61,10 +61,10 @@ export default function BildirimIzniSor() {
             }
           }}
         >
-          Bildirimleri aç
+          {tt("Bildirimleri aç")}
         </button>
         <button className="btn kucuk ikincil" onClick={kapat}>
-          Şimdi değil
+          {tt("Şimdi değil")}
         </button>
       </div>
     </div>

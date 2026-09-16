@@ -1,6 +1,7 @@
+import { tt } from "../lib/dil.js";
 // Hazır görünüm tarifleri; aynı gövde ve ekipman ölçü sözleşmesini paylaşırlar.
 // Mağaza kimliği veya sahiplik kaydı değildir; yalnız yerel sanat kataloğu.
-export const YUZLER = { dengeli: 'Dengeli', yumusak: 'Yumuşak', koseli: 'Köşeli', ince: 'İnce' };
+export const YUZLER = { dengeli: tt("Dengeli"), yumusak: tt("Yumuşak"), koseli: tt("Köşeli"), ince: tt("İnce") };
 
 // Revizyon Paketi 7, madde 1 — sahibinin şikâyeti: "Hazır görünümlerde bir
 // sürü insan ismi var, saçma duruyor, sayısı fazla."
@@ -10,8 +11,8 @@ export const YUZLER = { dengeli: 'Dengeli', yumusak: 'Yumuşak', koseli: 'Köşe
 // Etikette saç stili YOK: gardırop hazır görünümden yalnız ten/yüz/saç rengini
 // uygular, saç stili ayrı satılan bir parçadır — yazılsa yanıltırdı.
 // Vücut tipi (boy/kilo) YOK: model.js tek sabit gövde; bu ayrı, büyük bir iş.
-const YUZ_ETIKET = { dengeli: 'Dengeli yüz', yumusak: 'Yumuşak hatlı', koseli: 'Köşeli yüz', ince: 'İnce yüz' };
-const TEN_ADLARI = ['Çok açık', 'Açık', 'Buğday', 'Esmer', 'Koyu', 'Çok koyu'];
+const YUZ_ETIKET = { dengeli: tt("Dengeli yüz"), yumusak: tt("Yumuşak hatlı"), koseli: tt("Köşeli yüz"), ince: tt("İnce yüz") };
+const TEN_ADLARI = [tt("Çok açık"), tt("Açık"), tt("Buğday"), tt("Esmer"), tt("Koyu"), tt("Çok koyu")];
 
 // [id, ten(0-5), sac, sacRenk(0-4), yuz] — id'ler eski tariflerden korunur.
 // Her yüz tipinde üç farklı ten; altı tenin her biri iki yüz tipinde geçer.

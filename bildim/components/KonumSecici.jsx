@@ -4,6 +4,7 @@ import { hataMesaji } from "../lib/hata.js";
 import { supabase } from "../../src/lib/supabase.js";
 import { useAuth } from "../../src/context/AuthContext.jsx";
 import { bayrak, konumKilidiKalan, sureMetni } from "../lib/konum.js";
+import { tt } from "../lib/dil.js";
 
 /**
  * Ülke + şehir seçimi.
@@ -34,7 +35,7 @@ export default function KonumSecici({ mod = "kart", onKapat, onKaydedildi }) {
         if (error) throw error;
         if (aktif) setUlkeler(data ?? []);
       } catch (e) {
-        if (aktif) setHata(hataMesaji(e, "Ülke listesi yüklenemedi."));
+        if (aktif) setHata(hataMesaji(e, tt("Ülke listesi yüklenemedi.")));
       }
     };
     yukle();
@@ -56,7 +57,7 @@ export default function KonumSecici({ mod = "kart", onKapat, onKaydedildi }) {
         if (error) throw error;
         if (aktif) setSehirler(data ?? []);
       } catch (e) {
-        if (aktif) setHata(hataMesaji(e, "Şehir listesi yüklenemedi."));
+        if (aktif) setHata(hataMesaji(e, tt("Şehir listesi yüklenemedi.")));
       }
     };
     yukle();
@@ -70,11 +71,11 @@ export default function KonumSecici({ mod = "kart", onKapat, onKaydedildi }) {
   const kaydet = async () => {
     setHata(null);
     if (!ulke) {
-      setHata("Ülke seçmelisin.");
+      setHata(tt("Ülke seçmelisin."));
       return;
     }
     if (!sehir.trim()) {
-      setHata("Şehir seçmelisin.");
+      setHata(tt("Şehir seçmelisin."));
       return;
     }
     setKaydediyor(true);
@@ -88,7 +89,7 @@ export default function KonumSecici({ mod = "kart", onKapat, onKaydedildi }) {
       onKaydedildi?.();
       onKapat?.();
     } catch (e) {
-      setHata(hataMesaji(e, "Kaydedilemedi."));
+      setHata(hataMesaji(e, tt("Kaydedilemedi.")));
     } finally {
       setKaydediyor(false);
     }
@@ -97,15 +98,15 @@ export default function KonumSecici({ mod = "kart", onKapat, onKaydedildi }) {
   const govde = (
     <>
       <div className="bd-konum-baslik">
-        {mod === "modal" ? "Hangi şehir için yarışıyorsun?" : "Şehrin ve ülken"}
+        {mod === "modal" ? tt("Hangi şehir için yarışıyorsun?") : tt("Şehrin ve ülken")}
       </div>
       <div className="bd-konum-aciklama">
-        Şehir ve ülke liglerinde bu bilgiyle yarışırsın.{" "}
-        <b>Günde yalnızca bir kez değiştirebilirsin.</b>
+        {tt("Şehir ve ülke liglerinde bu bilgiyle yarışırsın.")}{" "}
+        <b>{tt("Günde yalnızca bir kez değiştirebilirsin.")}</b>
       </div>
 
       <label className="bd-alan">
-        <span>Ülke</span>
+        <span>{tt("Ülke")}</span>
         <select
           value={ulke}
           disabled={kilitli}
@@ -123,11 +124,11 @@ export default function KonumSecici({ mod = "kart", onKapat, onKaydedildi }) {
       </label>
 
       <label className="bd-alan">
-        <span>Şehir</span>
+        <span>{tt("Şehir")}</span>
         {serbestSehir ? (
           <input
             type="text"
-            placeholder="Şehrini yaz"
+            placeholder={tt("Şehrini yaz")}
             maxLength={40}
             value={sehir}
             disabled={kilitli}
@@ -139,7 +140,7 @@ export default function KonumSecici({ mod = "kart", onKapat, onKaydedildi }) {
             disabled={kilitli}
             onChange={(e) => setSehir(e.target.value)}
           >
-            <option value="">— Seç —</option>
+            <option value="">{tt("— Seç —")}</option>
             {sehirler.map((s) => (
               <option key={s.ad} value={s.ad}>
                 {s.ad}
@@ -151,8 +152,8 @@ export default function KonumSecici({ mod = "kart", onKapat, onKaydedildi }) {
 
       {kilitli && (
         <div className="bd-uyari">
-          Konumunu tekrar değiştirebilmen için{" "}
-          <b>{sureMetni(kalan)}</b> kaldı.
+          {tt("Konumunu tekrar değiştirebilmen için")}{" "}
+          <b>{sureMetni(kalan)}</b> {tt("kaldı.")}
         </div>
       )}
 
@@ -160,11 +161,11 @@ export default function KonumSecici({ mod = "kart", onKapat, onKaydedildi }) {
 
       <div className="bd-konum-butonlar">
         <button className="btn" disabled={kaydediyor || kilitli} onClick={kaydet}>
-          {kaydediyor ? "Kaydediliyor…" : "Kaydet"}
+          {kaydediyor ? tt("Kaydediliyor…") : tt("Kaydet")}
         </button>
         {mod === "kart" && onKapat && (
           <button className="btn ikincil" onClick={onKapat}>
-            Vazgeç
+            {tt("Vazgeç")}
           </button>
         )}
       </div>
@@ -173,7 +174,7 @@ export default function KonumSecici({ mod = "kart", onKapat, onKaydedildi }) {
 
   if (mod === "modal") {
     return (
-      <Modal onKapat={onKapat} etiket="Şehir seçimi">
+      <Modal onKapat={onKapat} etiket={tt("Şehir seçimi")}>
         <div className="bd-modal">{govde}</div>
       </Modal>
     );

@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "../../src/lib/supabase.js";
 import { rutbeBul, sonrakiRutbe } from "../lib/ranks.js";
 import { hareketAzalt } from "../lib/geriBildirim.js";
+import { tt } from "../lib/dil.js";
 
 /**
  * Maç sonu ekranındaki döküm bloğu:
@@ -71,10 +72,10 @@ export default function MacSonuDokum({ macId, kazanilanPuan = 0 }) {
           <span className="bd-sonuc-rutbe-ad">{rutbe.ad}</span>
           {sonraki ? (
             <span className="bd-sonuc-rutbe-kalan">
-              {sonraki.ad} rütbesine {Math.max(0, sonraki.min - puan)} puan
+              {sonraki.ad} {tt("rütbesine")} {Math.max(0, sonraki.min - puan)} {tt("puan")}
             </span>
           ) : (
-            <span className="bd-sonuc-rutbe-kalan">En yüksek rütbe</span>
+            <span className="bd-sonuc-rutbe-kalan">{tt("En yüksek rütbe")}</span>
           )}
         </div>
         <div className="bd-sonuc-rutbe-bar">
@@ -96,7 +97,7 @@ export default function MacSonuDokum({ macId, kazanilanPuan = 0 }) {
   return (
     <div className="bd-sonuc-dokum">
       <div className="bd-dokum-baslik">
-        Turların — <b>{dogruSayisi}</b>/{turlar.length} doğru
+        {tt("Turların —")} <b>{dogruSayisi}</b>/{turlar.length} {tt("doğru")}
       </div>
       <div className="bd-dokum-turlar">
         {turlar.map((t) => (
@@ -106,7 +107,7 @@ export default function MacSonuDokum({ macId, kazanilanPuan = 0 }) {
               t.dogru ? "dogru" : t.cevap === -1 ? "sure" : "yanlis"
             }`}
             title={`${t.soru_index + 1}. soru: ${
-              t.dogru ? "doğru" : t.cevap === -1 ? "süre doldu" : "yanlış"
+              t.dogru ? tt("doğru") : t.cevap === -1 ? tt("süre doldu") : tt("yanlış")
             }`}
           >
             {t.soru_index + 1}
@@ -116,9 +117,9 @@ export default function MacSonuDokum({ macId, kazanilanPuan = 0 }) {
       {/* Nötr noktanın ne demek olduğu yazmıyordu; canlı testte 17 nötr tur
           çıkmış ve oyuncu ne olduğunu anlamamıştı. Üç durum da adlandırıldı. */}
       <div className="bd-dokum-anahtar">
-        <span><i className="dogru" />Doğru</span>
-        <span><i className="yanlis" />Yanlış</span>
-        <span><i className="sure" />Süre doldu</span>
+        <span><i className="dogru" />{tt("Doğru")}</span>
+        <span><i className="yanlis" />{tt("Yanlış")}</span>
+        <span><i className="sure" />{tt("Süre doldu")}</span>
       </div>
       {ilerlemeBlok}
     </div>

@@ -3,6 +3,7 @@
 // ilerlesin diye 30 sn'de bir tazelenir (sayfa yeniden çizilmese de).
 import { useEffect, useState } from "react";
 import { bugunKalanTurnuvalar, sonrakiTurnuvaSaati, turnuvaSaatleri } from "../lib/zaman.js";
+import { tt } from "../lib/dil.js";
 
 function useDakikaTiki() {
   const [, setTik] = useState(0);
@@ -15,7 +16,7 @@ function useDakikaTiki() {
 /** "22:00 TURNUVASI" */
 export function TurnuvaSaatEtiketi() {
   useDakikaTiki();
-  return <>{sonrakiTurnuvaSaati()} TURNUVASI</>;
+  return <>{sonrakiTurnuvaSaati()} {tt("TURNUVASI")}</>;
 }
 
 /** "Bugün kalan: 20:00 · 22:00 · 24:00" (bittiyse yarının ilki). */
@@ -25,9 +26,9 @@ export function BugunKalanTurnuvalar({ className = "bd-turnuva-kalanlar" }) {
   return (
     <div className={className}>
       {kalan.length ? (
-        <>Bugün kalan turnuvalar: <b>{kalan.join(" · ")}</b></>
+        <>{tt("Bugün kalan turnuvalar:")} <b>{kalan.join(" · ")}</b></>
       ) : (
-        <>Bugünkü turnuvalar bitti · yarın ilki <b>{turnuvaSaatleri()[0]}</b></>
+        <>{tt("Bugünkü turnuvalar bitti · yarın ilki")} <b>{turnuvaSaatleri()[0]}</b></>
       )}
     </div>
   );

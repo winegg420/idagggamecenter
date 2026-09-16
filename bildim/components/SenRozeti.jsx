@@ -1,3 +1,4 @@
+import { tt } from "../lib/dil.js";
 /**
  * Kendi satırını işaretleyen rozet.
  *
@@ -9,7 +10,7 @@
  */
 export default function SenRozeti({ metin = "sen" }) {
   return (
-    <span className="bd-sen" aria-label="bu satır sensin">
+    <span className="bd-sen" aria-label={tt("bu satır sensin")}>
       {metin}
     </span>
   );

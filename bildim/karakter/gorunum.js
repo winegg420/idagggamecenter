@@ -14,18 +14,19 @@
 
 import { CHARACTERS, getCharacter } from "./karakterler.js";
 import { buildCharacterSVG } from "./cizim.js";
+import { tt } from "../lib/dil.js";
 
 /** Yuvalar — sıra arayüzdeki liste sırasıdır. */
 export const YUVALAR = [
-  { yuva: "hat", ad: "Şapka" },
-  { yuva: "glasses", ad: "Gözlük" },
+  { yuva: "hat", ad: tt("Şapka") },
+  { yuva: "glasses", ad: tt("Gözlük") },
   { yuva: "necklace", ad: "Boyun" },
-  { yuva: "wristband", ad: "Bileklik" },
-  { yuva: "hair", ad: "Saç" },
-  { yuva: "mustache", ad: "Bıyık" },
-  { yuva: "beard", ad: "Sakal" },
-  { yuva: "top", ad: "Üst Giyim" },
-  { yuva: "shoes", ad: "Ayakkabı" },
+  { yuva: "wristband", ad: tt("Bileklik") },
+  { yuva: "hair", ad: tt("Saç") },
+  { yuva: "mustache", ad: tt("Bıyık") },
+  { yuva: "beard", ad: tt("Sakal") },
+  { yuva: "top", ad: tt("Üst Giyim") },
+  { yuva: "shoes", ad: tt("Ayakkabı") },
 ];
 
 /** Rengi olan yuvalar (bıyık ve sakal karakterin kendi rengini kullanır). */

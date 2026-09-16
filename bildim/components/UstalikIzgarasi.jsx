@@ -3,6 +3,7 @@ import Ikon from "./Ikon.jsx";
 import { supabase } from "../../src/lib/supabase.js";
 import { kategoriEtiket } from "../lib/kategoriler.js";
 import { JOKER_BILGI } from "../lib/jokerler.js";
+import { tt } from "../lib/dil.js";
 
 const SEVIYE_RENK = {
   "Çırak": "#8496B2",
@@ -64,23 +65,23 @@ export default function UstalikIzgarasi() {
     <>
       {/* ---------- Seri + joker istatistikleri ---------- */}
       <div className="kart">
-        <div className="bd-kat-baslik"><span>Seri ve jokerler</span></div>
+        <div className="bd-kat-baslik"><span>{tt("Seri ve jokerler")}</span></div>
         <div className="bd-istatistik-grid">
           <div>
             <b>{seri?.seri_gun ?? 0}</b>
-            <span>güncel seri</span>
+            <span>{tt("güncel seri")}</span>
           </div>
           <div>
             <b>{seri?.seri_en_uzun ?? 0}</b>
-            <span>en uzun seri</span>
+            <span>{tt("en uzun seri")}</span>
           </div>
           <div>
             <b>{istatistik?.kullanilan ?? 0}</b>
-            <span>kullanılan joker</span>
+            <span>{tt("kullanılan joker")}</span>
           </div>
           <div>
             <b>{istatistik?.reklam ?? 0}</b>
-            <span>izlenen video</span>
+            <span>{tt("izlenen video")}</span>
           </div>
         </div>
         {envanter.length > 0 && (
@@ -97,12 +98,12 @@ export default function UstalikIzgarasi() {
       {/* ---------- Kategori ustalığı ---------- */}
       <div className="kart">
         <div className="bd-kat-baslik">
-          <span>Kategori ustalığı</span>
-          <span className="alt-yazi">{toplamDogru} doğru</span>
+          <span>{tt("Kategori ustalığı")}</span>
+          <span className="alt-yazi">{toplamDogru} {tt("doğru")}</span>
         </div>
 
         {seviyeler.length === 0 ? (
-          <div className="alt-yazi">Henüz veri yok — birkaç maç oyna.</div>
+          <div className="alt-yazi">{tt("Henüz veri yok — birkaç maç oyna.")}</div>
         ) : (
           <div className="bd-ustalik-liste">
             {seviyeler.map((s) => {
@@ -122,10 +123,10 @@ export default function UstalikIzgarasi() {
                     />
                   </div>
                   <div className="bd-ustalik-alt alt-yazi">
-                    {s.dogru_sayisi} doğru
+                    {s.dogru_sayisi} {tt("doğru")}
                     {s.sonraki_esik
-                      ? ` · ${s.sonraki_seviye} için ${s.sonraki_esik - s.dogru_sayisi} kaldı`
-                      : " · en üst seviye"}
+                      ? tt(" · {0} için {1} kaldı", { 0: s.sonraki_seviye, 1: s.sonraki_esik - s.dogru_sayisi })
+                      : tt(" · en üst seviye")}
                   </div>
                 </div>
               );

@@ -7,42 +7,43 @@ import { kategoriEtiket, kategorileriSirala } from "../lib/kategoriler.js";
 import { sureMetni } from "../lib/konum.js";
 import { y } from "../lib/yol.js";
 import DavetKodu from "./DavetKodu.jsx";
+import { tt } from "../lib/dil.js";
 
 // 31 karakter avatarı (özgün çizim SVG, tamamı yerel — dış servis yok).
 // Üretici: scratchpad/avatar-uret.mjs. Eski düz siluetler (av1-av8) listeden
 // çıkarıldı; dosyalar duruyor ki eski profiller kırılmasın.
 const HAZIR_AVATARLAR = [
-  { url: "/avatars/k01.svg", ad: "Kedi" },
-  { url: "/avatars/k02.svg", ad: "Köpek" },
-  { url: "/avatars/k03.svg", ad: "Baykuş" },
-  { url: "/avatars/k04.svg", ad: "Tilki" },
-  { url: "/avatars/k05.svg", ad: "Panda" },
-  { url: "/avatars/k06.svg", ad: "Penguen" },
-  { url: "/avatars/k07.svg", ad: "Kurbağa" },
-  { url: "/avatars/k08.svg", ad: "Ayı" },
-  { url: "/avatars/k09.svg", ad: "Maymun" },
-  { url: "/avatars/k10.svg", ad: "Dinozor" },
-  { url: "/avatars/k11.svg", ad: "Ejderha" },
-  { url: "/avatars/k12.svg", ad: "Köpekbalığı" },
-  { url: "/avatars/k13.svg", ad: "Ahtapot" },
-  { url: "/avatars/k14.svg", ad: "Arı" },
-  { url: "/avatars/k15.svg", ad: "Robot" },
-  { url: "/avatars/k16.svg", ad: "Uzaylı" },
-  { url: "/avatars/k17.svg", ad: "Astronot" },
-  { url: "/avatars/k18.svg", ad: "Ninja" },
-  { url: "/avatars/k19.svg", ad: "Korsan" },
-  { url: "/avatars/k20.svg", ad: "Şövalye" },
-  { url: "/avatars/k21.svg", ad: "Büyücü" },
-  { url: "/avatars/k22.svg", ad: "Dedektif" },
-  { url: "/avatars/k23.svg", ad: "Aşçı" },
-  { url: "/avatars/k24.svg", ad: "Profesör" },
-  { url: "/avatars/k25.svg", ad: "Viking" },
-  { url: "/avatars/k26.svg", ad: "Hayalet" },
-  { url: "/avatars/k27.svg", ad: "Zombi" },
-  { url: "/avatars/k28.svg", ad: "Mumya" },
-  { url: "/avatars/k29.svg", ad: "Kahraman" },
-  { url: "/avatars/k30.svg", ad: "Palyaço" },
-  { url: "/avatars/k31.svg", ad: "Kral" },
+  { url: "/avatars/k01.svg", ad: tt("Kedi") },
+  { url: "/avatars/k02.svg", ad: tt("Köpek") },
+  { url: "/avatars/k03.svg", ad: tt("Baykuş") },
+  { url: "/avatars/k04.svg", ad: tt("Tilki") },
+  { url: "/avatars/k05.svg", ad: tt("Panda") },
+  { url: "/avatars/k06.svg", ad: tt("Penguen") },
+  { url: "/avatars/k07.svg", ad: tt("Kurbağa") },
+  { url: "/avatars/k08.svg", ad: tt("Ayı") },
+  { url: "/avatars/k09.svg", ad: tt("Maymun") },
+  { url: "/avatars/k10.svg", ad: tt("Dinozor") },
+  { url: "/avatars/k11.svg", ad: tt("Ejderha") },
+  { url: "/avatars/k12.svg", ad: tt("Köpekbalığı") },
+  { url: "/avatars/k13.svg", ad: tt("Ahtapot") },
+  { url: "/avatars/k14.svg", ad: tt("Arı") },
+  { url: "/avatars/k15.svg", ad: tt("Robot") },
+  { url: "/avatars/k16.svg", ad: tt("Uzaylı") },
+  { url: "/avatars/k17.svg", ad: tt("Astronot") },
+  { url: "/avatars/k18.svg", ad: tt("Ninja") },
+  { url: "/avatars/k19.svg", ad: tt("Korsan") },
+  { url: "/avatars/k20.svg", ad: tt("Şövalye") },
+  { url: "/avatars/k21.svg", ad: tt("Büyücü") },
+  { url: "/avatars/k22.svg", ad: tt("Dedektif") },
+  { url: "/avatars/k23.svg", ad: tt("Aşçı") },
+  { url: "/avatars/k24.svg", ad: tt("Profesör") },
+  { url: "/avatars/k25.svg", ad: tt("Viking") },
+  { url: "/avatars/k26.svg", ad: tt("Hayalet") },
+  { url: "/avatars/k27.svg", ad: tt("Zombi") },
+  { url: "/avatars/k28.svg", ad: tt("Mumya") },
+  { url: "/avatars/k29.svg", ad: tt("Kahraman") },
+  { url: "/avatars/k30.svg", ad: tt("Palyaço") },
+  { url: "/avatars/k31.svg", ad: tt("Kral") },
 ];
 
 // Takma ad günde bir kez değişir (sunucudaki takma_ad_sec ile aynı pencere).
@@ -81,7 +82,7 @@ export default function ProfilAyarlari() {
       setRahatsizEtme(Boolean(data));
       refreshProfile?.(profile?.id);
     } catch (e) {
-      setIkramHata(hataMesaji(e, "Ayar kaydedilemedi."));
+      setIkramHata(hataMesaji(e, tt("Ayar kaydedilemedi.")));
     } finally {
       setIkramCalisiyor(false);
     }
@@ -115,7 +116,7 @@ export default function ProfilAyarlari() {
       await refreshProfile(user.id);
       setAdDuzenle(false);
     } catch (e) {
-      setAdHata(hataMesaji(e, "Takma ad kaydedilemedi."));
+      setAdHata(hataMesaji(e, tt("Takma ad kaydedilemedi.")));
     } finally {
       setCalisiyor(false);
     }
@@ -130,7 +131,7 @@ export default function ProfilAyarlari() {
       await refreshProfile(user.id);
       setAvatarDuzenle(false);
     } catch (e) {
-      setAvatarHata(hataMesaji(e, "Avatar kaydedilemedi."));
+      setAvatarHata(hataMesaji(e, tt("Avatar kaydedilemedi.")));
     } finally {
       setCalisiyor(false);
     }
@@ -145,7 +146,7 @@ export default function ProfilAyarlari() {
       if (error) throw error;
       await refreshProfile(user.id);
     } catch (e) {
-      setKategoriHata(hataMesaji(e, "Kategori kaydedilemedi."));
+      setKategoriHata(hataMesaji(e, tt("Kategori kaydedilemedi.")));
     }
   };
 
@@ -157,15 +158,14 @@ export default function ProfilAyarlari() {
     <>
       {/* ---------- Meydanda rahatsız etme ---------- */}
       <div className="kart">
-        <div className="bd-kat-baslik"><span>Meydanda ikramlar</span></div>
+        <div className="bd-kat-baslik"><span>{tt("Meydanda ikramlar")}</span></div>
         <div className="bd-konum-ozet">
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ fontWeight: 800 }}>
-              {rahatsizEtme ? "Kapalı — kimse ikram gönderemez" : "Açık — kahve ve balon alabilirsin"}
+              {rahatsizEtme ? tt("Kapalı — kimse ikram gönderemez") : tt("Açık — kahve ve balon alabilirsin")}
             </div>
             <div className="alt-yazi">
-              Meydanda başka oyuncular sana kahve ya da balon ikram edebilir.
-              Rahatsız olursan burayı kapat; meydan okumalar etkilenmez.
+              {tt("Meydanda başka oyuncular sana kahve ya da balon ikram edebilir. Rahatsız olursan burayı kapat; meydan okumalar etkilenmez.")}
             </div>
           </div>
           <button
@@ -173,7 +173,7 @@ export default function ProfilAyarlari() {
             disabled={ikramCalisiyor}
             onClick={rahatsizEtmeDegistir}
           >
-            {rahatsizEtme ? "Aç" : "Kapat"}
+            {rahatsizEtme ? tt("Aç") : tt("Kapat")}
           </button>
         </div>
         {ikramHata && <div className="hata-kutu" style={{ marginTop: 8 }}>{ikramHata}</div>}
@@ -182,7 +182,7 @@ export default function ProfilAyarlari() {
       {/* ---------- Takma ad ---------- */}
       <div className="kart">
         <div className="bd-kat-baslik">
-          <span>Takma adın</span>
+          <span>{tt("Takma adın")}</span>
           {kalanKilit > 0 && (
             <span className="alt-yazi">{sureMetni(kalanKilit)}</span>
           )}
@@ -191,14 +191,13 @@ export default function ProfilAyarlari() {
             satırlık ayrı bir gri bloktu ve bir AYAR sanılıyordu. Bu bir
             bilgi notu — ait olduğu yere, takma ad ayarının altına indi. */}
         <p className="bd-gizlilik-not">
-          Gerçek adın hiçbir zaman gösterilmez; diğer oyuncular yalnızca
-          takma adını ve seçtiğin avatarı görür.
+          {tt("Gerçek adın hiçbir zaman gösterilmez; diğer oyuncular yalnızca takma adını ve seçtiğin avatarı görür.")}
         </p>
 
         {adDuzenle ? (
           <>
             <label className="bd-alan">
-              <span>Yeni takma ad (3-16)</span>
+              <span>{tt("Yeni takma ad (3-16)")}</span>
               <input
                 type="text"
                 maxLength={16}
@@ -211,10 +210,10 @@ export default function ProfilAyarlari() {
             {adHata && <div className="hata-kutu">{adHata}</div>}
             <div className="bd-konum-butonlar">
               <button className="btn" disabled={calisiyor} onClick={adKaydet}>
-                Kaydet
+                {tt("Kaydet")}
               </button>
               <button className="btn ikincil" onClick={() => setAdDuzenle(false)}>
-                Vazgeç
+                {tt("Vazgeç")}
               </button>
             </div>
           </>
@@ -224,8 +223,8 @@ export default function ProfilAyarlari() {
               <div style={{ fontSize: 18, fontWeight: 900 }}>{profile.gorunen_ad}</div>
               <div className="alt-yazi">
                 {kalanKilit > 0
-                  ? `Tekrar değiştirebilmen için ${sureMetni(kalanKilit)} kaldı.`
-                  : "Günde bir kez değiştirebilirsin."}
+                  ? tt("Tekrar değiştirebilmen için {0} kaldı.", { 0: sureMetni(kalanKilit) })
+                  : tt("Günde bir kez değiştirebilirsin.")}
               </div>
             </div>
             <button
@@ -236,7 +235,7 @@ export default function ProfilAyarlari() {
                 setAdDuzenle(true);
               }}
             >
-              Değiştir
+              {tt("Değiştir")}
             </button>
           </div>
         )}
@@ -245,7 +244,7 @@ export default function ProfilAyarlari() {
       {/* ---------- Avatar ---------- */}
       <div className="kart">
         <div className="bd-kat-baslik">
-          <span>Avatarın</span>
+          <span>{tt("Avatarın")}</span>
         </div>
         {avatarDuzenle ? (
           <>
@@ -254,7 +253,7 @@ export default function ProfilAyarlari() {
                 <button
                   key={a.url}
                   className={`bd-avatar-sec ${profile.avatar_url === a.url ? "aktif" : ""}`}
-                  aria-label={`${a.ad} avatarını seç`}
+                  aria-label={tt("{0} avatarını seç", { 0: a.ad })}
                   title={a.ad}
                   disabled={calisiyor}
                   onClick={() => avatarKaydet(a.url)}
@@ -271,7 +270,7 @@ export default function ProfilAyarlari() {
                   disabled={calisiyor}
                   onClick={() => avatarKaydet(googleFoto)}
                 >
-                  Google fotoğrafım
+                  {tt("Google fotoğrafım")}
                 </button>
               )}
               <button
@@ -279,10 +278,10 @@ export default function ProfilAyarlari() {
                 disabled={calisiyor}
                 onClick={() => avatarKaydet(null)}
               >
-                Kaldır
+                {tt("Kaldır")}
               </button>
               <button className="btn ikincil" onClick={() => setAvatarDuzenle(false)}>
-                Kapat
+                {tt("Kapat")}
               </button>
             </div>
           </>
@@ -290,11 +289,11 @@ export default function ProfilAyarlari() {
           <div className="bd-konum-ozet">
             <div style={{ flex: 1 }} className="alt-yazi">
               {profile.avatar_onayli
-                ? "Avatarın diğer oyunculara görünüyor."
-                : "Avatar seçmedin; adının ilk harfi gösteriliyor."}
+                ? tt("Avatarın diğer oyunculara görünüyor.")
+                : tt("Avatar seçmedin; adının ilk harfi gösteriliyor.")}
             </div>
             <button className="btn kucuk ikincil" onClick={() => setAvatarDuzenle(true)}>
-              Değiştir
+              {tt("Değiştir")}
             </button>
           </div>
         )}
@@ -303,7 +302,7 @@ export default function ProfilAyarlari() {
       {/* ---------- Davet kodu ---------- */}
       <div className="kart">
         <div className="bd-kat-baslik">
-          <span>Davet kodun</span>
+          <span>{tt("Davet kodun")}</span>
         </div>
         {/* Kodun kendisi düğme: dokununca YALNIZ kod panoya gider. */}
         <DavetKodu kod={profile.davet_kodu} />
@@ -321,17 +320,17 @@ export default function ProfilAyarlari() {
             }
           }}
         >
-          {kopyalandi ? "Kopyalandı" : "Davet linkini kopyala"}
+          {kopyalandi ? tt("Kopyalandı") : tt("Davet linkini kopyala")}
         </button>
       </div>
 
       {/* ---------- Varsayılan kategori ---------- */}
       <div className="kart">
         <div className="bd-kat-baslik">
-          <span>Varsayılan kategorim</span>
+          <span>{tt("Varsayılan kategorim")}</span>
         </div>
         <div className="alt-yazi" style={{ marginBottom: 10 }}>
-          "Hemen Oyna" ve "Dereceli Maç" bu kategoride rakip arar. Ana Sayfa'dan da değiştirebilirsin.
+          {tt("\"Hemen Oyna\" ve \"Dereceli Maç\" bu kategoride rakip arar. Ana Sayfa'dan da değiştirebilirsin.")}
         </div>
         <div className="bd-kat-grid">
           <button
@@ -339,7 +338,7 @@ export default function ProfilAyarlari() {
             onClick={() => kategoriKaydet(null)}
           >
             <KategoriIkon anahtar="karisik" boyut={24} plaka />
-              <span className="bd-kat-ad">Karışık</span>
+              <span className="bd-kat-ad">{tt("Karışık")}</span>
           </button>
           {kategorileriSirala(kategoriler).map((k) => (
             <button
@@ -349,7 +348,7 @@ export default function ProfilAyarlari() {
             >
               <KategoriIkon anahtar={k.kategori} boyut={24} plaka />
               <span className="bd-kat-ad">{kategoriEtiket(k.kategori)}</span>
-              <span className="bd-kat-alt">{k.soru_sayisi} soru</span>
+              <span className="bd-kat-alt">{k.soru_sayisi} {tt("soru")}</span>
             </button>
           ))}
         </div>

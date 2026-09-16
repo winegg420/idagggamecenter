@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "../../src/lib/supabase.js";
 import Avatar from "../../src/components/Avatar.jsx";
 import { y } from "../lib/yol.js";
+import { tt } from "../lib/dil.js";
 
 /**
  * "Ezeli rakibin" kartı — en çok karşılaştığın ARKADAŞIN (en az 3 maç).
@@ -48,7 +49,7 @@ export default function EzeliRakip() {
       if (error) throw error;
       if (data) navigate(y(`/mac/${data}`));
     } catch (e) {
-      setHata(hataMesaji(e, "Meydan okuma başlatılamadı."));
+      setHata(hataMesaji(e, tt("Meydan okuma başlatılamadı.")));
     } finally {
       setCalisiyor(false);
     }
@@ -61,8 +62,8 @@ export default function EzeliRakip() {
     // tema-meydan: "Meydan oku" butonu bağlamının rengini (mercan) alsın
     <div className="kart bd-ezeli tema-meydan">
       <div className="bd-kat-baslik">
-        <span><Ikon ad="kilic" boyut={16} /> Ezeli rakibin</span>
-        <span className="alt-yazi">{rakip.toplam} maç</span>
+        <span><Ikon ad="kilic" boyut={16} /> {tt("Ezeli rakibin")}</span>
+        <span className="alt-yazi">{rakip.toplam} {tt("maç")}</span>
       </div>
       <div className="bd-ezeli-govde">
         <Avatar profile={rakip} boyut={46} />
@@ -73,15 +74,15 @@ export default function EzeliRakip() {
             <span>—</span>
             <b className={!onde && !berabere ? "alt" : ""}>{rakip.maglubiyet}</b>
             {rakip.beraberlik > 0 && (
-              <span className="bd-ezeli-berabere">({rakip.beraberlik} berabere)</span>
+              <span className="bd-ezeli-berabere">({rakip.beraberlik} {tt("berabere)")}</span>
             )}
           </div>
           <div className="alt-yazi">
-            {onde ? "Öndesin, arayı aç." : berabere ? "Başa baş." : "Geridesin, hesap sor."}
+            {onde ? tt("Öndesin, arayı aç.") : berabere ? tt("Başa baş.") : tt("Geridesin, hesap sor.")}
           </div>
         </div>
         <button className="btn kucuk" disabled={calisiyor} onClick={meydanOku}>
-          {calisiyor ? "…" : "Meydan oku"}
+          {calisiyor ? "…" : tt("Meydan oku")}
         </button>
       </div>
       {hata && <div className="hata-kutu" style={{ marginTop: 8 }}>{hata}</div>}

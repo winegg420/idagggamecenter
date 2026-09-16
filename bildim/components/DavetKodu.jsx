@@ -9,6 +9,7 @@
 // Link paylaşma düğmesi yerinde duruyor (ayrı iş).
 // ============================================================
 import { useCallback, useEffect, useRef, useState } from "react";
+import { tt } from "../lib/dil.js";
 
 /**
  * Panoya yazar. `navigator.clipboard` yalnız güvenli bağlamda ve izin
@@ -67,12 +68,12 @@ export default function DavetKodu({ kod }) {
       type="button"
       className={"bd-davet-kod bd-davet-kod-btn" + (durum === "oldu" ? " kopyalandi" : "")}
       onClick={kopyala}
-      title="Kodu kopyala"
-      aria-label={`Davet kodun ${kod} — kopyalamak için dokun`}
+      title={tt("Kodu kopyala")}
+      aria-label={tt("Davet kodun {0} — kopyalamak için dokun", { 0: kod })}
     >
       <span className="bd-davet-kod-metin">{kod}</span>
       <span className="bd-davet-kod-ipucu" aria-hidden="true">
-        {durum === "oldu" ? "kopyalandı ✓" : durum === "olmadi" ? "elle seç" : "dokun, kopyala"}
+        {durum === "oldu" ? tt("kopyalandı ✓") : durum === "olmadi" ? tt("elle seç") : tt("dokun, kopyala")}
       </span>
     </button>
   );

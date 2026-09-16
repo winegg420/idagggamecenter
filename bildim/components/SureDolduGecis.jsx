@@ -3,6 +3,7 @@ import Maskot from "./Maskot.jsx";
 import PuanSayaci from "./PuanSayaci.jsx";
 import { sesSureDoldu, sesKazandin, sesKaybettin } from "../lib/ses.js";
 import { titret } from "../lib/geriBildirim.js";
+import { tt } from "../lib/dil.js";
 
 /**
  * Maç/tur bitişinde araya giren 0.8 sn'lik geçiş ekranı.
@@ -18,9 +19,9 @@ import { titret } from "../lib/geriBildirim.js";
  * sure   : ms (varsayılan 800)
  */
 export default function SureDolduGecis({
-  baslik = "Süre doldu!",
+  baslik = tt("Süre doldu!"),
   skor = null,
-  skorEtiket = "doğru",
+  skorEtiket = tt("doğru"),
   onBitti,
   sure = 800,
   kazandi = false,

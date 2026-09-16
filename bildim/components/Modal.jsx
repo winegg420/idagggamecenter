@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { createPortal } from "react-dom";
+import { tt } from "../lib/dil.js";
 
 /**
  * Tam ekran modal katmanı — HER ZAMAN `document.body`'ye basılır.
@@ -11,7 +12,7 @@ import { createPortal } from "react-dom";
  * hesabını pratikte silemiyordu. Animasyon da düzeltildi, ama modallerin
  * body'ye basılması bu sınıf hatayı kökten engelliyor.
  */
-export default function Modal({ children, onKapat, etiket = "İletişim kutusu", ekSinif = "" }) {
+export default function Modal({ children, onKapat, etiket = tt("İletişim kutusu"), ekSinif = "" }) {
   // Modal açıkken arka planın kaymasını engelle.
   //
   // KAYDIRMA KONUMU KORUNUR. Eskiden yalnız `overflow: hidden` veriliyordu;

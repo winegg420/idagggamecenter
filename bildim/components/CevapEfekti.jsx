@@ -1,4 +1,5 @@
 import { hareketAzalt } from "../lib/geriBildirim.js";
+import { tt } from "../lib/dil.js";
 
 /**
  * Cevap sonrası görsel geri bildirim katmanı.
@@ -23,7 +24,7 @@ export default function CevapEfekti({ dogru, puan, seri }) {
       )}
       {seriVar && (
         <div className={`bd-seri-bant ${azalt ? "durgun" : ""}`}>
-          {seri} ÜST ÜSTE!
+          {seri} {tt("ÜST ÜSTE!")}
         </div>
       )}
     </div>

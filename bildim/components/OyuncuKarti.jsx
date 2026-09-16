@@ -18,6 +18,7 @@ import RankBadge from "./RankBadge.jsx";
 import { hataMesaji } from "../lib/hata.js";
 import { bayrak } from "../lib/konum.js";
 import KategoriProfili from "./KategoriProfili.jsx";
+import { tt } from "../lib/dil.js";
 
 const ALANLAR =
   // `is_bot` BİLEREK YOK: gizli botlar gerçek oyuncudan ayırt edilmemeli
@@ -51,7 +52,7 @@ export default function OyuncuKarti({ userId, onIzleme = null, onKapat, onMeydan
       } catch (e) {
         // Önizleme varsa kart yine de dolu görünür; sessiz kalmıyoruz.
         console.error("[Bildim] oyuncu karti alinamadi:", e);
-        if (aktif && !onIzleme) setHata(hataMesaji(e, "Oyuncu bilgisi alınamadı."));
+        if (aktif && !onIzleme) setHata(hataMesaji(e, tt("Oyuncu bilgisi alınamadı.")));
       } finally {
         if (aktif) setYukleniyor(false);
       }
@@ -62,19 +63,19 @@ export default function OyuncuKarti({ userId, onIzleme = null, onKapat, onMeydan
   const online = p?.last_seen && Date.now() - new Date(p.last_seen).getTime() < 120000;
 
   return (
-    <Modal onKapat={onKapat} etiket="Oyuncu kartı">
+    <Modal onKapat={onKapat} etiket={tt("Oyuncu kartı")}>
       <div className="bd-modal bd-oyuncu-karti">
-        <button type="button" className="bd-oyuncu-kapat" onClick={onKapat} aria-label="Kapat">✕</button>
+        <button type="button" className="bd-oyuncu-kapat" onClick={onKapat} aria-label={tt("Kapat")}>✕</button>
 
         <div className="bd-oyuncu-ust">
           <div className="bd-oyuncu-avatar">
             <AvatarCerceve profile={p ?? {}} boyut={96} userId={userId} />
-            {online && <span className="bd-oyuncu-online" title="Şu an oyunda" />}
+            {online && <span className="bd-oyuncu-online" title={tt("Şu an oyunda")} />}
           </div>
           <div className="bd-oyuncu-ad">
-            {p?.gorunen_ad ?? (yukleniyor ? "…" : "Oyuncu")}
+            {p?.gorunen_ad ?? (yukleniyor ? "…" : tt("Oyuncu"))}
             {(p?.acik_bot ?? p?.is_bot) && (
-              <span className="bd-bot-rozet" title="Yapay rakip"><Ikon ad="robot" boyut={13} /></span>
+              <span className="bd-bot-rozet" title={tt("Yapay rakip")}><Ikon ad="robot" boyut={13} /></span>
             )}
           </div>
           {p && <RankBadge puan={p.puan ?? 0} />}
@@ -86,10 +87,10 @@ export default function OyuncuKarti({ userId, onIzleme = null, onKapat, onMeydan
         {hata && <div className="hata-kutu">{hata}</div>}
 
         <div className="bd-oyuncu-sayilar">
-          <div><b>{Number(p?.puan ?? 0).toLocaleString("tr-TR")}</b><span>puan</span></div>
-          <div><b>{Number(p?.toplam_mac ?? 0).toLocaleString("tr-TR")}</b><span>maç</span></div>
-          <div><b>{Number(p?.sampiyonluk ?? 0).toLocaleString("tr-TR")}</b><span>kupa</span></div>
-          <div><b>{Number(p?.seri_gun ?? 0).toLocaleString("tr-TR")}</b><span>gün seri</span></div>
+          <div><b>{Number(p?.puan ?? 0).toLocaleString("tr-TR")}</b><span>{tt("puan")}</span></div>
+          <div><b>{Number(p?.toplam_mac ?? 0).toLocaleString("tr-TR")}</b><span>{tt("maç")}</span></div>
+          <div><b>{Number(p?.sampiyonluk ?? 0).toLocaleString("tr-TR")}</b><span>{tt("kupa")}</span></div>
+          <div><b>{Number(p?.seri_gun ?? 0).toLocaleString("tr-TR")}</b><span>{tt("gün seri")}</span></div>
         </div>
 
         {/* Kaç maç yaptı, kaç maçın istatistiği var, kategori yüzdeleri (Paket 14) */}
@@ -97,7 +98,7 @@ export default function OyuncuKarti({ userId, onIzleme = null, onKapat, onMeydan
 
         {onMeydanOku && (
           <button type="button" className="btn" onClick={() => onMeydanOku(userId)}>
-            <Ikon ad="kilic" boyut={16} /> Meydan oku
+            <Ikon ad="kilic" boyut={16} /> {tt("Meydan oku")}
           </button>
         )}
       </div>

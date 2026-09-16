@@ -1,34 +1,35 @@
 import { useState } from "react";
 import Maskot from "./Maskot.jsx";
 import Ikon from "./Ikon.jsx";
+import { tt } from "../lib/dil.js";
 
 const KARTLAR = [
   {
     ikon: "kilic",
     poz: "selam",
-    baslik: "Nasıl oynanır?",
+    baslik: tt("Nasıl oynanır?"),
     metin:
-      "20 soruluk kapışmalarda rakibinle yarışırsın. Her doğru cevap 10 puan — " +
-      "hızlı basmak fark etmez, bilmek yeter. Sıra beklemek yok: sen istediğin " +
-      "zaman oynarsın, rakibin de kendi zamanında.",
+      tt("20 soruluk kapışmalarda rakibinle yarışırsın. Her doğru cevap 10 puan — ") +
+      tt("hızlı basmak fark etmez, bilmek yeter. Sıra beklemek yok: sen istediğin ") +
+      tt("zaman oynarsın, rakibin de kendi zamanında."),
     tema: "tema-meydan",
   },
   {
     ikon: "yildiz",
     poz: "dusunuyor",
-    baslik: "On kategori",
+    baslik: tt("On kategori"),
     metin:
-      "Genel Kültür, Bilim, Tarih, Coğrafya, Edebiyat, Spor, Sanat, Sinema, " +
-      "Müzik ve Teknoloji. 5.000'den fazla doğrulanmış soru seni bekliyor.",
+      tt("Genel Kültür, Bilim, Tarih, Coğrafya, Edebiyat, Spor, Sanat, Sinema, ") +
+      tt("Müzik ve Teknoloji. 5.000'den fazla doğrulanmış soru seni bekliyor."),
     tema: "tema-turnuva",
   },
   {
     ikon: "grafik",
     poz: "kutluyor",
-    baslik: "Şehrini zirveye taşı",
+    baslik: tt("Şehrini zirveye taşı"),
     metin:
-      "Kazandığın puanlar seni şehir, ülke ve dünya liglerinde yükseltir. " +
-      "Her pazartesi yeni hafta başlar. Günlük turnuvalarda son kalan kazanır!",
+      tt("Kazandığın puanlar seni şehir, ülke ve dünya liglerinde yükseltir. ") +
+      tt("Her pazartesi yeni hafta başlar. Günlük turnuvalarda son kalan kazanır!"),
     tema: "tema-lig",
   },
 ];
@@ -44,10 +45,10 @@ export default function Tanitim({ onBitti }) {
   const sonuncu = i === KARTLAR.length - 1;
 
   return (
-    <div className="bd-tanitim-katman" role="dialog" aria-modal="true" aria-label="Tanıtım">
+    <div className="bd-tanitim-katman" role="dialog" aria-modal="true" aria-label={tt("Tanıtım")}>
       <div className={`bd-tanitim ${k.tema}`}>
         <button className="bd-tanitim-atla" onClick={onBitti}>
-          Atla
+          {tt("Atla")}
         </button>
 
         <div className="bd-tanitim-gorsel">
@@ -70,7 +71,7 @@ export default function Tanitim({ onBitti }) {
           className="btn"
           onClick={() => (sonuncu ? onBitti() : setI((x) => x + 1))}
         >
-          {sonuncu ? "Hadi başlayalım!" : "Devam"}
+          {sonuncu ? tt("Hadi başlayalım!") : tt("Devam")}
         </button>
       </div>
     </div>

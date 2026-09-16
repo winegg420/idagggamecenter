@@ -1,6 +1,7 @@
 import { useState } from "react";
 import Ikon from "./Ikon.jsx";
 import { sesAcikMi, sesAyarla, sesDokunus, sesKilidiAc } from "../lib/ses.js";
+import { tt } from "../lib/dil.js";
 
 /**
  * Üst çubuktaki ses aç/kapa düğmesi.
@@ -30,8 +31,8 @@ export default function SesDugmesi() {
       className={`bd-ses-dugme ${acik ? "" : "kapali"}`}
       onClick={degistir}
       aria-pressed={acik}
-      aria-label={acik ? "Sesi kapat" : "Sesi aç"}
-      title={acik ? "Sesi kapat" : "Sesi aç"}
+      aria-label={acik ? tt("Sesi kapat") : tt("Sesi aç")}
+      title={acik ? tt("Sesi kapat") : tt("Sesi aç")}
     >
       <Ikon ad={acik ? "sesAcik" : "sesKapali"} boyut={18} />
     </button>

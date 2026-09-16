@@ -1,6 +1,7 @@
 import * as T from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { modelKur, modelYokEt, hareket } from './model.js';
+import { tt } from '../lib/dil.js';
 
 export function sahneKur(kapsayici, ayar, rapor = () => {}) {
   const sahne = new T.Scene(); sahne.background = new T.Color('#151a23');
@@ -14,7 +15,7 @@ export function sahneKur(kapsayici, ayar, rapor = () => {}) {
   render.shadowMap.enabled = true; render.shadowMap.type = T.PCFShadowMap;
   render.toneMapping = T.ACESFilmicToneMapping; render.toneMappingExposure = 1.25;
   kapsayici.appendChild(render.domElement);
-  render.domElement.setAttribute('aria-label', 'Döndürülebilen üç boyutlu karakter');
+  render.domElement.setAttribute('aria-label', tt('Döndürülebilen üç boyutlu karakter'));
   const kontrol = new OrbitControls(kamera, render.domElement);
   kontrol.target.set(0,1.9,0); kontrol.enableDamping=true; kontrol.enablePan=false;
   kontrol.minDistance=3; kontrol.maxDistance=13; kontrol.maxPolarAngle=Math.PI*.54;
@@ -36,7 +37,7 @@ export function sahneKur(kapsayici, ayar, rapor = () => {}) {
   const boyut=()=>{const w=Math.max(1,kapsayici.clientWidth),h=Math.max(1,kapsayici.clientHeight);render.setSize(w,h);kamera.aspect=w/h;kamera.updateProjectionMatrix();};
   const gozlem=typeof ResizeObserver!=='undefined'?new ResizeObserver(boyut):null;gozlem?.observe(kapsayici);window.addEventListener('resize',boyut);boyut();
   let durumKayip=false, gizliBildirildi=false;
-  const contextKaybi=e=>{e.preventDefault();durumKayip=true;rapor({hata:'3D görüntü bağlantısı kesildi. Sayfayı yenileyin.'});};
+  const contextKaybi=e=>{e.preventDefault();durumKayip=true;rapor({hata:tt("3D görüntü bağlantısı kesildi. Sayfayı yenileyin.")});};
   render.domElement.addEventListener('webglcontextlost',contextKaybi);
   // İLK KARE HER HÂLÜKÂRDA ÇİZİLİR.
   // Eskiden döngü `document.hidden` iken hiç render etmiyordu; sayfa arka

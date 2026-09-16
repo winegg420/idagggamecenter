@@ -1,3 +1,4 @@
+import { tt } from "../lib/dil.js";
 // ============================================================
 // EKRAN YÖNÜ — teşhis + "yatay moda geç"
 //
@@ -69,13 +70,13 @@ export async function yatayaGec(kapsayici) {
       if (istek) await istek.call(kapsayici ?? document.documentElement);
     }
     if (!kilitDesteklenirMi()) {
-      return { oldu: false, mesaj: "Cihazın bunu desteklemiyor — telefonun otomatik döndürme ayarını aç." };
+      return { oldu: false, mesaj: tt("Cihazın bunu desteklemiyor — telefonun otomatik döndürme ayarını aç.") };
     }
     await screen.orientation.lock("landscape");
     return { oldu: true };
   } catch (e) {
     console.error("[Meydan] yatay kilit:", e);
-    return { oldu: false, mesaj: "Cihazın bunu desteklemiyor — telefonun otomatik döndürme ayarını aç." };
+    return { oldu: false, mesaj: tt("Cihazın bunu desteklemiyor — telefonun otomatik döndürme ayarını aç.") };
   }
 }
 

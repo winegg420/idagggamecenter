@@ -9,6 +9,7 @@ import { sesTik, sesSureDoldu, sesDogru, sesYanlis, sesDokunus, sesKilidiAc } fr
 import { titret, macPuani } from "../lib/geriBildirim.js";
 import { kategoriAdi } from "../lib/kategoriler.js";
 import { useGorunurlukTazele } from "../lib/gorunurluk.js";
+import { tt } from "../lib/dil.js";
 
 const HARFLER = ["A", "B", "C", "D"];
 const SURE = 15;
@@ -263,7 +264,7 @@ export default function QuestionCard({
       {/* Zaman aşımı bilgisi — geri bildirim penceresi boyunca durur */}
       {zamanAsimi && (
         <div className="bd-sure-doldu-bant" role="status">
-          <Ikon ad="saat" boyut={15} /> Süre doldu
+          <Ikon ad="saat" boyut={15} /> {tt("Süre doldu")}
         </div>
       )}
 
@@ -280,14 +281,14 @@ export default function QuestionCard({
       {/* Üst şerit: soru numarası + kalan süre halkası + ilerleme çubuğu */}
       <div className="bd-soru-ust">
         <div className="bd-soru-no">
-          Soru {soru.soru_index + 1}
+          {tt("Soru")} {soru.soru_index + 1}
           {kategori && kategori !== "karisik" && (
             <span className="bd-soru-kategori" data-kat={kategori}>
               {kategoriAdi(kategori)}
             </span>
           )}
         </div>
-        <div className="bd-sure-halka" aria-label={`${Math.ceil(kalan)} saniye kaldı`}>
+        <div className="bd-sure-halka" aria-label={tt("{0} saniye kaldı", { 0: Math.ceil(kalan) })}>
           <svg viewBox="0 0 48 48" aria-hidden="true">
             <circle className="iz" cx="24" cy="24" r="20" />
             <circle
@@ -373,20 +374,20 @@ export default function QuestionCard({
               if (r?.kapali) setKapali(r.kapali);
             }}
           >
-            <Ikon ad="terazi" boyut={16} /> 50:50 <span className="bedel">Ücretsiz</span>
+            <Ikon ad="terazi" boyut={16} /> 50:50 <span className="bedel">{tt("Ücretsiz")}</span>
           </button>
           <button
             disabled={jokerler.kullanildi.sure}
             onClick={() => jokerler.onKullan("sure")}
           >
-            <Ikon ad="saat" boyut={16} /> +10 sn <span className="bedel">20 puan</span>
+            <Ikon ad="saat" boyut={16} /> {tt("+10 sn")} <span className="bedel">{tt("20 puan")}</span>
           </button>
         </div>
       )}
 
       {sonuc && (
         <div className="adil-oylama">
-          <span>Bu soru adil miydi?</span>
+          <span>{tt("Bu soru adil miydi?")}</span>
           <button className={oy === true ? "secildi" : ""} onClick={() => oyVer(true)}>
             <Ikon ad="onay" boyut={17} />
           </button>

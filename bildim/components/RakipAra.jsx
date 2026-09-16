@@ -5,6 +5,7 @@ import { useAuth } from "../../src/context/AuthContext.jsx";
 import { kategoriEtiket } from "../lib/kategoriler.js";
 import Maskot from "./Maskot.jsx";
 import { botZorluk } from "../lib/botZorluk.js";
+import { tt } from "../lib/dil.js";
 
 const BEKLEME_SN = 8; // bu süre içinde insan rakip aranır, sonra bota düşülür
 
@@ -93,9 +94,9 @@ export default function RakipAra({ kategori, dereceli = true, onBulundu, onIptal
       });
       if (error) throw error;
       if (data) { bitir(data); return; }
-      setHata("Şu an uygun rakip bulunamadı. Birazdan tekrar dene.");
+      setHata(tt("Şu an uygun rakip bulunamadı. Birazdan tekrar dene."));
     } catch (e) {
-      setHata("Maç başlatılamadı. Bağlantını kontrol edip tekrar dene.");
+      setHata(tt("Maç başlatılamadı. Bağlantını kontrol edip tekrar dene."));
       console.error("[Bildim] hemen_bot_mac:", e);
     }
   }, [kategori, dereceli, bitir]);
@@ -140,10 +141,10 @@ export default function RakipAra({ kategori, dereceli = true, onBulundu, onIptal
       });
       if (error) throw error;
       if (data) { bitir(data); return; }
-      setHata("Şu an bu botla maç açılamadı. Başka bir bot seç.");
+      setHata(tt("Şu an bu botla maç açılamadı. Başka bir bot seç."));
       setSecilenBot(null);
     } catch (e) {
-      setHata("Maç başlatılamadı. Bağlantını kontrol edip tekrar dene.");
+      setHata(tt("Maç başlatılamadı. Bağlantını kontrol edip tekrar dene."));
       console.error("[Bildim] hemen_bot_mac_sec:", e);
       setSecilenBot(null);
     }
@@ -172,7 +173,7 @@ export default function RakipAra({ kategori, dereceli = true, onBulundu, onIptal
         if (data) { bitir(data); return true; }
         return false;                       // sunucu hâlâ arıyor
       } catch (e) {
-        setHata("Maç başlatılamadı. Bağlantını kontrol edip tekrar dene.");
+        setHata(tt("Maç başlatılamadı. Bağlantını kontrol edip tekrar dene."));
         console.error("[Bildim] quick_match:", e);
         return true;                        // hata: yoklamayı durdur
       }
@@ -197,7 +198,7 @@ export default function RakipAra({ kategori, dereceli = true, onBulundu, onIptal
         if (error) throw error;
         if (data) bitir(data);
       } catch (e) {
-        setHata("Rakip aranamadı. Bağlantını kontrol edip tekrar dene.");
+        setHata(tt("Rakip aranamadı. Bağlantını kontrol edip tekrar dene."));
         console.error("[Bildim] kuyruga_gir:", e);
         clearInterval(zamanlayiciRef.current);
       }
@@ -228,42 +229,42 @@ export default function RakipAra({ kategori, dereceli = true, onBulundu, onIptal
   }, [kategori, dereceli, bitir, sonCare]);
 
   const govde = (
-    <div className="bd-arama-katman" role="dialog" aria-modal="true" aria-label="Rakip aranıyor">
+    <div className="bd-arama-katman" role="dialog" aria-modal="true" aria-label={tt("Rakip aranıyor")}>
       <div className="bd-arama-kutu">
         <div className="bd-arama-halka" aria-hidden="true">
           <Maskot poz={rakipAdi ? "kutluyor" : "dusunuyor"} boyut={84} />
         </div>
 
         {rakipAdi ? (
-          <div className="bd-arama-bulundu">Rakip bulundu: {rakipAdi}</div>
+          <div className="bd-arama-bulundu">{tt("Rakip bulundu:")} {rakipAdi}</div>
         ) : (
           <div className="bd-arama-baslik">
             {Array.isArray(botListesi) && !secilenBot
-              ? "Rakip botunu seç"
-              : botaDusuldu ? "Maç hazırlanıyor…" : "Rakip aranıyor…"}
+              ? tt("Rakip botunu seç")
+              : botaDusuldu ? tt("Maç hazırlanıyor…") : tt("Rakip aranıyor…")}
           </div>
         )}
 
         <div className="bd-arama-alt">
-          {kategori ? kategoriEtiket(kategori) : "Karışık"} kategorisinde
+          {kategori ? kategoriEtiket(kategori) : tt("Karışık")} {tt("kategorisinde")}
           {Array.isArray(botListesi)
-            ? " seçtiğin botla oynarsın. Bot maçında coin ödülü yarıya iner."
+            ? tt(" seçtiğin botla oynarsın. Bot maçında coin ödülü yarıya iner.")
             : botYolu
-            ? " seviyene yakın bir botla eşleştiriyoruz. Bot maçında coin ödülü yarıya iner."
+            ? tt(" seviyene yakın bir botla eşleştiriyoruz. Bot maçında coin ödülü yarıya iner.")
             : botaDusuldu
-              ? " seviyene yakın bir rakiple eşleştiriyoruz."
-              : " seninle aynı seviyede birini arıyoruz."}
+              ? tt(" seviyene yakın bir rakiple eşleştiriyoruz.")
+              : tt(" seninle aynı seviyede birini arıyoruz.")}
         </div>
 
         {!botaDusuldu && !rakipAdi && (
-          <div className="bd-arama-sayac">{kalan} sn</div>
+          <div className="bd-arama-sayac">{kalan} {tt("sn")}</div>
         )}
 
         {botListesi && !rakipAdi && (
           botListesi === "yukleniyor" ? (
-            <div className="bd-arama-alt">Botlar yükleniyor…</div>
+            <div className="bd-arama-alt">{tt("Botlar yükleniyor…")}</div>
           ) : (
-            <div className="bd-arama-botlar" role="group" aria-label="Rakip bot seç">
+            <div className="bd-arama-botlar" role="group" aria-label={tt("Rakip bot seç")}>
               {botListesi.map((b) => {
                 const z = botZorluk(Number(b.acik_bot_isabet));
                 return (
@@ -289,7 +290,7 @@ export default function RakipAra({ kategori, dereceli = true, onBulundu, onIptal
           <div className="bd-arama-eylem">
             {!botaDusuldu && (
               <button className="btn" onClick={botlariGoster}>
-                Beklemeden bot ile oyna
+                {tt("Beklemeden bot ile oyna")}
               </button>
             )}
             <button
@@ -299,7 +300,7 @@ export default function RakipAra({ kategori, dereceli = true, onBulundu, onIptal
                 onIptal();
               }}
             >
-              Vazgeç
+              {tt("Vazgeç")}
             </button>
           </div>
         )}

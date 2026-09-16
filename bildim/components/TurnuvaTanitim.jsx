@@ -3,6 +3,7 @@ import { supabase } from "../../src/lib/supabase.js";
 import Avatar from "../../src/components/Avatar.jsx";
 import Ikon from "./Ikon.jsx";
 import { turnuvaSaatleri } from "../lib/zaman.js";
+import { tt } from "../lib/dil.js";
 
 /**
  * Turnuva sayfasındaki boş ekranı dolduran tanıtım bloğu:
@@ -59,28 +60,25 @@ export default function TurnuvaTanitim() {
   return (
     <>
       <div className="kart bd-turnuva-nasil">
-        <div className="bd-kat-baslik"><span>Nasıl oynanır?</span></div>
+        <div className="bd-kat-baslik"><span>{tt("Nasıl oynanır?")}</span></div>
         <ol className="bd-nasil-liste">
           <li>
             <span className="bd-nasil-no">1</span>
             <span>
-              <b>Lobiye katıl.</b> Turnuvalar her gün{" "}
-              <b>{turnuvaSaatleri().join(", ")}</b> saatlerinde başlar (Türkiye saati);
-              başlamadan lobide olman gerekir.
+              <b>{tt("Lobiye katıl.")}</b> {tt("Turnuvalar her gün")}{" "}
+              <b>{turnuvaSaatleri().join(", ")}</b> {tt("saatlerinde başlar (Türkiye saati); başlamadan lobide olman gerekir.")}
             </span>
           </li>
           <li>
             <span className="bd-nasil-no">2</span>
             <span>
-              <b>Yanlış cevap elenmektir.</b> Herkese aynı soru aynı anda gelir,
-              bir soruyu kaçıran turnuvadan çıkar.
+              <b>{tt("Yanlış cevap elenmektir.")}</b> {tt("Herkese aynı soru aynı anda gelir, bir soruyu kaçıran turnuvadan çıkar.")}
             </span>
           </li>
           <li>
             <span className="bd-nasil-no">3</span>
             <span>
-              <b>Son kalan kazanır</b> ve <b>+150 lig puanı</b> alır; ilk 10'a giren ve katılan herkes de puan kazanır. Finalde joker
-              kullanılamaz — sadece bilgi.
+              <b>{tt("Son kalan kazanır")}</b> {tt("ve")} <b>{tt("+150 lig puanı")}</b> {tt("alır; ilk 10'a giren ve katılan herkes de puan kazanır. Finalde joker kullanılamaz — sadece bilgi.")}
             </span>
           </li>
         </ol>
@@ -89,8 +87,8 @@ export default function TurnuvaTanitim() {
       {sonTurnuva && ilkUc.length > 0 && (
         <div className="kart">
           <div className="bd-kat-baslik">
-            <span>Son turnuva</span>
-            <span className="alt-yazi">{katilan} katılımcı</span>
+            <span>{tt("Son turnuva")}</span>
+            <span className="alt-yazi">{katilan} {tt("katılımcı")}</span>
           </div>
           <div className="bd-son-turnuva">
             {ilkUc.map((o, i) => (
@@ -99,7 +97,7 @@ export default function TurnuvaTanitim() {
                   {i + 1}
                 </span>
                 <Avatar profile={o.profil} boyut={32} />
-                <span className="bd-son-ad">{o.profil?.gorunen_ad ?? "Oyuncu"}</span>
+                <span className="bd-son-ad">{o.profil?.gorunen_ad ?? tt("Oyuncu")}</span>
                 <span className="bd-son-dogru">
                   <Ikon ad="onay" boyut={13} /> {o.dogru_sayisi ?? 0}
                 </span>
