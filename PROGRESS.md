@@ -5241,3 +5241,18 @@ en küçük TR 761 (spor), EN 476 (tarih) — hiçbiri 300 altı değil. Sayfa s
   1,5 ms masaüstü iGPU (eski sahne 25 karakterde 16,5 ms). Bina 1 mesh 2.424 üçgen.
 - Yerel test kabuğu `.tmp/deneme-test/index.html` (git dışı; giriş duvarı olmadan sayfayı yükler).
 - **Onay kapısı:** görseller + tablo sahibine sunuldu; Aşama 2 (Taksim) onay bekliyor.
+
+## Harita Yenileme — Aşama 1B: görsel kalite sıçraması (16 Eyl 2026)
+- Öncelik sırasıyla (§0B): çapa testi (9 donuk kare + AxesHelper — kozmetikler hiçbir karede kaymadı, GEÇTİ) → atlas
+  yeniden yazımı (1024², yapı desenleri, tuğla hücresi, eski atlas A/B) → seçici pah (ölçeğe bağlı yarıçap, 1 bölüm) +
+  roughness 0,82 + ortam haritası → gömülü AO (`ao.mjs`, three-mesh-bvh devDependency, COLOR_0, A/B düğmesi) + zemin
+  temas gölgesi (tek instanced decal) → çevre instancing (24 ağaç · 12 lamba · 10 bank · 16 saksı · bordür, +8 çağrı) →
+  3 kamera + ışık A/B (pozlama 1,12; sis 70).
+- Bulunan/düzeltilen: görev metnindeki ışık B değerleri (1,6π/0,9π) ortam haritasıyla sahneyi pastel beyaza yıkıyordu →
+  ölçülüp 1,15π/0,45π, ortam 0,25 yapıldı. Bina tessellation ilk denemede 17k üçgen → pah 1 bölüm + 0,5 m ızgara ile 9,8k.
+  Atlas A/B ilk sürümde yalnız ilk malzemeyi değiştiriyordu (her GLB kendi Texture nesnesini getiriyor) → malzeme başına saklandı.
+  Kozmetik ve küçük prop'lar gölge atmaz (bütçe): 25 karakter 97 çağrı / 314k üçgen.
+- AO A/B sonucu dürüst: fark var ama orta; asıl sıçrama atlas + ışık ayarından. Rapor: `bildim/harita/ASAMA_1B_RAPOR.md`.
+  STIL.md §2.3 bütçe tablosu kilitlendi (karakterler ≤143 / ≤340k, çevre ≤60 / ≤80k, toplam ≤220 / ≤420k).
+- Toplam ölçüm: 25 karakter + çevre + bina 111 çağrı · 381.904 üçgen · 2,45 ms (masaüstü). Telefon FPS ölçülmedi.
+- **DUR NOKTASI:** Aşama 2 (13 karakter) sahibinin onayını bekliyor; otomatik devam edilmedi.

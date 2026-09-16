@@ -120,15 +120,20 @@ uzaklığını (offset) tür başına bir kez taşır; kozmetik dosyası her tü
 - Karakter `+Z` yönüne bakar (three.js `lookAt` uyumu). Ölçüldü (Aşama 1): Mixamo/Soldier
   rig'i GLTFLoader ile `+Z`ye bakıyor, ek döndürme yok; Blender'dan dışa aktarımda `+Y up` korunur.
 
-### 2.3 Çizim bütçesi (kalite artarken yük DÜŞMELİ)
-| Katman | Bugün (ölçüm, §4) | Hedef | Yol |
+### 2.3 Çizim bütçesi — KİLİTLENDİ (Aşama 1B, 16 Eyl 2026)
+Ölçülen gerçeğe göre sabitlendi; eski "karakterler ≤120" satırı yanlıştı, silindi.
+Sayılar `renderer.info` çağrı/üçgen değeridir (gölge geçişi DAHİL).
+
+| Katman | Çizim çağrısı | Üçgen | Ölçülen (Aşama 1B) |
 |---|---|---|---|
-| Harita (ana geçiş) | 277 çağrı / 14,9k üçgen | **≤ 60 çağrı** | tek atlas + tek malzeme, statik parçaları birleştir, prop'lar instanced |
-| Karakter (3B, ana geçiş) | 61 çağrı / ~30k üçgen | **3-5 çağrı / ≤ 8k üçgen** | gövde+kıyafet tek skinned mesh + tek atlas; kozmetik = 1-2 ek çağrı |
-| Karakterler toplam (25) | 25 × 61 = 1525 (sınırla 6×3B) | **≤ 120 çağrı** | 25 × ≤ 5 |
-| Deniz + köprü + siluetler | yok | **≤ 5 çağrı** | düzlem + düşük detaylı köprü + 2 siluet levhası |
-| Gölge geçişi | tüm castShadow'lar bir kez daha çizilir | ana geçişin ≤ %60'ı | küçük prop'lar gölge atmaz; karakter gölgesi tek disk (blob) veya düşük LOD |
-| Arayüz (HUD, isim etiketi, balon) | ~10-50 sprite | kalan | isim etiketleri tek atlas sprite |
+| Karakterler (25 adet) | **≤ 143** | **≤ 340.000 (SERT SINIR)** | 97 çağrı · 314.236 üçgen |
+| Çevre + binalar | **≤ 60** | **≤ 80.000** | 12 çağrı · 67.700 üçgen (1 bina + 62 prop + bordür) |
+| Arayüz + efekt | **≤ 20** | — | 2 (tabela yazısı, temas gölgesi) |
+| **TOPLAM** | **≤ 220** | **≤ 420.000** | **111 çağrı · 381.904 üçgen** |
+
+Yollar: karakter = tek skinned mesh + tek atlas, kozmetik 1 çağrı ve **gölge atmaz**; çevrede
+tekrar eden her prop `InstancedMesh` (tür başına 1 çağrı), küçük prop'lar (bank, saksı, bordür)
+gölge atmaz, temas gölgesi (tek instanced decal) yeter. Pah SEÇİCİ: bütçeyi aşarsa pah kısılır, bütçe değil.
 
 Karakter üçgen bütçesi: gövde ≤ 4k, kıyafet ≤ 2k, kozmetik parça ≤ 600, saç ≤ 800.
 İkinci LOD (uzak): ≤ 1,5k üçgen, 1 çağrı. Üçüncü kademe: mevcut portre
