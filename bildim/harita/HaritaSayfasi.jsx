@@ -403,6 +403,9 @@ export default function HaritaSayfasi() {
       const dusukDonanim = (navigator.hardwareConcurrency || 8) <= 4;
       const hareketAzalt = window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches ?? false;
       dunya = dunyaKur(kapsayici, { dusukDonanim, hareketAzalt, yerlesim: haritaSecimi() === "taksim" ? taksimYerlesim : null });
+      // 2B §2.3: tam (kozmetik + gölge + kırpma) karakter sayısı oyun_ayarlari'ndan — koda gömülmez
+      const kurulanDunya = dunya;
+      oyunAyari("meydan_uc_boyutlu_sinir", 25).then((n) => kurulanDunya.kalabalikSiniri(n)).catch((e) => console.error("[Meydan] kalabalik siniri:", e));
     } catch (e) {
       console.error("[Meydan] sahne kurulamadi:", e);
       setYukleniyor(false);

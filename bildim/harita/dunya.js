@@ -34,6 +34,11 @@ import { turnuvaSaatleri } from "../lib/zaman.js";
 import { tt } from "../lib/dil.js";
 // AŞAMA 2A: yerleşim manifesti (yerlesim.json) verilirse dünya ondan kurulur — konumlar koda gömülü değil.
 import { yerlesimKur } from "./yerlesimDunya.js";
+// AŞAMA 2B: haritadaki bütün karakterler (kendi oyuncu, uzaktakiler, botlar) yeni GLB karakter — ortak modülden
+import { RoomEnvironment } from "three/addons/environments/RoomEnvironment.js";
+import { KarakterSistemi, VARLIK_KOK } from "./karakter/karakter.js";
+import { MeydanAvatarlari } from "./karakter/meydanAvatar.js";
+import { TemasGolgeleri } from "./karakter/temas.js";
 export { esyaBilgisi };
 
 // roundRect / canvasDoku / isimEtiketi / nesneyiSerbestBirak ORTAK.JS'e taşındı:
@@ -121,21 +126,35 @@ export function dunyaKur(kapsayici, s = {}) {
   render.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
   render.setSize(W, H);
   render.shadowMap.enabled = !dusukDonanim; // düşük donanımda gölge kapalı
-  render.shadowMap.type = THREE.PCFSoftShadowMap;
+  // 2B: laboratuvarın B+ ışığı (Aşama 1C §7) — karakter/çevre malzemesi (atlas + bölge cilası) buna göre ayarlı
+  render.shadowMap.type = THREE.PCFShadowMap;
+  render.toneMapping = THREE.ACESFilmicToneMapping;
+  render.toneMappingExposure = 1.08;
   kapsayici.appendChild(render.domElement);
+  try { const pmrem = new THREE.PMREMGenerator(render); sahne.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture; sahne.environmentIntensity = 0.25; pmrem.dispose(); } catch (e) { console.error("[Meydan] ortam haritasi:", e); }
 
-  // ---------- ışık ----------
-  sahne.add(new THREE.HemisphereLight(0xeaf7ff, 0x8fbf7a, 0.95 * Math.PI));
-  const gunes = new THREE.DirectionalLight(0xfff3dc, 1.05 * Math.PI);
-  gunes.position.set(28, 46, 20);
+  // ---------- ışık (B+) ----------
+  sahne.add(new THREE.HemisphereLight(0xeaf7ff, 0xe8dfcb, 0.405 * Math.PI));
+  const gunes = new THREE.DirectionalLight(0xfff3dc, 1.29 * Math.PI);
+  const GUNES_YON = new THREE.Vector3(Math.sin(THREE.MathUtils.degToRad(40)) * Math.cos(THREE.MathUtils.degToRad(42)), Math.sin(THREE.MathUtils.degToRad(42)), Math.cos(THREE.MathUtils.degToRad(40)) * Math.cos(THREE.MathUtils.degToRad(42))).multiplyScalar(70);
+  gunes.position.copy(GUNES_YON);
   gunes.castShadow = !dusukDonanim;
   gunes.shadow.mapSize.set(2048, 2048);
-  const d = 92;
+  // 2B: gölge kamerası oyuncuyu izler (harita ~250 m; sabit merkezli gölge İstiklal'in ucuna yetişmiyordu)
+  const d = 46;
   gunes.shadow.camera.left = -d; gunes.shadow.camera.right = d;
   gunes.shadow.camera.top = d;   gunes.shadow.camera.bottom = -d;
-  gunes.shadow.camera.far = 140;
-  gunes.shadow.bias = -0.0012;
-  sahne.add(gunes);
+  gunes.shadow.camera.far = 160;
+  gunes.shadow.bias = -0.0012; gunes.shadow.radius = 3;
+  sahne.add(gunes, gunes.target);
+
+  // ---------- 2B: karakter sistemi + temas gölgesi + meydan avatarları ----------
+  const ks = new KarakterSistemi({ sahne, vfxAyar: { kapasite: 1500, tamSayi: 6, ortaMesafe: 14, uzakMesafe: 28 } });
+  const temas = new TemasGolgeleri(sahne, new THREE.TextureLoader().load(VARLIK_KOK + "temas.png"));
+  const avatarlar = new MeydanAvatarlari({ ks, temas });
+  const karakterHazir = ks.yukle()
+    .then(() => { avatarlar.hazirOlunca(); return true; })
+    .catch((e) => { console.error("[Meydan] karakterler yuklenemedi:", e); return false; });
 
   const engeller = [];
   const binalar = [];
@@ -457,16 +476,17 @@ export function dunyaKur(kapsayici, s = {}) {
    * @param {object} gorunum    profiles.gorunum
    * @param {object} esyaBilgi  geriye uyum; 3B eşya katalogu (kullanılmaz)
    */
-  function avatarOlustur(ad, govdeRenk, sacRenk, etiketRenk, gorunum = null, esyaBilgi = {}) {
-    // Görünüm kaydı yoksa karakterGorsel ilk bedava karakteri çizer.
-    const gor = gorunum ?? {};
-    const g = karakterAvatarKur({ ad, gorunum: gor, etiketRenk });
+  // 2B: yeni GLB karakter (karakter/meydanAvatar.js). govdeRenk/sacRenk/esyaBilgi geriye uyum için imzada kaldı.
+  // secenek: { bot, tohum } — bot görünümü tohumdan (tür dahil) çizilir; gerçek oyuncu profiles.gorunum'dan.
+  function avatarOlustur(ad, govdeRenk, sacRenk, etiketRenk, gorunum = null, esyaBilgi = {}, secenek = {}) {
+    const g = avatarlar.kur({ ad, gorunum, etiketRenk, tohum: secenek.tohum ?? null, bot: Boolean(secenek.bot), katman: secenek.katman ?? null });
     sahne.add(g);
     return g;
   }
 
-  /** Kıyafet değişimi — sahne yıkılmadan (bkz. karakterGorsel.js). */
+  /** Kıyafet değişimi — sahne yıkılmadan: yalnız gövde yeniden kurulur. */
   function avatarGorunumu(av, gorunum, esyaBilgi = {}) {
+    if (av?.userData?.yeniKarakter) { avatarlar.gorunumDegistir(av, gorunum); return; }
     karakterGorunumDegistir(av, gorunum);
   }
 
@@ -481,6 +501,7 @@ export function dunyaKur(kapsayici, s = {}) {
     const eski = u.etiket;
     const yeni = isimEtiketi(ad, etiketRenk);
     yeni.position.copy(eski.position);
+    yeni.scale.copy(eski.scale);   // 2B: yeni karakterin küçültülmüş etiketi
     g.remove(eski);
     eski.material.map?.dispose();
     eski.material.dispose();
@@ -496,6 +517,7 @@ export function dunyaKur(kapsayici, s = {}) {
    * (bkz. karakterGorsel.js).
    */
   function avatarSil(g) {
+    if (g?.userData?.yeniKarakter) { avatarlar.sil(g); return; }
     sahne.remove(g);
     karakterYokEt(g);
   }
@@ -517,6 +539,7 @@ export function dunyaKur(kapsayici, s = {}) {
     // 3B GÖVDE: yürüme/bekleme/zıplama duruşunu iskelet üzerinden
     // meydan-model.js veriyor (bacak, diz, kol eklemleri). Aşağıdaki
     // billboard salınımı 2B sprite içindi, 3B modelde karşılığı yok.
+    if (u.yeniKarakter) { avatarlar.yuru(av, dt, guc, zipla, zemin); return; }   // 2B: GLB klipleri (Idle/Walk/Run)
     if (u.gercek3d) { meydanModelYuru(av, dt, guc, zipla, zemin); return; }
     // ZIPLARKEN YÜRÜME KESİLİR: bacaklar hafif toplanır, sprite "idle"a
     // döner, adım salınımı hiç işlemez.
@@ -565,9 +588,10 @@ export function dunyaKur(kapsayici, s = {}) {
     }));
     sp.scale.set(2.2, 2.2, 1);
     sp.position.copy(hedefAvatar.position);
-    sp.position.y = hedefAvatar.position.y + 4.8;
+    const balonY = hedefAvatar.userData?.balonY ?? 4.8;   // 2B: yeni karakter 1,83 m (eski gövde ~4 m)
+    sp.position.y = hedefAvatar.position.y + balonY;
     sahne.add(sp);
-    balonlar.push({ s: sp, t: 0 });
+    balonlar.push({ s: sp, t: 0, y0: sp.position.y });
   }
 
   // ---------- çarpışma ----------
@@ -705,7 +729,7 @@ export function dunyaKur(kapsayici, s = {}) {
     for (let i = balonlar.length - 1; i >= 0; i--) {
       const bl = balonlar[i];
       bl.t += dt;
-      bl.s.position.y = 4.8 + bl.t * 1.1;
+      bl.s.position.y = (bl.y0 ?? 4.8) + bl.t * 1.1;
       bl.s.material.opacity = Math.max(0, 1 - bl.t / 2.2);
       if (bl.t > 2.2) {
         sahne.remove(bl.s);
@@ -727,6 +751,12 @@ export function dunyaKur(kapsayici, s = {}) {
     kamera.lookAt(ben.position.x, ben.position.y * 0.6 + 2.2 * Math.min(1, zum), ben.position.z);
     }
 
+    // 2B: karakter karesi (animasyon, göz kırpma, süzülme, VFX) → dans/ikram vekilleri kemiklere → temas gölgeleri
+    try { ks.kare(dt, zaman, kamera); avatarlar.vekilleriUygula(); } catch (e) { console.error("[Meydan] karakter karesi:", e); }
+    temas.guncelle();
+    gunes.target.position.set(ben.position.x, 0, ben.position.z);
+    gunes.position.copy(gunes.target.position).add(GUNES_YON);
+
     render.render(sahne, kamera);
   }
 
@@ -743,6 +773,7 @@ export function dunyaKur(kapsayici, s = {}) {
   function yokEt() {
     for (const bl of balonlar) { bl.s.material.map.dispose(); bl.s.material.dispose(); }
     balonlar.length = 0;
+    try { avatarlar.temizle(); } catch (e) { console.error("[Meydan] avatar temizle:", e); }
     nesneyiSerbestBirak(sahne);
     sahne.clear();
     // Eşya geometrileri/malzemeleri avatarlar arasında paylaşılıyordu;
@@ -803,6 +834,9 @@ export function dunyaKur(kapsayici, s = {}) {
     avatarOlustur, avatarSil, avatarAdiDegistir, avatarGorunumu, yurumeAnimasyonu, yumusakDon,
     emojiGoster, carpismaDuzelt, zeminYuksekligi, kopruUstundeMi, suSec, yakinBina, turnuvaKapisi, avatarSec,
     dansEttir: (av, kod) => dansBaslat(av, kod),
+    // 2B: tam karakter sayısı (oyun_ayarlari.meydan_uc_boyutlu_sinir) · karakter sistemi hazır sözü · ölçüm için yöneticiler
+    kalabalikSiniri: (n) => { if (Number.isFinite(n) && n >= 0) avatarlar.sinir = n; return avatarlar.sinir; },
+    karakterHazir, karakterler: avatarlar, karakterSistemi: ks,
     zumla, zumAyarla, zumOku,
     guncelle, boyutlandir, yokEt,
   };

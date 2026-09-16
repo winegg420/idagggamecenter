@@ -40,7 +40,8 @@ export const YUVA_DEGERLERI = {
 //   bicim : gövde kabuğunun profili (tisort / gomlek / kapusonlu)
 //   kol   : 'kisa' | 'uzun' — kol kabukları
 //   bacak : kostüm bacakları da örter (alt giyimin ÜSTÜNE geçer)
-const YENI_USTLER = {
+// Aşama 2B: harita karakter çevirisi (harita/karakter/meydanAvatar.js) üst giyim rengini buradan okur — tek kaynak.
+export const YENI_USTLER = {
   havai:       { renk: '#1aa6b7', desen: 'havai',   tekrar: [3, 2],   kol: 'kisa', bicim: 'gomlek' },
   cizgili:     { renk: '#f6f3ea', desen: 'cizgili', tekrar: [1, 1.5], kol: 'kisa', bicim: 'tisort' },
   oduncu:      { renk: '#b3242b', desen: 'oduncu',  tekrar: [3, 2],   kol: 'uzun', bicim: 'gomlek' },
