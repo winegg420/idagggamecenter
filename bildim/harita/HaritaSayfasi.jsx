@@ -685,7 +685,8 @@ export default function HaritaSayfasi() {
           try {
             const av = dunya.avatarOlustur(
               String(b.gorunen_ad || tt("Oyuncu")), r.govde, r.sac, r.etiket,
-              b.gorunum ?? null, gorunumVerisi.bilgi
+              b.gorunum ?? null, gorunumVerisi.bilgi,
+              { bot: true, tohum: b.user_id, katman: b.katman ?? 0 }   // 2B §4B: bot yeni karakterle; tür katmandan (0 insan, diğerleri kaplan/robot), kıyafet/saç/ten/kozmetik kimliğinden — herkeste aynı
             );
             av.userData.ad = String(b.gorunen_ad || tt("Oyuncu"));
             const ilk = planKonumu(t.plan, simdi);
