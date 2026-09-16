@@ -5275,3 +5275,20 @@ en küçük TR 761 (spor), EN 476 (tarih) — hiçbiri 300 altı değil. Sayfa s
 - Rapor `bildim/harita/ASAMA_1C_RAPOR.md`, görseller `.tmp/asama1c-gorseller/`. STIL.md: §1.4 çevre kuralı, §2.3 1C
   sütunu, §6 tür/bölge sözleşmesi + tessellation kararı.
 - **DUR NOKTASI:** 13 karakter üretimine geçilmedi; sahibinin onayı bekleniyor.
+
+## Harita Yenileme — Aşama 1D: yüz, kaplan suratı, robot silueti + prop optimizasyonu (16 Eyl 2026)
+- A İnsan yüzü: kafa 18×13 → 28×18 (orta hatta köşe → burun sırtı); göz çukuru/kaş/burun(+30 mm)/elmacık/çene köşe
+  kaydırmayla (üçgen eklemez), ayrı burun küresi kaldırıldı. Göz/ağız düz kart → yüzeye oturan oval yama (3 halka, 72 üçgen,
+  ışın testiyle çokgen kafaya +1 mm). Göz 0,115 → 0,088. COLOR_0 RGBA + shader ten eşlemesi (ten pikseli tonlu, göz akı değil).
+  Yanlış denemeler: analitik küreye oturtma (burun eteğinde kafa yamanın içinden çıktı), 2 halka (sarkma 1,03 mm > ofset),
+  `convertSRGBToLinear` çift dönüşüm (yama tonsuz kaldı) — üçü de düzeltildi.
+- B Kaplan: muzzle +55 mm plato, alt çene, yanak tutamları geometrik; gözler yana/yukarı; atlas burun üçgeni. Profilden ayrılıyor.
+- C Robot gövdesi baştan: ayrık eklem küreleri + halkalar, kıskaç el, taban plakası + piston, boyun pistonu, yuvarlak kafa +
+  emissive ekran yaması, anten; plastik bölgesi (21); robot kozmetik varyantları (anten halkalı şapka, vizör); set = panel
+  varyantı (düz / koyu metalik / çizgili). 5.146 → 6.060 üçgen. Siyah siluet testi düğmesi eklendi.
+- D Prop: taç gölgesi küre vekili (visible getter = getRenderTarget()!==null; ana geçişe girmez, çağrı aynı), bank 972→320
+  (ucuz pah 68 üçgen), saksı 528→256, lamba 500→220. Çevre 67.890 → 43.722 etkin üçgen, 14 çağrı.
+- Ölçüm (Geniş, 25 karakter): 102 çağrı · 349.054 üçgen (karakter 305.332 · çevre 43.722) · 2,8–3,2 ms. Telefon ölçülmedi.
+- Ek görev: `bildim/harita/ASAMA_2_BUTCE_NOTU.md` yazıldı; Aşama 2 işlerine başlanmadı. Rapor `ASAMA_1D_RAPOR.md`,
+  görseller `.tmp/asama1d-gorseller/`. Kamera en yakın mesafe 0,5 m (yüz kontrolü için).
+- **DUR NOKTASI:** İstiklal / 13 karakter yapılmadı; kalite değerlendirmesi sahibinde.

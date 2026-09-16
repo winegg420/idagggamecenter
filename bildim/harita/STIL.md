@@ -129,12 +129,12 @@ uzaklığını (offset) tür başına bir kez taşır; kozmetik dosyası her tü
 Ölçülen gerçeğe göre sabitlendi; eski "karakterler ≤120" satırı yanlıştı, silindi.
 Sayılar `renderer.info` çağrı/üçgen değeridir (gölge geçişi DAHİL).
 
-| Katman | Çizim çağrısı | Üçgen | Ölçülen (Aşama 1B) | Ölçülen (Aşama 1C) |
-|---|---|---|---|---|
-| Karakterler (25 adet) | **≤ 143** | **≤ 340.000 (SERT SINIR)** | 97 çağrı · 314.236 üçgen | 88 çağrı · 275.160 üçgen (3 tür, 3 set karışık) |
-| Çevre + binalar | **≤ 60** | **≤ 80.000** | 12 çağrı · 67.700 üçgen (1 bina + 62 prop + bordür) | 14 çağrı · 67.890 üçgen (+ döşeli zemin, 3 kedi) |
-| Arayüz + efekt | **≤ 20** | — | 2 (tabela yazısı, temas gölgesi) | 2 |
-| **TOPLAM** | **≤ 220** | **≤ 420.000** | **111 çağrı · 381.904 üçgen** | **102 çağrı · 343.050 üçgen** |
+| Katman | Çizim çağrısı | Üçgen | Ölçülen (Aşama 1B) | Ölçülen (Aşama 1C) | Ölçülen (Aşama 1D) |
+|---|---|---|---|---|---|
+| Karakterler (25 adet) | **≤ 143** | **≤ 340.000 (SERT SINIR)** | 97 çağrı · 314.236 üçgen | 88 çağrı · 275.160 üçgen (3 tür, 3 set karışık) | 88 çağrı · 305.332 üçgen (kafa 28×18, yüz yamaları, robot gövdesi) |
+| Çevre + binalar | **≤ 60** | **≤ 80.000** | 12 çağrı · 67.700 üçgen (1 bina + 62 prop + bordür) | 14 çağrı · 67.890 üçgen (+ döşeli zemin, 3 kedi) | 14 çağrı · **43.722** üçgen (taç gölge vekili, bank/saksı/lamba sadeleşti) |
+| Arayüz + efekt | **≤ 20** | — | 2 (tabela yazısı, temas gölgesi) | 2 | 2 |
+| **TOPLAM** | **≤ 220** | **≤ 420.000** | **111 çağrı · 381.904 üçgen** | **102 çağrı · 343.050 üçgen** | **102 çağrı · 349.054 üçgen** |
 
 Bütçe sayıları 1C'de **değişmedi**. Tür başına tek karakter (gövde, gölge dahil) ≤ 5,5 çağrı / ≤ 13,5k üçgen:
 insan 2 / 10.596 · kaplan 3 / 9.700 · robot 2 / 10.292.
@@ -303,3 +303,24 @@ Göz ve ağız ayrı dörtgen; ifade UV kaydırmadır (ek çağrı yok). Kırpma
 yerel ve tohumlu deterministik, ağ trafiği ve etkileşim yok.
 
 **Işık B+** varsayılan: güneş 1,29π · gök 0,405π · gölge radius 3 · pozlama 1,08 · ortam haritası 0,25.
+
+---
+
+## 7. Aşama 1D — yüz, kaplan suratı, robot silueti, prop kuralı (16 Eyl 2026)
+
+**Yüz kafanın PARÇASIDIR.** Kafa küresi 28×18 (ön orta hatta köşe sütunu → burun sırtı). Göz çukuru, kaş kemeri, burun,
+elmacık, çene mevcut köşelerin normal boyunca kaydırılmasıyla oyulur — ayrı burun küresi, ayrı parça YOK. Göz ve ağız
+düz kart DEĞİL: dış hattı oval, eşmerkezli 3 halkalı yama; her köşesi kafanın **çokgen** yüzeyine (ışın testi) oturur,
+normal boyunca 1 mm ötelenir. Şeffaflık / `alphaTest` YOK; hücre kenarı ten rengi. İfade UV kaydırma. Göz ≤ 0,09 m.
+Ten tonu: karakter `COLOR_0` RGBA (rgb = AO×ton, a = AO); shader yamada ten pikselini tonlar, göz akı/iris/dudağı tonlamaz.
+
+**Kaplan:** muzzle, alt çene ve yanak tutamları geometriyle (aynı köşe kaydırma) — profilden insandan ayrılmalı.
+**Robot:** insan gövdesine kutu kafa DEĞİL. Ayrık küresel eklemler + halkalar, kıskaç el, taban plakası + piston,
+boyun pistonu, yuvarlak kafa + emissive ekran yüz, anten. Kozmetiklerin robot varyantı (anten halkalı şapka, vizör);
+kıyafet seti = panel rengi/deseni. Bölge 21 = plastik (pürüzlülük 0,6). Kabul: **siyah siluet testi** (insan · kaplan · robot
+düz siyah yan yana — ayırt edilemiyorsa yetersiz). Bütçe: robot ≤ 9.000 üçgen.
+
+**Prop kuralı:** oyuncunun yakından bakmadığı prop'ta detay üçgene değil siluete gider. Bank ≤ 350, saksı ≤ 260,
+lamba ≤ 280 üçgen. Pah: `RoundedBox` (108) yerine ucuz pah (68). **Ağaç tacı gölgesini düşük poligonlu küre vekili atar**
+(yalnız gölge geçişinde görünür; ana geçişe girmez, çağrı artmaz). Çevre etkin üçgen 43.722 — İstiklal'e yer bu payla açılır
+(gölge atan LOD0 bina 9.608 × ~2,5 ya da gölgesiz 4.804 × ~5). Aşama 2 bütçe notu: `ASAMA_2_BUTCE_NOTU.md`.
