@@ -55,6 +55,9 @@ function merkezOf(nokta) { let x = 0, z = 0; for (const p of nokta) { x += p[0];
 export function yerlesimKur({ sahne, manifest: M, tt = (s) => s, turnuvaAlt = () => "" }) {
   const kok = new THREE.Group(); kok.name = "Yerlesim"; sahne.add(kok);
   const etiketler = new THREE.Group(); etiketler.name = "Etiketler"; kok.add(etiketler);
+  // 2B: gri yer tutucular gruplu — sanat katmanı (cevre.js) geldiğinde ilgili grup gizlenir; çarpışma/ipucu mantığı aynı kalır
+  const grup = (ad) => { const g = new THREE.Group(); g.name = ad; kok.add(g); return g; };
+  const gri = { zemin: grup("GriZemin"), alan: grup("GriAlan"), lamba: grup("GriLamba"), parsel: grup("GriParsel"), arkaplan: grup("GriArkaplan") };
   const engeller = [];     // {x,z,r} — botlar için
   const kutular = [];      // {x,z,aci,yx,yz} yönlü kutu yarı boyları — oyuncu çarpışması
   const binalar = [];
@@ -62,20 +65,20 @@ export function yerlesimKur({ sahne, manifest: M, tt = (s) => s, turnuvaAlt = ()
   const ekle = (m, ebeveyn = kok) => { ebeveyn.add(m); if (m.isMesh) ozet.mesh++; return m; };
 
   // ---------- dış zemin (girilemez) ----------
-  { const z = new THREE.Mesh(new THREE.CircleGeometry(620, 48), mat(TON.disZemin)); z.rotation.x = -Math.PI / 2; z.position.y = -0.02; z.receiveShadow = true; ekle(z); }
+  { const z = new THREE.Mesh(new THREE.CircleGeometry(620, 48), mat(TON.disZemin)); z.rotation.x = -Math.PI / 2; z.position.y = -0.02; z.receiveShadow = true; ekle(z, gri.zemin); }
 
   // ---------- bölgeler (zemin tonları; çizim sırası = manifest sırası, üst üste y ile) ----------
   M.bolgeler.forEach((b, i) => {
     const y = 0.01 + i * 0.012;
     if (b.sekil === "daire") {
       const m = new THREE.Mesh(new THREE.CircleGeometry(b.r, 72), mat(b.tip === "sosyal" ? TON.meydan : TON.plaza));
-      m.rotation.x = -Math.PI / 2; m.position.set(b.merkez[0], y, b.merkez[1]); m.receiveShadow = true; ekle(m);
+      m.rotation.x = -Math.PI / 2; m.position.set(b.merkez[0], y, b.merkez[1]); m.receiveShadow = true; ekle(m, gri.zemin);
     } else if (b.sekil === "koridor") {
       const k = koridor(b);
       const kal = new THREE.Mesh(new THREE.PlaneGeometry(b.genislik, k.boy), mat(TON.kaldirim));
-      kal.rotation.set(-Math.PI / 2, 0, k.aci); kal.position.set(k.cx, y, k.cz); kal.receiveShadow = true; ekle(kal);
+      kal.rotation.set(-Math.PI / 2, 0, k.aci); kal.position.set(k.cx, y, k.cz); kal.receiveShadow = true; ekle(kal, gri.zemin);
       const yol = new THREE.Mesh(new THREE.PlaneGeometry(b.genislik - 2 * (b.kaldirim ?? 0), k.boy), mat(TON.sokak));
-      yol.rotation.set(-Math.PI / 2, 0, k.aci); yol.position.set(k.cx, y + 0.006, k.cz); yol.receiveShadow = true; ekle(yol);
+      yol.rotation.set(-Math.PI / 2, 0, k.aci); yol.position.set(k.cx, y + 0.006, k.cz); yol.receiveShadow = true; ekle(yol, gri.zemin);
     }
     ozet.bolge++;
     const e = etiket([`bölge: ${b.id}`, b.tip], 1.2);
@@ -108,7 +111,7 @@ export function yerlesimKur({ sahne, manifest: M, tt = (s) => s, turnuvaAlt = ()
       binalar.push({ id: p.id, ad: tt(p.ad), alt: p.alt != null ? tt(p.alt) : turnuvaAlt(), rota: p.mod, x: on.x, z: on.z, g, isima: null, sayacLevha: null, yukseklik });
       ozet.girilebilir++;
     }
-    kok.add(g);
+    gri.parsel.add(g);
     const e = etiket([p.id, `${p.tur}${p.kat ? ` · ${p.kat} kat` : ""}${p.girilebilir ? ` · ${p.mod}` : ""}`], 1);
     e.position.set(x, yukseklik + (p.yertutucu === "kubbe" ? Math.min(en, derinlik) * 0.38 : 0) + 2.2, z); etiketler.add(e);
     kutular.push({ x, z, aci, yx: en / 2, yz: derinlik / 2, id: p.id });
@@ -130,8 +133,8 @@ export function yerlesimKur({ sahne, manifest: M, tt = (s) => s, turnuvaAlt = ()
     const [x, , z] = n.konum;
     if (n.tip === "landmark" && n.ayakizi) {
       const a = n.ayakizi, taban = new THREE.Mesh(new THREE.BoxGeometry(a.en, a.yukseklik, a.derinlik), mat(TON.landmark));
-      taban.position.set(x, a.yukseklik / 2, z); taban.castShadow = true; taban.receiveShadow = true; ekle(taban);
-      if (n.govde) { const gv = new THREE.Mesh(new THREE.BoxGeometry(n.govde.en, n.govde.yukseklik, n.govde.derinlik), mat(TON.landmark)); gv.position.set(x, a.yukseklik + n.govde.yukseklik / 2, z); gv.castShadow = true; ekle(gv); }
+      taban.position.set(x, a.yukseklik / 2, z); taban.castShadow = true; taban.receiveShadow = true; ekle(taban, gri.parsel);
+      if (n.govde) { const gv = new THREE.Mesh(new THREE.BoxGeometry(n.govde.en, n.govde.yukseklik, n.govde.derinlik), mat(TON.landmark)); gv.position.set(x, a.yukseklik + n.govde.yukseklik / 2, z); gv.castShadow = true; ekle(gv, gri.parsel); }
       kutular.push({ x, z, aci: 0, yx: a.en / 2, yz: a.derinlik / 2, id: n.id });
       engeller.push({ x, z, r: Math.hypot(a.en, a.derinlik) / 2, parsel: n.id });
       const e = etiket([n.id, `landmark · ${n.ad ?? ""}`], 1); e.position.set(x, a.yukseklik + (n.govde?.yukseklik ?? 0) + 2.2, z); etiketler.add(e);
@@ -157,7 +160,7 @@ export function yerlesimKur({ sahne, manifest: M, tt = (s) => s, turnuvaAlt = ()
   for (const a of M.alanlar) {
     if (a.cokgen) {
       const m = new THREE.Mesh(new THREE.ShapeGeometry(cokgenSekli(a.cokgen)), mat(TON[a.tip === "pet_npc" ? "pet" : a.tip] ?? TON.bank));
-      m.rotation.x = -Math.PI / 2; m.position.y = ALAN_Y[a.tip] ?? 0.05; m.receiveShadow = true; ekle(m);
+      m.rotation.x = -Math.PI / 2; m.position.y = ALAN_Y[a.tip] ?? 0.05; m.receiveShadow = true; ekle(m, gri.alan);
       const [cx, cz] = merkezOf(a.cokgen), e = etiket([`alan: ${a.id}`, a.tip], 0.9); e.position.set(cx, 1.0, cz); etiketler.add(e);
     } else if (a.hat) {
       // aydınlatma: hat boyunca `aralik` metrede bir direk (çarpışmalı)
@@ -166,8 +169,8 @@ export function yerlesimKur({ sahne, manifest: M, tt = (s) => s, turnuvaAlt = ()
         const p = v2(a.hat[i]), q = v2(a.hat[i + 1]), boy = p.distanceTo(q);
         for (let t = kalan; t <= boy; t += a.aralik) {
           const n = p.clone().lerp(q, t / boy);
-          const d = new THREE.Mesh(new THREE.BoxGeometry(0.22, 4.4, 0.22), mat(TON.direk)); d.position.set(n.x, 2.2, n.y); d.castShadow = true; ekle(d);
-          const f = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.3, 0.5), new THREE.MeshBasicMaterial({ color: TON.lamba })); f.position.set(n.x, 4.5, n.y); ekle(f);
+          const d = new THREE.Mesh(new THREE.BoxGeometry(0.22, 4.4, 0.22), mat(TON.direk)); d.position.set(n.x, 2.2, n.y); d.castShadow = true; ekle(d, gri.lamba);
+          const f = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.3, 0.5), new THREE.MeshBasicMaterial({ color: TON.lamba })); f.position.set(n.x, 4.5, n.y); ekle(f, gri.lamba);
           engeller.push({ x: n.x, z: n.y, r: 0.3 }); kutular.push({ x: n.x, z: n.y, aci: 0, yx: 0.15, yz: 0.15, id: a.id });
           kalan = t + a.aralik - boy;
         }
@@ -199,12 +202,12 @@ export function yerlesimKur({ sahne, manifest: M, tt = (s) => s, turnuvaAlt = ()
     if (b.cokgen) {
       const yuk = b.yukseklik ?? 0;
       const geo = yuk > 0 ? new THREE.ExtrudeGeometry(cokgenSekli(b.cokgen), { depth: yuk, bevelEnabled: false }) : new THREE.ShapeGeometry(cokgenSekli(b.cokgen));
-      const m = new THREE.Mesh(geo, mat(TON[b.tip] ?? TON.siluet)); m.rotation.x = -Math.PI / 2; m.position.y = b.tip === "su" ? -0.01 : 0; ekle(m);
+      const m = new THREE.Mesh(geo, mat(TON[b.tip] ?? TON.siluet)); m.rotation.x = -Math.PI / 2; m.position.y = b.tip === "su" ? -0.01 : 0; ekle(m, gri.arkaplan);
       const [cx, cz] = merkezOf(b.cokgen), e = etiket([`arka plan: ${b.id}`, b.tip], 3); e.position.set(cx, yuk + 12, cz); etiketler.add(e);
     } else if (b.tip === "kopru") {
       const p = v2(b.baslangic), q = v2(b.bitis), boy = p.distanceTo(q), aci = Math.atan2(q.x - p.x, q.y - p.y);
-      const guverte = new THREE.Mesh(new THREE.BoxGeometry(6, 2, boy), mat(TON.siluet)); guverte.rotation.y = aci; guverte.position.set((p.x + q.x) / 2, b.guverte_yukseklik, (p.y + q.y) / 2); ekle(guverte);
-      for (const t of [0.22, 0.78]) { const n = p.clone().lerp(q, t); const kule = new THREE.Mesh(new THREE.BoxGeometry(5, b.kule_yukseklik, 5), mat(TON.siluet)); kule.position.set(n.x, b.kule_yukseklik / 2, n.y); ekle(kule); }
+      const guverte = new THREE.Mesh(new THREE.BoxGeometry(6, 2, boy), mat(TON.siluet)); guverte.rotation.y = aci; guverte.position.set((p.x + q.x) / 2, b.guverte_yukseklik, (p.y + q.y) / 2); ekle(guverte, gri.arkaplan);
+      for (const t of [0.22, 0.78]) { const n = p.clone().lerp(q, t); const kule = new THREE.Mesh(new THREE.BoxGeometry(5, b.kule_yukseklik, 5), mat(TON.siluet)); kule.position.set(n.x, b.kule_yukseklik / 2, n.y); ekle(kule, gri.arkaplan); }
       const e = etiket([`arka plan: ${b.id}`, "köprü silueti"], 3); e.position.set((p.x + q.x) / 2, b.kule_yukseklik + 14, (p.y + q.y) / 2); etiketler.add(e);
     }
     ozet.arkaplan++;
@@ -246,8 +249,13 @@ export function yerlesimKur({ sahne, manifest: M, tt = (s) => s, turnuvaAlt = ()
     return yakin;
   }
   const spawn = M.noktalar.find((n) => n.tip === "spawn");
+  /** 2B: sanat katmanı (cevre.js) çarpışma ekler — yönlü kutu (oyuncu) + daire (botlar). */
+  const kutuEkle = ({ x, z, aci = 0, yx, yz, id = "prop", r = null }) => {
+    kutular.push({ x, z, aci, yx, yz, id });
+    engeller.push({ x, z, r: r ?? Math.max(yx, yz), parsel: id });
+  };
   return {
-    kok, engeller, binalar, carpismaDuzelt, yakinBina, ozet,
+    kok, gri, etiketler, kutuEkle, engeller, binalar, carpismaDuzelt, yakinBina, ozet,
     dogus: spawn ? { x: spawn.konum[0], z: spawn.konum[2], aci: spawn.donus_y ?? 0 } : { x: 0, z: 0, aci: 0 },
     nokta: (id) => noktaHaritasi.get(id) ?? null,
     etiketGoster: (ac) => { etiketler.visible = ac; for (const b of binalar) b.g.traverse((o) => { if (o.isSprite) o.visible = ac || o.parent === b.g; }); },

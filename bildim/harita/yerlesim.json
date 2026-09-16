@@ -12,9 +12,19 @@
     ]
   },
   "bolgeler": [
-    {"id": "plaza", "tip": "kaldirim", "sekil": "daire", "merkez": [0, 0], "r": 42},
-    {"id": "meydan", "tip": "sosyal", "sekil": "daire", "merkez": [0, 0], "r": 26},
-    {"id": "istiklal", "tip": "islevsel", "sekil": "koridor", "baslangic": [-18.22, 23.83], "bitis": [-80.18, 104.86], "genislik": 12, "kaldirim": 2}
+    {"id": "plaza", "tip": "kaldirim", "sekil": "daire", "merkez": [0, 0], "r": 42, "zemin": {"hucre": "kaldirim", "adim": 2}},
+    {"id": "meydan", "tip": "sosyal", "sekil": "daire", "merkez": [0, 0], "r": 26, "zemin": {"hucre": "tas", "hucre2": "tasAcik", "adim": 2, "desen": "dama"}, "bordur": true},
+    {
+      "id": "istiklal",
+      "tip": "islevsel",
+      "sekil": "koridor",
+      "baslangic": [-18.22, 23.83],
+      "bitis": [-80.18, 104.86],
+      "genislik": 12,
+      "kaldirim": 2,
+      "zemin": {"hucre": "tasAcik", "kaldirim_hucre": "kaldirim", "adim": 2},
+      "bordur": true
+    }
   ],
   "parseller": [
     {
@@ -356,7 +366,27 @@
         [-25.43, -28.24],
         [-31.5, -21.25],
         [-35.71, -13]
-      ]
+      ],
+      "yerlestir": {
+        "prop": "agac",
+        "hat": [
+          [-34.3, -12.48],
+          [-31.07, -19.16],
+          [-26.55, -25.05],
+          [-20.94, -29.9],
+          [-14.46, -33.51],
+          [-7.38, -35.75],
+          [0, -36.5],
+          [7.38, -35.75],
+          [14.46, -33.51],
+          [20.94, -29.9],
+          [26.55, -25.05],
+          [31.07, -19.16],
+          [34.3, -12.48]
+        ],
+        "aralik": 6.5,
+        "olcek": 0.7
+      }
     },
     {
       "id": "agac_meydan_dogu",
@@ -374,23 +404,33 @@
         [30.74, 22.34],
         [33.55, 17.84],
         [35.71, 13]
-      ]
+      ],
+      "yerlestir": {"prop": "agac", "hat": [[34.3, 12.48], [32.23, 17.14], [29.53, 21.45], [26.26, 25.36], [22.47, 28.76], [18.25, 31.61]], "aralik": 6.5, "olcek": 0.7}
     },
-    {"id": "agac_kusagi_gezi", "tip": "bitki", "cokgen": [[-30, -48], [40, -48], [46, -95], [-34, -95]], "not": "Gezi Parkı — yürünebilir sınırın dışında"},
+    {
+      "id": "agac_kusagi_gezi",
+      "tip": "bitki",
+      "cokgen": [[-30, -48], [40, -48], [46, -95], [-34, -95]],
+      "not": "Gezi Parkı — yürünebilir sınırın dışında",
+      "yerlestir": {"prop": "agac", "doldur": true, "aralik": 7, "olcek": 0.8}
+    },
     {
       "id": "bank_meydan_bati",
       "tip": "bank",
-      "cokgen": [[-23.82, 13.75], [-25.63, 9.97], [-26.85, 5.95], [-27.44, 1.8], [-27.4, -2.4], [-29.89, -2.61], [-29.94, 1.96], [-29.29, 6.49], [-27.96, 10.87], [-25.98, 15]]
+      "cokgen": [[-23.82, 13.75], [-25.63, 9.97], [-26.85, 5.95], [-27.44, 1.8], [-27.4, -2.4], [-29.89, -2.61], [-29.94, 1.96], [-29.29, 6.49], [-27.96, 10.87], [-25.98, 15]],
+      "yerlestir": {"prop": "bank", "hat": [[-24.9, 14.37], [-26.8, 10.42], [-28.07, 6.22], [-28.69, 1.88], [-28.64, -2.51]], "aralik": 5, "yuz": "merkez"}
     },
     {
       "id": "bank_meydan_guney",
       "tip": "bank",
-      "cokgen": [[13.75, 23.82], [9.41, 25.84], [4.78, 27.08], [0, 27.5], [-4.78, 27.08], [-5.21, 29.54], [0, 30], [5.21, 29.54], [10.26, 28.19], [15, 25.98]]
+      "cokgen": [[13.75, 23.82], [9.41, 25.84], [4.78, 27.08], [0, 27.5], [-4.78, 27.08], [-5.21, 29.54], [0, 30], [5.21, 29.54], [10.26, 28.19], [15, 25.98]],
+      "yerlestir": {"prop": "bank", "hat": [[14.38, 24.9], [9.83, 27.02], [4.99, 28.31], [0, 28.75], [-4.99, 28.31]], "aralik": 5, "yuz": "merkez"}
     },
     {
       "id": "bank_meydan_kuzeydogu",
       "tip": "bank",
-      "cokgen": [[13.75, -23.82], [17.68, -21.07], [21.07, -17.68], [23.82, -13.75], [25.84, -9.41], [28.19, -10.26], [25.98, -15], [22.98, -19.28], [19.28, -22.98], [15, -25.98]]
+      "cokgen": [[13.75, -23.82], [17.68, -21.07], [21.07, -17.68], [23.82, -13.75], [25.84, -9.41], [28.19, -10.26], [25.98, -15], [22.98, -19.28], [19.28, -22.98], [15, -25.98]],
+      "yerlestir": {"prop": "bank", "hat": [[14.38, -24.9], [18.48, -22.02], [22.02, -18.48], [24.9, -14.37], [27.02, -9.83]], "aralik": 5, "yuz": "merkez"}
     },
     {
       "id": "kedi_gezinti",
@@ -470,10 +510,11 @@
         [29.91, -13.95],
         [32.5, -5.73]
       ],
-      "aralik": 12
+      "aralik": 12,
+      "prop": "lamba"
     },
-    {"id": "aydinlatma_istiklal_a", "tip": "lamba", "hat": [[-29.8, 30.08], [-83.26, 99.99]], "aralik": 12},
-    {"id": "aydinlatma_istiklal_b", "tip": "lamba", "hat": [[-24.87, 41.41], [-74.68, 106.55]], "aralik": 12}
+    {"id": "aydinlatma_istiklal_a", "tip": "lamba", "hat": [[-29.8, 30.08], [-83.26, 99.99]], "aralik": 12, "prop": "lamba"},
+    {"id": "aydinlatma_istiklal_b", "tip": "lamba", "hat": [[-24.87, 41.41], [-74.68, 106.55]], "aralik": 12, "prop": "lamba"}
   ],
   "tramvay": {
     "hat": [[-18.22, 23.83], [-80.18, 104.86]],
@@ -489,5 +530,7 @@
     {"id": "kopru_15_temmuz", "tip": "kopru", "baslangic": [180, -330], "bitis": [360, -180], "kule_yukseklik": 70, "guverte_yukseklik": 32},
     {"id": "sehir_kusagi_kuzey", "tip": "siluet", "cokgen": [[-140, -130], [120, -130], [120, -170], [-140, -170]], "yukseklik": 24},
     {"id": "sehir_kusagi_bati", "tip": "siluet", "cokgen": [[-190, -120], [-150, -120], [-150, 200], [-190, 200]], "yukseklik": 20}
-  ]
+  ],
+  "dis_zemin": {"hucre": "asfalt", "not": "yürünebilir sınırın dışı: tek düz yüzey (hücre rengi)"},
+  "kurallar": {"girilebilir_cephe": {"saksi": {"yan": 2.3, "on": 0.8, "not": "her girilebilir parselin kapısının iki yanında (ayak izi önünde)"}}}
 }

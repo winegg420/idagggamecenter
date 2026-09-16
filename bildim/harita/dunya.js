@@ -39,6 +39,8 @@ import { RoomEnvironment } from "three/addons/environments/RoomEnvironment.js";
 import { KarakterSistemi, VARLIK_KOK } from "./karakter/karakter.js";
 import { MeydanAvatarlari } from "./karakter/meydanAvatar.js";
 import { TemasGolgeleri } from "./karakter/temas.js";
+import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
+import { cevreKur, PROPLAR } from "./cevre.js";
 export { esyaBilgisi };
 
 // roundRect / canvasDoku / isimEtiketi / nesneyiSerbestBirak ORTAK.JS'e taşındı:
@@ -155,6 +157,18 @@ export function dunyaKur(kapsayici, s = {}) {
   const karakterHazir = ks.yukle()
     .then(() => { avatarlar.hazirOlunca(); return true; })
     .catch((e) => { console.error("[Meydan] karakterler yuklenemedi:", e); return false; });
+  // 2B §3: çevre sanat katmanı (GLB proplar + atlaslı zemin) — karakter atlası/malzemesiyle aynı; konumlar manifestten
+  let cevre = null;
+  const cevreHazir = karakterHazir.then(async (tamam) => {
+    if (!tamam || !gb) return null;
+    const yukleyici = new GLTFLoader(), proplar = {};
+    await Promise.all(PROPLAR.map((ad) => yukleyici.loadAsync(VARLIK_KOK + ad + ".glb")
+      .then((g) => g.scene.traverse((o) => { if (o.isMesh) proplar[ad] = o; }))
+      .catch((e) => console.error("[Meydan] prop yuklenemedi:", ad, e))));
+    for (const m of Object.values(proplar)) ks.cilala(m);
+    cevre = cevreKur({ M: yerlesim, gb, sahne, render, proplar, hucreler: ks.hucreler, malzeme: proplar.prop_bank?.material ?? ks.malzeme, temas });
+    return cevre;
+  }).catch((e) => { console.error("[Meydan] cevre kurulamadi:", e); return null; });
 
   const engeller = [];
   const binalar = [];
@@ -165,6 +179,8 @@ export function dunyaKur(kapsayici, s = {}) {
     ? yerlesimKur({ sahne, manifest: yerlesim, tt, turnuvaAlt: () => tt("günde {0} turnuva", { 0: turnuvaSaatleri().length }) })
     : null;
   if (gb) { engeller.push(...gb.engeller); binalar.push(...gb.binalar); }
+  // 2B: greybox kimlik etiketleri canlıda kapalı; ?etiket=1 ile açılır (yerleşim konuşmaları için)
+  if (gb) gb.etiketGoster(new URLSearchParams(window.location.search).has("etiket"));
   if (!gb) {   // ======== PAKET 13 DÜNYASI (manifest yoksa) — içerik değişmedi, girinti bilerek korunuyor ========
 
   // ---------- zemin: çim ----------
@@ -836,7 +852,7 @@ export function dunyaKur(kapsayici, s = {}) {
     dansEttir: (av, kod) => dansBaslat(av, kod),
     // 2B: tam karakter sayısı (oyun_ayarlari.meydan_uc_boyutlu_sinir) · karakter sistemi hazır sözü · ölçüm için yöneticiler
     kalabalikSiniri: (n) => { if (Number.isFinite(n) && n >= 0) avatarlar.sinir = n; return avatarlar.sinir; },
-    karakterHazir, karakterler: avatarlar, karakterSistemi: ks,
+    karakterHazir, karakterler: avatarlar, karakterSistemi: ks, cevreHazir, cevre: () => cevre,
     zumla, zumAyarla, zumOku,
     guncelle, boyutlandir, yokEt,
   };
