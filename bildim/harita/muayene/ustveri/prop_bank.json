@@ -1,8 +1,64 @@
 {
-  "glb": "prop_bank", "tip": "prop",
+  "glb": "prop_bank",
+  "tip": "prop",
   "yakin": [
-    { "ad": "çıta ucu + ayak", "hedef": [0.85, 0.45, 0.05], "yon": [1, 0.45, 1], "mesafe": 1.1 },
-    { "ad": "sırtlık (arkadan)", "hedef": [0, 0.8, -0.27], "yon": [0.25, 0.3, -1], "mesafe": 1.6 },
-    { "ad": "ayak–oturak birleşimi", "hedef": [-0.8, 0.4, 0], "yon": [-1, 0.15, 0.6], "mesafe": 1.0 }
-  ]
+    {
+      "ad": "çıta ucu + ayak",
+      "hedef": [
+        0.85,
+        0.45,
+        0.05
+      ],
+      "yon": [
+        1,
+        0.45,
+        1
+      ],
+      "mesafe": 1.1
+    },
+    {
+      "ad": "sırtlık (arkadan)",
+      "hedef": [
+        0,
+        0.8,
+        -0.27
+      ],
+      "yon": [
+        0.25,
+        0.3,
+        -1
+      ],
+      "mesafe": 1.6
+    },
+    {
+      "ad": "ayak–oturak birleşimi",
+      "hedef": [
+        -0.8,
+        0.4,
+        0
+      ],
+      "yon": [
+        -1,
+        0.15,
+        0.6
+      ],
+      "mesafe": 1
+    }
+  ],
+  "simetri_zorunlu": [
+    "X"
+  ],
+  "simetri_tolerans_m": 0.01,
+  "zemin_temasi": true,
+  "ortusme_payi_m": 0.01,
+  "izinli_ortusme": [
+    {
+      "a": "demir",
+      "b": "ahsap*",
+      "derinlik_max_m": 0.05,
+      "sebep": "demir ayaklar çıtalara geçer"
+    }
+  ],
+  "gomulu_izinli": [],
+  "havada_durabilir": []
 }

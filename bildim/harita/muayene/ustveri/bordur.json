@@ -1,9 +1,63 @@
 {
-  "glb": "bordur", "tip": "prop",
+  "glb": "bordur",
+  "tip": "prop",
   "yakin": [
-    { "ad": "uç (x = +40)", "hedef": [40, 0.08, 2], "yon": [1, 0.5, 1], "mesafe": 1.6 },
-    { "ad": "orta (z = 2)", "hedef": [0, 0.08, 2], "yon": [0.2, 0.6, 1], "mesafe": 1.6 },
-    { "ad": "ikinci hat (z = 10)", "hedef": [0, 0.08, 10], "yon": [0.2, 0.6, 1], "mesafe": 1.6 }
+    {
+      "ad": "uç (x = +40)",
+      "hedef": [
+        40,
+        0.08,
+        2
+      ],
+      "yon": [
+        1,
+        0.5,
+        1
+      ],
+      "mesafe": 1.6
+    },
+    {
+      "ad": "orta (z = 2)",
+      "hedef": [
+        0,
+        0.08,
+        2
+      ],
+      "yon": [
+        0.2,
+        0.6,
+        1
+      ],
+      "mesafe": 1.6
+    },
+    {
+      "ad": "ikinci hat (z = 10)",
+      "hedef": [
+        0,
+        0.08,
+        10
+      ],
+      "yon": [
+        0.2,
+        0.6,
+        1
+      ],
+      "mesafe": 1.6
+    }
   ],
-  "guzel": { "az": 35, "el": 25, "mesafe": 12, "hedef": [0, 0, 6] }
+  "guzel": {
+    "az": 35,
+    "el": 25,
+    "mesafe": 12,
+    "hedef": [
+      0,
+      0,
+      6
+    ]
+  },
+  "simetri_zorunlu": [
+    "X"
+  ],
+  "simetri_tolerans_m": 0.01,
+  "zemin_temasi": true
 }

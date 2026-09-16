@@ -1,8 +1,61 @@
 {
-  "glb": "prop_lamba", "tip": "prop",
+  "glb": "prop_lamba",
+  "tip": "prop",
   "yakin": [
-    { "ad": "fener başı", "hedef": [0.42, 4.2, 0], "yon": [0.4, 0.15, 1], "mesafe": 1.6 },
-    { "ad": "kol–direk birleşimi", "hedef": [0.15, 4.1, 0], "yon": [0, 0.1, 1], "mesafe": 1.1 },
-    { "ad": "kaide + bilezik", "hedef": [0, 0.45, 0], "yon": [1, 0.35, 1], "mesafe": 1.4 }
-  ]
+    {
+      "ad": "fener başı",
+      "hedef": [
+        0.42,
+        4.2,
+        0
+      ],
+      "yon": [
+        0.4,
+        0.15,
+        1
+      ],
+      "mesafe": 1.6
+    },
+    {
+      "ad": "kol–direk birleşimi",
+      "hedef": [
+        0.15,
+        4.1,
+        0
+      ],
+      "yon": [
+        0,
+        0.1,
+        1
+      ],
+      "mesafe": 1.1
+    },
+    {
+      "ad": "kaide + bilezik",
+      "hedef": [
+        0,
+        0.45,
+        0
+      ],
+      "yon": [
+        1,
+        0.35,
+        1
+      ],
+      "mesafe": 1.4
+    }
+  ],
+  "zemin_temasi": true,
+  "ortusme_payi_m": 0.01,
+  "izinli_ortusme": [
+    {
+      "a": "*",
+      "b": "*",
+      "derinlik_max_m": 0.06,
+      "sebep": "kaide/direk/kol/fener geçme montaj"
+    }
+  ],
+  "gomulu_izinli": [],
+  "havada_durabilir": [],
+  "_not": "simetri beyanı yok (kol tek yana)"
 }

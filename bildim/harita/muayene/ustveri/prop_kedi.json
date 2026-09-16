@@ -1,8 +1,92 @@
 {
-  "glb": "prop_kedi", "tip": "prop",
+  "glb": "prop_kedi",
+  "tip": "prop",
   "yakin": [
-    { "ad": "kafa", "hedef": [0, 0.28, 0.2], "yon": [0.45, 0.1, 1], "mesafe": 0.45 },
-    { "ad": "kuyruk", "hedef": [0.03, 0.34, -0.24], "yon": [1, 0.2, -0.6], "mesafe": 0.55 },
-    { "ad": "ayaklar", "hedef": [0, 0.08, 0], "yon": [1, 0.1, 0.35], "mesafe": 0.55 }
-  ]
+    {
+      "ad": "kafa",
+      "hedef": [
+        0,
+        0.28,
+        0.2
+      ],
+      "yon": [
+        0.45,
+        0.1,
+        1
+      ],
+      "mesafe": 0.45
+    },
+    {
+      "ad": "kuyruk",
+      "hedef": [
+        0.03,
+        0.34,
+        -0.24
+      ],
+      "yon": [
+        1,
+        0.2,
+        -0.6
+      ],
+      "mesafe": 0.55
+    },
+    {
+      "ad": "ayaklar",
+      "hedef": [
+        0,
+        0.08,
+        0
+      ],
+      "yon": [
+        1,
+        0.1,
+        0.35
+      ],
+      "mesafe": 0.55
+    }
+  ],
+  "simetri_zorunlu": [
+    "X"
+  ],
+  "simetri_tolerans_m": 0.01,
+  "simetri_istisna": [
+    {
+      "desen": "kedi",
+      "z": [
+        -0.35,
+        -0.14
+      ],
+      "y": [
+        0.2,
+        0.5
+      ],
+      "sebep": "kuyruk bilerek yana kıvrık"
+    }
+  ],
+  "zemin_temasi": true,
+  "ortusme_payi_m": 0.01,
+  "izinli_ortusme": [
+    {
+      "a": "kedi",
+      "b": "kedi",
+      "sebep": "gövde kapsülü, kafa, bacaklar, kulaklar ve kuyruk iç içe"
+    },
+    {
+      "a": "kediGoz",
+      "b": "kedi",
+      "sebep": "gözler kafaya gömülü"
+    },
+    {
+      "a": "kurkKarin",
+      "b": "kedi",
+      "sebep": "ağız yaması kafaya gömülü"
+    },
+    {
+      "a": "gozBebek",
+      "b": "*",
+      "sebep": "burun ucu"
+    }
+  ],
+  "gomulu_izinli": [],
+  "havada_durabilir": []
 }

@@ -1,10 +1,216 @@
 {
-  "glb": "karakter_kaplan", "tip": "karakter",
-  "kozmetik": { "sapka": "karakter_insan", "gozluk": "karakter_insan", "atki": "karakter_insan", "kuyruk": "karakter_kaplan" },
+  "glb": "karakter_kaplan",
+  "tip": "karakter",
+  "kozmetik": {
+    "sapka": "karakter_insan",
+    "gozluk": "karakter_insan",
+    "atki": "karakter_insan",
+    "kuyruk": "karakter_kaplan"
+  },
   "yakin": [
-    { "ad": "kafa 3/4 (kozmetiksiz)", "hedef": { "kemik": "Head", "ofset": [0, 0.17, 0.02] }, "yon": [0.55, 0.12, 1], "mesafe": 1.15 },
-    { "ad": "sağ el", "hedef": { "kemik": "RightHand", "ofset": [-0.05, 0, 0] }, "yon": [-0.35, 0.25, 1], "mesafe": 0.75 },
-    { "ad": "sol ayak", "hedef": { "kemik": "LeftFoot", "ofset": [0, -0.04, 0.06] }, "yon": [1, 0.35, 0.8], "mesafe": 0.85 }
+    {
+      "ad": "kafa 3/4 (kozmetiksiz)",
+      "hedef": {
+        "kemik": "Head",
+        "ofset": [
+          0,
+          0.17,
+          0.02
+        ]
+      },
+      "yon": [
+        0.55,
+        0.12,
+        1
+      ],
+      "mesafe": 1.15
+    },
+    {
+      "ad": "sağ el",
+      "hedef": {
+        "kemik": "RightHand",
+        "ofset": [
+          -0.05,
+          0,
+          0
+        ]
+      },
+      "yon": [
+        -0.35,
+        0.25,
+        1
+      ],
+      "mesafe": 0.75
+    },
+    {
+      "ad": "sol ayak",
+      "hedef": {
+        "kemik": "LeftFoot",
+        "ofset": [
+          0,
+          -0.04,
+          0.06
+        ]
+      },
+      "yon": [
+        1,
+        0.35,
+        0.8
+      ],
+      "mesafe": 0.85
+    }
   ],
-  "guzel": { "az": 30, "el": 8 }
+  "guzel": {
+    "az": 30,
+    "el": 8
+  },
+  "simetri_zorunlu": [
+    "X"
+  ],
+  "simetri_tolerans_m": 0.015,
+  "temas_esigi_m": 0.005,
+  "zemin_temasi": true,
+  "ortusme_payi_m": 0.01,
+  "izinli_ortusme": [
+    {
+      "a": "ust",
+      "b": "ust",
+      "sebep": "gövde kapsülü, omuz küresi ve kol kapsülü tek kumaş kütlesi olarak iç içe kurulur (tıknaz stil)"
+    },
+    {
+      "a": "ust",
+      "b": "alt",
+      "sebep": "tişört kalça bloğunun üstüne biner"
+    },
+    {
+      "a": "ust",
+      "b": "kurk",
+      "sebep": "ön kol ve boyun kıyafetin içinden çıkar"
+    },
+    {
+      "a": "kurk",
+      "b": "kurk",
+      "sebep": "el–ön kol ve kulak–kafa birleşimi"
+    },
+    {
+      "a": "alt",
+      "b": "alt",
+      "sebep": "kalça bloğu ile bacak kapsülleri iç içe"
+    },
+    {
+      "a": "alt",
+      "b": "ayakkabi",
+      "sebep": "paça ayakkabıya girer"
+    },
+    {
+      "a": "ayakkabi",
+      "b": "taban",
+      "sebep": "taban çizgisi ayakkabının altına gömülü"
+    },
+    {
+      "a": "bilek",
+      "b": "*",
+      "sebep": "bilek halkası kol ile el arasına oturur"
+    },
+    {
+      "a": "ceket",
+      "b": "*",
+      "sebep": "set 2 kabuğu; set 1 ve 3'te çalışma anında çökertilir (tişörtle aynı anda görünmez)"
+    },
+    {
+      "a": "yaka",
+      "b": "*",
+      "sebep": "set 2 yakası; diğer setlerde çökertilir"
+    },
+    {
+      "a": "kapuson",
+      "b": "*",
+      "sebep": "set 3 kapüşonu; diğer setlerde çökertilir"
+    },
+    {
+      "a": "gozL",
+      "b": "kurk",
+      "sebep": "göz yaması kafa yüzeyine 1 mm"
+    },
+    {
+      "a": "gozR",
+      "b": "kurk",
+      "sebep": "göz yaması kafa yüzeyine 1 mm"
+    },
+    {
+      "a": "agiz",
+      "b": "kurk",
+      "sebep": "ağız yaması kafa yüzeyine 1 mm"
+    },
+    {
+      "a": "diger:kurkKarin",
+      "b": "kurk",
+      "sebep": "iç kulak kulağa gömülü (1C)"
+    }
+  ],
+  "gomulu_izinli": [
+    {
+      "desen": "ust",
+      "sebep": "gövde/omuz/kol kumaş kütlesi iç içe; dışarıdan tek kütle okunur"
+    },
+    {
+      "desen": "alt",
+      "sebep": "kalça bloğu ve bacak kapsülleri iç içe; dışarıdan tek kütle okunur"
+    },
+    {
+      "desen": "ceket",
+      "sebep": "set 2 kabuğu (diğer setlerde çökertilir)"
+    },
+    {
+      "desen": "kapuson",
+      "sebep": "set 3 kapüşonu (diğer setlerde çökertilir)"
+    },
+    {
+      "desen": "kurk",
+      "absx": [
+        0.2,
+        0.26
+      ],
+      "y": [
+        1.45,
+        1.65
+      ],
+      "sebep": "kulak kafaya yarı gömülü"
+    },
+    {
+      "desen": "diger:kurkKarin",
+      "sebep": "iç kulak kulağa gömülü"
+    }
+  ],
+  "havada_durabilir": [],
+  "kozmetik_izinli": [
+    {
+      "a": "kozmetik_gozluk",
+      "b": "kurk",
+      "sebep": "gözlük sapları kafaya girer"
+    },
+    {
+      "a": "kozmetik_atki",
+      "b": {
+        "desen": "*",
+        "y": [
+          0.8,
+          1.5
+        ]
+      },
+      "sebep": "atkı boyun ve göğse sarılır"
+    },
+    {
+      "a": "kozmetik_kuyruk",
+      "b": {
+        "desen": "*",
+        "y": [
+          0.8,
+          1.2
+        ]
+      },
+      "sebep": "kuyruk kökü sırta gömülü (sirtYuva)"
+    }
+  ],
+  "_not_kozmetik": "Kulak ↔ şapka izni YOK: 1C tasarım niyeti 'kulaklar şapkanın iki yanından çıkar'."
 }

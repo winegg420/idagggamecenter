@@ -1,10 +1,380 @@
 {
-  "glb": "karakter_robot", "tip": "karakter",
-  "kozmetik": { "sapka": "karakter_robot", "gozluk": "karakter_robot", "atki": "karakter_insan" },
+  "glb": "karakter_robot",
+  "tip": "karakter",
+  "kozmetik": {
+    "sapka": "karakter_robot",
+    "gozluk": "karakter_robot",
+    "atki": "karakter_insan"
+  },
   "yakin": [
-    { "ad": "kafa 3/4 (kozmetiksiz)", "hedef": { "kemik": "Head", "ofset": [0, 0.17, 0.02] }, "yon": [0.55, 0.12, 1], "mesafe": 1.15 },
-    { "ad": "sağ el", "hedef": { "kemik": "RightHand", "ofset": [-0.05, 0, 0] }, "yon": [-0.35, 0.25, 1], "mesafe": 0.75 },
-    { "ad": "sol ayak", "hedef": { "kemik": "LeftFoot", "ofset": [0, -0.04, 0.06] }, "yon": [1, 0.35, 0.8], "mesafe": 0.85 }
+    {
+      "ad": "kafa 3/4 (kozmetiksiz)",
+      "hedef": {
+        "kemik": "Head",
+        "ofset": [
+          0,
+          0.17,
+          0.02
+        ]
+      },
+      "yon": [
+        0.55,
+        0.12,
+        1
+      ],
+      "mesafe": 1.15
+    },
+    {
+      "ad": "sağ el",
+      "hedef": {
+        "kemik": "RightHand",
+        "ofset": [
+          -0.05,
+          0,
+          0
+        ]
+      },
+      "yon": [
+        -0.35,
+        0.25,
+        1
+      ],
+      "mesafe": 0.75
+    },
+    {
+      "ad": "sol ayak",
+      "hedef": {
+        "kemik": "LeftFoot",
+        "ofset": [
+          0,
+          -0.04,
+          0.06
+        ]
+      },
+      "yon": [
+        1,
+        0.35,
+        0.8
+      ],
+      "mesafe": 0.85
+    }
   ],
-  "guzel": { "az": 30, "el": 8 }
+  "guzel": {
+    "az": 30,
+    "el": 8
+  },
+  "simetri_zorunlu": [
+    "X"
+  ],
+  "simetri_tolerans_m": 0.015,
+  "temas_esigi_m": 0.005,
+  "zemin_temasi": true,
+  "ortusme_payi_m": 0.015,
+  "izinli_ortusme": [
+    {
+      "a": {
+        "desen": "*",
+        "absx": [
+          0.26,
+          1
+        ]
+      },
+      "b": {
+        "desen": "*",
+        "absx": [
+          0.26,
+          1
+        ]
+      },
+      "sebep": "kol segmentleri dirsek küresi/halkasına ve el kıskacına geçme montaj (1D §4.2)"
+    },
+    {
+      "a": {
+        "desen": "metal:metal",
+        "absx": [
+          0.26,
+          0.3
+        ]
+      },
+      "b": {
+        "desen": "*",
+        "absx": [
+          0.15,
+          0.21
+        ],
+        "y": [
+          1.2,
+          1.36
+        ]
+      },
+      "sebep": "üst kol omuz eklemine takılı"
+    },
+    {
+      "a": {
+        "desen": "*",
+        "y": [
+          0,
+          0.8
+        ]
+      },
+      "b": {
+        "desen": "*",
+        "y": [
+          0,
+          0.8
+        ]
+      },
+      "sebep": "bacak segmentleri diz küresi/halkası, bilek pistonu ve taban plakasına geçme montaj"
+    },
+    {
+      "a": {
+        "desen": "metal:metal",
+        "y": [
+          0.6,
+          0.8
+        ],
+        "absx": [
+          0,
+          0.15
+        ]
+      },
+      "b": {
+        "desen": "*",
+        "y": [
+          0.8,
+          0.95
+        ]
+      },
+      "sebep": "uyluk kalça eklemine takılı"
+    },
+    {
+      "a": {
+        "desen": "*",
+        "y": [
+          1.62,
+          2.1
+        ]
+      },
+      "b": {
+        "desen": "metal:metal",
+        "y": [
+          1.5,
+          1.62
+        ],
+        "absx": [
+          0,
+          0.02
+        ]
+      },
+      "sebep": "anten kafaya takılı"
+    },
+    {
+      "a": {
+        "desen": "boya:gomlek",
+        "y": [
+          1.95,
+          2.05
+        ]
+      },
+      "b": {
+        "desen": "metal:metal",
+        "y": [
+          1.8,
+          1.95
+        ]
+      },
+      "sebep": "anten topu anten ucuna takılı"
+    },
+    {
+      "a": {
+        "desen": "plastik:demir",
+        "absx": [
+          0.2,
+          0.3
+        ],
+        "y": [
+          1.45,
+          1.65
+        ]
+      },
+      "b": {
+        "desen": "metal:metal",
+        "y": [
+          1.5,
+          1.62
+        ],
+        "absx": [
+          0,
+          0.02
+        ]
+      },
+      "sebep": "hoparlör kapakları kafaya monte"
+    },
+    {
+      "a": {
+        "desen": "ekran:*"
+      },
+      "b": {
+        "desen": "metal:metal",
+        "y": [
+          1.5,
+          1.62
+        ],
+        "absx": [
+          0,
+          0.02
+        ]
+      },
+      "sebep": "yüz ekranı kafaya oturan yama"
+    },
+    {
+      "a": {
+        "desen": "goz*"
+      },
+      "b": {
+        "desen": "metal:metal",
+        "y": [
+          1.5,
+          1.62
+        ],
+        "absx": [
+          0,
+          0.02
+        ]
+      },
+      "sebep": "göz yaması ekranın üstünde"
+    },
+    {
+      "a": {
+        "desen": "agiz*"
+      },
+      "b": {
+        "desen": "metal:metal",
+        "y": [
+          1.5,
+          1.62
+        ],
+        "absx": [
+          0,
+          0.02
+        ]
+      },
+      "sebep": "ağız yaması ekranın üstünde"
+    },
+    {
+      "a": {
+        "desen": "*",
+        "absx": [
+          0,
+          0.25
+        ],
+        "y": [
+          1,
+          1.35
+        ],
+        "z": [
+          0.1,
+          0.3
+        ]
+      },
+      "b": {
+        "desen": "metal:metal",
+        "y": [
+          1.1,
+          1.25
+        ],
+        "absx": [
+          0,
+          0.02
+        ]
+      },
+      "derinlik_max_m": 0.03,
+      "sebep": "göğüs ekranı, göstergeler, havalandırma yüzeye monte"
+    },
+    {
+      "a": {
+        "desen": "boya:*",
+        "absx": [
+          0.2,
+          0.26
+        ],
+        "y": [
+          1.05,
+          1.3
+        ]
+      },
+      "b": {
+        "desen": "metal:metal",
+        "y": [
+          1.1,
+          1.25
+        ],
+        "absx": [
+          0,
+          0.02
+        ]
+      },
+      "derinlik_max_m": 0.03,
+      "sebep": "yan paneller gövde yüzeyine monte"
+    }
+  ],
+  "gomulu_izinli": [
+    {
+      "desen": "*",
+      "absx": [
+        0.26,
+        1
+      ],
+      "sebep": "kısa kol segmentinin çoğu eklem kürelerinin içinde kalır (tasarım)"
+    },
+    {
+      "desen": "*",
+      "y": [
+        0,
+        0.8
+      ],
+      "sebep": "bacak segmentleri diz/bilek eklemlerine takılı"
+    }
+  ],
+  "havada_durabilir": [],
+  "kozmetik_izinli": [
+    {
+      "a": "kozmetik_atki",
+      "b": {
+        "desen": "*",
+        "y": [
+          1.1,
+          1.45
+        ],
+        "absx": [
+          0,
+          0.3
+        ]
+      },
+      "sebep": "atkı boyun pistonu ve omuz çevresine sarılır"
+    },
+    {
+      "a": "kozmetik_sapka",
+      "b": {
+        "desen": "metal:metal",
+        "y": [
+          1.8,
+          1.95
+        ]
+      },
+      "sebep": "anten şapka kubbesindeki halkadan geçer (1D §4.4)"
+    },
+    {
+      "a": "kozmetik_gozluk",
+      "b": {
+        "desen": "*",
+        "y": [
+          1.45,
+          1.7
+        ]
+      },
+      "sebep": "vizör kafa ve ekran yüzeyine sarılır"
+    }
+  ],
+  "_not_gomulu": "Omuz küresi/halkası, boyun pistonu/halkası, bel halkası ve kalça eklemi için gömülü izni YOK: 1D §4.2 'omuz gövdeden ayrık', 'boyun görünür piston', 'ayrık kütleler'."
 }

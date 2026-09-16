@@ -14,6 +14,7 @@ import path from "path";
 import { fileURLToPath } from "url";
 import { createServer } from "vite";
 import { chromium } from "playwright-core";
+import { varlikTestEt } from "./testler.mjs";
 
 const BURASI = path.dirname(fileURLToPath(import.meta.url));
 const KOK = path.resolve(BURASI, "../../..");
@@ -44,6 +45,9 @@ try {
     const klasor = path.join(CIKTI, ad);
     fs.mkdirSync(klasor, { recursive: true });
     for (const f of fs.readdirSync(klasor)) if (f.endsWith(".png")) fs.rmSync(path.join(klasor, f));
+    // (1) mekanik testler — Node, GLB geometrisi. Aday + susturulan listesi commit edilir (adaylar.json)
+    const test = await varlikTestEt(path.join(KOK, "public/meydan/deneme", u.glb + ".glb"), u);
+    fs.writeFileSync(path.join(klasor, "adaylar.json"), JSON.stringify(test, null, 1));
     const bilgi = await sayfa.evaluate((x) => window.muayene.hazirla(x), u);
     const dosyalar = [];
     for (let i = 0; i < bilgi.gorunumler.length; i++) {
@@ -52,9 +56,10 @@ try {
       fs.writeFileSync(path.join(klasor, dosya), Buffer.from(url.split(",")[1], "base64"));
       dosyalar.push(dosya);
     }
-    ozet.varliklar[ad] = { ucgen: bilgi.ucgen, malzeme: bilgi.malzeme, gorunumler: bilgi.gorunumler, dosyalar };
+    const sayac = (liste) => liste.reduce((m, a) => ((m[a.test] = (m[a.test] ?? 0) + 1), m), {});
+    ozet.varliklar[ad] = { ucgen: bilgi.ucgen, malzeme: bilgi.malzeme, gorunumler: bilgi.gorunumler, dosyalar, aday: sayac(test.adaylar), susturulan: sayac(test.susturulan) };
     ozet.gpu = bilgi.gpu;
-    console.log(`[muayene] ${ad}: ${dosyalar.length} görünüm · ${bilgi.ucgen} üçgen · ${bilgi.malzeme} malzeme`);
+    console.log(`[muayene] ${ad}: ${dosyalar.length} görünüm · ${bilgi.ucgen} üçgen · ${bilgi.malzeme} malzeme · ${test.adaylar.length} aday · ${test.susturulan.length} susturulan`);
   }
   fs.writeFileSync(path.join(CIKTI, "ozet.json"), JSON.stringify(ozet, null, 1));
   console.log(`[muayene] WebGL: ${ozet.gpu}`);

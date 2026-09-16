@@ -1,9 +1,172 @@
 {
-  "glb": "bina_dukkan", "tip": "bina",
+  "glb": "bina_dukkan",
+  "tip": "bina",
   "yakin": [
-    { "ad": "kapı", "hedef": [0, 1.6, 4.3], "yon": [0.35, 0.08, 1], "mesafe": 4.6 },
-    { "ad": "tabela", "hedef": [0, 4.6, 4.4], "yon": [-0.35, 0.1, 1], "mesafe": 4.8 },
-    { "ad": "saçak", "hedef": [3.6, 7.8, 4.0], "yon": [1, -0.35, 1], "mesafe": 5 }
+    {
+      "ad": "kapı",
+      "hedef": [
+        0,
+        1.6,
+        4.3
+      ],
+      "yon": [
+        0.35,
+        0.08,
+        1
+      ],
+      "mesafe": 4.6
+    },
+    {
+      "ad": "tabela",
+      "hedef": [
+        0,
+        4.6,
+        4.4
+      ],
+      "yon": [
+        -0.35,
+        0.1,
+        1
+      ],
+      "mesafe": 4.8
+    },
+    {
+      "ad": "saçak",
+      "hedef": [
+        3.6,
+        7.8,
+        4
+      ],
+      "yon": [
+        1,
+        -0.35,
+        1
+      ],
+      "mesafe": 5
+    }
   ],
-  "guzel": { "az": 28, "el": 14 }
+  "guzel": {
+    "az": 28,
+    "el": 14
+  },
+  "simetri_zorunlu": [
+    "X"
+  ],
+  "simetri_tolerans_m": 0.02,
+  "simetri_istisna": [
+    {
+      "desen": "baca",
+      "y": [
+        8,
+        11
+      ],
+      "sebep": "baca çatının bir yanında (tasarım)"
+    },
+    {
+      "desen": "bayrak",
+      "sebep": "bayrak tek yanda (tasarım)"
+    },
+    {
+      "desen": "demir",
+      "x": [
+        1.8,
+        2.2
+      ],
+      "y": [
+        7,
+        8
+      ],
+      "sebep": "bayrak direği tek yanda (tasarım)"
+    },
+    {
+      "desen": "altin",
+      "x": [
+        0.2,
+        0.5
+      ],
+      "y": [
+        1.1,
+        1.5
+      ],
+      "sebep": "kapı kolu tek kanatta (gerçek kapı düzeni)"
+    }
+  ],
+  "temas_esigi_m": 0.01,
+  "zemin_temasi": true,
+  "ortusme_payi_m": 0.05,
+  "izinli_ortusme": [
+    {
+      "a": "cam",
+      "b": "*",
+      "derinlik_max_m": 0.08,
+      "sebep": "cam çerçeve/duvar yuvasına oturur"
+    },
+    {
+      "a": "cerceve",
+      "b": "*",
+      "derinlik_max_m": 0.1,
+      "sebep": "pencere/vitrin çerçeveleri duvara gömülü montaj"
+    },
+    {
+      "a": "demir",
+      "b": "*",
+      "derinlik_max_m": 0.1,
+      "sebep": "korkuluk ve tente demiri balkon/duvara ankrajlı"
+    },
+    {
+      "a": "tasAcik",
+      "b": "*",
+      "derinlik_max_m": 0.15,
+      "sebep": "kat silmesi, korniş, balkon plakası duvara gömülü"
+    },
+    {
+      "a": "tabela",
+      "b": "*",
+      "derinlik_max_m": 0.1,
+      "sebep": "tabela cepheye monte"
+    },
+    {
+      "a": "tente",
+      "b": "*",
+      "derinlik_max_m": 0.1,
+      "sebep": "tente cepheye monte"
+    },
+    {
+      "a": "baca",
+      "b": "kiremit",
+      "sebep": "baca çatıdan çıkar"
+    },
+    {
+      "a": "baca",
+      "b": "cim",
+      "sebep": "cephe saksısı: çalı saksıya oturur"
+    },
+    {
+      "a": "altin",
+      "b": "ahsap*",
+      "derinlik_max_m": 0.05,
+      "sebep": "kapı kolu ve orta şerit kapıya gömülü"
+    },
+    {
+      "a": "ahsap*",
+      "b": "*",
+      "derinlik_max_m": 0.13,
+      "sebep": "kapı ve kapı kasası duvar girintisine oturur"
+    }
+  ],
+  "gomulu_izinli": [
+    {
+      "desen": "cam",
+      "sebep": "cam çerçeve yuvasının içinde; ön yüzü görünür"
+    },
+    {
+      "desen": "cerceve",
+      "sebep": "iç çerçeve dış çerçeveye gömülü"
+    },
+    {
+      "desen": "demir",
+      "sebep": "korkuluk çubukları küpeşte ve plakaya gömülü"
+    }
+  ],
+  "havada_durabilir": []
 }
