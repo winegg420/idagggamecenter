@@ -5228,3 +5228,16 @@ en küçük TR 761 (spor), EN 476 (tarih) — hiçbiri 300 altı değil. Sayfa s
   25 karakter (6 3B + 19 billboard) 1.471 çağrı / 402k üçgen. Kare süresi masaüstü iGPU'da 8,8 → 16,5 ms.
   Hedefe uzaklık: harita 4,6×, karakter 12-20×, toplam 7× fazla; instanced mesh ve doku yok.
 - Kod değişmedi. **Onay kapısı:** Aşama 1 (tek karakter + tek bina test sahnesi) onay bekliyor.
+
+## Harita Yenileme — Aşama 1: tek karakter + tek bina test sahnesi (16 Eyl 2026)
+- Blender yok; `bildim/harita/varlik/uret.mjs` varlıkları kodla kurup tek mesh + tek atlas (512², `atlas.mjs`, saf Node PNG
+  yazıcı `png.mjs`) ile **GLB** dışa aktarır (GLTFExporter Node'da `polyfill.mjs` ile). Bütçe aşılırsa üretici reddeder.
+- İskelet: three.js Soldier örneğinden çıkarılmış Mixamo rig (`mixamo.json`, 22 kemik, parmaksız) + Idle/Walk/Run klipleri;
+  "Selam" türetildi. 15 kozmetik yuvası dünya hizalı, rig'in 0,01 ölçeğini geri alır (bulunan hata: yuva ölçeği 0,009 →
+  kozmetik görünmez küçüklükte; düzeltildi). Yön: Soldier rig'i +Z'ye bakıyor, döndürme gerekmedi (ilk varsayım tersti).
+- Test sahnesi `/harita-deneme` (BildimApp + App'te lazy rota; oyun koduna dokunmadı): klip/kozmetik/25 kopya/gölge
+  düğmeleri, HUD'da çağrı·üçgen·fps·ms, `?otomasyon=1` gizli sekmede Worker döngüsü, `window.__deneme` ölçüm API'si.
+- Ölçüm (STIL.md §5): karakter **4 çağrı / ~4,9k üçgen** (eski 61 / 30k); 25 karakter + bina 137 çağrı gölgeli (70 gölgesiz),
+  1,5 ms masaüstü iGPU (eski sahne 25 karakterde 16,5 ms). Bina 1 mesh 2.424 üçgen.
+- Yerel test kabuğu `.tmp/deneme-test/index.html` (git dışı; giriş duvarı olmadan sayfayı yükler).
+- **Onay kapısı:** görseller + tablo sahibine sunuldu; Aşama 2 (Taksim) onay bekliyor.

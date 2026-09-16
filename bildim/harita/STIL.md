@@ -117,8 +117,8 @@ uzaklığını (offset) tür başına bir kez taşır; kozmetik dosyası her tü
 - **Kök noktası ayakların ALTINDA** (y = 0 zeminde). Göbekte değil.
 - Bina kat yüksekliği ~3,2 m; dükkân cephesi 2 kat + çatı ≈ 9-10 m. İnsan
   ölçeğini bozacak devasa kapı yok: kapı 2,2-2,6 m.
-- Karakter `+Z` yönüne bakar (three.js `lookAt` uyumu); glTF dışa aktarımda
-  `+Y up`, `-Z forward` (Blender varsayılanı) — yükleyici döndürmez.
+- Karakter `+Z` yönüne bakar (three.js `lookAt` uyumu). Ölçüldü (Aşama 1): Mixamo/Soldier
+  rig'i GLTFLoader ile `+Z`ye bakıyor, ek döndürme yok; Blender'dan dışa aktarımda `+Y up` korunur.
 
 ### 2.3 Çizim bütçesi (kalite artarken yük DÜŞMELİ)
 | Katman | Bugün (ölçüm, §4) | Hedef | Yol |
@@ -231,3 +231,36 @@ sınırında; orta seviye telefonda bu sahne 30 fps'in altında kalır.
 Not: `karakterGorsel.js` yorumundaki "57 çağrı / 33.068 üçgen" 13 Eylül
 ölçümüydü; bugün 61 çağrı (kozmetik yuvaları eklendi). Yorum Aşama 6'da
 yeni ölçümle güncellenecek.
+
+---
+
+## 5. Aşama 1 — tek test varlığı ölçümü (16 Eyl 2026)
+
+Sahne: `/harita-deneme` (kod: `bildim/harita/deneme/DenemeSayfasi.jsx`), varlıklar
+`public/meydan/deneme/` (üretici: `bildim/harita/varlik/uret.mjs`, atlas 512² tek PNG).
+Ölçüm `renderer.info`, 1920×918, aynı masaüstü AMD tümleşik GPU (§4 ile karşılaştırılabilir).
+
+| Sahne | Çizim çağrısı | Üçgen | Kare (CPU+GPU, `gl.finish`) |
+|---|---|---|---|
+| Zemin + asfalt + bina + tabela yazısı, gölge açık | **5** | 4.854 | — |
+| + 1 karakter (3 kozmetikli), gölge kapalı | 8 (**karakter = 4**) | 9.708 (karakter ≈ 4,9k) | 0,12 ms |
+| + 1 karakter, gölge açık | 13 | 19.410 | 0,14 ms |
+| 25 karakter (kozmetik rastgele), gölge kapalı | **70** | 167.726 | 0,65 ms |
+| 25 karakter, gölge açık | **137** | 335.446 | 1,48 ms |
+
+Eski sahneyle karşılaştırma (§4): karakter 61 → **4** çağrı (15×), ~30k → **~4,9k** üçgen (6×);
+harita+25 karakter 1.471 → **137** çağrı (gölgeli), 16,5 ms → **1,5 ms**.
+Bina tek mesh 2.424 üçgen, 1 çağrı (gölgesiyle 2). Kozmetikler: şapka 598, gözlük 548, atkı 300 üçgen; her biri 1 çağrı.
+
+Kanıtlanan zincir: GLB yükleme (GLTFLoader, dış atlas) ✓ · Mixamo iskeletli animasyon
+(Idle/Walk/Run Soldier'dan aynen, Selam türetilmiş) ✓ · 22 kemik, 15 yuva (`basYuva`,
+`gozlukYuva`, `boyunYuva`… dünya hizalı, rig ölçeğini geri alır) ✓ · kozmetik yuvaya 1:1 oturur ✓ ·
+`SkeletonUtils.clone` ile 25 kopya, her biri kendi mixer'ıyla ✓.
+
+Gölge kararı doğrulandı: gölge geçişi çağrıyı ikiye katlıyor (70 → 137). Kalabalıkta karakter
+gölgesi blob'a düşerse 25 karakter ~75 çağrıda kalır. Bu masaüstü ölçümüdür; telefon FPS'i
+canlıda `/harita-deneme` HUD'undan okunur.
+
+Bilinen sınırlar: modeller Blender yerine kodla kurulmuş test varlıklarıdır (Stumble Guys
+kalitesinde sanat değil, boru hattı kanıtı); Mixamo hesabı gerektirmeden Soldier klipleri
+kullanıldı — sahibi kendi Adobe ID'siyle ek klip indirirse aynı yol çalışır.

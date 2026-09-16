@@ -1,0 +1,56 @@
+{
+ "dosya": "karakter_insan.glb",
+ "meshler": [
+  {
+   "ad": "Govde",
+   "ucgen": 5832,
+   "skinned": true
+  },
+  {
+   "ad": "kozmetik_sapka",
+   "ucgen": 598,
+   "skinned": false
+  },
+  {
+   "ad": "kozmetik_gozluk",
+   "ucgen": 548,
+   "skinned": false
+  },
+  {
+   "ad": "kozmetik_atki",
+   "ucgen": 300,
+   "skinned": false
+  }
+ ],
+ "toplamUcgen": 7278,
+ "malzeme": 1,
+ "boyut": [
+  1.455,
+  2.151,
+  0.657
+ ],
+ "kemik": 22,
+ "klipler": [
+  "Idle",
+  "Run",
+  "Walk",
+  "Selam"
+ ],
+ "yuvalar": [
+  "altYuva",
+  "elbiseYuva",
+  "capeRoot",
+  "sirtYuva",
+  "boyunYuva",
+  "basYuva",
+  "gozlukYuva",
+  "sacYuva",
+  "sakalYuva",
+  "kulakYuva_L",
+  "kulakYuva_R",
+  "bilekYuva_L",
+  "bilekYuva_R",
+  "ayakYuva_L",
+  "ayakYuva_R"
+ ]
+}

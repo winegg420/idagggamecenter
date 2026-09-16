@@ -35,6 +35,8 @@ const DuelloPage = lazy(() => import("../bildim/pages/DuelloPage.jsx"));
 const CalismaPage = lazy(() => import("../bildim/pages/CalismaPage.jsx"));
 // Meydan (3B): three.js yalniz bu rotaya girilince iner (ayri chunk)
 const HaritaSayfasi = lazy(() => import("../bildim/harita/HaritaSayfasi.jsx"));
+// Harita yenileme Aşama 1 test sahnesi (STIL.md) — oyunu etkilemez, ayrı rota
+const HaritaDeneme = lazy(() => import("../bildim/harita/deneme/DenemeSayfasi.jsx"));
 // Görünüm = 3B GARDIROP (bildim/avatar3d/gardrop.html). Ayrı giriş noktası
 // olduğu için rota bileşen değil, yönlendirmedir (bkz. GardropaGit.jsx).
 // 2B KARAKTER SİSTEMİ TAMAMEN KALKTI: sayfası da rotadan çıktı, dosyaları
@@ -117,6 +119,7 @@ export default function BildimApp() {
           <Route path="duello/:id" element={<DuelloPage />} />
           <Route path="calisma" element={<CalismaPage />} />
           <Route path="harita" element={<HaritaSayfasi />} />
+          <Route path="harita-deneme" element={<HaritaDeneme />} />
           <Route path="gorunum" element={<GardropaGit />} />
           <Route path="gorunum-3b" element={<GorunumPage />} />
           <Route path="profil" element={<ProfilePage />} />
