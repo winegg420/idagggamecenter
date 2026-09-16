@@ -1,0 +1,17 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Taksim greybox — ölçüm</title>
+<link rel="icon" href="data:,">
+<style>html,body{margin:0;height:100%;background:#cdeeff;font:14px system-ui,sans-serif}#kap{position:fixed;inset:0}#hud{position:fixed;left:8px;top:8px;background:#fff;padding:6px 10px;border-radius:6px;font:12px ui-monospace,Consolas,monospace}</style>
+</head>
+<body>
+<!-- AŞAMA 2A ölçüm sayfası: oyunun GERÇEK dünyası (dunyaKur + yerlesim.json), gerçek meydan avatarı, çarpışma, kamera ve
+     yürüme hızı (HaritaSayfasi YURUME_HIZI). Giriş/çoklu oyuncu/bot yok. Üretim derlemesiyle ölçülür (README).
+     node bildim/harita/olcum/greybox.mjs  →  http://localhost:4210/bildim/harita/olcum/greybox.html?otomasyon=1 -->
+<div id="kap"></div><div id="hud">yükleniyor…</div>
+<script type="module" src="./greybox.js"></script>
+</body>
+</html>
