@@ -165,8 +165,7 @@ const kat = (c, renk, a) => c.map((v, i) => Math.round(v + (renk[i] - v) * a));
 /** 256² insan yüzü: kaş, kirpik altı gölge, burun gölgesi, allık. Zemin = ten (kenar dikişi görünmez). */
 function yuzInsan(x, y) {
   let c = TEN.slice();
-  c = kat(c, karis(TEN, 0.94), 0.9 * Math.max(0, elips(x, y, 128, 150, 9, 13) - elips(x, y, 126, 146, 8, 12))); // burun gölgesi (sol-alt)
-  // burun altı gölgesi kaldırıldı: ağız dörtgeninin (y 157–197) altına düşüyordu, dörtgen açık kare gibi görünüyordu
+  // Aşama 1D: boyalı burun gölgesi KALKTI — burun artık kafa geometrisinde (köşe itme); gölgesini ışık yapar.
   for (const s of [-1, 1]) {
     c = kat(c, PEMBE, 0.32 * elips(x, y, 128 + s * 52, 152, 17, 11));                                          // allık
     // kaş: kavisli, iç uç kalın
@@ -183,37 +182,43 @@ function yuzKaplan(x, y) {
   c = karis(c, 0.95 + gurultu(x >> 1, y >> 1, 30) * 0.08);
   // alın şeritleri
   for (const [ox, k] of [[128, 1], [96, 0.9], [160, 0.9], [70, 0.8], [186, 0.8]]) {
-    const yol = [[ox - 3, 30], [ox + 2, 52], [ox - 2, 72]];
+    const yol = [[ox - 3, 26], [ox + 2, 48], [ox - 2, 68]];
     c = kat(c, KOYU, 0.92 * cizgi(x, y, yol, ox === 128 ? 7 : 5) * k);
   }
   // yanak şeritleri
   for (const s of [-1, 1]) {
-    c = kat(c, KOYU, 0.88 * cizgi(x, y, [[128 + s * 118, 130], [128 + s * 96, 150], [128 + s * 104, 172]], 5));
-    c = kat(c, KOYU, 0.88 * cizgi(x, y, [[128 + s * 122, 168], [128 + s * 100, 186]], 4));
-    c = kat(c, TEN, 0.97 * elips(x, y, 128 + s * 42, 124, 27, 24));    // göz yaması (göz karesinin zemin rengi)
-    c = kat(c, KOYU, 0.85 * cizgi(x, y, [[128 + s * 20, 96], [128 + s * 42, 90], [128 + s * 64, 96]], 4)); // kaş
+    c = kat(c, KOYU, 0.88 * cizgi(x, y, [[128 + s * 118, 120], [128 + s * 98, 140], [128 + s * 106, 162]], 5));
+    c = kat(c, KOYU, 0.88 * cizgi(x, y, [[128 + s * 122, 158], [128 + s * 102, 178]], 4));
+    c = kat(c, TEN, 0.97 * elips(x, y, 128 + s * 46, 111, 26, 22));    // göz yaması (1D: gözler yana + yukarı; göz yamasının zemini)
+    c = kat(c, KOYU, 0.85 * cizgi(x, y, [[128 + s * 24, 90], [128 + s * 46, 84], [128 + s * 68, 90]], 4)); // kaş
   }
-  c = kat(c, TEN, 0.98 * elips(x, y, 128, 178, 46, 30));                 // ağız/burun yaması
-  c = kat(c, harman(TEN, BEYAZ, 0.5), 0.6 * elips(x, y, 128, 186, 24, 14));
-  for (const s of [-1, 1]) for (let i = 0; i < 3; i++) c = kat(c, KOYU, 0.7 * elips(x, y, 128 + s * (14 + i * 9), 174 + i * 3, 2.2, 2.2)); // bıyık delikleri
+  // 1D §3: muzzle geometrik — krem yama muzzle kütlesini kaplar; burun üçgeni koyu (tepe y 136 geniş, uç y 158); philtrum; bıyık delikleri
+  c = kat(c, TEN, 0.98 * elips(x, y, 128, 160, 54, 40));
+  c = kat(c, harman(TEN, BEYAZ, 0.5), 0.6 * elips(x, y, 128, 178, 30, 16));
+  const bt = (y - 136) / 22;
+  if (bt >= 0 && bt <= 1) c = kat(c, KOYU, 0.95 * Math.max(0, Math.min(1, 16 * (1 - bt) + 2 - Math.abs(x - 128))));
+  c = kat(c, KOYU, 0.9 * cizgi(x, y, [[128, 158], [128, 170]], 2.5));
+  for (const s of [-1, 1]) for (let i = 0; i < 3; i++) c = kat(c, KOYU, 0.7 * elips(x, y, 128 + s * (16 + i * 9), 170 + i * 3, 2.2, 2.2));
   return c;
 }
-/** 256² robot yüzü: metal, vizör paneli çizgileri, vidalar, hoparlör ızgarası. */
+/**
+ * 256² robot yüz EKRANI (1D §4): kafaya oturan emissive panelin dokusu — koyu cam, ince tarama çizgileri, merkezde
+ * hafif parlaklık, metal çerçeve bandı, altta siyan durum çizgisi. (Yama süperelips; v aralığı 34–222 px örneklenir.)
+ */
 function yuzRobot(x, y) {
-  let c = METAL.slice();
-  c = karis(c, 0.96 + (Math.sin(x * 0.3) * 0.5 + 0.5) * 0.05);
-  const panel = [[52, 86], [204, 86], [212, 152], [44, 152], [52, 86]];
-  c = kat(c, karis(METAL, 0.72), 0.9 * cizgi(x, y, panel, 3));            // vizör çerçevesi
-  c = kat(c, karis(METAL, 1.06), 0.5 * (x > 52 && x < 204 && y > 88 && y < 150 ? 1 : 0));
-  for (const [vx, vy] of [[30, 60], [226, 60], [30, 200], [226, 200]]) { c = kat(c, karis(METAL, 0.7), 0.9 * elips(x, y, vx, vy, 5, 5)); c = kat(c, karis(METAL, 1.1), 0.8 * elips(x, y, vx, vy, 2, 2)); }
-  for (let i = 0; i < 5; i++) c = kat(c, karis(METAL, 0.68), 0.8 * cizgi(x, y, [[104, 176 + i * 8], [152, 176 + i * 8]], 2)); // ızgara
-  c = kat(c, karis(METAL, 0.8), 0.6 * cizgi(x, y, [[128, 20], [128, 80]], 2));
+  let c = EKRAN.slice();
+  if (y % 4 === 0) c = karis(c, 1.12);                                                                   // tarama çizgileri
+  c = kat(c, karis(EKRAN, 1.6), 0.35 * Math.max(0, 1 - Math.hypot((x - 128) / 150, (y - 118) / 110)));  // merkez parlaklık
+  const kenar = Math.min(x, 255 - x, y - 34, 222 - y);
+  if (kenar >= 0 && kenar < 10) c = karis(c, 0.75);                                                    // kenar: cam koyulaşır (metal çerçeve bandı süperelipste çentikli göründü, kaldırıldı)
+  c = kat(c, SIYAN, 0.8 * cizgi(x, y, [[70, 198], [186, 198]], 2.5));                                  // durum çizgisi
+  for (let i = 0; i < 4; i++) c = kat(c, SIYAN, 0.7 * elips(x, y, 92 + i * 24, 208, 2.5, 2.5));
   return c;
 }
-/** 64² ifade karesi i. */
+/** 64² ifade karesi i. Zemin: insan/kaplan TEN (kenar ten rengi → geçiş görünmez), robot EKRAN (yama ekranın üstünde). */
 function ifadeKare(i, x, y) {
   const robot = i === 6 || i === 7 || i === 14 || i === 15;
-  let c = (robot ? METAL : TEN).slice();
+  let c = (robot ? EKRAN : TEN).slice();
   const goz = (rx, ry, bebek = 6, irisR = 11, bebekY = 36) => {
     c = kat(c, BEYAZ, elips(x, y, 32, 34, rx, ry));
     c = kat(c, IRIS, elips(x, y, 33, bebekY, irisR, irisR));
@@ -224,22 +229,22 @@ function ifadeKare(i, x, y) {
     c = kat(c, KOYU, 0.9 * cizgi(x, y, [[32 - rx * 0.6, 14], [32 - rx * 0.75, 8]], 2));
   };
   switch (i) {
-    case 0: goz(19, 23); break;                                                              // açık
-    case 1: c = kat(c, KOYU, cizgi(x, y, yay(32, 26, 18, 0.25, Math.PI - 0.25), 3.2)); break; // kırpma (aşağı kavis)
-    case 2: c = kat(c, KOYU, cizgi(x, y, yay(32, 44, 18, Math.PI + 0.3, Math.PI * 2 - 0.3), 3.4)); break; // mutlu (yukarı kavis)
-    case 3: goz(23, 27, 4.5, 9, 36); break;                                                 // şaşkın
+    case 0: goz(23, 26, 7, 12.5, 35); break;                                                // açık (1D: yama küçüldü, çizim kareyi doldurur)
+    case 1: c = kat(c, KOYU, cizgi(x, y, yay(32, 26, 21, 0.25, Math.PI - 0.25), 3.4)); break; // kırpma (aşağı kavis)
+    case 2: c = kat(c, KOYU, cizgi(x, y, yay(32, 44, 21, Math.PI + 0.3, Math.PI * 2 - 0.3), 3.6)); break; // mutlu (yukarı kavis)
+    case 3: goz(25, 28, 5, 10, 36); break;                                                  // şaşkın
     case 4: goz(19, 23); c = kat(c, TEN, x >= 0 && y < 30 ? 1 : 0); c = kat(c, KOYU, 0.9 * cizgi(x, y, [[12, 30], [52, 30]], 2.8)); break; // kısık
     case 5: goz(19, 22); c = kat(c, TEN, y < 18 + (x - 12) * 0.35 ? 1 : 0); c = kat(c, KOYU, 0.9 * cizgi(x, y, [[12, 18], [52, 32]], 2.8)); break; // kızgın
-    case 6: c = kat(c, EKRAN, elips(x, y, 32, 32, 22, 18)); c = kat(c, SIYAN, elips(x, y, 32, 32, 9, 9)); c = kat(c, BEYAZ, 0.8 * elips(x, y, 29, 29, 3, 3)); break; // robot açık
-    case 7: c = kat(c, EKRAN, elips(x, y, 32, 32, 22, 18)); c = kat(c, SIYAN, cizgi(x, y, [[18, 32], [46, 32]], 4)); break; // robot kapalı
+    case 6: c = kat(c, SIYAN, 0.3 * elips(x, y, 32, 32, 22, 18)); c = kat(c, SIYAN, elips(x, y, 32, 32, 11, 11)); c = kat(c, BEYAZ, 0.85 * elips(x, y, 28, 28, 3.5, 3.5)); break; // robot açık: halo + parlak göz (shader'da emissive)
+    case 7: c = kat(c, SIYAN, cizgi(x, y, [[16, 32], [48, 32]], 4)); break; // robot kapalı
     case 8: c = kat(c, DUDAK, cizgi(x, y, yay(32, 22, 14, 0.5, Math.PI - 0.5), 3)); break;   // nötr (hafif kavis)
     case 9: c = kat(c, DUDAK, cizgi(x, y, yay(32, 18, 18, 0.35, Math.PI - 0.35), 4)); break; // gülümseme
     case 10: c = kat(c, KOYU, elips(x, y, 32, 34, 9, 12)); c = kat(c, DUDAK, elips(x, y, 32, 34, 11, 14) - elips(x, y, 32, 34, 8.5, 11.5)); break; // şaşkın O
     case 11: { const g = elips(x, y, 32, 30, 22, 13) * (y > 30 ? 1 : 0); c = kat(c, KOYU, g); c = kat(c, BEYAZ, g * (y < 39 ? 0.95 : 0)); c = kat(c, DUDAK, cizgi(x, y, yay(32, 30, 22, 0.15, Math.PI - 0.15), 3)); break; } // sırıtış
     case 12: c = kat(c, DUDAK, cizgi(x, y, yay(32, 46, 16, Math.PI + 0.4, Math.PI * 2 - 0.4), 3.4)); break; // üzgün
     case 13: c = kat(c, KOYU, elips(x, y, 32, 34, 5, 6)); break;                              // küçük o
-    case 14: c = kat(c, EKRAN, elips(x, y, 32, 32, 20, 8)); c = kat(c, SIYAN, 0.9 * cizgi(x, y, [[20, 32], [44, 32]], 2.5)); break; // robot nötr
-    case 15: c = kat(c, EKRAN, elips(x, y, 32, 32, 20, 10)); c = kat(c, SIYAN, 0.9 * cizgi(x, y, yay(32, 26, 11, 0.3, Math.PI - 0.3), 2.5)); break; // robot gülüş
+    case 14: c = kat(c, SIYAN, 0.9 * cizgi(x, y, [[18, 32], [46, 32]], 3)); break; // robot nötr
+    case 15: c = kat(c, SIYAN, 0.9 * cizgi(x, y, yay(32, 24, 12, 0.3, Math.PI - 0.3), 3)); break; // robot gülüş
   }
   return c;
 }
