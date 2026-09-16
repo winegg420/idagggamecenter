@@ -5219,3 +5219,12 @@ en küçük TR 761 (spor), EN 476 (tarih) — hiçbiri 300 altı değil. Sayfa s
 - Push bildirimleri (edge function `send-push`) sunucuda Türkçe başlık/gövde üretiyor; oyuncu diline göre çeviri sunucu tarafı iş.
 - 3B meydandaki bina adları kanvasa yükleme anında çizilir (tt ile sarılı; dil değişimi yenileme yaptığı için doğru).
 - Pasif 2985 soru çevrilmedi; aktifleştirilirse `.tmp/ceviri_disa.mjs` akışıyla çevrilebilir.
+
+## Harita Yenileme (Taksim) — Aşama 0: stil tarifi + şartname + ölçüm (16 Eyl 2026)
+- `bildim/harita/STIL.md` yazıldı: stil tarifi, palet, tek ortak Mixamo iskeleti + 14 kozmetik yuvası, ölçek
+  (1 birim = 1 m, boy 1,80, kök ayak altında), çizim bütçesi, instancing/atlas/ışık şartı, GLB boru hattı, kabul kriterleri.
+- Mevcut sahne ölçüldü (`.tmp/harita-test`, renderer.info, 1920×988, gölge açık): yalnız harita 277 çağrı / 14,9k üçgen
+  (gölgeyle 654 / 41,9k; 596 mesh, 383 gölge veren); 3B karakter +61 çağrı / ~30k üçgen (81 mesh); portre billboard +9;
+  25 karakter (6 3B + 19 billboard) 1.471 çağrı / 402k üçgen. Kare süresi masaüstü iGPU'da 8,8 → 16,5 ms.
+  Hedefe uzaklık: harita 4,6×, karakter 12-20×, toplam 7× fazla; instanced mesh ve doku yok.
+- Kod değişmedi. **Onay kapısı:** Aşama 1 (tek karakter + tek bina test sahnesi) onay bekliyor.
