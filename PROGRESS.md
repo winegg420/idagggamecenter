@@ -5186,3 +5186,36 @@ en küçük TR 761 (spor), EN 476 (tarih) — hiçbiri 300 altı değil. Sayfa s
 - Test edilemeyen: çıkış yapıp giriş/kurulum sihirbazı (tek hesap, oturum kapatılmadı), iki cihaz arası gerçek sesli görüşme, iOS
   Safari gerçek cihaz (CSS kuralları kod düzeyinde kontrol edildi: yeni öğelerde position:fixed yok, transform animasyonu sabit
   öğe atası değil, 100dvh).
+
+## Paket 15 — İngilizce çeviri: sorular + arayüz (16 Eyl 2026)
+
+### A) Soru çevirisi
+- Başlangıç ölçümü: aktif + TR + İngilizcesi olmayan 1787 soru (~158 bin karakter). Pasif 2985 soru kapsam dışı (çevrilmedi).
+- 19 parça hâlinde çevrildi (`supabase/ceviri_en/parca_N.json` + onaylı listeler), `question_translations`'a `dil='en'` yazıldı.
+  Kalite kapısı `kalite.ts › ceviriNedenGecersiz`; özel isim uyarıları (Karadeniz→Black Sea, Lozan→Lausanne…) tek tek gözden geçirildi.
+- Dile bağlı sorular çevrilmedi, `ceviri_atlanan` tablosuna nedeniyle yazıldı (migration 208): Türkçe dilbilgisi/ses
+  kuralları, yazım kuralları, deyim/atasözü, K/D/B/G kısaltması vb. Son durum: **kalan 0 · çevrili 9267 · atlanan 23**.
+- Canlı doğrulama: EN profille Hatalarım çalışma turu İngilizce soru getirdi.
+
+### B) Arayüz çevirisi Aşama 2
+- Karar: kancasız `tt()` (dil.js) — sayfa dili yüklemede çözülür (elle seçim > tarayıcı dili); profil dili farklıysa
+  `useDil` tarayıcıya yazıp **bir kez** yeniler (depolama kapalıysa döngü koruması). Dil değişimi sayfayı yeniler; bu sayede
+  modül düzeyindeki sabitler (sekme adları, kataloglar) de doğru dilde kurulur. `html lang` ayarlanır.
+- Dönüştürme AST ile yapıldı (`.tmp/cikar.cjs`, mevcut @babel/parser; yeni paket yok): ~1250 metin `tt(...)` ile sarıldı,
+  şablon dizgeler `{0}` yer tutucuya çevrildi; teknik dizgeler (sınıf adı, medya sorgusu, select kolonları, 3B kemik adları) hariç.
+  Parçalı cümlelerin birkaçı elle tek şablona alındı (geçen hafta sonucu, şehir sırası, rakip bekleme).
+- `dil.js` sözlüğü ~210 → ~1600 girdi. Kapsam: bildim bileşen/sayfa/lib/karakter/harita/avatar3d + hata sınırı.
+- `ttSunucu`: RPC `raise exception` mesajları (160) ve bildirim şablonları (22, `%` kalıplı, `%2` sıralı yer tutucu, yakalanan
+  kategori/unvan da çevrilir) + DB metinleri (rozet, günlük görev, joker/coin paketi, eşya adları). `hataMesaji` bundan geçer.
+- Bağlamlı anahtar: `"Açık|durum"`, `"Kapat|ayar"` — aynı Türkçe kelimenin farklı karşılığı için; TR'de `|` sonrası görünmez.
+- Profil > Ayarlar'a TR/EN dil seçici; Layout her sayfada profil dilini eşitler.
+- RankUpOverlay: localStorage'daki rütbe adı başka dilde kalınca sahte "rütbe atladın" oynamasın.
+- Canlı test (EN): ana sayfa, lig, dükkân, arkadaşlar, meydan okuma, düello, Hatalarım, profil, gardırop, 3B meydan HUD —
+  Türkçe kalıntı yalnız kullanıcı adları. Testte bulunup düzeltilen: ustalık seviye adları, `%69` → `69%`, saat yuvası,
+  bildirim zili/coin hapı etiketleri, "Açık/Kapat" bağlam çakışması. Sonra hesap TR'ye geri alındı (profiles.dil = tr doğrulandı).
+- iOS: yeni CSS yalnız `.bd-ayar-dil { flex: none }`; position:fixed/transform eklenmedi.
+
+### Açık konular
+- Push bildirimleri (edge function `send-push`) sunucuda Türkçe başlık/gövde üretiyor; oyuncu diline göre çeviri sunucu tarafı iş.
+- 3B meydandaki bina adları kanvasa yükleme anında çizilir (tt ile sarılı; dil değişimi yenileme yaptığı için doğru).
+- Pasif 2985 soru çevrilmedi; aktifleştirilirse `.tmp/ceviri_disa.mjs` akışıyla çevrilebilir.
