@@ -234,7 +234,7 @@ export default function BildirimZili() {
       <button
         className="bd-zil"
         onClick={ac}
-        aria-label={`Bildirimler${okunmamis > 0 ? tt(", {0} okunmamış", { 0: okunmamis }) : ""}`}
+        aria-label={`${tt("Bildirimler")}${okunmamis > 0 ? tt(", {0} okunmamış", { 0: okunmamis }) : ""}`}
       >
         <Ikon ad="zil" boyut={19} />
         {okunmamis > 0 && <span className="bd-zil-rozet">{okunmamis > 9 ? "9+" : okunmamis}</span>}
