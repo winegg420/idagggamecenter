@@ -15,9 +15,12 @@ import { kategoriEtiket, kategorileriSirala } from "../lib/kategoriler.js";
 import { y } from "../lib/yol.js";
 import { useGorunurlukTazele } from "../lib/gorunurluk.js";
 import { useAuth } from "../../src/context/AuthContext.jsx";
+import { ayar } from "../lib/ayarlar.js";
 
-const TOPLAM_SN = 60;
-const SORU_SN = 5;
+// Süreler sunucudan gelir (oyun_ayarlari: hizli_mod_sure_sn / hizli_mod_soru_sure_sn;
+// oturum açılınca hizli_mod_baslat da döndürür). Bunlar yalnız ilk çizim içindir.
+const VARSAYILAN_TOPLAM_SN = 90;
+const VARSAYILAN_SORU_SN = 10;
 const HARFLER = ["A", "B", "C", "D"];
 
 export default function HizliModPage() {
@@ -33,8 +36,12 @@ export default function HizliModPage() {
   const [seri, setSeri] = useState(0);
   const [sarsil, setSarsil] = useState(false);
   const [skor, setSkor] = useState(0);
-  const [kalanToplam, setKalanToplam] = useState(TOPLAM_SN);
-  const [kalanSoru, setKalanSoru] = useState(SORU_SN);
+  const [sureler, setSureler] = useState({ toplam: VARSAYILAN_TOPLAM_SN, soru: VARSAYILAN_SORU_SN });
+  const TOPLAM_SN = sureler.toplam;
+  const SORU_SN = sureler.soru;
+  const soruSnRef = useRef(VARSAYILAN_SORU_SN);
+  const [kalanToplam, setKalanToplam] = useState(VARSAYILAN_TOPLAM_SN);
+  const [kalanSoru, setKalanSoru] = useState(VARSAYILAN_SORU_SN);
   const [sonuc, setSonuc] = useState(null);
   const [siralama, setSiralama] = useState([]);
   const [kapsam, setKapsam] = useState("global");
@@ -48,6 +55,19 @@ export default function HizliModPage() {
   const sonTikRef = useRef(null);
 
   useEffect(() => { sesKilidiAc(); }, []);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const toplam = await ayar("hizli_mod_sure_sn", VARSAYILAN_TOPLAM_SN);
+        const soruSn = await ayar("hizli_mod_soru_sure_sn", VARSAYILAN_SORU_SN);
+        soruSnRef.current = soruSn;
+        setSureler({ toplam, soru: soruSn });
+      } catch (e) {
+        console.error("[Bildim] hizli mod sureleri okunamadi:", e);
+      }
+    })();
+  }, []);
 
   useEffect(() => {
     supabase.rpc("get_categories").then(({ data }) => setKategoriler(data ?? []));
@@ -69,7 +89,7 @@ export default function HizliModPage() {
       setSoru(s);
       setSecim(null);
       setSonucSoru(null);
-      setKalanSoru(SORU_SN);
+      setKalanSoru(soruSnRef.current);
       setKalanToplam(s.kalan_toplam_sn ?? 0);
       sonTikRef.current = null;
       soruBaslangicRef.current = Date.now();
@@ -94,9 +114,13 @@ export default function HizliModPage() {
       if (error) throw error;
       const o = Array.isArray(data) ? data[0] : data;
       if (!o?.oturum_id) throw new Error("Oturum açılamadı");
+      const toplam = Number(o.sure_sn) || VARSAYILAN_TOPLAM_SN;
+      const soruSn = Number(o.soru_sure_sn) || VARSAYILAN_SORU_SN;
+      soruSnRef.current = soruSn;
+      setSureler({ toplam, soru: soruSn });
       setOturum(o);
       setSkor(0);
-      setKalanToplam(TOPLAM_SN);
+      setKalanToplam(toplam);
       setAsama("oyun");
       await soruGetir(o.oturum_id);
     } catch (e) {
@@ -184,10 +208,10 @@ export default function HizliModPage() {
     if (asama !== "oyun" || !oturum) return;
     const tik = () => {
       const gecen = (Date.now() - soruBaslangicRef.current) / 1000;
-      const ks = Math.max(0, SORU_SN - gecen);
+      const ks = Math.max(0, soruSnRef.current - gecen);
       setKalanSoru(ks);
       setKalanToplam((k) => Math.max(0, k - 0.1));
-      // Soru başına 5 sn; son 2 saniyede saniyede bir tik
+      // Son 2 saniyede saniyede bir tik
       if (ks > 0 && ks <= 2) {
         const sn = Math.ceil(ks);
         if (sonTikRef.current !== sn) { sonTikRef.current = sn; sesTik(sn); }
@@ -237,9 +261,9 @@ export default function HizliModPage() {
       <div>
         <h1 className="baslik">Hızlı Mod</h1>
         <div className="kart bd-hizli-tanit">
-          <div className="bd-hizli-buyuk">60</div>
+          <div className="bd-hizli-buyuk">{TOPLAM_SN}</div>
           <div className="alt-yazi">
-            saniyede kaç soru bilebilirsin? Soru başına <b>5 saniye</b>,
+            saniyede kaç soru bilebilirsin? Soru başına <b>{SORU_SN} saniye</b>,
             doğru <b>+1</b>, yanlışın cezası yok.
             <br />
             <b>Lig puanına girmez</b> — kendi haftalık sıralaması var.
@@ -306,7 +330,7 @@ export default function HizliModPage() {
             <Ikon ad="saat" boyut={15} /> Süre doldu
           </div>
         )}
-        {/* 60 sn toplam çubuk */}
+        {/* Toplam süre çubuğu */}
         <div className="bd-hizli-toplam">
           <div
             className="dolgu"
@@ -320,7 +344,7 @@ export default function HizliModPage() {
 
         {soru && (
           <>
-            {/* 5 sn soru halkası */}
+            {/* Soru süresi halkası */}
             <div className="bd-sure-halka bd-hizli-halka">
               <svg viewBox="0 0 48 48" aria-hidden="true">
                 <circle className="iz" cx="24" cy="24" r="20" />

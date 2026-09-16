@@ -15,9 +15,9 @@
 export const GB_MS = 1000;
 
 /**
- * Hızlı modlarda pencere kısadır: soru başına 5 sn var ve sunucu bir sonraki
+ * Hızlı modlarda pencere kısadır: soru başına 10 sn var ve sunucu bir sonraki
  * sorunun süresini CEVAP anında başlatıyor. 700 ms, sunucudaki 1 sn'lik ağ
- * payının içinde kalır (5000 + 700 < 6000), yani hiçbir cevap süre dolmuş
+ * payının içinde kalır (10000 + 700 < 11000), yani hiçbir cevap süre dolmuş
  * sayılmaz. Bu değeri artırma — sunucu mantığına dokunmadan güvenli üst sınır.
  */
 export const GB_HIZLI_MS = 700;

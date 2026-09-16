@@ -51,7 +51,7 @@ const KOPRU = { L: 15.8, W: 3.4, H: 3.0 };
 /** Bina listesi — renkler mevcut mod renkleriyle aynı, değiştirme. */
 export const BINALAR = [
   { ad: "Meydan Oku", alt: "1v1 düello",        duvar: "#FF5B4A", cati: "#C03225", rota: "/meydan" },
-  { ad: "Hızlı Mod",  alt: "60 saniye",         duvar: "#FFB020", cati: "#C98A22", rota: "/hizli-mod" },
+  { ad: "Hızlı Mod",  alt: "90 saniye",         duvar: "#FFB020", cati: "#C98A22", rota: "/hizli-mod" },
   { ad: "Grup Maçı",  alt: "3-5 kişi",          duvar: "#4A9DD9", cati: "#2B6BA3", rota: "/meydan" },
   // Alt yazı sunucudaki turnuva saatlerinden okunur (bkz. lib/zaman.js);
   // saat değişirse levha da değişir.
