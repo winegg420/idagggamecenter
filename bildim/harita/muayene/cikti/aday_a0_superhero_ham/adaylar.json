@@ -1,0 +1,128 @@
+{
+ "varlik": "aday_a0_superhero_ham",
+ "istatistik": {
+  "ada": 3,
+  "kapali_ada": 3,
+  "havada": {
+   "ada": 3,
+   "zemine_bagli_kaynak": 1,
+   "bagli": 3,
+   "bagsiz_grup": 0
+  },
+  "simetri": "beyan yok (atlandı)",
+  "icice": {
+   "kapali_ada": 3,
+   "acik_ada": 0,
+   "pay_m": 0.01,
+   "gomulu_oran_esigi": 0.6
+  },
+  "sure_s": 0.6
+ },
+ "adaylar": [
+  {
+   "test": "icice",
+   "adalar": [
+    "diger:ten [x -0.03 · y 1.72 · z 0.09]",
+    "diger:ten [x -0.00 · y 1.19 · z -0.01]"
+   ],
+   "olcu": {
+    "derinlik_m": 0.013,
+    "icteki_ornek": "876/1154"
+   },
+   "not": "1. ada 2. adanın içine 1.3 cm giriyor"
+  },
+  {
+   "test": "gomulu",
+   "adalar": [
+    "diger:ten [x -0.03 · y 1.72 · z 0.09]"
+   ],
+   "olcu": {
+    "gomulu_yuzey_orani": 0.76,
+    "izinsiz_kaplayicilarla": 0.76
+   },
+   "not": "yüzey örneklerinin %76'i başka parçaların içinde — görünmeyebilir"
+  },
+  {
+   "test": "icice",
+   "adalar": [
+    "diger:ten [x 0.03 · y 1.72 · z 0.09]",
+    "diger:ten [x -0.00 · y 1.19 · z -0.01]"
+   ],
+   "olcu": {
+    "derinlik_m": 0.013,
+    "icteki_ornek": "876/1154"
+   },
+   "not": "1. ada 2. adanın içine 1.3 cm giriyor"
+  },
+  {
+   "test": "gomulu",
+   "adalar": [
+    "diger:ten [x 0.03 · y 1.72 · z 0.09]"
+   ],
+   "olcu": {
+    "gomulu_yuzey_orani": 0.76,
+    "izinsiz_kaplayicilarla": 0.76
+   },
+   "not": "yüzey örneklerinin %76'i başka parçaların içinde — görünmeyebilir"
+  },
+  {
+   "test": "icice",
+   "adalar": [
+    "diger:ten [x -0.00 · y 1.19 · z -0.01]",
+    "diger:ten [x -0.03 · y 1.72 · z 0.09]"
+   ],
+   "olcu": {
+    "derinlik_m": 0.012,
+    "icteki_ornek": "117/37694"
+   },
+   "not": "1. ada 2. adanın içine 1.2 cm giriyor"
+  },
+  {
+   "test": "icice",
+   "adalar": [
+    "diger:ten [x -0.00 · y 1.19 · z -0.01]",
+    "diger:ten [x 0.03 · y 1.72 · z 0.09]"
+   ],
+   "olcu": {
+    "derinlik_m": 0.012,
+    "icteki_ornek": "117/37694"
+   },
+   "not": "1. ada 2. adanın içine 1.2 cm giriyor"
+  }
+ ],
+ "susturulan": [],
+ "gomuluOranlar": [
+  {
+   "ada": "diger:ten [x -0.03 · y 1.72 · z 0.09]",
+   "oran": 0.76
+  },
+  {
+   "ada": "diger:ten [x 0.03 · y 1.72 · z 0.09]",
+   "oran": 0.76
+  },
+  {
+   "ada": "diger:ten [x -0.00 · y 1.19 · z -0.01]",
+   "oran": 0.01
+  }
+ ],
+ "adaListesi": [
+  {
+   "no": 0,
+   "ada": "diger:ten [x -0.03 · y 1.72 · z 0.09]",
+   "ucgen": 384,
+   "kapali": true
+  },
+  {
+   "no": 1,
+   "ada": "diger:ten [x 0.03 · y 1.72 · z 0.09]",
+   "ucgen": 384,
+   "kapali": true
+  },
+  {
+   "no": 0,
+   "ada": "diger:ten [x -0.00 · y 1.19 · z -0.01]",
+   "ucgen": 12566,
+   "kapali": true
+  }
+ ]
+}

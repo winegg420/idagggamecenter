@@ -1,0 +1,174 @@
+{
+  "glb": "aday_a0_superhero_ham",
+  "klasor": "/bildim/harita/varlik/aday/a0_superhero/",
+  "tip": "karakter",
+  "duzTen": true,
+  "kemikler": {
+    "solKol": "upperarm_l",
+    "sagKol": "upperarm_r",
+    "kalca": "pelvis",
+    "gogus": "spine_03",
+    "boyun": "neck_01",
+    "bas": "Head",
+    "solEl": "hand_l",
+    "sagOmuz": "upperarm_r",
+    "sagOnKol": "lowerarm_r",
+    "solOnKol": "lowerarm_l",
+    "solDiz": "calf_l",
+    "sagDiz": "calf_r"
+  },
+  "yakin": [
+    {
+      "ad": "boyun-omuz",
+      "hedef": {
+        "rol": "boyun",
+        "ofset": [
+          0,
+          -0.02,
+          0
+        ]
+      },
+      "yon": [
+        0.55,
+        0.12,
+        1
+      ],
+      "mesafe": 0.95
+    },
+    {
+      "ad": "torso-pelvis",
+      "hedef": {
+        "rol": "kalca",
+        "ofset": [
+          0,
+          0.22,
+          0
+        ]
+      },
+      "yon": [
+        0.35,
+        0.05,
+        1
+      ],
+      "mesafe": 1.45
+    },
+    {
+      "ad": "bacak ayrımı",
+      "hedef": {
+        "rol": "kalca",
+        "ofset": [
+          0,
+          -0.18,
+          0
+        ]
+      },
+      "yon": [
+        0,
+        -0.05,
+        1
+      ],
+      "mesafe": 1
+    },
+    {
+      "ad": "el",
+      "hedef": {
+        "rol": "solEl",
+        "ofset": [
+          0.05,
+          0,
+          0
+        ]
+      },
+      "yon": [
+        0.25,
+        0.55,
+        1
+      ],
+      "mesafe": 0.5
+    },
+    {
+      "ad": "tam profil (sabit kamera, nötr poz)",
+      "tip": "sabit",
+      "kam": [
+        5.4,
+        0.95,
+        0
+      ],
+      "hedef": [
+        0,
+        0.92,
+        0
+      ],
+      "fov": 22,
+      "klip": "Dur",
+      "zaman": 0
+    },
+    {
+      "ad": "dirsek bükülü (Run 0.567s)",
+      "klip": "Run",
+      "zaman": 0.567,
+      "hedef": {
+        "rol": "gogus"
+      },
+      "yon": [
+        0.7,
+        0.2,
+        1
+      ],
+      "mesafe": 1.6
+    },
+    {
+      "ad": "diz bükülü (Walk 0.467s)",
+      "klip": "Walk",
+      "zaman": 0.467,
+      "hedef": {
+        "rol": "kalca",
+        "ofset": [
+          0,
+          -0.45,
+          0
+        ]
+      },
+      "yon": [
+        1,
+        0.05,
+        0.35
+      ],
+      "mesafe": 1.5
+    },
+    {
+      "ad": "omuz kalkık (Selam 1.633s)",
+      "klip": "Selam",
+      "zaman": 1.633,
+      "hedef": {
+        "rol": "sagOmuz"
+      },
+      "yon": [
+        -0.55,
+        0.15,
+        1
+      ],
+      "mesafe": 0.9
+    },
+    {
+      "ad": "kalça dönük (Run 0.1s)",
+      "klip": "Run",
+      "zaman": 0.1,
+      "hedef": {
+        "rol": "kalca",
+        "ofset": [
+          0,
+          -0.25,
+          0
+        ]
+      },
+      "yon": [
+        1,
+        0.1,
+        0.25
+      ],
+      "mesafe": 1.55
+    }
+  ],
+  "temas_esigi_m": 0.02
+}

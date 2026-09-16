@@ -1,0 +1,124 @@
+{
+  "baslik": "AŞAMA 1H — SADELEŞTİRME KAYBI: A0 Superhero ham ↔ sade",
+  "altBaslik": "meshoptimizer simplify (konum kaynaştırma, alt küme köşe) · JOINTS/WEIGHTS birebir korundu (değişen köşe 0) · aynı kamera, aynı kare",
+  "sutunlar": [
+    {
+      "ustveriAd": "aday_a0_superhero_ham",
+      "etiket": "A0 ham",
+      "satirlar": [
+        "13.334 üçgen"
+      ]
+    },
+    {
+      "ustveriAd": "aday_a0_superhero_sade",
+      "etiket": "A0 sade",
+      "satirlar": [
+        "5.908 üçgen"
+      ]
+    }
+  ],
+  "satirlar": [
+    {
+      "ad": "3/4 AÇI|nötr poz",
+      "gorunum": {
+        "tip": "sabit",
+        "kam": [
+          3.8,
+          1.25,
+          3.8
+        ],
+        "hedef": [
+          0,
+          0.92,
+          0
+        ],
+        "fov": 22,
+        "klip": "Dur",
+        "zaman": 0
+      }
+    },
+    {
+      "ad": "YÜZ-BOYUN|yakın",
+      "gorunum": {
+        "tip": "yakin",
+        "ad": "boyun-omuz",
+        "hedef": {
+          "rol": "boyun",
+          "ofset": [
+            0,
+            -0.02,
+            0
+          ]
+        },
+        "yon": [
+          0.55,
+          0.12,
+          1
+        ],
+        "mesafe": 0.95
+      }
+    },
+    {
+      "ad": "EL|yakın",
+      "gorunum": {
+        "tip": "yakin",
+        "ad": "el",
+        "hedef": {
+          "rol": "solEl",
+          "ofset": [
+            0.05,
+            0,
+            0
+          ]
+        },
+        "yon": [
+          0.25,
+          0.55,
+          1
+        ],
+        "mesafe": 0.5
+      }
+    },
+    {
+      "ad": "dirsek bükülü|(Run 0.567s)",
+      "gorunum": {
+        "tip": "yakin",
+        "ad": "dirsek bükülü (Run 0.567s)",
+        "klip": "Run",
+        "zaman": 0.567,
+        "hedef": {
+          "rol": "gogus"
+        },
+        "yon": [
+          0.7,
+          0.2,
+          1
+        ],
+        "mesafe": 1.6
+      }
+    },
+    {
+      "ad": "diz bükülü|(Walk 0.467s)",
+      "gorunum": {
+        "tip": "yakin",
+        "ad": "diz bükülü (Walk 0.467s)",
+        "klip": "Walk",
+        "zaman": 0.467,
+        "hedef": {
+          "rol": "kalca",
+          "ofset": [
+            0,
+            -0.45,
+            0
+          ]
+        },
+        "yon": [
+          1,
+          0.05,
+          0.35
+        ],
+        "mesafe": 1.5
+      }
+    }
+  ]
+}

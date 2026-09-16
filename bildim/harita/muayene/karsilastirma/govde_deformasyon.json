@@ -1,0 +1,138 @@
+{
+  "baslik": "AŞAMA 1H — DEFORMASYON (sadeleştirilmiş hal, bizim klipler retarget)",
+  "altBaslik": "Kareler kaynak kliplerde ölçüldü: dirsek 124.6° · diz 80.9° · omuz (el omuzdan 0.3 m yukarıda) · uyluk arası 77.4° — her aday AYNI kare",
+  "sutunlar": [
+    {
+      "ustveriAd": null,
+      "etiket": "A · Universal Base Regular",
+      "yokNotu": "Regular/Teen yalnız ücretli Source|sürümünde (itch.io, 19,99 $).|Dosya a_regular|b_teen/kaynak/ klasörüne konunca|hazirla.mjs + bu sayfa yeniden üretilir.",
+      "satirlar": [
+        "ham → sade: —",
+        "retarget: denenemedi"
+      ]
+    },
+    {
+      "ustveriAd": null,
+      "etiket": "B · Universal Base Teen",
+      "yokNotu": "Regular/Teen yalnız ücretli Source|sürümünde (itch.io, 19,99 $).|Dosya a_regular|b_teen/kaynak/ klasörüne konunca|hazirla.mjs + bu sayfa yeniden üretilir.",
+      "satirlar": [
+        "ham → sade: —",
+        "retarget: denenemedi"
+      ]
+    },
+    {
+      "ustveriAd": "aday_a0_superhero_sade",
+      "etiket": "A0 · Universal Base Superhero (ek)",
+      "satirlar": [
+        "ham 13.334 → sade 5.908 üçgen",
+        "retarget: çalıştı (22 kemik)",
+        "skin doğrulama: geçti",
+        "CC0 · yön aynı"
+      ]
+    },
+    {
+      "ustveriAd": "aday_c_mevcut",
+      "etiket": "C · Mevcut gövde (kontrol)",
+      "satirlar": [
+        "6.656 üçgen (sadeleştirme gerekmez)",
+        "retarget: — (kendi klipleri)",
+        "saç/ceket/yaka/kapüşon çökertildi",
+        "yüz yamaları geometride duruyor"
+      ]
+    },
+    {
+      "ustveriAd": "aday_d_beach_ham",
+      "etiket": "D · Modular Men — Beach",
+      "satirlar": [
+        "ham 4.762 → sade 4.762 üçgen",
+        "retarget: çalıştı (20 kemik)",
+        "skin doğrulama: geçti",
+        "CC0 · yön aynı"
+      ]
+    }
+  ],
+  "satirlar": [
+    {
+      "ad": "dirsek bükülü|(Run 0.567s)",
+      "gorunum": {
+        "tip": "yakin",
+        "ad": "dirsek bükülü (Run 0.567s)",
+        "klip": "Run",
+        "zaman": 0.567,
+        "hedef": {
+          "rol": "gogus"
+        },
+        "yon": [
+          0.7,
+          0.2,
+          1
+        ],
+        "mesafe": 1.6
+      }
+    },
+    {
+      "ad": "diz bükülü|(Walk 0.467s)",
+      "gorunum": {
+        "tip": "yakin",
+        "ad": "diz bükülü (Walk 0.467s)",
+        "klip": "Walk",
+        "zaman": 0.467,
+        "hedef": {
+          "rol": "kalca",
+          "ofset": [
+            0,
+            -0.45,
+            0
+          ]
+        },
+        "yon": [
+          1,
+          0.05,
+          0.35
+        ],
+        "mesafe": 1.5
+      }
+    },
+    {
+      "ad": "omuz kalkık|(Selam 1.633s)",
+      "gorunum": {
+        "tip": "yakin",
+        "ad": "omuz kalkık (Selam 1.633s)",
+        "klip": "Selam",
+        "zaman": 1.633,
+        "hedef": {
+          "rol": "sagOmuz"
+        },
+        "yon": [
+          -0.55,
+          0.15,
+          1
+        ],
+        "mesafe": 0.9
+      }
+    },
+    {
+      "ad": "kalça dönük|(Run 0.1s)",
+      "gorunum": {
+        "tip": "yakin",
+        "ad": "kalça dönük (Run 0.1s)",
+        "klip": "Run",
+        "zaman": 0.1,
+        "hedef": {
+          "rol": "kalca",
+          "ofset": [
+            0,
+            -0.25,
+            0
+          ]
+        },
+        "yon": [
+          1,
+          0.1,
+          0.25
+        ],
+        "mesafe": 1.55
+      }
+    }
+  ]
+}

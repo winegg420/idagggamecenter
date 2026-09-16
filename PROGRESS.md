@@ -5336,3 +5336,13 @@ en küçük TR 761 (spor), EN 476 (tarih) — hiçbiri 300 altı değil. Sayfa s
 - Rapor: `bildim/harita/ASAMA_1G_RAPOR.md`; görseller `bildim/harita/gorsel/1g/`.
 - Açık soru (sahibine): kanatla havalanan sahibin peti — varsayılan yerde takip, kuş +30 cm; alternatif öneri raporda.
 - DUR: 25 karaktere/kataloğa yayma yok. Ölçüm not: otomasyon sekmesi düzeneği, S0 düzeneğiyle mutlak değer karşılaştırılmaz.
+
+## 17 Eyl 2026 — Harita yenileme Aşama 1H: gövde karşılaştırması (body bake-off) (Opus 5)
+- **A (Universal Base Regular) ve B (Teen) indirilemedi:** yalnız ücretli Source sürümünde (itch.io 19,99 $). Ücretsiz Standard pakette sadece Superhero gövdeleri var. Satın alma sahibinin kararı; dosyalar `bildim/harita/varlik/aday/{a_regular,b_teen}/kaynak/` klasörüne konunca hat tek komutla yeniden üretilir.
+- Karşılaştırılan: A0 Superhero erkek (aynı kit, ücretsiz; A/B yerine DEĞİL, hat/topoloji öngörüsü), C mevcut gövde (kontrol), D Ultimate Modular Men Beach (pakette çıplak gövde yok; şort geometride).
+- `varlik/aday/hazirla.mjs`: boy normalize, kök y=0, dokular sökülür → düz ten, çıplak, meshoptimizer simplify (konum kaynaştırma + alt küme köşe), yeniden okunan GLB'de skin doğrulaması, dünya uzayı yön hizalamalı retarget (Idle/Walk/Run/Selam + nötr "Dur" pozu).
+- Sonuç: A0 13.334 → 5.908 üçgen, JOINTS/WEIGHTS değişen köşe 0, doğrulama geçti, retarget 22 kemik. D 4.762 (sadeleştirme gerekmedi), retarget 20 kemik; D rig'inde ayak Root'a, uyluk Body'ye bağlı (IK) → konum aktarımı eklendi.
+- A0 omuz çökmesi (Selam) araç kaynaklı değil: ham = sade; bizim Selam klibindeki ~80° kol burulması + twist kemiksiz rig.
+- Muayene hattı genişletildi (yeni araç yazılmadı): aday klasörü, düz ten/çıplak mod, klip karesi, rol hedefli kamera, sabit kamera, `--karsilastir` sayfası.
+- Öneri: hedef kalite = A0'daki kit topolojisi; ama stil için B (Teen) görülmeden karar verilmemeli. D bütçe dostu ama fasetli/giyimli. KARAR SAHİBİNDE. Rapor: `bildim/harita/ASAMA_1H_BAKEOFF.md`.
+- DUR: kazanan seçilmedi, yuva/kaplan/robot/25 karakter yok.

@@ -1,0 +1,132 @@
+{
+  "baslik": "AŞAMA 1H — GÖVDE KARŞILAŞTIRMASI (sadeleştirilmiş hal, düz ten, çıplak)",
+  "altBaslik": "Aynı sabit kamera · aynı poz (nötr = bizim T-poz, kollar 55° aşağı; diz = Walk; hepsi retarget) · boy 1.827 m · kök y=0 · ışık B+ · #F2C9A7 pürüz 0,82 · A0 kitin ücretsiz paketteki tek erkek gövdesi (A/B yerine DEĞİL)",
+  "sutunlar": [
+    {
+      "ustveriAd": null,
+      "etiket": "A · Universal Base Regular",
+      "yokNotu": "Regular/Teen yalnız ücretli Source|sürümünde (itch.io, 19,99 $).|Dosya a_regular|b_teen/kaynak/ klasörüne konunca|hazirla.mjs + bu sayfa yeniden üretilir.",
+      "satirlar": [
+        "ham → sade: —",
+        "retarget: denenemedi"
+      ]
+    },
+    {
+      "ustveriAd": null,
+      "etiket": "B · Universal Base Teen",
+      "yokNotu": "Regular/Teen yalnız ücretli Source|sürümünde (itch.io, 19,99 $).|Dosya a_regular|b_teen/kaynak/ klasörüne konunca|hazirla.mjs + bu sayfa yeniden üretilir.",
+      "satirlar": [
+        "ham → sade: —",
+        "retarget: denenemedi"
+      ]
+    },
+    {
+      "ustveriAd": "aday_a0_superhero_sade",
+      "etiket": "A0 · Universal Base Superhero (ek)",
+      "satirlar": [
+        "ham 13.334 → sade 5.908 üçgen",
+        "retarget: çalıştı (22 kemik)",
+        "skin doğrulama: geçti",
+        "CC0 · yön aynı"
+      ]
+    },
+    {
+      "ustveriAd": "aday_c_mevcut",
+      "etiket": "C · Mevcut gövde (kontrol)",
+      "satirlar": [
+        "6.656 üçgen (sadeleştirme gerekmez)",
+        "retarget: — (kendi klipleri)",
+        "saç/ceket/yaka/kapüşon çökertildi",
+        "yüz yamaları geometride duruyor"
+      ]
+    },
+    {
+      "ustveriAd": "aday_d_beach_ham",
+      "etiket": "D · Modular Men — Beach",
+      "satirlar": [
+        "ham 4.762 → sade 4.762 üçgen",
+        "retarget: çalıştı (20 kemik)",
+        "skin doğrulama: geçti",
+        "CC0 · yön aynı"
+      ]
+    }
+  ],
+  "satirlar": [
+    {
+      "ad": "ÖN|nötr poz",
+      "gorunum": {
+        "tip": "sabit",
+        "kam": [
+          0,
+          0.95,
+          5.4
+        ],
+        "hedef": [
+          0,
+          0.92,
+          0
+        ],
+        "fov": 22,
+        "klip": "Dur",
+        "zaman": 0
+      }
+    },
+    {
+      "ad": "YAN PROFİL|nötr poz",
+      "gorunum": {
+        "tip": "sabit",
+        "kam": [
+          5.4,
+          0.95,
+          0
+        ],
+        "hedef": [
+          0,
+          0.92,
+          0
+        ],
+        "fov": 22,
+        "klip": "Dur",
+        "zaman": 0
+      }
+    },
+    {
+      "ad": "3/4 AÇI|nötr poz",
+      "gorunum": {
+        "tip": "sabit",
+        "kam": [
+          3.8,
+          1.25,
+          3.8
+        ],
+        "hedef": [
+          0,
+          0.92,
+          0
+        ],
+        "fov": 22,
+        "klip": "Dur",
+        "zaman": 0
+      }
+    },
+    {
+      "ad": "DİZ BÜKÜLÜ|Walk 0.467 s",
+      "gorunum": {
+        "tip": "sabit",
+        "kam": [
+          5,
+          0.95,
+          2
+        ],
+        "hedef": [
+          0,
+          0.92,
+          0
+        ],
+        "fov": 22,
+        "klip": "Walk",
+        "zaman": 0.467
+      }
+    }
+  ]
+}
