@@ -1763,6 +1763,11 @@ const SOZLUK = {
     "şehrinde": "your city",
     // ---- Aşama 2 — ek ----
     "%{0}": "{0}%",
+    // ---- Aşama 2 — bağlamlı anahtarlar ----
+    "Açık|durum": "On",
+    "Kapat|ayar": "Turn off",
+    "Aç|ayar": "Turn on",
+    "Spor|ayakkabi": "Trainers",
   },
 };
 
@@ -1773,7 +1778,8 @@ const SOZLUK = {
  * @param {Record<string,string|number>} [degerler] {ad} gibi yer tutucular
  */
 export function t(dil, anahtar, degerler) {
-  const metin = (dil !== "tr" && SOZLUK[dil]?.[anahtar]) || anahtar;
+  // "Açık|durum" gibi bağlamlı anahtar: aynı Türkçe kelimenin farklı karşılığı için.
+  const metin = (dil !== "tr" && SOZLUK[dil]?.[anahtar]) || anahtar.split("|")[0];
   if (!degerler) return metin;
   return metin.replace(/\{(\w+)\}/g, (tam, ad) =>
     Object.prototype.hasOwnProperty.call(degerler, ad) ? String(degerler[ad]) : tam

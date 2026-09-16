@@ -173,7 +173,7 @@ export default function ProfilAyarlari() {
             disabled={ikramCalisiyor}
             onClick={rahatsizEtmeDegistir}
           >
-            {rahatsizEtme ? tt("Aç") : tt("Kapat")}
+            {rahatsizEtme ? tt("Aç|ayar") : tt("Kapat|ayar")}
           </button>
         </div>
         {ikramHata && <div className="hata-kutu" style={{ marginTop: 8 }}>{ikramHata}</div>}

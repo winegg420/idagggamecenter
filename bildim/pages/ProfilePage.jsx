@@ -254,7 +254,7 @@ export default function ProfilePage() {
             <div style={{ fontWeight: 700, fontSize: 14 }}>{tt("Bildirimler")}</div>
             <div className="alt-yazi">
               {bildirim === "acik"
-                ? tt("Açık")
+                ? tt("Açık|durum")
                 : bildirim === "engelli"
                   ? tt("Tarayıcı ayarlarından engellenmiş.")
                   : tt("Kapalı")}
@@ -280,7 +280,7 @@ export default function ProfilePage() {
                 }
               }}
             >
-              {bildirim === "acik" ? tt("Kapat") : tt("Aç")}
+              {bildirim === "acik" ? tt("Kapat|ayar") : tt("Aç|ayar")}
             </button>
           )}
         </div>
@@ -292,7 +292,7 @@ export default function ProfilePage() {
         <div style={{ flex: 1 }}>
           <div style={{ fontWeight: 700, fontSize: 14 }}>{tt("Oyun sesleri")}</div>
           <div className="alt-yazi">
-            {ses ? tt("Açık") : tt("Kapalı")}
+            {ses ? tt("Açık|durum") : tt("Kapalı")}
           </div>
         </div>
         <button
@@ -304,7 +304,7 @@ export default function ProfilePage() {
             if (yeniDurum) sesTik(3); // örnek ses
           }}
         >
-          {ses ? tt("Kapat") : tt("Aç")}
+          {ses ? tt("Kapat|ayar") : tt("Aç|ayar")}
         </button>
       </div>
 
