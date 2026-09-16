@@ -65,7 +65,7 @@ export const PARCALAR = [
   ['kupe_altin',tt("Altın küpe"),'kupe','altin',null],
   ['kupe_gumus',tt("Gümüş küpe"),'kupe','gumus',null],
 ].map(([id,ad,yuva,deger,eskiKod])=>({id,ad,yuva,deger,eskiKod}));
-export const YUVA_ADLARI={sac:tt("Saç"),kiyafet:tt("Üst giyim"),alt:tt("Alt giyim"),ayakkabi:tt("Ayakkabı"),bas:tt("Baş aksesuarı"),gozluk:tt("Gözlük"),kupe:tt("Küpe"),kolye:tt("Kolye"),saat:'Saat',sakal:tt("Sakal"),pelerin:tt("Sırt")};
+export const YUVA_ADLARI={sac:tt("Saç"),kiyafet:tt("Üst giyim"),alt:tt("Alt giyim"),ayakkabi:tt("Ayakkabı"),bas:tt("Baş aksesuarı"),gozluk:tt("Gözlük"),kupe:tt("Küpe"),kolye:tt("Kolye"),saat:tt("Saat"),sakal:tt("Sakal"),pelerin:tt("Sırt")};
 // Boş değer = o yuvanın ücretsiz/varsayılan hâli. `kiyafet`, `alt` ve
 // `ayakkabi` çıplak bırakılamaz; bu yüzden boşları temel parçadır.
 export const BOSLAR={sac:'yok',kiyafet:'tisort',alt:'pantolon',ayakkabi:'spor',bas:'yok',gozluk:'yok',sakal:'yok',pelerin:'yok',kolye:'yok',saat:'yok',kupe:'yok'};

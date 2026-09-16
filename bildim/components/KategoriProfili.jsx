@@ -75,7 +75,7 @@ export default function KategoriProfili({ userId, profil: disaridan = null, kucu
                   <span className="bd-kprofil-bar" aria-hidden="true">
                     <span className="dolgu" style={{ width: `${k.yuzde}%` }} />
                   </span>
-                  <span className="bd-kprofil-yuzde">%{k.yuzde}</span>
+                  <span className="bd-kprofil-yuzde">{ceviri("%{0}", { 0: k.yuzde })}</span>
                 </>
               )}
             </li>

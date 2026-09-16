@@ -666,7 +666,7 @@ export default function ChallengesPage() {
               <span className="bd-kat-ad">{kategoriAdi(k.kategori)}</span>
               <span className="bd-kat-alt">
                 {toplam} {tt("soru")}
-                <span className="bd-kat-yuzde"> · %{yuzde} {tt("çözüldü")}</span>
+                <span className="bd-kat-yuzde"> · {tt("%{0}", { 0: yuzde })} {tt("çözüldü")}</span>
               </span>
               <span className="bd-kat-bar">
                 <span className="dolgu" style={{ width: `${yuzde}%` }} />

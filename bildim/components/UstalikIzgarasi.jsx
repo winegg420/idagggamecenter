@@ -3,7 +3,7 @@ import Ikon from "./Ikon.jsx";
 import { supabase } from "../../src/lib/supabase.js";
 import { kategoriEtiket } from "../lib/kategoriler.js";
 import { JOKER_BILGI } from "../lib/jokerler.js";
-import { tt } from "../lib/dil.js";
+import { tt, ttSunucu } from "../lib/dil.js";
 
 const SEVIYE_RENK = {
   "Çırak": "#8496B2",
@@ -113,7 +113,7 @@ export default function UstalikIzgarasi() {
                   <div className="bd-ustalik-ust">
                     <span className="bd-ustalik-ad">{kategoriEtiket(s.kategori)}</span>
                     <span className="bd-ustalik-seviye" style={{ color: renk }}>
-                      {s.seviye ?? "—"}
+                      {s.seviye ? ttSunucu(s.seviye) : "—"}
                     </span>
                   </div>
                   <div className="bd-ustalik-bar">
@@ -125,7 +125,7 @@ export default function UstalikIzgarasi() {
                   <div className="bd-ustalik-alt alt-yazi">
                     {s.dogru_sayisi} {tt("doğru")}
                     {s.sonraki_esik
-                      ? tt(" · {0} için {1} kaldı", { 0: s.sonraki_seviye, 1: s.sonraki_esik - s.dogru_sayisi })
+                      ? tt(" · {0} için {1} kaldı", { 0: ttSunucu(s.sonraki_seviye), 1: s.sonraki_esik - s.dogru_sayisi })
                       : tt(" · en üst seviye")}
                   </div>
                 </div>

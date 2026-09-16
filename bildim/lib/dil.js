@@ -1761,6 +1761,8 @@ const SOZLUK = {
     "% hamlesini yaptı — sıra sende! ⏳": "% made their move — your turn! ⏳",
     "İlk maçını tamamladın — artık şehir, ülke ve dünya liglerindesin! 🏙️": "You finished your first match — you're now in the city, country and world leagues! 🏙️",
     "şehrinde": "your city",
+    // ---- Aşama 2 — ek ----
+    "%{0}": "{0}%",
   },
 };
 
