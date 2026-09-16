@@ -1,0 +1,136 @@
+{
+ "ad": "a0_superhero",
+ "etiket": "A0 · Quaternius Universal Base — Superhero (erkek) · ücretsiz paketteki tek erkek gövde",
+ "lisans": "CC0",
+ "kaynak": "bildim/harita/varlik/aday/a0_superhero/kaynak/Superhero_Male_FullBody.gltf",
+ "atilanMeshler": [
+  "Eyebrows (MI_Hair_1)"
+ ],
+ "hamUcgen": 13334,
+ "sadeUcgen": 5908,
+ "sadeDosya": "aday_a0_superhero_sade.glb",
+ "hamDosya": "aday_a0_superhero_ham.glb",
+ "normalize": {
+  "olcek": 1.0041,
+  "boy": 1.827,
+  "kokY": 0,
+  "cevrildi180": false
+ },
+ "retarget": {
+  "eslenenKemik": 22,
+  "eksik": [],
+  "konumAktarilan": [],
+  "kalcaOrani": 1.046,
+  "klipler": [
+   "Idle",
+   "Run",
+   "Walk",
+   "Selam",
+   "Dur"
+  ],
+  "calisti": true
+ },
+ "dogrulama": {
+  "ham": {
+   "skinnedMesh": 2,
+   "ucgen": 13334,
+   "jointsVar": true,
+   "sayiEsit": true,
+   "agirlikToplamMin": 1,
+   "agirlikToplamMax": 1,
+   "sifirAgirlikliKose": 0,
+   "skin": [
+    {
+     "eklem": 65,
+     "ibm": 65
+    },
+    {
+     "eklem": 65,
+     "ibm": 65
+    }
+   ],
+   "klipler": [
+    "Idle",
+    "Run",
+    "Walk",
+    "Selam",
+    "Dur"
+   ],
+   "skinBag": true,
+   "gecti": true
+  },
+  "sade": {
+   "skinnedMesh": 2,
+   "ucgen": 5908,
+   "jointsVar": true,
+   "sayiEsit": true,
+   "agirlikToplamMin": 1,
+   "agirlikToplamMax": 1,
+   "sifirAgirlikliKose": 0,
+   "skin": [
+    {
+     "eklem": 65,
+     "ibm": 65
+    },
+    {
+     "eklem": 65,
+     "ibm": 65
+    }
+   ],
+   "klipler": [
+    "Idle",
+    "Run",
+    "Walk",
+    "Selam",
+    "Dur"
+   ],
+   "skinBag": true,
+   "gecti": true
+  }
+ },
+ "sadelestirme": {
+  "arac": "meshoptimizer 1.1.1 simplify (konum kaynaştırma + alt küme köşe)",
+  "meshler": [
+   {
+    "mesh": "Eyes",
+    "ham": 768,
+    "sade": 340,
+    "goreliHata": 0.01249,
+    "agirlikFarkliKose": 0
+   },
+   {
+    "mesh": "SuperHero_Male",
+    "ham": 12566,
+    "sade": 5568,
+    "goreliHata": 0.00136,
+    "agirlikFarkliKose": 0
+   }
+  ]
+ },
+ "kareler": {
+  "dirsek": {
+   "klip": "Run",
+   "zaman": 0.567,
+   "deger": 124.6,
+   "ne": "dirsek bükülü (Run, en büyük dirsek açısı)"
+  },
+  "diz": {
+   "klip": "Walk",
+   "zaman": 0.467,
+   "deger": 80.9,
+   "ne": "diz bükülü (Walk, en büyük diz açısı)"
+  },
+  "omuz": {
+   "klip": "Selam",
+   "zaman": 1.633,
+   "deger": 0.3,
+   "ne": "omuz kalkık (Selam, el omuzun en üstünde)"
+  },
+  "kalca": {
+   "klip": "Run",
+   "zaman": 0.1,
+   "deger": 77.4,
+   "ne": "kalça dönük (Run, iki uyluk arası en büyük açı)"
+  }
+ }
+}

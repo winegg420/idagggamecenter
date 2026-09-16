@@ -1,0 +1,28 @@
+{
+ "kaynak": "public/meydan/deneme/karakter_insan.glb",
+ "boy": 1.827,
+ "dirsek": {
+  "klip": "Run",
+  "zaman": 0.567,
+  "deger": 124.6,
+  "ne": "dirsek bükülü (Run, en büyük dirsek açısı)"
+ },
+ "diz": {
+  "klip": "Walk",
+  "zaman": 0.467,
+  "deger": 80.9,
+  "ne": "diz bükülü (Walk, en büyük diz açısı)"
+ },
+ "omuz": {
+  "klip": "Selam",
+  "zaman": 1.633,
+  "deger": 0.3,
+  "ne": "omuz kalkık (Selam, el omuzun en üstünde)"
+ },
+ "kalca": {
+  "klip": "Run",
+  "zaman": 0.1,
+  "deger": 77.4,
+  "ne": "kalça dönük (Run, iki uyluk arası en büyük açı)"
+ }
+}
