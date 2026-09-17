@@ -62,7 +62,7 @@ export async function takiliKur(tur, koz, { sac = 1, set = 1, klip = "Idle", zam
   ks.gorunum(kok, { set, sac });
   // Idle pozu (vitrin portresiyle aynı zaman: 0,3 s)
   const mixer = new THREE.AnimationMixer(kok);
-  const c = v[tur].klipler.find((k) => k.name === klip);
+  const c = klip ? v[tur].klipler.find((k) => k.name === klip) : null;   // klip: null → BAĞLAMA pozu (Paket 23 §A.0 ölçümü)
   if (c) { const a = mixer.clipAction(c); a.play(); a.time = zaman; mixer.update(0); }
   if (kok.userData.kanatMesh) kok.userData.kanatMesh.rotation.x = -0.06;   // karakter.js kare(): -0,06 + sin·0,1 → durgun orta
   kok.updateMatrixWorld(true);
@@ -82,7 +82,13 @@ export async function takiliKur(tur, koz, { sac = 1, set = 1, klip = "Idle", zam
     geo = m.geometry.clone().applyMatrix4(m.matrixWorld);
     var uygulanan = m.userData.uygulanan ?? {};
   }
-  return { govde, parca: { ad: koz, geo }, yuva: yuvaAd, uygulanan: uygulanan ?? {} };
+  // Kemiklerin DÜNYA konumu (Paket 23 §F.3 `durus_ekseni` ve §A.0 ölçümü buradan okur)
+  const kemik = {};
+  for (const ad of ["Hips", "Spine", "Spine1", "Spine2", "Neck", "Head"]) {
+    const b = kok.getObjectByName(ad);
+    if (b) kemik[ad] = b.getWorldPosition(new THREE.Vector3());
+  }
+  return { govde, parca: { ad: koz, geo }, yuva: yuvaAd, uygulanan: uygulanan ?? {}, kemik, kok };
 }
 
 /** Deri deformasyonu uygulanmış gövde (dünya uzayı). Görünümün çökerttiği üçgenler (tek noktaya toplanan) atılır. */

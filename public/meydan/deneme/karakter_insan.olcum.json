@@ -3,8 +3,8 @@
  "meshler": [
   {
    "ad": "Govde",
-   "ucgen": 6656,
-   "kose": 4192,
+   "ucgen": 7104,
+   "kose": 4412,
    "skinned": true,
    "ao": true
   },
@@ -44,7 +44,7 @@
    "ao": true
   }
  ],
- "toplamUcgen": 8960,
+ "toplamUcgen": 9408,
  "malzeme": 1,
  "roughness": 0.82,
  "boyut": [
@@ -78,9 +78,9 @@
  ],
  "ao": {
   "govde": {
-   "ort": 0.576,
+   "ort": 0.572,
    "min": 0.15,
-   "kose": 4192
+   "kose": 4412
   },
   "kozmetik_sapka": {
    "ort": 0.628,
@@ -88,22 +88,22 @@
    "kose": 274
   },
   "kozmetik_gozluk": {
-   "ort": 0.666,
+   "ort": 0.671,
    "min": 0.157,
    "kose": 312
   },
   "kozmetik_atki": {
-   "ort": 0.519,
-   "min": 0.17,
+   "ort": 0.539,
+   "min": 0.156,
    "kose": 211
   },
   "kozmetik_gozlukPremium": {
-   "ort": 0.568,
+   "ort": 0.574,
    "min": 0.15,
    "kose": 444
   },
   "kozmetik_kanat": {
-   "ort": 0.613,
+   "ort": 0.628,
    "min": 0.151,
    "kose": 508
   }

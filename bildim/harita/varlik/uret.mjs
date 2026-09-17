@@ -313,19 +313,107 @@ function karakterKur(tur = "insan") {
   const TEN = robot ? "metal" : kaplan ? "kurk" : "ten";
   const TEN_B = robot ? BOLGE.metal : kaplan ? BOLGE.kurk : BOLGE.ten;
 
-  /** Parça ekle: hücre, kemik, bölge; desenli → hücre dikdörtgenine yay; uvFn özel eşleme. */
-  const ekle = (geo, hucre, kemik, b, { desenli = false, uvFn = null } = {}) => {
+  /**
+   * Parça ekle: hücre, kemik, bölge; desenli → hücre dikdörtgenine yay; uvFn özel eşleme.
+   * Paket 23 §A.2: `agirlik(v)` verilirse köşe başına [[kemikAdı, ağırlık], …] (en çok 4, toplamı 1'e normalize
+   * edilir) — gövde tek kemiğe %100 bağlıyken katı blok gibi devriliyordu, artık omurga boyunca bükülüyor.
+   */
+  const ekle = (geo, hucre, kemik, b, { desenli = false, uvFn = null, agirlik = null } = {}) => {
     geo = temizle(geo);
     if (uvFn) uvFn(geo); else desenli ? yay(geo, hucre) : duz(geo, hucre);
     const n = geo.attributes.position.count;
     const si = new Uint16Array(n * 4), sw = new Float32Array(n * 4);
-    for (let i = 0; i < n; i++) { si[i * 4] = idx(kemik); sw[i * 4] = 1; }
+    const p = geo.attributes.position, _v = new THREE.Vector3();
+    for (let i = 0; i < n; i++) {
+      if (!agirlik) { si[i * 4] = idx(kemik); sw[i * 4] = 1; continue; }
+      const liste = agirlik(_v.fromBufferAttribute(p, i)).filter(([, w]) => w > 0.001).slice(0, 4);
+      const top = liste.reduce((s, [, w]) => s + w, 0) || 1;
+      for (let j = 0; j < liste.length; j++) { si[i * 4 + j] = idx(liste[j][0]); sw[i * 4 + j] = liste[j][1] / top; }
+      if (!liste.length) { si[i * 4] = idx(kemik); sw[i * 4] = 1; }
+    }
     geo.setAttribute("skinIndex", new THREE.BufferAttribute(si, 4));
     geo.setAttribute("skinWeight", new THREE.BufferAttribute(sw, 4));
     bolgeYaz(geo, b);
     parcalar.push(geo);
     return geo;
   };
+  /**
+   * Paket 23 §A.1 — PROFİLLİ GÖVDE KABUĞU. Eski gövde kalçadan boyna TEK kapsüldü, yarıçapı baştan sona sabitti
+   * (ölçüldü: derinlik her yükseklikte 40,0 cm, bel farkı %0 → düz fıçı, bel yok). Artık yükseklik başına yarıçap
+   * veren bir profil eğrisi halka halka döndürülüyor: kalça → bel → göğüs → omuz altı.
+   * Yöntem (a) seçildi (profil eğrisi + halka tüp), (b) 3-4 kapsül yerine: tek ada (parça bütünlüğü), pürüzsüz
+   * geçiş ve `yay` UV eşlemesi bozulmadan kalıyor.
+   * @param {THREE.Vector3} alt  @param {THREE.Vector3} ust  eksenin uçları (dünya)
+   * @param {Array<[number, number]>} profil  [t (0 alt → 1 üst), yarıçap]
+   */
+  const govdeKabugu = (alt, ust, profil, { segment = 14, halkaSay = 9, zBasik = 0.86 } = {}) => {
+    const eksen = ust.clone().sub(alt), L = eksen.length();
+    const q = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), eksen.clone().normalize());
+    const yariCap = (t) => {
+      for (let i = 1; i < profil.length; i++) {
+        if (t <= profil[i][0]) {
+          const [t0, r0] = profil[i - 1], [t1, r1] = profil[i];
+          const u = (t - t0) / Math.max(1e-6, t1 - t0);
+          return r0 + (r1 - r0) * (u * u * (3 - 2 * u));   // yumuşak geçiş (smoothstep) — bel keskin kırılmasın
+        }
+      }
+      return profil[profil.length - 1][1];
+    };
+    const poz = [], uv = [], idxs = [];
+    const halka = (t, r, yOfset = 0) => {
+      const bas = poz.length / 3;
+      for (let j = 0; j <= segment; j++) {
+        const a = (j / segment) * Math.PI * 2;
+        const v = new THREE.Vector3(Math.sin(a) * r, t * L + yOfset, Math.cos(a) * r * zBasik).applyQuaternion(q).add(alt);
+        poz.push(v.x, v.y, v.z); uv.push(j / segment, t);
+      }
+      return bas;
+    };
+    const serit = (a, b) => { for (let j = 0; j < segment; j++) idxs.push(a + j, a + j + 1, b + j + 1, a + j, b + j + 1, b + j); };
+    const halkalar = [];
+    for (let i = 0; i <= halkaSay; i++) { const t = i / halkaSay; halkalar.push(halka(t, yariCap(t))); }
+    for (let i = 0; i < halkaSay; i++) serit(halkalar[i], halkalar[i + 1]);
+    // kapaklar: altta ve üstte küçük yarıçaplı halka + merkez köşe (kalça bloğu ve boyun içine girer, kapalı kabuk)
+    const kapak = (t, yon) => {
+      const r = yariCap(t) * 0.55, h = halka(t, r, yon * 0.03);
+      const m = poz.length / 3;
+      const mv = new THREE.Vector3(0, t * L + yon * 0.055, 0).applyQuaternion(q).add(alt);
+      poz.push(mv.x, mv.y, mv.z); uv.push(0.5, t);
+      for (let j = 0; j < segment; j++) {
+        if (yon > 0) idxs.push(h + j, h + j + 1, m); else idxs.push(h + j + 1, h + j, m);
+      }
+      return h;
+    };
+    const ustKapak = kapak(1, 1), altKapak = kapak(0, -1);
+    serit(halkalar[halkaSay], ustKapak);
+    serit(altKapak, halkalar[0]);
+    const g = new THREE.BufferGeometry();
+    g.setAttribute("position", new THREE.Float32BufferAttribute(poz, 3));
+    g.setAttribute("uv", new THREE.Float32BufferAttribute(uv, 2));
+    g.setIndex(idxs);
+    g.computeVertexNormals();
+    return g;
+  };
+
+  /**
+   * Paket 23 §A.2 — omurga ağırlıkları: gövde köşesi yüksekliğine göre Hips → Spine → Spine1 → Spine2 arasında
+   * yumuşak paylaştırılır (kemik başına üçgen çadır fonksiyonu). Gövde artık devrilmiyor, bükülüyor.
+   */
+  const omurgaAgirlik = (kemikAdlari = ["Hips", "Spine", "Spine1", "Spine2"]) => {
+    const y = kemikAdlari.map((ad) => W(ad).y);
+    return (v) => {
+      const liste = [];
+      for (let i = 0; i < y.length; i++) {
+        const onc = i > 0 ? y[i - 1] : y[0] - 0.25, son = i < y.length - 1 ? y[i + 1] : y[i] + 0.25;
+        const w = v.y <= y[i]
+          ? Math.max(0, (v.y - onc) / Math.max(1e-6, y[i] - onc))
+          : Math.max(0, (son - v.y) / Math.max(1e-6, son - y[i]));
+        liste.push([kemikAdlari[i], w]);
+      }
+      return liste.sort((a, b) => b[1] - a[1]);
+    };
+  };
+
   const kapsul = (a, b, r, hucre, kemik, bolge, desenli = false) => {
     const yonV = b.clone().sub(a), L = yonV.length();
     const geo = new THREE.CapsuleGeometry(r, Math.max(0.01, L - 2 * r * 0.35), 3, 8);
@@ -342,9 +430,17 @@ function karakterKur(tur = "insan") {
   if (!robot) {
     // ---- gövde: kalça + göğüs (tıknaz) ----
     ekle(yerlestir(new RoundedBoxGeometry(0.42, 0.30, 0.30, 2, 0.10), hips.clone().add(new THREE.Vector3(0, -0.02, 0)).toArray()), "kot", "Hips", BOLGE.alt, { desenli: true });
-    kapsul(hips.clone().add(new THREE.Vector3(0, 0.08, 0)), neck.clone().add(new THREE.Vector3(0, -0.02, 0)), kaplan ? 0.232 : 0.215, "tisort", "Spine1", BOLGE.ust, true);   // 1G-A.3: kaplan göğsü daha geniş (hayvansı oran)
-    // set 2 (şık): ceket kabuğu + gömlek yakası — diğer setlerde çalışma anında çökertilir
-    kapsul(hips.clone().add(new THREE.Vector3(0, 0.1, 0)), neck.clone().add(new THREE.Vector3(0, -0.03, 0)), 0.228, "ceket", "Spine1", BOLGE.ceket, true);
+    // Paket 23 §A.1: profilli gövde (kalça → bel → göğüs → omuz altı). 1G-A.3 korunur: kaplan göğsü daha geniş.
+    const govdeAlt = hips.clone().add(new THREE.Vector3(0, 0.08, 0));
+    const govdeUst = neck.clone().add(new THREE.Vector3(0, -0.02, 0));
+    const PROFIL = kaplan
+      ? [[0, 0.215], [0.28, 0.196], [0.62, 0.238], [0.86, 0.216], [1, 0.180]]
+      : [[0, 0.200], [0.28, 0.178], [0.62, 0.215], [0.86, 0.196], [1, 0.170]];
+    const govdeAgirlik = omurgaAgirlik();
+    ekle(govdeKabugu(govdeAlt, govdeUst, PROFIL), "tisort", "Spine1", BOLGE.ust, { desenli: true, agirlik: govdeAgirlik });
+    // set 2 (şık): ceket kabuğu + gömlek yakası — diğer setlerde çalışma anında çökertilir. AYNI profil, 1,3 cm dışarıda.
+    ekle(govdeKabugu(govdeAlt.clone().add(new THREE.Vector3(0, 0.02, 0)), govdeUst.clone().add(new THREE.Vector3(0, -0.01, 0)),
+      PROFIL.map(([t, r]) => [t, r + 0.013])), "ceket", "Spine1", BOLGE.ceket, { desenli: true, agirlik: govdeAgirlik });
     ekle(yerlestir(new RoundedBoxGeometry(0.16, 0.2, 0.03, 1, 0.01), neck.clone().add(new THREE.Vector3(0, -0.2, 0.235)).toArray()), "gomlek", "Spine2", BOLGE.yaka);
     for (const s of [-1, 1]) ekle(yerlestir(new RoundedBoxGeometry(0.07, 0.22, 0.02, 1, 0.008), neck.clone().add(new THREE.Vector3(s * 0.085, -0.2, 0.245)).toArray(), E(0, 0, s * 0.35)), "ceket", "Spine2", BOLGE.ceket, { desenli: true });
     // set 3 (spor): kapüşon halkası (boyun arkası)
