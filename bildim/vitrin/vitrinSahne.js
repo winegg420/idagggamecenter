@@ -64,12 +64,28 @@ export async function vitrinSahnesiKur(kapsayici, { tohum = "" } = {}) {
   };
   dongu();
 
-  /** Canlı önizlemedeki karakteri bu görünümle yeniden kur. */
-  function goster(gorunum) {
+  /**
+   * Canlı önizlemedeki karakteri bu görünümle yeniden kur.
+   * Paket 19 §C: klip HER kuruluşta açıkça bağlanır ve poz AYNI ANDA uygulanır (mixer.update(0)). Önceden karakter
+   * kurulduktan sonraki ilk çizim (ör. portre döngüsünün ciz() çağrısı) karıştırıcı hiç ilerlememişken yapılabiliyor,
+   * gövde bağlanma pozunda (T) görünüyordu. `selam`: tür/kozmetik değişince bir kez Selam, bitince Idle'a yumuşak geçiş.
+   */
+  function goster(gorunum, { selam = false } = {}) {
     if (ana) avatarlar.sil(ana);
     ana = avatarlar.kur({ ad: null, gorunum, tohum });
     ana.rotation.y = aci;
     sahne.add(ana);
+    const k = ana.userData.karakter; if (!k) return;
+    const mixer = k.userData.mixer;
+    const selamKlip = selam && k.userData.klipler?.find((c) => c.name === "Selam");
+    if (selamKlip) {
+      ks.klip(k, "Selam", 0);
+      const a = k.userData.aksiyon; a.setLoop(THREE.LoopOnce, 1); a.clampWhenFinished = true;
+      const bitti = (e) => { if (e.action !== a) return; mixer.removeEventListener("finished", bitti); if (ana?.userData.karakter === k) ks.klip(k, "Idle", null, { gecis: 0.35 }); };
+      mixer.addEventListener("finished", bitti);
+    } else {
+      ks.klip(k, "Idle", 0);   // zaman verilince klip mixer.update(0) ile pozu hemen uygular
+    }
   }
 
   /** Aynı renderer'la tek karelik portre (data URL). */

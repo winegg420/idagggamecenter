@@ -101,10 +101,12 @@ export default function KarakterVitrini() {
     return { ...(temel ?? {}), harita: { tur: t, koz: kozNesne } };
   }, [temel]);
 
-  // canlı önizleme
+  // canlı önizleme — ilk açılışta Idle; oyuncu tür seçince / kozmetik takınca bir kez Selam (Paket 19 §C)
+  const ilkGosterim = useRef(true);
   useEffect(() => {
     if (!sahneHazir || !temel) return;
-    sahneRef.current?.goster(gorunumYap(tur, [...koz]));
+    sahneRef.current?.goster(gorunumYap(tur, [...koz]), { selam: !ilkGosterim.current });
+    ilkGosterim.current = false;
   }, [sahneHazir, temel, tur, koz, gorunumYap]);
 
   // kart portreleri: tür başına tam boy, kozmetik başına seçili türde yalnız o kozmetik — aynı renderer, sırayla
