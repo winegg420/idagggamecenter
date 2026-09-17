@@ -163,6 +163,7 @@ function DuelloMac({ id }) {
   const sonHamleRef = useRef(null);
   const bitisSesRef = useRef(false);
   const sonTikRef = useRef(null);
+  const haleSureRef = useRef({ anahtar: "", sn: 0 });   // savunma halesi: fazın toplam süresi (ek süreyle büyür)
 
   const yukle = useCallback(async () => {
     if (yukleniyorRef.current) return;
@@ -517,8 +518,27 @@ function DuelloMac({ id }) {
 
   const jokerSeti = d.faz === "altin" ? null : benSaldiran ? "saldiri" : "savunma";
 
+  // ---------------- faz halesi (2C-C) ----------------
+  // Ekran kenarında: saldırıda turuncu (sabit), savunmada mavi → süre azaldıkça kırmızı.
+  // Kırmızıya tam geçiş sayacın "kritik" eşiğiyle (≤3 sn) aynı an. Renk tek başına yetmez:
+  // yanında ikonlu metin bandı var. Hale portal + position:fixed, transform YOK (iOS).
+  const rolFazi = ["kategori", "hazirlik", "cevap"].includes(d.faz);
+  let kirmizilik = 0;
+  if (rolFazi && benSavunan && d.faz === "cevap") {
+    const hs = haleSureRef.current;
+    if (hs.anahtar !== fazAnahtari) { hs.anahtar = fazAnahtari; hs.sn = kalanSn; } else hs.sn = Math.max(hs.sn, kalanSn);
+    kirmizilik = kalanSn <= 3 ? 1 : Math.min(1, Math.max(0, (hs.sn - kalanSn) / Math.max(1, hs.sn - 3))) * 0.7;
+  }
+  const hale = rolFazi && createPortal(
+    <div key={`${d.faz}-${d.tur}-${d.saldiri_sirasi}-${benSaldiran}`}
+         className={`bd-duello-hale ${benSaldiran ? "saldiri" : "savunma"} ${kirmizilik >= 1 ? "kritik" : ""}`}
+         style={{ "--hale-kirmizi": kirmizilik.toFixed(2) }} aria-hidden="true" />,
+    document.body,
+  );
+
   return (
     <div className={`bd-duello ${sonCan ? "son-can" : ""}`}>
+      {hale}
       <div className="bd-duello-ust">
         {oyuncuKart(ben, "sol")}
         <div className="bd-duello-tur">
@@ -528,6 +548,12 @@ function DuelloMac({ id }) {
         </div>
         {oyuncuKart(rakip, "sag")}
       </div>
+      {rolFazi && (
+        <div className={`bd-duello-rol ${benSaldiran ? "saldiri" : "savunma"} ${kirmizilik >= 1 ? "kritik" : ""}`}>
+          <Ikon ad={benSaldiran ? "kilic" : "kalkan"} boyut={20} />
+          <span>{benSaldiran ? ceviri("SALDIRIYORSUN") : ceviri("SAVUNUYORSUN")}</span>
+        </div>
+      )}
       {ezeliMetin && <div className="bd-duello-ezeli">{ezeliMetin}</div>}
 
       <div className="bd-duello-sahne" key={`${d.faz}-${d.tur}-${d.saldiri_sirasi}`}>{sahne}</div>

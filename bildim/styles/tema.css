@@ -6276,6 +6276,43 @@ body.bd-ekle-acik .app { padding-bottom: calc(300px + env(safe-area-inset-bottom
   .bd-duello.son-can::before { background: rgba(22, 30, 52, .22); }
 }
 
+
+/* ---- Düello faz halesi (Aşama 2C-C) ----
+   Ekran KENARINDA iç gölge; içeriği boyamaz (şık kontrastı korunur).
+   position:fixed + transform AYNI öğede yok; portal body'ye (transform'lu ata yok).
+   Savunmada iki katman: mavi (::before) ve üstünde opaklığı --hale-kirmizi olan kırmızı (::after). */
+.bd-duello-hale {
+  position: fixed; inset: 0; z-index: 60; pointer-events: none;
+  animation: bd-hale-giris .3s ease-out both;
+}
+.bd-duello-hale::before, .bd-duello-hale::after {
+  content: ""; position: absolute; inset: 0; pointer-events: none;
+  transition: opacity .4s linear;
+}
+.bd-duello-hale.saldiri::before { box-shadow: inset 0 0 44px 10px rgba(244, 112, 31, .55); }
+.bd-duello-hale.saldiri::after { display: none; }
+.bd-duello-hale.savunma::before { box-shadow: inset 0 0 44px 10px rgba(62, 143, 208, .55); opacity: calc(1 - var(--hale-kirmizi, 0)); }
+.bd-duello-hale.savunma::after { box-shadow: inset 0 0 50px 12px rgba(239, 75, 75, .62); opacity: var(--hale-kirmizi, 0); }
+.bd-duello-hale.savunma.kritik::after { animation: bd-hale-nabiz .9s ease-in-out infinite; }
+@keyframes bd-hale-giris { from { opacity: 0; } to { opacity: 1; } }
+@keyframes bd-hale-nabiz { 0%, 100% { opacity: 1; } 50% { opacity: .55; } }
+
+/* Metin bandı: renk körü oyuncu için rol yazıyla + farklı ikonla (kılıç / kalkan) */
+.bd-duello-rol {
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  margin: 0 auto 8px; padding: 5px 14px; width: fit-content; border-radius: 999px;
+  font-family: var(--bd-f-baslik, "Baloo 2", system-ui, sans-serif); font-weight: 800; font-size: 16px; letter-spacing: .06em;
+  color: #fff; animation: bd-hale-giris .3s ease-out both;
+}
+.bd-duello-rol .ikon, .bd-duello-rol svg { flex: none; }
+.bd-duello-rol.saldiri { background: var(--bd-vurgu-2, #C4530F); box-shadow: 0 3px 0 #8A3A0A; }
+.bd-duello-rol.savunma { background: #2A6CB0; box-shadow: 0 3px 0 #1B4A7A; border-radius: 10px; }
+.bd-duello-rol.savunma.kritik { background: var(--bd-hata-2, #B62F2F); box-shadow: 0 3px 0 #7A1717; }
+
+@media (prefers-reduced-motion: reduce) {
+  .bd-duello-hale, .bd-duello-rol, .bd-duello-hale.savunma.kritik::after { animation: none; }
+  .bd-duello-hale::before, .bd-duello-hale::after { transition: none; }
+}
 /* Maç sonu sesli sohbet geri sayımı (Paket 14, 5.1) */
 .bd-ses-geri-sayim { display: flex; align-items: center; justify-content: center; gap: 8px; flex-wrap: wrap; margin: 6px 0; font-size: 13px; font-weight: 800; color: var(--bd-metin); }
 .bd-ses-yuva:empty { display: none; }

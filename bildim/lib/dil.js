@@ -224,6 +224,8 @@ const SOZLUK = {
       "See the question and use an attack joker if you like. When time is up, it goes to your opponent.",
     "{kategori} saldırısı geliyor!": "{kategori} attack incoming!",
     "Savun!": "Defend!",
+    "SALDIRIYORSUN": "ATTACKING",
+    "SAVUNUYORSUN": "DEFENDING",
     "{ad} düşünüyor…": "{ad} is thinking…",
     "Zaman Baskısı: cevap süresi 10 saniye": "Time Pressure: 10 seconds to answer",
     "Rakip bu soruda savunma jokeri kullanamaz": "Your opponent can't use defense jokers on this question",
