@@ -126,6 +126,34 @@ try {
   if (VARLIKLAR.length) fs.writeFileSync(path.join(CIKTI, secilen.length ? "ozet_secim.json" : "ozet.json"), JSON.stringify(ozet, null, 1));   // 1H: seçimli koşu tam özeti ezmez
   console.log(`[muayene] WebGL: ${ozet.gpu}`);
   console.log(`[muayene] konsol hatası: ${konsolHatalari.length}${konsolHatalari.length ? "\n  " + konsolHatalari.slice(0, 5).join("\n  ") : ""}`);
+
+  // ---- Paket 21 §G: KAPSAM BİLDİRİMİ. Bir muayene sonucu tek başına "0 aday" diye yazılamaz; hangi testin hangi
+  // eşikle çalıştığı, NELERİN muayene edildiği, NELERİN edilmediği ve muayenenin ölçemedikleri hep birlikte durur.
+  const toplamAday = Object.values(ozet.varliklar).reduce((n, v) => n + Object.values(v.aday).reduce((a, b) => a + b, 0), 0) + (ozet.portre_kadraj?.aday ?? 0);
+  const atlanan = TUM_HEPSI.filter((a) => !VARLIKLAR.includes(a));
+  ozet.kapsam = {
+    testler: {
+      havada: "bağsız ada (gövdeye/zemine değmeyen parça)", simetri: "x → −x aynası yüzeyde var mı", icice: "kapalı ada başka adanın içinde mi",
+      kozmetik: "bağlama pozunda kozmetik ↔ gövde üçgen kesişimi", zemin: "zemin teması",
+      oturma: `yaslanma ≤ ${ESIK.oturma_yaslanma_m * 100} cm ve temas oranı ≥ %${ESIK.oturma_temas_orani * 100} (arama ${ESIK.oturma_arama_m * 100} cm, temas ${ESIK.oturma_temas_m * 1000} mm) — yalnız takılı poz varlıklarında, üç saç varyantında`,
+      acik_kenar: `delik döngüsünün çevrelediği alan > ${(ESIK.acik_kenar_alan_m2 * 1e4).toFixed(0)} cm² — yalnız kozmetiklerde`,
+      kalinlik: `en kısa uzanım < ${ESIK.kalinlik_asgari_m * 100} cm VE izdüşüm alanı > ${ESIK.kalinlik_alan_m2} m² — yalnız kozmetiklerde`,
+      portre_kadraj: `kart portresinde görünen alan ≥ %${ESIK.portre_asgari_oran * 100} ve taşma ≤ %${ESIK.portre_tasma_orani * 100}`,
+    },
+    muayene_edilen: VARLIKLAR,
+    muayene_edilmeyen: atlanan.length ? atlanan : "yok (tam koşu)",
+    hic_kapsanmayan: "harita yerleşimi (Boğaz, cepheler, yapılar: metro/AKM/cami/anıt/lise) ayrı komutla denetlenir; oyun içi ışık, gölge ve animasyon hiç ölçülmez",
+    olculemeyen: "ESTETİK, ORAN, STİL ve RENK uyumu ölçülmez. Muayene 'çirkin mi' sorusunu yanıtlamaz; yalnız geometrinin ölçülebilir kusurlarını (boşluk, delik, kâğıt incelik, kadraj, kesişim, simetri) bulur. 0 aday = 'bu testlerden geçti', 'güzel' demek değildir.",
+  };
+  console.log("\n[muayene] KAPSAM (§G — rapora aynen geçer):");
+  console.log(`  çalışan testler: ${Object.keys(ozet.kapsam.testler).join(", ")}`);
+  for (const [t, e] of Object.entries(ozet.kapsam.testler)) console.log(`    · ${t}: ${e}`);
+  console.log(`  muayene edilen: ${VARLIKLAR.length} varlık${ozet.portre_kadraj ? ` + ${ozet.portre_kadraj.olculen} kart portresi` : ""}`);
+  console.log(`  muayene EDİLMEYEN: ${atlanan.length ? atlanan.join(", ") : "yok (tam koşu)"}`);
+  console.log(`  hiç kapsanmayan: ${ozet.kapsam.hic_kapsanmayan}`);
+  console.log(`  ÖLÇÜLEMEYEN: ${ozet.kapsam.olculemeyen}`);
+  console.log(`  toplam aday: ${toplamAday}`);
+  if (VARLIKLAR.length) fs.writeFileSync(path.join(CIKTI, secilen.length ? "ozet_secim.json" : "ozet.json"), JSON.stringify(ozet, null, 1));
 } catch (e) {
   console.error("[muayene] başarısız:", e);
   process.exitCode = 1;

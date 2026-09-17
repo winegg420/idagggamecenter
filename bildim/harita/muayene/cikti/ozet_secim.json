@@ -1,8 +1,8 @@
 {
- "tarih": "2026-09-17T18:51:20.074Z",
+ "tarih": "2026-09-17T18:58:19.672Z",
  "varliklar": {
-  "karakter_insan": {
-   "ucgen": 6656,
+  "prop_saksi": {
+   "ucgen": 256,
    "malzeme": 1,
    "gorunumler": [
     "ön (+Z)",
@@ -11,15 +11,10 @@
     "sağ (+X)",
     "üst (+Y)",
     "alt (−Y)",
-    "kafa 3/4 (kozmetiksiz)",
-    "sağ el (parmaklar)",
-    "sol ayak",
-    "ifade normal",
-    "ifade gülümseme",
-    "ifade şaşkın",
-    "kanat sırt bağlantısı (kanat kozmetiği)",
-    "premium gözlük (kozmetikli)",
-    "beauty (perspektif, B+, gölgeli, kozmetikli, Idle)"
+    "çalı + toplar",
+    "bilezik",
+    "taban",
+    "beauty (perspektif, B+, gölgeli)"
    ],
    "dosyalar": [
     "01-ön-z.png",
@@ -28,112 +23,72 @@
     "04-sağ-x.png",
     "05-üst-y.png",
     "06-alt-y.png",
-    "07-kafa-3-4-kozmetiksiz.png",
-    "08-sağ-el-parmaklar.png",
-    "09-sol-ayak.png",
-    "10-ifade-normal.png",
-    "11-ifade-gülümseme.png",
-    "12-ifade-şaşkın.png",
-    "13-kanat-sırt-bağlantısı-kanat-kozmetiği.png",
-    "14-premium-gözlük-kozmetikli.png",
-    "15-beauty-perspektif-b-gölgeli-kozmetikli-idle.png"
+    "07-çalı-toplar.png",
+    "08-bilezik.png",
+    "09-taban.png",
+    "10-beauty-perspektif-b-gölgeli.png"
    ],
    "aday": {},
    "susturulan": {
-    "icice": 172,
-    "gomulu": 26,
-    "kozmetik": 28
-   }
-  },
-  "karakter_kaplan": {
-   "ucgen": 6232,
-   "malzeme": 1,
-   "gorunumler": [
-    "ön (+Z)",
-    "arka (−Z)",
-    "sol (−X)",
-    "sağ (+X)",
-    "üst (+Y)",
-    "alt (−Y)",
-    "kafa 3/4 (kozmetiksiz)",
-    "sağ el (parmaklar)",
-    "sol ayak",
-    "ifade normal",
-    "ifade gülümseme",
-    "ifade şaşkın",
-    "kanat sırt bağlantısı (kanat kozmetiği)",
-    "beauty (perspektif, B+, gölgeli, kozmetikli, Idle)"
-   ],
-   "dosyalar": [
-    "01-ön-z.png",
-    "02-arka-z.png",
-    "03-sol-x.png",
-    "04-sağ-x.png",
-    "05-üst-y.png",
-    "06-alt-y.png",
-    "07-kafa-3-4-kozmetiksiz.png",
-    "08-sağ-el-parmaklar.png",
-    "09-sol-ayak.png",
-    "10-ifade-normal.png",
-    "11-ifade-gülümseme.png",
-    "12-ifade-şaşkın.png",
-    "13-kanat-sırt-bağlantısı-kanat-kozmetiği.png",
-    "14-beauty-perspektif-b-gölgeli-kozmetikli-idle.png"
-   ],
-   "aday": {},
-   "susturulan": {
-    "icice": 137,
-    "gomulu": 21,
-    "kozmetik": 27
-   }
-  },
-  "karakter_robot": {
-   "ucgen": 6104,
-   "malzeme": 1,
-   "gorunumler": [
-    "ön (+Z)",
-    "arka (−Z)",
-    "sol (−X)",
-    "sağ (+X)",
-    "üst (+Y)",
-    "alt (−Y)",
-    "kafa 3/4 (kozmetiksiz)",
-    "sağ el (parmaklar)",
-    "sol ayak",
-    "omuz eklemi (ayrılık)",
-    "ifade normal",
-    "ifade gülümseme",
-    "ifade şaşkın",
-    "kanat sırt bağlantısı (kanat kozmetiği)",
-    "beauty (perspektif, B+, gölgeli, kozmetikli, Idle)"
-   ],
-   "dosyalar": [
-    "01-ön-z.png",
-    "02-arka-z.png",
-    "03-sol-x.png",
-    "04-sağ-x.png",
-    "05-üst-y.png",
-    "06-alt-y.png",
-    "07-kafa-3-4-kozmetiksiz.png",
-    "08-sağ-el-parmaklar.png",
-    "09-sol-ayak.png",
-    "10-omuz-eklemi-ayrılık.png",
-    "11-ifade-normal.png",
-    "12-ifade-gülümseme.png",
-    "13-ifade-şaşkın.png",
-    "14-kanat-sırt-bağlantısı-kanat-kozmetiği.png",
-    "15-beauty-perspektif-b-gölgeli-kozmetikli-idle.png"
-   ],
-   "aday": {
-    "kozmetik": 1
-   },
-   "susturulan": {
-    "icice": 27,
-    "gomulu": 2,
-    "kozmetik": 15
+    "icice": 7
    }
   }
  },
  "konsolHatalari": [],
- "gpu": "ANGLE (AMD, AMD Radeon(TM) Graphics (0x00001681) Direct3D11 vs_5_0 ps_5_0, D3D11)"
+ "gpu": "ANGLE (AMD, AMD Radeon(TM) Graphics (0x00001681) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+ "kapsam": {
+  "testler": {
+   "havada": "bağsız ada (gövdeye/zemine değmeyen parça)",
+   "simetri": "x → −x aynası yüzeyde var mı",
+   "icice": "kapalı ada başka adanın içinde mi",
+   "kozmetik": "bağlama pozunda kozmetik ↔ gövde üçgen kesişimi",
+   "zemin": "zemin teması",
+   "oturma": "yaslanma ≤ 0.8 cm ve temas oranı ≥ %15 (arama 2 cm, temas 6 mm) — yalnız takılı poz varlıklarında, üç saç varyantında",
+   "acik_kenar": "delik döngüsünün çevrelediği alan > 4 cm² — yalnız kozmetiklerde",
+   "kalinlik": "en kısa uzanım < 2.5 cm VE izdüşüm alanı > 0.02 m² — yalnız kozmetiklerde",
+   "portre_kadraj": "kart portresinde görünen alan ≥ %4 ve taşma ≤ %2"
+  },
+  "muayene_edilen": [
+   "prop_saksi"
+  ],
+  "muayene_edilmeyen": [
+   "karakter_insan",
+   "karakter_kaplan",
+   "karakter_robot",
+   "bina_dukkan",
+   "zemin_deneme",
+   "bordur",
+   "prop_agac_govde",
+   "prop_agac_tac",
+   "prop_bank",
+   "prop_lamba",
+   "prop_kedi",
+   "kozmetik_tac",
+   "kozmetik_pelerin",
+   "takili_insan_sapka",
+   "takili_insan_gozluk",
+   "takili_insan_gozlukPremium",
+   "takili_insan_atki",
+   "takili_insan_kanat",
+   "takili_insan_tac",
+   "takili_insan_pelerin",
+   "takili_kaplan_sapka",
+   "takili_kaplan_gozluk",
+   "takili_kaplan_gozlukPremium",
+   "takili_kaplan_atki",
+   "takili_kaplan_kanat",
+   "takili_kaplan_tac",
+   "takili_kaplan_pelerin",
+   "takili_kaplan_kuyruk",
+   "takili_robot_sapka",
+   "takili_robot_gozluk",
+   "takili_robot_gozlukPremium",
+   "takili_robot_atki",
+   "takili_robot_kanat",
+   "takili_robot_tac",
+   "takili_robot_pelerin"
+  ],
+  "hic_kapsanmayan": "harita yerleşimi (Boğaz, cepheler, yapılar: metro/AKM/cami/anıt/lise) ayrı komutla denetlenir; oyun içi ışık, gölge ve animasyon hiç ölçülmez",
+  "olculemeyen": "ESTETİK, ORAN, STİL ve RENK uyumu ölçülmez. Muayene 'çirkin mi' sorusunu yanıtlamaz; yalnız geometrinin ölçülebilir kusurlarını (boşluk, delik, kâğıt incelik, kadraj, kesişim, simetri) bulur. 0 aday = 'bu testlerden geçti', 'güzel' demek değildir."
+ }
 }

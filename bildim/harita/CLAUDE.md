@@ -38,6 +38,28 @@ three.js indirmez — `three.module-*.js` ayrı chunk'tır (driftgp ile paylaş�
 - **Bölge kuralı (3A-2):** her parsel/nokta/alan `bolge` taşır (`bolgeler[*].id`); eksik/bilinmeyen bölge konsola hata. Bir bölgeyi taşımak = `bolgeler[*].kaydir: [dx, dz]` — zemin, kaldırım, bina, çarpışma, sınır, prop birlikte kayar. Tek tek konum düzeltme. Sınır parçaları bölgeden türetilir (ikinci kopya yazma).
 - **Cumhuriyet Anıtı heykelleri SİLUET kalır:** duruş, pelerin hattı, kütle oranı var; yüz detayı (göz, burun, ağız, saç) **hiçbir LOD'da çizilmez**. Ürün sahibi kararı — optimizasyon ya da "daha güzel olur" gerekçesiyle bile değiştirilmez.
 - **Yapı geometrisi değişince:** `npm run cephe-ao` (AO + `public/meydan/deneme/yapi_*.glb`) → `npm run muayene -- yapi_akm yapi_cami yapi_anit yapi_lise`; hedef 0 aday, düzeltme geometride (üstveriyle susturma yok).
+- **Kozmetik/karakter geometrisi değişince:** `node bildim/harita/varlik/uret.mjs` → `npm run muayene`; kozmetiklerde hedef 0 aday. Düzeltme **geometride** yapılır — `acik_kenar_izinli` / `yassi_olabilir` / `kozmetik_izinli` beyanları aday susturmak için kullanılmaz, yalnız gerçekten kasıtlı ve gerekçesi yazılı durumlar içindir.
+
+## MUAYENE RAPORLAMA KURALI (Paket 21 §G)
+
+Bir muayene sonucu **hiçbir yerde tek başına "0 aday" diye yazılamaz.** Her rapor
+(sohbet özeti, PAKET*_RAPOR.md, PROGRESS.md, commit mesajı) şu dördünü birlikte taşır:
+
+1. **Hangi testler, hangi eşiklerle çalıştı.** Eşikler `muayene/ustveri/_esikler.json`'dadır
+   ve sayı olarak yazılır ("oturma: yaslanma ≤ 0,8 cm ve temas ≥ %15, arama 2 cm").
+2. **Neler muayene edildi ve neler EDİLMEDİ.** Seçimli koşuda atlanan varlıklar adıyla sayılır.
+   "Tam koşu" demek yetmez; kaç varlık + kaç kart portresi ölçüldüğü yazılır.
+3. **Hiç kapsanmayanlar.** Harita yerleşimi (Boğaz, cepheler, yapılar) ayrı komutla denetlenir;
+   oyun içi ışık, gölge ve animasyon muayenede hiç ölçülmez.
+4. **Muayenenin ÖLÇEMEDİKLERİ — her seferinde tekrar edilir:** estetik, oran, stil, renk uyumu.
+   Muayene "çirkin mi" sorusunu yanıtlamaz; yalnız ölçülebilir geometri kusurlarını (boşluk,
+   delik, kâğıt incelik, kadraj, kesişim, simetri) bulur. **0 aday = "bu testlerden geçti",
+   "güzel oldu" DEĞİL.** Görsel yargı sahibinindir; muayene onun yerine geçmez.
+
+`npm run muayene` bu bloğu koşunun sonunda kendisi basar ve `cikti/ozet.json › kapsam`
+alanına yazar — rapora oradan aynen geçirilir. Kural neden var: Paket 21'de sahibi vitrinde
+boynuna bağlı pelerin, havada taç, altı delik şapka görürken muayene "0 aday · 0 susturulan"
+diyordu; sebep testlerin azlığıydı ama rapor bunu göstermiyordu, "temiz" gibi okunuyordu.
 - **Veritabanı değişikliği yok.** Konum kalıcı tutulmaz; presence + broadcast.
 - Başka oyun modülünden import yok; yalnız `src/` kabuğu + `bildim/lib`.
 - Bina listesi/renkleri `dunya.js › BINALAR` — mod renkleriyle aynı, değiştirme.
