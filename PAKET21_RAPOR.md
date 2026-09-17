@@ -2,7 +2,7 @@
 
 | Bölüm | Durum | Commit |
 |---|---|---|
-| A — muayene kapsamı: kodla çizilen parçalar | ✅ taç + pelerin muayenede | A |
+| A — muayene kapsamı: kodla çizilen parçalar | ✅ taç + pelerin muayenede | `6dc600b` |
 | B — yeni test: yuva oturması | (sürüyor) | |
 | C — yeni test: açık kenar / delik | (sürüyor) | |
 | D — yeni test: kalınlık | (sürüyor) | |
