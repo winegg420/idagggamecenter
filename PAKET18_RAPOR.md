@@ -4,7 +4,7 @@
 |---|---|---|
 | A — lig kapanışı (4 düzeltme) | ✅ canlıda · migration 217 uygulandı | A commit'i |
 | B — kozmetik çizim çağrısı kaldıracı | ✅ canlıda · 167 → 147 çağrı, piksel farkı 0; ms kapısı geçilmedi | B commit'i |
-| C — yeni oyuncuya rastgele kozmetik | (sürüyor) | |
+| C — yeni oyuncuya rastgele kozmetik | ✅ canlıda · gerçek oyuncu tohumdan kozmetik almıyor, botlar alıyor | C commit'i |
 | D — atkı + kanat satışta | (sürüyor) | |
 | E — iOS Safari (WebKit) | (sürüyor) | |
 
@@ -82,7 +82,7 @@ Test betiği `.tmp/p18/test217.mjs`. Migration kalıcı olarak uygulandı; test 
 `kozmetik.js` ve `karakter.js` **değişmedi**. Klon mimarisi yerinde kaldı; yalnız çizim yolu değişti:
 - `kozmetikTak`'ın karaktere taktığı her klon (`kozmetik_*`, kaplan kuyruğu dahil) **görünmez** yapılır ama yerinde kalır. Böylece yuvaya bağlılık, **tür–kozmetik sözleşmesi** (`bicimlendir` ölçek/öteleme, `it` öteleme — kaplan burnu, robot anteni; `gizle` zaten gövdede çalışıyor), **kanat çırpma** ve **kuyruk sallama** animasyonu (`karakter.js › kare` klonun rotasyon/ölçeğini yazıyor) aynen işler.
 - Çizimi **kaynak geometri başına tek paylaşımlı InstancedMesh** yapar. Örnek matrisi = klonun dünya matrisi → yer, açı ve ölçek birebir aynı.
-- **Havuz bölmesi = kaynak geometri** (ölçüldü, en az çağrı bu):
+- **Havuz bölmesi = kaynak geometri** (havuz sayısı = sahnede kullanılan farklı kozmetik geometrisi sayısı; bundan az çağrı veren bölme yok):
   - robotun kendi şapka/gözlük varyantı ayrı havuz;
   - varyantı olmayan tür insanınkini paylaşır (aynı havuz);
   - tür başına ayrı bölmek çağrıyı artırırdı.
@@ -124,3 +124,31 @@ Test betiği `.tmp/p18/test217.mjs`. Migration kalıcı olarak uygulandı; test 
 | klon ↔ klon (gürültü tabanı) | 0 | 0 % | 0 |
 
 Görseller: `gorsel/paket18/b-1-klon-yolu.jpg` ↔ `b-2-ornek-yolu.jpg`. Betikler `.tmp/p18/esitlik.mjs`, `.tmp/p18/olcB.mjs`, ham veri `.tmp/p18/olcumB.json`.
+
+
+---
+
+## C — Yeni oyuncu sahip olmadığı kozmetiği göstermiyor
+
+### Yapılan (`meydanAvatar.js`)
+`tohumdanGorunum(tohum, { tur, kozmetik })` — `kozmetik: false` rastgele kozmetik vermez, yalnız gövde, ten, saç ve kıyafet tonu verir.
+- **Gerçek oyuncu yolu** (`profildenGorunum`, kaydı yok): `kozmetik: false`.
+- **Bot yolu** (`"bot|" + tohum`): değişmedi, rastgele kozmetik kalır.
+- **Vitrin:** aynı `profildenGorunum`'u kullandığı için kaydı olmayan oyuncuda başlangıçta hiçbir kozmetik takılı gelmiyor; vitrin ve meydan ilk anda da aynı.
+
+### Doğrulama (meydan sınama sayfası, gerçek harita kodu)
+
+| Durum | Sonuç |
+|---|---|
+| Aynı tohum ("Yeni Oyuncu 7"), eski `tohumdanGorunum` | **atkı** takardı |
+| Aynı tohum, gerçek oyuncu yolu (yeni) | **kozmetik yok** |
+| Kaydı olmayan oyuncu meydanda (başka oyuncunun gözünden) | tür insan, **kozmetik: yok** |
+| Aynı oyuncu vitrinde kaydetti (`gorunum.harita` → şapka + güneş gözlüğü), görünüm meydana yayınlandı | kozmetik: **şapka, güneş gözlüğü** |
+| Botlar | 2 bot, rastgele kozmetik 2 (korundu) |
+| Kaydı olmayan hesabın kendisi meydana girmeye çalışıyor | "Önce karakterini oluştur" + "Karakterimi seç" kapısı (Paket 17 D) |
+
+**Not:** kaydı olmayan gerçek oyuncunun kendisi meydana zaten giremiyor (kapı). Tohum yolu pratikte meydandaki başka oyuncunun görünümü (presence'ta kaydı boş gelen) ve ölçüm düzeneği için geçerli.
+
+**Ölçüm düzeneğine etkisi:** `window.oyuncular()`'ın 24 oyuncusu artık kozmetiksiz. B'deki "önce/sonra" kurulumu bu değişiklikten önce ölçüldü. Bundan sonraki ölçümlerde bu sahnenin tabanı **142 + taç/pelerin/kuyruk havuzları** olur, 167/147 ile doğrudan karşılaştırılamaz.
+
+Görseller: `gorsel/paket18/c-0-kapi.jpg` (kaydı yok, kapı) · `c-1-kayitsiz-kozmetiksiz.jpg` · `c-2-vitrinde-kaydetti.jpg`.

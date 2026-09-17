@@ -79,7 +79,8 @@ export function vitrinKozmetikleri(ham) {
 function eskiKayittan(gr, h, yedekTohum) {
   const a = gr.avatar3d && typeof gr.avatar3d === "object" ? gr.avatar3d : null;
   const tur = TURLER.includes(h?.tur) ? h.tur : "insan";
-  if (!a) return tohumdanGorunum(gr.karakter ?? yedekTohum, { tur });
+  // Paket 18 §C: kaydı olmayan GERÇEK oyuncu tohumdan yalnız gövde/ten/kıyafet tonu alır — sahip olmadığı kozmetik takılmaz.
+  if (!a) return tohumdanGorunum(gr.karakter ?? yedekTohum, { tur, kozmetik: false });
   const kiyafet = String(a.kiyafet ?? (a.ceket === false ? "tisort" : "ceket"));
   const set = SET_SIK.includes(kiyafet) ? 2 : SET_SPOR.includes(kiyafet) ? 3 : 1;
   const ustHex = kiyafet === "ceket" ? a.ceketRenk : YENI_USTLER[kiyafet]?.renk ?? a.ceketRenk;
@@ -100,15 +101,18 @@ function eskiKayittan(gr, h, yedekTohum) {
   return { tur, g, koz };
 }
 
-/** Tohumdan kararlı görünüm (görünüm kaydı olmayan oyuncu · bot). `tur` verilmezse tohumdan seçilir. */
-export function tohumdanGorunum(tohum, { tur = null } = {}) {
+/**
+ * Tohumdan kararlı görünüm (görünüm kaydı olmayan oyuncu · bot). `tur` verilmezse tohumdan seçilir.
+ * `kozmetik: false` → rastgele kozmetik yok (gerçek oyuncu; Paket 18 §C). Botlar ("bot|" tohumu) varsayılanla çağırır, meydan boş görünmesin.
+ */
+export function tohumdanGorunum(tohum, { tur = null, kozmetik = true } = {}) {
   const k = karma(tohum), s = (n, kaydir) => (k >>> kaydir) % n;
   const g = {
     set: 1 + s(3, 1), sac: 1 + s(3, 3), ten: TENLER[s(4, 5)], sacRenk: SACLAR[s(4, 7)], ust: USTLER[s(USTLER.length, 9)],
     alt: ALTLAR[s(ALTLAR.length, 12)], ayak: AYAKLAR[s(AYAKLAR.length, 15)], ceket: ALTLAR[s(ALTLAR.length, 17)],
     kurk: new THREE.Color(0xffffff), metal: s(2, 20) ? new THREE.Color(0xdfe3e8) : new THREE.Color(0xf3c98b), boya: USTLER[s(USTLER.length, 22)],
   };
-  const koz = { sapka: s(5, 25) < 2, gozluk: s(5, 27) === 0, gozlukPremium: s(5, 27) === 1, atki: s(4, 29) === 0 };
+  const koz = kozmetik ? { sapka: s(5, 25) < 2, gozluk: s(5, 27) === 0, gozlukPremium: s(5, 27) === 1, atki: s(4, 29) === 0 } : {};
   return { tur: tur ?? TURLER[s(3, 0)], g, koz };
 }
 
