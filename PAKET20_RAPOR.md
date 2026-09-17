@@ -7,7 +7,7 @@
 | II — soru kalite mekanizması | ✅ canlıda · migration 222–224 uygulandı; 2.976 şüpheli (30 rekabetçi havuz dışı), akış uçtan uca doğrulandı; sol anahtarı sorusunun anahtarı **doğru** çıktı | `38998d3` |
 | III — misafir hesabı koruma | ✅ canlıda · Misafir etiketi + Ayarlar kartı + ilk galibiyet önerisi; bağlama aynı user_id, veri kaybı 0 (ölçüldü) | `0e96748` |
 | IV — Düello deneyimi | ✅ canlıda · tanıtım, doğru cevap metinle, ilk maç +5 sn (migration 225), joker ipuçları, maç özeti | `15498ce` |
-| V — Hatalarım dürüstlüğü | ✅ canlıda · banka/yeni dağılımı açıkça yazılıyor, bankan kadar tur, pratik turu adı | V |
+| V — Hatalarım dürüstlüğü | ✅ canlıda · banka/yeni dağılımı açıkça yazılıyor, bankan kadar tur, pratik turu adı | `86a7d68` |
 | VI — konsol uyarıları | (sürüyor) | |
 | VII — renk ve kontrast | (sürüyor) | |
 
