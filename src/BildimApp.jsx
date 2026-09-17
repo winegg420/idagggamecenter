@@ -37,6 +37,7 @@ const CalismaPage = lazy(() => import("../bildim/pages/CalismaPage.jsx"));
 const HaritaSayfasi = lazy(() => import("../bildim/harita/HaritaSayfasi.jsx"));
 // Harita yenileme Aşama 1 test sahnesi (STIL.md) — oyunu etkilemez, ayrı rota
 const HaritaDeneme = lazy(() => import("../bildim/harita/deneme/DenemeSayfasi.jsx"));
+const HazirInsanPrototipi = lazy(() => import("../bildim/harita/aday/HazirInsanPrototipi.jsx"));
 // Görünüm = 3B GARDIROP (bildim/avatar3d/gardrop.html). Ayrı giriş noktası
 // olduğu için rota bileşen değil, yönlendirmedir (bkz. GardropaGit.jsx).
 // 2B KARAKTER SİSTEMİ TAMAMEN KALKTI: sayfası da rotadan çıktı, dosyaları
@@ -72,6 +73,7 @@ export default function BildimApp() {
   }, [session, loading]);
 
   const bagimsizModul =
+    pathname.startsWith("/insan-prototip") ||
     pathname.startsWith("/gizlilik") || pathname.startsWith("/kosullar");
 
   if (!supabaseHazir && !bagimsizModul) {
@@ -104,6 +106,7 @@ export default function BildimApp() {
       <Routes>
         <Route path="/gizlilik" element={<GizlilikPage />} />
         <Route path="/kosullar" element={<KosullarPage />} />
+        <Route path="/insan-prototip" element={<HazirInsanPrototipi />} />
 
         <Route path="/" element={<Layout />}>
           <Route index element={<Home />} />

@@ -57,6 +57,7 @@ const CalismaPage = lazy(() => import("../bildim/pages/CalismaPage.jsx"));
 const HaritaSayfasi = lazy(() => import("../bildim/harita/HaritaSayfasi.jsx"));
 // Harita yenileme Aşama 1 test sahnesi (STIL.md) — oyunu etkilemez, ayrı rota
 const HaritaDeneme = lazy(() => import("../bildim/harita/deneme/DenemeSayfasi.jsx"));
+const HazirInsanPrototipi = lazy(() => import("../bildim/harita/aday/HazirInsanPrototipi.jsx"));
 // GÖRÜNÜM ARTIK 3B: /gorunum, bildim/avatar3d/ altındaki gardıroba gider
 // (ayrı giriş noktası olan bir sayfa, bkz. GardropaGit.jsx).
 // 2B KARAKTER SİSTEMİ TAMAMEN KALKTI: sayfası da rotadan çıktı, dosyaları
@@ -90,6 +91,7 @@ export default function App() {
   const bagimsizModul =
     pathname.startsWith("/gladius") ||
     pathname.startsWith("/run") ||
+    pathname.startsWith("/bildim/insan-prototip") ||
     pathname.startsWith("/gizlilik") ||
     pathname.startsWith("/kosullar");
 
@@ -172,6 +174,7 @@ export default function App() {
       <Route path="/gizlilik" element={<GizlilikPage />} />
       {/* Kullanım koşulları (statik, giriş gerektirmez) — Play Store ve reklam ağları için. */}
       <Route path="/kosullar" element={<KosullarPage />} />
+      <Route path="/bildim/insan-prototip" element={<HazirInsanPrototipi />} />
 
       {/* idaGG Game Center: sitenin ana giriş sayfası (oyun portalı). */}
       <Route path="/" element={<GameCenter />} />

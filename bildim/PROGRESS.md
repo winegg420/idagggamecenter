@@ -2667,3 +2667,20 @@ Yeni testler: `_test/ziplama-test.mjs`, `_test/ziplama-ag-test.mjs`,
   15 kozmetik yuvasıyla doğrulamak.
 - Ayrıntılı karar ve prototip kabul ölçütleri:
   `harita/HAZIR_INSAN_MODEL_ARASTIRMASI.md`.
+
+## 18 Eylül 2026 — Quaternius insan prototipi
+
+- Seçilen Quaternius Standard erkek gövdesi ayrı ve girişsiz
+  `/bildim/insan-prototip` karşılaştırma rotasına bağlandı; mevcut meydan insanı
+  ve oyuncu kayıtları değiştirilmedi.
+- Ana gövde 12.566 → 5.900; uzun ve topuz saçlar 1.300'er üçgene
+  sadeleştirildi. Yüz, göz/kaş ve seçili saçla bütün seçenekler en fazla 8.953
+  üçgen; dokular 2048 → 1024 px.
+- Universal Animation Library'den yalnız Idle/Walk/Jog/Dance çıkarıldı. Kaynak
+  konum ve ölçek kanalları hedef gövdeyi uzattığı için yalnız dönüş kanalları
+  kullanıldı; yürüyüş, koşu ve dans oran bozulmadan çalışıyor.
+- Dört ten, üç saç, yüzeye bağlı ceket, küçültülmüş gözlük ve omurgaya bağlı
+  kıvrımlı/tokalı pelerin prototip kontrollerine eklendi.
+- Tam 7,62 MB hareket paketi 645 KB'a indirildi; tüm prototip varlıkları 9,09
+  MiB. Kaynak CC0 lisans dosyaları varlıklarla birlikte tutuluyor.
+- Ayrıntılı rapor: `harita/aday/PROTOTIP_RAPORU.md`.
