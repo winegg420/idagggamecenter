@@ -4,7 +4,7 @@
 |---|---|---|
 | A — muayene kapsamı: kodla çizilen parçalar | ✅ taç + pelerin muayenede | `6dc600b` |
 | B — yeni test: yuva oturması | ✅ şapka · taç · pelerin üç türde de yakalanıyor | `4aceff3` |
-| C — yeni test: açık kenar / delik | (sürüyor) | |
+| C — yeni test: açık kenar / delik | ✅ şapkanın altı, taç, pelerin, vizör, kuyruk ucu | C |
 | D — yeni test: kalınlık | (sürüyor) | |
 | E — takılı poz + portre kadrajı | (sürüyor) | |
 | F — çıkan adayları düzelt | (sürüyor) | |
@@ -72,3 +72,23 @@
 | robot | **pelerin** | 4 | 0 | %0 | 4,0 cm | 0 | **ADAY** |
 
 **Paketin şartı karşılandı:** test bugünkü **şapka, taç ve pelerini üç türde de yakalıyor** — eşik değiştirmeye gerek kalmadı (yalnız yukarıdaki iki tanım düzeltmesi yapıldı, ikisi de ölçümle gerekçelendirildi).
+
+---
+
+## C — Yeni test: `acik_kenar` (delik)
+
+**Ne ölçüyor:** manifold denetimi — her kenar tam 2 üçgene ait olmalı. 1 üçgene ait kenarlar açık kenardır; birbirine bağlı olanlar bir **delik döngüsü** oluşturur. Döngü noktaları en küçük varyanslı düzleme izdüşürülüp (PCA) açıya göre sıralanır, çevrelediği alan shoelace ile hesaplanır.
+**Aday:** alan > `acik_kenar_alan_m2` = **0,0004 m²** (2 × 2 cm). `acik_kenar_izinli` beyanı (gerekçeli) susturur.
+
+**ÖNCE — bulunan delikler:**
+
+| parça | delik | alan | ne demek |
+|---|---|---|---|
+| şapka (3 tür) | 1 döngü | **0,10 m²** (kubbe ağzı) | şapkanın **altı açık** — içi görünüyor (sahibin şikâyeti) |
+| taç (3 tür + kod GLB'si) | 4 döngü | 0,069 · 0,080 · 0,091 · 0,104 m² | halka iki ayrı kabuk (dış + iç), üstü ve altı hiç kapanmamış |
+| pelerin (3 tür + kod GLB'si) | 2 döngü | **0,54 m²** × 2 | iki ayrı levha — hacim yok, kenarları açık |
+| güneş gözlüğü camı | 2 döngü | 0,012 m² × 2 | cam düz disk (tek yüz) |
+| robot vizörü | 3 döngü | 0,019 · 0,0006 · 0,0006 m² | bant açık silindir; iç yüzü görünür |
+| kaplan kuyruğu | 2 döngü | 0,0050 · 0,0048 m² | tüp uçları kapatılmamış |
+
+Kozmetik dışındaki varlıklarda (karakter gövdesi, bina, proplar) bu test **çalıştırılmadı** — kapsam §G'de açıkça yazılı.
