@@ -4,8 +4,8 @@
 |---|---|---|
 | A — muayene kapsamı: kodla çizilen parçalar | ✅ taç + pelerin muayenede | `6dc600b` |
 | B — yeni test: yuva oturması | ✅ şapka · taç · pelerin üç türde de yakalanıyor | `4aceff3` |
-| C — yeni test: açık kenar / delik | ✅ şapkanın altı, taç, pelerin, vizör, kuyruk ucu | C |
-| D — yeni test: kalınlık | (sürüyor) | |
+| C — yeni test: açık kenar / delik | ✅ şapkanın altı, taç, pelerin, vizör, kuyruk ucu | `fb0ca18` |
+| D — yeni test: kalınlık | ✅ 14 kanat tüyü (1,4 cm) yakalandı; eşik iki kez ölçülerek düzeltildi | D |
 | E — takılı poz + portre kadrajı | (sürüyor) | |
 | F — çıkan adayları düzelt | (sürüyor) | |
 | G — raporlama kuralı | (sürüyor) | |
@@ -92,3 +92,17 @@
 | kaplan kuyruğu | 2 döngü | 0,0050 · 0,0048 m² | tüp uçları kapatılmamış |
 
 Kozmetik dışındaki varlıklarda (karakter gövdesi, bina, proplar) bu test **çalıştırılmadı** — kapsam §G'de açıkça yazılı.
+
+---
+
+## D — Yeni test: `kalinlik` (kâğıt gibi duran parçalar)
+
+**Ne ölçüyor:** ada başına temel eksenler (PCA kovaryans + Jacobi): en kısa uzanım, en uzun uzanım, yassılık oranı ve **izdüşüm alanı** (üçgenler en kısa eksene dik düzleme izdüşürülür, iki yüz sayılmaz).
+**Aday:** en kısa uzanım < `kalinlik_asgari_m` = **2,5 cm** **ve** izdüşüm alanı > `kalinlik_alan_m2` = **0,02 m²**.
+
+**Paketteki öneri ölçülerek değiştirildi (iki kez):**
+1. **Oran (0,02) kuralı kanadı kaçırıyordu:** kanat tüyü 1,4 cm kalınlığında ama 28–46 cm uzun → oran 0,03–0,05, eşiğin üstünde. Ölçüt **mutlak kalınlığa** çevrildi.
+2. **Yüzey alanı yanlış alarm veriyordu:** gözlük çerçevesi (2,2 cm kalınlığında ince halka) yüzey alanı 0,0246 m² ile eşiği geçiyor, "kâğıt" sanılıyordu. Ölçüt **izdüşüm alanına** çevrildi: halka 0,0082 m² (eşik altı, temiz), kanat tüyü 0,031–0,051 m² (eşik üstü, aday).
+
+**ÖNCE — sonuç:** tür başına **14 tüy adası**: en kısa uzanım **1,4 cm**, en uzun 28–46 cm, izdüşüm alanı 0,031–0,051 m² → "hacimsiz levha". Üç türde de aynı (kanat insan modelinden paylaşılıyor).
+Kâğıt gibi durup da yakalanmayan tek şey **pelerin**: kavisli olduğu için en kısa uzanımı 4,5 cm çıkıyor — ama **hacmi hiç yok** ve §C onu 0,54 m²'lik açık kenarla zaten yakalıyor.
