@@ -1,8 +1,8 @@
 {
- "tarih": "2026-09-17T08:57:24.917Z",
+ "tarih": "2026-09-17T17:48:34.896Z",
  "varliklar": {
-  "yapi_akm": {
-   "ucgen": 826,
+  "kozmetik_tac": {
+   "ucgen": 50,
    "malzeme": 1,
    "gorunumler": [
     "ön (+Z)",
@@ -11,9 +11,6 @@
     "sağ (+X)",
     "üst (+Y)",
     "alt (−Y)",
-    "ön yakın",
-    "tepe",
-    "yan",
     "beauty (perspektif, B+, gölgeli)"
    ],
    "dosyalar": [
@@ -23,16 +20,15 @@
     "04-sağ-x.png",
     "05-üst-y.png",
     "06-alt-y.png",
-    "07-ön-yakın.png",
-    "08-tepe.png",
-    "09-yan.png",
-    "10-beauty-perspektif-b-gölgeli.png"
+    "07-beauty-perspektif-b-gölgeli.png"
    ],
-   "aday": {},
+   "aday": {
+    "acik_kenar": 4
+   },
    "susturulan": {}
   },
-  "yapi_cami": {
-   "ucgen": 1856,
+  "kozmetik_pelerin": {
+   "ucgen": 48,
    "malzeme": 1,
    "gorunumler": [
     "ön (+Z)",
@@ -41,9 +37,6 @@
     "sağ (+X)",
     "üst (+Y)",
     "alt (−Y)",
-    "ön yakın",
-    "tepe",
-    "yan",
     "beauty (perspektif, B+, gölgeli)"
    ],
    "dosyalar": [
@@ -53,72 +46,11 @@
     "04-sağ-x.png",
     "05-üst-y.png",
     "06-alt-y.png",
-    "07-ön-yakın.png",
-    "08-tepe.png",
-    "09-yan.png",
-    "10-beauty-perspektif-b-gölgeli.png"
+    "07-beauty-perspektif-b-gölgeli.png"
    ],
-   "aday": {},
-   "susturulan": {}
-  },
-  "yapi_anit": {
-   "ucgen": 1100,
-   "malzeme": 1,
-   "gorunumler": [
-    "ön (+Z)",
-    "arka (−Z)",
-    "sol (−X)",
-    "sağ (+X)",
-    "üst (+Y)",
-    "alt (−Y)",
-    "ön yakın",
-    "tepe",
-    "yan",
-    "beauty (perspektif, B+, gölgeli)"
-   ],
-   "dosyalar": [
-    "01-ön-z.png",
-    "02-arka-z.png",
-    "03-sol-x.png",
-    "04-sağ-x.png",
-    "05-üst-y.png",
-    "06-alt-y.png",
-    "07-ön-yakın.png",
-    "08-tepe.png",
-    "09-yan.png",
-    "10-beauty-perspektif-b-gölgeli.png"
-   ],
-   "aday": {},
-   "susturulan": {}
-  },
-  "yapi_lise": {
-   "ucgen": 1745,
-   "malzeme": 1,
-   "gorunumler": [
-    "ön (+Z)",
-    "arka (−Z)",
-    "sol (−X)",
-    "sağ (+X)",
-    "üst (+Y)",
-    "alt (−Y)",
-    "ön yakın",
-    "tepe",
-    "yan",
-    "beauty (perspektif, B+, gölgeli)"
-   ],
-   "dosyalar": [
-    "01-ön-z.png",
-    "02-arka-z.png",
-    "03-sol-x.png",
-    "04-sağ-x.png",
-    "05-üst-y.png",
-    "06-alt-y.png",
-    "07-ön-yakın.png",
-    "08-tepe.png",
-    "09-yan.png",
-    "10-beauty-perspektif-b-gölgeli.png"
-   ],
-   "aday": {},
+   "aday": {
+    "acik_kenar": 2
+   },
    "susturulan": {}
   }
  },

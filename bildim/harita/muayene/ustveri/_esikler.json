@@ -1,0 +1,23 @@
+{
+  "_aciklama": "Paket 21 — muayene testlerinin ORTAK eşikleri. Koda gömülmez; bir eşik değişirse gerekçesi _gerekce'ye yazılır ve rapora düşer.",
+  "oturma_temas_m": 0.006,
+  "oturma_arama_m": 0.08,
+  "oturma_temas_orani": 0.15,
+  "oturma_bosluk_m": 0.02,
+  "acik_kenar_alan_m2": 0.0004,
+  "kalinlik_asgari_m": 0.025,
+  "kalinlik_alan_m2": 0.02,
+  "portre_asgari_oran": 0.04,
+  "portre_tasma_orani": 0.02,
+  "_gerekce": {
+    "oturma_temas_m": "Temas = gövde yüzeyine ≤ 6 mm. Eski havada testindeki 5 mm tek-köşe kuralıyla aynı ölçek; fark, artık ORAN aranması.",
+    "oturma_arama_m": "Gövdeye bakan yüzey = gövdeye 8 cm'den yakın köşeler. Kanat tüyü / pelerin eteği gibi bilerek açılan kısımlar sayılmaz; yalnız oturması gereken yüz.",
+    "oturma_temas_orani": "Paket önerisi 0,15.",
+    "oturma_bosluk_m": "Paket önerisi 2 cm.",
+    "acik_kenar_alan_m2": "Paket önerisi 2 × 2 cm.",
+    "kalinlik_alan_m2": "Küçük detaylar (gözlük sapı, menteşe) elensin: 0,02 m² altı ada yassı sayılmaz.",
+    "portre_asgari_oran": "Paket önerisi %4.",
+    "portre_tasma_orani": "Kozmetiğin ekran-uzayı kutusunun %2'sinden fazlası kadraj dışındaysa kesilmiş sayılır.",
+    "kalinlik_asgari_m": "Paket önerisi ORAN (0,02) idi; ölçtük: kanat tüyü 1,4 cm kalınlıkta ama 28-46 cm uzun → oran 0,03-0,05, oran kuralı YAKALAMIYOR. Mutlak kalınlığa geçildi: en kısa uzanım < 2,5 cm ve alan > 0,02 m² → kâğıt gibi. Kavisli tek yüzlü kabuklar (pelerin, taç halkası, şapka kubbesi) zaten acik_kenar testine düşüyor (hacimleri hiç yok)."
+  }
+}

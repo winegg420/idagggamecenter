@@ -29,7 +29,7 @@ const YUZ_RECT = [["yuz", YUZ.insan], ["yuz", YUZ.kaplan], ["yuz", YUZ.robot]];
 const globRe = (g) => new RegExp("^" + g.replace(/[.+^${}()|[\]\\]/g, "\\$&").replace(/\*/g, ".*").replace(/\?/g, ".") + "$");
 const aralikta = (v, r) => !r || (v >= r[0] && v <= r[1]);
 /** desen: "bolge:hucre" glob'u (ya da yalnız bölge / yalnız hücre) veya { desen, x, absx, y, z } konum süzgeçli. */
-function eslesir(ada, desen) {
+export function eslesir(ada, desen) {
   const d = typeof desen === "string" ? { desen } : desen;
   const re = globRe(d.desen);
   const adOk = re.test(ada.etiket) || re.test(ada.bolge) || re.test(ada.hucre);
@@ -45,10 +45,10 @@ function izinliKural(kurallar, A, B, olcu = 0) {
   }
   return null;
 }
-const adaYazi = (a) => `${a.etiket} [x ${a.merkez[0].toFixed(2)} · y ${a.merkez[1].toFixed(2)} · z ${a.merkez[2].toFixed(2)}]`;
+export const adaYazi = (a) => `${a.etiket} [x ${a.merkez[0].toFixed(2)} · y ${a.merkez[1].toFixed(2)} · z ${a.merkez[2].toFixed(2)}]`;
 
 // ---------------------------------------------------------------- adalara ayırma
-function adalaraAyir(geo, bolgeAdlari) {
+export function adalaraAyir(geo, bolgeAdlari) {
   const pos = geo.attributes.position, uv = geo.attributes.uv, bol = geo.attributes._bolge;
   const idx = geo.index ? geo.index.array : Array.from({ length: pos.count }, (_, i) => i);
   // köşe kaynaştırma (0,1 mm ızgara)

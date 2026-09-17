@@ -1,0 +1,11 @@
+{
+  "glb": "kozmetik_pelerin",
+  "klasor": "/bildim/harita/muayene/uretilen/",
+  "tip": "kozmetik_kod",
+  "kaynak": "bildim/harita/karakter/ekKozmetik.js › pelerinGeometrisi",
+  "_not": "Paket 21 §A: kodla çizilen kozmetik. Oyunda sirtYuva'ya takılır, omuz hattına ötelenir (ekMatris).",
+  "zemin_temasi": false,
+  "simetri_zorunlu": [],
+  "acik_kenar_izinli": [],
+  "yassi_olabilir": []
+}

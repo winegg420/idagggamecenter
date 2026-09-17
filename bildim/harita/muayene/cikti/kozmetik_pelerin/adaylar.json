@@ -1,0 +1,66 @@
+{
+ "varlik": "kozmetik_pelerin",
+ "istatistik": {
+  "ada": 2,
+  "acik_kenar": {
+   "ada": 2,
+   "delik_dongusu": 2,
+   "esik_ustu": 2,
+   "esik_m2": 0.0004
+  },
+  "kalinlik": {
+   "olculen_ada": 2,
+   "asgari_kalinlik_m": 0.025,
+   "alan_esigi_m2": 0.02
+  }
+ },
+ "adaylar": [
+  {
+   "test": "acik_kenar",
+   "adalar": [
+    "kozmetik_pelerin · diger:tisort [x 0.00 · y -0.49 · z -0.07]"
+   ],
+   "olcu": {
+    "delik_alani_m2": 0.54034,
+    "acik_kenar": 14,
+    "delik_merkezi": [
+     0,
+     -0.49,
+     -0.063
+    ]
+   },
+   "not": "14 açık kenarlı delik, 5403,4 cm² (eşik 4 cm²)"
+  },
+  {
+   "test": "acik_kenar",
+   "adalar": [
+    "kozmetik_pelerin · diger:tisort [x 0.00 · y -0.49 · z -0.07]"
+   ],
+   "olcu": {
+    "delik_alani_m2": 0.54034,
+    "acik_kenar": 14,
+    "delik_merkezi": [
+     0,
+     -0.49,
+     -0.057
+    ]
+   },
+   "not": "14 açık kenarlı delik, 5403,4 cm² (eşik 4 cm²)"
+  }
+ ],
+ "susturulan": [],
+ "adaListesi": [
+  {
+   "no": 0,
+   "ada": "diger:tisort [x 0.00 · y -0.49 · z -0.07]",
+   "ucgen": 24,
+   "kapali": false
+  },
+  {
+   "no": 1,
+   "ada": "diger:tisort [x 0.00 · y -0.49 · z -0.07]",
+   "ucgen": 24,
+   "kapali": false
+  }
+ ]
+}
