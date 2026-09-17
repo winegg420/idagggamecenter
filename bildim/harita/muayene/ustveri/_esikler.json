@@ -15,7 +15,7 @@
     "oturma_temas_orani": "Paket önerisi 0,15.",
     "oturma_bosluk_m": "Paket önerisi 2 cm.",
     "acik_kenar_alan_m2": "Paket önerisi 2 × 2 cm.",
-    "kalinlik_alan_m2": "Küçük detaylar (gözlük sapı, menteşe) elensin: 0,02 m² altı ada yassı sayılmaz.",
+    "kalinlik_alan_m2": "İZDÜŞÜM alanı (en kısa eksene dik düzlemde kapladığı alan, iki yüz sayılmadan) 0,02 m² altı ada yassı sayılmaz. Yüzey alanı kullanılınca gözlük çerçevesi (ince halka) yanlış alarm veriyordu — ölçüldü.",
     "portre_asgari_oran": "Paket önerisi %4.",
     "portre_tasma_orani": "Kozmetiğin ekran-uzayı kutusunun %2'sinden fazlası kadraj dışındaysa kesilmiş sayılır.",
     "kalinlik_asgari_m": "Paket önerisi ORAN (0,02) idi; ölçtük: kanat tüyü 1,4 cm kalınlıkta ama 28-46 cm uzun → oran 0,03-0,05, oran kuralı YAKALAMIYOR. Mutlak kalınlığa geçildi: en kısa uzanım < 2,5 cm ve alan > 0,02 m² → kâğıt gibi. Kavisli tek yüzlü kabuklar (pelerin, taç halkası, şapka kubbesi) zaten acik_kenar testine düşüyor (hacimleri hiç yok)."

@@ -1,5 +1,5 @@
 {
- "tarih": "2026-09-16T20:54:14.921Z",
+ "tarih": "2026-09-17T17:57:35.885Z",
  "varliklar": {
   "karakter_insan": {
    "ucgen": 6656,
@@ -425,6 +425,643 @@
     "icice": 14,
     "gomulu": 2
    }
+  },
+  "kozmetik_tac": {
+   "ucgen": 50,
+   "malzeme": 1,
+   "gorunumler": [
+    "ön (+Z)",
+    "arka (−Z)",
+    "sol (−X)",
+    "sağ (+X)",
+    "üst (+Y)",
+    "alt (−Y)",
+    "beauty (perspektif, B+, gölgeli)"
+   ],
+   "dosyalar": [
+    "01-ön-z.png",
+    "02-arka-z.png",
+    "03-sol-x.png",
+    "04-sağ-x.png",
+    "05-üst-y.png",
+    "06-alt-y.png",
+    "07-beauty-perspektif-b-gölgeli.png"
+   ],
+   "aday": {
+    "acik_kenar": 4
+   },
+   "susturulan": {}
+  },
+  "kozmetik_pelerin": {
+   "ucgen": 48,
+   "malzeme": 1,
+   "gorunumler": [
+    "ön (+Z)",
+    "arka (−Z)",
+    "sol (−X)",
+    "sağ (+X)",
+    "üst (+Y)",
+    "alt (−Y)",
+    "beauty (perspektif, B+, gölgeli)"
+   ],
+   "dosyalar": [
+    "01-ön-z.png",
+    "02-arka-z.png",
+    "03-sol-x.png",
+    "04-sağ-x.png",
+    "05-üst-y.png",
+    "06-alt-y.png",
+    "07-beauty-perspektif-b-gölgeli.png"
+   ],
+   "aday": {
+    "acik_kenar": 2
+   },
+   "susturulan": {}
+  },
+  "takili_insan_sapka": {
+   "ucgen": 5934,
+   "malzeme": 2,
+   "gorunumler": [
+    "ön (+Z)",
+    "arka (−Z)",
+    "sol (−X)",
+    "sağ (+X)",
+    "üst (+Y)",
+    "alt (−Y)",
+    "beauty (perspektif, B+, gölgeli)"
+   ],
+   "dosyalar": [
+    "01-ön-z.png",
+    "02-arka-z.png",
+    "03-sol-x.png",
+    "04-sağ-x.png",
+    "05-üst-y.png",
+    "06-alt-y.png",
+    "07-beauty-perspektif-b-gölgeli.png"
+   ],
+   "aday": {
+    "oturma": 3,
+    "acik_kenar": 1
+   },
+   "susturulan": {}
+  },
+  "takili_insan_gozluk": {
+   "ucgen": 5852,
+   "malzeme": 2,
+   "gorunumler": [
+    "ön (+Z)",
+    "arka (−Z)",
+    "sol (−X)",
+    "sağ (+X)",
+    "üst (+Y)",
+    "alt (−Y)",
+    "beauty (perspektif, B+, gölgeli)"
+   ],
+   "dosyalar": [
+    "01-ön-z.png",
+    "02-arka-z.png",
+    "03-sol-x.png",
+    "04-sağ-x.png",
+    "05-üst-y.png",
+    "06-alt-y.png",
+    "07-beauty-perspektif-b-gölgeli.png"
+   ],
+   "aday": {
+    "oturma": 3
+   },
+   "susturulan": {}
+  },
+  "takili_insan_gozlukPremium": {
+   "ucgen": 5852,
+   "malzeme": 2,
+   "gorunumler": [
+    "ön (+Z)",
+    "arka (−Z)",
+    "sol (−X)",
+    "sağ (+X)",
+    "üst (+Y)",
+    "alt (−Y)",
+    "beauty (perspektif, B+, gölgeli)"
+   ],
+   "dosyalar": [
+    "01-ön-z.png",
+    "02-arka-z.png",
+    "03-sol-x.png",
+    "04-sağ-x.png",
+    "05-üst-y.png",
+    "06-alt-y.png",
+    "07-beauty-perspektif-b-gölgeli.png"
+   ],
+   "aday": {
+    "oturma": 3,
+    "acik_kenar": 2
+   },
+   "susturulan": {}
+  },
+  "takili_insan_atki": {
+   "ucgen": 5636,
+   "malzeme": 2,
+   "gorunumler": [
+    "ön (+Z)",
+    "arka (−Z)",
+    "sol (−X)",
+    "sağ (+X)",
+    "üst (+Y)",
+    "alt (−Y)",
+    "beauty (perspektif, B+, gölgeli)"
+   ],
+   "dosyalar": [
+    "01-ön-z.png",
+    "02-arka-z.png",
+    "03-sol-x.png",
+    "04-sağ-x.png",
+    "05-üst-y.png",
+    "06-alt-y.png",
+    "07-beauty-perspektif-b-gölgeli.png"
+   ],
+   "aday": {
+    "oturma": 3
+   },
+   "susturulan": {}
+  },
+  "takili_insan_kanat": {
+   "ucgen": 5700,
+   "malzeme": 2,
+   "gorunumler": [
+    "ön (+Z)",
+    "arka (−Z)",
+    "sol (−X)",
+    "sağ (+X)",
+    "üst (+Y)",
+    "alt (−Y)",
+    "beauty (perspektif, B+, gölgeli)"
+   ],
+   "dosyalar": [
+    "01-ön-z.png",
+    "02-arka-z.png",
+    "03-sol-x.png",
+    "04-sağ-x.png",
+    "05-üst-y.png",
+    "06-alt-y.png",
+    "07-beauty-perspektif-b-gölgeli.png"
+   ],
+   "aday": {
+    "kalinlik": 14
+   },
+   "susturulan": {}
+  },
+  "takili_insan_tac": {
+   "ucgen": 5386,
+   "malzeme": 2,
+   "gorunumler": [
+    "ön (+Z)",
+    "arka (−Z)",
+    "sol (−X)",
+    "sağ (+X)",
+    "üst (+Y)",
+    "alt (−Y)",
+    "beauty (perspektif, B+, gölgeli)"
+   ],
+   "dosyalar": [
+    "01-ön-z.png",
+    "02-arka-z.png",
+    "03-sol-x.png",
+    "04-sağ-x.png",
+    "05-üst-y.png",
+    "06-alt-y.png",
+    "07-beauty-perspektif-b-gölgeli.png"
+   ],
+   "aday": {
+    "oturma": 3,
+    "acik_kenar": 4
+   },
+   "susturulan": {}
+  },
+  "takili_insan_pelerin": {
+   "ucgen": 5384,
+   "malzeme": 2,
+   "gorunumler": [
+    "ön (+Z)",
+    "arka (−Z)",
+    "sol (−X)",
+    "sağ (+X)",
+    "üst (+Y)",
+    "alt (−Y)",
+    "beauty (perspektif, B+, gölgeli)"
+   ],
+   "dosyalar": [
+    "01-ön-z.png",
+    "02-arka-z.png",
+    "03-sol-x.png",
+    "04-sağ-x.png",
+    "05-üst-y.png",
+    "06-alt-y.png",
+    "07-beauty-perspektif-b-gölgeli.png"
+   ],
+   "aday": {
+    "oturma": 3,
+    "acik_kenar": 2
+   },
+   "susturulan": {}
+  },
+  "takili_kaplan_sapka": {
+   "ucgen": 6250,
+   "malzeme": 2,
+   "gorunumler": [
+    "ön (+Z)",
+    "arka (−Z)",
+    "sol (−X)",
+    "sağ (+X)",
+    "üst (+Y)",
+    "alt (−Y)",
+    "beauty (perspektif, B+, gölgeli)"
+   ],
+   "dosyalar": [
+    "01-ön-z.png",
+    "02-arka-z.png",
+    "03-sol-x.png",
+    "04-sağ-x.png",
+    "05-üst-y.png",
+    "06-alt-y.png",
+    "07-beauty-perspektif-b-gölgeli.png"
+   ],
+   "aday": {
+    "oturma": 3,
+    "acik_kenar": 1
+   },
+   "susturulan": {}
+  },
+  "takili_kaplan_gozluk": {
+   "ucgen": 6168,
+   "malzeme": 2,
+   "gorunumler": [
+    "ön (+Z)",
+    "arka (−Z)",
+    "sol (−X)",
+    "sağ (+X)",
+    "üst (+Y)",
+    "alt (−Y)",
+    "beauty (perspektif, B+, gölgeli)"
+   ],
+   "dosyalar": [
+    "01-ön-z.png",
+    "02-arka-z.png",
+    "03-sol-x.png",
+    "04-sağ-x.png",
+    "05-üst-y.png",
+    "06-alt-y.png",
+    "07-beauty-perspektif-b-gölgeli.png"
+   ],
+   "aday": {
+    "oturma": 3
+   },
+   "susturulan": {}
+  },
+  "takili_kaplan_gozlukPremium": {
+   "ucgen": 6168,
+   "malzeme": 2,
+   "gorunumler": [
+    "ön (+Z)",
+    "arka (−Z)",
+    "sol (−X)",
+    "sağ (+X)",
+    "üst (+Y)",
+    "alt (−Y)",
+    "beauty (perspektif, B+, gölgeli)"
+   ],
+   "dosyalar": [
+    "01-ön-z.png",
+    "02-arka-z.png",
+    "03-sol-x.png",
+    "04-sağ-x.png",
+    "05-üst-y.png",
+    "06-alt-y.png",
+    "07-beauty-perspektif-b-gölgeli.png"
+   ],
+   "aday": {
+    "oturma": 3,
+    "acik_kenar": 2
+   },
+   "susturulan": {}
+  },
+  "takili_kaplan_atki": {
+   "ucgen": 5952,
+   "malzeme": 2,
+   "gorunumler": [
+    "ön (+Z)",
+    "arka (−Z)",
+    "sol (−X)",
+    "sağ (+X)",
+    "üst (+Y)",
+    "alt (−Y)",
+    "beauty (perspektif, B+, gölgeli)"
+   ],
+   "dosyalar": [
+    "01-ön-z.png",
+    "02-arka-z.png",
+    "03-sol-x.png",
+    "04-sağ-x.png",
+    "05-üst-y.png",
+    "06-alt-y.png",
+    "07-beauty-perspektif-b-gölgeli.png"
+   ],
+   "aday": {},
+   "susturulan": {}
+  },
+  "takili_kaplan_kanat": {
+   "ucgen": 6016,
+   "malzeme": 2,
+   "gorunumler": [
+    "ön (+Z)",
+    "arka (−Z)",
+    "sol (−X)",
+    "sağ (+X)",
+    "üst (+Y)",
+    "alt (−Y)",
+    "beauty (perspektif, B+, gölgeli)"
+   ],
+   "dosyalar": [
+    "01-ön-z.png",
+    "02-arka-z.png",
+    "03-sol-x.png",
+    "04-sağ-x.png",
+    "05-üst-y.png",
+    "06-alt-y.png",
+    "07-beauty-perspektif-b-gölgeli.png"
+   ],
+   "aday": {
+    "kalinlik": 14
+   },
+   "susturulan": {}
+  },
+  "takili_kaplan_tac": {
+   "ucgen": 5702,
+   "malzeme": 2,
+   "gorunumler": [
+    "ön (+Z)",
+    "arka (−Z)",
+    "sol (−X)",
+    "sağ (+X)",
+    "üst (+Y)",
+    "alt (−Y)",
+    "beauty (perspektif, B+, gölgeli)"
+   ],
+   "dosyalar": [
+    "01-ön-z.png",
+    "02-arka-z.png",
+    "03-sol-x.png",
+    "04-sağ-x.png",
+    "05-üst-y.png",
+    "06-alt-y.png",
+    "07-beauty-perspektif-b-gölgeli.png"
+   ],
+   "aday": {
+    "oturma": 3,
+    "acik_kenar": 4
+   },
+   "susturulan": {}
+  },
+  "takili_kaplan_pelerin": {
+   "ucgen": 5700,
+   "malzeme": 2,
+   "gorunumler": [
+    "ön (+Z)",
+    "arka (−Z)",
+    "sol (−X)",
+    "sağ (+X)",
+    "üst (+Y)",
+    "alt (−Y)",
+    "beauty (perspektif, B+, gölgeli)"
+   ],
+   "dosyalar": [
+    "01-ön-z.png",
+    "02-arka-z.png",
+    "03-sol-x.png",
+    "04-sağ-x.png",
+    "05-üst-y.png",
+    "06-alt-y.png",
+    "07-beauty-perspektif-b-gölgeli.png"
+   ],
+   "aday": {
+    "oturma": 3,
+    "acik_kenar": 2
+   },
+   "susturulan": {}
+  },
+  "takili_kaplan_kuyruk": {
+   "ucgen": 5924,
+   "malzeme": 2,
+   "gorunumler": [
+    "ön (+Z)",
+    "arka (−Z)",
+    "sol (−X)",
+    "sağ (+X)",
+    "üst (+Y)",
+    "alt (−Y)",
+    "beauty (perspektif, B+, gölgeli)"
+   ],
+   "dosyalar": [
+    "01-ön-z.png",
+    "02-arka-z.png",
+    "03-sol-x.png",
+    "04-sağ-x.png",
+    "05-üst-y.png",
+    "06-alt-y.png",
+    "07-beauty-perspektif-b-gölgeli.png"
+   ],
+   "aday": {
+    "oturma": 3,
+    "acik_kenar": 2
+   },
+   "susturulan": {}
+  },
+  "takili_robot_sapka": {
+   "ucgen": 6528,
+   "malzeme": 2,
+   "gorunumler": [
+    "ön (+Z)",
+    "arka (−Z)",
+    "sol (−X)",
+    "sağ (+X)",
+    "üst (+Y)",
+    "alt (−Y)",
+    "beauty (perspektif, B+, gölgeli)"
+   ],
+   "dosyalar": [
+    "01-ön-z.png",
+    "02-arka-z.png",
+    "03-sol-x.png",
+    "04-sağ-x.png",
+    "05-üst-y.png",
+    "06-alt-y.png",
+    "07-beauty-perspektif-b-gölgeli.png"
+   ],
+   "aday": {
+    "oturma": 3,
+    "acik_kenar": 1
+   },
+   "susturulan": {}
+  },
+  "takili_robot_gozluk": {
+   "ucgen": 6188,
+   "malzeme": 2,
+   "gorunumler": [
+    "ön (+Z)",
+    "arka (−Z)",
+    "sol (−X)",
+    "sağ (+X)",
+    "üst (+Y)",
+    "alt (−Y)",
+    "beauty (perspektif, B+, gölgeli)"
+   ],
+   "dosyalar": [
+    "01-ön-z.png",
+    "02-arka-z.png",
+    "03-sol-x.png",
+    "04-sağ-x.png",
+    "05-üst-y.png",
+    "06-alt-y.png",
+    "07-beauty-perspektif-b-gölgeli.png"
+   ],
+   "aday": {
+    "oturma": 3,
+    "acik_kenar": 3
+   },
+   "susturulan": {}
+  },
+  "takili_robot_gozlukPremium": {
+   "ucgen": 6620,
+   "malzeme": 2,
+   "gorunumler": [
+    "ön (+Z)",
+    "arka (−Z)",
+    "sol (−X)",
+    "sağ (+X)",
+    "üst (+Y)",
+    "alt (−Y)",
+    "beauty (perspektif, B+, gölgeli)"
+   ],
+   "dosyalar": [
+    "01-ön-z.png",
+    "02-arka-z.png",
+    "03-sol-x.png",
+    "04-sağ-x.png",
+    "05-üst-y.png",
+    "06-alt-y.png",
+    "07-beauty-perspektif-b-gölgeli.png"
+   ],
+   "aday": {
+    "oturma": 3,
+    "acik_kenar": 2
+   },
+   "susturulan": {}
+  },
+  "takili_robot_atki": {
+   "ucgen": 6404,
+   "malzeme": 2,
+   "gorunumler": [
+    "ön (+Z)",
+    "arka (−Z)",
+    "sol (−X)",
+    "sağ (+X)",
+    "üst (+Y)",
+    "alt (−Y)",
+    "beauty (perspektif, B+, gölgeli)"
+   ],
+   "dosyalar": [
+    "01-ön-z.png",
+    "02-arka-z.png",
+    "03-sol-x.png",
+    "04-sağ-x.png",
+    "05-üst-y.png",
+    "06-alt-y.png",
+    "07-beauty-perspektif-b-gölgeli.png"
+   ],
+   "aday": {
+    "oturma": 3
+   },
+   "susturulan": {}
+  },
+  "takili_robot_kanat": {
+   "ucgen": 6468,
+   "malzeme": 2,
+   "gorunumler": [
+    "ön (+Z)",
+    "arka (−Z)",
+    "sol (−X)",
+    "sağ (+X)",
+    "üst (+Y)",
+    "alt (−Y)",
+    "beauty (perspektif, B+, gölgeli)"
+   ],
+   "dosyalar": [
+    "01-ön-z.png",
+    "02-arka-z.png",
+    "03-sol-x.png",
+    "04-sağ-x.png",
+    "05-üst-y.png",
+    "06-alt-y.png",
+    "07-beauty-perspektif-b-gölgeli.png"
+   ],
+   "aday": {
+    "oturma": 3,
+    "kalinlik": 14
+   },
+   "susturulan": {}
+  },
+  "takili_robot_tac": {
+   "ucgen": 6154,
+   "malzeme": 2,
+   "gorunumler": [
+    "ön (+Z)",
+    "arka (−Z)",
+    "sol (−X)",
+    "sağ (+X)",
+    "üst (+Y)",
+    "alt (−Y)",
+    "beauty (perspektif, B+, gölgeli)"
+   ],
+   "dosyalar": [
+    "01-ön-z.png",
+    "02-arka-z.png",
+    "03-sol-x.png",
+    "04-sağ-x.png",
+    "05-üst-y.png",
+    "06-alt-y.png",
+    "07-beauty-perspektif-b-gölgeli.png"
+   ],
+   "aday": {
+    "oturma": 3,
+    "acik_kenar": 4
+   },
+   "susturulan": {}
+  },
+  "takili_robot_pelerin": {
+   "ucgen": 6152,
+   "malzeme": 2,
+   "gorunumler": [
+    "ön (+Z)",
+    "arka (−Z)",
+    "sol (−X)",
+    "sağ (+X)",
+    "üst (+Y)",
+    "alt (−Y)",
+    "beauty (perspektif, B+, gölgeli)"
+   ],
+   "dosyalar": [
+    "01-ön-z.png",
+    "02-arka-z.png",
+    "03-sol-x.png",
+    "04-sağ-x.png",
+    "05-üst-y.png",
+    "06-alt-y.png",
+    "07-beauty-perspektif-b-gölgeli.png"
+   ],
+   "aday": {
+    "oturma": 3,
+    "acik_kenar": 2
+   },
+   "susturulan": {}
   }
  },
  "konsolHatalari": [],

@@ -1,0 +1,209 @@
+{
+ "varlik": "takili_robot_gozluk",
+ "istatistik": {
+  "oturma": {
+   "saclar": [
+    1,
+    2,
+    3
+   ],
+   "temas_m": 0.006,
+   "arama_m": 0.08,
+   "oran_esigi": 0.15,
+   "bosluk_esigi_m": 0.02
+  },
+  "ada": 3,
+  "acik_kenar": {
+   "ada": 3,
+   "delik_dongusu": 3,
+   "esik_ustu": 3,
+   "esik_m2": 0.0004
+  },
+  "kalinlik": {
+   "olculen_ada": 3,
+   "asgari_kalinlik_m": 0.025,
+   "alan_esigi_m2": 0.02
+  }
+ },
+ "adaylar": [
+  {
+   "test": "oturma",
+   "adalar": [
+    "kozmetik_gozluk (robot, saç 1, Idle)"
+   ],
+   "olcu": {
+    "kose": 0,
+    "yakin": 0,
+    "temas": 0,
+    "temas_orani": 0,
+    "medyan_bosluk_m": null,
+    "en_buyuk_bosluk_m": null,
+    "en_yakin_m": 0.0471,
+    "disa_bakan": 90,
+    "gomulu_kose": 0,
+    "en_derin_gomulme_m": 0,
+    "not": "gövdeye bakan köşe yok (yalnız dışa bakan yüzey ölçüldü)"
+   },
+   "not": "gozluk: gövdeye bakan 0 köşenin 0'i temas ediyor (%0), medyan boşluk —, en büyük — (toplam 0 köşe) → gövdeye 8,0 cm'den yakın köşe YOK — en yakın köşe 4,7 cm uzakta"
+  },
+  {
+   "test": "oturma",
+   "adalar": [
+    "kozmetik_gozluk (robot, saç 2, Idle)"
+   ],
+   "olcu": {
+    "kose": 0,
+    "yakin": 0,
+    "temas": 0,
+    "temas_orani": 0,
+    "medyan_bosluk_m": null,
+    "en_buyuk_bosluk_m": null,
+    "en_yakin_m": 0.0471,
+    "disa_bakan": 90,
+    "gomulu_kose": 0,
+    "en_derin_gomulme_m": 0,
+    "not": "gövdeye bakan köşe yok (yalnız dışa bakan yüzey ölçüldü)"
+   },
+   "not": "gozluk: gövdeye bakan 0 köşenin 0'i temas ediyor (%0), medyan boşluk —, en büyük — (toplam 0 köşe) → gövdeye 8,0 cm'den yakın köşe YOK — en yakın köşe 4,7 cm uzakta"
+  },
+  {
+   "test": "oturma",
+   "adalar": [
+    "kozmetik_gozluk (robot, saç 3, Idle)"
+   ],
+   "olcu": {
+    "kose": 0,
+    "yakin": 0,
+    "temas": 0,
+    "temas_orani": 0,
+    "medyan_bosluk_m": null,
+    "en_buyuk_bosluk_m": null,
+    "en_yakin_m": 0.0471,
+    "disa_bakan": 90,
+    "gomulu_kose": 0,
+    "en_derin_gomulme_m": 0,
+    "not": "gövdeye bakan köşe yok (yalnız dışa bakan yüzey ölçüldü)"
+   },
+   "not": "gozluk: gövdeye bakan 0 köşenin 0'i temas ediyor (%0), medyan boşluk —, en büyük — (toplam 0 köşe) → gövdeye 8,0 cm'den yakın köşe YOK — en yakın köşe 4,7 cm uzakta"
+  },
+  {
+   "test": "acik_kenar",
+   "adalar": [
+    "kozmetik_gozluk · diger:gozlukCam [x -0.02 · y 1.43 · z 0.34]"
+   ],
+   "olcu": {
+    "delik_alani_m2": 0.04148,
+    "acik_kenar": 30,
+    "delik_merkezi": [
+     -0.015,
+     1.427,
+     0.339
+    ]
+   },
+   "not": "30 açık kenarlı delik, 414,8 cm² (eşik 4 cm²)"
+  },
+  {
+   "test": "acik_kenar",
+   "adalar": [
+    "kozmetik_gozluk · diger:gozlukCerceve [x -0.01 · y 1.37 · z 0.33]"
+   ],
+   "olcu": {
+    "delik_alani_m2": 0.03179,
+    "acik_kenar": 30,
+    "delik_merkezi": [
+     -0.011,
+     1.374,
+     0.328
+    ]
+   },
+   "not": "30 açık kenarlı delik, 317,9 cm² (eşik 4 cm²)"
+  },
+  {
+   "test": "acik_kenar",
+   "adalar": [
+    "kozmetik_gozluk · diger:gozlukCerceve [x -0.02 · y 1.48 · z 0.36]"
+   ],
+   "olcu": {
+    "delik_alani_m2": 0.03179,
+    "acik_kenar": 30,
+    "delik_merkezi": [
+     -0.02,
+     1.479,
+     0.357
+    ]
+   },
+   "not": "30 açık kenarlı delik, 317,9 cm² (eşik 4 cm²)"
+  }
+ ],
+ "susturulan": [],
+ "oturma": [
+  {
+   "sac": 1,
+   "kose": 0,
+   "yakin": 0,
+   "temas": 0,
+   "temas_orani": 0,
+   "medyan_bosluk_m": null,
+   "en_buyuk_bosluk_m": null,
+   "en_yakin_m": 0.0471,
+   "disa_bakan": 90,
+   "gomulu_kose": 0,
+   "en_derin_gomulme_m": 0,
+   "not": "gövdeye bakan köşe yok (yalnız dışa bakan yüzey ölçüldü)",
+   "yazi": "robot gozluk (saç 1): gövdeye bakan 0 köşenin 0'i temas ediyor (%0), medyan boşluk —, en büyük — (toplam 0 köşe)",
+   "aday": true
+  },
+  {
+   "sac": 2,
+   "kose": 0,
+   "yakin": 0,
+   "temas": 0,
+   "temas_orani": 0,
+   "medyan_bosluk_m": null,
+   "en_buyuk_bosluk_m": null,
+   "en_yakin_m": 0.0471,
+   "disa_bakan": 90,
+   "gomulu_kose": 0,
+   "en_derin_gomulme_m": 0,
+   "not": "gövdeye bakan köşe yok (yalnız dışa bakan yüzey ölçüldü)",
+   "yazi": "robot gozluk (saç 2): gövdeye bakan 0 köşenin 0'i temas ediyor (%0), medyan boşluk —, en büyük — (toplam 0 köşe)",
+   "aday": true
+  },
+  {
+   "sac": 3,
+   "kose": 0,
+   "yakin": 0,
+   "temas": 0,
+   "temas_orani": 0,
+   "medyan_bosluk_m": null,
+   "en_buyuk_bosluk_m": null,
+   "en_yakin_m": 0.0471,
+   "disa_bakan": 90,
+   "gomulu_kose": 0,
+   "en_derin_gomulme_m": 0,
+   "not": "gövdeye bakan köşe yok (yalnız dışa bakan yüzey ölçüldü)",
+   "yazi": "robot gozluk (saç 3): gövdeye bakan 0 köşenin 0'i temas ediyor (%0), medyan boşluk —, en büyük — (toplam 0 köşe)",
+   "aday": true
+  }
+ ],
+ "adaListesi": [
+  {
+   "no": 0,
+   "ada": "diger:gozlukCam [x -0.02 · y 1.43 · z 0.34]",
+   "ucgen": 28,
+   "kapali": false
+  },
+  {
+   "no": 1,
+   "ada": "diger:gozlukCerceve [x -0.01 · y 1.37 · z 0.33]",
+   "ucgen": 28,
+   "kapali": false
+  },
+  {
+   "no": 2,
+   "ada": "diger:gozlukCerceve [x -0.02 · y 1.48 · z 0.36]",
+   "ucgen": 28,
+   "kapali": false
+  }
+ ]
+}

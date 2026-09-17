@@ -15,8 +15,8 @@ import { fileURLToPath } from "url";
 import { createServer } from "vite";
 import { chromium } from "playwright-core";
 import { varlikTestEt } from "./testler.mjs";
-import { kodKozmetikTestEt } from "./testlerKozmetik.mjs";
-import { uretilenleriHazirla, KOD_KOZMETIKLERI } from "./takili.mjs";
+import { kodKozmetikTestEt, takiliTestEt } from "./testlerKozmetik.mjs";
+import { uretilenleriHazirla, KOD_KOZMETIKLERI, takiliListe } from "./takili.mjs";
 
 const BURASI = path.dirname(fileURLToPath(import.meta.url));
 const KOK = path.resolve(BURASI, "../../..");
@@ -25,9 +25,17 @@ const CIKTI = path.join(BURASI, "cikti");
 const KOD_KOZMETIK = Object.keys(KOD_KOZMETIKLERI).map((k) => "kozmetik_" + k);
 const TUM = ["karakter_insan", "karakter_kaplan", "karakter_robot", "bina_dukkan", "zemin_deneme", "bordur", "prop_agac_govde", "prop_agac_tac", "prop_bank", "prop_lamba", "prop_saksi", "prop_kedi", ...KOD_KOZMETIK];
 const ESIK = JSON.parse(fs.readFileSync(path.join(BURASI, "ustveri/_esikler.json"), "utf8"));
+// §E.1: tür × kozmetik takılı pozlar tek aile üstverisinden (ustveri/takili.json) türetilir.
+const TAKILI = takiliListe();
+const TAKILI_AD = TAKILI.map((t) => t.ad);
+const TUM_HEPSI = [...TUM, ...TAKILI_AD];
 const secilen = process.argv.slice(2).filter((a) => !a.startsWith("--"));
-const VARLIKLAR = secilen.length ? secilen.filter((a) => !a.endsWith(".json")) : TUM;
-const ustveriOku = (ad) => JSON.parse(fs.readFileSync(path.join(BURASI, "ustveri", ad + ".json"), "utf8"));
+const VARLIKLAR = secilen.length ? secilen.filter((a) => !a.endsWith(".json")) : TUM_HEPSI;
+const ustveriOku = (ad) => {
+  const t = TAKILI.find((x) => x.ad === ad);
+  if (t) return { ...JSON.parse(fs.readFileSync(path.join(BURASI, "ustveri/takili.json"), "utf8")), glb: ad, tur: t.tur, koz: t.koz };
+  return JSON.parse(fs.readFileSync(path.join(BURASI, "ustveri", ad + ".json"), "utf8"));
+};
 const dosyaAdi = (i, ad) => `${String(i + 1).padStart(2, "0")}-${ad.replace(/[^\p{L}\p{N}]+/gu, "-").replace(/^-|-$/g, "").toLowerCase()}.png`;
 
 let sunucu = null, tarayici = null;
@@ -54,7 +62,9 @@ try {
     for (const f of fs.readdirSync(klasor)) if (f.endsWith(".png")) fs.rmSync(path.join(klasor, f));
     // (1) mekanik testler — Node, GLB geometrisi. Aday + susturulan listesi commit edilir (adaylar.json)
     const dosya = path.join(KOK, u.klasor ? u.klasor.replace(/^\//, "") : "public/meydan/deneme", u.glb + ".glb");   // 1H: aday GLB'leri kendi klasöründe
-    const test = u.tip === "kozmetik_kod" ? await kodKozmetikTestEt(dosya, u, ESIK) : await varlikTestEt(dosya, u);
+    const test = u.tip === "kozmetik_kod" ? await kodKozmetikTestEt(dosya, u, ESIK)
+      : u.tip === "takili" ? await takiliTestEt(dosya, u, ESIK)
+      : await varlikTestEt(dosya, u);
     fs.writeFileSync(path.join(klasor, "adaylar.json"), JSON.stringify(test, null, 1));
     const bilgi = await sayfa.evaluate((x) => window.muayene.hazirla(x), u);
     const dosyalar = [];

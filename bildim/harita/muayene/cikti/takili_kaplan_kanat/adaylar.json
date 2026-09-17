@@ -1,0 +1,390 @@
+{
+ "varlik": "takili_kaplan_kanat",
+ "istatistik": {
+  "oturma": {
+   "saclar": [
+    1,
+    2,
+    3
+   ],
+   "temas_m": 0.006,
+   "arama_m": 0.08,
+   "oran_esigi": 0.15,
+   "bosluk_esigi_m": 0.02
+  },
+  "ada": 19,
+  "acik_kenar": {
+   "ada": 19,
+   "delik_dongusu": 0,
+   "esik_ustu": 0,
+   "esik_m2": 0.0004
+  },
+  "kalinlik": {
+   "olculen_ada": 19,
+   "asgari_kalinlik_m": 0.025,
+   "alan_esigi_m2": 0.02
+  }
+ },
+ "adaylar": [
+  {
+   "test": "kalinlik",
+   "adalar": [
+    "kozmetik_kanat · diger:kanat [x 0.26 · y 1.15 · z -0.15]"
+   ],
+   "olcu": {
+    "kisa_m": 0.014,
+    "uzun_m": 0.28,
+    "oran": 0.05,
+    "izdusum_alan_m2": 0.0308,
+    "yuzey_alan_m2": 0.0725
+   },
+   "not": "en kısa uzanım 1,4 cm < 2,5 cm (en uzun 28,0 cm, yassılık oranı 0.05), izdüşüm alanı 0.0308 m² — kâğıt gibi"
+  },
+  {
+   "test": "kalinlik",
+   "adalar": [
+    "kozmetik_kanat · diger:kanat [x -0.08 · y 1.16 · z -0.27]"
+   ],
+   "olcu": {
+    "kisa_m": 0.014,
+    "uzun_m": 0.28,
+    "oran": 0.05,
+    "izdusum_alan_m2": 0.0308,
+    "yuzey_alan_m2": 0.0725
+   },
+   "not": "en kısa uzanım 1,4 cm < 2,5 cm (en uzun 28,0 cm, yassılık oranı 0.05), izdüşüm alanı 0.0308 m² — kâğıt gibi"
+  },
+  {
+   "test": "kalinlik",
+   "adalar": [
+    "kozmetik_kanat · diger:kanat [x 0.43 · y 1.26 · z -0.10]"
+   ],
+   "olcu": {
+    "kisa_m": 0.014,
+    "uzun_m": 0.34,
+    "oran": 0.0412,
+    "izdusum_alan_m2": 0.0374,
+    "yuzey_alan_m2": 0.0874
+   },
+   "not": "en kısa uzanım 1,4 cm < 2,5 cm (en uzun 34,0 cm, yassılık oranı 0.0412), izdüşüm alanı 0.0374 m² — kâğıt gibi"
+  },
+  {
+   "test": "kalinlik",
+   "adalar": [
+    "kozmetik_kanat · diger:kanat [x -0.23 · y 1.27 · z -0.34]"
+   ],
+   "olcu": {
+    "kisa_m": 0.014,
+    "uzun_m": 0.34,
+    "oran": 0.0412,
+    "izdusum_alan_m2": 0.0374,
+    "yuzey_alan_m2": 0.0874
+   },
+   "not": "en kısa uzanım 1,4 cm < 2,5 cm (en uzun 34,0 cm, yassılık oranı 0.0412), izdüşüm alanı 0.0374 m² — kâğıt gibi"
+  },
+  {
+   "test": "kalinlik",
+   "adalar": [
+    "kozmetik_kanat · diger:kanat [x 0.60 · y 1.40 · z -0.05]"
+   ],
+   "olcu": {
+    "kisa_m": 0.014,
+    "uzun_m": 0.4,
+    "oran": 0.035,
+    "izdusum_alan_m2": 0.044,
+    "yuzey_alan_m2": 0.1023
+   },
+   "not": "en kısa uzanım 1,4 cm < 2,5 cm (en uzun 40,0 cm, yassılık oranı 0.035), izdüşüm alanı 0.044 m² — kâğıt gibi"
+  },
+  {
+   "test": "kalinlik",
+   "adalar": [
+    "kozmetik_kanat · diger:kanat [x -0.39 · y 1.41 · z -0.41]"
+   ],
+   "olcu": {
+    "kisa_m": 0.014,
+    "uzun_m": 0.4,
+    "oran": 0.035,
+    "izdusum_alan_m2": 0.044,
+    "yuzey_alan_m2": 0.1023
+   },
+   "not": "en kısa uzanım 1,4 cm < 2,5 cm (en uzun 40,0 cm, yassılık oranı 0.035), izdüşüm alanı 0.044 m² — kâğıt gibi"
+  },
+  {
+   "test": "kalinlik",
+   "adalar": [
+    "kozmetik_kanat · diger:kanat [x 0.76 · y 1.55 · z 0.01]"
+   ],
+   "olcu": {
+    "kisa_m": 0.014,
+    "uzun_m": 0.46,
+    "oran": 0.0304,
+    "izdusum_alan_m2": 0.0506,
+    "yuzey_alan_m2": 0.1172
+   },
+   "not": "en kısa uzanım 1,4 cm < 2,5 cm (en uzun 46,0 cm, yassılık oranı 0.0304), izdüşüm alanı 0.0506 m² — kâğıt gibi"
+  },
+  {
+   "test": "kalinlik",
+   "adalar": [
+    "kozmetik_kanat · diger:kanat [x -0.55 · y 1.58 · z -0.46]"
+   ],
+   "olcu": {
+    "kisa_m": 0.014,
+    "uzun_m": 0.46,
+    "oran": 0.0304,
+    "izdusum_alan_m2": 0.0506,
+    "yuzey_alan_m2": 0.1172
+   },
+   "not": "en kısa uzanım 1,4 cm < 2,5 cm (en uzun 46,0 cm, yassılık oranı 0.0304), izdüşüm alanı 0.0506 m² — kâğıt gibi"
+  },
+  {
+   "test": "kalinlik",
+   "adalar": [
+    "kozmetik_kanat · diger:kanatKoyu [x 0.35 · y 1.20 · z -0.13]"
+   ],
+   "olcu": {
+    "kisa_m": 0.014,
+    "uzun_m": 0.31,
+    "oran": 0.0452,
+    "izdusum_alan_m2": 0.0341,
+    "yuzey_alan_m2": 0.08
+   },
+   "not": "en kısa uzanım 1,4 cm < 2,5 cm (en uzun 31,0 cm, yassılık oranı 0.0452), izdüşüm alanı 0.0341 m² — kâğıt gibi"
+  },
+  {
+   "test": "kalinlik",
+   "adalar": [
+    "kozmetik_kanat · diger:kanatKoyu [x -0.15 · y 1.21 · z -0.30]"
+   ],
+   "olcu": {
+    "kisa_m": 0.014,
+    "uzun_m": 0.31,
+    "oran": 0.0452,
+    "izdusum_alan_m2": 0.0341,
+    "yuzey_alan_m2": 0.08
+   },
+   "not": "en kısa uzanım 1,4 cm < 2,5 cm (en uzun 31,0 cm, yassılık oranı 0.0452), izdüşüm alanı 0.0341 m² — kâğıt gibi"
+  },
+  {
+   "test": "kalinlik",
+   "adalar": [
+    "kozmetik_kanat · diger:kanatKoyu [x 0.52 · y 1.33 · z -0.08]"
+   ],
+   "olcu": {
+    "kisa_m": 0.014,
+    "uzun_m": 0.37,
+    "oran": 0.0378,
+    "izdusum_alan_m2": 0.0407,
+    "yuzey_alan_m2": 0.0948
+   },
+   "not": "en kısa uzanım 1,4 cm < 2,5 cm (en uzun 37,0 cm, yassılık oranı 0.0378), izdüşüm alanı 0.0407 m² — kâğıt gibi"
+  },
+  {
+   "test": "kalinlik",
+   "adalar": [
+    "kozmetik_kanat · diger:kanatKoyu [x -0.31 · y 1.34 · z -0.38]"
+   ],
+   "olcu": {
+    "kisa_m": 0.014,
+    "uzun_m": 0.37,
+    "oran": 0.0378,
+    "izdusum_alan_m2": 0.0407,
+    "yuzey_alan_m2": 0.0948
+   },
+   "not": "en kısa uzanım 1,4 cm < 2,5 cm (en uzun 37,0 cm, yassılık oranı 0.0378), izdüşüm alanı 0.0407 m² — kâğıt gibi"
+  },
+  {
+   "test": "kalinlik",
+   "adalar": [
+    "kozmetik_kanat · diger:kanatKoyu [x 0.68 · y 1.47 · z -0.02]"
+   ],
+   "olcu": {
+    "kisa_m": 0.014,
+    "uzun_m": 0.43,
+    "oran": 0.0326,
+    "izdusum_alan_m2": 0.0473,
+    "yuzey_alan_m2": 0.1097
+   },
+   "not": "en kısa uzanım 1,4 cm < 2,5 cm (en uzun 43,0 cm, yassılık oranı 0.0326), izdüşüm alanı 0.0473 m² — kâğıt gibi"
+  },
+  {
+   "test": "kalinlik",
+   "adalar": [
+    "kozmetik_kanat · diger:kanatKoyu [x -0.47 · y 1.49 · z -0.44]"
+   ],
+   "olcu": {
+    "kisa_m": 0.014,
+    "uzun_m": 0.43,
+    "oran": 0.0326,
+    "izdusum_alan_m2": 0.0473,
+    "yuzey_alan_m2": 0.1097
+   },
+   "not": "en kısa uzanım 1,4 cm < 2,5 cm (en uzun 43,0 cm, yassılık oranı 0.0326), izdüşüm alanı 0.0473 m² — kâğıt gibi"
+  }
+ ],
+ "susturulan": [],
+ "oturma": [
+  {
+   "sac": 1,
+   "kose": 238,
+   "yakin": 88,
+   "temas": 67,
+   "temas_orani": 0.761,
+   "medyan_bosluk_m": 0,
+   "en_buyuk_bosluk_m": 0.0478,
+   "en_yakin_m": 0,
+   "disa_bakan": 270,
+   "gomulu_kose": 60,
+   "en_derin_gomulme_m": 0.0553,
+   "yazi": "kaplan kanat (saç 1): gövdeye bakan 88 köşenin 67'i temas ediyor (%76), medyan boşluk 0,0 cm, en büyük 4,8 cm (toplam 238 köşe)",
+   "aday": false
+  },
+  {
+   "sac": 2,
+   "kose": 238,
+   "yakin": 88,
+   "temas": 67,
+   "temas_orani": 0.761,
+   "medyan_bosluk_m": 0,
+   "en_buyuk_bosluk_m": 0.0478,
+   "en_yakin_m": 0,
+   "disa_bakan": 270,
+   "gomulu_kose": 60,
+   "en_derin_gomulme_m": 0.0553,
+   "yazi": "kaplan kanat (saç 2): gövdeye bakan 88 köşenin 67'i temas ediyor (%76), medyan boşluk 0,0 cm, en büyük 4,8 cm (toplam 238 köşe)",
+   "aday": false
+  },
+  {
+   "sac": 3,
+   "kose": 238,
+   "yakin": 88,
+   "temas": 67,
+   "temas_orani": 0.761,
+   "medyan_bosluk_m": 0,
+   "en_buyuk_bosluk_m": 0.0478,
+   "en_yakin_m": 0,
+   "disa_bakan": 270,
+   "gomulu_kose": 60,
+   "en_derin_gomulme_m": 0.0553,
+   "yazi": "kaplan kanat (saç 3): gövdeye bakan 88 köşenin 67'i temas ediyor (%76), medyan boşluk 0,0 cm, en büyük 4,8 cm (toplam 238 köşe)",
+   "aday": false
+  }
+ ],
+ "adaListesi": [
+  {
+   "no": 0,
+   "ada": "diger:deri [x 0.07 · y 1.20 · z -0.14]",
+   "ucgen": 108,
+   "kapali": true
+  },
+  {
+   "no": 1,
+   "ada": "diger:deri [x 0.13 · y 1.25 · z -0.02]",
+   "ucgen": 12,
+   "kapali": true
+  },
+  {
+   "no": 2,
+   "ada": "diger:deri [x -0.05 · y 1.26 · z -0.09]",
+   "ucgen": 12,
+   "kapali": true
+  },
+  {
+   "no": 3,
+   "ada": "diger:deri [x 0.36 · y 1.39 · z -0.05]",
+   "ucgen": 32,
+   "kapali": true
+  },
+  {
+   "no": 4,
+   "ada": "diger:deri [x -0.21 · y 1.41 · z -0.25]",
+   "ucgen": 32,
+   "kapali": true
+  },
+  {
+   "no": 5,
+   "ada": "diger:kanat [x 0.26 · y 1.15 · z -0.15]",
+   "ucgen": 12,
+   "kapali": true
+  },
+  {
+   "no": 6,
+   "ada": "diger:kanat [x -0.08 · y 1.16 · z -0.27]",
+   "ucgen": 12,
+   "kapali": true
+  },
+  {
+   "no": 7,
+   "ada": "diger:kanat [x 0.43 · y 1.26 · z -0.10]",
+   "ucgen": 12,
+   "kapali": true
+  },
+  {
+   "no": 8,
+   "ada": "diger:kanat [x -0.23 · y 1.27 · z -0.34]",
+   "ucgen": 12,
+   "kapali": true
+  },
+  {
+   "no": 9,
+   "ada": "diger:kanat [x 0.60 · y 1.40 · z -0.05]",
+   "ucgen": 12,
+   "kapali": true
+  },
+  {
+   "no": 10,
+   "ada": "diger:kanat [x -0.39 · y 1.41 · z -0.41]",
+   "ucgen": 12,
+   "kapali": true
+  },
+  {
+   "no": 11,
+   "ada": "diger:kanat [x 0.76 · y 1.55 · z 0.01]",
+   "ucgen": 12,
+   "kapali": true
+  },
+  {
+   "no": 12,
+   "ada": "diger:kanat [x -0.55 · y 1.58 · z -0.46]",
+   "ucgen": 12,
+   "kapali": true
+  },
+  {
+   "no": 13,
+   "ada": "diger:kanatKoyu [x 0.35 · y 1.20 · z -0.13]",
+   "ucgen": 12,
+   "kapali": true
+  },
+  {
+   "no": 14,
+   "ada": "diger:kanatKoyu [x -0.15 · y 1.21 · z -0.30]",
+   "ucgen": 12,
+   "kapali": true
+  },
+  {
+   "no": 15,
+   "ada": "diger:kanatKoyu [x 0.52 · y 1.33 · z -0.08]",
+   "ucgen": 12,
+   "kapali": true
+  },
+  {
+   "no": 16,
+   "ada": "diger:kanatKoyu [x -0.31 · y 1.34 · z -0.38]",
+   "ucgen": 12,
+   "kapali": true
+  },
+  {
+   "no": 17,
+   "ada": "diger:kanatKoyu [x 0.68 · y 1.47 · z -0.02]",
+   "ucgen": 12,
+   "kapali": true
+  },
+  {
+   "no": 18,
+   "ada": "diger:kanatKoyu [x -0.47 · y 1.49 · z -0.44]",
+   "ucgen": 12,
+   "kapali": true
+  }
+ ]
+}

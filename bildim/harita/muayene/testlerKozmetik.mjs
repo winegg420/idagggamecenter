@@ -49,14 +49,40 @@ function kovaryans(noktalar) {
  */
 export function oturmaOlc(govde, koz, E) {
   const bvh = govde.boundsTree ?? (govde.boundsTree = new MeshBVH(govde));
-  const p = koz.attributes.position, gorulen = new Set(), mesafeler = [];
-  const v = new THREE.Vector3(), hedef = {};
+  const g = koz.index ? koz.toNonIndexed() : koz;
+  if (!g.attributes.normal) g.computeVertexNormals();
+  const p = g.attributes.position, nrm = g.attributes.normal, gorulen = new Set(), mesafeler = [];
+  const v = new THREE.Vector3(), n = new THREE.Vector3(), hedef = {};
+  let disaBakan = 0, gomulu = 0, enDerin = 0, enYakinTum = Infinity;
+  const gp = govde.attributes.position, gi = govde.index;
+  const t0 = new THREE.Vector3(), t1 = new THREE.Vector3(), t2 = new THREE.Vector3(), yg = new THREE.Vector3();
   for (let i = 0; i < p.count; i++) {
-    const k = `${Math.round(p.getX(i) * 1e4)},${Math.round(p.getY(i) * 1e4)},${Math.round(p.getZ(i) * 1e4)}`;
+    const k = `${Math.round(p.getX(i) * 1e4)},${Math.round(p.getY(i) * 1e4)},${Math.round(p.getZ(i) * 1e4)},${Math.round(nrm.getX(i))},${Math.round(nrm.getY(i))},${Math.round(nrm.getZ(i))}`;
     if (gorulen.has(k)) continue; gorulen.add(k);
-    v.fromBufferAttribute(p, i);
+    v.fromBufferAttribute(p, i); n.fromBufferAttribute(nrm, i);
     const r = bvh.closestPointToPoint(v, hedef, 0, 1);
-    mesafeler.push(r ? r.distance : Infinity);
+    if (!r) continue;
+    enYakinTum = Math.min(enYakinTum, r.distance);
+    // GÖVDEYE BAKAN yüzey: köşe normali gövdeye dönük olmalı. Atkının/ gözlüğün DIŞ yüzü gövdeye zaten değemez;
+    // onları saymak medyan boşluğu şişiriyordu (ölçüldü).
+    const cp = hedef.point ?? hedef;
+    const yon = new THREE.Vector3(cp.x - v.x, cp.y - v.y, cp.z - v.z);
+    if (yon.lengthSq() > 1e-12 && n.dot(yon.normalize()) <= 0) { disaBakan++; continue; }
+    // Gömülme: en yakın üçgenin normaline göre köşe gövdenin İÇİNDE mi (düzeltmeler gövdeye batmasın diye ölçülür)
+    if (hedef.faceIndex != null && gi) {
+      const a0 = gi.getX(hedef.faceIndex * 3), a1 = gi.getX(hedef.faceIndex * 3 + 1), a2 = gi.getX(hedef.faceIndex * 3 + 2);
+      t0.fromBufferAttribute(gp, a0); t1.fromBufferAttribute(gp, a1); t2.fromBufferAttribute(gp, a2);
+      yg.copy(t1).sub(t0).cross(t2.clone().sub(t0)).normalize();
+      // Gövdenin İÇİNDE kalan köşe temas etmiştir (gözlük sapı kafanın içinde, kanat koşumu sırtın içinde).
+      // Yüzeye uzaklığını "boşluk" saymak medyanı şişiriyordu — ölçüldü.
+      if (yg.dot(v.clone().sub(t0)) < 0) { gomulu++; enDerin = Math.max(enDerin, r.distance); mesafeler.push(0); continue; }
+    }
+    mesafeler.push(r.distance);
+  }
+  if (!mesafeler.length) {
+    return { kose: 0, yakin: 0, temas: 0, temas_orani: 0, medyan_bosluk_m: null, en_buyuk_bosluk_m: null,
+      en_yakin_m: Number.isFinite(enYakinTum) ? +enYakinTum.toFixed(4) : null, disa_bakan: disaBakan,
+      gomulu_kose: gomulu, en_derin_gomulme_m: +enDerin.toFixed(4), not: "gövdeye bakan köşe yok (yalnız dışa bakan yüzey ölçüldü)" };
   }
   const yakin = mesafeler.filter((d) => d <= E.oturma_arama_m).sort((a, b) => a - b);
   const temas = yakin.filter((d) => d <= E.oturma_temas_m).length;
@@ -67,6 +93,7 @@ export function oturmaOlc(govde, koz, E) {
     medyan_bosluk_m: medyan == null ? null : +medyan.toFixed(4),
     en_buyuk_bosluk_m: yakin.length ? +yakin[yakin.length - 1].toFixed(4) : null,
     en_yakin_m: +Math.min(...mesafeler).toFixed(4),
+    disa_bakan: disaBakan, gomulu_kose: gomulu, en_derin_gomulme_m: +enDerin.toFixed(4),
   };
 }
 export function oturmaKarari(o, E) {
@@ -123,20 +150,34 @@ export function testAcikKenar(adalar, u, E, sonuc, onek = "") {
 // ---------------------------------------------------------------- D. KALINLIK
 export function kalinlikOlc(ada) {
   const p = ada.geo.attributes.position.array;
-  let alan = 0; const a = new THREE.Vector3(), b = new THREE.Vector3(), c = new THREE.Vector3();
-  for (let t = 0; t < p.length; t += 9) { a.fromArray(p, t); b.fromArray(p, t + 3); c.fromArray(p, t + 6); alan += b.clone().sub(a).cross(c.clone().sub(a)).length() / 2; }
   const { C, m } = kovaryans(ada.kose);
-  const eks = ozvektorler(C).map((e) => { let lo = Infinity, hi = -Infinity; for (const v of ada.kose) { const x = v.clone().sub(m).dot(e); lo = Math.min(lo, x); hi = Math.max(hi, x); } return hi - lo; }).sort((x, y) => x - y);
-  return { kisa_m: +eks[0].toFixed(4), uzun_m: +eks[2].toFixed(4), oran: +(eks[0] / Math.max(eks[2], 1e-9)).toFixed(4), alan_m2: +alan.toFixed(4) };
+  const eksenler = ozvektorler(C).map((e) => {
+    let lo = Infinity, hi = -Infinity;
+    for (const v of ada.kose) { const x = v.clone().sub(m).dot(e); lo = Math.min(lo, x); hi = Math.max(hi, x); }
+    return { e, uzanim: hi - lo };
+  }).sort((x, y) => x.uzanim - y.uzanim);
+  // İZDÜŞÜM ALANI (yüzey alanı DEĞİL): üçgenler en kısa eksene dik düzleme izdüşürülür, iki yüz sayılmasın diye /2.
+  // Ölçüldü: yüzey alanı kullanılınca gözlük çerçevesi (2,2 cm kalınlığında ince halka) "kâğıt" sanılıyordu —
+  // halkanın yüzeyi büyük ama kapladığı düzlem alanı küçük. Kanat tüyünde ikisi de büyük.
+  let izdusum = 0; const a = new THREE.Vector3(), b = new THREE.Vector3(), c = new THREE.Vector3(), n = new THREE.Vector3();
+  for (let t = 0; t < p.length; t += 9) {
+    a.fromArray(p, t); b.fromArray(p, t + 3); c.fromArray(p, t + 6);
+    n.copy(b).sub(a).cross(c.clone().sub(a));
+    izdusum += Math.abs(n.dot(eksenler[0].e)) / 2 / 2;   // |n| = 2 × üçgen alanı; iki yüz → /2
+  }
+  let yuzey = 0;
+  for (let t = 0; t < p.length; t += 9) { a.fromArray(p, t); b.fromArray(p, t + 3); c.fromArray(p, t + 6); yuzey += b.clone().sub(a).cross(c.clone().sub(a)).length() / 2; }
+  const eks = eksenler.map((x) => x.uzanim);
+  return { kisa_m: +eks[0].toFixed(4), uzun_m: +eks[2].toFixed(4), oran: +(eks[0] / Math.max(eks[2], 1e-9)).toFixed(4), izdusum_alan_m2: +izdusum.toFixed(4), yuzey_alan_m2: +yuzey.toFixed(4) };
 }
 export function testKalinlik(adalar, u, E, sonuc, onek = "") {
   let olculen = 0;
   for (const A of adalar) {
     const k = kalinlikOlc(A); olculen++;
     // ÖLÇÜLDÜ (Paket 21 §D): oran kuralı kanat tüyünü kaçırıyor (1,4 cm × 46 cm → oran 0,03). Ölçüt MUTLAK kalınlık.
-    if (!(k.kisa_m < E.kalinlik_asgari_m && k.alan_m2 > E.kalinlik_alan_m2)) continue;
+    if (!(k.kisa_m < E.kalinlik_asgari_m && k.izdusum_alan_m2 > E.kalinlik_alan_m2)) continue;
     const izin = (u.yassi_olabilir ?? []).find((x) => eslesir(A, x.desen ?? x));
-    const kayit = { test: "kalinlik", adalar: [onek + adaYazi(A)], olcu: k, not: `en kısa uzanım ${cm(k.kisa_m)} cm < ${cm(E.kalinlik_asgari_m)} cm (en uzun ${cm(k.uzun_m)} cm, yassılık oranı ${k.oran}), alan ${k.alan_m2} m² — kâğıt gibi` };
+    const kayit = { test: "kalinlik", adalar: [onek + adaYazi(A)], olcu: k, not: `en kısa uzanım ${cm(k.kisa_m)} cm < ${cm(E.kalinlik_asgari_m)} cm (en uzun ${cm(k.uzun_m)} cm, yassılık oranı ${k.oran}), izdüşüm alanı ${k.izdusum_alan_m2} m² — kâğıt gibi` };
     if (izin) sonuc.susturulan.push({ ...kayit, sebep: izin.sebep ?? "yassi_olabilir" }); else sonuc.adaylar.push(kayit);
   }
   sonuc.istatistik.kalinlik = { olculen_ada: olculen, asgari_kalinlik_m: E.kalinlik_asgari_m, alan_esigi_m2: E.kalinlik_alan_m2 };

@@ -1,0 +1,11 @@
+{
+  "_aciklama": "Paket 21 §E.1 — TAKILI POZ ailesi. Her tür × kozmetik için Idle pozunda GLB üretilir (muayene/uretilen/takili_<tür>_<kozmetik>.glb) ve B (oturma) · C (açık kenar) · D (kalınlık) testleri KOZMETİK adaları üzerinde çalışır. Gövde ayrıca karakter_* varlıklarında denetleniyor.",
+  "tip": "takili",
+  "klasor": "/bildim/harita/muayene/uretilen/",
+  "saclar": [1, 2, 3],
+  "_saclar_not": "Oyunda üç saç varyantı var (kâse · kısa · kuyruk). Başa oturan kozmetik hepsinde oturmalı; en kötü varyant karar verir.",
+  "zemin_temasi": false,
+  "simetri_zorunlu": [],
+  "acik_kenar_izinli": [],
+  "yassi_olabilir": []
+}

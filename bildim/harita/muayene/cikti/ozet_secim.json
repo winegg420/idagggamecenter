@@ -1,9 +1,9 @@
 {
- "tarih": "2026-09-17T17:48:34.896Z",
+ "tarih": "2026-09-17T17:56:13.413Z",
  "varliklar": {
-  "kozmetik_tac": {
-   "ucgen": 50,
-   "malzeme": 1,
+  "takili_robot_tac": {
+   "ucgen": 6154,
+   "malzeme": 2,
    "gorunumler": [
     "ön (+Z)",
     "arka (−Z)",
@@ -23,33 +23,8 @@
     "07-beauty-perspektif-b-gölgeli.png"
    ],
    "aday": {
+    "oturma": 3,
     "acik_kenar": 4
-   },
-   "susturulan": {}
-  },
-  "kozmetik_pelerin": {
-   "ucgen": 48,
-   "malzeme": 1,
-   "gorunumler": [
-    "ön (+Z)",
-    "arka (−Z)",
-    "sol (−X)",
-    "sağ (+X)",
-    "üst (+Y)",
-    "alt (−Y)",
-    "beauty (perspektif, B+, gölgeli)"
-   ],
-   "dosyalar": [
-    "01-ön-z.png",
-    "02-arka-z.png",
-    "03-sol-x.png",
-    "04-sağ-x.png",
-    "05-üst-y.png",
-    "06-alt-y.png",
-    "07-beauty-perspektif-b-gölgeli.png"
-   ],
-   "aday": {
-    "acik_kenar": 2
    },
    "susturulan": {}
   }

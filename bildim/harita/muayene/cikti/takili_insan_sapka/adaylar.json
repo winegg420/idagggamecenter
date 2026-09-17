@@ -1,0 +1,171 @@
+{
+ "varlik": "takili_insan_sapka",
+ "istatistik": {
+  "oturma": {
+   "saclar": [
+    1,
+    2,
+    3
+   ],
+   "temas_m": 0.006,
+   "arama_m": 0.08,
+   "oran_esigi": 0.15,
+   "bosluk_esigi_m": 0.02
+  },
+  "ada": 3,
+  "acik_kenar": {
+   "ada": 3,
+   "delik_dongusu": 1,
+   "esik_ustu": 1,
+   "esik_m2": 0.0004
+  },
+  "kalinlik": {
+   "olculen_ada": 3,
+   "asgari_kalinlik_m": 0.025,
+   "alan_esigi_m2": 0.02
+  }
+ },
+ "adaylar": [
+  {
+   "test": "oturma",
+   "adalar": [
+    "kozmetik_sapka (insan, saç 1, Idle)"
+   ],
+   "olcu": {
+    "kose": 56,
+    "yakin": 56,
+    "temas": 6,
+    "temas_orani": 0.107,
+    "medyan_bosluk_m": 0.0251,
+    "en_buyuk_bosluk_m": 0.0364,
+    "en_yakin_m": 0.0039,
+    "disa_bakan": 253,
+    "gomulu_kose": 0,
+    "en_derin_gomulme_m": 0
+   },
+   "not": "sapka: gövdeye bakan 56 köşenin 6'i temas ediyor (%11), medyan boşluk 2,5 cm, en büyük 3,6 cm (toplam 56 köşe) → temas oranı %11 < %15 · medyan boşluk 2,5 cm > 2,0 cm"
+  },
+  {
+   "test": "oturma",
+   "adalar": [
+    "kozmetik_sapka (insan, saç 2, Idle)"
+   ],
+   "olcu": {
+    "kose": 85,
+    "yakin": 83,
+    "temas": 4,
+    "temas_orani": 0.048,
+    "medyan_bosluk_m": 0.0424,
+    "en_buyuk_bosluk_m": 0.0556,
+    "en_yakin_m": 0.0035,
+    "disa_bakan": 224,
+    "gomulu_kose": 0,
+    "en_derin_gomulme_m": 0
+   },
+   "not": "sapka: gövdeye bakan 83 köşenin 4'i temas ediyor (%5), medyan boşluk 4,2 cm, en büyük 5,6 cm (toplam 85 köşe) → temas oranı %5 < %15 · medyan boşluk 4,2 cm > 2,0 cm"
+  },
+  {
+   "test": "oturma",
+   "adalar": [
+    "kozmetik_sapka (insan, saç 3, Idle)"
+   ],
+   "olcu": {
+    "kose": 75,
+    "yakin": 74,
+    "temas": 8,
+    "temas_orani": 0.108,
+    "medyan_bosluk_m": 0.0296,
+    "en_buyuk_bosluk_m": 0.0383,
+    "en_yakin_m": 0,
+    "disa_bakan": 234,
+    "gomulu_kose": 2,
+    "en_derin_gomulme_m": 0.008
+   },
+   "not": "sapka: gövdeye bakan 74 köşenin 8'i temas ediyor (%11), medyan boşluk 3,0 cm, en büyük 3,8 cm (toplam 75 köşe) → temas oranı %11 < %15 · medyan boşluk 3,0 cm > 2,0 cm"
+  },
+  {
+   "test": "acik_kenar",
+   "adalar": [
+    "kozmetik_sapka · diger:sapka [x -0.04 · y 1.73 · z 0.18]"
+   ],
+   "olcu": {
+    "delik_alani_m2": 0.19559,
+    "acik_kenar": 14,
+    "delik_merkezi": [
+     -0.026,
+     1.622,
+     0.147
+    ]
+   },
+   "not": "14 açık kenarlı delik, 1955,9 cm² (eşik 4 cm²)"
+  }
+ ],
+ "susturulan": [],
+ "oturma": [
+  {
+   "sac": 1,
+   "kose": 56,
+   "yakin": 56,
+   "temas": 6,
+   "temas_orani": 0.107,
+   "medyan_bosluk_m": 0.0251,
+   "en_buyuk_bosluk_m": 0.0364,
+   "en_yakin_m": 0.0039,
+   "disa_bakan": 253,
+   "gomulu_kose": 0,
+   "en_derin_gomulme_m": 0,
+   "yazi": "insan sapka (saç 1): gövdeye bakan 56 köşenin 6'i temas ediyor (%11), medyan boşluk 2,5 cm, en büyük 3,6 cm (toplam 56 köşe)",
+   "aday": true
+  },
+  {
+   "sac": 2,
+   "kose": 85,
+   "yakin": 83,
+   "temas": 4,
+   "temas_orani": 0.048,
+   "medyan_bosluk_m": 0.0424,
+   "en_buyuk_bosluk_m": 0.0556,
+   "en_yakin_m": 0.0035,
+   "disa_bakan": 224,
+   "gomulu_kose": 0,
+   "en_derin_gomulme_m": 0,
+   "yazi": "insan sapka (saç 2): gövdeye bakan 83 köşenin 4'i temas ediyor (%5), medyan boşluk 4,2 cm, en büyük 5,6 cm (toplam 85 köşe)",
+   "aday": true
+  },
+  {
+   "sac": 3,
+   "kose": 75,
+   "yakin": 74,
+   "temas": 8,
+   "temas_orani": 0.108,
+   "medyan_bosluk_m": 0.0296,
+   "en_buyuk_bosluk_m": 0.0383,
+   "en_yakin_m": 0,
+   "disa_bakan": 234,
+   "gomulu_kose": 2,
+   "en_derin_gomulme_m": 0.008,
+   "yazi": "insan sapka (saç 3): gövdeye bakan 74 köşenin 8'i temas ediyor (%11), medyan boşluk 3,0 cm, en büyük 3,8 cm (toplam 75 köşe)",
+   "aday": true
+  }
+ ],
+ "adaListesi": [
+  {
+   "no": 0,
+   "ada": "diger:sapka [x -0.04 · y 1.73 · z 0.18]",
+   "ucgen": 154,
+   "kapali": false
+  },
+  {
+   "no": 1,
+   "ada": "diger:sapkaSiperi [x -0.02 · y 1.50 · z 0.42]",
+   "ucgen": 300,
+   "kapali": true
+  },
+  {
+   "no": 2,
+   "ada": "diger:sapkaSiperi [x -0.02 · y 1.57 · z 0.13]",
+   "ucgen": 144,
+   "kapali": true
+  }
+ ]
+}
