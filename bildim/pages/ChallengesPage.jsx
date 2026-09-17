@@ -115,6 +115,9 @@ export default function ChallengesPage() {
   const [grupAcik, setGrupAcik] = useState(false);
   const [hizliAcik, setHizliAcik] = useState(false);
   const [dereceli, setDereceli] = useDereceliTercih();
+  // Meydan okuma modu: normal 1v1 maç ya da düello (Taktik Maçı). Düelloda kategoriyi saldıran tur başında seçer.
+  const [meydanModu, setMeydanModu] = useState("normal");
+  const [duelloDavetleri, setDuelloDavetleri] = useState([]);
   const { ceviri } = useDil();
   const [iptalEdilen, setIptalEdilen] = useState(null);
   const [iptalHata, setIptalHata] = useState(null);
@@ -408,7 +411,82 @@ export default function ChallengesPage() {
   }, [hizliYukle]);
 
 
+  // Düello davetleri (gelen + kurduğum, bekleyenler). Tablo RLS'te yalnız taraflara açık.
+  const duelloDavetYukle = useCallback(async () => {
+    if (!user) return;
+    try {
+      const { data, error } = await supabase
+        .from("duello_davetleri")
+        .select("id, kuran, rakip, dereceli, durum, duello_id, created_at")
+        .eq("durum", "bekliyor")
+        .order("created_at", { ascending: false })
+        .limit(20);
+      if (error) throw error;
+      setDuelloDavetleri(data ?? []);
+    } catch (e) {
+      console.warn("[Bildim] düello davetleri okunamadı:", e?.message ?? e);
+    }
+  }, [user]);
+
+  useEffect(() => {
+    duelloDavetYukle();
+    const kanal = supabase
+      .channel("duello_davetleri")
+      .on("postgres_changes", { event: "*", schema: "public", table: "duello_davetleri" }, duelloDavetYukle)
+      .subscribe();
+    return () => supabase.removeChannel(kanal);
+  }, [duelloDavetYukle]);
+
+  /** Düello daveti gönder; açık bot anında kabul eder ve doğrudan düelloya girilir. */
+  const duelloDavetEt = async (hedefId) => {
+    setHata(null);
+    setToast(null);
+    try {
+      const { data, error } = await supabase.rpc("duello_davet_et", {
+        p_rakip: hedefId,
+        p_dereceli: dereceli,
+      });
+      if (error) throw error;
+      if (data?.duello_id) {
+        navigate(y(`/duello/${data.duello_id}`));
+        return;
+      }
+      setToast(tt("Düello daveti gönderildi — rakip kabul edince düello başlayacak."));
+      await duelloDavetYukle();
+      setTimeout(() => bekleyenlerRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 80);
+    } catch (e) {
+      setHata(hataMesaji(e, tt("Düello daveti gönderilemedi.")));
+    }
+  };
+
+  const duelloDavetCevap = async (davetId, kabul) => {
+    setHata(null);
+    try {
+      const { data, error } = await supabase.rpc("duello_davet_cevap", { p_id: davetId, p_kabul: kabul });
+      if (error) throw error;
+      await duelloDavetYukle();
+      if (kabul && data) navigate(y(`/duello/${data}`));
+    } catch (e) {
+      setHata(hataMesaji(e, tt("Düello daveti yanıtlanamadı.")));
+    }
+  };
+
+  const duelloDavetIptal = async (davetId) => {
+    setIptalHata(null);
+    setIptalEdilen(davetId);
+    try {
+      const { error } = await supabase.rpc("duello_davet_iptal", { p_id: davetId });
+      if (error) throw error;
+      await duelloDavetYukle();
+    } catch (e) {
+      setIptalHata(hataMesaji(e, tt("Davet geri alınamadı.")));
+    } finally {
+      setIptalEdilen(null);
+    }
+  };
+
   const meydanOku = async (hedefId) => {
+    if (meydanModu === "duello") return duelloDavetEt(hedefId);
     setHata(null);
     setToast(null);
     try {
@@ -445,6 +523,11 @@ export default function ChallengesPage() {
     else if (kabul) navigate(y(`/mac/${macId}`));
     else yukle();
   };
+
+  // Düello davetleri: bana gelenler / benim kurduklarım + davet satırındaki kişinin profili
+  const duelloGelen = duelloDavetleri.filter((d) => d.rakip === user?.id);
+  const duelloBeklenen = duelloDavetleri.filter((d) => d.kuran === user?.id);
+  const kisi = (id) => botlar.find((b) => b.id === id) ?? oyuncular.find((o) => o.id === id) ?? null;
 
   const grupAday = [
     ...botlar,
@@ -564,6 +647,29 @@ export default function ChallengesPage() {
 
       {/* Sana gelen davetler EN ÜSTTE — aşağıda kalıp gözden kaçmasınlar */}
       <div className="bd-gelen-davetler">
+      {duelloGelen.length > 0 && (
+        <>
+          <div className="baslik">{tt("Düello davetlerin (")}{duelloGelen.length})</div>
+          {duelloGelen.map((d) => (
+            <div key={d.id} className="liste-satir">
+              <AvatarCerceve profile={kisi(d.kuran)} />
+              <div className="bilgi">
+                <div className="isim">{kisi(d.kuran)?.gorunen_ad ?? tt("Rakip")}</div>
+                <div className="detay">
+                  {tt("seni düelloya çağırdı")} · {d.dereceli ? tt("Dereceli") : tt("Serbest")}
+                </div>
+              </div>
+              <button className="btn kucuk" onClick={() => duelloDavetCevap(d.id, true)}>
+                {tt("Kabul")}
+              </button>
+              <button className="btn kucuk tehlike" onClick={() => duelloDavetCevap(d.id, false)}>
+                {tt("Reddet")}
+              </button>
+            </div>
+          ))}
+        </>
+      )}
+
       {gelen.length > 0 && (
         <>
           <div className="baslik">{tt("Sana gelen (")}{gelen.length})</div>
@@ -638,12 +744,38 @@ export default function ChallengesPage() {
       </div>
 
 
-      {/* Kategori seçimi 1v1, grup ve hızlı modun HEPSİ için geçerlidir. */}
+      {/* Meydan okuma modu: Normal Maç ya da Düello. Seçim hem botlara hem arkadaşlara geçerli. */}
+      <div className="bd-kat-baslik">
+        <span>{tt("Meydan okuma modu")}</span>
+        <span className="alt-yazi">{tt("bota ve arkadaşına")}</span>
+      </div>
+      <div className="bd-mod-secim" role="radiogroup" aria-label={tt("Meydan okuma modu")}>
+        <button
+          className={`bd-mod-sec ${meydanModu === "normal" ? "aktif" : ""}`}
+          role="radio"
+          aria-checked={meydanModu === "normal"}
+          onClick={() => setMeydanModu("normal")}
+        >
+          <b>{tt("Normal Maç")}</b>
+          <span className="alt-yazi">{tt("5 soru · seçtiğin kategori")}</span>
+        </button>
+        <button
+          className={`bd-mod-sec ${meydanModu === "duello" ? "aktif" : ""}`}
+          role="radio"
+          aria-checked={meydanModu === "duello"}
+          onClick={() => setMeydanModu("duello")}
+        >
+          <b>{tt("Düello")}</b>
+          <span className="alt-yazi">{tt("3 can · kategoriyi saldıran seçer")}</span>
+        </button>
+      </div>
+
+      {/* Kategori seçimi 1v1, grup ve hızlı modun HEPSİ için geçerlidir. Düelloda kategoriyi saldıran tur başında seçer. */}
       <div className="bd-kat-baslik">
         <span>{tt("Kategori")}</span>
-        <span className="alt-yazi">{tt("1v1 · grup · hızlı mod için")}</span>
+        <span className="alt-yazi">{meydanModu === "duello" ? tt("düelloda kullanılmaz") : tt("1v1 · grup · hızlı mod için")}</span>
       </div>
-      <div className={`bd-kat-serit ${seritSonda ? "sonda" : ""}`}>
+      <div className={`bd-kat-serit ${seritSonda ? "sonda" : ""} ${meydanModu === "duello" ? "bd-sonuk" : ""}`}>
       <div className="bd-kat-grid" ref={katSeritRef} onScroll={seritKaydi}>
         <button
           className={`bd-kat-kart ${kategori === null ? "aktif" : ""}`}
@@ -866,6 +998,29 @@ export default function ChallengesPage() {
               </div>
             );
           })}
+        </>
+      )}
+
+      {/* Kurduğun düello davetleri — rakip yanıtlayana kadar burada durur, geri alınabilir */}
+      {duelloBeklenen.length > 0 && (
+        <>
+          <div className="baslik">{tt("Gönderdiğin düello davetleri")}</div>
+          {duelloBeklenen.map((d) => (
+            <div key={d.id} className="liste-satir">
+              <AvatarCerceve profile={kisi(d.rakip)} boyut={34} />
+              <div className="bilgi">
+                <div className="isim">{kisi(d.rakip)?.gorunen_ad ?? tt("Rakip")}</div>
+                <div className="detay">{tt("Düello · yanıt bekleniyor")} · {d.dereceli ? tt("Dereceli") : tt("Serbest")}</div>
+              </div>
+              <button
+                className="btn kucuk tehlike"
+                disabled={iptalEdilen === d.id}
+                onClick={() => duelloDavetIptal(d.id)}
+              >
+                {iptalEdilen === d.id ? tt("Geri alınıyor…") : tt("Geri al")}
+              </button>
+            </div>
+          ))}
         </>
       )}
 

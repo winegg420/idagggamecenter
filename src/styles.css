@@ -2565,3 +2565,30 @@ p.bd-gizlilik-not {
   font-weight: 800; font-size: 12px; letter-spacing: 5px;
   opacity: 0.7; margin-top: 6px;
 }
+
+/* ---- Meydan okuma modu seçimi (Normal Maç / Düello) — Şenlik: beyaz kart + alt kalınlık, basınca iner ---- */
+.bd-mod-secim {
+  display: grid; grid-template-columns: 1fr 1fr; gap: var(--bd-bosluk-2);
+  margin-bottom: var(--bd-bosluk-4);
+}
+.bd-mod-sec {
+  display: flex; flex-direction: column; gap: 2px;
+  min-height: var(--bd-dokunma);
+  padding: 11px 12px; text-align: left; cursor: pointer;
+  color: var(--text); background: var(--bg-2);
+  border: 1px solid var(--border); border-radius: var(--bd-yaricap-m);
+  box-shadow: 0 3px 0 var(--border);
+  transition: transform 0.08s, border-color 0.15s, box-shadow 0.08s;
+}
+.bd-mod-sec:active { transform: translateY(3px); box-shadow: none; }
+.bd-mod-sec.aktif {
+  border-color: var(--bd-vurgu);
+  box-shadow: 0 3px 0 var(--bd-vurgu);
+}
+.bd-mod-sec b { font-size: 15px; }
+.bd-mod-sec .alt-yazi { font-size: 12px; }
+/* Düello seçiliyken kategori şeridi kullanılmadığını belli eder (gizlenmez: seçim korunur) */
+.bd-sonuk { opacity: 0.45; }
+@media (prefers-reduced-motion: reduce) {
+  .bd-mod-sec { transition: none; }
+}
