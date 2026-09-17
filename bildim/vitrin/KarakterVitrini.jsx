@@ -8,6 +8,7 @@
 // Kayıt: meydan_gorunum_kaydet → profiles.gorunum.harita (meydan bunu okur).
 // ============================================================
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { KOZMETIK_KADRAJ } from "./kadraj.js";
 import { Link } from "react-router-dom";
 import { supabase } from "../../src/lib/supabase.js";
 import { useAuth } from "../../src/context/AuthContext.jsx";
@@ -19,7 +20,6 @@ import { y } from "../lib/yol.js";
 import { profildenGorunum, vitrinKozmetikleri } from "../harita/karakter/meydanAvatar.js";
 import "./vitrin.css";
 
-const KADRAJ = { pelerin: "sirt", kanat: "sirt" };
 
 export default function KarakterVitrini() {
   const { profile } = useAuth();
@@ -116,7 +116,7 @@ export default function KarakterVitrini() {
     let iptal = false;
     const isler = [
       ...kalemler.filter((x) => x.grup === "tur").map((x) => [x.kod, () => gorunumYap(x.kod.replace("tur_", ""), []), "tam"]),
-      ...kalemler.filter((x) => x.grup === "kozmetik" && x.durum === "aktif").map((x) => [x.kod + "@" + tur, () => gorunumYap(tur, [x.kod]), KADRAJ[x.kod] ?? "bas"]),
+      ...kalemler.filter((x) => x.grup === "kozmetik" && x.durum === "aktif").map((x) => [x.kod + "@" + tur, () => gorunumYap(tur, [x.kod]), KOZMETIK_KADRAJ[x.kod] ?? "bas"]),
     ].filter(([anahtar]) => !portreler[anahtar]);
     if (!isler.length) return;
     (async () => {

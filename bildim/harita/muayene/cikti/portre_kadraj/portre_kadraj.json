@@ -1,0 +1,373 @@
+{
+ "esik": {
+  "portre_asgari_oran": 0.04,
+  "portre_tasma_orani": 0.02
+ },
+ "olcum": [
+  {
+   "tur": "insan",
+   "koz": "sapka",
+   "kadraj": "bas",
+   "alan_orani": 0.3682,
+   "tasma_orani": 0,
+   "kutu": [
+    -0.84,
+    -0.65,
+    0.82,
+    0.69
+   ]
+  },
+  {
+   "tur": "insan",
+   "koz": "gozluk",
+   "kadraj": "bas",
+   "alan_orani": 0.0453,
+   "tasma_orani": 0,
+   "kutu": [
+    -0.46,
+    -0.87,
+    0.62,
+    -0.25
+   ]
+  },
+  {
+   "tur": "insan",
+   "koz": "gozlukPremium",
+   "kadraj": "bas",
+   "alan_orani": 0.0696,
+   "tasma_orani": 0,
+   "kutu": [
+    -0.45,
+    -0.86,
+    0.63,
+    -0.25
+   ]
+  },
+  {
+   "tur": "insan",
+   "koz": "atki",
+   "kadraj": "govde",
+   "alan_orani": 0.0932,
+   "tasma_orani": 0,
+   "kutu": [
+    -0.51,
+    -0.61,
+    0.56,
+    0.54
+   ]
+  },
+  {
+   "tur": "insan",
+   "koz": "kanat",
+   "kadraj": "sirt",
+   "alan_orani": 0.0314,
+   "tasma_orani": 0,
+   "kutu": [
+    -0.8,
+    0,
+    0.5,
+    0.82
+   ]
+  },
+  {
+   "tur": "insan",
+   "koz": "tac",
+   "kadraj": "bas",
+   "alan_orani": 0.1386,
+   "tasma_orani": 0.031,
+   "kutu": [
+    -0.65,
+    0.24,
+    0.55,
+    1.02
+   ]
+  },
+  {
+   "tur": "insan",
+   "koz": "pelerin",
+   "kadraj": "sirt",
+   "alan_orani": 0.1008,
+   "tasma_orani": 0,
+   "kutu": [
+    -0.7,
+    -0.6,
+    0.07,
+    0.54
+   ]
+  },
+  {
+   "tur": "kaplan",
+   "koz": "sapka",
+   "kadraj": "bas",
+   "alan_orani": 0.3619,
+   "tasma_orani": 0,
+   "kutu": [
+    -0.84,
+    -0.65,
+    0.82,
+    0.69
+   ]
+  },
+  {
+   "tur": "kaplan",
+   "koz": "gozluk",
+   "kadraj": "bas",
+   "alan_orani": 0.0492,
+   "tasma_orani": 0,
+   "kutu": [
+    -0.45,
+    -0.95,
+    0.66,
+    -0.3
+   ]
+  },
+  {
+   "tur": "kaplan",
+   "koz": "gozlukPremium",
+   "kadraj": "bas",
+   "alan_orani": 0.0745,
+   "tasma_orani": 0,
+   "kutu": [
+    -0.45,
+    -0.94,
+    0.67,
+    -0.3
+   ]
+  },
+  {
+   "tur": "kaplan",
+   "koz": "atki",
+   "kadraj": "govde",
+   "alan_orani": 0.0876,
+   "tasma_orani": 0,
+   "kutu": [
+    -0.51,
+    -0.61,
+    0.56,
+    0.54
+   ]
+  },
+  {
+   "tur": "kaplan",
+   "koz": "kanat",
+   "kadraj": "sirt",
+   "alan_orani": 0.0358,
+   "tasma_orani": 0,
+   "kutu": [
+    -0.84,
+    -0.01,
+    0.44,
+    0.82
+   ]
+  },
+  {
+   "tur": "kaplan",
+   "koz": "tac",
+   "kadraj": "bas",
+   "alan_orani": 0.1336,
+   "tasma_orani": 0.031,
+   "kutu": [
+    -0.65,
+    0.24,
+    0.55,
+    1.02
+   ]
+  },
+  {
+   "tur": "kaplan",
+   "koz": "pelerin",
+   "kadraj": "sirt",
+   "alan_orani": 0.097,
+   "tasma_orani": 0,
+   "kutu": [
+    -0.69,
+    -0.6,
+    0.07,
+    0.54
+   ]
+  },
+  {
+   "tur": "robot",
+   "koz": "sapka",
+   "kadraj": "bas",
+   "alan_orani": 0.364,
+   "tasma_orani": 0,
+   "kutu": [
+    -0.85,
+    -0.54,
+    0.82,
+    0.82
+   ]
+  },
+  {
+   "tur": "robot",
+   "koz": "gozluk",
+   "kadraj": "bas",
+   "alan_orani": 0.121,
+   "tasma_orani": 0,
+   "kutu": [
+    -0.64,
+    -0.89,
+    0.74,
+    -0.27
+   ]
+  },
+  {
+   "tur": "robot",
+   "koz": "gozlukPremium",
+   "kadraj": "bas",
+   "alan_orani": 0.0699,
+   "tasma_orani": 0,
+   "kutu": [
+    -0.45,
+    -0.86,
+    0.63,
+    -0.25
+   ]
+  },
+  {
+   "tur": "robot",
+   "koz": "atki",
+   "kadraj": "govde",
+   "alan_orani": 0.1139,
+   "tasma_orani": 0,
+   "kutu": [
+    -0.51,
+    -0.61,
+    0.56,
+    0.54
+   ]
+  },
+  {
+   "tur": "robot",
+   "koz": "kanat",
+   "kadraj": "sirt",
+   "alan_orani": 0.038,
+   "tasma_orani": 0,
+   "kutu": [
+    -0.79,
+    0,
+    0.52,
+    0.82
+   ]
+  },
+  {
+   "tur": "robot",
+   "koz": "tac",
+   "kadraj": "bas",
+   "alan_orani": 0.1379,
+   "tasma_orani": 0.031,
+   "kutu": [
+    -0.65,
+    0.24,
+    0.55,
+    1.02
+   ]
+  },
+  {
+   "tur": "robot",
+   "koz": "pelerin",
+   "kadraj": "sirt",
+   "alan_orani": 0.1011,
+   "tasma_orani": 0,
+   "kutu": [
+    -0.69,
+    -0.6,
+    0.07,
+    0.54
+   ]
+  }
+ ],
+ "adaylar": [
+  {
+   "tur": "insan",
+   "koz": "kanat",
+   "kadraj": "sirt",
+   "alan_orani": 0.0314,
+   "tasma_orani": 0,
+   "kutu": [
+    -0.8,
+    0,
+    0.5,
+    0.82
+   ],
+   "test": "portre_kadraj",
+   "sebep": "kartta seçilemiyor: görünen alan %3.1 < %4"
+  },
+  {
+   "tur": "insan",
+   "koz": "tac",
+   "kadraj": "bas",
+   "alan_orani": 0.1386,
+   "tasma_orani": 0.031,
+   "kutu": [
+    -0.65,
+    0.24,
+    0.55,
+    1.02
+   ],
+   "test": "portre_kadraj",
+   "sebep": "kadraj dışına taşıyor (%3)"
+  },
+  {
+   "tur": "kaplan",
+   "koz": "kanat",
+   "kadraj": "sirt",
+   "alan_orani": 0.0358,
+   "tasma_orani": 0,
+   "kutu": [
+    -0.84,
+    -0.01,
+    0.44,
+    0.82
+   ],
+   "test": "portre_kadraj",
+   "sebep": "kartta seçilemiyor: görünen alan %3.6 < %4"
+  },
+  {
+   "tur": "kaplan",
+   "koz": "tac",
+   "kadraj": "bas",
+   "alan_orani": 0.1336,
+   "tasma_orani": 0.031,
+   "kutu": [
+    -0.65,
+    0.24,
+    0.55,
+    1.02
+   ],
+   "test": "portre_kadraj",
+   "sebep": "kadraj dışına taşıyor (%3)"
+  },
+  {
+   "tur": "robot",
+   "koz": "kanat",
+   "kadraj": "sirt",
+   "alan_orani": 0.038,
+   "tasma_orani": 0,
+   "kutu": [
+    -0.79,
+    0,
+    0.52,
+    0.82
+   ],
+   "test": "portre_kadraj",
+   "sebep": "kartta seçilemiyor: görünen alan %3.8 < %4"
+  },
+  {
+   "tur": "robot",
+   "koz": "tac",
+   "kadraj": "bas",
+   "alan_orani": 0.1379,
+   "tasma_orani": 0.031,
+   "kutu": [
+    -0.65,
+    0.24,
+    0.55,
+    1.02
+   ],
+   "test": "portre_kadraj",
+   "sebep": "kadraj dışına taşıyor (%3)"
+  }
+ ]
+}

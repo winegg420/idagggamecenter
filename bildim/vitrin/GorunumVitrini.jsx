@@ -8,6 +8,7 @@
 // yeni WebGL bağlamı açılmaz (tarayıcı bağlam sınırı ~16).
 // ============================================================
 import { useEffect, useMemo, useRef, useState } from "react";
+import { KOZMETIK_KADRAJ } from "./kadraj.js";
 import { Link } from "react-router-dom";
 import { supabase } from "../../src/lib/supabase.js";
 import { useAuth } from "../../src/context/AuthContext.jsx";
@@ -18,7 +19,6 @@ import { y } from "../lib/yol.js";
 import { profildenGorunum } from "../harita/karakter/meydanAvatar.js";
 import "./vitrin.css";
 
-const KADRAJ = { pelerin: "sirt", kanat: "sirt" };
 
 export default function GorunumVitrini() {
   const { profile } = useAuth();
@@ -68,7 +68,7 @@ export default function GorunumVitrini() {
         for (const k of kozmetikler.filter((x) => x.durum === "aktif")) {
           if (iptal) return;
           await new Promise((r) => requestAnimationFrame(r));
-          const url = sahne.portre({ ...temel, harita: { tur, koz: { [k.kod]: k.kod === "pelerin" ? "klasik" : true } } }, { kadraj: KADRAJ[k.kod] ?? "bas", boyut: 192 });
+          const url = sahne.portre({ ...temel, harita: { tur, koz: { [k.kod]: k.kod === "pelerin" ? "klasik" : true } } }, { kadraj: KOZMETIK_KADRAJ[k.kod] ?? "bas", boyut: 192 });
           if (url && !iptal) setPortreler((p) => ({ ...p, [k.kod]: url }));
         }
       } catch (e) {

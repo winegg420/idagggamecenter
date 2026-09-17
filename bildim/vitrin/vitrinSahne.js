@@ -10,14 +10,17 @@
 // ============================================================
 import * as THREE from "three";
 import "../lib/threeKonsol.js";   // Paket 20 VI: yalnız ANGLE/D3D X4122 shader uyarısını süzer
+export { KOZMETIK_KADRAJ } from "./kadraj.js";
 import { KarakterSistemi } from "../harita/karakter/karakter.js";
 import { MeydanAvatarlari } from "../harita/karakter/meydanAvatar.js";
 
 /** Kadrajlar (karakter +Z'ye bakar; baş yuvası 1,68 m, sırt yuvası 0,94 m). */
-const KADRAJ = {
+export const KADRAJ = {
   bas:  { fov: 26, konum: [0.35, 1.72, 1.55], bak: [0, 1.58, 0], don: 0.35 },
   tam:  { fov: 28, konum: [0, 1.05, 4.3], bak: [0, 0.92, 0], don: 0.45 },
   sirt: { fov: 28, konum: [0, 1.2, 3.6], bak: [0, 1.0, 0], don: Math.PI - 0.55 },
+  // Paket 21 §E.2: boyun–omuz hizası. Atkı "bas" kadrajında kadrajın alt kenarında kalıyordu (ölçüldü).
+  govde: { fov: 26, konum: [0.3, 1.35, 2.0], bak: [0, 1.13, 0], don: 0.35 },
 };
 
 /**

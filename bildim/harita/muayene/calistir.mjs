@@ -82,6 +82,38 @@ try {
     ozet.gpu = bilgi.gpu;
     console.log(`[muayene] ${ad}: ${dosyalar.length} görünüm · ${bilgi.ucgen} üçgen · ${bilgi.malzeme} malzeme · ${test.adaylar.length} aday · ${test.susturulan.length} susturulan`);
   }
+  // §E.2: portre kadrajı testi — kart portresi oyunun kendi koduyla çizilir, kozmetiğin GÖRÜNEN alanı ve taşması ölçülür.
+  // Seçimli koşuda atlanır (tam koşunun testi), `--portre` ile zorlanır.
+  if (!secilen.length || process.argv.includes("--portre")) {
+    const pSayfa = await tarayici.newPage({ viewport: { width: 400, height: 400 }, deviceScaleFactor: 1 });
+    const pHata = [];
+    pSayfa.on("pageerror", (e) => pHata.push(String(e)));
+    try {
+      await pSayfa.goto(`http://localhost:${sunucu.config.server.port}/bildim/harita/muayene/portre.html`);
+      await pSayfa.waitForFunction(() => window.portreHazir, null, { timeout: 90000 });
+      const liste = TAKILI.filter((t) => t.koz !== "kuyruk").map((t) => ({ tur: t.tur, koz: t.koz }));
+      const olcum = await pSayfa.evaluate((l) => window.portreOlc(l), liste);
+      const klasor = path.join(CIKTI, "portre_kadraj");
+      fs.mkdirSync(klasor, { recursive: true });
+      const adaylar = [];
+      for (const s of olcum) {
+        fs.writeFileSync(path.join(klasor, `${s.tur}_${s.koz}.png`), Buffer.from(s.resim.split(",")[1], "base64"));
+        delete s.resim;
+        if (s.tasma_orani > ESIK.portre_tasma_orani) adaylar.push({ ...s, test: "portre_kadraj", sebep: `kadraj dışına taşıyor (%${Math.round(s.tasma_orani * 100)})` });
+        else if (s.alan_orani < ESIK.portre_asgari_oran) adaylar.push({ ...s, test: "portre_kadraj", sebep: `kartta seçilemiyor: görünen alan %${(s.alan_orani * 100).toFixed(1)} < %${ESIK.portre_asgari_oran * 100}` });
+      }
+      fs.writeFileSync(path.join(klasor, "portre_kadraj.json"), JSON.stringify({ esik: { portre_asgari_oran: ESIK.portre_asgari_oran, portre_tasma_orani: ESIK.portre_tasma_orani }, olcum, adaylar }, null, 1));
+      ozet.portre_kadraj = { olculen: olcum.length, aday: adaylar.length, adaylar };
+      console.log(`[muayene] portre kadrajı: ${olcum.length} kart ölçüldü · ${adaylar.length} aday${adaylar.map((a) => `\n  ${a.tur}/${a.koz}: ${a.sebep}`).join("")}`);
+    } catch (e) {
+      console.error("[muayene] portre kadrajı başarısız:", e);
+      process.exitCode = 1;
+    } finally {
+      if (pHata.length) console.error("[muayene] portre sayfa hatası:", pHata.slice(0, 3).join(" | "));
+      await pSayfa.close().catch(() => {});
+    }
+  }
+
   // 1H: npm run muayene -- --karsilastir <sayfa.json …>  → cikti/<sayfa>.jpg (gövde karşılaştırma sayfaları)
   for (const s of process.argv.includes("--karsilastir") ? secilen.filter((a) => a.endsWith(".json")) : []) {
     const tanim = JSON.parse(fs.readFileSync(path.resolve(KOK, s), "utf8"));
