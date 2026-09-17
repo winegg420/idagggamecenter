@@ -23,6 +23,7 @@ import KategoriIkon from "../components/KategoriIkon.jsx";
 import Maskot from "../components/Maskot.jsx";
 import BildirimIzniSor from "../components/BildirimIzniSor.jsx";
 import OdulDokumu from "../components/OdulDokumu.jsx";
+import MacSorulari from "../components/MacSorulari.jsx";
 import DereceliAnahtari from "../components/DereceliAnahtari.jsx";
 import { useDereceliTercih } from "../lib/dereceli.js";
 import { useDil } from "../lib/dilKanca.js";
@@ -321,6 +322,7 @@ function DuelloMac({ id }) {
             );
           })()}
           {d.durum === "bitti" && <OdulDokumu kaynak={`duello:${d.id}`} onToplam={setDokumToplam} />}
+          <MacSorulari kaynak={`duello:${d.id}`} />
           {ezeliMetin && <div className="bd-duello-ezeli">{ezeliMetin}</div>}
 
           <div className="bd-duello-rovans">

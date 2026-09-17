@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import KategoriIkon from "../components/KategoriIkon.jsx";
 import BildirimIzniSor from "../components/BildirimIzniSor.jsx";
 import OdulDokumu from "../components/OdulDokumu.jsx";
+import MacSorulari from "../components/MacSorulari.jsx";
 import SureDolduGecis from "../components/SureDolduGecis.jsx";
 import { sesKilidiAc, sesTik, sesDogru, sesYanlis, sesDokunus } from "../lib/ses.js";
 import CevapEfekti from "../components/CevapEfekti.jsx";
@@ -433,6 +434,7 @@ export default function HizliModPage() {
           </span>
         </div>
         {oturum?.oturum_id && sonuc && <OdulDokumu kaynak={`hizli:${oturum.oturum_id}`} onToplam={setDokumToplam} />}
+        {oturum?.oturum_id && sonuc && <MacSorulari kaynak={`hizli:${oturum.oturum_id}`} />}
         <BildirimIzniSor />
         <div className="bd-konum-butonlar" style={{ marginTop: 16 }}>
           <button className="btn" onClick={() => setAsama("secim")}>{tt("Tekrar oyna")}</button>

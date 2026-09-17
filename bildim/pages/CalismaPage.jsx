@@ -13,6 +13,7 @@ import { kategoriEtiket, kategorileriSirala } from "../lib/kategoriler.js";
 import { y } from "../lib/yol.js";
 import { useGorunurlukTazele } from "../lib/gorunurluk.js";
 import { tt } from "../lib/dil.js";
+import MacSorulari from "../components/MacSorulari.jsx";
 
 const SORU_SN = 20;
 const HARFLER = ["A", "B", "C", "D"];
@@ -37,6 +38,8 @@ export default function CalismaPage() {
   const [sonucSoru, setSonucSoru] = useState(null);
   const [kalan, setKalan] = useState(SORU_SN);
   const [sonuc, setSonuc] = useState(null);
+  // Paket 20 II.1: tur sonunda her soru için "Soruyu bildir" (soru ekranı otomatik geçtiği için listede)
+  const [cevaplananlar, setCevaplananlar] = useState([]);
   const [kutlama, setKutlama] = useState(false);
   const [yukleniyor, setYukleniyor] = useState(true);
   const [calisiyor, setCalisiyor] = useState(false);
@@ -134,6 +137,7 @@ export default function CalismaPage() {
       if (!o?.oturum_id) throw new Error(tt("Tur açılamadı"));
       setOturum(o);
       setSonuc(null);
+      setCevaplananlar([]);
       setAsama("oyun");
       await soruGetir(o.oturum_id);
     } catch (e) {
@@ -157,6 +161,8 @@ export default function CalismaPage() {
       if (error) throw error;
       const s = Array.isArray(data) ? data[0] : data;
       setSonucSoru(s);
+      setCevaplananlar((l) => [...l, { question_id: soru.question_id, soru: soru.soru, secenekler: soru.secenekler,
+        dogru_cevap: s?.dogru_cevap, benim_cevap: i, ben_cevapladim: true, bildirdim: false }]);
       if (s?.ogrenildi) {
         setKutlama(true);
         sesKazandin();
@@ -477,6 +483,7 @@ export default function CalismaPage() {
           </button>
         </div>
       </div>
+      <MacSorulari sorular={cevaplananlar} baslik={tt("Turun soruları ({n})", { n: cevaplananlar.length })} />
       {hata && <div className="hata-kutu">{hata}</div>}
     </div>
   );

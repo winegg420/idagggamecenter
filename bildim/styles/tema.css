@@ -6387,3 +6387,39 @@ body.bd-ekle-acik .app { padding-bottom: calc(300px + env(safe-area-inset-bottom
 .app .bd-odul-satir.bilgi { font-size: 13px; color: var(--bd-metin-2); }
 .app .bd-odul-satir.bilgi .deger { color: var(--bd-metin-2); }
 .app .bd-odul-indirim { font-size: 12px; font-weight: 700; color: var(--bd-metin-2); }
+
+/* Paket 20 II.1 — maç sonu soru listesi + "Soruyu bildir" */
+.app .bd-mac-sorulari {
+  max-width: 340px; margin: 14px auto 0; padding: 10px 14px; text-align: left;
+  background: var(--bd-yuzey-1); border-radius: var(--bd-r-l); box-shadow: 0 4px 0 var(--bd-kart-alt);
+}
+.app .bd-mac-sorulari > summary {
+  cursor: pointer; font-family: var(--bd-f-baslik); font-weight: 800; font-size: 15px; color: var(--bd-metin);
+  min-height: 32px; display: flex; align-items: center;
+}
+.app .bd-mac-sorulari ol { list-style: none; margin: 8px 0 0; padding: 0; }
+.app .bd-mac-soru { padding: 10px 0; border-top: 1px dashed var(--bd-kenar); }
+.app .bd-mac-soru-etiket { font-size: 12px; font-weight: 800; color: var(--bd-metin-2); margin-bottom: 2px; }
+.app .bd-mac-soru-etiket .riskli { color: var(--bd-vurgu-metin, #B4470C); }
+.app .bd-mac-soru-metin { font-weight: 800; font-size: 14px; color: var(--bd-metin); margin-bottom: 6px; }
+.app .bd-mac-soru-siklar { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
+.app .bd-mac-soru-siklar li { font-size: 13px; font-weight: 700; color: var(--bd-metin-2); padding: 4px 8px; border-radius: 8px; }
+.app .bd-mac-soru-siklar li.dogru { background: #E3F6EC; color: var(--bd-basari-metin); }
+.app .bd-mac-soru-siklar li.yanlis { background: #FDE8E8; color: var(--bd-hata-metin, #B42323); }
+.app .bd-mac-soru-not { font-size: 11px; font-weight: 800; margin-left: 6px; }
+.app .bd-mac-soru-not.ayri { display: block; margin: 4px 0 0; color: var(--bd-metin-2); }
+.app .bd-bildir { margin-top: 8px; }
+.app .bd-bildir-ac, .app .bd-bildir-vazgec {
+  background: none; border: 0; padding: 6px 0; min-height: 32px; font: inherit; font-size: 13px; font-weight: 800;
+  color: var(--bd-metin-2); text-decoration: underline; cursor: pointer;
+}
+.app .bd-bildir-sebepler { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.app .bd-bildir-soru { width: 100%; font-size: 12px; font-weight: 800; color: var(--bd-metin-2); }
+.app .bd-bildir-sebep {
+  font: inherit; font-size: 12px; font-weight: 800; color: var(--bd-metin); background: var(--bd-yuzey-1);
+  border: 2px solid var(--bd-kenar); border-radius: 999px; padding: 6px 10px; min-height: 32px; cursor: pointer;
+  box-shadow: 0 2px 0 var(--bd-kart-alt);
+}
+.app .bd-bildir-sebep:active { transform: translateY(2px); box-shadow: none; }
+.app .bd-bildir-sebep:disabled { opacity: .55; }
+.app .bd-bildir-tamam { margin-top: 8px; font-size: 12px; font-weight: 800; color: var(--bd-basari-metin); }

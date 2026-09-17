@@ -14,7 +14,9 @@
     "test:dans": "node bildim/_test/dans-testi.mjs",
     "muayene": "node bildim/harita/muayene/calistir.mjs",
     "cephe-ao": "node bildim/harita/varlik/cephe_ao.mjs",
-    "test:ios:kur": "playwright-core install webkit"
+    "test:ios:kur": "playwright-core install webkit",
+    "soru:disari": "node araclar/soru_denetim/disari.mjs",
+    "soru:iceri": "node araclar/soru_denetim/iceri.mjs"
   },
   "dependencies": {
     "@react-three/drei": "^10.7.7",

@@ -13,6 +13,7 @@ import BildirimIzniSor from "../components/BildirimIzniSor.jsx";
 import MacSonuEklentisi from "../components/MacSonuEklentisi.jsx";
 import MacSonuDokum from "../components/MacSonuDokum.jsx";
 import OdulDokumu from "../components/OdulDokumu.jsx";
+import MacSorulari from "../components/MacSorulari.jsx";
 import MeydanaDonus from "../components/MeydanaDonus.jsx";
 import Maskot from "../components/Maskot.jsx";
 import Ikon from "../components/Ikon.jsx";
@@ -741,6 +742,7 @@ export default function MatchPage() {
           {/* Meydandan girilmişse maç bitince oraya dönülür (harita/donus.js) */}
           <MeydanaDonus />
           <MacSonuDokum macId={id} kazanilanPuan={odulum?.lig_puan ?? 0} />
+          <MacSorulari kaynak={`mac:${id}`} />
           <MacSonuEklentisi
             macTur="1v1"
             macId={id}
