@@ -177,6 +177,8 @@ export class MeydanAvatarlari {
     this.sinir = 8;         // tam karakter sayısı (oyun_ayarlari.meydan_uc_boyutlu_sinir; 2B ölçümü)
     this.tamSayisi = 0;
     this.ek = null;         // Paket 16 §C: paylaşılan taç/pelerin InstancedMesh'leri (lazy)
+    this.kozHavuz = null;   // Paket 18 §B: kaynak geometri → paylaşılan kozmetik InstancedMesh
+    this.kozOrnekleme = true;
   }
 
   /** Sarmalayıcı grup: HEMEN döner; karakter sistemi hazırsa gövde de takılır, değilse `hazirOlunca()` takar. */
@@ -290,6 +292,7 @@ export class MeydanAvatarlari {
   /** ks.kare()'den SONRA: dans/ikram vekil dönüşlerini kemiklere ekle (karakter uzayında). */
   vekilleriUygula() {
     this.#vekiller();
+    this.#kozmetikHavuzu();
     this.#ekleriGuncelle();
   }
 
@@ -343,6 +346,57 @@ export class MeydanAvatarlari {
     this.ek = null;
   }
 
+  /**
+   * Paket 18 §B — KOZMETİK ÖRNEKLEME. kozmetik.js her karaktere kozmetiğin KLONUNU takıyor (karakter başına kozmetik
+   * başına 1 çizim çağrısı). Klon yerinde kalır ama GÖRÜNMEZ olur: yuvaya bağlılığı, tür–kozmetik sözleşmesinin
+   * uyguladığı öteleme/ölçek (bicimlendir · it), kanat çırpma ve kuyruk sallama animasyonu (karakter.js kare) aynen
+   * klonun matrisinde işler. Çizimi KAYNAK GEOMETRİ başına tek paylaşımlı InstancedMesh yapar; örnek matrisi klonun
+   * dünya matrisidir → yeri, açısı, ölçeği birebir aynı. Havuz anahtarı geometri: robotun kendi şapka/gözlüğü ayrı
+   * havuz, varyantı olmayan tür insanınkini paylaşır. `gizle` politikası gövdede çalıştığı için etkilenmez.
+   * Gölge atmaz (klonlar da atmıyordu). `kozOrnekleme = false` eski yola döner (ölçüm/karşılaştırma için).
+   */
+  #kozmetikHavuzu() {
+    const havuz = (this.kozHavuz ??= new Map());
+    const sayac = new Map();
+    for (const av of this.hepsi) {
+      const u = av.userData, k = u.karakter;
+      if (!k) continue;
+      if (u.kozKaynak !== k) {   // gövde (yeniden) kuruldu: klonları topla
+        u.kozKaynak = k; u.kozKlonlar = [];
+        k.traverse((o) => { if (o.isMesh && o.name.startsWith("kozmetik_")) u.kozKlonlar.push(o); });
+      }
+      const ciz = av.parent && av.visible;
+      for (const o of u.kozKlonlar) {
+        o.visible = !this.kozOrnekleme;
+        if (!this.kozOrnekleme || !ciz || !o.parent) continue;
+        const liste = sayac.get(o.geometry) ?? []; liste.push(o); sayac.set(o.geometry, liste);
+      }
+    }
+    for (const [geo, h] of havuz) if (!sayac.has(geo) || !this.kozOrnekleme) h.mesh.count = 0;
+    if (!this.kozOrnekleme) return;
+    for (const [geo, klonlar] of sayac) {
+      let h = havuz.get(geo);
+      if (!h || h.kapasite < klonlar.length) {
+        if (h) { h.mesh.removeFromParent(); h.mesh.dispose(); }   // geometri kaynağındır, bırakılmaz
+        const kapasite = Math.max(16, h ? h.kapasite * 2 : 0, klonlar.length);
+        const mesh = new THREE.InstancedMesh(geo, klonlar[0].material, kapasite);
+        mesh.name = "MeydanKozmetik_" + klonlar[0].name.replace("kozmetik_", "");
+        mesh.frustumCulled = false; mesh.castShadow = false; mesh.receiveShadow = false;
+        mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+        this.ks.sahne.add(mesh);
+        h = { mesh, kapasite }; havuz.set(geo, h);
+      }
+      klonlar.forEach((o, i) => { o.updateWorldMatrix(true, false); h.mesh.setMatrixAt(i, o.matrixWorld); });
+      h.mesh.count = klonlar.length;
+      h.mesh.instanceMatrix.needsUpdate = true;
+    }
+  }
+
+  #kozmetikHavuzunuBirak() {
+    for (const h of this.kozHavuz?.values() ?? []) { h.mesh.removeFromParent(); h.mesh.dispose(); }
+    this.kozHavuz = null;
+  }
+
   /** Her kare (vekilleriUygula sonunda): taç baş yuvasına, pelerin sırt yuvasına; pelerin hıza göre açılır + hafif sallanır. */
   #ekleriGuncelle() {
     let tacSay = 0, pelSay = 0;
@@ -383,5 +437,5 @@ export class MeydanAvatarlari {
     if (u.etiket) nesneyiSerbestBirak(u.etiket);
   }
 
-  temizle() { for (const av of [...this.hepsi]) this.sil(av); this.tamSayisi = 0; this.#ekleriBirak(); }
+  temizle() { for (const av of [...this.hepsi]) this.sil(av); this.tamSayisi = 0; this.#ekleriBirak(); this.#kozmetikHavuzunuBirak(); }
 }

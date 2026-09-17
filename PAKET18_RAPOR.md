@@ -3,7 +3,7 @@
 | Bölüm | Durum | Commit |
 |---|---|---|
 | A — lig kapanışı (4 düzeltme) | ✅ canlıda · migration 217 uygulandı | A commit'i |
-| B — kozmetik çizim çağrısı kaldıracı | (sürüyor) | |
+| B — kozmetik çizim çağrısı kaldıracı | ✅ canlıda · 167 → 147 çağrı, piksel farkı 0; ms kapısı geçilmedi | B commit'i |
 | C — yeni oyuncuya rastgele kozmetik | (sürüyor) | |
 | D — atkı + kanat satışta | (sürüyor) | |
 | E — iOS Safari (WebKit) | (sürüyor) | |
@@ -72,3 +72,55 @@ Yükselme koşulu `sira <= 5` → `sira <= 5 and puan_hafta > 0`. Düşme kural�
 | A.3 | Aynı hafta ikinci çağrı | — | `zaten_kapandi` |
 
 Test betiği `.tmp/p18/test217.mjs`. Migration kalıcı olarak uygulandı; test işlemleri geri alındı. Canlıda `lig_son_kapanis` ve `hafta_son_kapanis` = 2026-09-07, 21 Eylül grubu yok. İlk gerçek çalışma **20 Eylül Pazar 21:00 UTC** (21 Eylül Pazartesi 00:00 TSİ).
+
+
+---
+
+## B — Kozmetik çizim çağrısı kaldıracı
+
+### Yapılan (`bildim/harita/karakter/meydanAvatar.js`)
+`kozmetik.js` ve `karakter.js` **değişmedi**. Klon mimarisi yerinde kaldı; yalnız çizim yolu değişti:
+- `kozmetikTak`'ın karaktere taktığı her klon (`kozmetik_*`, kaplan kuyruğu dahil) **görünmez** yapılır ama yerinde kalır. Böylece yuvaya bağlılık, **tür–kozmetik sözleşmesi** (`bicimlendir` ölçek/öteleme, `it` öteleme — kaplan burnu, robot anteni; `gizle` zaten gövdede çalışıyor), **kanat çırpma** ve **kuyruk sallama** animasyonu (`karakter.js › kare` klonun rotasyon/ölçeğini yazıyor) aynen işler.
+- Çizimi **kaynak geometri başına tek paylaşımlı InstancedMesh** yapar. Örnek matrisi = klonun dünya matrisi → yer, açı ve ölçek birebir aynı.
+- **Havuz bölmesi = kaynak geometri** (ölçüldü, en az çağrı bu):
+  - robotun kendi şapka/gözlük varyantı ayrı havuz;
+  - varyantı olmayan tür insanınkini paylaşır (aynı havuz);
+  - tür başına ayrı bölmek çağrıyı artırırdı.
+  - Olası havuzlar: insan sapka · gözlük · gözlükPremium · atkı · kanat, robot sapka · gözlük, kaplan kuyruk = en fazla 8; sahnede kullanılan kadar açılır.
+- **Kanat bağı kopmadı:** `kok.userData.kanatMesh` hâlâ klonu gösteriyor. `suzulme` bayrağı, `vfxEsle` (RECETE.kanat) ve çırpma animasyonu klon üzerinden çalışır, instanced çizim matrisi oradan okur. (D'de canlı doğrulandı.)
+- **Gölge:** değişmedi. Klonlar gölge atmıyordu (`castShadow = false`), havuzlar da atmaz, `receiveShadow` klonlardaki gibi kapalı.
+- **Geri dönüş:** `karakterler.kozOrnekleme = false` eski klon yoluna döner (aynı karede karşılaştırma için kullanıldı).
+
+### Sahne kurulumu (önce/sonra aynı)
+- **Düzenek:** `olcum/meydan-test` üretim derlemesi, headless Chrome (ANGLE D3D11, tümleşik GPU), 1536×791, DPR 1, `katmanKur()` en kötü açı (İstiklal ucu).
+- **Oyuncular:** `window.oyuncular()` → 24 oyuncu, görünüm kaydı yok, **tohumdan** görünüm (rastgele şapka/atkı/gözlük), tür insan/kaplan/robot sırayla + kendi oyuncun + 2 bot. Kalabalık sınırı 20, katman 5, 8 kedi.
+- **Ölçüm:** 120 ısınma + 300 örnek.
+- **Karşılaştırma:** önce = `e864956` (A commit'i), sonra = aynı commit + bu değişiklik; ikisi ayrı derleme, ayrı port.
+- **Turlar:** 3 tur, sıra dönüşümlü (önce→sonra, sonra→önce, önce→sonra).
+
+### Ölçüm
+
+| Ölçüm | Önce | Sonra |
+|---|---:|---:|
+| Toplam çizim çağrısı | **167** | **147** (−20) |
+| Kozmetik klonu (görünür, çizilen) / örnek | 27 klon (25'i kadrajda, 2'si görüş dışında elenmiş) | 0 klon · **5 havuz, 27 örnek** |
+| Üçgen | 439.795 | 440.909 (+1.114: havuzlar görüş dışı elemesi yapmıyor, eskiden elenen 2 klon çiziliyor) |
+| CPU+GPU medyan (tur 1 · 2 · 3) | 7,2 · 7,1 · 6,2 | 6,6 · 6,0 · 6,8 |
+| CPU+GPU p95 (tur 1 · 2 · 3) | 8,3 · 10,9 · 7,6 | 7,7 · 7,2 · 8,3 |
+| CPU (gönderim) medyan | 6,4 · 6,3 · 5,6 | 5,8 · 5,1 · 5,9 |
+
+**ms kapısı: PASS DEĞİL.** Kapı 4,0 ms, iki sürüm de 6–7 ms. Tur tur fark **−0,6 / −1,1 / +0,6 ms**: yön tutarlı değil, makinenin tur içi saçılması (±1 ms) farktan büyük. Bu ölçümden bir süre kazancı çıkarmıyorum. (Bu oturumda makine 3A-2'dekinden ~1 ms yavaş ölçüyor; taban da 7,1–7,2'ye çıktı.)
+
+**Kazanç çağrı bütçesinde:** 20 çağrı (bütçe 220 → pay 53'ten 73'e). Kozmetik maliyeti artık oyuncu sayısıyla değil kozmetik çeşidiyle büyüyor. D'deki atkı ve kanat bu yüzden en fazla +1'er çağrı getirir (karakter başına değil). Değişiklik tutuldu.
+
+### Görsel eşitlik kanıtı
+- **Yöntem:** aynı sayfada, döngü durdurulup animasyon ilerletilmeden **aynı kare** iki yolla çizildi: `kozOrnekleme=false` (klon) → `true` (örnek) → `false` (klon tekrar). Kamera kozmetikli oyuncuların arasında, yakın. Sonra piksel karşılaştırması yapıldı (kanal farkı > 2 = farklı).
+- **Kadraj:** yakın kadrajda 24 klon görünüyordu; çağrı 150 → 131.
+- **Sonuç:**
+
+| Karşılaştırma | Farklı piksel | Oran | En büyük kanal farkı |
+|---|---:|---:|---:|
+| klon ↔ örnek | **0** | 0 % | 1/255 |
+| klon ↔ klon (gürültü tabanı) | 0 | 0 % | 0 |
+
+Görseller: `gorsel/paket18/b-1-klon-yolu.jpg` ↔ `b-2-ornek-yolu.jpg`. Betikler `.tmp/p18/esitlik.mjs`, `.tmp/p18/olcB.mjs`, ham veri `.tmp/p18/olcumB.json`.
