@@ -996,7 +996,7 @@ const SOZLUK = {
     "Bu tarayıcı bildirimleri desteklemiyor.": "This browser doesn't support notifications.",
     "Bildirim izni verilmedi.": "Notification permission wasn't granted.",
     "Çaylak": "Rookie",
-    "Üstat": "Master",
+    "Üstat": "Grandmaster",
     "Kahin": "Oracle",
     "Efsane": "Legend",
     "Mikrofon izni verilmedi. Tarayıcı adres çubuğundaki kilit simgesinden izin verebilirsin.": "Microphone permission wasn't granted. You can allow it from the lock icon in your browser's address bar.",
