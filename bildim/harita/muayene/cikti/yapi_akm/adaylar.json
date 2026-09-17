@@ -1,0 +1,685 @@
+{
+ "varlik": "yapi_akm",
+ "istatistik": {
+  "ada": 110,
+  "kapali_ada": 0,
+  "havada": {
+   "ada": 110,
+   "zemine_bagli_kaynak": 1,
+   "bagli": 110,
+   "bagsiz_grup": 0
+  },
+  "simetri": "beyan yok (atlandı)",
+  "icice": {
+   "kapali_ada": 0,
+   "acik_ada": 110,
+   "pay_m": 0.05,
+   "gomulu_oran_esigi": 0.6
+  },
+  "sure_s": 0.1
+ },
+ "adaylar": [],
+ "susturulan": [],
+ "adaListesi": [
+  {
+   "no": 0,
+   "ada": "cam:cam [x -24.70 · y 3.03 · z 9.85]",
+   "ucgen": 2,
+   "kapali": false
+  },
+  {
+   "no": 1,
+   "ada": "cam:cam [x -22.10 · y 3.03 · z 9.85]",
+   "ucgen": 2,
+   "kapali": false
+  },
+  {
+   "no": 2,
+   "ada": "cam:cam [x -19.50 · y 3.03 · z 9.85]",
+   "ucgen": 2,
+   "kapali": false
+  },
+  {
+   "no": 3,
+   "ada": "cam:cam [x -16.90 · y 3.03 · z 9.85]",
+   "ucgen": 2,
+   "kapali": false
+  },
+  {
+   "no": 4,
+   "ada": "cam:cam [x -14.30 · y 3.03 · z 9.85]",
+   "ucgen": 2,
+   "kapali": false
+  },
+  {
+   "no": 5,
+   "ada": "cam:cam [x -11.70 · y 3.03 · z 9.85]",
+   "ucgen": 2,
+   "kapali": false
+  },
+  {
+   "no": 6,
+   "ada": "cam:cam [x -9.10 · y 3.03 · z 9.85]",
+   "ucgen": 2,
+   "kapali": false
+  },
+  {
+   "no": 7,
+   "ada": "cam:cam [x 9.10 · y 3.03 · z 9.85]",
+   "ucgen": 2,
+   "kapali": false
+  },
+  {
+   "no": 8,
+   "ada": "cam:cam [x 11.70 · y 3.03 · z 9.85]",
+   "ucgen": 2,
+   "kapali": false
+  },
+  {
+   "no": 9,
+   "ada": "cam:cam [x 14.30 · y 3.03 · z 9.85]",
+   "ucgen": 2,
+   "kapali": false
+  },
+  {
+   "no": 10,
+   "ada": "cam:cam [x 16.90 · y 3.03 · z 9.85]",
+   "ucgen": 2,
+   "kapali": false
+  },
+  {
+   "no": 11,
+   "ada": "cam:cam [x 19.50 · y 3.03 · z 9.85]",
+   "ucgen": 2,
+   "kapali": false
+  },
+  {
+   "no": 12,
+   "ada": "cam:cam [x 22.10 · y 3.03 · z 9.85]",
+   "ucgen": 2,
+   "kapali": false
+  },
+  {
+   "no": 13,
+   "ada": "cam:cam [x 24.70 · y 3.03 · z 9.85]",
+   "ucgen": 2,
+   "kapali": false
+  },
+  {
+   "no": 14,
+   "ada": "cam:cam [x -24.70 · y 7.88 · z 9.85]",
+   "ucgen": 2,
+   "kapali": false
+  },
+  {
+   "no": 15,
+   "ada": "cam:cam [x -22.10 · y 7.88 · z 9.85]",
+   "ucgen": 2,
+   "kapali": false
+  },
+  {
+   "no": 16,
+   "ada": "cam:cam [x -19.50 · y 7.88 · z 9.85]",
+   "ucgen": 2,
+   "kapali": false
+  },
+  {
+   "no": 17,
+   "ada": "cam:cam [x -16.90 · y 7.88 · z 9.85]",
+   "ucgen": 2,
+   "kapali": false
+  },
+  {
+   "no": 18,
+   "ada": "cam:cam [x -14.30 · y 7.88 · z 9.85]",
+   "ucgen": 2,
+   "kapali": false
+  },
+  {
+   "no": 19,
+   "ada": "cam:cam [x -11.70 · y 7.88 · z 9.85]",
+   "ucgen": 2,
+   "kapali": false
+  },
+  {
+   "no": 20,
+   "ada": "cam:cam [x -9.10 · y 7.88 · z 9.85]",
+   "ucgen": 2,
+   "kapali": false
+  },
+  {
+   "no": 21,
+   "ada": "cam:cam [x 9.10 · y 7.88 · z 9.85]",
+   "ucgen": 2,
+   "kapali": false
+  },
+  {
+   "no": 22,
+   "ada": "cam:cam [x 11.70 · y 7.88 · z 9.85]",
+   "ucgen": 2,
+   "kapali": false
+  },
+  {
+   "no": 23,
+   "ada": "cam:cam [x 14.30 · y 7.88 · z 9.85]",
+   "ucgen": 2,
+   "kapali": false
+  },
+  {
+   "no": 24,
+   "ada": "cam:cam [x 16.90 · y 7.88 · z 9.85]",
+   "ucgen": 2,
+   "kapali": false
+  },
+  {
+   "no": 25,
+   "ada": "cam:cam [x 19.50 · y 7.88 · z 9.85]",
+   "ucgen": 2,
+   "kapali": false
+  },
+  {
+   "no": 26,
+   "ada": "cam:cam [x 22.10 · y 7.88 · z 9.85]",
+   "ucgen": 2,
+   "kapali": false
+  },
+  {
+   "no": 27,
+   "ada": "cam:cam [x 24.70 · y 7.88 · z 9.85]",
+   "ucgen": 2,
+   "kapali": false
+  },
+  {
+   "no": 28,
+   "ada": "cam:cam [x -24.70 · y 12.72 · z 9.85]",
+   "ucgen": 2,
+   "kapali": false
+  },
+  {
+   "no": 29,
+   "ada": "cam:cam [x -22.10 · y 12.72 · z 9.85]",
+   "ucgen": 2,
+   "kapali": false
+  },
+  {
+   "no": 30,
+   "ada": "cam:cam [x -19.50 · y 12.72 · z 9.85]",
+   "ucgen": 2,
+   "kapali": false
+  },
+  {
+   "no": 31,
+   "ada": "cam:cam [x -16.90 · y 12.72 · z 9.85]",
+   "ucgen": 2,
+   "kapali": false
+  },
+  {
+   "no": 32,
+   "ada": "cam:cam [x -14.30 · y 12.72 · z 9.85]",
+   "ucgen": 2,
+   "kapali": false
+  },
+  {
+   "no": 33,
+   "ada": "cam:cam [x -11.70 · y 12.72 · z 9.85]",
+   "ucgen": 2,
+   "kapali": false
+  },
+  {
+   "no": 34,
+   "ada": "cam:cam [x -9.10 · y 12.72 · z 9.85]",
+   "ucgen": 2,
+   "kapali": false
+  },
+  {
+   "no": 35,
+   "ada": "cam:cam [x 9.10 · y 12.72 · z 9.85]",
+   "ucgen": 2,
+   "kapali": false
+  },
+  {
+   "no": 36,
+   "ada": "cam:cam [x 11.70 · y 12.72 · z 9.85]",
+   "ucgen": 2,
+   "kapali": false
+  },
+  {
+   "no": 37,
+   "ada": "cam:cam [x 14.30 · y 12.72 · z 9.85]",
+   "ucgen": 2,
+   "kapali": false
+  },
+  {
+   "no": 38,
+   "ada": "cam:cam [x 16.90 · y 12.72 · z 9.85]",
+   "ucgen": 2,
+   "kapali": false
+  },
+  {
+   "no": 39,
+   "ada": "cam:cam [x 19.50 · y 12.72 · z 9.85]",
+   "ucgen": 2,
+   "kapali": false
+  },
+  {
+   "no": 40,
+   "ada": "cam:cam [x 22.10 · y 12.72 · z 9.85]",
+   "ucgen": 2,
+   "kapali": false
+  },
+  {
+   "no": 41,
+   "ada": "cam:cam [x 24.70 · y 12.72 · z 9.85]",
+   "ucgen": 2,
+   "kapali": false
+  },
+  {
+   "no": 42,
+   "ada": "cam:cam [x -24.70 · y 17.57 · z 9.85]",
+   "ucgen": 2,
+   "kapali": false
+  },
+  {
+   "no": 43,
+   "ada": "cam:cam [x -22.10 · y 17.57 · z 9.85]",
+   "ucgen": 2,
+   "kapali": false
+  },
+  {
+   "no": 44,
+   "ada": "cam:cam [x -19.50 · y 17.57 · z 9.85]",
+   "ucgen": 2,
+   "kapali": false
+  },
+  {
+   "no": 45,
+   "ada": "cam:cam [x -16.90 · y 17.57 · z 9.85]",
+   "ucgen": 2,
+   "kapali": false
+  },
+  {
+   "no": 46,
+   "ada": "cam:cam [x -14.30 · y 17.57 · z 9.85]",
+   "ucgen": 2,
+   "kapali": false
+  },
+  {
+   "no": 47,
+   "ada": "cam:cam [x -11.70 · y 17.57 · z 9.85]",
+   "ucgen": 2,
+   "kapali": false
+  },
+  {
+   "no": 48,
+   "ada": "cam:cam [x -9.10 · y 17.57 · z 9.85]",
+   "ucgen": 2,
+   "kapali": false
+  },
+  {
+   "no": 49,
+   "ada": "cam:cam [x 9.10 · y 17.57 · z 9.85]",
+   "ucgen": 2,
+   "kapali": false
+  },
+  {
+   "no": 50,
+   "ada": "cam:cam [x 11.70 · y 17.57 · z 9.85]",
+   "ucgen": 2,
+   "kapali": false
+  },
+  {
+   "no": 51,
+   "ada": "cam:cam [x 14.30 · y 17.57 · z 9.85]",
+   "ucgen": 2,
+   "kapali": false
+  },
+  {
+   "no": 52,
+   "ada": "cam:cam [x 16.90 · y 17.57 · z 9.85]",
+   "ucgen": 2,
+   "kapali": false
+  },
+  {
+   "no": 53,
+   "ada": "cam:cam [x 19.50 · y 17.57 · z 9.85]",
+   "ucgen": 2,
+   "kapali": false
+  },
+  {
+   "no": 54,
+   "ada": "cam:cam [x 22.10 · y 17.57 · z 9.85]",
+   "ucgen": 2,
+   "kapali": false
+  },
+  {
+   "no": 55,
+   "ada": "cam:cam [x 24.70 · y 17.57 · z 9.85]",
+   "ucgen": 2,
+   "kapali": false
+  },
+  {
+   "no": 56,
+   "ada": "diger:bayrak [x -0.00 · y 8.10 · z 7.64]",
+   "ucgen": 300,
+   "kapali": false
+  },
+  {
+   "no": 57,
+   "ada": "diger:cerceve [x -16.90 · y 5.45 · z 6.55]",
+   "ucgen": 6,
+   "kapali": false
+  },
+  {
+   "no": 58,
+   "ada": "diger:cerceve [x -7.25 · y 5.45 · z 6.55]",
+   "ucgen": 6,
+   "kapali": false
+  },
+  {
+   "no": 59,
+   "ada": "diger:cerceve [x 7.25 · y 5.45 · z 6.55]",
+   "ucgen": 6,
+   "kapali": false
+  },
+  {
+   "no": 60,
+   "ada": "diger:cerceve [x 16.90 · y 5.45 · z 6.55]",
+   "ucgen": 6,
+   "kapali": false
+  },
+  {
+   "no": 61,
+   "ada": "diger:cerceve [x -16.90 · y 10.30 · z 6.55]",
+   "ucgen": 6,
+   "kapali": false
+  },
+  {
+   "no": 62,
+   "ada": "diger:cerceve [x -7.33 · y 10.30 · z 6.55]",
+   "ucgen": 6,
+   "kapali": false
+  },
+  {
+   "no": 63,
+   "ada": "diger:cerceve [x 7.33 · y 10.30 · z 6.55]",
+   "ucgen": 6,
+   "kapali": false
+  },
+  {
+   "no": 64,
+   "ada": "diger:cerceve [x 16.90 · y 10.30 · z 6.55]",
+   "ucgen": 6,
+   "kapali": false
+  },
+  {
+   "no": 65,
+   "ada": "diger:cerceve [x -16.90 · y 15.15 · z 6.55]",
+   "ucgen": 6,
+   "kapali": false
+  },
+  {
+   "no": 66,
+   "ada": "diger:cerceve [x -4.63 · y 15.15 · z 6.55]",
+   "ucgen": 6,
+   "kapali": false
+  },
+  {
+   "no": 67,
+   "ada": "diger:cerceve [x 4.63 · y 15.15 · z 6.55]",
+   "ucgen": 6,
+   "kapali": false
+  },
+  {
+   "no": 68,
+   "ada": "diger:cerceve [x 16.90 · y 15.15 · z 6.55]",
+   "ucgen": 6,
+   "kapali": false
+  },
+  {
+   "no": 69,
+   "ada": "diger:cerceve [x 0.00 · y 15.74 · z 0.81]",
+   "ucgen": 34,
+   "kapali": false
+  },
+  {
+   "no": 70,
+   "ada": "diger:cerceve [x 15.88 · y 16.05 · z 10.06]",
+   "ucgen": 2,
+   "kapali": false
+  },
+  {
+   "no": 71,
+   "ada": "diger:cerceve [x 12.30 · y 16.38 · z 10.06]",
+   "ucgen": 2,
+   "kapali": false
+  },
+  {
+   "no": 72,
+   "ada": "diger:cerceve [x 15.20 · y 16.57 · z 10.06]",
+   "ucgen": 2,
+   "kapali": false
+  },
+  {
+   "no": 73,
+   "ada": "diger:cerceve [x 11.80 · y 16.58 · z 10.06]",
+   "ucgen": 2,
+   "kapali": false
+  },
+  {
+   "no": 74,
+   "ada": "diger:cerceve [x 12.80 · y 16.58 · z 10.06]",
+   "ucgen": 2,
+   "kapali": false
+  },
+  {
+   "no": 75,
+   "ada": "diger:cerceve [x 18.90 · y 16.69 · z 10.06]",
+   "ucgen": 8,
+   "kapali": false
+  },
+  {
+   "no": 76,
+   "ada": "diger:cerceve [x 15.80 · y 17.18 · z 10.06]",
+   "ucgen": 2,
+   "kapali": false
+  },
+  {
+   "no": 77,
+   "ada": "diger:cerceve [x 0.00 · y 19.60 · z 6.95]",
+   "ucgen": 10,
+   "kapali": false
+  },
+  {
+   "no": 78,
+   "ada": "diger:cerceve [x -13.00 · y 21.60 · z -5.00]",
+   "ucgen": 10,
+   "kapali": false
+  },
+  {
+   "no": 79,
+   "ada": "diger:metal [x 0.00 · y 0.60 · z 9.79]",
+   "ucgen": 10,
+   "kapali": false
+  },
+  {
+   "no": 80,
+   "ada": "diger:metal [x 0.00 · y 5.45 · z 9.79]",
+   "ucgen": 10,
+   "kapali": false
+  },
+  {
+   "no": 81,
+   "ada": "diger:metal [x -26.00 · y 9.90 · z 9.85]",
+   "ucgen": 8,
+   "kapali": false
+  },
+  {
+   "no": 82,
+   "ada": "diger:metal [x -23.40 · y 9.90 · z 9.85]",
+   "ucgen": 8,
+   "kapali": false
+  },
+  {
+   "no": 83,
+   "ada": "diger:metal [x -20.80 · y 9.90 · z 9.85]",
+   "ucgen": 8,
+   "kapali": false
+  },
+  {
+   "no": 84,
+   "ada": "diger:metal [x -18.20 · y 9.90 · z 9.85]",
+   "ucgen": 8,
+   "kapali": false
+  },
+  {
+   "no": 85,
+   "ada": "diger:metal [x -15.60 · y 9.90 · z 9.85]",
+   "ucgen": 8,
+   "kapali": false
+  },
+  {
+   "no": 86,
+   "ada": "diger:metal [x -13.00 · y 9.90 · z 9.85]",
+   "ucgen": 8,
+   "kapali": false
+  },
+  {
+   "no": 87,
+   "ada": "diger:metal [x -10.40 · y 9.90 · z 9.85]",
+   "ucgen": 8,
+   "kapali": false
+  },
+  {
+   "no": 88,
+   "ada": "diger:metal [x -7.80 · y 9.90 · z 9.85]",
+   "ucgen": 8,
+   "kapali": false
+  },
+  {
+   "no": 89,
+   "ada": "diger:metal [x -5.20 · y 9.90 · z 9.85]",
+   "ucgen": 8,
+   "kapali": false
+  },
+  {
+   "no": 90,
+   "ada": "diger:metal [x -2.60 · y 9.90 · z 9.85]",
+   "ucgen": 8,
+   "kapali": false
+  },
+  {
+   "no": 91,
+   "ada": "diger:metal [x 0.00 · y 9.90 · z 9.85]",
+   "ucgen": 8,
+   "kapali": false
+  },
+  {
+   "no": 92,
+   "ada": "diger:metal [x 2.60 · y 9.90 · z 9.85]",
+   "ucgen": 8,
+   "kapali": false
+  },
+  {
+   "no": 93,
+   "ada": "diger:metal [x 5.20 · y 9.90 · z 9.85]",
+   "ucgen": 8,
+   "kapali": false
+  },
+  {
+   "no": 94,
+   "ada": "diger:metal [x 7.80 · y 9.90 · z 9.85]",
+   "ucgen": 8,
+   "kapali": false
+  },
+  {
+   "no": 95,
+   "ada": "diger:metal [x 10.40 · y 9.90 · z 9.85]",
+   "ucgen": 8,
+   "kapali": false
+  },
+  {
+   "no": 96,
+   "ada": "diger:metal [x 13.00 · y 9.90 · z 9.85]",
+   "ucgen": 8,
+   "kapali": false
+  },
+  {
+   "no": 97,
+   "ada": "diger:metal [x 15.60 · y 9.90 · z 9.85]",
+   "ucgen": 8,
+   "kapali": false
+  },
+  {
+   "no": 98,
+   "ada": "diger:metal [x 18.20 · y 9.90 · z 9.85]",
+   "ucgen": 8,
+   "kapali": false
+  },
+  {
+   "no": 99,
+   "ada": "diger:metal [x 20.80 · y 9.90 · z 9.85]",
+   "ucgen": 8,
+   "kapali": false
+  },
+  {
+   "no": 100,
+   "ada": "diger:metal [x 23.40 · y 9.90 · z 9.85]",
+   "ucgen": 8,
+   "kapali": false
+  },
+  {
+   "no": 101,
+   "ada": "diger:metal [x 26.00 · y 9.90 · z 9.85]",
+   "ucgen": 8,
+   "kapali": false
+  },
+  {
+   "no": 102,
+   "ada": "diger:metal [x 0.00 · y 10.30 · z 9.79]",
+   "ucgen": 10,
+   "kapali": false
+  },
+  {
+   "no": 103,
+   "ada": "diger:metal [x 0.00 · y 15.15 · z 9.79]",
+   "ucgen": 10,
+   "kapali": false
+  },
+  {
+   "no": 104,
+   "ada": "diger:metal [x 0.00 · y 19.60 · z 9.79]",
+   "ucgen": 10,
+   "kapali": false
+  },
+  {
+   "no": 105,
+   "ada": "diger:metal [x 8.67 · y 20.65 · z -4.00]",
+   "ucgen": 10,
+   "kapali": false
+  },
+  {
+   "no": 106,
+   "ada": "diger:metal [x 12.27 · y 20.65 · z -4.00]",
+   "ucgen": 10,
+   "kapali": false
+  },
+  {
+   "no": 107,
+   "ada": "diger:metal [x 15.87 · y 20.65 · z -4.00]",
+   "ucgen": 10,
+   "kapali": false
+  },
+  {
+   "no": 108,
+   "ada": "diger:metal [x 19.47 · y 20.65 · z -4.00]",
+   "ucgen": 10,
+   "kapali": false
+  },
+  {
+   "no": 109,
+   "ada": "diger:tas [x 0.00 · y 0.30 · z 0.00]",
+   "ucgen": 10,
+   "kapali": false
+  }
+ ]
+}

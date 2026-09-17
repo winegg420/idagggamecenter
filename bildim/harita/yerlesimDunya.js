@@ -112,7 +112,7 @@ export function yerlesimKur({ sahne, manifest: ham, tt = (s) => s, turnuvaAlt = 
       const isik = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.25, 0.5), new THREE.MeshBasicMaterial({ color: TON.lamba })); isik.position.set(0, 3.05, derinlik / 2 + 0.45); ekle(isik, g);
       const tabelaYazi = etiket([tt(p.ad)], 0.7); tabelaYazi.material.depthTest = true; tabelaYazi.position.set(0, 3.55, derinlik / 2 + 0.6); g.add(tabelaYazi);
       // kapı önü noktası (dünya): ipucu yakınlığı buradan ölçülür
-      const on = new THREE.Vector3(0, 0, derinlik / 2 + 1.6).applyAxisAngle(new THREE.Vector3(0, 1, 0), aci).add(g.position);
+      const on = new THREE.Vector3(p.kapi_x ?? 0, 0, derinlik / 2 + 1.6).applyAxisAngle(new THREE.Vector3(0, 1, 0), aci).add(g.position);
       binalar.push({ id: p.id, ad: tt(p.ad), alt: p.alt != null ? tt(p.alt) : turnuvaAlt(), rota: p.mod, x: on.x, z: on.z, g, isima: null, sayacLevha: null, yukseklik });
       ozet.girilebilir++;
     }

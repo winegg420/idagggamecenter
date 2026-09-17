@@ -167,7 +167,7 @@ export function dunyaKur(kapsayici, s = {}) {
       try { const y = await fetch(VARLIK_KOK + "cephe_ao.bin"); if (y.ok) ao = aoCoz(await y.arrayBuffer()); } catch (e) { console.error("[Meydan] cephe AO yuklenemedi (AO'suz devam):", e); }
       cepheler = new CepheSistemi({ M: yerlesim, hucreler: ks.hucreler, malzeme: proplar.prop_bank?.material ?? ks.malzeme, modRenk: (rota) => MOD_RENK[rota] ?? null, render, ao });
       cevre.grup.add(cepheler.grup);
-      cevre.grup.add(boya.bina); if (boya.arkaplan) cevre.grup.add(boya.arkaplan);
+      if (boya.bina) cevre.grup.add(boya.bina); if (boya.arkaplan) cevre.grup.add(boya.arkaplan);
       cevre.binaRenkleri = boya.renkler;
       for (const b of binalar) {
         const r = MOD_RENK[b.rota]; if (!r || !b.g) continue;

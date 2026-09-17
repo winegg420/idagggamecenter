@@ -26,7 +26,8 @@ import { manifestCoz } from "../yerlesimCoz.js";
 const BURASI = path.dirname(fileURLToPath(import.meta.url)), KOK = path.resolve(BURASI, "../../..");
 const CIKTI = path.join(KOK, "public/meydan/deneme");
 const M = manifestCoz(JSON.parse(fs.readFileSync(path.join(BURASI, "../yerlesim.json"), "utf8"))), H = hucreTablosu();
-const ORNEKLER = { cephe_ornek_dukkan: "dukkan_normal", cephe_ornek_apartman: "apartman_istiklal_a1", cephe_ornek_dar: "dar_istiklal_a2" };
+const ORNEKLER = { cephe_ornek_dukkan: "dukkan_normal", cephe_ornek_apartman: "apartman_istiklal_a1", cephe_ornek_dar: "dar_istiklal_a2",
+  yapi_akm: "kamusal_akm", yapi_cami: "landmark_taksim_camii", yapi_anit: "anit", yapi_lise: "dukkan_ayarlar" };   // 3A-2: dört tanınır yapı
 const ORNEK_MOD = () => ({ duvar: "#4A9DD9", cati: "#2B6BA3" });   // örnek GLB'de girilebilir dükkân rengi (canlıda dunya.js › MOD_RENK)
 
 // Cam ve ışıyan yüzeyler AO almaz (cam çerçevenin içinde durduğu için kararıyordu); taban 0,5 — köşe AO'su seyrek ağda lekeleşmesin
@@ -67,8 +68,9 @@ async function glbYaz(dosya, mesh) {
   return out.length;
 }
 for (const [dosya, id] of Object.entries(ORNEKLER)) {
-  const p0 = M.parseller.find((q) => q.id === id), p = { ...p0, capa: { konum: [0, 0, 0], donus_y: 0 } };
+  const p0 = cepheParselleri(M).find((q) => q.id === id), p = { ...p0, capa: { konum: [0, 0, 0], donus_y: 0 } };
   const g = binaGeometrisi(p, H, 0, ORNEK_MOD);
+  if (dosya.startsWith("yapi_")) { const u = JSON.parse(fs.readFileSync(path.join(BURASI, "../muayene/ustveri/cephe_ornek_dukkan.json"), "utf8")); const hedef = path.join(BURASI, "../muayene/ustveri", dosya + ".json"); if (!fs.existsSync(hedef)) { g.computeBoundingBox(); const b = g.boundingBox; fs.writeFileSync(hedef, JSON.stringify({ ...u, glb: dosya, yakin: [{ ad: "ön yakın", hedef: [0, (b.max.y) * 0.35, b.max.z], yon: [0.6, 0.25, 1], mesafe: Math.max(8, (b.max.x - b.min.x) * 0.45) }, { ad: "tepe", hedef: [0, b.max.y * 0.8, 0], yon: [1, 0.6, 1], mesafe: Math.max(8, b.max.y * 0.6) }, { ad: "yan", hedef: [b.max.x, b.max.y * 0.3, 0], yon: [1, 0.2, -0.3], mesafe: Math.max(7, (b.max.z - b.min.z) * 0.5) }], not: "3A-2 tanınır yapı örneği (cephe_ao.mjs üretir)." }, null, 2)); } }
   const tint = g.attributes.color.clone();
   aoHesapla(g, { engeller: [g, zemin(p)], R: 0.45, isin: 16, guc: 0.75 });
   const c = g.attributes.color; for (let i = 0; i < c.count; i++) { const a = aoDuzelt(g, i); c.setXYZ(i, a * tint.getX(i), a * tint.getY(i), a * tint.getZ(i)); }

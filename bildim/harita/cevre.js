@@ -169,7 +169,7 @@ function propKonumlari(M) {
   const s = M.kurallar?.girilebilir_cephe?.saksi;
   if (s) for (const p of M.parseller.filter((q) => q.girilebilir)) {
     const [x, , z] = p.capa.konum, a = p.capa.donus_y, c = Math.cos(a), sn = Math.sin(a), on = p.ayakizi.derinlik / 2 + s.on;
-    for (const yan of [-1, 1]) { const lx = yan * s.yan; liste.saksi.push({ x: x + lx * c + on * sn, z: z - lx * sn + on * c, olcek: 0.9, don: 0 }); }
+    for (const yan of [-1, 1]) { const lx = yan * s.yan + (p.kapi_x ?? 0); liste.saksi.push({ x: x + lx * c + on * sn, z: z - lx * sn + on * c, olcek: 0.9, don: 0 }); }
   }
   return liste;
 }
@@ -194,7 +194,10 @@ export function cevreKur({ M, gb, sahne, render, proplar, hucreler, malzeme, tem
   grup.add(zeminKur(M, hucreler, malzeme)); gb.gri.zemin.visible = false; gb.gri.alan.visible = false;
   const L = propKonumlari(M);
   // 3A-2 §B: Boğaz vadisi / karşı kıyı ağaç kümeleri AYNI örnek mesh'e eklenir (ek çağrı yok); çarpışma ve temas gölgesi almazlar (yürünemez alan)
-  const bogazAgac = bogazYerlesimi(M)?.agaclar ?? [], tumAgac = [...L.agac, ...bogazAgac];
+  const bogazAgac = bogazYerlesimi(M)?.agaclar ?? [];
+  // 3A-2 §C.4: parsel bahçe ağaçları (lise) — yerel [x, z, ölçek] → dünya; mevcut ağaç örneği büyütülmüş, çarpışma parselin kendisinde
+  const bahceAgac = M.parseller.flatMap((p) => (p.bahce_agaclari ?? []).map(([lx, lz, o], i) => { const [x, , z] = p.capa.konum, a = p.capa.donus_y ?? 0; return { x: x + lx * Math.cos(a) + lz * Math.sin(a), z: z - lx * Math.sin(a) + lz * Math.cos(a), olcek: o, don: i * 1.7 }; }));
+  const tumAgac = [...L.agac, ...bogazAgac, ...bahceAgac];
   if (proplar.prop_agac_govde && proplar.prop_agac_tac && tumAgac.length) {
     grup.add(orneklendir(proplar.prop_agac_govde, tumAgac, "agac_govde"));
     const tac = orneklendir(proplar.prop_agac_tac, tumAgac, "agac_tac", { golge: false });
@@ -339,8 +342,9 @@ export function binalariBoya({ M, gb, hucreler: H, malzeme, modRenk, atla = null
     kutu(a.en, a.yukseklik, a.derinlik, 0, x, z, 0, "tas", new THREE.Color("#D8CFC0"));
     if (g) kutu(g.en, g.yukseklik, g.derinlik, a.yukseklik, x, z, 0, "tasAcik", new THREE.Color("#E6DDCD"));
   }
-  const bina = birlesikMesh(parca, malzeme, "CevreBinalar");
-  bina.castShadow = true; bina.receiveShadow = true;
+  // 3A-2: bütün parseller cephe/yapı sistemine geçtiyse boyalı kütle kalmaz (boş birleştirme hatası vermesin)
+  const bina = parca.length ? birlesikMesh(parca, malzeme, "CevreBinalar") : null;
+  if (bina) { bina.castShadow = true; bina.receiveShadow = true; }
   gb.gri.parsel.traverse((o) => { if (o.isMesh) o.visible = false; });   // gri kütleler gizli; tabela yazıları (sprite) ve bina grupları durur
 
   // arka plan kuşağı: tonlu, gölgesiz, tek mesh

@@ -1,8 +1,8 @@
 {
- "tarih": "2026-09-16T21:37:13.744Z",
+ "tarih": "2026-09-17T08:57:24.917Z",
  "varliklar": {
-  "aday_c_mevcut": {
-   "ucgen": 6656,
+  "yapi_akm": {
+   "ucgen": 826,
    "malzeme": 1,
    "gorunumler": [
     "ön (+Z)",
@@ -11,15 +11,9 @@
     "sağ (+X)",
     "üst (+Y)",
     "alt (−Y)",
-    "boyun-omuz",
-    "torso-pelvis",
-    "bacak ayrımı",
-    "el",
-    "tam profil (sabit kamera, nötr poz)",
-    "dirsek bükülü (Run 0.567s)",
-    "diz bükülü (Walk 0.467s)",
-    "omuz kalkık (Selam 1.633s)",
-    "kalça dönük (Run 0.1s)",
+    "ön yakın",
+    "tepe",
+    "yan",
     "beauty (perspektif, B+, gölgeli)"
    ],
    "dosyalar": [
@@ -29,70 +23,16 @@
     "04-sağ-x.png",
     "05-üst-y.png",
     "06-alt-y.png",
-    "07-boyun-omuz.png",
-    "08-torso-pelvis.png",
-    "09-bacak-ayrımı.png",
-    "10-el.png",
-    "11-tam-profil-sabit-kamera-nötr-poz.png",
-    "12-dirsek-bükülü-run-0-567s.png",
-    "13-diz-bükülü-walk-0-467s.png",
-    "14-omuz-kalkık-selam-1-633s.png",
-    "15-kalça-dönük-run-0-1s.png",
-    "16-beauty-perspektif-b-gölgeli.png"
+    "07-ön-yakın.png",
+    "08-tepe.png",
+    "09-yan.png",
+    "10-beauty-perspektif-b-gölgeli.png"
    ],
    "aday": {},
-   "susturulan": {
-    "icice": 172,
-    "gomulu": 26
-   }
-  },
-  "aday_a0_superhero_ham": {
-   "ucgen": 13334,
-   "malzeme": 1,
-   "gorunumler": [
-    "ön (+Z)",
-    "arka (−Z)",
-    "sol (−X)",
-    "sağ (+X)",
-    "üst (+Y)",
-    "alt (−Y)",
-    "boyun-omuz",
-    "torso-pelvis",
-    "bacak ayrımı",
-    "el",
-    "tam profil (sabit kamera, nötr poz)",
-    "dirsek bükülü (Run 0.567s)",
-    "diz bükülü (Walk 0.467s)",
-    "omuz kalkık (Selam 1.633s)",
-    "kalça dönük (Run 0.1s)",
-    "beauty (perspektif, B+, gölgeli)"
-   ],
-   "dosyalar": [
-    "01-ön-z.png",
-    "02-arka-z.png",
-    "03-sol-x.png",
-    "04-sağ-x.png",
-    "05-üst-y.png",
-    "06-alt-y.png",
-    "07-boyun-omuz.png",
-    "08-torso-pelvis.png",
-    "09-bacak-ayrımı.png",
-    "10-el.png",
-    "11-tam-profil-sabit-kamera-nötr-poz.png",
-    "12-dirsek-bükülü-run-0-567s.png",
-    "13-diz-bükülü-walk-0-467s.png",
-    "14-omuz-kalkık-selam-1-633s.png",
-    "15-kalça-dönük-run-0-1s.png",
-    "16-beauty-perspektif-b-gölgeli.png"
-   ],
-   "aday": {
-    "icice": 4,
-    "gomulu": 2
-   },
    "susturulan": {}
   },
-  "aday_a0_superhero_sade": {
-   "ucgen": 5908,
+  "yapi_cami": {
+   "ucgen": 1856,
    "malzeme": 1,
    "gorunumler": [
     "ön (+Z)",
@@ -101,15 +41,9 @@
     "sağ (+X)",
     "üst (+Y)",
     "alt (−Y)",
-    "boyun-omuz",
-    "torso-pelvis",
-    "bacak ayrımı",
-    "el",
-    "tam profil (sabit kamera, nötr poz)",
-    "dirsek bükülü (Run 0.567s)",
-    "diz bükülü (Walk 0.467s)",
-    "omuz kalkık (Selam 1.633s)",
-    "kalça dönük (Run 0.1s)",
+    "ön yakın",
+    "tepe",
+    "yan",
     "beauty (perspektif, B+, gölgeli)"
    ],
    "dosyalar": [
@@ -119,25 +53,16 @@
     "04-sağ-x.png",
     "05-üst-y.png",
     "06-alt-y.png",
-    "07-boyun-omuz.png",
-    "08-torso-pelvis.png",
-    "09-bacak-ayrımı.png",
-    "10-el.png",
-    "11-tam-profil-sabit-kamera-nötr-poz.png",
-    "12-dirsek-bükülü-run-0-567s.png",
-    "13-diz-bükülü-walk-0-467s.png",
-    "14-omuz-kalkık-selam-1-633s.png",
-    "15-kalça-dönük-run-0-1s.png",
-    "16-beauty-perspektif-b-gölgeli.png"
+    "07-ön-yakın.png",
+    "08-tepe.png",
+    "09-yan.png",
+    "10-beauty-perspektif-b-gölgeli.png"
    ],
-   "aday": {
-    "icice": 4,
-    "gomulu": 2
-   },
+   "aday": {},
    "susturulan": {}
   },
-  "aday_d_beach_ham": {
-   "ucgen": 4762,
+  "yapi_anit": {
+   "ucgen": 1100,
    "malzeme": 1,
    "gorunumler": [
     "ön (+Z)",
@@ -146,15 +71,9 @@
     "sağ (+X)",
     "üst (+Y)",
     "alt (−Y)",
-    "boyun-omuz",
-    "torso-pelvis",
-    "bacak ayrımı",
-    "el",
-    "tam profil (sabit kamera, nötr poz)",
-    "dirsek bükülü (Run 0.567s)",
-    "diz bükülü (Walk 0.467s)",
-    "omuz kalkık (Selam 1.633s)",
-    "kalça dönük (Run 0.1s)",
+    "ön yakın",
+    "tepe",
+    "yan",
     "beauty (perspektif, B+, gölgeli)"
    ],
    "dosyalar": [
@@ -164,21 +83,42 @@
     "04-sağ-x.png",
     "05-üst-y.png",
     "06-alt-y.png",
-    "07-boyun-omuz.png",
-    "08-torso-pelvis.png",
-    "09-bacak-ayrımı.png",
-    "10-el.png",
-    "11-tam-profil-sabit-kamera-nötr-poz.png",
-    "12-dirsek-bükülü-run-0-567s.png",
-    "13-diz-bükülü-walk-0-467s.png",
-    "14-omuz-kalkık-selam-1-633s.png",
-    "15-kalça-dönük-run-0-1s.png",
-    "16-beauty-perspektif-b-gölgeli.png"
+    "07-ön-yakın.png",
+    "08-tepe.png",
+    "09-yan.png",
+    "10-beauty-perspektif-b-gölgeli.png"
    ],
-   "aday": {
-    "icice": 5,
-    "gomulu": 2
-   },
+   "aday": {},
+   "susturulan": {}
+  },
+  "yapi_lise": {
+   "ucgen": 1745,
+   "malzeme": 1,
+   "gorunumler": [
+    "ön (+Z)",
+    "arka (−Z)",
+    "sol (−X)",
+    "sağ (+X)",
+    "üst (+Y)",
+    "alt (−Y)",
+    "ön yakın",
+    "tepe",
+    "yan",
+    "beauty (perspektif, B+, gölgeli)"
+   ],
+   "dosyalar": [
+    "01-ön-z.png",
+    "02-arka-z.png",
+    "03-sol-x.png",
+    "04-sağ-x.png",
+    "05-üst-y.png",
+    "06-alt-y.png",
+    "07-ön-yakın.png",
+    "08-tepe.png",
+    "09-yan.png",
+    "10-beauty-perspektif-b-gölgeli.png"
+   ],
+   "aday": {},
    "susturulan": {}
   }
  },

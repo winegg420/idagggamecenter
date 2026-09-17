@@ -1,0 +1,459 @@
+{
+ "varlik": "yapi_anit",
+ "istatistik": {
+  "ada": 58,
+  "kapali_ada": 6,
+  "havada": {
+   "ada": 58,
+   "zemine_bagli_kaynak": 1,
+   "bagli": 58,
+   "bagsiz_grup": 0
+  },
+  "simetri": "beyan yok (atlandı)",
+  "icice": {
+   "kapali_ada": 6,
+   "acik_ada": 52,
+   "pay_m": 0.05,
+   "gomulu_oran_esigi": 0.6
+  },
+  "sure_s": 0
+ },
+ "adaylar": [],
+ "susturulan": [],
+ "gomuluOranlar": [
+  {
+   "ada": "diger:demir [x -0.15 · y 2.13 · z 2.60]",
+   "oran": 0.25
+  },
+  {
+   "ada": "diger:demir [x -0.15 · y 2.13 · z -2.60]",
+   "oran": 0.25
+  },
+  {
+   "ada": "diger:demir [x 0.15 · y 2.13 · z 2.60]",
+   "oran": 0.25
+  },
+  {
+   "ada": "diger:demir [x 0.15 · y 2.13 · z -2.60]",
+   "oran": 0.25
+  },
+  {
+   "ada": "diger:demir [x -0.35 · y 2.96 · z 2.60]",
+   "oran": 0.16
+  },
+  {
+   "ada": "diger:demir [x 0.35 · y 2.96 · z -2.60]",
+   "oran": 0.16
+  },
+  {
+   "ada": "diger:demir [x -0.50 · y 2.98 · z -2.60]",
+   "oran": 0.16
+  },
+  {
+   "ada": "diger:demir [x 0.50 · y 2.98 · z 2.60]",
+   "oran": 0.16
+  },
+  {
+   "ada": "diger:demir [x -1.26 · y 9.65 · z -0.64]",
+   "oran": 0.25
+  },
+  {
+   "ada": "diger:demir [x -0.94 · y 9.65 · z -0.76]",
+   "oran": 0.25
+  },
+  {
+   "ada": "diger:demir [x 0.94 · y 9.65 · z -0.76]",
+   "oran": 0.25
+  },
+  {
+   "ada": "diger:demir [x 1.26 · y 9.65 · z -0.64]",
+   "oran": 0.25
+  },
+  {
+   "ada": "diger:demir [x -0.20 · y 9.79 · z 0.10]",
+   "oran": 0.25
+  },
+  {
+   "ada": "diger:demir [x 0.20 · y 9.79 · z 0.10]",
+   "oran": 0.25
+  },
+  {
+   "ada": "diger:demir [x -1.47 · y 10.57 · z -0.57]",
+   "oran": 0.16
+  },
+  {
+   "ada": "diger:demir [x -0.73 · y 10.57 · z -0.83]",
+   "oran": 0.16
+  },
+  {
+   "ada": "diger:demir [x 0.73 · y 10.57 · z -0.83]",
+   "oran": 0.16
+  },
+  {
+   "ada": "diger:demir [x 1.47 · y 10.57 · z -0.57]",
+   "oran": 0.16
+  },
+  {
+   "ada": "diger:demir [x -0.48 · y 10.91 · z 0.10]",
+   "oran": 0.16
+  },
+  {
+   "ada": "diger:demir [x 1.01 · y 11.17 · z 0.10]",
+   "oran": 0.16
+  },
+  {
+   "ada": "diger:tas [x 0.00 · y 4.31 · z 0.00]",
+   "oran": 0.25
+  }
+ ],
+ "adaListesi": [
+  {
+   "no": 0,
+   "ada": "diger:demir [x -0.15 · y 2.13 · z 2.60]",
+   "ucgen": 12,
+   "kapali": false
+  },
+  {
+   "no": 1,
+   "ada": "diger:demir [x -0.15 · y 2.13 · z -2.60]",
+   "ucgen": 12,
+   "kapali": false
+  },
+  {
+   "no": 2,
+   "ada": "diger:demir [x 0.15 · y 2.13 · z 2.60]",
+   "ucgen": 12,
+   "kapali": false
+  },
+  {
+   "no": 3,
+   "ada": "diger:demir [x 0.15 · y 2.13 · z -2.60]",
+   "ucgen": 12,
+   "kapali": false
+  },
+  {
+   "no": 4,
+   "ada": "diger:demir [x -0.35 · y 2.96 · z 2.60]",
+   "ucgen": 4,
+   "kapali": false
+  },
+  {
+   "no": 5,
+   "ada": "diger:demir [x 0.35 · y 2.96 · z -2.60]",
+   "ucgen": 4,
+   "kapali": false
+  },
+  {
+   "no": 6,
+   "ada": "diger:demir [x -0.50 · y 2.98 · z -2.60]",
+   "ucgen": 4,
+   "kapali": false
+  },
+  {
+   "no": 7,
+   "ada": "diger:demir [x 0.50 · y 2.98 · z 2.60]",
+   "ucgen": 4,
+   "kapali": false
+  },
+  {
+   "no": 8,
+   "ada": "diger:demir [x 0.00 · y 3.00 · z 2.09]",
+   "ucgen": 6,
+   "kapali": false
+  },
+  {
+   "no": 9,
+   "ada": "diger:demir [x 0.00 · y 3.00 · z -2.09]",
+   "ucgen": 6,
+   "kapali": false
+  },
+  {
+   "no": 10,
+   "ada": "diger:demir [x 0.00 · y 3.13 · z 2.60]",
+   "ucgen": 24,
+   "kapali": true
+  },
+  {
+   "no": 11,
+   "ada": "diger:demir [x 0.00 · y 3.13 · z -2.60]",
+   "ucgen": 24,
+   "kapali": true
+  },
+  {
+   "no": 12,
+   "ada": "diger:demir [x 0.00 · y 3.74 · z 2.60]",
+   "ucgen": 18,
+   "kapali": false
+  },
+  {
+   "no": 13,
+   "ada": "diger:demir [x 0.00 · y 3.74 · z -2.60]",
+   "ucgen": 18,
+   "kapali": false
+  },
+  {
+   "no": 14,
+   "ada": "diger:demir [x -1.26 · y 9.65 · z -0.64]",
+   "ucgen": 12,
+   "kapali": false
+  },
+  {
+   "no": 15,
+   "ada": "diger:demir [x -0.94 · y 9.65 · z -0.76]",
+   "ucgen": 12,
+   "kapali": false
+  },
+  {
+   "no": 16,
+   "ada": "diger:demir [x 0.94 · y 9.65 · z -0.76]",
+   "ucgen": 12,
+   "kapali": false
+  },
+  {
+   "no": 17,
+   "ada": "diger:demir [x 1.26 · y 9.65 · z -0.64]",
+   "ucgen": 12,
+   "kapali": false
+  },
+  {
+   "no": 18,
+   "ada": "diger:demir [x -0.20 · y 9.79 · z 0.10]",
+   "ucgen": 12,
+   "kapali": false
+  },
+  {
+   "no": 19,
+   "ada": "diger:demir [x 0.20 · y 9.79 · z 0.10]",
+   "ucgen": 12,
+   "kapali": false
+  },
+  {
+   "no": 20,
+   "ada": "diger:demir [x -1.47 · y 10.57 · z -0.57]",
+   "ucgen": 4,
+   "kapali": false
+  },
+  {
+   "no": 21,
+   "ada": "diger:demir [x -0.73 · y 10.57 · z -0.83]",
+   "ucgen": 4,
+   "kapali": false
+  },
+  {
+   "no": 22,
+   "ada": "diger:demir [x 0.73 · y 10.57 · z -0.83]",
+   "ucgen": 4,
+   "kapali": false
+  },
+  {
+   "no": 23,
+   "ada": "diger:demir [x 1.47 · y 10.57 · z -0.57]",
+   "ucgen": 4,
+   "kapali": false
+  },
+  {
+   "no": 24,
+   "ada": "diger:demir [x -1.29 · y 10.61 · z -1.23]",
+   "ucgen": 6,
+   "kapali": false
+  },
+  {
+   "no": 25,
+   "ada": "diger:demir [x 1.29 · y 10.61 · z -1.23]",
+   "ucgen": 6,
+   "kapali": false
+  },
+  {
+   "no": 26,
+   "ada": "diger:demir [x -1.10 · y 10.77 · z -0.70]",
+   "ucgen": 24,
+   "kapali": true
+  },
+  {
+   "no": 27,
+   "ada": "diger:demir [x 1.10 · y 10.77 · z -0.70]",
+   "ucgen": 24,
+   "kapali": true
+  },
+  {
+   "no": 28,
+   "ada": "diger:demir [x -0.48 · y 10.91 · z 0.10]",
+   "ucgen": 4,
+   "kapali": false
+  },
+  {
+   "no": 29,
+   "ada": "diger:demir [x 0.00 · y 10.96 · z -0.59]",
+   "ucgen": 6,
+   "kapali": false
+  },
+  {
+   "no": 30,
+   "ada": "diger:demir [x 0.00 · y 11.15 · z 0.10]",
+   "ucgen": 24,
+   "kapali": true
+  },
+  {
+   "no": 31,
+   "ada": "diger:demir [x 1.01 · y 11.17 · z 0.10]",
+   "ucgen": 4,
+   "kapali": false
+  },
+  {
+   "no": 32,
+   "ada": "diger:demir [x -1.10 · y 11.44 · z -0.70]",
+   "ucgen": 18,
+   "kapali": false
+  },
+  {
+   "no": 33,
+   "ada": "diger:demir [x 1.10 · y 11.44 · z -0.70]",
+   "ucgen": 18,
+   "kapali": false
+  },
+  {
+   "no": 34,
+   "ada": "diger:demir [x 0.00 · y 11.97 · z 0.10]",
+   "ucgen": 18,
+   "kapali": false
+  },
+  {
+   "no": 35,
+   "ada": "diger:tas [x 0.00 · y 0.18 · z 0.00]",
+   "ucgen": 336,
+   "kapali": false
+  },
+  {
+   "no": 36,
+   "ada": "diger:tas [x 0.00 · y 0.71 · z 0.00]",
+   "ucgen": 10,
+   "kapali": false
+  },
+  {
+   "no": 37,
+   "ada": "diger:tas [x 0.00 · y 1.31 · z 2.30]",
+   "ucgen": 10,
+   "kapali": false
+  },
+  {
+   "no": 38,
+   "ada": "diger:tas [x 0.00 · y 1.31 · z -2.30]",
+   "ucgen": 10,
+   "kapali": false
+  },
+  {
+   "no": 39,
+   "ada": "diger:tas [x 0.00 · y 4.31 · z 0.00]",
+   "ucgen": 8,
+   "kapali": false
+  },
+  {
+   "no": 40,
+   "ada": "diger:tas [x 0.00 · y 4.90 · z 1.70]",
+   "ucgen": 8,
+   "kapali": false
+  },
+  {
+   "no": 41,
+   "ada": "diger:tas [x 0.00 · y 4.90 · z -1.70]",
+   "ucgen": 8,
+   "kapali": false
+  },
+  {
+   "no": 42,
+   "ada": "diger:tas [x 0.00 · y 7.83 · z 0.00]",
+   "ucgen": 12,
+   "kapali": true
+  },
+  {
+   "no": 43,
+   "ada": "diger:tas [x 0.00 · y 8.56 · z 0.00]",
+   "ucgen": 10,
+   "kapali": false
+  },
+  {
+   "no": 44,
+   "ada": "diger:tasAcik [x -1.85 · y 1.25 · z 1.98]",
+   "ucgen": 24,
+   "kapali": false
+  },
+  {
+   "no": 45,
+   "ada": "diger:tasAcik [x -1.85 · y 1.25 · z -1.98]",
+   "ucgen": 24,
+   "kapali": false
+  },
+  {
+   "no": 46,
+   "ada": "diger:tasAcik [x 1.85 · y 1.25 · z 1.98]",
+   "ucgen": 24,
+   "kapali": false
+  },
+  {
+   "no": 47,
+   "ada": "diger:tasAcik [x 1.85 · y 1.25 · z -1.98]",
+   "ucgen": 24,
+   "kapali": false
+  },
+  {
+   "no": 48,
+   "ada": "diger:tasAcik [x -1.85 · y 4.26 · z 1.98]",
+   "ucgen": 16,
+   "kapali": false
+  },
+  {
+   "no": 49,
+   "ada": "diger:tasAcik [x -1.85 · y 4.26 · z -1.98]",
+   "ucgen": 16,
+   "kapali": false
+  },
+  {
+   "no": 50,
+   "ada": "diger:tasAcik [x 1.85 · y 4.26 · z 1.98]",
+   "ucgen": 16,
+   "kapali": false
+  },
+  {
+   "no": 51,
+   "ada": "diger:tasAcik [x 1.85 · y 4.26 · z -1.98]",
+   "ucgen": 16,
+   "kapali": false
+  },
+  {
+   "no": 52,
+   "ada": "diger:tasAcik [x 0.00 · y 4.90 · z 1.71]",
+   "ucgen": 16,
+   "kapali": false
+  },
+  {
+   "no": 53,
+   "ada": "diger:tasAcik [x 0.00 · y 4.90 · z -1.71]",
+   "ucgen": 16,
+   "kapali": false
+  },
+  {
+   "no": 54,
+   "ada": "diger:tasAcik [x -1.85 · y 7.30 · z 1.98]",
+   "ucgen": 24,
+   "kapali": false
+  },
+  {
+   "no": 55,
+   "ada": "diger:tasAcik [x -1.85 · y 7.30 · z -1.98]",
+   "ucgen": 24,
+   "kapali": false
+  },
+  {
+   "no": 56,
+   "ada": "diger:tasAcik [x 1.85 · y 7.30 · z 1.98]",
+   "ucgen": 24,
+   "kapali": false
+  },
+  {
+   "no": 57,
+   "ada": "diger:tasAcik [x 1.85 · y 7.30 · z -1.98]",
+   "ucgen": 24,
+   "kapali": false
+  }
+ ]
+}
