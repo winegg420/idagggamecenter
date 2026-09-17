@@ -3,6 +3,7 @@ import Ikon from "../components/Ikon.jsx";
 import { TEPKILER, tepkiIkonu } from "../lib/tepkiler.js";
 import SenRozeti from "../components/SenRozeti.jsx";
 import YanlisSatiri from "../components/YanlisSatiri.jsx";
+import OdulDokumu from "../components/OdulDokumu.jsx";
 import SureDolduGecis from "../components/SureDolduGecis.jsx";
 import MacYukleniyor from "../components/MacYukleniyor.jsx";
 import { hataMesaji } from "../lib/hata.js";
@@ -478,6 +479,8 @@ export default function GroupMatchPage() {
             </div>
           ))}
         </div>
+        {/* Paket 20 I.3: ödülsüz mod — döküm yalnız açılan rozet + günlük görev ilerlemesini gösterir */}
+        <OdulDokumu kaynak={`grup:${id}`} />
         <div style={{ maxWidth: 340, margin: "12px auto 0" }}>
           <YanlisSatiri macTur="grup" macId={id} />
         </div>

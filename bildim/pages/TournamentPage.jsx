@@ -10,6 +10,7 @@ import Countdown from "../components/Countdown.jsx";
 import { BugunKalanTurnuvalar } from "../components/TurnuvaSaatleri.jsx";
 import { siradakiLobi } from "../lib/zaman.js";
 import YanlisSatiri from "../components/YanlisSatiri.jsx";
+import OdulDokumu from "../components/OdulDokumu.jsx";
 import MeydanaDonus from "../components/MeydanaDonus.jsx";
 import QuestionCard from "../components/QuestionCard.jsx";
 import Avatar from "../../src/components/Avatar.jsx";
@@ -291,6 +292,7 @@ export default function TournamentPage() {
           <>
             {/* Meydandan girilmişse turnuva bitince oraya dönülür */}
             <MeydanaDonus />
+            {oyuncular.some((o) => o.user_id === user?.id) && <OdulDokumu kaynak={`turnuva:${turnuva.id}`} />}
             <YanlisSatiri macTur="turnuva" macId={turnuva.id} />
           </>
         )}

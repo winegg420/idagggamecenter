@@ -12,6 +12,7 @@ import QuestionCard from "../components/QuestionCard.jsx";
 import BildirimIzniSor from "../components/BildirimIzniSor.jsx";
 import MacSonuEklentisi from "../components/MacSonuEklentisi.jsx";
 import MacSonuDokum from "../components/MacSonuDokum.jsx";
+import OdulDokumu from "../components/OdulDokumu.jsx";
 import MeydanaDonus from "../components/MeydanaDonus.jsx";
 import Maskot from "../components/Maskot.jsx";
 import Ikon from "../components/Ikon.jsx";
@@ -722,6 +723,8 @@ export default function MatchPage() {
               )}
             </div>
           )}
+          {/* Paket 20 I.3: satır satır döküm; üstteki kazanç satırı da aynı sunucu toplamını gösterir */}
+          <OdulDokumu kaynak={`mac:${id}`} onToplam={(t) => setOdulum((o) => ({ ...(o ?? {}), lig_puan: t.lig, coin: t.coin }))} />
           <div className="skor-tabela" style={{ marginTop: 20 }}>
             <div className="taraf">
               <div className="isim">{benimProfil?.gorunen_ad}<SenRozeti /></div>

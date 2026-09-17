@@ -2,7 +2,7 @@
 
 | Bölüm | Durum | Commit |
 |---|---|---|
-| I.1–I.2 — görevler + Düello ustalığı | ✅ canlıda · migration 220 uygulandı | I12 |
+| I.1–I.2 — görevler + Düello ustalığı | ✅ canlıda · migration 220 uygulandı | `2e3773d` |
 | I.3 — maç sonu ödül dökümü | (sürüyor) | |
 | II — soru kalite mekanizması | (sürüyor) | |
 | III — misafir hesabı koruma | (sürüyor) | |

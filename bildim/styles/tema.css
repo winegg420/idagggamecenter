@@ -6369,3 +6369,21 @@ body.bd-ekle-acik .app { padding-bottom: calc(300px + env(safe-area-inset-bottom
 /* Maç sonu sesli sohbet geri sayımı (Paket 14, 5.1) */
 .bd-ses-geri-sayim { display: flex; align-items: center; justify-content: center; gap: 8px; flex-wrap: wrap; margin: 6px 0; font-size: 13px; font-weight: 800; color: var(--bd-metin); }
 .bd-ses-yuva:empty { display: none; }
+
+/* Paket 20 I.3 — maç sonu ödül dökümü (satır satır, sunucu kalemleri) */
+.app .bd-odul-dokum {
+  max-width: 340px; margin: 14px auto 0; padding: 10px 14px;
+  background: var(--bd-yuzey-1); border-radius: var(--bd-r-l);
+  box-shadow: 0 4px 0 var(--bd-kart-alt); text-align: left;
+}
+.app .bd-odul-satir {
+  display: flex; align-items: baseline; justify-content: space-between; gap: 12px;
+  padding: 5px 0; font-size: 14px; font-weight: 700; color: var(--bd-metin);
+}
+.app .bd-odul-satir + .bd-odul-satir { border-top: 1px dashed var(--bd-kenar); }
+.app .bd-odul-satir .ad { display: flex; flex-direction: column; min-width: 0; }
+.app .bd-odul-satir .deger { flex: none; font-weight: 900; color: var(--bd-odul-metin); font-variant-numeric: tabular-nums; }
+.app .bd-odul-satir.toplam { font-family: var(--bd-f-baslik); font-size: 15px; }
+.app .bd-odul-satir.bilgi { font-size: 13px; color: var(--bd-metin-2); }
+.app .bd-odul-satir.bilgi .deger { color: var(--bd-metin-2); }
+.app .bd-odul-indirim { font-size: 12px; font-weight: 700; color: var(--bd-metin-2); }

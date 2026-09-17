@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import KategoriIkon from "../components/KategoriIkon.jsx";
 import BildirimIzniSor from "../components/BildirimIzniSor.jsx";
+import OdulDokumu from "../components/OdulDokumu.jsx";
 import SureDolduGecis from "../components/SureDolduGecis.jsx";
 import { sesKilidiAc, sesTik, sesDogru, sesYanlis, sesDokunus } from "../lib/ses.js";
 import CevapEfekti from "../components/CevapEfekti.jsx";
@@ -54,6 +55,7 @@ export default function HizliModPage() {
   const [kalanToplam, setKalanToplam] = useState(VARSAYILAN_TOPLAM_SN);
   const [kalanSoru, setKalanSoru] = useState(VARSAYILAN_SORU_SN);
   const [sonuc, setSonuc] = useState(null);
+  const [dokumToplam, setDokumToplam] = useState(null);   // Paket 20 I.3
   const [dereceli, setDereceli] = useDereceliTercih();
   const [odul, setOdul] = useState({ dogru: 3, tavan: 25 });
   const { ceviri } = useDil();
@@ -423,13 +425,14 @@ export default function HizliModPage() {
         <div className="bd-kazanc-satiri">
           {sonuc?.dereceli !== false && (
             <span className="bd-sonuc-kazanc">
-              {ceviri("+{puan} lig puanı", { puan: sonuc?.lig_puan ?? 0 })}
+              {ceviri("+{puan} lig puanı", { puan: dokumToplam?.lig ?? sonuc?.lig_puan ?? 0 })}
             </span>
           )}
           <span className="bd-sonuc-kazanc">
-            {ceviri("+{coin} coin", { coin: sonuc?.kazanilan_coin ?? 0 })}
+            {ceviri("+{coin} coin", { coin: dokumToplam?.coin ?? sonuc?.kazanilan_coin ?? 0 })}
           </span>
         </div>
+        {oturum?.oturum_id && sonuc && <OdulDokumu kaynak={`hizli:${oturum.oturum_id}`} onToplam={setDokumToplam} />}
         <BildirimIzniSor />
         <div className="bd-konum-butonlar" style={{ marginTop: 16 }}>
           <button className="btn" onClick={() => setAsama("secim")}>{tt("Tekrar oyna")}</button>

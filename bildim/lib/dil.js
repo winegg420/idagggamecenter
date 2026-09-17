@@ -1825,6 +1825,23 @@ const SOZLUK = {
     "Kapalı — bu tarayıcı bildirimleri desteklemiyor.": "Off — this browser doesn't support notifications.",
     "Kapalı — izin var ama bu cihaz bağlı değil. Aç'a dokun.": "Off — permission is granted but this device isn't connected. Tap On.",
     "Kapalı — henüz izin verilmedi. Aç'a dokun, tarayıcı izin isteyecek.": "Off — not allowed yet. Tap On and your browser will ask.",
+    // ---- Paket 20 I.3 — ödül dökümü
+    "serbest maç — coin yarı": "casual match — half coins",
+    "çift koruması — %50": "same-opponent limit — 50%",
+    "aynı rakiple bugün çok maç — ödülsüz": "too many matches with this opponent today — no reward",
+    "açık bot — coin yarı": "bot opponent — half coins",
+    "Galibiyet": "Win",
+    "Beraberlik": "Draw",
+    "Günlük seri ({gun} gün)": "Daily streak ({gun} days)",
+    "{dogru} doğru cevap": "{dogru} correct answers",
+    "Turnuva: {sira}. sıra": "Tournament: place {sira}",
+    "Turnuvaya katılım": "Tournament entry",
+    "Turnuva giysisi zaten sende": "You already own the tournament outfit",
+    "+{lig} lig": "+{lig} league",
+    "günlük coin tavanı doldu": "daily coin limit reached",
+    "Açılan rozet: {ad}": "Badge unlocked: {ad}",
+    "Günlük görev: {ad}": "Daily quest: {ad}",
+    "Ödül dökümü": "Reward breakdown",
   },
 };
 

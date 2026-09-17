@@ -22,6 +22,7 @@ import Ikon from "../components/Ikon.jsx";
 import KategoriIkon from "../components/KategoriIkon.jsx";
 import Maskot from "../components/Maskot.jsx";
 import BildirimIzniSor from "../components/BildirimIzniSor.jsx";
+import OdulDokumu from "../components/OdulDokumu.jsx";
 import DereceliAnahtari from "../components/DereceliAnahtari.jsx";
 import { useDereceliTercih } from "../lib/dereceli.js";
 import { useDil } from "../lib/dilKanca.js";
@@ -159,6 +160,7 @@ function DuelloMac({ id }) {
   const [secim, setSecim] = useState(null);
   const [calisan, setCalisan] = useState(null);
   const [terkOnay, setTerkOnay] = useState(false);
+  const [dokumToplam, setDokumToplam] = useState(null);   // Paket 20 I.3: sunucu dökümünün toplamı
   const farkRef = useRef(0); // sunucu saati - istemci saati (ms)
   const yukleniyorRef = useRef(false);
   const sonHamleRef = useRef(null);
@@ -309,12 +311,16 @@ function DuelloMac({ id }) {
             <span className="vs">VS</span>
             <Kalpler can={Math.max(0, rakip.can)} /> <span>{rakip.gorunen_ad}</span>
           </div>
-          {d.odul && (d.odul.lig_puan > 0 || d.odul.coin > 0) && (
-            <div className="bd-kazanc-satiri">
-              {d.odul.lig_puan > 0 && <span className="bd-sonuc-kazanc">{ceviri("+{puan} lig puanı", { puan: d.odul.lig_puan })}</span>}
-              {d.odul.coin > 0 && <span className="bd-sonuc-kazanc">{ceviri("+{coin} coin", { coin: d.odul.coin })}</span>}
-            </div>
-          )}
+          {(() => {
+            const o = dokumToplam ? { lig_puan: dokumToplam.lig, coin: dokumToplam.coin } : d.odul;
+            return o && (o.lig_puan > 0 || o.coin > 0) && (
+              <div className="bd-kazanc-satiri">
+                {o.lig_puan > 0 && <span className="bd-sonuc-kazanc">{ceviri("+{puan} lig puanı", { puan: o.lig_puan })}</span>}
+                {o.coin > 0 && <span className="bd-sonuc-kazanc">{ceviri("+{coin} coin", { coin: o.coin })}</span>}
+              </div>
+            );
+          })()}
+          {d.durum === "bitti" && <OdulDokumu kaynak={`duello:${d.id}`} onToplam={setDokumToplam} />}
           {ezeliMetin && <div className="bd-duello-ezeli">{ezeliMetin}</div>}
 
           <div className="bd-duello-rovans">
