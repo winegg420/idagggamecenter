@@ -5,8 +5,8 @@
 | A — kozmetik ekonomisi açıldı | ✅ canlıda · migration 219 uygulandı | `31913f4` |
 | B — davet butonu taşması | ✅ canlıda · kök sebep masaüstünde alt menü 540 / içerik 620 | `b83e143` |
 | C — vitrinde T-pozu | ✅ canlıda · Idle her kuruluşta anında uygulanıyor + Selam; kalıcı T düzenekte yeniden üretilemedi (ölçüm raporda) | `3c8b4d8` |
-| D — Dükkân › Görünüm vitrini | ✅ canlıda · kozmetik kartları (portre + ad + durum), tek WebGL bağlamı, satın alma vitrinde | D |
-| E — geniş ekranda boş alan | (sürüyor) | |
+| D — Dükkân › Görünüm vitrini | ✅ canlıda · kozmetik kartları (portre + ad + durum), tek WebGL bağlamı, satın alma vitrinde | `ab7b81b` |
+| E — geniş ekranda boş alan | ✅ canlıda · kısa sayfa masaüstünde ortada, zemin tüm sayfayı kaplıyor, iOS denetimi temiz | E |
 | F — push abonesi sıfır | (sürüyor) | |
 
 ---
@@ -132,3 +132,34 @@ Betikler: `.tmp/p19/c_kanca.mjs`, `c_dogrula.mjs`, `c_poz.mjs`, `c_selam.mjs`.
 Kart durumları (sahte katalog: şapka + atkı sahip): Şapka → Sahipsin · Gözlük → 350 coin · Güneş gözlüğü → 450 coin · Taç → Satılmaz · Pelerin → Satılmaz · Atkı → Sahipsin · Kanat → 2.000 coin · Saç / Elbise / Alt → Yakında.
 
 Görseller: `gorsel/paket19/d-1-dukkan-gorunum-masaustu.jpg`, `d-2-dukkan-gorunum-iphone.jpg`. Tam sayfa görüntülerinde alt menünün ortada durması ekran görüntüsü birleştirmesinden, sayfada değil. Masaüstü görüntüsünün altındaki zemin rengi değişimi E'nin konusu.
+
+---
+
+## E — Geniş ekranda boş alan / zemin
+
+**Ölçüm (önce)** — kabuk düzeneği (gerçek Layout + global CSS), 1522×784 ve 390×844:
+- Masaüstü Düello: içerik 410 px'te bitiyor, alt menüye kadar ~300 px boş (`e-once-masaustu-duello.jpg`). `.app` 620 px ve `.sayfa { flex: 1 }` alanı zaten dolduruyordu; içerik o alanın üstüne yapışıktı.
+- Zemin: `body` degradesi `background-attachment: fixed` ile çiziliyor. iOS Safari `fixed`'i yok sayar → degrade ekran boyunda **tekrar eder**, uzun sayfada krem → gök mavisi keskin geçiş (D görüntüsünün altında görülen).
+
+**Düzeltme** (`.app` genişliği 620 değişmedi):
+1. `src/styles.css` (≥1024 px): `.sayfa { display:flex; flex-direction:column; justify-content: safe center; }` — kısa sayfa dikeyde ortalanır; `safe` sayesinde uzun sayfa üstten başlar, yukarı kesilmez. Telefon düzeni değişmedi.
+2. `bildim/styles/tema.css` `body`: zemin rengi `--bd-zemin-2` + degrade `no-repeat` — degrade bittiği yerde aynı krem renkle kesintisiz sürer; masaüstünde (fixed çalışıyor) görünüm aynı.
+
+**Ölçüm (sonra)**
+
+| Ekran | Sayfa | İçerik altı | Alt menü üstü | Sayfa yüksekliği | Yatay taşma |
+|---|---|---|---|---|---|
+| Masaüstü | Ana Sayfa | 1222 | 719 | 1316 (kayıyor, üstten başlıyor) | 0 |
+| Masaüstü | Düello | ortalı (başlık 230 → kart 540) | 719 | 784 | 0 |
+| Masaüstü | Dükkân | 1210 | 719 | 1304 | 0 |
+| Masaüstü | Görünüm | 2176 | 719 | 2270 | 0 |
+| iPhone | Ana Sayfa | 1220 | 779 | 1314 | 0 |
+| iPhone | Düello | 750 | 779 | 844 | 0 |
+| iPhone | Dükkân | 1556 | 779 | 1650 | 0 |
+| iPhone | Görünüm | 2247 | 779 | 2341 | 0 |
+
+**iOS denetimi** (Paket 18 E listesi; 5 sayfa × 2 ekran, 700 px kaydırma): sabit/yapışkan öğeler `div.bd-ust-blok` (sticky) + `nav.tabbar` (fixed). Hepsinde **yatay taşma 0**, kaydırınca ikisi de **yerinde**; `fixed` öğede transform yok, fixed öğenin atalarında transform/filter/perspective yok.
+- Not: `.bd-ust-blok` üzerinde `transform: translateZ(0)` var (tema.css "kompozisyon katmanı" kuralı, eskiden beri). Öğe **sticky**, fixed değil; içinde fixed çocuk yok (toast `position: relative`). Kural (fixed + transform aynı öğede) ihlal edilmiyor; dokunulmadı. İlk denetim çıktısı bunu yanlışlıkla "fixed + transform" diye etiketliyordu, betik düzeltildi.
+- WebKit bu makinede çalışmadığı için (Paket 18 E) denetim Chromium iPhone görünümünde.
+
+Görseller (`gorsel/paket19/`): `e-once-*` / `e-sonra-*` × `masaustu|iphone` × `ana|duello|dukkan|gorunum`.

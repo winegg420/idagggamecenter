@@ -96,8 +96,11 @@
    ============================================================ */
 
 body {
-  /* Açık gökyüzü zemini: gök mavisi -> çok açık mavi -> krem. */
-  background: linear-gradient(180deg, var(--bd-gok) 0%, var(--bd-zemin) 30%, var(--bd-zemin-2) 100%);
+  /* Açık gökyüzü zemini: gök mavisi -> çok açık mavi -> krem.
+     Paket 19 §E: degradenin ALTINDA bitiş rengi (krem) zemin + tekrar yok. iOS Safari background-attachment: fixed'i
+     desteklemiyor; orada degrade ekran boyunda tekrar edip uzun sayfada gök mavisine keskin dönüyordu. Artık ilk ekranın
+     altı degradenin bittiği renkle kesintisiz sürer. Masaüstü/Android (fixed çalışıyor) görünümü değişmez. */
+  background: var(--bd-zemin-2) linear-gradient(180deg, var(--bd-gok) 0%, var(--bd-zemin) 30%, var(--bd-zemin-2) 100%) no-repeat;
   background-attachment: fixed;
   font-family: var(--bd-f-govde);
 }

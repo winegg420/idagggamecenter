@@ -2521,6 +2521,10 @@ h1.baslik, h2.baslik { font-size: 18px; font-weight: 800; margin: 0 0 10px; }
   /* Paket 19 §B: sabit alt menü içerikle AYNI genişlikte olmalı. 540'ta kalınca içerik iki yanda 40 px taşıyordu;
      menünün arkasına düşen turuncu buton ("Davet linkini paylaş") iki yanda blok olarak görünüyordu. */
   .tabbar { max-width: 620px; }
+  /* Paket 19 §E: kısa sayfa (Düello, boş listeler) masaüstünde üste yapışıp alt yarıyı boş bırakıyordu. İçerik alanı zaten
+     boşluğu dolduruyor (.sayfa flex: 1); içerik o alanda dikeyde ORTALANIR. `safe`: taşan (uzun) sayfa üstten başlar,
+     yukarı kesilmez. Telefon düzeni (üste yaslı) değişmez. transform/filter yok; yükseklik vh kullanılmaz. */
+  .sayfa { display: flex; flex-direction: column; justify-content: safe center; }
 }
 @media (min-width: 1400px) {
   .app { max-width: 620px; }
