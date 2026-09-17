@@ -19,14 +19,19 @@ const KADRAJ = {
   sirt: { fov: 28, konum: [0, 1.2, 3.6], bak: [0, 1.0, 0], don: Math.PI - 0.55 },
 };
 
-export async function vitrinSahnesiKur(kapsayici, { tohum = "" } = {}) {
+/**
+ * @param {HTMLElement|null} kapsayici  canlı önizleme tuvalinin konacağı kutu
+ * @param {{ tohum?: string, canli?: boolean }} o  canli:false → yalnız portre makinesi (Dükkân › Görünüm; Paket 19 §D):
+ *   tuval sayfaya eklenmez, döngü dönmez; yine TEK WebGL bağlamı.
+ */
+export async function vitrinSahnesiKur(kapsayici, { tohum = "", canli = true } = {}) {
   const render = new THREE.WebGLRenderer({ antialias: true, alpha: true });
   render.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
   render.toneMapping = THREE.ACESFilmicToneMapping;
   render.toneMappingExposure = 1.08;
   render.setClearColor(0x000000, 0);
   render.domElement.className = "bd-vitrin-tuval";
-  kapsayici.appendChild(render.domElement);
+  if (canli) kapsayici.appendChild(render.domElement);
 
   const sahne = new THREE.Scene();
   const gok = new THREE.HemisphereLight(0xeaf7ff, 0xe8dfcb, 0.75 * Math.PI); sahne.add(gok);
@@ -42,12 +47,12 @@ export async function vitrinSahnesiKur(kapsayici, { tohum = "" } = {}) {
 
   let ana = null, aci = 0.4, son = performance.now(), zaman = 0, rafNo = 0, bitti = false;
   const boyutla = () => {
-    const w = kapsayici.clientWidth || 300, h = kapsayici.clientHeight || 360;
+    const w = (canli && kapsayici?.clientWidth) || 300, h = (canli && kapsayici?.clientHeight) || 360;
     render.setSize(w, h, false);
     kamera.aspect = w / h; kamera.updateProjectionMatrix();
   };
   boyutla();
-  const gozlemci = new ResizeObserver(boyutla); gozlemci.observe(kapsayici);
+  const gozlemci = new ResizeObserver(boyutla); if (canli) gozlemci.observe(kapsayici);
 
   const ciz = () => { render.setRenderTarget(null); render.render(sahne, kamera); };
   const dongu = () => {
@@ -62,7 +67,7 @@ export async function vitrinSahnesiKur(kapsayici, { tohum = "" } = {}) {
       ciz();
     } catch (e) { console.error("[Vitrin] kare:", e); }
   };
-  dongu();
+  if (canli) dongu();
 
   /**
    * Canlı önizlemedeki karakteri bu görünümle yeniden kur.
@@ -121,7 +126,7 @@ export async function vitrinSahnesiKur(kapsayici, { tohum = "" } = {}) {
       render.setPixelRatio(oran);
       render.setSize(eskiW, eskiH, false);
       avatarlar.vekilleriUygula();
-      ciz();
+      if (canli) ciz();
     }
   }
 

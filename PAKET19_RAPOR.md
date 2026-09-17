@@ -4,8 +4,8 @@
 |---|---|---|
 | A — kozmetik ekonomisi açıldı | ✅ canlıda · migration 219 uygulandı | `31913f4` |
 | B — davet butonu taşması | ✅ canlıda · kök sebep masaüstünde alt menü 540 / içerik 620 | `b83e143` |
-| C — vitrinde T-pozu | ✅ canlıda · Idle her kuruluşta anında uygulanıyor + Selam; kalıcı T düzenekte yeniden üretilemedi (ölçüm raporda) | C |
-| D — Dükkân › Görünüm vitrini | (sürüyor) | |
+| C — vitrinde T-pozu | ✅ canlıda · Idle her kuruluşta anında uygulanıyor + Selam; kalıcı T düzenekte yeniden üretilemedi (ölçüm raporda) | `3c8b4d8` |
+| D — Dükkân › Görünüm vitrini | ✅ canlıda · kozmetik kartları (portre + ad + durum), tek WebGL bağlamı, satın alma vitrinde | D |
 | E — geniş ekranda boş alan | (sürüyor) | |
 | F — push abonesi sıfır | (sürüyor) | |
 
@@ -104,3 +104,31 @@ Görseller:
 - Not: önce/sonra durağan görüntüler birbirine benziyor, çünkü düzenekte kalıcı T-pozu zaten yoktu. Fark kurulum anındaki ilk karede, yukarıdaki tabloda.
 
 Betikler: `.tmp/p19/c_kanca.mjs`, `c_dogrula.mjs`, `c_poz.mjs`, `c_selam.mjs`.
+
+---
+
+## D — Dükkân › Görünüm artık kozmetik vitrini
+
+### Yapılan
+- **Yeni `bildim/vitrin/GorunumVitrini.jsx`**, Dükkân › Görünüm sekmesinde tek "Karakterim" satırının yerine geçti.
+  - `vitrin_katalogum()`'daki bütün kozmetikler kart olarak listeleniyor: **oyuncunun kendi karakteri (kendi türü) üstünde portre + ad + durum**.
+  - Durum dili vitrinle aynı: **fiyat** (turuncu, `2.000 coin` binlik ayraçlı), **"Sahipsin"** rozeti, **"Satılmaz · turnuva ödülü"** kilidi, **"Yakında"** kilidi.
+  - Karta dokununca `/gorunum` vitrinine gider. Altta "Karakterime git" düğmesi.
+- **Yeni satın alma yolu yok:** sekmede satın alma düğmesi 0 (ölçüldü). Satın alma yalnız vitrinde.
+- **Tek renderer:** `vitrinSahne.js`'e `canli: false` kipi eklendi. Tuval sayfaya eklenmiyor, döngü dönmüyor, yalnız portre makinesi. Kart başına yeni WebGL bağlamı açılmıyor.
+- **Stil:** `.app a` kuralının altı çizili bağlantı stili kartlara geçiyordu; aynı özgüllükle ezildi (`.bd-profil-hatalarim` ile aynı desen). Kartlar basınca `translate 4px` (Şenlik).
+
+### Doğrulama (kabuklu düzenek, gerçek Layout + Dükkân)
+
+| Ölçüm | Masaüstü 1522×784 | iPhone 390×844 |
+|---|---|---|
+| Açılan WebGL bağlamı (`getContext` kancası) | **1** | **1** |
+| Sayfadaki `<canvas>` | 0 | 0 |
+| Kartlar | 10 (7 portreli + 3 Yakında) | 10 |
+| Sekmedeki satın alma düğmesi | 0 | 0 |
+| Kart bağlantı hedefi | `/bildim/gorunum` (uygulamada `y()` önekini çözüyor) | aynı |
+| Yatay taşma | 0 | 0 |
+
+Kart durumları (sahte katalog: şapka + atkı sahip): Şapka → Sahipsin · Gözlük → 350 coin · Güneş gözlüğü → 450 coin · Taç → Satılmaz · Pelerin → Satılmaz · Atkı → Sahipsin · Kanat → 2.000 coin · Saç / Elbise / Alt → Yakında.
+
+Görseller: `gorsel/paket19/d-1-dukkan-gorunum-masaustu.jpg`, `d-2-dukkan-gorunum-iphone.jpg`. Tam sayfa görüntülerinde alt menünün ortada durması ekran görüntüsü birleştirmesinden, sayfada değil. Masaüstü görüntüsünün altındaki zemin rengi değişimi E'nin konusu.

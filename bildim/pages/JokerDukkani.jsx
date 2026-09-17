@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import Ikon from "../components/Ikon.jsx";
 import { hataMesaji } from "../lib/hata.js";
 import { Link, useSearchParams } from "react-router-dom";
+import GorunumVitrini from "../vitrin/GorunumVitrini.jsx";
 import { supabase } from "../../src/lib/supabase.js";
 import { JOKER_BILGI, envanterNesne } from "../lib/jokerler.js";
 import { h5AdsYapilandirildi, odulluVideoGoster } from "../lib/h5ads.js";
@@ -240,16 +241,7 @@ export default function JokerDukkani() {
           Tek karakter sistemi: oyuncunun 3B portresi + 3B gardırop
           kataloğu (avatar3d_katalogum). Denemek ve satın almak gardıropta.
           Jokerler sekmesine dokunulmadı. */}
-      {sekme === "kiyafet" && (
-        <Link to={y("/gorunum")} className="kart bd-profil-hatalarim">
-          <span className="bd-mod-ikon" style={{ background: "var(--bd-vurgu)" }}><Ikon ad="tisort" boyut={20} /></span>
-          <div className="bd-profil-hatalarim-metin">
-            <div className="ad">{tt("Karakterim")}</div>
-            <div className="alt-yazi">{tt("Türünü seç, kozmetiklerini tak ve al. Meydanda böyle görünürsün.")}</div>
-          </div>
-          <span className="ok" aria-hidden="true">›</span>
-        </Link>
-      )}
+      {sekme === "kiyafet" && <GorunumVitrini />}
 
       {/* ---------- Envanter ---------- */}
       {sekme === "joker" && (

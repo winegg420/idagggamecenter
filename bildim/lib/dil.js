@@ -1780,6 +1780,9 @@ const SOZLUK = {
     "Aç|ayar": "Turn on",
     "Spor|ayakkabi": "Trainers",
     // ---- Paket 17 §D — karakter vitrini
+    "Karakterinin üstünde nasıl durduğunu gör. Denemek ve satın almak için karta dokun.": "See how it looks on your character. Tap a card to try it on and buy it.",
+    "Vitrin hazırlanıyor…": "Preparing the wardrobe…",
+    "Karakterime git": "Go to my character",
     "Süzülme + parıltı": "Hover + sparkle",
     "Karakterim": "My character",
     "Meydanda seni bu karakter temsil eder.": "This character represents you in the Plaza.",
