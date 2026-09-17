@@ -64,3 +64,38 @@ Canlıda 5 oyuncunun her birinin kartta ne yaptığı (reddetti / kapattı / hat
 Görseller: `gorsel/paket17/b-1-izin-karti.jpg`, `b-2-abone-olundu.jpg`, `b-3-bildirim-geldi.jpg`.
 
 **Bilinen sınır:** canlı sitede gerçek oturumla deneme yapılmadı (şifre giremem); zincirin her halkası ayrı ayrı canlı bileşenlerle denendi. iPhone'da gerçek cihaz testi yok. Abone sayısının artması için oyuncuların kartı yeniden görmesi gerekiyor: eski koddaki "bir daha sorma" işareti hata yüzünden konmuş olabilecek tarayıcılarda kart çıkmaz — onlar için giriş Profil › Bildirimler.
+
+---
+
+## C — Haftalık lig arşivi boş (ölçüldü, kod değişmedi — karar sahibinde)
+
+### C.1 Ölçüm
+
+**Cron işleri (son 30 gün, `cron.job_run_details`):** dördü de **yalnız bir kez** çalışmış — site 12 Eylül'de geçmişi sıfırlayıp açıldığından beri kapanan tek hafta 7–13 Eylül.
+
+| İş | Zaman (UTC) | Koşu | Başarılı | Hata |
+|---|---|---:|---:|---:|
+| `bildim-lig-kapat` (`lig_haftayi_kapat`, 5 kademe) | Paz 20:45 | 1 (13 Eyl) | 1 | 0 |
+| `bildim-hafta-kapat` (`haftayi_kapat`, eski şehir/ülke/dünya arşivi) | Paz 21,22,23 | 3 | 3 | 0 |
+| `bildim-hafta-kapat-pzt` (aynı fonksiyon, yedek pencere) | Pzt 00–03 | 4 | 4 | 0 |
+| `bildim-hafta-bildir` (`haftalik_sonuc_bildir`) | Pzt 06:00 | 1 | 1 | 0 |
+
+**İki ayrı lig sistemi var:** `lig_arsiv` eski şehir/ülke/dünya haftalık sıralamasının arşivi (`haftayi_kapat`). Oyunun omurgası olan 5 kademe + 25 kişilik grup ise `lig_uyelik` + `lig_haftayi_kapat`. Arşivin boş olması yeni ligin çalışmadığı anlamına gelmiyor.
+
+**5 kademeli lig kapanışı çalışmış:**
+- `lig_son_kapanis` = `2026-09-07`; 7 Eylül haftası kapanmış, 14 Eylül haftasının grupları kurulmuş (bronz 62, gümüş 8 üye).
+- Grup ödülleri dağıtılmış (13 Eyl 20:45'te `coin_hareketleri`'nde 7 `lig` ödülü).
+- **1 gerçek oyuncu Gümüş'e yükselmiş** (`4c7703b8…`).
+- `lig_cerceveleri`'nde `kaynak = 'lig_yukselme'` yok, çünkü tek kapanış migration 213'ten (17 Eyl) önce oldu. O yükselme 17 Eylül'deki geriye dönük 271 `gecmis` çerçevesinin içinde. İlk gerçek `lig_yukselme` 20 Eylül kapanışında beklenir.
+
+**`lig_arsiv` neden boş:** `haftayi_kapat` yalnız `puan_hafta > 0` ve en az 1 maçı olan **gerçek oyuncuları** arşivler.
+- **Kapanış çalıştı:** botlar puanı `puan` ve `puan_hafta`'ya hep birlikte ekliyor (`bot_puan_tik`), yine de **104 botta `puan_hafta < puan`** → 13 Eylül 21:00'de sıfırlama yapılmış, yani fonksiyon gövdesi çalışmış.
+- **Arşivlenecek kimse yoktu:** 4 gerçek oyuncunun **4'ünde de `puan_hafta = puan`** → sıfırlama anında hiçbirinin haftalık puanı yokmuş. O hafta biten gerçek oyunculu 3 maç: 2'si bota karşı mağlubiyet (0 puan), 1'i aynı çift arasında beraberlik; bu beraberlik de puan yazmamış, aksi hâlde bugün `puan_hafta < puan` olurdu.
+- **Bugün doğru çalışıyor:** işlem içinde çalıştırılıp geri alındı → **4 satır arşivlendi, 163 profilin `puan_hafta`'sı sıfırlandı, 4 `hafta_sonuc` bildirimi yazıldı**. 20 Eylül kapanışında arşiv dolacak.
+- **Sonuç: arşiv yazımında hata yok, koşul sağlanmamış.** Geriye dönük doldurma yapılmadı (o haftanın verisi yok).
+
+### C.2 Kapanışta bulunan iki gerçek kusur (düzeltilmedi, sahibi karar versin)
+1. **Pasif sayacı haftadan haftaya taşınmıyor → "üst üste 2 hafta pasif düşer" kuralı hiç tetiklenmez.** `lig_gruplarini_kur` yeni haftanın satırını `pasif_hafta` vermeden ekliyor (varsayılan 0). Kapanış `pasif_hafta + 1 >= 2`'ye o haftanın satırından bakıyor, sayaç en fazla 1 oluyor. (7 Eylül haftasında 40 pasif oyuncu vardı; 14 Eylül satırlarında toplam 0.)
+2. **Aktiflik yalnız `matches` tablosundan sayılıyor.** `mac_sayisi` yalnız Normal Maç'ları sayıyor; **Düello, Hızlı Mod, grup, turnuva sayılmıyor**. Bu hafta Düello bitiren 3 gerçek oyuncu kapanışta "pasif" görünecek → sıralamada ilk 5'e girse bile **yükselemez** (pasif dalı `continue` ediyor). Kusur 1 yüzünden şimdilik lig düşürmüyor; kusur 1 düzeltilirse bunları iki hafta sonra düşürmeye başlar. İkisi birlikte düzeltilmeli.
+- **Ek gözlem:** 7 Eylül kapanışında herkesin `puan_hafta`'sı 0'dı. Sıralama `puan_hafta desc, puan desc, gorunen_ad asc` olduğu için yükselen oyuncu fiilen puanla değil, maçı olan oyuncular arasında toplam puan ve ada göre seçildi. Puanlı haftalarda sorun olmaz ama "0 puanla yükselme" kuralı tanımlı değil.
+- **Zamanlama notu:** lig kapanışı Pazar 20:45 UTC, `puan_hafta` sıfırlaması 21:00 UTC. Aradaki 15 dakikada kazanılan haftalık puan hiçbir haftaya sayılmıyor.
