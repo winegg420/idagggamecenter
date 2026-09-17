@@ -5400,3 +5400,6 @@ en küçük TR 761 (spor), EN 476 (tarih) — hiçbiri 300 altı değil. Sayfa s
 - **C (dal `paket16-tac-pelerin`, main'e ALINMADI):** meydanda taç + pelerin. Mevcut kozmetikler InstancedMesh değil (karakter başına klon) → sıfır çağrılı yol yok. Tüm oyuncular için tek taç + tek pelerin InstancedMesh: +2 çağrı (sabit), +1.764 üçgen, süre farkı ölçülemedi (sıra ters çevrilince kayboldu). Paket "yeni çağrı açma, önce söyle" dediği için sahibi onayı bekleniyor.
 - **D (`157dc37`, migration 215 uygulandı):** `bildim-soru-uret` cron'u kapatıldı; geri açma satırı dosyada (anahtar `gizli_al` ile). generate-questions ve eski hata kayıtları yerinde; diğer 23 cron işi duruyor.
 - Rapor: `PAKET16_RAPOR.md`, görseller `gorsel/paket16/`.
+
+## 17 Eyl 2026 — Paket 17 A: taç + pelerin onaylandı
+- Sahibi +2 sabit çağrıyı onayladı; `paket16-tac-pelerin` dalı `main`'e birleştirildi (`376f453`). PAKET16_RAPOR C durumu güncellendi.

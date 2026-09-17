@@ -4,7 +4,7 @@
 |---|---|---|
 | A — push bildirimleri alıcının dilinde | ✅ canlıda · migration 214 uygulandı | `07d905d` |
 | B — lig çerçeveleri 4 ekranda | ✅ canlıda | `d6966c7` |
-| C — meydanda taç + pelerin | ⏸ **karar bekliyor** — `main`'e alınmadı, dalda: `paket16-tac-pelerin` | `paket16-tac-pelerin` dalı |
+| C — meydanda taç + pelerin | ✅ sahibi onayladı (Paket 17 A), `main`'e birleştirildi | `376f453` |
 | D — soru üretim cron'u kapatıldı | ✅ canlıda · migration 215 uygulandı | `157dc37` |
 
 Haritaya (Boğaz, cepheler, yapılar, tramvay, kediler, botlar) dokunulmadı. Karakter gövdesi, iskelet, atlas, `karakter.js` değişmedi. Soru üretimi otomatikleştirilmedi.
@@ -89,7 +89,7 @@ Canlıda abone olmadığı için gönderilen gövde `net._http_response`'tan oku
 
 ---
 
-## C — Taç ve pelerin (KARAR BEKLİYOR)
+## C — Taç ve pelerin (Paket 17 A ile onaylandı, `376f453`)
 
 ### Paketteki varsayım tutmadı
 "Taç ve pelerin mevcut kozmetik InstancedMesh'lerine girmeli" — meydandaki mevcut kozmetikler (şapka, gözlük, atkı) **InstancedMesh değil**: `kozmetik.js` her karaktere ayrı mesh klonluyor (tam karakter başına kozmetik başına 1 çağrı). Ayrıca karakter GLB'sinde taç/pelerin meshi yok ve gövde/atlas/karakter.js değişmeyecek. Yani **sıfır yeni çağrıyla** eklemenin yolu yok.
