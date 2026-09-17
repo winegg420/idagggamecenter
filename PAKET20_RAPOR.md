@@ -6,7 +6,7 @@
 | I.3 — maç sonu ödül dökümü | ✅ canlıda · migration 221 uygulandı, 5 sonuç ekranında satır satır döküm | `17dfe91` |
 | II — soru kalite mekanizması | ✅ canlıda · migration 222–224 uygulandı; 2.976 şüpheli (30 rekabetçi havuz dışı), akış uçtan uca doğrulandı; sol anahtarı sorusunun anahtarı **doğru** çıktı | `38998d3` |
 | III — misafir hesabı koruma | ✅ canlıda · Misafir etiketi + Ayarlar kartı + ilk galibiyet önerisi; bağlama aynı user_id, veri kaybı 0 (ölçüldü) | `0e96748` |
-| IV — Düello deneyimi | (sürüyor) | |
+| IV — Düello deneyimi | ✅ canlıda · tanıtım, doğru cevap metinle, ilk maç +5 sn (migration 225), joker ipuçları, maç özeti | IV |
 | V — Hatalarım dürüstlüğü | (sürüyor) | |
 | VI — konsol uyarıları | (sürüyor) | |
 | VII — renk ve kontrast | (sürüyor) | |
@@ -197,3 +197,70 @@ Canlıdaki soru: **`a11854c0` "Sol anahtarı hangi çizgiye yerleşir?"**, şık
 | Kalıcı hesap | yok | yok | yok | — | — | 0 |
 
 Görseller: `gorsel/paket20/iii-*`.
+
+---
+
+## IV — Düello deneyimi
+
+### IV.1 — Kurallar anlatılıyor
+- **Tanıtım (4 adım, atlanabilir):** 3 can · sırayla saldır/savun + eşit hamle kuralı · saldırı riski (en zayıf kategori maç başında sabitlenir, eşitlikte biri kilitlenir) · jokerler + altın soru.
+  - **Maçın içinde değil, "Rakip ara"ya ilk basışta** açılır, çünkü maçta sayaç işlerken okunamaz. Bitince arama kendiliğinden başlar.
+  - Bir kez gösterilir (`bildim_duello_tanitim_v1`). Lobideki "Kurallar nasıl işliyor?" bağlantısı yeniden açar.
+- **Maçın içinde de açıklandı:**
+  - Kategori seçiminde: "En zayıf kategori maç başında sabitlenir; yüzdeler eşitse biri seçilip kilitlenir. Bu yüzden eşit görünen kategorilerden yalnız biri riskli."
+  - Bir oyuncunun canı bittiği hâlde maç sürüyorsa bant: "Eşit hamle kuralı: canı biten oyuncu bu turdaki saldırısını yine de yapar, tur tamamlanınca maç biter."
+
+### IV.2 — Yanlış cevaptan sonra doğru cevap
+**Ölçüm:** sunucu yanlış cevaptan sonra zaten 3 sn'lik `sonuc` fazı açıyor (`duello_sonuc_sn`) ve ekran doğru şıkkı işaretliyordu, ama **yalnız renkle**; üstteki satır sadece "Yanlış — can kaybettin." diyordu. Sol anahtarı örneğinde doğru şık **C düğmesindeki "İkinci"** idi — "üçüncü düğme" ile "Üçüncü" şıkkı kolayca karışıyor. **Altın soruda** ise doğru cevap hiç gösterilmiyordu (maç bitiyor ya da yeni altın soru geliyordu).
+
+**Yapıldı:**
+- Sonuç fazında doğru cevap **harf ve metinle**: **"Doğru cevap: C · İkinci"**.
+- Maç altın soruyla bittiyse sonuç ekranında o soru + doğru cevap + senin cevabın.
+- Zamanlama değişmedi: sunucudaki 3 sn fazı aynen duruyor, Normal Maç'taki 1 sn kuralına dokunulmadı.
+
+**Sınır:** altın soru berabere kalıp yeni altın soru gelirse, önceki altın sorunun cevabı maç sırasında gösterilmiyor. Bunun için sunucuya ikinci bir bekleme fazı eklemek gerekir; akışı değiştireceği için yapılmadı. Maç bitince özet listesinde görünüyor.
+
+### IV.3 — İlk maçta ek süre (migration 225)
+`duello_kategori_suresi(saldıran)` = `duello_kategori_sn` (20) + `duello_ilk_mac_ek_sure` (**5**, yeni ayar). Ek süre, bitmiş düellosu olmayan **gerçek** oyuncu saldırırken verilir. `duello_olustur`, `duello_ilerlet` (2. saldırı) ve `duello_tur_sonu` (yeni tur) bunu kullanıyor. Botlar ek süre almaz.
+
+Doğrulama (canlı DB, işlem içinde, geri alındı):
+
+| Senaryo | Süre |
+|---|---|
+| İlk maçını oynayan saldırıyor | 25 sn |
+| Deneyimli oyuncu saldırıyor | 20 sn |
+| Bot saldırıyor | 20 sn |
+| `ilerlet` → ilk maçlık oyuncunun 2. saldırısı | 25 sn |
+
+### IV.4 — Jokerler "yok" gibi görünmüyor
+Joker kutusunun altına **neden kapalı olduğu** yazıldı:
+- Saldırı: "Saldırı sırasında, soruyu gördüğün Saldırı Hazırlığı'nda açılır." → açılınca "Şimdi kullanabilirsin — soru rakibe gitmeden."
+- Savunma: "Soru sana gelince açılır." → açılınca "Şimdi kullanabilirsin."
+- "Rakip Savunma Kilidi kullandı…" · "Bu maçtaki joker hakkın doldu."
+
+Açıldığı an kutunun etrafında turuncu bir halka bir kez yayılıyor (`prefers-reduced-motion`'da yok). Kapalı düğmeler soluk.
+
+### IV.5 — Maç özeti
+Sonuç ekranında sırasıyla:
+1. Ödül dökümü (I.3).
+2. **Özet:** savunmada doğru, saldırıda isabet, kaçırılan soru sayısı, en etkili saldırın (kategori · isabet), rakibi şaşırttığın kategoriler, geri tepen riskli saldırılar.
+3. **"Kaçırdığın sorular ve doğru cevapları"** (açık gelir).
+4. Maçın bütün soruları, "Soruyu bildir" ile.
+
+Veri sunucudan (`mac_sorulari`); ekran yalnız sayar, ödül hesabı yapmaz.
+
+**Test** (kabuk düzeneği; sahibinin düellosu `b16d07df`'in gerçek `duello_durum` / `mac_sorulari` çıktısı ile, iPhone + masaüstü):
+
+| Senaryo | Sonuç |
+|---|---|
+| Lobi → Rakip ara (ilk kez) | 4 adım: 3 can → Sırayla saldır, savun → Saldırı riski → Jokerler; sonunda arama açıldı, işaret kaydedildi; ikinci basışta tanıtım yok |
+| Sonuç fazı, yanlış cevap | "Yanlış — can kaybettin." + **"Doğru cevap: C · İkinci"** |
+| Kategori seçimi (saldıran) | riskli açıklaması görünüyor; saldırı jokerleri **kapalı** + sebep |
+| Saldırı Hazırlığı | saldırı jokerleri **açık** + "Şimdi kullanabilirsin — soru rakibe gitmeden." |
+| Savunma (cevap fazı) | savunma jokerleri açık |
+| Canı 0 ama maç sürüyor | eşit hamle bandı |
+| Maç bitti (gerçek veri) | özet "2/3 savunmada doğru · 3/3 saldırıda isabet · 1 kaçırılan · En etkili saldırın Spor · 2 isabet · Rakibi şaşırttığın kategoriler: Spor, Müzik"; kaçırılan soru listesi açık |
+
+Bütün senaryolarda yatay taşma 0. iOS denetimi (5 sayfa × 2 ekran) temiz; tanıtım katmanı mevcut `bd-arama-katman` (fixed, transform yok). Görseller `gorsel/paket20/iv-*`.
+
+*Not:* bu ölçüm sırasında görüldü — sahibinin düellosunu (`b16d07df`) sahibinin hesabı (TestOyuncu917, misafir) **kazanmış**. +53 lig / +55 coin ile tutarlı.

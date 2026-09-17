@@ -6438,3 +6438,32 @@ body.bd-ekle-acik .app { padding-bottom: calc(300px + env(safe-area-inset-bottom
 .app .bd-guvence-eposta input { flex: 1 1 160px; min-width: 0; min-height: 44px; }
 .app .bd-guvence-eposta .btn { flex: 0 0 auto; }
 .app .bd-guvence-tamam { margin-top: 10px; font-size: 13px; font-weight: 800; color: var(--bd-basari-metin); }
+
+/* Paket 20 IV — Düello deneyimi */
+.bd-duello-bant.kural { background: #E3EEFB; color: #173A66; }
+.bd-duello-kural-not { font-size: 12.5px; margin-top: -4px; }
+.bd-duello-dogru-cevap {
+  margin: 6px auto; padding: 8px 12px; border-radius: 12px; max-width: 420px; text-align: center;
+  font-weight: 900; font-size: 15px; background: #D8F5E4; color: #0E5A32;
+}
+.bd-duello-altin-sonuc { max-width: 340px; margin: 14px auto 0; padding: 10px 14px; text-align: left; background: var(--bd-yuzey-1); border-radius: var(--bd-r-l); box-shadow: 0 4px 0 var(--bd-kart-alt); }
+.bd-duello-ozet { max-width: 340px; margin: 14px auto 0; padding: 10px 14px; text-align: left; background: var(--bd-yuzey-1); border-radius: var(--bd-r-l); box-shadow: 0 4px 0 var(--bd-kart-alt); }
+.bd-duello-ozet-sayilar { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; text-align: center; margin-bottom: 6px; }
+.bd-duello-ozet-sayilar b { display: block; font-family: var(--bd-f-baslik); font-size: 20px; color: var(--bd-metin); }
+.bd-duello-ozet-sayilar span { font-size: 11.5px; font-weight: 800; color: var(--bd-metin-2); }
+.bd-duello-joker-ipucu { font-size: 12.5px; font-weight: 800; color: var(--bd-metin-2); margin: -2px 0 8px; }
+.bd-duello-jokerler.acik .bd-duello-joker-ipucu { color: var(--bd-basari-metin); }
+.bd-duello-jokerler.kapali .bd-duello-joker:disabled { opacity: .5; filter: none; }
+.bd-duello-jokerler.acik { animation: bd-joker-acildi .9s ease-out; }
+@keyframes bd-joker-acildi {
+  0% { box-shadow: 0 4px 0 var(--bd-kart-alt), 0 0 0 0 rgba(244, 112, 31, .55); }
+  60% { box-shadow: 0 4px 0 var(--bd-kart-alt), 0 0 0 10px rgba(244, 112, 31, 0); }
+  100% { box-shadow: 0 4px 0 var(--bd-kart-alt); }
+}
+.bd-duello-kurallar { display: block; margin: 10px auto 0; }
+.bd-duello-tanitim-ikon { display: grid; place-items: center; width: 64px; height: 64px; margin: 0 auto 6px; border-radius: 20px; background: #FFF1D6; color: var(--bd-vurgu-metin); box-shadow: 0 4px 0 #F2D9A6; }
+.bd-duello-tanitim-metin { font-size: 14.5px; font-weight: 700; color: var(--bd-metin); line-height: 1.45; margin: 6px 0 10px; }
+.bd-duello-tanitim-noktalar { display: flex; gap: 6px; justify-content: center; margin-bottom: 12px; }
+.bd-duello-tanitim-noktalar span { width: 8px; height: 8px; border-radius: 50%; background: var(--bd-kenar); }
+.bd-duello-tanitim-noktalar span.aktif { background: var(--bd-vurgu); width: 20px; border-radius: 4px; }
+@media (prefers-reduced-motion: reduce) { .bd-duello-jokerler.acik { animation: none; } }

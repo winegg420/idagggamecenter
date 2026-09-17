@@ -23,7 +23,8 @@ import KategoriIkon from "../components/KategoriIkon.jsx";
 import Maskot from "../components/Maskot.jsx";
 import BildirimIzniSor from "../components/BildirimIzniSor.jsx";
 import OdulDokumu from "../components/OdulDokumu.jsx";
-import MacSorulari from "../components/MacSorulari.jsx";
+import DuelloOzet from "../components/DuelloOzet.jsx";
+import DuelloTanitim, { duelloTanitimGoruldu } from "../components/DuelloTanitim.jsx";
 import HesapGuvenceOnerisi from "../components/HesapGuvence.jsx";
 import DereceliAnahtari from "../components/DereceliAnahtari.jsx";
 import { useDereceliTercih } from "../lib/dereceli.js";
@@ -68,6 +69,7 @@ function DuelloGiris() {
   const { ceviri } = useDil();
   const [dereceli, setDereceli] = useDereceliTercih();
   const [arama, setArama] = useState(false);
+  const [tanitim, setTanitim] = useState(null);   // null | "arama" (bitince aramaya geç) | "kurallar"
 
   return (
     <div className="bd-duello-giris">
@@ -88,10 +90,13 @@ function DuelloGiris() {
       <div className="bd-ana-eylem-not">
         {dereceli ? ceviri("Galibiyet: +50 lig puanı ve 50 coin") : ceviri("Serbest: lig puanı yok, coin yarı.")}
       </div>
-      <button className="bd-ana-eylem" onClick={() => { sesKilidiAc(); setArama(true); }}>
+      <button className="bd-ana-eylem" onClick={() => { sesKilidiAc(); if (duelloTanitimGoruldu()) setArama(true); else setTanitim("arama"); }}>
         <Ikon ad="kilic" boyut={22} />
         <span>{ceviri("Rakip ara")}</span>
       </button>
+      {/* Paket 20 IV.1: kurallar her zaman yeniden açılabilir */}
+      <button type="button" className="bd-bildir-ac bd-duello-kurallar" onClick={() => setTanitim("kurallar")}>{ceviri("Kurallar nasıl işliyor?")}</button>
+      {tanitim && <DuelloTanitim onKapat={() => { const aramaya = tanitim === "arama"; setTanitim(null); if (aramaya) setArama(true); }} />}
       {arama && (
         <DuelloArama
           dereceli={dereceli}
@@ -323,7 +328,10 @@ function DuelloMac({ id }) {
             );
           })()}
           {d.durum === "bitti" && <OdulDokumu kaynak={`duello:${d.id}`} onToplam={setDokumToplam} />}
-          <MacSorulari kaynak={`duello:${d.id}`} />
+          {d.durum === "bitti" && d.son_hamle?.altin && secenekler.length > 0 && (
+            <AltinSonucu h={d.son_hamle} ben={d.ben} soru={d.soru?.soru} secenekler={secenekler} ceviri={ceviri} />
+          )}
+          {d.durum === "bitti" && <DuelloOzet id={d.id} />}
           {ezeliMetin && <div className="bd-duello-ezeli">{ezeliMetin}</div>}
 
           <div className="bd-duello-rovans">
@@ -436,6 +444,7 @@ function DuelloMac({ id }) {
             {sayac(false)}
           </div>
           <p className="alt-yazi">{ceviri("Rakibinin kategori başarısı. Kırmızı çerçeve: en zayıf kategorisi — bilirse canı sen kaybedersin.")}</p>
+          <p className="alt-yazi bd-duello-kural-not">{ceviri("En zayıf kategori maç başında sabitlenir; yüzdeler eşitse biri seçilip kilitlenir. Bu yüzden eşit görünen kategorilerden yalnız biri riskli.")}</p>
           <div className="bd-duello-kat-grid">
             {d.kategoriler.map((k) => {
               const adet = Number(kullanim.sayim?.[k] ?? 0);
@@ -507,7 +516,7 @@ function DuelloMac({ id }) {
     const h = d.son_hamle;
     sahne = (
       <div className="bd-duello-sonuc">
-        {h && <SonHamleOzet h={h} ben={d.ben} ceviri={ceviri} buyuk />}
+        {h && <SonHamleOzet h={h} ben={d.ben} ceviri={ceviri} buyuk secenekler={secenekler} />}
         {soruBlogu(false)}
       </div>
     );
@@ -567,6 +576,11 @@ function DuelloMac({ id }) {
         </div>
       )}
       {ezeliMetin && <div className="bd-duello-ezeli">{ezeliMetin}</div>}
+      {d.durum === "aktif" && (ben.can <= 0 || rakip.can <= 0) && (
+        <div className="bd-duello-bant kural">
+          {ceviri("Eşit hamle kuralı: canı biten oyuncu bu turdaki saldırısını yine de yapar, tur tamamlanınca maç biter.")}
+        </div>
+      )}
 
       <div className="bd-duello-sahne" key={`${d.faz}-${d.tur}-${d.saldiri_sirasi}`}>{sahne}</div>
 
@@ -609,7 +623,7 @@ function DuelloMac({ id }) {
   );
 }
 
-function SonHamleOzet({ h, ben, ceviri, buyuk = false }) {
+function SonHamleOzet({ h, ben, ceviri, buyuk = false, secenekler = null }) {
   let metin;
   if (h.dogru && h.riskli) {
     metin = h.saldiran === ben
@@ -623,7 +637,32 @@ function SonHamleOzet({ h, ben, ceviri, buyuk = false }) {
     metin = h.savunan === ben ? ceviri("Yanlış — can kaybettin.") : ceviri("İsabet! Rakip can kaybetti.");
   }
   const iyi = h.can_kaybeden && h.can_kaybeden !== ben;
-  return <div className={`bd-duello-hamle ${iyi ? "iyi" : h.can_kaybeden ? "kotu" : ""} ${buyuk ? "buyuk" : ""}`}>{metin}</div>;
+  // Paket 20 IV.2: yanlış/süre dolduysa doğru cevap METİNLE yazılır (yalnız renk yetmiyordu; C düğmesi "üçüncü" okunabiliyordu)
+  const dogruMetin = !h.dogru && secenekler && h.dogru_cevap != null ? secenekler[h.dogru_cevap] : null;
+  return (
+    <>
+      <div className={`bd-duello-hamle ${iyi ? "iyi" : h.can_kaybeden ? "kotu" : ""} ${buyuk ? "buyuk" : ""}`}>{metin}</div>
+      {dogruMetin && (
+        <div className="bd-duello-dogru-cevap">{ceviri("Doğru cevap: {harf} · {metin}", { harf: HARFLER[h.dogru_cevap], metin: dogruMetin })}</div>
+      )}
+    </>
+  );
+}
+
+/** Paket 20 IV.2 — maç altın soruyla bittiyse o sorunun doğru cevabı sonuç ekranında. */
+function AltinSonucu({ h, ben, soru, secenekler, ceviri }) {
+  const benim = h.cevaplar?.[ben];
+  const dogru = h.dogru_cevap;
+  return (
+    <div className="bd-duello-altin-sonuc">
+      <div className="bd-mac-soru-etiket">{ceviri("Altın Soru")}</div>
+      {soru && <div className="bd-mac-soru-metin">{soru}</div>}
+      <div className="bd-duello-dogru-cevap">{ceviri("Doğru cevap: {harf} · {metin}", { harf: HARFLER[dogru], metin: secenekler[dogru] })}</div>
+      {benim && benim.cevap != null && !benim.dogru && (
+        <div className="bd-mac-soru-not ayri">{ceviri("Senin cevabın: {harf} · {metin}", { harf: HARFLER[benim.cevap], metin: secenekler[benim.cevap] })}</div>
+      )}
+    </div>
+  );
 }
 
 function JokerAlani({ set, d, calisan, onKullan, ceviri }) {
@@ -638,13 +677,24 @@ function JokerAlani({ set, d, calisan, onKullan, ceviri }) {
   const saldiriHakKaldi = Number(k.saldiri ?? 0) < Number(j.saldiri_siniri ?? 0);
   const savunmaHakKaldi = Number(k.savunma ?? 0) < Number(j.savunma_siniri ?? 0);
   const ucretsizSaldiri = Number(k.saldiri_ucretsiz ?? 0) < Number(j.ucretsiz_saldiri ?? 0);
+  const setAcik = set === "saldiri" ? saldiriAcik : savunmaAcik;
+  const hakKaldi = set === "saldiri" ? saldiriHakKaldi : savunmaHakKaldi;
+  // Paket 20 IV.4: jokerler "yok" sanılıyordu — kapalıyken NEDEN kapalı olduğu yazılır
+  const ipucu = !hakKaldi
+    ? ceviri("Bu maçtaki joker hakkın doldu.")
+    : set === "saldiri"
+      ? (setAcik ? ceviri("Şimdi kullanabilirsin — soru rakibe gitmeden.") : ceviri("Saldırı sırasında, soruyu gördüğün Saldırı Hazırlığı'nda açılır."))
+      : d.faz === "cevap" && d.savunma_kilidi
+        ? ceviri("Rakip Savunma Kilidi kullandı: bu soruda savunma jokeri yok.")
+        : (setAcik ? ceviri("Şimdi kullanabilirsin.") : ceviri("Soru sana gelince açılır."));
 
   return (
-    <div className={`bd-duello-jokerler ${set}`} key={set} aria-label={set === "saldiri" ? ceviri("Saldırı jokerleri") : ceviri("Savunma jokerleri")}>
+    <div className={`bd-duello-jokerler ${set} ${setAcik && hakKaldi ? "acik" : "kapali"}`} key={`${set}-${setAcik && hakKaldi}`} aria-label={set === "saldiri" ? ceviri("Saldırı jokerleri") : ceviri("Savunma jokerleri")}>
       <div className="bd-duello-joker-baslik">
         {set === "saldiri" ? ceviri("Saldırı jokerleri") : ceviri("Savunma jokerleri")}
         {set === "savunma" && d.savunma_kilidi && d.faz === "cevap" && <span className="kilitli"><Ikon ad="kilit" boyut={13} /></span>}
       </div>
+      <div className="bd-duello-joker-ipucu" role="status">{ipucu}</div>
       <div className="bd-duello-joker-sira">
         {liste.map((tur) => {
           const adet = Number(env[tur] ?? 0);
