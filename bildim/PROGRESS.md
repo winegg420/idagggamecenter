@@ -2652,3 +2652,18 @@ Yeni testler: `_test/ziplama-test.mjs`, `_test/ziplama-ag-test.mjs`,
   `.esya-listesi` gibi adlardan söz ediyordu; depoda bunların karşılığı
   `bildim/harita/`, `pages/GorunumPage.jsx`, `.bd-esya-grid`. İş gerçek
   adlar üzerinde yapıldı.
+
+## 18 Eylül 2026 — Hazır insan modeli araştırması
+
+- Paket 23 insanının ön, yan ve 3/4 yüz görselleri ile üretilen GLB ölçüldü:
+  9.322 üçgen, 6 mesh, tek malzeme ve dört hareket.
+- Ücretsiz ve ticari kullanıma uygun Quaternius, KayKit ve Kenney seçenekleri
+  resmî kaynaklarından karşılaştırıldı.
+- İnsan avatarı için **Quaternius Universal Base Characters [Standard]**
+  seçildi: CC0, glTF, humanoid iskelet, kadın/erkek temel gövde, saç ve ten
+  çeşitlendirme desteği.
+- Paket ortalama 13 bin üçgen olduğu için doğrudan oyuna alınmadı. Bir sonraki
+  adım tek gövdeli prototipi yaklaşık 9 bin üçgene indirip mevcut hareketler ve
+  15 kozmetik yuvasıyla doğrulamak.
+- Ayrıntılı karar ve prototip kabul ölçütleri:
+  `harita/HAZIR_INSAN_MODEL_ARASTIRMASI.md`.
