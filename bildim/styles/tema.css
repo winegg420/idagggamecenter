@@ -6592,3 +6592,10 @@ body.bd-ekle-acik .app { padding-bottom: calc(300px + env(safe-area-inset-bottom
   background: var(--bd-vurgu);
   color: #fff;
 }
+
+/* Paket 24 · C: grup maçı eşleştirme kuyruğu — panelin başında, arkadaş seçmeden oyna */
+.bd-grup-kuyruk {
+  display: flex; flex-direction: column; gap: 6px;
+  margin: 10px 0 4px;
+}
+.bd-grup-kuyruk .alt-yazi { opacity: 0.85; }

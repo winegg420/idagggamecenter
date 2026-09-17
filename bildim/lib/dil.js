@@ -605,6 +605,12 @@ const SOZLUK = {
     "Başa baş.": "Neck and neck.",
     "Geridesin, hesap sor.": "You're behind — get even.",
     "Meydan oku": "Challenge",
+    // ---- Paket 24 · C: grup maçı eşleştirme kuyruğu ----
+    "Rastgele oyuncularla oyna": "Play with random players",
+    "Aramayı durdur": "Stop searching",
+    "Oyuncu aranıyor…": "Looking for players…",
+    "ya da arkadaşlarını seç:": "or pick your friends:",
+    "Grup maçı araması başlatılamadı.": "Couldn't start the group match search.",
     // ---- Paket 24 · A: düello ortak davet/bildirim yoluna bağlandı ----
     "Düelloya çağır": "Challenge to a duel",
     " düelloya çağır": " to a duel",

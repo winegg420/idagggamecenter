@@ -113,6 +113,10 @@ export default function ChallengesPage() {
   const [hizliSecili, setHizliSecili] = useState([]);
   const [hizliHata, setHizliHata] = useState(null);
   const [grupAcik, setGrupAcik] = useState(false);
+  // Paket 24 · C: grup maçı eşleştirme kuyruğu
+  const [grupKuyrukAcMi, setGrupKuyrukAcMi] = useState(false);
+  const [grupKuyrukSn, setGrupKuyrukSn] = useState(0);
+  const [grupAramaCalisiyor, setGrupAramaCalisiyor] = useState(false);
   const [hizliAcik, setHizliAcik] = useState(false);
   const [dereceli, setDereceli] = useDereceliTercih();
   // Meydan okuma modu: normal 1v1 maç ya da düello (Taktik Maçı). Düelloda kategoriyi saldıran tur başında seçer.
@@ -556,6 +560,58 @@ export default function ChallengesPage() {
     }
   };
 
+  // ---- Paket 24 · C: grup eşleştirme kuyruğu ----
+  // Kuyruk sunucuda: grup_ara() ya grup id'si döner ya null (beklemeye devam).
+  // Kimse gelmezse arama süresi dolunca sunucu kalan yerleri kendisi doldurur.
+  const grupAramaBaslat = async () => {
+    setGrupHata(null);
+    setGrupAramaCalisiyor(true);
+    try {
+      const { data, error } = await supabase.rpc("grup_ara", { p_kategori: kategori });
+      if (error) throw error;
+      if (data) { navigate(y(`/grup-mac/${data}`)); return; }
+      setGrupKuyrukAcMi(true);
+      setGrupKuyrukSn(0);
+    } catch (e) {
+      setGrupHata(hataMesaji(e, tt("Grup maçı araması başlatılamadı.")));
+    } finally {
+      setGrupAramaCalisiyor(false);
+    }
+  };
+
+  const grupAramadanCik = useCallback(async () => {
+    setGrupKuyrukAcMi(false);
+    setGrupKuyrukSn(0);
+    try {
+      const { error } = await supabase.rpc("grup_aramadan_cik");
+      if (error) throw error;
+    } catch (e) {
+      console.warn("[Bildim] grup_aramadan_cik başarısız:", e?.message ?? e);
+    }
+  }, []);
+
+  // Kuyruktayken saniyede bir yokla; sayfa kapanırsa kuyruktan çık (sonsuza kadar bekleme yok).
+  useEffect(() => {
+    if (!grupKuyrukAcMi) return;
+    const tik = setInterval(async () => {
+      setGrupKuyrukSn((s) => s + 1);
+      try {
+        const { data, error } = await supabase.rpc("grup_ara", { p_kategori: kategori });
+        if (error) throw error;
+        if (data) {
+          setGrupKuyrukAcMi(false);
+          navigate(y(`/grup-mac/${data}`));
+        }
+      } catch (e) {
+        setGrupKuyrukAcMi(false);
+        setGrupHata(hataMesaji(e, tt("Grup maçı araması başlatılamadı.")));
+      }
+    }, 1000);
+    return () => clearInterval(tik);
+  }, [grupKuyrukAcMi, kategori, navigate]);
+
+  useEffect(() => () => { supabase.rpc("grup_aramadan_cik").catch(() => {}); }, []);
+
   const grupCevapVer = async (grupMacId, kabul) => {
     setGrupHata(null);
     const { error } = await supabase.rpc("respond_group_challenge", {
@@ -877,6 +933,25 @@ export default function ChallengesPage() {
         {grupAcik && (
         <div className="bd-panel-govde">
         <div className="bd-odulsuz-not">{ceviri("Arkadaş maçı — ödül ve puan yok.")}</div>
+
+        {/* Paket 24 · C: arkadaş çağırmadan grup maçı. Kuyruğa girilir, yeterli
+            oyuncu toplanınca grup kurulur; toplanmazsa kalan yerler doldurulur.
+            Ödül kuralı değişmez — grup maçı ödülsüzdür. */}
+        <div className="bd-grup-kuyruk">
+          <button
+            className="btn"
+            onClick={grupKuyrukAcMi ? grupAramadanCik : grupAramaBaslat}
+            disabled={grupAramaCalisiyor}
+          >
+            {grupKuyrukAcMi ? tt("Aramayı durdur") : tt("Rastgele oyuncularla oyna")}
+          </button>
+          {grupKuyrukAcMi && (
+            <div className="alt-yazi" role="status">
+              {tt("Oyuncu aranıyor…")} {grupKuyrukSn > 0 ? `(${grupKuyrukSn} ${tt("sn")})` : ""}
+            </div>
+          )}
+        </div>
+        <div className="alt-yazi" style={{ margin: "10px 0" }}>{tt("ya da arkadaşlarını seç:")}</div>
         <div style={{ display: "flex", gap: 8, marginBottom: 10 }}>
           {[3, 4, 5].map((n) => (
             <button
