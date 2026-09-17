@@ -4,7 +4,7 @@
 |---|---|---|
 | I.1–I.2 — görevler + Düello ustalığı | ✅ canlıda · migration 220 uygulandı | `2e3773d` |
 | I.3 — maç sonu ödül dökümü | ✅ canlıda · migration 221 uygulandı, 5 sonuç ekranında satır satır döküm | `17dfe91` |
-| II — soru kalite mekanizması | ✅ canlıda · migration 222–224 uygulandı; 2.976 şüpheli (30 rekabetçi havuz dışı), akış uçtan uca doğrulandı; sol anahtarı sorusunun anahtarı **doğru** çıktı | II |
+| II — soru kalite mekanizması | ✅ canlıda · migration 222–224 uygulandı; 2.976 şüpheli (30 rekabetçi havuz dışı), akış uçtan uca doğrulandı; sol anahtarı sorusunun anahtarı **doğru** çıktı | `38998d3` |
 | III — misafir hesabı koruma | (sürüyor) | |
 | IV — Düello deneyimi | (sürüyor) | |
 | V — Hatalarım dürüstlüğü | (sürüyor) | |
