@@ -9,6 +9,7 @@
 import * as THREE from "three";
 import { mergeGeometries } from "three/addons/utils/BufferGeometryUtils.js";
 import { vadiDeligi, bogazParcalari, bogazYerlesimi } from "./bogaz.js";
+import { sokakDevami } from "./yapilar.js";
 
 export const PROPLAR = ["prop_agac_govde", "prop_agac_tac", "prop_lamba", "prop_bank", "prop_saksi", "prop_kedi"];
 const BOLGE_DIGER = 17;
@@ -58,8 +59,25 @@ function birlesikMesh(parcalar, malzeme, ad) {
 }
 
 // ---------------------------------------------------------------- zemin + bordür (tek mesh)
+/**
+ * 3A-2 §E: zemin delikleri — `zemin_deligi` taşıyan noktalar (metro girişi). Açıklık (ic) + karo kenar payı içindeki karolar
+ * atlanır, dış zemine delik açılır; testere dişi kenarı yapının kendi taş apronu örter. Yerel eksen parsellerle aynı.
+ */
+function zeminDelikleri(M) {
+  return (M.noktalar ?? []).filter((n) => n.zemin_deligi && n.ic).map((n) => {
+    const a = n.donus_y ?? 0, c = Math.cos(a), s = Math.sin(a);
+    return {
+      x: n.konum[0], z: n.konum[2], c, s, yx: n.ic.en / 2, yz: n.ic.derinlik / 2,
+      icinde(px, pz, pay) { const dx = px - this.x, dz = pz - this.z, lx = dx * c - dz * s, lz = dx * s + dz * c; return Math.abs(lx) < this.yx + pay && Math.abs(lz) < this.yz + pay; },
+      koseler() { return [[-1, -1], [1, -1], [1, 1], [-1, 1]].map(([i, j]) => { const lx = i * this.yx, lz = j * this.yz; return [this.x + lx * c + lz * s, this.z - lx * s + lz * c]; }); },
+    };
+  });
+}
+
 function zeminKur(M, H, malzeme) {
   const parca = [];
+  const delikler = zeminDelikleri(M), karoKenarPayi = 1.0;   // karo merkezi açıklığa bu kadar yakınsa karo atlanır (≤ 2 m karo, apron 2,5 m örter)
+  const delikte = (x, z) => delikler.some((d) => d.icinde(x, z, karoKenarPayi));
   const karo = (x, z, adim, hucre, aci = 0, y = 0.012) => {
     const r = H[hucre]; if (!r) return;
     const g = new THREE.PlaneGeometry(adim, adim).rotateX(-Math.PI / 2).rotateY(aci).translate(x, y, z);
@@ -84,6 +102,7 @@ function zeminKur(M, H, malzeme) {
           const a0 = (j / n) * Math.PI * 2, a1 = ((j + 1) / n) * Math.PI * 2;
           const P = (r, a) => [cx + Math.cos(a) * r, cz + Math.sin(a) * r];
           const [p0, p1, p2, p3] = [P(ri, a0), P(ro, a0), P(ro, a1), P(ri, a1)];
+          if (delikler.length) { const m = P((ri + ro) / 2, (a0 + a1) / 2); if (delikte(m[0], m[1])) continue; }
           const g = new THREE.BufferGeometry();
           g.setAttribute("position", new THREE.BufferAttribute(new Float32Array([p0[0], y, p0[1], p2[0], y, p2[1], p1[0], y, p1[1], p0[0], y, p0[1], p3[0], y, p3[1], p2[0], y, p2[1]]), 3));
           g.setAttribute("normal", new THREE.BufferAttribute(new Float32Array([0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0]), 3));
@@ -99,6 +118,7 @@ function zeminKur(M, H, malzeme) {
       for (let t = adim / 2; t < k.boy; t += adim) for (let l = -b.genislik / 2 + adim / 2; l < b.genislik / 2; l += adim) {
         const x = k.x0 + k.ux * t - k.uz * l, zz = k.z0 + k.uz * t + k.ux * l;
         if (Math.hypot(x, zz) <= plazaR + adim) continue;   // plaza içindeki koridor ağzı plaza karosu + alt katmanla örtülü
+        if (delikler.length && delikte(x, zz)) continue;
         karo(x, zz, adim, Math.abs(l) > b.genislik / 2 - kal ? (z.kaldirim_hucre ?? z.hucre) : z.hucre, aci);
       }
       if (b.bordur && kal > 0) for (const yan of [-1, 1]) {
@@ -120,9 +140,9 @@ function zeminKur(M, H, malzeme) {
   }
   if (M.dis_zemin && H[M.dis_zemin.hucre]) {
     // 3A-1 §B: Boğaz vadisi varsa dış zemin orada AÇILIR (delikli şekil); yoksa eski tek düzlem
-    const delik = vadiDeligi(M);
+    const delik = vadiDeligi(M), tumDelikler = [...(delik ? [delik] : []), ...delikler.map((d) => d.koseler())];   // 3A-2: metro açıklığı da
     let dis;
-    if (delik) { const sekil = new THREE.Shape([[-700, -700], [700, -700], [700, 700], [-700, 700]].map(([x, z]) => new THREE.Vector2(x, -z))); sekil.holes.push(new THREE.Path(delik.map(([x, z]) => new THREE.Vector2(x, -z)))); dis = new THREE.ShapeGeometry(sekil).rotateX(-Math.PI / 2).translate(0, -0.03, 0); }
+    if (tumDelikler.length) { const sekil = new THREE.Shape([[-700, -700], [700, -700], [700, 700], [-700, 700]].map(([x, z]) => new THREE.Vector2(x, -z))); for (const d of tumDelikler) sekil.holes.push(new THREE.Path(d.map(([x, z]) => new THREE.Vector2(x, -z)))); dis = new THREE.ShapeGeometry(sekil).rotateX(-Math.PI / 2).translate(0, -0.03, 0); }
     else dis = new THREE.PlaneGeometry(1400, 1400).rotateX(-Math.PI / 2).translate(0, -0.03, 0);
     parca.push(hucreli(dis, H[M.dis_zemin.hucre], { dolu: false }));
   }
@@ -314,7 +334,7 @@ export function binalariBoya({ M, gb, hucreler: H, malzeme, modRenk, atla = null
       parca.push(hucreli(new THREE.BoxGeometry(Math.min(en - 0.6, 6.5), 0.8, 0.2).translate(0, zeminKat + 0.1, 0).rotateY(aci).translate(tx, 0, tz), H.cerceve, { tint: catiRenk }));   // tabela bandı (mod rengi)
     }
   }
-  for (const n of M.noktalar.filter((q) => q.tip === "landmark" && q.ayakizi)) {   // Cumhuriyet Anıtı: taş taban + gövde
+  for (const n of M.noktalar.filter((q) => q.tip === "landmark" && q.ayakizi && !q.yapi)) {   // yapi alanı olmayan landmark: taş taban + gövde (3A-2: anıt artık yapilar.js)
     const [x, , z] = n.konum, a = n.ayakizi, g = n.govde;
     kutu(a.en, a.yukseklik, a.derinlik, 0, x, z, 0, "tas", new THREE.Color("#D8CFC0"));
     if (g) kutu(g.en, g.yukseklik, g.derinlik, a.yukseklik, x, z, 0, "tasAcik", new THREE.Color("#E6DDCD"));
@@ -326,8 +346,9 @@ export function binalariBoya({ M, gb, hucreler: H, malzeme, modRenk, atla = null
   // arka plan kuşağı: tonlu, gölgesiz, tek mesh
   const vadiVar = (M.arkaplan ?? []).some((b) => b.tip === "vadi");
   if (vadiVar) arka.push(...bogazParcalari({ M, hucreler: H }));   // 3A-1 §B: teraslar · deniz · karşı kıyı · köprü (aynı birleşik mesh)
+  const sokak = sokakDevami(M, H); if (sokak) arka.push(sokak);   // 3A-2 §D: İstiklal'in açılan ucu (siluet kuşağı, aynı birleşik mesh)
   for (const b of M.arkaplan ?? []) {
-    if (b.cokgen) {
+    if (b.cokgen && !b.sokak) {
       const sekil = new THREE.Shape(b.cokgen.map(([px, pz]) => new THREE.Vector2(px, -pz)));
       const yuk = b.yukseklik ?? 0;
       const geo = (yuk > 0 ? new THREE.ExtrudeGeometry(sekil, { depth: yuk, bevelEnabled: false }) : new THREE.ShapeGeometry(sekil)).rotateX(-Math.PI / 2).translate(0, b.tip === "su" ? -0.02 : 0, 0);

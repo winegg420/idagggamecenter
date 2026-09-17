@@ -16,6 +16,7 @@
 // Yerel eksen: +Z cephe (sokağa bakan yüz), X genişlik, Y yukarı; köken parsel çapası (ayak izi merkezi, zemin).
 // ============================================================
 import * as THREE from "three";
+import { yapiGeometrisi, YAPILAR } from "./yapilar.js";
 
 export const VARYANT = {
   vitrin: ["dukkan", "kafe", "dar", "kapali"],
@@ -27,7 +28,7 @@ export const VARYANT = {
   tente: ["duz", "kavisli", "yok"],
   kapi: ["cift", "camli", "kemerli"],
 };
-const BOLGE = { diger: 17, cam: 16, isik: 12 };
+export const BOLGE = { diger: 17, cam: 16, isik: 12 };
 const karmaId = (s) => { let h = 2166136261; for (const c of String(s)) { h ^= c.charCodeAt(0); h = Math.imul(h, 16777619); } return h >>> 0; };
 const SEHIR_TONLARI = ["#F3E6D2", "#FFE9B8", "#DCEFF7", "#F1D9C9", "#E6EBD8", "#EAD9B8", "#E8DCE8"];
 const KEPENK_TONLARI = ["#5E8C6A", "#4F7CA8", "#8A5A36", "#7A6A8C"];
@@ -60,7 +61,7 @@ const YUZ = {
   Y: [[-1, 1, 1], [1, 1, 1], [1, 1, -1], [-1, 1, -1]], y: [[-1, -1, -1], [1, -1, -1], [1, -1, 1], [-1, -1, 1]],
   Z: [[-1, -1, 1], [1, -1, 1], [1, 1, 1], [-1, 1, 1]], z: [[1, -1, -1], [-1, -1, -1], [-1, 1, -1], [1, 1, -1]],
 };
-class Toplayici {
+export class Toplayici {
   constructor(H) { this.H = H; this.pos = []; this.uv = []; this.renk = []; this.bolge = []; }
   #kose(p, u, v, r, t, b) { this.pos.push(p[0], p[1], p[2]); this.uv.push(r.u0 + (r.u1 - r.u0) * u, r.v0 + (r.v1 - r.v0) * v); this.renk.push(t.r, t.g, t.b); this.bolge.push(b); }
   /** Dörtgen (köşeler dışarıdan bakınca saat yönünün tersine). nu×nv karoya bölünür; `dolu` ise her karo hücrenin tamamını gösterir. */
@@ -91,7 +92,7 @@ class Toplayici {
     return g;
   }
 }
-const BEYAZ = C("#FFFFFF");
+export const BEYAZ = C("#FFFFFF");
 
 // ---------------------------------------------------------------- PARÇALAR (hepsi yerel eksende; z0 = cephe düzlemi)
 // Her parça `lod` alır: 0 tam · 1 sade. (2 = uzak kütle parça kullanmaz.)
@@ -336,6 +337,7 @@ function renkler(p, v, modRenk) {
  * @param {object} p parsel (yerlesim.json) · @param {object} H atlas hücre tablosu · @param {0|1|2} lod
  */
 export function binaGeometrisi(p, H, lod, modRenk = null) {
+  if (p.yapi) return yapiGeometrisi(p, H, lod, modRenk);   // 3A-2 §C/§E: tanınır yapılar (AKM, cami, anıt, lise, metro) — aynı kalıp, kendi kurucusu
   const { en: W, derinlik: D, yukseklik: Ht } = p.ayakizi, [x, , z] = p.capa.konum, aci = p.capa.donus_y ?? 0, k = karmaId(p.id);
   const v = receteCoz(p), R = renkler(p, v, modRenk), T = new Toplayici(H), z0 = D / 2;
   const zk = Ht <= 4.4 ? Ht : Math.min(3.8, Ht * 0.5), ust = Ht - zk, katlar = ust < 1.5 ? 0 : Math.max(1, Math.round(ust / 3.15)), kh = katlar ? ust / katlar : 0;
@@ -401,8 +403,14 @@ export function binaGeometrisi(p, H, lod, modRenk = null) {
   return T.geometri(aci, x, z);
 }
 
-/** Cephe sisteminin kurduğu parseller (cami/minare bu pakette DEĞİL — boyalı kütle olarak kalır). */
-export const cepheParselleri = (M) => M.parseller.filter((p) => !/^landmark/.test(p.tur) && p.yertutucu !== "silindir");
+/**
+ * Cephe sisteminin kurduğu yapılar: modüler cephe parselleri + yapi alanı taşıyan parseller ve noktalar (3A-2).
+ * Nokta parsel biçimine çevrilir ({ id, capa, ayakizi, yapi, … }). yapi alanı olmayan landmark parselleri boyalı kütle olarak kalır.
+ */
+export const cepheParselleri = (M) => [
+  ...M.parseller.filter((p) => p.yapi ? YAPILAR[p.yapi] : !/^landmark/.test(p.tur) && p.yertutucu !== "silindir"),
+  ...(M.noktalar ?? []).filter((n) => n.yapi && YAPILAR[n.yapi] && n.ayakizi).map((n) => ({ ...n, capa: { konum: n.konum, donus_y: n.donus_y ?? 0 }, girilebilir: false })),
+];
 
 // ---------------------------------------------------------------- gömülü AO (varlik/cephe_ao.mjs pişirir → public/meydan/deneme/cephe_ao.bin)
 /** bin: [u32 başlık boyu][JSON başlık {surum, kayitlar:{ "<id>:<lod>": [ofset, köşe] }}][bayt…] */

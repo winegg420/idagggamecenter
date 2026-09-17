@@ -140,9 +140,16 @@ export function yerlesimKur({ sahne, manifest: ham, tt = (s) => s, turnuvaAlt = 
       const a = n.ayakizi, taban = new THREE.Mesh(new THREE.BoxGeometry(a.en, a.yukseklik, a.derinlik), mat(TON.landmark));
       taban.position.set(x, a.yukseklik / 2, z); taban.castShadow = true; taban.receiveShadow = true; ekle(taban, gri.parsel);
       if (n.govde) { const gv = new THREE.Mesh(new THREE.BoxGeometry(n.govde.en, n.govde.yukseklik, n.govde.derinlik), mat(TON.landmark)); gv.position.set(x, a.yukseklik + n.govde.yukseklik / 2, z); gv.castShadow = true; ekle(gv, gri.parsel); }
-      kutular.push({ x, z, aci: 0, yx: a.en / 2, yz: a.derinlik / 2, id: n.id });
-      engeller.push({ x, z, r: Math.hypot(a.en, a.derinlik) / 2, parsel: n.id });
+      const cz = n.carpisma ?? a;   // 3A-2 §C.3: çarpışma yalnız kaidede (basamaklar yürünür) — manifest carpisma alanı
+      kutular.push({ x, z, aci: n.donus_y ?? 0, yx: cz.en / 2, yz: cz.derinlik / 2, id: n.id });
+      engeller.push({ x, z, r: Math.hypot(cz.en, cz.derinlik) / 2, parsel: n.id });
       const e = etiket([n.id, `landmark · ${n.ad ?? ""}`], 1); e.position.set(x, a.yukseklik + (n.govde?.yukseklik ?? 0) + 2.2, z); etiketler.add(e);
+    } else if (n.tip === "kozmetik" && n.ayakizi) {   // 3A-2 §E: metro girişi vb. — ayak izinin TAMAMI katı (içine girilmez, düşülmez)
+      const a = n.ayakizi, cz = n.carpisma ?? a, g = new THREE.Mesh(new THREE.BoxGeometry(a.en, a.yukseklik ?? 1, a.derinlik), mat(TON.landmark));
+      g.position.set(x, (a.yukseklik ?? 1) / 2, z); g.rotation.y = n.donus_y ?? 0; ekle(g, gri.parsel);
+      kutular.push({ x, z, aci: n.donus_y ?? 0, yx: cz.en / 2, yz: cz.derinlik / 2, id: n.id });
+      engeller.push({ x, z, r: Math.hypot(cz.en, cz.derinlik) / 2, parsel: n.id });
+      const e = etiket([n.id, `kozmetik · ${n.yuva ?? ""}`], 1); e.position.set(x, (a.yukseklik ?? 1) + 2.2, z); etiketler.add(e);
     } else if (n.tip === "npc") {
       const m = new THREE.Mesh(new THREE.CylinderGeometry(0.45, 0.45, 1.8, 10), mat(TON.npc)); m.position.set(x, 0.9, z); m.castShadow = true; ekle(m);
       engeller.push({ x, z, r: 0.6 }); kutular.push({ x, z, aci: 0, yx: 0.45, yz: 0.45, id: n.id });

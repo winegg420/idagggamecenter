@@ -271,18 +271,6 @@
       "alt": "profil ve tercihler"
     },
     {
-      "id": "apartman_istiklal_ucu",
-      "bolge": "istiklal",
-      "tur": "apartman",
-      "kat": 5,
-      "girilebilir": false,
-      "capa": {"konum": [-84.44, 0, 110.42], "donus_y": 2.49},
-      "ayakizi": {"en": 20, "derinlik": 12, "yukseklik": 16.4},
-      "cephe": {"renk": "#EAD9B8", "pencere": "tek", "balkon": "korkuluk", "silme": "disli", "cati": "cikmali", "vitrin": "kapali"},
-      "yuva": "bina_apartman",
-      "yertutucu": "kutu"
-    },
-    {
       "id": "kamusal_akm",
       "bolge": "plaza",
       "tur": "kamusal_yapi",
@@ -389,6 +377,9 @@
       "govde": {"en": 4, "derinlik": 4, "yukseklik": 11},
       "yuva": "landmark_cumhuriyet_aniti"
     },
+    {"id": "metro_taksim", "bolge": "plaza", "tip": "kozmetik", "yuva": "metro_girisi", "yapi": "metro", "konum": [0, 0, 37.5], "donus_y": 1.5708,
+     "ayakizi": {"en": 4.0, "derinlik": 8.2, "yukseklik": 3.5}, "ic": {"en": 3.2, "derinlik": 7.4}, "zemin_deligi": {"pay": 2.5},
+     "not": "3A-2 §E kozmetik metro girişi, inilmez. Çarpışma ayak izinin TAMAMI (merdiven ağzı katı). zemin_deligi: plaza karoları + dış zemin açıklıkta delinir, pay kadar taş apron örter."},
     {"id": "npc_yemci", "bolge": "meydan", "tip": "npc", "konum": [11, 0, -8], "yuva": "npc_yemci"},
     {"id": "tabela_istiklal", "bolge": "istiklal", "tip": "tabela", "metin": "İstiklal Caddesi / İstiklal Street", "konum": [-18.34, 0, 32.55], "donus_y": 2.49, "yuva": "tabela_istiklal"}
   ],
@@ -685,6 +676,8 @@
     {"id": "karsi_kiyi", "tip": "karsi_kiyi", "hat": [[55, -205], [120, -188], [210, -178], [330, -160], [690, -130]], "yukseklik": 22, "derinlik": 120, "ev_baslangic": 0, "ev_uzanim": 470, "ev_derinlik": [6, 42], "obek": {"en_az": 3, "en_fazla": 5, "bosluk": 9, "en_cok": 40, "agac_olcek": 1.25}, "minare_konum": [0.22, 0.5, 0.78], "minare_derinlik": 14, "minare_yukseklik": 26, "renk": "#8DB07A", "not": "3A-2: evler öbek öbek (3–5), öbek arası ağaç kümesi, en çok 40 ev; minareler kıyı hattı boyunca oransal konumda"},
     {"id": "kopru_15_temmuz", "tip": "kopru", "baslangic": [30, -135], "bitis": [200, -150], "kule_konum": [0.2, 0.8], "kule_yukseklik": 50, "guverte_yukseklik": 20, "genislik": 5,
      "not": "Stilize asma köprü silueti, zorlanmış perspektif (gerçek ölçek değil). Yükseklikler deniz kotundan. 3A-2: deniz −35 ile köprü ve karşı kıyı plazaya YAKLAŞTIRILDI — kamera ufka bakmadığı için yükselen siluet uzakta kadrajın üstünden taşıyordu."},
+    {"id": "istiklal_devami", "tip": "siluet", "sokak": "istiklal", "uzunluk": 110, "bosluk": 1, "a_baslangic": 0, "b_baslangic": 17, "net": 35, "sis_renk": "#CDEEFF",
+     "not": "3A-2 §D: apartman_istiklal_ucu kaldırıldı; sokak ilerideki devamı gibi okunur — zemin şeridi + giderek soluklaşan detaysız bina siluetleri. Parsel DEĞİL: çarpışma yok, yürünebilir sınır aynı yerde. Koridor bölgeden türetilir (kaydirma uyar). b_baslangic: b yanında lise parselinin bittiği yerden başlar."},
     {"id": "sehir_kusagi_kuzey", "tip": "siluet", "cokgen": [[-140, -130], [0, -130], [0, -170], [-140, -170]], "yukseklik": 24},
     {"id": "sehir_kusagi_bati", "tip": "siluet", "cokgen": [[-190, -120], [-150, -120], [-150, 200], [-190, 200]], "yukseklik": 20}
   ],
