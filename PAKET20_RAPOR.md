@@ -423,3 +423,12 @@ Eskiden `grayscale(.5) opacity(.65)` → soluk turuncu; "basılabilir" sanılıy
 - **Sapma 2:** ustalık listesinde kategori rengi **hiç yoktu** (çubuk seviyeye göre renkli) → satıra kategori ikonu (plaka, aynı renk). Seviye rengi çubukta kaldı.
 
 iOS denetimi (5 sayfa × 2 ekran) temiz. Görseller: `gorsel/paket20/vii-*` (önce | sonra yan yana).
+
+---
+
+## Yayın durumu (dürüst)
+- **Veritabanı:** migration 220–225 canlıda uygulandı; iki site de aynı veritabanını kullanır.
+- **idagg-game-center.vercel.app (hub):** yedi bölümün **yedisi de canlı**. Canlı pakette I.3 · II · III · IV · V · VI · VII izleri tek tek arandı, hepsi var.
+- **quiztactics.vercel.app:** GitHub commit durumu **"Vercel – quiztactics: Deployment rate limited — retry in 24 hours"**. Bugünkü push sayısı (Paket 19 + 20) bu projenin günlük dağıtım sınırını doldurdu. Bu adreste ön yüz **Bölüm II'de** kaldı (I.3 döküm + II soru bildirme var; III–VII yok).
+  - Eski ön yüz yeni veritabanıyla uyumlu: `vote_question`'a eklenen `p_sebep` varsayılanlı, eski 2 parametreli çağrı çalışır; diğer RPC imzaları değişmedi.
+  - Vercel sınırlı dağıtımı **kendiliğinden yeniden denemez**. Sınır açılınca (≈24 saat) bir sonraki push ya da Vercel panelinde son commit için **Redeploy** yayına çıkarır. Vercel'e doğrudan dağıtım yapılmadı (kural).
