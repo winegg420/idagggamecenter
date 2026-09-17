@@ -37,7 +37,6 @@ import {
   gorunurBotlariSec, ziyaretPencereleri, ziyaretHedefiSec, ziyaretUygunMu, ziyaretBaslat,
   ziyaretAdimi, botBulusmalariniPlanla, planaBacakEkle, hopYuksekligi, kararliRastgele, geriDonusYolu,
 } from "./meydanBotlari.js";
-import { GARDROP_YOLU } from "../pages/GardropaGit.jsx";
 import "./harita.css";
 import { tt } from "../lib/dil.js";
 import OlcumGostergesi, { olcumAcikMi } from "./OlcumGostergesi.jsx";
@@ -1499,17 +1498,17 @@ export default function HaritaSayfasi() {
   // Meydana girmek için karakter şart: meydandaki gövde oyuncunun gardıropta
   // kurduğu karakterdir, kurmamış oyuncu orada "varsayılan biri" olarak
   // dolaşmasın. Bu kapı YALNIZ meydana konur — maç, lig, dükkân serbest.
-  if (gorunumVerisi && !gorunumVerisi.gorunum?.avatar3d) {
+  if (gorunumVerisi && !gorunumVerisi.gorunum?.avatar3d && !gorunumVerisi.gorunum?.harita) {
     return (
       <div className="bd-harita">
         <div className="bd-harita-yukleniyor">
           <div className="bd-harita-hata">
             <b>{tt("Önce karakterini oluştur")}</b>
             <span>
-              {tt("Meydanda herkes kendi karakteriyle dolaşıyor. Gardıropta karakterini kurup kaydedince buraya girebilirsin.")}
+              {tt("Meydanda herkes kendi karakteriyle dolaşıyor. Karakterini seçip kaydedince buraya girebilirsin.")}
             </span>
             <div className="bd-harita-hata-dugmeler">
-              <a className="bd-harita-btn" href={GARDROP_YOLU}>{tt("Gardıroba git")}</a>
+              <button type="button" className="bd-harita-btn" onClick={() => { donusTemizle(); navigate(y("/gorunum")); }}>{tt("Karakterimi seç")}</button>
               <button
                 type="button"
                 className="bd-harita-btn beyaz"

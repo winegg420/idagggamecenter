@@ -62,7 +62,9 @@ const HaritaDeneme = lazy(() => import("../bildim/harita/deneme/DenemeSayfasi.js
 // 2B KARAKTER SİSTEMİ TAMAMEN KALKTI: sayfası da rotadan çıktı, dosyaları
 // bildim/karakter/ altında duruyor. Eski 3B görünüm sayfası yedekte:
 //   /gorunum-3b  → eski 3B görünüm sayfası (bildim/harita/avatar.js)
-const GardropaGit = lazy(() => import("../bildim/pages/GardropaGit.jsx"));
+// Paket 17 §D: eski gardırop DONDURULDU (dosyalar duruyor, arayüzden giriş yok). /gorunum yeni karakter vitrini;
+// /gorunum-3b ve eski HTML girişleri (bildim/avatar3d/*.html) buraya yönlenir. Geri açma: bildim/CLAUDE.md.
+const KarakterVitrini = lazy(() => import("../bildim/vitrin/KarakterVitrini.jsx"));
 const GorunumPage = lazy(() => import("../bildim/pages/GorunumPage.jsx"));
 
 export default function App() {
@@ -194,8 +196,8 @@ export default function App() {
         <Route path="calisma" element={<CalismaPage />} />
         <Route path="harita" element={<HaritaSayfasi />} />
         <Route path="harita-deneme" element={<HaritaDeneme />} />
-        <Route path="gorunum" element={<GardropaGit />} />
-        <Route path="gorunum-3b" element={<GorunumPage />} />
+        <Route path="gorunum" element={<KarakterVitrini />} />
+        <Route path="gorunum-3b" element={<Navigate to="../gorunum" replace />} />
         <Route path="profil" element={<ProfilePage />} />
       </Route>
 

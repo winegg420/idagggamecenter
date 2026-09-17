@@ -2,10 +2,10 @@
 
 | Bölüm | Durum | Commit |
 |---|---|---|
-| A — taç + pelerin onaylandı | ✅ canlıda | `376f453` (birleşme), `6042c32`, A-2 |
-| B — push kimseye gitmiyor | (sürüyor) | |
-| C — lig arşivi boş | (sürüyor) | |
-| D — eski gardırop dondurma | (sürüyor) | |
+| A — taç + pelerin onaylandı | ✅ canlıda · 152↔167 farkı kapandı | `376f453`, `6042c32`, `4a71af1` |
+| B — push kimseye gitmiyor | ✅ canlıda · zincir ölçüldü, 3 kopma düzeltildi, bildirim gerçekten geldi | `e56caaa` |
+| C — lig arşivi boş | ⏸ ölçüldü: arşiv yazımı sağlam; kapanışta 2 kusur bulundu, **düzeltilmedi (karar sahibinde)** | `a13562a` |
+| D — eski gardırop dondurma + yeni vitrin | ✅ canlıda · migration 216 uygulandı | D commit'i |
 
 ---
 
@@ -99,3 +99,78 @@ Görseller: `gorsel/paket17/b-1-izin-karti.jpg`, `b-2-abone-olundu.jpg`, `b-3-bi
 2. **Aktiflik yalnız `matches` tablosundan sayılıyor.** `mac_sayisi` yalnız Normal Maç'ları sayıyor; **Düello, Hızlı Mod, grup, turnuva sayılmıyor**. Bu hafta Düello bitiren 3 gerçek oyuncu kapanışta "pasif" görünecek → sıralamada ilk 5'e girse bile **yükselemez** (pasif dalı `continue` ediyor). Kusur 1 yüzünden şimdilik lig düşürmüyor; kusur 1 düzeltilirse bunları iki hafta sonra düşürmeye başlar. İkisi birlikte düzeltilmeli.
 - **Ek gözlem:** 7 Eylül kapanışında herkesin `puan_hafta`'sı 0'dı. Sıralama `puan_hafta desc, puan desc, gorunen_ad asc` olduğu için yükselen oyuncu fiilen puanla değil, maçı olan oyuncular arasında toplam puan ve ada göre seçildi. Puanlı haftalarda sorun olmaz ama "0 puanla yükselme" kuralı tanımlı değil.
 - **Zamanlama notu:** lig kapanışı Pazar 20:45 UTC, `puan_hafta` sıfırlaması 21:00 UTC. Aradaki 15 dakikada kazanılan haftalık puan hiçbir haftaya sayılmıyor.
+
+
+---
+
+## D — Eski gardırop donduruldu, yeni karakter vitrini
+
+### D.0 Başlangıç durumu (doğrulandı + eksikler)
+- **Türler:** insan · kaplan · robot (`karakter.js › TURLER`), aynı iskelet.
+- **Kozmetikler** (`kozmetik.js › KOZMETIK`): sapka · gozluk · gozlukPremium · atki · kanat (sırt). Robotun kendi sapka/gozluk varyantı var; olmayan tür insanınkini kullanır. Kaplanda kuyruk tür parçası.
+- **Taç + pelerin:** Bölüm A ile meydanda (`meydanAvatar.js`, paylaşımlı InstancedMesh).
+- **Kıyafet setleri** (`SETLER`): 1 Günlük · 2 Şık · 3 Spor · **4 Alev** (`vfx: alevliGomlek`). Saç varyantı 3 (kase / kısa / kuyruk). Ten/saç/üst/alt/ayakkabı palet tonları. (Paketin tablosunda setler yoktu.)
+- **VFX reçeteleri** (`vfx.js › RECETE`, tam liste): `alevliGomlek` (11 yayıcı: omuz, göğüs, sırt, ön kol, el izi, ısı halesi, kıvılcım, duman) · `kanat` (3: iki parıltı + parlama) · `buzluKanat` (4: sınav örneği, hiçbir kozmetiğe bağlı değil).
+- **Petler** (`pet.js`): kedi · köpek (kedinin yeniden derisi) · kuş (kod geometrisi). Meydanda **kullanılmıyor**, yalnız deneme sayfasında.
+- **Boş yuvalar** (GLB'de): sacYuva · sakalYuva · elbiseYuva · altYuva · efektYuva · kulakYuva L/R · bilekYuva L/R · ayakYuva L/R.
+- **Eski kutu karakteri gösteren ekranlar (tarandı):** Dükkân › Görünüm sekmesi (`GardropVitrini` → `KarakterPortresi` + eski katalog portreleri), `/gorunum` → `bildim/avatar3d/gardrop.html` (eski 3B gardırop), `/gorunum-3b` (`GorunumPage` + `EsyaPortresi`), atölye (`avatar3d/index.html`), eski yerel meydan denemesi (`avatar3d/meydan.html`).
+- **Temiz çıkanlar:** Ana sayfa, profil, lig, maç ekranı, arkadaşlar, oyuncu kartı, kurulum sihirbazı, bildirim ve paylaşım görselleri. Hepsi `src/components/Avatar.jsx` kullanıyor, o da yalnız seçilen avatar resmi ya da baş harf çiziyor (13 Eylül kararı, 3B yok).
+- **Kurulum sihirbazı:** kendisi 2B avatar seçtiriyor. Bitince `Layout` oyuncuyu `/gorunum`'a gönderiyordu, orası eski gardıroptu → artık yeni vitrin.
+
+### D.1 Veri
+Hiçbir tablo/kolon silinmedi, boşaltılmadı. Migration 216 yalnız **ekler**: `vitrin_kozmetikleri` tablosu, `vitrin_katalogum()`, `meydan_gorunum_kaydet()`. Eski `avatar3d` kaydı değiştirilmez; vitrin `profiles.gorunum.harita`'ya yazar.
+
+### D.2 Dondurulan ekranlar ve kaldırılan girişler
+
+| Ekran / giriş | Önce | Şimdi |
+|---|---|---|
+| `/gorunum` | `GardropaGit` → eski gardırop HTML'i | **Yeni vitrin** (`KarakterVitrini`) |
+| `/gorunum-3b` | eski 3B görünüm sayfası | `/gorunum`'a yönlenir |
+| `bildim/avatar3d/gardrop.html`, `index.html` (atölye), `meydan.html` | eski sayfalar | açılınca `/bildim/gorunum`'a yönlenir; **derleme girişleri aynen duruyor** (`rollupOptions.input`'a dokunulmadı) |
+| Üst çubuk tişört kısayolu | eski gardırop HTML'ine düz bağlantı | vitrine rota bağlantısı |
+| Dükkân › Görünüm sekmesi | `GardropVitrini` (eski portre + eski katalog) | vitrine giden kart |
+| Meydan kapısı ("Önce karakterini oluştur") | yalnız eski `avatar3d` kaydı geçer; "Gardıroba git" | eski kayıt **ya da** vitrin kaydı geçer; "Karakterimi seç" → vitrin |
+| Kurulum sonrası yönlendirme | eski gardırop | vitrin |
+| Profil › Görünüm kartı | "Saç, şapka, gözlük, kıyafet ve efektleri…" | "Türünü seç, kozmetiklerini tak…" (rota aynı) |
+
+**Kod durur:** `bildim/avatar3d/*`, `bildim/karakter/*`, `GardropVitrini`, `KarakterPortresi`, `EsyaPortresi`, `GorunumPage`, `GardropaGit`, `harita/avatar.js`, `portre.js`, `onizleme.js` silinmedi.
+
+### D.3 Yeni vitrin
+- `bildim/vitrin/KarakterVitrini.jsx` + `vitrinSahne.js` + `vitrin.css`. Meydanın kendi `KarakterSistemi` + `MeydanAvatarlari`'sı: **tek WebGL bağlamı**. Canlı önizleme ve 8 kart portresi aynı renderer'la çiziliyor (sayfada 1 `<canvas>`, ölçüldü).
+- **Tür seçimi** (insan / kaplan / robot) + **kozmetikler:**
+  - Şapka: eski Kep/Bere sahipliği; Kep ücretsiz.
+  - Gözlük: Kare/Okuma/Yuvarlak sahipliği; Kare gözlük 350 coin.
+  - Güneş gözlüğü: Güneş/Spor sahipliği; Güneş gözlüğü 450 coin.
+  - Taç, Pelerin: **Satılmaz · turnuva ödülü**.
+  - Satın alma eski `avatar3d_satin_al` ile; fiyatlar eski katalogdan, koda gömülü değil.
+- **"Yakında" kilitli:** Saç, Elbise, Alt (gövde yuvaları; yeni sistemde üretilmiş parça yok) + Atkı, Kanat (model hazır ama satışa hiç çıkmamış, fiyat kararı sahibinde). Sayfanın altında "vitrin yeniden kuruluyor, aldıkların hesabında" notu.
+- **Sunucu doğrulaması** (canlı veritabanında, işlem içinde, geri alındı):
+  - Geçerli kayıt (kaplan + şapka + pelerin + güneş gözlüğü) OK.
+  - Sahip olunmayan Taç → "Bu kozmetik sende yok".
+  - Gözlük + güneş gözlüğü birlikte → "Bu iki kozmetik birlikte takılamaz".
+  - Atkı → "Bu kozmetik henüz açılmadı".
+  - Geçersiz tür → hata.
+  - Katalog ve tablo `anon`'a kapalı.
+- **Bilinmeyen anahtar:** `vitrinKozmetikleri()` yalnız beyaz listedeki 7 anahtarı okur. Eski kayıttaki `sac`, `efekt`, `portre_url`, `kozmetik`… vitrinde sessizce atlanır.
+- **Lig çerçeveleri** etkilenmedi (ayrı tablo, Profil'deki seçici aynen).
+- **Geri dönüş yolu:** `bildim/CLAUDE.md › Eski gardırop dondurma (17 Eyl 2026)`.
+
+### D.5 Vitrin ↔ meydan aynı mı (test edildi)
+Aynı `profiles.gorunum` (eski `avatar3d` gövdesi + vitrin kaydı: kaplan, şapka, güneş gözlüğü, pelerin) iki ekranda:
+- **Vitrin:** takılı Şapka · Güneş gözlüğü · Pelerin, tür Kaplan, "Kaydedildi".
+- **Meydan** (üretim derlemesi, gerçek harita kodu): tür `kaplan`, `kozmetik_sapka` + `kozmetik_gozlukPremium` + `kozmetik_kuyruk`, pelerin örneği 1, taç 0.
+- Görseller: `d-7-ayni-gorunum-vitrin.jpg` ↔ `d-8-ayni-gorunum-meydan.jpg` — aynı gövde renkleri ve aynı kozmetikler.
+
+### Görseller (`gorsel/paket17/`)
+`d-1-insan-kozmetiksiz` · `d-2-insan-kozmetikli` · `d-3-kaplan-kozmetikli` · `d-4-kaplan-kozmetiksiz` · `d-5-robot-kozmetiksiz` · `d-6-robot-kozmetikli-tam-sayfa-yakinda-kilitleri` (Yakında kilitleri + Satılmaz Taç + 350 coin Gözlük) · `d-7` / `d-8` vitrin ↔ meydan.
+Görüntüler sahte oturumlu sınama sayfasından (gerçek bileşen + gerçek karakter GLB'leri; yalnız Supabase cevapları sahte). Canlı sitede şifreyle giriş yapılamadığı için canlı ekran görüntüsü yok.
+
+### iOS Safari
+Yeni CSS'te `position: fixed` ve `transform` yok. Önizleme yüksekliği `vh` değil `clamp(280px, 100vw, 440px)`; basılı düğmede `translate` kullanıldı, sabit konumlu bir öğede değil. Gerçek iOS cihaz testi yapılamadı (WebKit kurulu değil).
+
+### Bilinen eksikler
+- **Kaydı olmayan yeni oyuncu:** meydan onu tohumdan çiziyor; bu çizim sahip olmadığı rastgele bir kozmetik (ör. güneş gözlüğü) gösterebilir. Vitrin başlangıçta **yalnız sahip olunanları** takılı gösteriyor, kaydedince meydan da aynı oluyor. Kaydetmeden önce iki ekran farklı olabilir.
+- **Kozmetik klonu maliyeti:** kozmetik başına 1 çizim çağrısı (A'daki yan bulgu) değişmedi.
+- **Atkı, Kanat:** model var, satış kararı (fiyat) sahibinde.
+- **Petler ve Alev seti:** meydanda yok, vitrine konmadı.
+- **Saç, Elbise, Alt:** vitrinde yalnız "Yakında". Oyuncunun gövdesi hâlâ eski kaydından (ya da tohumdan) geliyor; vitrinden değiştirilemiyor.

@@ -219,7 +219,7 @@ export default function ProfilePage() {
         <div className="bd-profil-hatalarim-metin">
           <div className="ad">{tt("Görünüm")}</div>
           <div className="alt-yazi">
-            {tt("Saç, şapka, gözlük, kıyafet ve efektleri buradan değiştir.")}
+            {tt("Türünü seç, kozmetiklerini tak. Meydanda böyle görünürsün.")}
           </div>
         </div>
         <span className="ok" aria-hidden="true">›</span>

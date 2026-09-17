@@ -5403,3 +5403,11 @@ en küçük TR 761 (spor), EN 476 (tarih) — hiçbiri 300 altı değil. Sayfa s
 
 ## 17 Eyl 2026 — Paket 17 A: taç + pelerin onaylandı
 - Sahibi +2 sabit çağrıyı onayladı; `paket16-tac-pelerin` dalı `main`'e birleştirildi (`376f453`). PAKET16_RAPOR C durumu güncellendi.
+
+
+## 17 Eyl 2026 — Paket 17: taç/pelerin onayı · iki ölü sistem · gardırop dondurma (Opus 5)
+- **A (`376f453`, `6042c32`, `4a71af1`):** taç + pelerin dalı main'e birleşti, canlı pakette doğrulandı. 152 ↔ 167 çağrı farkı kapandı: iki sahnenin kozmetiksiz tabanı aynı (142); fark tohumdan gelen rastgele kozmetik klonlarından (25 çağrı). Ölçümlerde sahne kurulumu rapora yazılmalı.
+- **B (`e56caaa`):** push zinciri ölçüldü — sw, VAPID, RPC, FCM çalışıyor (gerçek Chrome'da bildirim geldi). Kopmalar: izin kartı yalnız Normal Maç sonucunda (15 oyuncudan 5'i görmüş), kart hatayı yutup "bir daha sorma" işareti koyuyordu, iPhone Safari sekmesinde hiçbir giriş yoktu. Düzeltildi + Düello/Hızlı Mod sonucuna eklendi + iPhone ipucu. Ağ çağrısını sessizce yutan 21 catch'e konsol kaydı.
+- **C (`a13562a`, kod yok):** lig_arsiv boş çünkü kapanan tek haftada (7–13 Eyl) puanlı gerçek oyuncu yoktu; fonksiyon çalışıyor (kuru çalıştırma 4 satır). 5 kademeli lig kapanışı çalışıyor (1 yükselme). **Karar bekleyen iki kusur:** pasif sayacı haftadan haftaya taşınmıyor (2 hafta pasif düşme hiç tetiklenmez); aktiflik yalnız Normal Maç'ı sayıyor (Düello oynayan "pasif" → yükselemez).
+- **D (migration 216 uygulandı):** eski gardırop donduruldu (kod ve veri duruyor, arayüzden giriş yok, eski HTML'ler vitrine yönlenir, rollupOptions'a dokunulmadı). Yeni vitrin `/gorunum` (`bildim/vitrin/`): meydanın kendi karakter kodu, tek WebGL bağlamı, tür + şapka/gözlük/güneş gözlüğü (eski sahiplik ve fiyatla) + Taç/Pelerin (satılmaz) + Yakında kilitleri (Saç, Elbise, Alt, Atkı, Kanat). Kayıt `profiles.gorunum.harita`; meydan onu eski kayıttan önce okur, aynı görünüm iki ekranda aynı çıktı. Geri dönüş yolu `bildim/CLAUDE.md`.
+- Rapor `PAKET17_RAPOR.md`, görseller `gorsel/paket17/`.

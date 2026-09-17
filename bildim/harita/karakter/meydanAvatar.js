@@ -54,8 +54,30 @@ const SAC_KUYRUK = ["atkuyruk", "topuz", "orgu"];
  */
 export function profildenGorunum(gorunum, yedekTohum = "") {
   const gr = gorunum && typeof gorunum === "object" ? gorunum : {};
-  const a = gr.avatar3d && typeof gr.avatar3d === "object" ? gr.avatar3d : null;
   const h = gr.harita && typeof gr.harita === "object" ? gr.harita : null;
+  const sonuc = eskiKayittan(gr, h, yedekTohum);
+  // Paket 17 §D: yeni vitrin (KarakterVitrini) kozmetiği gorunum.harita.koz'a yazar — varsa eski avatar3d kaydından
+  // türetilenin YERİNE geçer (çıkarılan kozmetik de çıkmış olur). Bilinmeyen anahtar sessizce atlanır.
+  if (h?.koz && typeof h.koz === "object") sonuc.koz = vitrinKozmetikleri(h.koz);
+  return sonuc;
+}
+
+/** Vitrinin yazabileceği kozmetik anahtarları (vitrin_kozmetikleri tablosuyla aynı). Yeni kozmetik → buraya ekle. */
+export const KOZ_ANAHTARLARI = ["sapka", "gozluk", "gozlukPremium", "atki", "kanat", "tac", "pelerin"];
+export function vitrinKozmetikleri(ham) {
+  const koz = {};
+  for (const k of KOZ_ANAHTARLARI) {
+    const v = ham?.[k];
+    if (k === "pelerin") { if (v === true || v === "klasik" || v === "kisa") koz.pelerin = v === true ? "klasik" : v; }
+    else if (v === true) koz[k] = true;
+  }
+  if (koz.tac) koz.sapka = false;                // aynı baş yuvası
+  if (koz.gozlukPremium) koz.gozluk = false;     // aynı gözlük yuvası
+  return koz;
+}
+
+function eskiKayittan(gr, h, yedekTohum) {
+  const a = gr.avatar3d && typeof gr.avatar3d === "object" ? gr.avatar3d : null;
   const tur = TURLER.includes(h?.tur) ? h.tur : "insan";
   if (!a) return tohumdanGorunum(gr.karakter ?? yedekTohum, { tur });
   const kiyafet = String(a.kiyafet ?? (a.ceket === false ? "tisort" : "ceket"));

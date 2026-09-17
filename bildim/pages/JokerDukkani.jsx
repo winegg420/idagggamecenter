@@ -11,7 +11,6 @@ import CoinGorseli, { coinBoyutu } from "../components/CoinGorseli.jsx";
 import { y } from "../lib/yol.js";
 // 2B vitrin ve 2B katalog SEKMEDEN ÇIKTI (tek karakter sistemi).
 // Dosyalar silinmedi, yalnız buradan çağrılmıyorlar.
-import GardropVitrini from "../components/GardropVitrini.jsx";
 import { useAuth } from "../../src/context/AuthContext.jsx";
 import { ayarlar } from "../lib/ayarlar.js";
 import { tt, ttSunucu } from "../lib/dil.js";
@@ -241,7 +240,16 @@ export default function JokerDukkani() {
           Tek karakter sistemi: oyuncunun 3B portresi + 3B gardırop
           kataloğu (avatar3d_katalogum). Denemek ve satın almak gardıropta.
           Jokerler sekmesine dokunulmadı. */}
-      {sekme === "kiyafet" && <GardropVitrini />}
+      {sekme === "kiyafet" && (
+        <Link to={y("/gorunum")} className="kart bd-profil-hatalarim">
+          <span className="bd-mod-ikon" style={{ background: "var(--bd-vurgu)" }}><Ikon ad="tisort" boyut={20} /></span>
+          <div className="bd-profil-hatalarim-metin">
+            <div className="ad">{tt("Karakterim")}</div>
+            <div className="alt-yazi">{tt("Türünü seç, kozmetiklerini tak ve al. Meydanda böyle görünürsün.")}</div>
+          </div>
+          <span className="ok" aria-hidden="true">›</span>
+        </Link>
+      )}
 
       {/* ---------- Envanter ---------- */}
       {sekme === "joker" && (
