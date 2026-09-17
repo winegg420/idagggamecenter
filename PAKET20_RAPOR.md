@@ -8,7 +8,7 @@
 | III — misafir hesabı koruma | ✅ canlıda · Misafir etiketi + Ayarlar kartı + ilk galibiyet önerisi; bağlama aynı user_id, veri kaybı 0 (ölçüldü) | `0e96748` |
 | IV — Düello deneyimi | ✅ canlıda · tanıtım, doğru cevap metinle, ilk maç +5 sn (migration 225), joker ipuçları, maç özeti | `15498ce` |
 | V — Hatalarım dürüstlüğü | ✅ canlıda · banka/yeni dağılımı açıkça yazılıyor, bankan kadar tur, pratik turu adı | `86a7d68` |
-| VI — konsol uyarıları | (sürüyor) | |
+| VI — konsol uyarıları | ✅ canlıda · X4122 (three.js PMREM, D3D) süzüldü, CLOSED kök sebebi düzeltildi (5 yer), ses/titreşim uyarısı giderildi; tarama 0 | VI |
 | VII — renk ve kontrast | (sürüyor) | |
 
 ---
@@ -292,3 +292,53 @@ Bütün senaryolarda yatay taşma 0. iOS denetimi (5 sayfa × 2 ekran) temiz; ta
 | 25 soru | "Bankan kadar · 25" → önizleme "Bu tur: 25 sorunun hepsi bankandan."; `calisma_baslat(p_soru_sayisi: 25)` | "Bu turdaki 25 sorunun hepsi bankandan." | bankandan |
 
 Yatay taşma 0. Görseller: `gorsel/paket20/v-*`.
+
+---
+
+## VI — Konsol uyarıları
+
+### VI.1 — 3B "shader hassasiyet" uyarısı
+**Ölçüm** (meydan düzeneği, Chrome + ANGLE/Direct3D 11, WebGL `getProgramInfoLog` izlendi):
+```
+THREE.WebGLProgram: Program Info Log: (210,81-129): warning X4122: sum of 0.996094 and -2.98545e-017
+cannot be represented accurately in double precision   (+4 benzer satır)
+```
+- **Kaynak:** three.js'in **kendi** `PMREMGGXConvolution` ShaderMaterial'ı (ortam haritası ön-filtreleme; `#define SHADER_NAME PMREMGGXConvolution`). Bizim shader'ımız değil.
+- **Neden:** Windows'ta Chrome GLSL'i HLSL'e çeviriyor; Direct3D derleyicisi bir kayan nokta sabitini "tam gösterilemez" diye uyarıyor. Program bağlanıyor, görüntü doğru. macOS / iOS / Android'de bu yol yok.
+- **Düzeltme:** `bildim/lib/threeKonsol.js`, three.js'in resmi `setConsoleFunction` kancasıyla **tek dar kural** koyuyor: WebGLProgram "Program Info Log" uyarısı **ve** günlüğün bütün satırları X4122 ise yazılmaz.
+  - Bağlanamayan program (three.js `error` ile bildirir) ve başka her uyarı aynen konsola gider.
+  - Ölçülen tuzak: ANGLE günlüğün sonuna **NUL karakteri** ekliyor, `trim()` onu silmiyor; ilk sürüm bu yüzden süzmüyordu, denetim karakterleri de atıldı.
+  - `harita/dunya.js` ve `vitrin/vitrinSahne.js`'e **yalnız birer import satırı** eklendi; görsele dokunulmadı.
+- **Doğrulama:** meydan düzeneği 25 sn; öncesi 1 uyarı (5 satır), sonrası **uyarı yok**.
+
+### VI.2 — Turnuva kanalı `CLOSED` uyarısı
+- **Kök sebep (gerçek Supabase istemcisiyle ölçüldü):** sayfadan çıkışta ve sekmeye dönüşte kanal **bilerek** kapatılıyor. `removeChannel` abonelik geri çağrısını **eşzamanlı** `CLOSED` ile çağırıyor. Kod bunu kopma sanıp "turnuva kanali dustu: CLOSED" uyarısı basıyor, üstüne 2 sn'lik yeniden bağlanma zamanlayıcısı kuruyordu.
+  - Temizlik ref'i ancak `removeChannel`'dan **sonra** sıfırladığı için ilk koruma denemesi de tutmadı (ölçüldü).
+- **Düzeltme:**
+  - Önce ref boşalır, sonra kanal kapanır.
+  - Geri çağrı "bu artık benim kanalım değil" ise sessizce çıkar.
+  - Aynı kalıp 4 sayfada vardı: Turnuva, Maç, Hızlı Maç, Grup. Her birinde 3 yer düzeltildi (temizlik, sekme dönüşü, kopma sonrası yeniden kurma).
+  - Meydanda (`harita/coklu.js`) yenilenen eski kanalın `CLOSED`'u yeni kanalı düşmüş saydırıp **gereksiz yeniden bağlanma** başlatıyordu; o da düzeltildi.
+- **Doğrulama** (canlı Supabase, anon anahtar, `tournaments` kanalı):
+  - eski kod → `SUBSCRIBED`, `UYARI: turnuva kanali dustu: CLOSED`
+  - yeni kod → `SUBSCRIBED`, `CLOSED (yok sayıldı)`
+
+### VI.3 — Tam tarama
+Kabuk düzeneğinin **üretim derlemesi**, iPhone görünümü. Toplanan: `warning`, `error`, sayfa hatası, başarısız istek, HTTP ≥ 400.
+
+| Sayfa | Önce | Sonra |
+|---|---|---|
+| Ana sayfa | 1 · `favicon.ico` 404 | 1 · aynı — **düzeneğe özgü**: düzenek HTML'inde ikon bağlantısı yok; canlı `index.html`'de `<link rel="icon">` var, canlı taramada 404 yok |
+| Maç (bitmiş) | 0 | 0 |
+| Düello lobisi | 0 | 0 |
+| **Düello maçı (bitmiş, linkle açılış)** | **2** · `The AudioContext was not allowed to start…` · `Blocked call to navigator.vibrate because user hasn't tapped…` | **0** |
+| Hızlı Mod | 0 | 0 |
+| Turnuva | 0 | 0 |
+| Vitrin (3B) | 0 | 0 |
+| Hatalarım · Profil · Dükkân · Arkadaşlar | 0 | 0 |
+| Meydan (3B, ayrı düzenek) | 1 · X4122 | 0 |
+| **Canlı** quiztactics.vercel.app giriş + /bildim/meydan (oturumsuz) | 0 | — |
+
+**Bulunan 3. uyarı:** bitmiş bir maç linkle (dokunmadan) açılınca sonuç sesi ve titreşim deneniyordu. `ses.js › ton()` ve `geriBildirim.js › titret()` artık `navigator.userActivation.hasBeenActive` yoksa denemiyor; eski tarayıcıda (`userActivation` yok) davranış aynı. Titreşim çağrısı tek yerden geçiyordu, başka yer yok.
+
+**Sınır:** oturum gerektiren gerçek akışlar (canlı maç, gerçek Realtime) şifre girilemediği için düzenekte, sahte veriyle tarandı. Realtime davranışı gerçek istemciyle ayrıca ölçüldü (VI.2).

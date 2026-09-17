@@ -132,12 +132,16 @@ export default function TournamentPage() {
       // Yoklama zaten veriyi getiriyor ama kanal geri kurulmazsa anlık
       // güncellemeler (rakip skoru, mesaj) bir daha hiç gelmiyordu.
       .subscribe((durum) => {
+        // Paket 20 VI: sayfadan çıkışta / sekme dönüşünde kanal BİLEREK kapatılır (kanalRef artık başka kanalı
+        // ya da null'u gösterir); Supabase bunu da CLOSED diye bildiriyordu → yanlış "kanal düştü" uyarısı.
+        if (kanalRef.current !== kanal) return;
         if (durum === "CHANNEL_ERROR" || durum === "TIMED_OUT" || durum === "CLOSED") {
           console.warn("[Bildim] turnuva kanali dustu:", durum);
           if (yenidenBaglaRef.current) clearTimeout(yenidenBaglaRef.current);
           yenidenBaglaRef.current = setTimeout(() => {
             if (kanalRef.current !== kanal) return; // baska kanal kurulmus
             try {
+              kanalRef.current = null;   // Paket 20 VI: kendi kapatmamızın CLOSED bildirimi yok sayılsın
               supabase.removeChannel(kanal);
               kanalKurRef.current?.();
             } catch (e) {
@@ -159,8 +163,9 @@ export default function TournamentPage() {
     turnuvaYukle();
     kanalKur();
     return () => {
-      if (kanalRef.current) supabase.removeChannel(kanalRef.current);
+      const eskiKanal = kanalRef.current;   // Paket 20 VI: CLOSED eşzamanlı gelir — önce ref boşalır, sonra kapanır
       kanalRef.current = null;
+      if (eskiKanal) supabase.removeChannel(eskiKanal);
       if (yenidenBaglaRef.current) clearTimeout(yenidenBaglaRef.current);
     };
   }, [turnuvaYukle, kanalKur]);
@@ -172,7 +177,9 @@ export default function TournamentPage() {
     // Arka planda setTimeout donduğu için bekleyen ilerletme burada çalışır.
     if (bekleyenIlerletme.current) ilerletmeyiDene();
     try {
-      if (kanalRef.current) supabase.removeChannel(kanalRef.current);
+      const eskiKanal = kanalRef.current;   // Paket 20 VI: önce ref, sonra kapat
+      kanalRef.current = null;
+      if (eskiKanal) supabase.removeChannel(eskiKanal);
       kanalKur();
     } catch (e) {
       console.error("[Bildim] realtime yeniden kurulamadi:", e);

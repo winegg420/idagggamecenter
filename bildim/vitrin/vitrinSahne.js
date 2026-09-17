@@ -9,6 +9,7 @@
 // (data URL), renderer eski boyutuna döner ve canlı kare yeniden çizilir — tarayıcı arada kare göstermez.
 // ============================================================
 import * as THREE from "three";
+import "../lib/threeKonsol.js";   // Paket 20 VI: yalnız ANGLE/D3D X4122 shader uyarısını süzer
 import { KarakterSistemi } from "../harita/karakter/karakter.js";
 import { MeydanAvatarlari } from "../harita/karakter/meydanAvatar.js";
 

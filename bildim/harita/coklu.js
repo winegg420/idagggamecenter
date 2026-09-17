@@ -106,7 +106,8 @@ export function meydanBaglan(o) {
   function kanalKur() {
     if (kapandi) return;
     try {
-      if (kanal) { try { supabase.removeChannel(kanal); } catch (e) { console.warn("[Meydan] supabase.removeChannel başarısız:", e?.message ?? e); /* zaten kapalı */ } kanal = null; }
+      // Paket 20 VI: CLOSED eşzamanlı gelir — önce değişken boşalır, sonra kanal kapanır (yoksa "kanal düştü" + gereksiz yeniden bağlanma)
+      if (kanal) { const eskiKanal = kanal; kanal = null; try { supabase.removeChannel(eskiKanal); } catch (e) { console.warn("[Meydan] supabase.removeChannel başarısız:", e?.message ?? e); /* zaten kapalı */ } }
       // Kanal yeniden kurulunca presence sıfırdan gelir; herkesi "yeni" say.
       for (const id of [...bilinen]) {
         bilinen.delete(id);
@@ -114,6 +115,7 @@ export function meydanBaglan(o) {
       }
 
       kanal = supabase.channel("meydan", { config: { presence: { key: ben.id } } });
+      const buKanal = kanal;   // Paket 20 VI: yenilenen eski kanalın CLOSED bildirimi yeni kanalı düşmüş saydırmasın
       kanal
         .on("presence", { event: "sync" }, senkronla)
         .on("broadcast", { event: "poz" }, ({ payload }) => {
@@ -159,7 +161,7 @@ export function meydanBaglan(o) {
           catch (e) { console.error("[Meydan] onDans:", e); }
         })
         .subscribe(async (durum) => {
-          if (kapandi) return;
+          if (kapandi || kanal !== buKanal) return;
           if (durum === "SUBSCRIBED") {
             yenidenBekleme = YENIDEN_BAGLAN_MIN;
             try {

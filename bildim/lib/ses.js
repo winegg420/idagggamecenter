@@ -67,6 +67,9 @@ export function sesKilidiAc() {
 /** Tek ton çal. */
 function ton({ frekans = 880, sure = 0.09, hacim = 0.16, tip = "sine", gecikme = 0 }) {
   if (!sesAcikMi()) return;
+  // Paket 20 VI: kullanıcı sayfaya hiç dokunmadıysa AudioContext açılamaz (tarayıcı kuralı) ve Chrome konsola
+  // uyarı yazıyordu (ör. bitmiş düello linkiyle açılış). O durumda ses denenmez.
+  if (typeof navigator !== "undefined" && navigator.userActivation && !navigator.userActivation.hasBeenActive) return;
   const c = context();
   if (!c) return;
   try {

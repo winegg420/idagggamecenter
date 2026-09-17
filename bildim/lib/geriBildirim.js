@@ -38,6 +38,9 @@ export function hareketAzalt() {
 export function titret(desen) {
   try {
     if (hareketAzalt()) return;
+    // Paket 20 VI: sayfa henüz hiç dokunulmadan (ör. bitmiş maç linkiyle açılınca) Chrome titreşimi engelleyip
+    // konsola hata yazıyordu. Etkileşim yoksa hiç denenmez; eski tarayıcıda (userActivation yok) eskisi gibi.
+    if (navigator.userActivation && !navigator.userActivation.hasBeenActive) return;
     navigator.vibrate?.(desen);
   } catch {
     /* tarayıcı izin vermedi — dokunsal geri bildirim yok, oyun etkilenmez */

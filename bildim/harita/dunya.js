@@ -16,6 +16,7 @@
 // notundaki dönüşüm).
 // ============================================================
 import * as THREE from "three";
+import "../lib/threeKonsol.js";   // Paket 20 VI: yalnız ANGLE/D3D X4122 shader uyarısını süzer (görsele etkisi yok)
 import { roundRect, canvasDoku, isimEtiketi, nesneyiSerbestBirak } from "./ortak.js";
 import { esyaBilgisi, esyaOnbelleginiTemizle } from "./esyalar.js";
 import { dansBaslat, dansKaresi, dansiDurdur } from "./danslar.js";
