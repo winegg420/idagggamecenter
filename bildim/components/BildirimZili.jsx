@@ -186,7 +186,7 @@ export default function BildirimZili() {
         await supabase.rpc("bildirimleri_oku");
         setOkunmamis(0);
         setListe((l) => l.map((b) => ({ ...b, okundu: true })));
-      } catch {
+      } catch (e) { console.warn("[Bildim] bildirimleri_oku başarısız:", e?.message ?? e);
         /* sessiz geç */
       }
     }

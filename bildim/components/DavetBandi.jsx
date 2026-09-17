@@ -40,7 +40,7 @@ export default function DavetBandi() {
       const { data, error } = await supabase.rpc("bekleyen_davetlerim");
       if (error) throw error;
       setDavetler(data ?? []);
-    } catch {
+    } catch (e) { console.warn("[Bildim] bekleyen_davetlerim başarısız:", e?.message ?? e);
       setDavetler([]); // RPC henüz uygulanmamış olabilir — bandı hiç gösterme
     }
   }, [user]);

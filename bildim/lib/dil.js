@@ -1779,6 +1779,11 @@ const SOZLUK = {
     "Kapat|ayar": "Turn off",
     "Aç|ayar": "Turn on",
     "Spor|ayakkabi": "Trainers",
+    // ---- Paket 17 §B — bildirim izni
+    "Bildirimler açık": "Notifications are on",
+    "iPhone'da bildirim almak için": "To get notifications on iPhone",
+    "Quiz Tactics'i ana ekrana ekle (Paylaş → Ana Ekrana Ekle) ve oradan aç. Apple bildirimleri yalnız ana ekrandaki uygulamaya izin veriyor.": "Add Quiz Tactics to your Home Screen (Share → Add to Home Screen) and open it from there. Apple only allows notifications for apps on the Home Screen.",
+    "Bildirimler açılamadı. Tekrar dene.": "Couldn't turn on notifications. Try again.",
   },
 };
 

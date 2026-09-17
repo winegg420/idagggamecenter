@@ -19,7 +19,7 @@ export function AuthProvider({ children }) {
       const { data, error } = await supabase.rpc("profilim");
       if (error) throw error;
       if (data) setProfile(data);
-    } catch {
+    } catch (e) { console.warn("[Auth] profilim başarısız:", e?.message ?? e);
       /* ağ hatası ya da RPC yoksa profil önceki hâlinde kalır */
     }
   }, []);
@@ -60,7 +60,7 @@ export function AuthProvider({ children }) {
           try { localStorage.removeItem('bildim_davet_kodu'); } catch { /* özel mod */ }
           refreshProfile(userId);
         }
-      } catch {
+      } catch (e) { console.warn("[Auth] arkadas_davet_kodu_ile_ekle başarısız:", e?.message ?? e);
         /* profil henüz tamamlanmamış olabilir — sonraki girişte tekrar denenir */
       }
     };
@@ -107,7 +107,7 @@ export function AuthProvider({ children }) {
       if (durdu || document.visibilityState !== "visible") return;
       try {
         await supabase.rpc("kalp_at");
-      } catch {
+      } catch (e) { console.warn("[Auth] kalp_at başarısız:", e?.message ?? e);
         /* RPC yoksa (migration bekliyor) veya ağ hatası — sessiz geç */
       }
     };

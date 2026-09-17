@@ -26,7 +26,7 @@ export default function YanlisSatiri({ macTur, macId }) {
         });
         if (error) throw error;
         if (aktif) setAdet(typeof data === "number" ? data : 0);
-      } catch {
+      } catch (e) { console.warn("[Bildim] mac_yanlis_sayim başarısız:", e?.message ?? e);
         /* migration bekliyor olabilir — satır gizli kalır */
       }
     })();

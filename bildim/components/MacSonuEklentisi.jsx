@@ -41,7 +41,7 @@ export default function MacSonuEklentisi({ macTur, macId, kaybettim, rakipBot = 
       try {
         const { data, error } = await supabase.rpc("seri_durumum");
         if (!error && aktif) setSeri(Array.isArray(data) ? data[0] : data);
-      } catch {
+      } catch (e) { console.warn("[Bildim] seri_durumum başarısız:", e?.message ?? e);
         /* sessiz geç */
       }
     })();

@@ -390,7 +390,7 @@ export default function ChallengesPage() {
           hizliYukle();
           yukle();
         }
-      } catch {
+      } catch (e) { console.warn("[Bildim] eski_davetleri_temizle başarısız:", e?.message ?? e);
         /* RPC yoksa (migration bekliyor) veya ağ hatası — sessiz geç */
       }
     })();

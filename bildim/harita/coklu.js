@@ -106,7 +106,7 @@ export function meydanBaglan(o) {
   function kanalKur() {
     if (kapandi) return;
     try {
-      if (kanal) { try { supabase.removeChannel(kanal); } catch { /* zaten kapalı */ } kanal = null; }
+      if (kanal) { try { supabase.removeChannel(kanal); } catch (e) { console.warn("[Meydan] supabase.removeChannel başarısız:", e?.message ?? e); /* zaten kapalı */ } kanal = null; }
       // Kanal yeniden kurulunca presence sıfırdan gelir; herkesi "yeni" say.
       for (const id of [...bilinen]) {
         bilinen.delete(id);

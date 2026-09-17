@@ -40,7 +40,7 @@ export default function MacSonuDokum({ macId, kazanilanPuan = 0 }) {
           .eq("id", data.user.id)
           .maybeSingle();
         if (!p.error && aktif) setPuan(p.data?.puan ?? null);
-      } catch {
+      } catch (e) { console.warn("[Bildim] supabase.auth.getUser başarısız:", e?.message ?? e);
         /* sessiz geç */
       }
     })();

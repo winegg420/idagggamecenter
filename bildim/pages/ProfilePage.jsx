@@ -61,7 +61,7 @@ export default function ProfilePage() {
         if (error) throw error;
         const ilk = (data ?? [])[0];
         if (aktif && ilk) setBanka({ ogrenilen: ilk.ogrenilen ?? 0, bekleyen: ilk.bekleyen ?? 0 });
-      } catch {
+      } catch (e) { console.warn("[Bildim] yanlis_bankam başarısız:", e?.message ?? e);
         /* migration bekliyor olabilir — bölüm gizli kalır */
       }
     })();

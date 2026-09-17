@@ -74,7 +74,7 @@ export default function Home() {
         if (error) throw error;
         const ilk = (data ?? [])[0];
         if (aktif) setBankaBekleyen(ilk?.bekleyen ?? 0);
-      } catch {
+      } catch (e) { console.warn("[Bildim] yanlis_bankam başarısız:", e?.message ?? e);
         /* migration bekliyor olabilir — rozet gizli kalır */
       }
     })();
@@ -125,11 +125,11 @@ export default function Home() {
         const { data: dv, error: dvHata } = await supabase.rpc("gonderdigim_davetler");
         if (dvHata) throw dvHata;
         setBekleyenDavetlerim(dv ?? []);
-      } catch {
+      } catch (e) { console.warn("[Bildim] gonderdigim_davetler başarısız:", e?.message ?? e);
         setBekleyenDavetlerim([]);   // migration bekliyor olabilir
       }
       setSiraSendeMaclar(benim.filter((m) => !yeniIdler.has(m.id)));
-    } catch {
+    } catch (e) { console.warn("[Bildim] sıra/kabul listesi alınamadı:", e?.message ?? e);
       // sessiz geç — ana sayfa akışını bozmasın
       setYeniKabuller([]);
       setSiraSendeMaclar([]);

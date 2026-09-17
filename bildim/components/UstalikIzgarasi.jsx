@@ -33,7 +33,7 @@ export default function UstalikIzgarasi() {
         if (!u.error) setSeviyeler(u.data ?? []);
         if (!s.error) setSeri(Array.isArray(s.data) ? s.data[0] : s.data);
         if (!e.error) setEnvanter(e.data ?? []);
-      } catch {
+      } catch (e) { console.warn("[Bildim] ustalik_seviyelerim başarısız:", e?.message ?? e);
         /* migration bekliyor olabilir */
       }
       try {

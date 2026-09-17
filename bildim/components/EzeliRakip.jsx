@@ -27,7 +27,7 @@ export default function EzeliRakip() {
         if (error) throw error;
         const r = Array.isArray(data) ? data[0] : data;
         if (aktif) setRakip(r ?? null);
-      } catch {
+      } catch (e) { console.warn("[Bildim] ezeli_rakip başarısız:", e?.message ?? e);
         if (aktif) setRakip(null);
       }
     })();

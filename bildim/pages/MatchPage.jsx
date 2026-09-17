@@ -492,7 +492,7 @@ export default function MatchPage() {
     supabase
       .rpc("advance_match", { p_match_id: id })
       .then(() => macYukle())
-      .catch(() => {});
+      .catch((e) => console.warn("[Bildim] advance_match başarısız:", e?.message ?? e));
   }, [id, macYukle]);
 
   const cevapla = async (i) => {
@@ -807,7 +807,7 @@ export default function MatchPage() {
                 </div>
               );
             })()}
-            {/* Bildirim izni ilk açılışta değil, ilk maç sonucunda sorulur. */}
+            {/* Bildirim izni ilk açılışta değil, maç sonucunda sorulur (Düello ve Hızlı Mod sonucunda da). */}
             <BildirimIzniSor />
             <button className="btn ikincil" onClick={() => navigate(y("/meydan"))}>
               {tt("Meydan okumalara dön")}

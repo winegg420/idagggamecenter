@@ -48,7 +48,8 @@ export async function bildirimleriKapat() {
   const kayit = await navigator.serviceWorker.ready;
   const abone = await kayit.pushManager.getSubscription();
   if (abone) {
-    await supabase.rpc("remove_push_subscription", { p_endpoint: abone.endpoint });
+    const { error } = await supabase.rpc("remove_push_subscription", { p_endpoint: abone.endpoint });
+    if (error) console.error("[Bildim] push aboneliği sunucudan silinemedi:", error);
     await abone.unsubscribe();
   }
 }

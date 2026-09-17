@@ -42,7 +42,7 @@ export default function RakipAra({ kategori, dereceli = true, onBulundu, onIptal
     clearInterval(zamanlayiciRef.current);
     try {
       await supabase.rpc("kuyruktan_cik");
-    } catch {
+    } catch (e) { console.warn("[Bildim] kuyruktan_cik başarısız:", e?.message ?? e);
       /* ağ hatası — kuyruk kaydı 90 sn'de kendiliğinden düşer */
     }
   }, []);

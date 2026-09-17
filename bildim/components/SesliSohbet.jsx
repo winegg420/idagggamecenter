@@ -74,7 +74,7 @@ export default function SesliSohbet({ macId, benimId, yuva, macBitti = false }) 
         if (error) throw error;
         const s = Array.isArray(data) ? data[0] : data;
         if (!iptal) setIzin(s ?? null);
-      } catch {
+      } catch (e) { console.warn("[Bildim] sesli_sohbet_izni başarısız:", e?.message ?? e);
         // Migration henüz uygulanmadıysa özellik sessizce gizlenir; maç bozulmaz.
         if (!iptal) setIzin(null);
       }

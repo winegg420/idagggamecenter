@@ -1,41 +1,81 @@
 import { useEffect, useState } from "react";
 import Ikon from "./Ikon.jsx";
 import { pushDestekleniyor, bildirimleriAc } from "../lib/push.js";
+import { hataMesaji } from "../lib/hata.js";
 import { tt } from "../lib/dil.js";
 
 const DEPO = "bildim_bildirim_sorma";
+const DEPO_IOS = "bildim_bildirim_ios_ipucu";
+
+/** iPhone/iPad Safari sekmesi (ana ekrana eklenmemiş): Apple web push'u yalnız ana ekran uygulamasına veriyor. */
+function iosSekmesi() {
+  try {
+    const ua = navigator.userAgent || "";
+    const ios = /iphone|ipad|ipod/i.test(ua) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+    const standalone = navigator.standalone === true || window.matchMedia?.("(display-mode: standalone)").matches;
+    return ios && !standalone;
+  } catch (e) {
+    console.warn("[Bildim] iOS denetimi yapılamadı:", e?.message ?? e);
+    return false;
+  }
+}
+const oku = (k) => { try { return localStorage.getItem(k); } catch { return null; /* özel mod: her oturumda sorulur */ } };
+const yaz = (k) => { try { localStorage.setItem(k, "1"); } catch { /* özel mod */ } };
 
 /**
- * Bildirim izni ilk açılışta DEĞİL, ilk maç sonucu ekranında sorulur.
+ * Bildirim izni ilk açılışta DEĞİL, maç sonucu ekranında sorulur (Normal Maç, Düello, Hızlı Mod).
  * (Oyuncu oyunu görmeden izin istemek reddedilme oranını artırıyordu.)
- * Reddedilirse bir daha gösterilmez.
+ *
+ * Paket 17 §B: eskiden hata `catch {}` ile yutuluyor VE "bir daha sorma" işareti yine konuyordu —
+ * tek bir teknik hata oyuncuyu kalıcı olarak bildirimsiz bırakıyordu, kimse de görmüyordu.
+ * Şimdi: işaret yalnız oyuncu "Şimdi değil" derse, izni reddederse ya da abonelik başarılı olursa konur;
+ * teknik hata konsola yazılır, kartta gösterilir, tekrar denenebilir.
+ * iPhone Safari sekmesinde push yok (Apple) → kart yerine "ana ekrana ekle" ipucu (bir kez).
  */
 export default function BildirimIzniSor() {
-  const [goster, setGoster] = useState(false);
+  const [durum, setDurum] = useState(null);   // null | "sor" | "ios" | "acik"
   const [calisiyor, setCalisiyor] = useState(false);
+  const [hata, setHata] = useState(null);
 
   useEffect(() => {
-    if (!pushDestekleniyor()) return;
-    if (typeof Notification === "undefined") return;
-    if (Notification.permission !== "default") return;
-    try {
-      if (localStorage.getItem(DEPO)) return;
-    } catch {
-      /* özel mod */
+    if (!pushDestekleniyor()) {
+      if (iosSekmesi() && !oku(DEPO_IOS)) setDurum("ios");
+      return;
     }
-    setGoster(true);
+    if (Notification.permission !== "default") return;
+    if (oku(DEPO)) return;
+    setDurum("sor");
   }, []);
 
-  if (!goster) return null;
+  if (!durum) return null;
 
-  const kapat = () => {
-    try {
-      localStorage.setItem(DEPO, "1");
-    } catch {
-      /* özel mod */
-    }
-    setGoster(false);
-  };
+  if (durum === "acik") {
+    return (
+      <div className="bd-izin-kart">
+        <div className="ikon" aria-hidden="true"><Ikon ad="zil" boyut={22} /></div>
+        <div className="govde"><div className="bd-izin-baslik">{tt("Bildirimler açık")}</div></div>
+      </div>
+    );
+  }
+
+  if (durum === "ios") {
+    return (
+      <div className="bd-izin-kart">
+        <div className="ikon" aria-hidden="true"><Ikon ad="zil" boyut={22} /></div>
+        <div className="govde">
+          <div className="bd-izin-baslik">{tt("iPhone'da bildirim almak için")}</div>
+          <div className="alt-yazi">
+            {tt("Quiz Tactics'i ana ekrana ekle (Paylaş → Ana Ekrana Ekle) ve oradan aç. Apple bildirimleri yalnız ana ekrandaki uygulamaya izin veriyor.")}
+          </div>
+        </div>
+        <div className="bd-izin-butonlar">
+          <button className="btn kucuk ikincil" onClick={() => { yaz(DEPO_IOS); setDurum(null); }}>{tt("Anladım")}</button>
+        </div>
+      </div>
+    );
+  }
+
+  const kapat = () => { yaz(DEPO); setDurum(null); };
 
   return (
     <div className="bd-izin-kart">
@@ -45,6 +85,7 @@ export default function BildirimIzniSor() {
         <div className="alt-yazi">
           {tt("Sana meydan okunduğunda, turnuva başladığında ve haftalık lig sonuçlandığında haber verelim mi?")}
         </div>
+        {hata && <div className="hata-kutu" style={{ marginTop: 6 }}>{hata}</div>}
       </div>
       <div className="bd-izin-butonlar">
         <button
@@ -52,12 +93,17 @@ export default function BildirimIzniSor() {
           disabled={calisiyor}
           onClick={async () => {
             setCalisiyor(true);
+            setHata(null);
             try {
               await bildirimleriAc();
-            } catch {
-              /* kullanıcı reddetti */
+              yaz(DEPO);
+              setDurum("acik");
+            } catch (e) {
+              console.error("[Bildim] bildirim aboneliği başarısız:", e);
+              if (typeof Notification !== "undefined" && Notification.permission === "denied") kapat();   // oyuncu reddetti
+              else setHata(hataMesaji(e, tt("Bildirimler açılamadı. Tekrar dene.")));
             } finally {
-              kapat();
+              setCalisiyor(false);
             }
           }}
         >

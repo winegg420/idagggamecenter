@@ -21,6 +21,7 @@ import Avatar from "../../src/components/Avatar.jsx";
 import Ikon from "../components/Ikon.jsx";
 import KategoriIkon from "../components/KategoriIkon.jsx";
 import Maskot from "../components/Maskot.jsx";
+import BildirimIzniSor from "../components/BildirimIzniSor.jsx";
 import DereceliAnahtari from "../components/DereceliAnahtari.jsx";
 import { useDereceliTercih } from "../lib/dereceli.js";
 import { useDil } from "../lib/dilKanca.js";
@@ -342,6 +343,7 @@ function DuelloMac({ id }) {
             ) : null}
           </div>
           {hata && <div className="hata-kutu">{hata}</div>}
+          <BildirimIzniSor />
           <div className="bd-konum-butonlar" style={{ marginTop: 12 }}>
             <button className="btn ikincil" onClick={() => navigate(y("/duello"))}>{ceviri("Yeni düello")}</button>
             <button className="btn ikincil" onClick={() => navigate(y())}>{ceviri("Ana sayfa")}</button>
