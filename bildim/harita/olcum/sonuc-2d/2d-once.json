@@ -1,0 +1,44 @@
+[
+ {
+  "etiket": "tam sahne · sınır 20 · en kötü açı",
+  "cagri": 129,
+  "ucgen": 396830,
+  "cpu": 3.3,
+  "cpuP95": 4.2,
+  "kare": 3.9,
+  "kareP95": 4.8,
+  "gpu": null,
+  "gpuP95": null,
+  "tam": 20,
+  "dinamikTemas": 139,
+  "pisirilen": null
+ },
+ {
+  "etiket": "tam sahne · sınır 20 · en kötü açı",
+  "cagri": 129,
+  "ucgen": 396830,
+  "cpu": 4.5,
+  "cpuP95": 5.5,
+  "kare": 5.1,
+  "kareP95": 6.2,
+  "gpu": null,
+  "gpuP95": null,
+  "tam": 20,
+  "dinamikTemas": 139,
+  "pisirilen": null
+ },
+ {
+  "etiket": "tam sahne · sınır 20 · en kötü açı",
+  "cagri": 129,
+  "ucgen": 396830,
+  "cpu": 4.2,
+  "cpuP95": 5.4,
+  "kare": 5,
+  "kareP95": 6.2,
+  "gpu": null,
+  "gpuP95": null,
+  "tam": 20,
+  "dinamikTemas": 139,
+  "pisirilen": null
+ }
+]

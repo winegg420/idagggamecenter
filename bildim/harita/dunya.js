@@ -154,6 +154,8 @@ export function dunyaKur(kapsayici, s = {}) {
       .catch((e) => console.error("[Meydan] prop yuklenemedi:", ad, e))));
     for (const m of Object.values(proplar)) ks.cilala(m);
     cevre = cevreKur({ M: yerlesim, gb, sahne, render, proplar, hucreler: ks.hucreler, malzeme: proplar.prop_bank?.material ?? ks.malzeme, temas });
+    // 2D-B: ağaç/bank temas gölgeleri statik → zemin shader'ına bir kez pişirilir; dinamik temas yalnız hareket edenlere kalır
+    temas.statikPisir(cevre.grup.children.find((c) => c.name === "CevreZemin")).catch((e) => console.error("[Meydan] temas gölgesi pişirilemedi (dinamik kalır):", e));
     // 2B §4D: binaları boya (geçici renkli kütle; ayak izleri aynı) + mod renkli levhalar çatının üstünde
     try {
       const boya = binalariBoya({ M: yerlesim, gb, hucreler: ks.hucreler, malzeme: proplar.prop_bank?.material ?? ks.malzeme, modRenk: (rota) => MOD_RENK[rota] ?? null });
@@ -426,6 +428,7 @@ export function dunyaKur(kapsayici, s = {}) {
     // Eşya geometrileri/malzemeleri avatarlar arasında paylaşılıyordu;
     // sahne kapanınca burada bırakılır (bkz. esyalar.js).
     esyaOnbelleginiTemizle();
+    temas.maske?.dispose();   // 2D-B: pişirilmiş statik gölge maskesi
     render.dispose();
     render.forceContextLoss?.();
     if (render.domElement.parentNode) render.domElement.parentNode.removeChild(render.domElement);
@@ -472,6 +475,7 @@ export function dunyaKur(kapsayici, s = {}) {
     zumla, zumAyarla, zumOku,
     // 2C-A: ölçüm göstergesi — CPU gönderim sürekli, CPU+GPU yalnız istenince (olcum.olc)
     olcum,
+    temasPisirilen: () => temas.pisirilen ?? null,   // 2D-B ölçüm: pişirilen statik gölge sayısı + maske boyutu
     guncelle, boyutlandir, yokEt,
   };
 }

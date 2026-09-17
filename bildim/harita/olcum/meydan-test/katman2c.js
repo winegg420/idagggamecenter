@@ -135,3 +135,20 @@ window.cozunurlukEgrisi = async () => {
   }
   return sonuc;
 };
+
+// AŞAMA 2D-B — temas gölgesi pişirme önce/sonra: tam sahne (25 oyuncu, sınır 20), en kötü açı + yakın plaza görüntüsü
+window.pisirmeOlc = async () => {
+  const { d } = window.__katman, sonuc = [];
+  await window.oyuncular(); window.katmanAyarla(5); d.kalabalikSiniri(20);
+  const temas = () => d.sahne.children.find((c) => c.name === "TemasGolgeleri");
+  const r = await window.olcSatir("tam sahne · sınır 20 · en kötü açı");
+  sonuc.push({ ...r, dinamikTemas: temas()?.count, pisirilen: d.temasPisirilen?.() ?? null });
+  return sonuc;
+};
+window.kameraYakin = () => {   // plaza: bank + ağaç + karakterler yakından
+  const d = window.__katman.d;
+  const M = d.yerlesim.manifest; const b = M.alanlar.find((a) => a.yerlestir?.prop === "bank");
+  const [x, z] = b?.yerlestir?.hat?.[0] ?? [10, 10];
+  d.kameraSabitle({ konum: [x + 7, 6, z + 7], hedef: [x, 0, z] });
+  return [x, z];
+};
