@@ -7,7 +7,7 @@
 | II — soru kalite mekanizması | ✅ canlıda · migration 222–224 uygulandı; 2.976 şüpheli (30 rekabetçi havuz dışı), akış uçtan uca doğrulandı; sol anahtarı sorusunun anahtarı **doğru** çıktı | `38998d3` |
 | III — misafir hesabı koruma | ✅ canlıda · Misafir etiketi + Ayarlar kartı + ilk galibiyet önerisi; bağlama aynı user_id, veri kaybı 0 (ölçüldü) | `0e96748` |
 | IV — Düello deneyimi | ✅ canlıda · tanıtım, doğru cevap metinle, ilk maç +5 sn (migration 225), joker ipuçları, maç özeti | `15498ce` |
-| V — Hatalarım dürüstlüğü | (sürüyor) | |
+| V — Hatalarım dürüstlüğü | ✅ canlıda · banka/yeni dağılımı açıkça yazılıyor, bankan kadar tur, pratik turu adı | V |
 | VI — konsol uyarıları | (sürüyor) | |
 | VII — renk ve kontrast | (sürüyor) | |
 
@@ -264,3 +264,31 @@ Veri sunucudan (`mac_sorulari`); ekran yalnız sayar, ödül hesabı yapmaz.
 Bütün senaryolarda yatay taşma 0. iOS denetimi (5 sayfa × 2 ekran) temiz; tanıtım katmanı mevcut `bd-arama-katman` (fixed, transform yok). Görseller `gorsel/paket20/iv-*`.
 
 *Not:* bu ölçüm sırasında görüldü — sahibinin düellosunu (`b16d07df`) sahibinin hesabı (TestOyuncu917, misafir) **kazanmış**. +53 lig / +55 coin ile tutarlı.
+
+---
+
+## V — Hatalarım vaadiyle uyuşuyor
+
+**Doğrulandı:** `calisma_baslat` banka yetmezse kalanı `soru_sec` ile normal havuzdan dolduruyor ve `bankadan` / `havuzdan` sayılarını zaten dönüyordu. Arayüz bu sayıları hiç kullanmıyordu. **Davranış değişmedi**, yalnız ekranda dürüstçe söyleniyor:
+
+- **Seçim ekranı:**
+  - Seçili kategoriye göre önizleme var: "Bu tur: 1 soru bankandan + 9 yeni soru." · "Bu tur: 25 sorunun hepsi bankandan." · banka boşsa "Bankan temiz — bu bir pratik turu: 10 yeni soru."
+  - Banka boşken düğme **"Pratik turuna başla"**.
+- **Soru sayısı:** bankadaki soru varsa **"Bankan kadar · N"** seçeneği var (sunucu sınırı 5–50). Banka 5'ten azsa seçenek "En kısa tur · 5" olur ve önizleme kalanın yeni soru olduğunu yazar.
+- **Tur başında (sunucunun gerçek dağılımı):** "Bankanda 1 soru var. Turu 9 yeni soruyla tamamladık." Banka boşsa "Bankan temiz — pratik turu: N yeni soru."
+- **Soru rozeti:**
+  - banka sorusu → **"bankandan · 2 kez yanlış"**
+  - havuz sorusu → **"yeni soru"** (mavi)
+- **Sonuç ekranı:** banka boşsa "Pratik turu — bankan temizdi."
+- **Aynı dosyada bulunan çevrilmemiş metin** ("{n}/2 doğru — bir kez daha bilirsen…") `tt()`'ye alındı.
+- 14 yeni dil anahtarı (TR + EN).
+
+**Test** (kabuk düzeneği, iPhone):
+
+| Banka | Seçim | Tur başı | Rozet |
+|---|---|---|---|
+| 1 soru | "En kısa tur · 5" · 10 · 20 · 30; "Bu tur: 1 soru bankandan + 9 yeni soru."; "Çalışmaya başla" | "Bankanda 1 soru var. Turu 9 yeni soruyla tamamladık." | bankandan · 2 kez yanlış |
+| boş | "Bankan temiz — bu bir pratik turu: 10 yeni soru."; **"Pratik turuna başla"** | "Bankan temiz — pratik turu: 10 yeni soru." | yeni soru |
+| 25 soru | "Bankan kadar · 25" → önizleme "Bu tur: 25 sorunun hepsi bankandan."; `calisma_baslat(p_soru_sayisi: 25)` | "Bu turdaki 25 sorunun hepsi bankandan." | bankandan |
+
+Yatay taşma 0. Görseller: `gorsel/paket20/v-*`.

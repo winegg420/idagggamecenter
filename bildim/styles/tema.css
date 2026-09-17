@@ -6467,3 +6467,10 @@ body.bd-ekle-acik .app { padding-bottom: calc(300px + env(safe-area-inset-bottom
 .bd-duello-tanitim-noktalar span { width: 8px; height: 8px; border-radius: 50%; background: var(--bd-kenar); }
 .bd-duello-tanitim-noktalar span.aktif { background: var(--bd-vurgu); width: 20px; border-radius: 4px; }
 @media (prefers-reduced-motion: reduce) { .bd-duello-jokerler.acik { animation: none; } }
+
+/* Paket 20 V — Hatalarım dürüstlüğü */
+.app .bd-calisma-onizleme, .app .bd-calisma-dagilim {
+  margin: 10px 0; padding: 8px 12px; border-radius: 12px; font-size: 13px; font-weight: 800;
+  background: #FFF6E5; color: var(--bd-metin); text-align: center;
+}
+.app .bd-calisma-rozet.yeni { background: #E3EEFB; color: #173A66; }

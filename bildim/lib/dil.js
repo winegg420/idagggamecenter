@@ -1911,6 +1911,22 @@ const SOZLUK = {
     "Rakibi şaşırttığın kategoriler: {liste}": "Categories that caught your opponent out: {liste}",
     "Geri tepen riskli saldırı: {n}": "Risky attacks that backfired: {n}",
     "Kaçırdığın sorular ve doğru cevapları ({n})": "Questions you missed and their answers ({n})",
+    // ---- Paket 20 V — Hatalarım
+    "Bankan kadar: {n} soru": "As many as your bank: {n} questions",
+    "Bankan kadar": "My bank",
+    "Bankan temiz — bu bir pratik turu: {n} yeni soru.": "Your bank is clear — this is a practice round: {n} new questions.",
+    "Bu tur: {b} soru bankandan + {y} yeni soru.": "This round: {b} from your bank + {y} new questions.",
+    "Bu tur: {b} sorunun hepsi bankandan.": "This round: all {b} questions come from your bank.",
+    "Pratik turuna başla": "Start practice round",
+    "Bankan temiz — pratik turu: {n} yeni soru.": "Your bank is clear — practice round: {n} new questions.",
+    "Bankanda {b} soru var. Turu {h} yeni soruyla tamamladık.": "You have {b} questions in your bank. We filled the round with {h} new ones.",
+    "Bu turdaki {b} sorunun hepsi bankandan.": "All {b} questions in this round come from your bank.",
+    "bankandan": "from your bank",
+    "yeni soru": "new question",
+    "{n}/2 doğru — bir kez daha bilirsen öğrenilmiş sayılacak": "{n}/2 correct — get it right once more and it counts as learned",
+    "Pratik turu — bankan temizdi.": "Practice round — your bank was clear.",
+    // ---- Paket 20 V — Hatalarım (ek)
+    "En kısa tur": "Shortest round",
   },
 };
 

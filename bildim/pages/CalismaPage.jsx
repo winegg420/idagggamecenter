@@ -231,6 +231,12 @@ export default function CalismaPage() {
   // ============ SEÇİM EKRANI ============
   if (asama === "secim") {
     const bos = (banka?.bekleyen ?? 0) === 0;
+    // Paket 20 V: seçili kategoride bankadaki soru sayısı — tur bundan fazlaysa kalan YENİ sorudur, açıkça yazılır
+    const bankaKat = kategori === null ? (banka?.bekleyen ?? 0)
+      : (banka?.kategoriler?.find((k) => k.kategori === kategori)?.kategori_adet ?? 0);
+    const bankaKadar = Math.min(50, Math.max(5, bankaKat));
+    const tahminBanka = Math.min(bankaKat, soruSayisi);
+    const tahminYeni = Math.max(0, soruSayisi - tahminBanka);
     return (
       <div>
         <h1 className="baslik">{tt("Hatalarım")}</h1>
@@ -308,6 +314,15 @@ export default function CalismaPage() {
           <span>{tt("Soru sayısı")}</span>
         </div>
         <div className="bd-calisma-adet">
+          {bankaKat > 0 && !SORU_SECENEKLERI.includes(bankaKadar) && (
+            <button
+              className={`bd-calisma-adet-btn ${soruSayisi === bankaKadar ? "aktif" : ""}`}
+              onClick={() => setSoruSayisi(bankaKadar)}
+              aria-label={tt("Bankan kadar: {n} soru", { n: bankaKadar })}
+            >
+              {bankaKat < 5 ? tt("En kısa tur") : tt("Bankan kadar")} · {bankaKadar}
+            </button>
+          )}
           {SORU_SECENEKLERI.map((n) => (
             <button
               key={n}
@@ -319,10 +334,17 @@ export default function CalismaPage() {
           ))}
         </div>
 
+        <div className="bd-calisma-onizleme">
+          {bankaKat === 0
+            ? tt("Bankan temiz — bu bir pratik turu: {n} yeni soru.", { n: soruSayisi })
+            : tahminYeni > 0
+              ? tt("Bu tur: {b} soru bankandan + {y} yeni soru.", { b: tahminBanka, y: tahminYeni })
+              : tt("Bu tur: {b} sorunun hepsi bankandan.", { b: tahminBanka })}
+        </div>
         {hata && <div className="hata-kutu">{hata}</div>}
         <button className="bd-ana-eylem" onClick={basla} disabled={calisiyor}>
           <Ikon ad="kitap" boyut={22} />
-          <span>{calisiyor ? tt("Hazırlanıyor…") : tt("Çalışmaya başla")}</span>
+          <span>{calisiyor ? tt("Hazırlanıyor…") : bankaKat === 0 ? tt("Pratik turuna başla") : tt("Çalışmaya başla")}</span>
         </button>
       </div>
     );
@@ -347,7 +369,7 @@ export default function CalismaPage() {
       } else if (sonucSoru.dogru && sonucSoru.bankadan) {
         geriBildirim = {
           tip: "iyi",
-          metin: `${sonucSoru.yeni_seri}/2 doğru — bir kez daha bilirsen öğrenilmiş sayılacak`,
+          metin: tt("{n}/2 doğru — bir kez daha bilirsen öğrenilmiş sayılacak", { n: sonucSoru.yeni_seri }),
         };
       } else if (sonucSoru.dogru) {
         geriBildirim = { tip: "iyi", metin: tt("Doğru") };
@@ -378,6 +400,17 @@ export default function CalismaPage() {
           <span>{tt("ÇALIŞMA · PUAN VERİLMEZ")}</span>
         </div>
 
+        {/* Paket 20 V: dağılım sunucudan (calisma_baslat: bankadan / havuzdan) */}
+        {oturum && (
+          <div className="bd-calisma-dagilim" role="status">
+            {oturum.bankadan === 0
+              ? tt("Bankan temiz — pratik turu: {n} yeni soru.", { n: oturum.soru_sayisi })
+              : oturum.havuzdan > 0
+                ? tt("Bankanda {b} soru var. Turu {h} yeni soruyla tamamladık.", { b: oturum.bankadan, h: oturum.havuzdan })
+                : tt("Bu turdaki {b} sorunun hepsi bankandan.", { b: oturum.bankadan })}
+          </div>
+        )}
+
         <div className="bd-calisma-ilerleme">
           <div className="iz">
             <div className="dolgu" style={{ width: `${oran}%` }} />
@@ -394,10 +427,12 @@ export default function CalismaPage() {
                 <KategoriIkon anahtar={soru.kategori} boyut={16} />
                 {kategoriEtiket(soru.kategori)}
               </span>
-              {soru.bankadan && (
+              {soru.bankadan ? (
                 <span className="bd-calisma-rozet">
-                  {soru.onceki_yanlis} {tt("kez yanlış")}
+                  {tt("bankandan")} · {soru.onceki_yanlis} {tt("kez yanlış")}
                 </span>
+              ) : (
+                <span className="bd-calisma-rozet yeni">{tt("yeni soru")}</span>
               )}
               <span className={`bd-calisma-sn ${kalan <= 3 ? "kritik" : ""}`}>
                 {Math.ceil(kalan)} {tt("sn")}
@@ -452,6 +487,7 @@ export default function CalismaPage() {
           <span>{tt("ÇALIŞMA · PUAN VERİLMEZ")}</span>
         </div>
 
+        {oturum?.bankadan === 0 && <div className="bd-calisma-dagilim">{tt("Pratik turu — bankan temizdi.")}</div>}
         <div className="bd-calisma-buyuk">{ogrenilen}</div>
         <div className="alt-yazi">{tt("soru öğrenildi")}</div>
 
