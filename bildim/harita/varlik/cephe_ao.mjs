@@ -21,10 +21,11 @@ import { mergeVertices } from "three/addons/utils/BufferGeometryUtils.js";
 import { hucreTablosu } from "./atlas.mjs";
 import { aoHesapla } from "./ao.mjs";
 import { binaGeometrisi, cepheParselleri } from "../cephe.js";
+import { manifestCoz } from "../yerlesimCoz.js";
 
 const BURASI = path.dirname(fileURLToPath(import.meta.url)), KOK = path.resolve(BURASI, "../../..");
 const CIKTI = path.join(KOK, "public/meydan/deneme");
-const M = JSON.parse(fs.readFileSync(path.join(BURASI, "../yerlesim.json"), "utf8")), H = hucreTablosu();
+const M = manifestCoz(JSON.parse(fs.readFileSync(path.join(BURASI, "../yerlesim.json"), "utf8"))), H = hucreTablosu();
 const ORNEKLER = { cephe_ornek_dukkan: "dukkan_normal", cephe_ornek_apartman: "apartman_istiklal_a1", cephe_ornek_dar: "dar_istiklal_a2" };
 const ORNEK_MOD = () => ({ duvar: "#4A9DD9", cati: "#2B6BA3" });   // örnek GLB'de girilebilir dükkân rengi (canlıda dunya.js › MOD_RENK)
 

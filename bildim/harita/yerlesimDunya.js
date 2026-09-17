@@ -14,6 +14,7 @@
 // ============================================================
 import * as THREE from "three";
 import { canvasDoku } from "./ortak.js";
+import { manifestCoz } from "./yerlesimCoz.js";
 
 // Gri tonlar (bölge okunaklılığı için; renk değil). Girilebilir dükkân en açık, landmark en koyu.
 const TON = {
@@ -52,7 +53,11 @@ function merkezOf(nokta) { let x = 0, z = 0; for (const p of nokta) { x += p[0];
 /**
  * @param {{ sahne: THREE.Scene, manifest: object, tt?: (s:string)=>string, turnuvaAlt?: ()=>string }} o
  */
-export function yerlesimKur({ sahne, manifest: M, tt = (s) => s, turnuvaAlt = () => "" }) {
+export function yerlesimKur({ sahne, manifest: ham, tt = (s) => s, turnuvaAlt = () => "" }) {
+  // 3A-2 §A: bölge hiyerarşisi — kaydir burada (çözümleyicide) uygulanmış olur; bilinmeyen/eksik bölge SESSİZ GEÇMEZ
+  const M = manifestCoz(ham);
+  for (const h of M.cozum.hatalar) console.error("[Meydan] yerleşim manifesti:", h);
+  if (M.cozum.kaydirilan.length) console.warn("[Meydan] bölge kaydırması etkin:", M.cozum.kaydirilan.join(" · "));
   const kok = new THREE.Group(); kok.name = "Yerlesim"; sahne.add(kok);
   const etiketler = new THREE.Group(); etiketler.name = "Etiketler"; kok.add(etiketler);
   // 2B: gri yer tutucular gruplu — sanat katmanı (cevre.js) geldiğinde ilgili grup gizlenir; çarpışma/ipucu mantığı aynı kalır

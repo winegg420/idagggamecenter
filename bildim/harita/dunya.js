@@ -23,6 +23,7 @@ import { turnuvaSaatleri } from "../lib/zaman.js";
 import { tt } from "../lib/dil.js";
 // AŞAMA 2A/2B: dünya yerleşim manifestinden (yerlesim.json) kurulur — konumlar koda gömülü değil.
 import { yerlesimKur } from "./yerlesimDunya.js";
+import { manifestCoz } from "./yerlesimCoz.js";
 import taksimYerlesim from "./yerlesim.json";
 // AŞAMA 2B: haritadaki bütün karakterler (kendi oyuncu, uzaktakiler, botlar) yeni GLB karakter — ortak modülden
 import { RoomEnvironment } from "three/addons/environments/RoomEnvironment.js";
@@ -97,7 +98,7 @@ function levha(metin, renk) {
 export function dunyaKur(kapsayici, s = {}) {
   const dusukDonanim = Boolean(s.dusukDonanim);
   const hareketAzalt = Boolean(s.hareketAzalt);
-  const yerlesim = s.yerlesim ?? taksimYerlesim;
+  const yerlesim = manifestCoz(s.yerlesim ?? taksimYerlesim);   // 3A-2 §A: bölge ötelemesi + sınırın bölgeden türetilmesi (tek yerde)
 
   let W = kapsayici.clientWidth || window.innerWidth;
   let H = kapsayici.clientHeight || window.innerHeight;

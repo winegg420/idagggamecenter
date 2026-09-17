@@ -7,8 +7,8 @@
     "tip": "birlesim",
     "aciklama": "Yürünebilir alan = parçaların birleşimi. Dışına çıkan oyuncu en yakın parçanın kenarına itilir.",
     "parcalar": [
-      {"tip": "daire", "merkez": [0, 0], "r": 42},
-      {"tip": "koridor", "baslangic": [-18.22, 23.83], "bitis": [-80.18, 104.86], "genislik": 12}
+      {"tip": "daire", "bolge": "plaza", "not": "merkez + r bölgeden türetilir (yerlesimCoz.js)"},
+      {"tip": "koridor", "bolge": "istiklal", "not": "başlangıç + bitiş + genişlik bölgeden türetilir — tek kaynak bolgeler.istiklal"}
     ]
   },
   "bolgeler": [
@@ -29,6 +29,7 @@
   "parseller": [
     {
       "id": "kose_istiklal_a",
+      "bolge": "istiklal",
       "tur": "kose_binasi",
       "kat": 3,
       "girilebilir": false,
@@ -40,6 +41,7 @@
     },
     {
       "id": "dukkan_normal",
+      "bolge": "istiklal",
       "tur": "kucuk_dukkan",
       "kat": 2,
       "girilebilir": true,
@@ -54,6 +56,7 @@
     },
     {
       "id": "dar_istiklal_a1",
+      "bolge": "istiklal",
       "tur": "dar_uzun",
       "kat": 4,
       "girilebilir": false,
@@ -65,6 +68,7 @@
     },
     {
       "id": "dukkan_hizli",
+      "bolge": "istiklal",
       "tur": "kucuk_dukkan",
       "kat": 1,
       "girilebilir": true,
@@ -79,6 +83,7 @@
     },
     {
       "id": "apartman_istiklal_a1",
+      "bolge": "istiklal",
       "tur": "apartman",
       "kat": 5,
       "girilebilir": false,
@@ -90,6 +95,7 @@
     },
     {
       "id": "dukkan_duello",
+      "bolge": "istiklal",
       "tur": "kucuk_dukkan",
       "kat": 2,
       "girilebilir": true,
@@ -104,6 +110,7 @@
     },
     {
       "id": "dar_istiklal_a2",
+      "bolge": "istiklal",
       "tur": "dar_uzun",
       "kat": 5,
       "girilebilir": false,
@@ -115,6 +122,7 @@
     },
     {
       "id": "dukkan_turnuva",
+      "bolge": "istiklal",
       "tur": "kucuk_dukkan",
       "kat": 2,
       "girilebilir": true,
@@ -129,6 +137,7 @@
     },
     {
       "id": "apartman_istiklal_a2",
+      "bolge": "istiklal",
       "tur": "apartman",
       "kat": 4,
       "girilebilir": false,
@@ -140,6 +149,7 @@
     },
     {
       "id": "kose_istiklal_b",
+      "bolge": "istiklal",
       "tur": "kose_binasi",
       "kat": 4,
       "girilebilir": false,
@@ -151,6 +161,7 @@
     },
     {
       "id": "dukkan_lig",
+      "bolge": "istiklal",
       "tur": "kucuk_dukkan",
       "kat": 2,
       "girilebilir": true,
@@ -165,6 +176,7 @@
     },
     {
       "id": "apartman_istiklal_b1",
+      "bolge": "istiklal",
       "tur": "apartman",
       "kat": 4,
       "girilebilir": false,
@@ -176,6 +188,7 @@
     },
     {
       "id": "dukkan_hatalarim",
+      "bolge": "istiklal",
       "tur": "kucuk_dukkan",
       "kat": 1,
       "girilebilir": true,
@@ -190,6 +203,7 @@
     },
     {
       "id": "kamusal_istiklal",
+      "bolge": "istiklal",
       "tur": "kamusal_yapi",
       "kat": 3,
       "girilebilir": false,
@@ -201,6 +215,7 @@
     },
     {
       "id": "dukkan_dukkan",
+      "bolge": "istiklal",
       "tur": "kucuk_dukkan",
       "kat": 2,
       "girilebilir": true,
@@ -215,6 +230,7 @@
     },
     {
       "id": "dar_istiklal_b1",
+      "bolge": "istiklal",
       "tur": "dar_uzun",
       "kat": 5,
       "girilebilir": false,
@@ -226,6 +242,7 @@
     },
     {
       "id": "dukkan_studyo",
+      "bolge": "istiklal",
       "tur": "kucuk_dukkan",
       "kat": 2,
       "girilebilir": true,
@@ -240,6 +257,7 @@
     },
     {
       "id": "dukkan_ayarlar",
+      "bolge": "istiklal",
       "tur": "kucuk_dukkan",
       "kat": 1,
       "girilebilir": true,
@@ -254,6 +272,7 @@
     },
     {
       "id": "apartman_istiklal_ucu",
+      "bolge": "istiklal",
       "tur": "apartman",
       "kat": 5,
       "girilebilir": false,
@@ -265,6 +284,7 @@
     },
     {
       "id": "kamusal_akm",
+      "bolge": "plaza",
       "tur": "kamusal_yapi",
       "kat": 4,
       "girilebilir": false,
@@ -276,6 +296,7 @@
     },
     {
       "id": "apartman_guneydogu",
+      "bolge": "plaza",
       "tur": "apartman",
       "kat": 5,
       "girilebilir": false,
@@ -287,6 +308,7 @@
     },
     {
       "id": "kose_guney",
+      "bolge": "plaza",
       "tur": "kose_binasi",
       "kat": 3,
       "girilebilir": false,
@@ -298,6 +320,7 @@
     },
     {
       "id": "dar_guney",
+      "bolge": "plaza",
       "tur": "dar_uzun",
       "kat": 5,
       "girilebilir": false,
@@ -309,6 +332,7 @@
     },
     {
       "id": "apartman_bati",
+      "bolge": "plaza",
       "tur": "apartman",
       "kat": 4,
       "girilebilir": false,
@@ -320,6 +344,7 @@
     },
     {
       "id": "dar_bati",
+      "bolge": "plaza",
       "tur": "dar_uzun",
       "kat": 4,
       "girilebilir": false,
@@ -331,6 +356,7 @@
     },
     {
       "id": "landmark_taksim_camii",
+      "bolge": "plaza",
       "tur": "landmark_cami",
       "kat": 0,
       "girilebilir": false,
@@ -341,6 +367,7 @@
     },
     {
       "id": "landmark_minare",
+      "bolge": "plaza",
       "tur": "landmark_minare",
       "kat": 0,
       "girilebilir": false,
@@ -351,9 +378,10 @@
     }
   ],
   "noktalar": [
-    {"id": "spawn_varsayilan", "tip": "spawn", "konum": [0, 0, 16], "donus_y": 3.14},
+    {"id": "spawn_varsayilan", "bolge": "meydan", "tip": "spawn", "konum": [0, 0, 16], "donus_y": 3.14},
     {
       "id": "anit",
+      "bolge": "meydan",
       "tip": "landmark",
       "ad": "Cumhuriyet Anıtı",
       "konum": [0, 0, 0],
@@ -361,12 +389,13 @@
       "govde": {"en": 4, "derinlik": 4, "yukseklik": 11},
       "yuva": "landmark_cumhuriyet_aniti"
     },
-    {"id": "npc_yemci", "tip": "npc", "konum": [11, 0, -8], "yuva": "npc_yemci"},
-    {"id": "tabela_istiklal", "tip": "tabela", "metin": "İstiklal Caddesi / İstiklal Street", "konum": [-18.34, 0, 32.55], "donus_y": 2.49, "yuva": "tabela_istiklal"}
+    {"id": "npc_yemci", "bolge": "meydan", "tip": "npc", "konum": [11, 0, -8], "yuva": "npc_yemci"},
+    {"id": "tabela_istiklal", "bolge": "istiklal", "tip": "tabela", "metin": "İstiklal Caddesi / İstiklal Street", "konum": [-18.34, 0, 32.55], "donus_y": 2.49, "yuva": "tabela_istiklal"}
   ],
   "alanlar": [
     {
       "id": "agac_meydan_kuzey",
+      "bolge": "meydan",
       "tip": "bitki",
       "cokgen": [
         [-28.19, -10.26],
@@ -415,6 +444,7 @@
     },
     {
       "id": "agac_meydan_dogu",
+      "bolge": "meydan",
       "tip": "bitki",
       "cokgen": [
         [29.13, 10.6],
@@ -434,6 +464,7 @@
     },
     {
       "id": "agac_kusagi_gezi",
+      "bolge": "plaza",
       "tip": "bitki",
       "cokgen": [[-30, -48], [2, -48], [-20, -95], [-34, -95]],
       "not": "Gezi Parkı — yürünebilir sınırın dışında. 3A-1: doğu yarısı Boğaz vadisine açıldı (x ≤ 3)",
@@ -441,24 +472,28 @@
     },
     {
       "id": "bank_meydan_bati",
+      "bolge": "meydan",
       "tip": "bank",
       "cokgen": [[-23.82, 13.75], [-25.63, 9.97], [-26.85, 5.95], [-27.44, 1.8], [-27.4, -2.4], [-29.89, -2.61], [-29.94, 1.96], [-29.29, 6.49], [-27.96, 10.87], [-25.98, 15]],
       "yerlestir": {"prop": "bank", "hat": [[-24.9, 14.37], [-26.8, 10.42], [-28.07, 6.22], [-28.69, 1.88], [-28.64, -2.51]], "aralik": 5, "yuz": "merkez"}
     },
     {
       "id": "bank_meydan_guney",
+      "bolge": "meydan",
       "tip": "bank",
       "cokgen": [[13.75, 23.82], [9.41, 25.84], [4.78, 27.08], [0, 27.5], [-4.78, 27.08], [-5.21, 29.54], [0, 30], [5.21, 29.54], [10.26, 28.19], [15, 25.98]],
       "yerlestir": {"prop": "bank", "hat": [[14.38, 24.9], [9.83, 27.02], [4.99, 28.31], [0, 28.75], [-4.99, 28.31]], "aralik": 5, "yuz": "merkez"}
     },
     {
       "id": "bank_meydan_kuzeydogu",
+      "bolge": "meydan",
       "tip": "bank",
       "cokgen": [[13.75, -23.82], [17.68, -21.07], [21.07, -17.68], [23.82, -13.75], [25.84, -9.41], [28.19, -10.26], [25.98, -15], [22.98, -19.28], [19.28, -22.98], [15, -25.98]],
       "yerlestir": {"prop": "bank", "hat": [[14.38, -24.9], [18.48, -22.02], [22.02, -18.48], [24.9, -14.37], [27.02, -9.83]], "aralik": 5, "yuz": "merkez"}
     },
     {
       "id": "kedi_meydan",
+      "bolge": "meydan",
       "tip": "pet_npc",
       "kedi": true,
       "cokgen": [
@@ -487,6 +522,7 @@
     },
     {
       "id": "kedi_plaza_bati",
+      "bolge": "plaza",
       "tip": "pet_npc",
       "kedi": true,
       "cokgen": [
@@ -508,6 +544,7 @@
     },
     {
       "id": "kedi_plaza_dogu",
+      "bolge": "plaza",
       "tip": "pet_npc",
       "kedi": true,
       "cokgen": [
@@ -529,6 +566,7 @@
     },
     {
       "id": "kedi_plaza_guney",
+      "bolge": "plaza",
       "tip": "pet_npc",
       "kedi": true,
       "cokgen": [
@@ -550,6 +588,7 @@
     },
     {
       "id": "kedi_istiklal_a",
+      "bolge": "istiklal",
       "tip": "pet_npc",
       "kedi": true,
       "cokgen": [[-31.28, 33.99], [-82.3, 100.72], [-83.49, 99.81], [-32.47, 33.08]],
@@ -557,6 +596,7 @@
     },
     {
       "id": "kedi_istiklal_b",
+      "bolge": "istiklal",
       "tip": "pet_npc",
       "kedi": true,
       "cokgen": [[-23.41, 40], [-74.43, 106.73], [-75.63, 105.82], [-24.6, 39.09]],
@@ -564,6 +604,7 @@
     },
     {
       "id": "marti_alani",
+      "bolge": "meydan",
       "tip": "pet_npc",
       "cokgen": [
         [1.22, -6.89],
@@ -592,6 +633,7 @@
     },
     {
       "id": "aydinlatma_meydan",
+      "bolge": "meydan",
       "tip": "lamba",
       "hat": [
         [32.5, -5.73],
@@ -623,10 +665,11 @@
       "aralik": 12,
       "prop": "lamba"
     },
-    {"id": "aydinlatma_istiklal_a", "tip": "lamba", "hat": [[-29.8, 30.08], [-83.26, 99.99]], "aralik": 12, "prop": "lamba"},
-    {"id": "aydinlatma_istiklal_b", "tip": "lamba", "hat": [[-24.87, 41.41], [-74.68, 106.55]], "aralik": 12, "prop": "lamba"}
+    {"id": "aydinlatma_istiklal_a", "bolge": "istiklal", "tip": "lamba", "hat": [[-29.8, 30.08], [-83.26, 99.99]], "aralik": 12, "prop": "lamba"},
+    {"id": "aydinlatma_istiklal_b", "bolge": "istiklal", "tip": "lamba", "hat": [[-24.87, 41.41], [-74.68, 106.55]], "aralik": 12, "prop": "lamba"}
   ],
   "tramvay": {
+    "bolge": "istiklal",
     "hat": [[-18.22, 23.83], [-80.18, 104.86]],
     "duraklar": [
       {"id": "durak_taksim", "konum": [-26.73, 34.95]},
