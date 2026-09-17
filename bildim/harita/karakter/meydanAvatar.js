@@ -13,6 +13,13 @@
 //
 // KALABALIK SINIRI (UC_BOYUTLU_SINIR yerine): ilk `sinir` karakter TAM (kozmetik + gölge + göz kırpma), sonrası HAFİF
 // (kozmetiksiz, gölgesiz, kırpmasız) — aynı model, billboard yok. Sayı oyun_ayarlari.meydan_uc_boyutlu_sinir.
+//
+// TAÇ + PELERİN (Paket 16 §C): turnuva ödülleri. Karakter GLB'sinde bu iki kozmetik yok ve gövde/atlas/karakter.js
+// değişmeyecek → burada, KARAKTER MALZEMESİYLE (aynı atlas: altin / tisort hücresi, yeni doku yok) iki küçük geometri.
+// Oyuncu başına klon DEĞİL: bütün oyuncular için TEK taç + TEK pelerin InstancedMesh (oyuncu sayısından bağımsız
+// sabit 2 çizim çağrısı; gölge atmaz). Her karede örnek matrisi baş/sırt yuvasından yazılır; pelerin fiziksiz
+// hafif sallanır (yürüyüş hızıyla geriye açılır). Yalnız TAM karakterlerde (kozmetik kuralıyla aynı).
+// Sözleşme: taç baş yuvasındadır → şapka (kep/bere) aynı anda takılmaz (gardırop kaydı da tek "bas" değeri tutar).
 // ============================================================
 import * as THREE from "three";
 import { isimEtiketi, nesneyiSerbestBirak } from "../ortak.js";
@@ -61,8 +68,10 @@ export function profildenGorunum(gorunum, yedekTohum = "") {
     kurk: new THREE.Color(0xffffff), metal: new THREE.Color(0xdfe3e8), boya: enYakin(ustHex, USTLER),
   };
   const gozluk = String(a.gozluk ?? "yok");
+  const pelerin = a.pelerin === true ? "klasik" : ["klasik", "kisa"].includes(a.pelerin) ? a.pelerin : null;
   const koz = {
-    sapka: ["kep", "bere"].includes(a.bas),
+    tac: a.bas === "tac", pelerin,
+    sapka: a.bas !== "tac" && ["kep", "bere"].includes(a.bas),
     gozlukPremium: gozluk === "gunes" || gozluk === "spor",
     gozluk: gozluk !== "yok" && gozluk !== "gunes" && gozluk !== "spor",
   };
@@ -85,6 +94,59 @@ export function tohumdanGorunum(tohum, { tur = null } = {}) {
 const _q = new THREE.Quaternion(), _q2 = new THREE.Quaternion(), _q3 = new THREE.Quaternion(), _e = new THREE.Euler();
 const sifirMi = (r) => r.x === 0 && r.y === 0 && r.z === 0;
 
+// ---------------------------------------------------------------- taç + pelerin geometrisi (karakter malzemesi biçimi)
+const TAC_BOLGE = 24;       // karakter.js METAL_TABLO: metal 0,9 · pürüz 0,22 (altın parlaklığı)
+const PELERIN_BOLGE = 17;   // kumaş pürüzü 0,82
+const PELERIN_RENK = new THREE.Color("#503b82");   // gardıroptaki pelerinle aynı ton (avatar3d/model.js capeMat)
+const EK_KAPASITE = 32;
+function ekGeometri(ucgenler, hucre, renk, bolge) {
+  const n = ucgenler.length, pos = new Float32Array(n * 3), uv = new Float32Array(n * 2), c = new Float32Array(n * 4), b = new Float32Array(n).fill(bolge);
+  const u = hucre ? (hucre.u0 + hucre.u1) / 2 : 0.5, v = hucre ? (hucre.v0 + hucre.v1) / 2 : 0.5;
+  ucgenler.forEach((q, i) => { pos.set(q, i * 3); uv[i * 2] = u; uv[i * 2 + 1] = v; c.set([renk.r, renk.g, renk.b, 1], i * 4); });
+  const g = new THREE.BufferGeometry();
+  g.setAttribute("position", new THREE.BufferAttribute(pos, 3));
+  g.setAttribute("uv", new THREE.BufferAttribute(uv, 2));
+  g.setAttribute("color", new THREE.BufferAttribute(c, 4));
+  g.setAttribute("_bolge", new THREE.BufferAttribute(b, 1));
+  g.computeVertexNormals();
+  return g;
+}
+/** Taç: 10 dilimli açık halka (dış + iç yüz) + 5 sivri diş (iki yüz). Yuva uzayı, başın üstü. 50 üçgen. */
+function tacGeometrisi(H) {
+  const U = [], n = 10, r0 = 0.165, r1 = 0.185, y0 = 0.045, y1 = 0.125, uc = 0.215;
+  const P = (a, r, y) => [Math.cos(a) * r, y, Math.sin(a) * r];
+  const dort = (a, b, c, d) => { U.push(a, b, c, a, c, d); };
+  for (let i = 0; i < n; i++) {
+    const a0 = (i / n) * Math.PI * 2, a1 = ((i + 1) / n) * Math.PI * 2;
+    dort(P(a0, r0, y0), P(a0, r1, y1), P(a1, r1, y1), P(a1, r0, y0));
+    dort(P(a1, r0 - 0.012, y0), P(a1, r1 - 0.012, y1), P(a0, r1 - 0.012, y1), P(a0, r0 - 0.012, y0));
+    if (i % 2 === 0) {
+      const am = (a0 + a1) / 2;
+      U.push(P(a0, r1, y1), P(am, r1 + 0.004, uc), P(a1, r1, y1));
+      U.push(P(a1, r1 - 0.012, y1), P(am, r1 - 0.008, uc), P(a0, r1 - 0.012, y1));
+    }
+  }
+  return ekGeometri(U, H.altin, new THREE.Color(1.45, 1.3, 1.0), TAC_BOLGE);   // altın hücresi metal ışıkta koyu kalıyordu
+}
+/** Pelerin: omuzdan (y = 0) aşağı 4 × 3 hafif kavisli şerit, iki yüz. Yerel -Z sırt yönü. 48 üçgen. */
+function pelerinGeometrisi(H) {
+  const U = [], sat = 4, sut = 3, boy = 0.98, ust = 0.46, alt = 0.64;
+  const P = (i, j, kal) => {
+    const t = j / sat, gen = ust + (alt - ust) * t, x = (i / sut - 0.5) * gen;
+    const z = -(0.02 + 0.06 * t) - 0.05 * (1 - (2 * i / sut - 1) ** 2) - kal;
+    return [x, -boy * t, z];
+  };
+  for (let j = 0; j < sat; j++) for (let i = 0; i < sut; i++) {
+    const a = P(i, j, 0), b = P(i + 1, j, 0), c = P(i + 1, j + 1, 0), d = P(i, j + 1, 0);
+    U.push(a, c, b, a, d, c);
+    const a2 = P(i, j, -0.006), b2 = P(i + 1, j, -0.006), c2 = P(i + 1, j + 1, -0.006), d2 = P(i, j + 1, -0.006);
+    U.push(a2, b2, c2, a2, c2, d2);
+  }
+  return ekGeometri(U.map((q) => q), H.tisort, PELERIN_RENK, PELERIN_BOLGE);
+}
+const _m = new THREE.Matrix4(), _m2 = new THREE.Matrix4(), _p = new THREE.Vector3(), _s = new THREE.Vector3(), _bir = new THREE.Vector3(1, 1, 1);
+const PELERIN_KAYDIR = new THREE.Vector3(0, 0.52, -0.07);   // sirtYuva (0,94 m) → omuz hattı (~1,44 m)
+
 export class MeydanAvatarlari {
   /** @param {{ ks: import("./karakter.js").KarakterSistemi, temas?: import("./temas.js").TemasGolgeleri }} o */
   constructor({ ks, temas = null }) {
@@ -92,6 +154,7 @@ export class MeydanAvatarlari {
     this.hepsi = new Set();
     this.sinir = 8;         // tam karakter sayısı (oyun_ayarlari.meydan_uc_boyutlu_sinir; 2B ölçümü)
     this.tamSayisi = 0;
+    this.ek = null;         // Paket 16 §C: paylaşılan taç/pelerin InstancedMesh'leri (lazy)
   }
 
   /** Sarmalayıcı grup: HEMEN döner; karakter sistemi hazırsa gövde de takılır, değilse `hazirOlunca()` takar. */
@@ -133,6 +196,11 @@ export class MeydanAvatarlari {
     const tam = tamIste ?? this.tamSayisi < this.sinir;
     const karakter = this.ks.kur(tur, g, tam ? koz : {}, { golge: tam, kirpma: tam });
     if (!karakter) return;
+    u.tac = tam && !!koz.tac;
+    u.pelerin = tam ? koz.pelerin ?? null : null;
+    u.yuvaBas = u.tac ? karakter.getObjectByName("basYuva") : null;
+    u.yuvaSirt = u.pelerin ? karakter.getObjectByName("sirtYuva") : null;
+    u.pelerinFaz = (karma(u.tohum) % 628) / 100;
     if (tam) this.tamSayisi++;
     u.tam = tam;
     karakter.userData.yonKoku = av;
@@ -199,6 +267,11 @@ export class MeydanAvatarlari {
 
   /** ks.kare()'den SONRA: dans/ikram vekil dönüşlerini kemiklere ekle (karakter uzayında). */
   vekilleriUygula() {
+    this.#vekiller();
+    this.#ekleriGuncelle();
+  }
+
+  #vekiller() {
     for (const av of this.hepsi) {
       const u = av.userData, k = u.karakter;
       if (!k || !av.parent) continue;
@@ -224,6 +297,61 @@ export class MeydanAvatarlari {
     }
   }
 
+  /** Paylaşılan taç/pelerin örnekleri (lazy; karakter sistemi hazır olunca). Kapasite dolarsa iki katına çıkar. */
+  #ekler(gerek) {
+    if (!this.ks.hazir || !this.ks.malzeme) return null;
+    if (this.ek && this.ek.kapasite >= gerek) return this.ek;
+    const kapasite = Math.max(EK_KAPASITE, this.ek ? this.ek.kapasite * 2 : 0, gerek);
+    const H = this.ks.hucreler;
+    const yap = (geo, ad) => {
+      const m = new THREE.InstancedMesh(geo, this.ks.malzeme, kapasite);
+      m.name = ad; m.count = 0; m.frustumCulled = false; m.castShadow = false; m.receiveShadow = true;
+      m.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+      this.ks.sahne.add(m);
+      return m;
+    };
+    this.#ekleriBirak();
+    this.ek = { kapasite, tac: yap(tacGeometrisi(H), "MeydanTac"), pelerin: yap(pelerinGeometrisi(H), "MeydanPelerin") };
+    return this.ek;
+  }
+
+  #ekleriBirak() {
+    if (!this.ek) return;
+    for (const m of [this.ek.tac, this.ek.pelerin]) { m.removeFromParent(); m.geometry.dispose(); m.dispose(); }
+    this.ek = null;
+  }
+
+  /** Her kare (vekilleriUygula sonunda): taç baş yuvasına, pelerin sırt yuvasına; pelerin hıza göre açılır + hafif sallanır. */
+  #ekleriGuncelle() {
+    let tacSay = 0, pelSay = 0;
+    for (const av of this.hepsi) { const u = av.userData; if (u.karakter && av.parent) { if (u.tac) tacSay++; if (u.pelerin) pelSay++; } }
+    if (!tacSay && !pelSay) { if (this.ek && (this.ek.tac.count || this.ek.pelerin.count)) { this.ek.tac.count = 0; this.ek.pelerin.count = 0; } return; }
+    const ek = this.#ekler(Math.max(tacSay, pelSay)); if (!ek) return;
+    const zaman = performance.now() / 1000;
+    let it = 0, ip = 0;
+    for (const av of this.hepsi) {
+      const u = av.userData, k = u.karakter;
+      if (!k || !av.parent || !av.visible) continue;
+      if (u.tac && u.yuvaBas) {
+        u.yuvaBas.updateWorldMatrix(true, false);
+        u.yuvaBas.matrixWorld.decompose(_p, _q, _s);
+        ek.tac.setMatrixAt(it++, _m.compose(_p, _q, _bir));
+      }
+      if (u.pelerin && u.yuvaSirt) {
+        u.yuvaSirt.updateWorldMatrix(true, false);
+        u.yuvaSirt.matrixWorld.decompose(_p, _q, _s);
+        const hiz = k.userData.vfxHiz ?? 0;
+        const aci = Math.min(0.55, 0.06 + hiz * 0.05) + Math.sin(zaman * (1.6 + hiz * 0.35) + u.pelerinFaz) * (0.035 + Math.min(hiz, 9) * 0.006);
+        _m.compose(_p, _q, _bir).multiply(_m2.makeTranslation(PELERIN_KAYDIR.x, PELERIN_KAYDIR.y, PELERIN_KAYDIR.z));
+        _m.multiply(_m2.makeRotationX(-aci)).multiply(_m2.makeScale(1, u.pelerin === "kisa" ? 0.58 : 1, 1));
+        ek.pelerin.setMatrixAt(ip++, _m);
+      }
+    }
+    ek.tac.count = it; ek.pelerin.count = ip;
+    if (it) ek.tac.instanceMatrix.needsUpdate = true;
+    if (ip) ek.pelerin.instanceMatrix.needsUpdate = true;
+  }
+
   sil(av) {
     const u = av?.userData; if (!u) return;
     this.hepsi.delete(av);
@@ -233,5 +361,5 @@ export class MeydanAvatarlari {
     if (u.etiket) nesneyiSerbestBirak(u.etiket);
   }
 
-  temizle() { for (const av of [...this.hepsi]) this.sil(av); this.tamSayisi = 0; }
+  temizle() { for (const av of [...this.hepsi]) this.sil(av); this.tamSayisi = 0; this.#ekleriBirak(); }
 }
