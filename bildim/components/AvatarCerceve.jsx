@@ -56,7 +56,7 @@ export default function AvatarCerceve({ profile, boyut = 42, userId, nadirlik })
   }, [kimlik, gorunumAnahtar, tazele]);
 
   return (
-    <span className={`bd-cerceve bd-cerceve-${n}${lig ? ` bd-lig-cerceve bd-lig-cerceve-${lig}` : ""}`}
+    <span className={`bd-cerceve bd-cerceve-${n}${lig ? ` bd-lig-cerceve bd-lig-cerceve-${lig}` : ""}${boyut <= 40 ? " bd-cerceve-kucuk" : ""}`}
           style={{ width: boyut, height: boyut }}
           title={lig ? tt("{lig} lig çerçevesi", { lig: LIG_CERCEVE_ADI[lig] }) : undefined}>
       <Avatar profile={profile} boyut={boyut} />

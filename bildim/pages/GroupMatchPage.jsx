@@ -10,7 +10,7 @@ import { useOyunModu } from "../lib/oyunModu.js";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "../../src/lib/supabase.js";
 import { useAuth } from "../../src/context/AuthContext.jsx";
-import Avatar from "../../src/components/Avatar.jsx";
+import AvatarCerceve from "../components/AvatarCerceve.jsx";
 import QuestionCard from "../components/QuestionCard.jsx";
 import { y } from "../lib/yol.js";
 import { useGorunurlukTazele, zamanAsimiyla } from "../lib/gorunurluk.js";
@@ -363,7 +363,7 @@ export default function GroupMatchPage() {
         <div className="kart" style={{ maxWidth: 340, margin: "0 auto" }}>
           {katilimcilar.map((k) => (
             <div key={k.user_id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "6px 0" }}>
-              <Avatar profile={k.profil} boyut={34} />
+              <AvatarCerceve profile={k.profil} boyut={34} userId={k.user_id} />
               <span style={{ flex: 1, fontWeight: 600, textAlign: "left" }}>
                 {k.profil?.gorunen_ad}{k.user_id === user.id && <SenRozeti />}
               </span>
@@ -415,7 +415,7 @@ export default function GroupMatchPage() {
           <div className="kart" style={{ maxWidth: 340, margin: "0 auto 16px" }}>
             {siraliSkor.map((k) => (
               <div key={k.user_id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "6px 0" }}>
-                <Avatar profile={k.profil} boyut={34} />
+                <AvatarCerceve profile={k.profil} boyut={34} userId={k.user_id} />
                 <span style={{ flex: 1, fontWeight: 600, textAlign: "left" }}>
                   {k.profil?.gorunen_ad}{k.user_id === user.id && <SenRozeti />}
                 </span>
@@ -470,7 +470,7 @@ export default function GroupMatchPage() {
           {siraliSkor.map((k, i) => (
             <div key={k.user_id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "6px 0" }}>
               <span className={`sira-no ${i < 1 ? "ilk3" : ""}`}>{i + 1}</span>
-              <Avatar profile={k.profil} boyut={34} />
+              <AvatarCerceve profile={k.profil} boyut={34} userId={k.user_id} />
               <span style={{ flex: 1, fontWeight: 600, textAlign: "left" }}>
                 {k.profil?.gorunen_ad}{k.user_id === user.id && <SenRozeti />}
               </span>
@@ -527,7 +527,7 @@ export default function GroupMatchPage() {
             key={k.user_id}
             className={`grup-skor-satir ${k.user_id === user.id ? "sen" : ""}`}
           >
-            <Avatar profile={k.profil} boyut={30} />
+            <AvatarCerceve profile={k.profil} boyut={30} userId={k.user_id} />
             <span className="isim">{k.profil?.gorunen_ad}{k.user_id === user.id && <SenRozeti />}</span>
             {balonlar[k.user_id] && (
               <span className={`balon grup ${k.user_id === user.id ? "" : "rakip"}`}>

@@ -6,7 +6,7 @@ import { hataMesaji } from "../lib/hata.js";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../../src/lib/supabase.js";
 import { useAuth } from "../../src/context/AuthContext.jsx";
-import Avatar from "../../src/components/Avatar.jsx";
+import AvatarCerceve from "../components/AvatarCerceve.jsx";
 import { kategoriAdi, kategoriEtiket, kategorileriSirala } from "../lib/kategoriler.js";
 import { oyuncuAdi } from "../lib/oyuncu.js";
 import { y } from "../lib/yol.js";
@@ -67,7 +67,8 @@ function BekleyenKurulum({ baslik, kategori, katilimcilar, onIptal, iptalEdilen,
               k.davet_durumu === "kabul" ? tt("hazır") : "bekliyor"
             }`}
           >
-            <Avatar
+            <AvatarCerceve
+              userId={k.user_id}
               profile={{
                 gorunen_ad: oyuncuAdi(k.profil, k.user_id),
                 gorunen_avatar: k.profil?.gorunen_avatar,
@@ -568,7 +569,7 @@ export default function ChallengesPage() {
           <div className="baslik">{tt("Sana gelen (")}{gelen.length})</div>
           {gelen.map((m) => (
             <div key={m.id} className="liste-satir">
-              <Avatar profile={m.p1} />
+              <AvatarCerceve profile={m.p1} />
               <div className="bilgi">
                 <div className="isim">{m.p1?.gorunen_ad}</div>
                 <div className="detay">{tt("sana meydan okudu!")}</div>
@@ -692,7 +693,7 @@ export default function ChallengesPage() {
           const z = botZorluk(Number(b.acik_bot_isabet));
           return (
             <div key={b.id} className="liste-satir">
-              <Avatar profile={b} />
+              <AvatarCerceve profile={b} />
               <div className="bilgi">
                 <div className="isim">{b.gorunen_ad} <Ikon ad="robot" boyut={14} /></div>
                 <div className="detay">
@@ -720,7 +721,7 @@ export default function ChallengesPage() {
         ) : (
           oyuncular.map((p) => (
             <div key={p.id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 0" }}>
-              <Avatar profile={p} boyut={34} />
+              <AvatarCerceve profile={p} boyut={34} />
               <span style={{ flex: 1, fontWeight: 600 }}>{p.gorunen_ad}</span>
               <button className="btn kucuk" onClick={() => meydanOku(p.id)}>
                 {tt("Meydan oku")}
@@ -852,7 +853,7 @@ export default function ChallengesPage() {
             );
             return (
               <div key={p.id} className="liste-satir">
-                <Avatar profile={p} boyut={38} />
+                <AvatarCerceve profile={p} boyut={38} />
                 <div className="bilgi">
                   <div className="isim">{p.gorunen_ad}</div>
                   <div className="detay"><Ikon ad="yildiz" boyut={13} /> {p.puan}</div>
@@ -1021,7 +1022,7 @@ export default function ChallengesPage() {
             const siraSende = benimSoru < toplam;
             return (
               <div key={m.id} className={`liste-satir ${siraSende ? "sirasende" : ""}`}>
-                <Avatar profile={rakip(m)} />
+                <AvatarCerceve profile={rakip(m)} />
                 <div className="bilgi">
                   <div className="isim">
                     {oyuncuAdi(rakip(m), benP1 ? m.oyuncu2 : m.oyuncu1)}
@@ -1061,7 +1062,7 @@ export default function ChallengesPage() {
           <div className="baslik">{tt("Gönderdiğin")}</div>
           {giden.map((m) => (
             <div key={m.id} className="liste-satir">
-              <Avatar profile={m.p2} />
+              <AvatarCerceve profile={m.p2} />
               <div className="bilgi">
                 <div className="isim">{m.p2?.gorunen_ad}</div>
                 <div className="detay">{tt("cevap bekleniyor…")}</div>
@@ -1124,7 +1125,7 @@ export default function ChallengesPage() {
             const benP1 = m.oyuncu1 === user.id;
             return (
               <div key={m.id} className="liste-satir">
-                <Avatar profile={rakip(m)} />
+                <AvatarCerceve profile={rakip(m)} />
                 <div className="bilgi">
                   <div className="isim">{rakip(m)?.gorunen_ad}</div>
                   <div className="detay">

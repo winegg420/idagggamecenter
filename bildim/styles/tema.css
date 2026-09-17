@@ -5388,6 +5388,17 @@ body.bd-ekle-acik .app { padding-bottom: calc(300px + env(safe-area-inset-bottom
 @media (prefers-reduced-motion: reduce) {
   .bd-lig-cerceve-efsane::before { animation: none; display: none; }
 }
+/* Paket 16 §B — küçük avatar (≤ 40 px: liste satırı, grup skoru): halka incelir, avatarı ezmez
+   (7 px → 4 px); lig yine iç renk + beyaz ara + dış tonla okunur. Nadirlik halkası da 3 → 2 px. */
+.bd-cerceve-kucuk.bd-cerceve-sirali .avatar { box-shadow: 0 0 0 2px #9AB0C4; }
+.bd-cerceve-kucuk.bd-cerceve-ozel .avatar { box-shadow: 0 0 0 2px #7A4BFF, 0 0 8px rgba(122, 75, 255, 0.4); }
+.bd-cerceve-kucuk.bd-cerceve-etkinlik .avatar { box-shadow: 0 0 0 2px #FFC53D, 0 0 8px rgba(255, 197, 61, 0.4); }
+.bd-cerceve-kucuk.bd-cerceve-etkinlik::after { inset: -5px; border-width: 1.5px; }
+.bd-cerceve-kucuk.bd-lig-cerceve .avatar { box-shadow: 0 0 0 2px var(--lc-ic), 0 0 0 3px #fff, 0 0 0 4px var(--lc-dis); }
+.bd-cerceve-kucuk.bd-lig-cerceve-efsane .avatar {
+  box-shadow: 0 0 0 2px var(--lc-ic), 0 0 0 3px #fff, 0 0 0 4px var(--lc-dis), 0 0 8px rgba(184, 107, 255, 0.45);
+}
+.bd-cerceve-kucuk.bd-lig-cerceve-efsane::before { inset: -6px; }
 
 /* Profil: lig çerçevesi seçici */
 .bd-lig-cerceve-secici { margin: 14px 0; }

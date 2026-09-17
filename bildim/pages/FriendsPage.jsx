@@ -4,7 +4,7 @@ import { hataMesaji } from "../lib/hata.js";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../../src/lib/supabase.js";
 import { useAuth } from "../../src/context/AuthContext.jsx";
-import Avatar from "../../src/components/Avatar.jsx";
+import AvatarCerceve from "../components/AvatarCerceve.jsx";
 import Maskot from "../components/Maskot.jsx";
 import { y } from "../lib/yol.js";
 import DavetKodu from "../components/DavetKodu.jsx";
@@ -198,7 +198,7 @@ export default function FriendsPage() {
           <div className="baslik">{tt("Gelen istekler")}</div>
           {gelenIstekler.map((f) => (
             <div key={f.id} className="liste-satir">
-              <Avatar profile={f.req} />
+              <AvatarCerceve profile={f.req} />
               <div className="bilgi">
                 <div className="isim">{f.req?.gorunen_ad}</div>
                 <div className="detay">{tt("arkadaşlık isteği gönderdi")}</div>
@@ -228,7 +228,7 @@ export default function FriendsPage() {
         const p = digerProfil(f);
         return (
           <div key={f.id} className="liste-satir">
-            <Avatar profile={p} />
+            <AvatarCerceve profile={p} />
             <div className="bilgi">
               <div className="isim">{p?.gorunen_ad}</div>
               <div className="detay"><Ikon ad="yildiz" boyut={13} /> {p?.puan} {tt("puan")}</div>
@@ -274,7 +274,7 @@ export default function FriendsPage() {
           </div>
           {gidenIstekler.map((f) => (
             <div key={f.id} className="liste-satir">
-              <Avatar profile={f.add} />
+              <AvatarCerceve profile={f.add} />
               <div className="bilgi">
                 <div className="isim">{f.add?.gorunen_ad}</div>
                 <div className="detay">{tt("cevap bekleniyor…")}</div>
@@ -324,7 +324,7 @@ export default function FriendsPage() {
           </div>
           {fbOnerileri.map((o) => (
             <div key={o.user_id} className="liste-satir">
-              <Avatar profile={o} boyut={38} />
+              <AvatarCerceve profile={o} boyut={38} userId={o.user_id ?? o.id} />
               <div className="bilgi">
                 <div className="isim">{o.gorunen_ad}</div>
                 <div className="detay">{tt("Facebook arkadaşın")}</div>
