@@ -5419,3 +5419,12 @@ en küçük TR 761 (spor), EN 476 (tarih) — hiçbiri 300 altı değil. Sayfa s
 - **D (`78d7507`, migration 218):** Atkı 400, Kanat 2.000 coin satışta (fiyat katalogda). Kanat süzülmesi yalnız çizilen gövdede (+0,10–0,14 m, avatar y=0), VFX kanat aktif, kanat+pelerin birlikte takılabilir. **Canlıda `kozmetik_bedava_test = true` — satın almalar bedava; gerçek ekonomi için false yapılmalı (sahibin kararı).**
 - **E:** WebKit kurulamadı: Windows 11 Akıllı Uygulama Denetimi (açık) imzasız WebKit DLL'lerini engelliyor (Kod Bütünlüğü 3077/3033, çıkış 0xC0E90002). Kapatılmaz. CLAUDE.md/AGENTS.md'ye yazıldı; `npm run test:ios:kur` eklendi; yerine Chromium'da iPhone boyutunda CSS denetimi (5 ekran temiz).
 - Rapor `PAKET18_RAPOR.md`, görseller `gorsel/paket18/`.
+
+## 17 Eyl 2026 — Paket 19: canlıda bulunan hatalar (Opus 5)
+- **A (`31913f4`, migration 219):** `kozmetik_bedava_test = false`; satın alma gerçek coin düşüyor, ödül eşyaları satılmıyor (işlem içinde doğrulandı, geri alındı).
+- **B (`b83e143`):** davet butonu taşması — masaüstünde `.app` 620 / `.tabbar` 540 kalmıştı; alt menü de 620.
+- **C (`3c8b4d8`):** vitrinde yeni karakter ilk karede bağlanma (T) pozundaydı; Idle zamanla bağlanıyor + Selam. Kalıcı T-pozu düzenekte yeniden üretilemedi.
+- **D (`ab7b81b`):** Dükkân › Görünüm = kozmetik vitrini kartları (tek WebGL bağlamı, satın alma vitrinde).
+- **E (`4784f7e`):** masaüstünde kısa sayfa dikeyde ortalı (`safe center`), zemin krem + degrade no-repeat (iOS'ta fixed yok sayılınca tekrar ediyordu). iOS denetimi temiz; `.bd-ust-blok` sticky (fixed değil) + translateZ — kural ihlali değil.
+- **F:** push abonesi 0'ın ölçülen sebebi: Paket 17 B yayınından beri **hiç maç bitmedi** (kartın tek tetikleyicisi sonuç ekranı). Eski "bir daha sorma" işareti `_v2` ile sıfırlandı; Profil › Bildirimler her tarayıcıda görünür ve neden kapalı olduğunu söyler. Uçtan uca gerçek FCM bildirimi geldi, test aboneliği silindi.
+- Rapor `PAKET19_RAPOR.md`, görseller `gorsel/paket19/`.

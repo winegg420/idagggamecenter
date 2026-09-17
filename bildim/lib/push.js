@@ -15,6 +15,19 @@ export function pushDestekleniyor() {
   return "serviceWorker" in navigator && "PushManager" in window && "Notification" in window;
 }
 
+/** iPhone/iPad Safari sekmesi (ana ekrana eklenmemiş): Apple web push'u yalnız ana ekran uygulamasına veriyor. */
+export function iosSekmesi() {
+  try {
+    const ua = navigator.userAgent || "";
+    const ios = /iphone|ipad|ipod/i.test(ua) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+    const standalone = navigator.standalone === true || window.matchMedia?.("(display-mode: standalone)").matches;
+    return ios && !standalone;
+  } catch (e) {
+    console.warn("[Bildim] iOS denetimi yapılamadı:", e?.message ?? e);
+    return false;
+  }
+}
+
 export async function pushDurumu() {
   if (!pushDestekleniyor()) return "desteklenmiyor";
   if (Notification.permission === "denied") return "engelli";

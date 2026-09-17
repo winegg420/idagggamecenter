@@ -1819,6 +1819,12 @@ const SOZLUK = {
     "iPhone'da bildirim almak için": "To get notifications on iPhone",
     "Quiz Tactics'i ana ekrana ekle (Paylaş → Ana Ekrana Ekle) ve oradan aç. Apple bildirimleri yalnız ana ekrandaki uygulamaya izin veriyor.": "Add Quiz Tactics to your Home Screen (Share → Add to Home Screen) and open it from there. Apple only allows notifications for apps on the Home Screen.",
     "Bildirimler açılamadı. Tekrar dene.": "Couldn't turn on notifications. Try again.",
+    // ---- Paket 19 §F — Profil › Bildirimler neden kapalı
+    "Kapalı — tarayıcı ayarlarından engellenmiş. Açmak için adres çubuğundaki site ayarlarından bildirimlere izin ver.": "Off — blocked in your browser settings. To turn on, allow notifications in the site settings next to the address bar.",
+    "Kapalı — iPhone'da bildirimler yalnız ana ekrandaki uygulamada çalışır. Paylaş → Ana Ekrana Ekle, sonra oradan aç.": "Off — on iPhone, notifications only work in the Home Screen app. Share → Add to Home Screen, then open it from there.",
+    "Kapalı — bu tarayıcı bildirimleri desteklemiyor.": "Off — this browser doesn't support notifications.",
+    "Kapalı — izin var ama bu cihaz bağlı değil. Aç'a dokun.": "Off — permission is granted but this device isn't connected. Tap On.",
+    "Kapalı — henüz izin verilmedi. Aç'a dokun, tarayıcı izin isteyecek.": "Off — not allowed yet. Tap On and your browser will ask.",
   },
 };
 

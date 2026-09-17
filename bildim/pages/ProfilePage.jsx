@@ -22,6 +22,7 @@ import { rutbeBul, sonrakiRutbe } from "../lib/ranks.js";
 import { y } from "../lib/yol.js";
 import {
   pushDestekleniyor,
+  iosSekmesi,
   pushDurumu,
   bildirimleriAc,
   bildirimleriKapat,
@@ -49,7 +50,7 @@ export default function ProfilePage() {
   const [banka, setBanka] = useState(null);
 
   useEffect(() => {
-    pushDurumu().then(setBildirim);
+    pushDurumu().then(setBildirim).catch((e) => console.error("[Bildim] bildirim durumu okunamadı:", e));
   }, []);
 
   // Hatalarım: öğrenilen / bankada bekleyen
@@ -251,7 +252,9 @@ export default function ProfilePage() {
         </div>
       )}
 
-      {pushDestekleniyor() && bildirim !== "desteklenmiyor" && (
+      {/* Paket 19 §F: kart her zaman görünür; kapalıysa NEDEN kapalı olduğunu söyler (engelli / iPhone ana ekran / henüz sorulmadı). */}
+      {(
+
         <div className="kart" style={{ display: "flex", alignItems: "center", gap: 12 }}>
           <div className="bd-ayar-ikon"><Ikon ad="zil" boyut={22} /></div>
           <div style={{ flex: 1 }}>
@@ -260,12 +263,18 @@ export default function ProfilePage() {
               {bildirim === "acik"
                 ? tt("Açık|durum")
                 : bildirim === "engelli"
-                  ? tt("Tarayıcı ayarlarından engellenmiş.")
-                  : tt("Kapalı")}
+                  ? tt("Kapalı — tarayıcı ayarlarından engellenmiş. Açmak için adres çubuğundaki site ayarlarından bildirimlere izin ver.")
+                  : bildirim === "desteklenmiyor"
+                    ? (iosSekmesi()
+                      ? tt("Kapalı — iPhone'da bildirimler yalnız ana ekrandaki uygulamada çalışır. Paylaş → Ana Ekrana Ekle, sonra oradan aç.")
+                      : tt("Kapalı — bu tarayıcı bildirimleri desteklemiyor."))
+                    : pushDestekleniyor() && Notification.permission === "granted"
+                      ? tt("Kapalı — izin var ama bu cihaz bağlı değil. Aç'a dokun.")
+                      : tt("Kapalı — henüz izin verilmedi. Aç'a dokun, tarayıcı izin isteyecek.")}
             </div>
             {bildirimHata && <div className="hata-kutu" style={{ marginTop: 6 }}>{bildirimHata}</div>}
           </div>
-          {bildirim !== "engelli" && (
+          {bildirim !== "engelli" && bildirim !== "desteklenmiyor" && (
             <button
               className={`btn kucuk ${bildirim === "acik" ? "ikincil" : ""}`}
               onClick={async () => {

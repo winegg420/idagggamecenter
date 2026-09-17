@@ -6,8 +6,8 @@
 | B — davet butonu taşması | ✅ canlıda · kök sebep masaüstünde alt menü 540 / içerik 620 | `b83e143` |
 | C — vitrinde T-pozu | ✅ canlıda · Idle her kuruluşta anında uygulanıyor + Selam; kalıcı T düzenekte yeniden üretilemedi (ölçüm raporda) | `3c8b4d8` |
 | D — Dükkân › Görünüm vitrini | ✅ canlıda · kozmetik kartları (portre + ad + durum), tek WebGL bağlamı, satın alma vitrinde | `ab7b81b` |
-| E — geniş ekranda boş alan | ✅ canlıda · kısa sayfa masaüstünde ortada, zemin tüm sayfayı kaplıyor, iOS denetimi temiz | E |
-| F — push abonesi sıfır | (sürüyor) | |
+| E — geniş ekranda boş alan | ✅ canlıda · kısa sayfa masaüstünde ortada, zemin tüm sayfayı kaplıyor, iOS denetimi temiz | `4784f7e` |
+| F — push abonesi sıfır | ✅ canlıda · işaret `_v2`, Profil sebep söylüyor, uçtan uca bildirim geldi | F |
 
 ---
 
@@ -163,3 +163,64 @@ Görseller: `gorsel/paket19/d-1-dukkan-gorunum-masaustu.jpg`, `d-2-dukkan-gorunu
 - WebKit bu makinede çalışmadığı için (Paket 18 E) denetim Chromium iPhone görünümünde.
 
 Görseller (`gorsel/paket19/`): `e-once-*` / `e-sonra-*` × `masaustu|iphone` × `ana|duello|dukkan|gorunum`.
+
+---
+
+## F — Push abonesi hâlâ sıfır
+
+### F.1 Ölçüm
+
+**Kart ne zaman çıkıyor** (`bildim/components/BildirimIzniSor.jsx`, Paket 17 §B hali):
+| Koşul | Değer |
+|---|---|
+| Nerede | Yalnız maç **sonuç** ekranı: Normal Maç (`MatchPage`), Düello (`DuelloPage`), Hızlı Mod (`HizliModPage`). Başka giriş yok (Profil › Bildirimler hariç) |
+| Tarayıcı | `serviceWorker` + `PushManager` + `Notification` var olmalı; yoksa iPhone Safari sekmesinde bir kez "ana ekrana ekle" ipucu (`bildim_bildirim_ios_ipucu`), diğerlerinde hiçbir şey |
+| İzin | `Notification.permission === "default"` (verilmiş ya da reddedilmişse kart çıkmaz) |
+| localStorage işareti | **`bildim_bildirim_sorma`** yoksa. Paket 17 öncesi kod bunu teknik hatada da koyuyordu → o tarayıcılarda kart kalıcı olarak kapalı |
+
+**Canlı veri** (17 Eyl, Paket 17 B yayını 14:07 TSİ):
+- `push_subscriptions`: **0**.
+- Yayından sonra biten maç: Normal **0**, Düello **0**, Hızlı Mod **0** (son biten maçlar 12:47 ve 13:21 TSİ, yayından önce). Yeni kartın tek tetikleyicisi olan sonuç ekranını yayından beri **hiç kimse görmedi**; "düzeltme işe yaramadı" değil, henüz hiç denenmedi.
+- Sunucu tarafı sağlam: `save_push_subscription` / `remove_push_subscription` security definer, EXECUTE yalnız `authenticated` (+ postgres/service_role).
+- Profil › Bildirimler kartı, push desteklenmeyen tarayıcıda (iPhone Safari sekmesi) **tamamen gizliydi**, engelli/kapalı durumda sebep söylemiyordu ("Kapalı").
+
+### F.2 Düzeltme
+1. **İşaret sürümlendi:** `bildim_bildirim_sorma` → **`bildim_bildirim_sorma_v2`**. Eski anahtar okunmaz (silinmez). Eski işaretli her tarayıcı kartı bir kez daha görür; "Şimdi değil" / red / başarı yeni anahtarı koyar, sonra bir daha çıkmaz. iOS ipucu anahtarı değişmedi (o kart hatadan etkilenmiyordu).
+2. **Profil › Ayarlar › Bildirimler** artık her tarayıcıda görünür ve kapalıysa nedenini söyler (TR + EN):
+
+| Durum | Metin | Düğme |
+|---|---|---|
+| Henüz sorulmadı | Kapalı — henüz izin verilmedi. Aç'a dokun, tarayıcı izin isteyecek. | Aç |
+| İzin var, bu cihaz abone değil | Kapalı — izin var ama bu cihaz bağlı değil. Aç'a dokun. | Aç |
+| Engelli | Kapalı — tarayıcı ayarlarından engellenmiş. Açmak için adres çubuğundaki site ayarlarından bildirimlere izin ver. | yok |
+| iPhone Safari sekmesi | Kapalı — iPhone'da bildirimler yalnız ana ekrandaki uygulamada çalışır. Paylaş → Ana Ekrana Ekle, sonra oradan aç. | yok |
+| Diğer desteklemeyen tarayıcı | Kapalı — bu tarayıcı bildirimleri desteklemiyor. | yok |
+
+3. `iosSekmesi()` kart bileşeninden `lib/push.js`'e taşındı (iki yer aynı denetimi kullanıyor). Profil'deki `pushDurumu()` artık hatayı konsola yazıyor (eskiden yakalanmamış söz).
+
+### F.3 Doğrulama (Playwright, gerçek Chrome, gerçek FCM, canlı Supabase)
+
+**Temiz profil** (`.tmp/p19/push/uctan_uca.mjs`, yeni tarayıcı profili):
+| Adım | Sonuç |
+|---|---|
+| Sonuç ekranında kart | ✅ göründü (`f-1`) |
+| İzin → "Bildirimleri aç" | ✅ "Bildirimler açık" (`f-2`); `bildim_bildirim_sorma_v2 = 1` |
+| Bileşenin RPC çağrısı | ✅ `save_push_subscription` (FCM endpoint, p256dh 87, auth 22 kr) |
+| Canlı DB'ye `save_push_subscription` (authenticated, kurucu jwt) | ✅ `push_subscriptions`'ta 1 satır |
+| `push_gonder` → `send-push` | ✅ `200 {"basarili":1,"basarisiz":0}` |
+| Bildirim | ✅ service worker gösterdi: "🧪 Quiz Tactics push sınaması" (`f-3`) |
+| Temizlik | ✅ test aboneliği silindi, tablo **0** |
+
+**Eski işaretli profil** (`.tmp/p19/push/eski_isaret.mjs`, `bildim_bildirim_sorma = 1`):
+| Adım | Kart | `_v2` |
+|---|---|---|
+| 1) İlk sonuç ekranı | ✅ **görünür** (`f-4`) | yok |
+| 2) "Şimdi değil" | kapandı | 1 |
+| 3) Sayfa yenilendi | ✅ **yok** | 1 |
+| 4) Başka sonuç ekranı | ✅ **yok** (`f-5`) | 1 |
+
+Konsol hatası: 0. **Profil kartı** (kabuk düzeneği, 390×844): dört durumun metni ve düğmesi yukarıdaki tabloyla birebir (`f-6` sorulmadı, `f-7` izin var/abone yok, `f-8` engelli, `f-9` iPhone sekmesi).
+
+**Sınır:** canlı sitede gerçek oturumla deneme yok (şifre girilmez); zincirin her halkası canlı bileşenle ayrı denendi. Gerçek iPhone yok. Abone sayısı ancak oyuncular maç bitirince artar — bugün yayından beri biten maç 0.
+
+Görseller: `gorsel/paket19/f-1 … f-9`.

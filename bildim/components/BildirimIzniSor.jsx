@@ -1,24 +1,13 @@
 import { useEffect, useState } from "react";
 import Ikon from "./Ikon.jsx";
-import { pushDestekleniyor, bildirimleriAc } from "../lib/push.js";
+import { pushDestekleniyor, bildirimleriAc, iosSekmesi } from "../lib/push.js";
 import { hataMesaji } from "../lib/hata.js";
 import { tt } from "../lib/dil.js";
 
-const DEPO = "bildim_bildirim_sorma";
+// Paket 19 §F: anahtar sürümlendi (_v2). Paket 17 §B öncesi kod teknik hatada da "bir daha sorma" işaretini
+// koyuyordu; eski işaretli herkes kartı bir kez daha görür. Eski anahtar (`bildim_bildirim_sorma`) yok sayılır.
+const DEPO = "bildim_bildirim_sorma_v2";
 const DEPO_IOS = "bildim_bildirim_ios_ipucu";
-
-/** iPhone/iPad Safari sekmesi (ana ekrana eklenmemiş): Apple web push'u yalnız ana ekran uygulamasına veriyor. */
-function iosSekmesi() {
-  try {
-    const ua = navigator.userAgent || "";
-    const ios = /iphone|ipad|ipod/i.test(ua) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
-    const standalone = navigator.standalone === true || window.matchMedia?.("(display-mode: standalone)").matches;
-    return ios && !standalone;
-  } catch (e) {
-    console.warn("[Bildim] iOS denetimi yapılamadı:", e?.message ?? e);
-    return false;
-  }
-}
 const oku = (k) => { try { return localStorage.getItem(k); } catch { return null; /* özel mod: her oturumda sorulur */ } };
 const yaz = (k) => { try { localStorage.setItem(k, "1"); } catch { /* özel mod */ } };
 
