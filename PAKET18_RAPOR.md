@@ -2,11 +2,11 @@
 
 | Bölüm | Durum | Commit |
 |---|---|---|
-| A — lig kapanışı (4 düzeltme) | ✅ canlıda · migration 217 uygulandı | A commit'i |
-| B — kozmetik çizim çağrısı kaldıracı | ✅ canlıda · 167 → 147 çağrı, piksel farkı 0; ms kapısı geçilmedi | B commit'i |
-| C — yeni oyuncuya rastgele kozmetik | ✅ canlıda · gerçek oyuncu tohumdan kozmetik almıyor, botlar alıyor | C commit'i |
-| D — atkı + kanat satışta | ✅ canlıda · migration 218 uygulandı; süzülme + VFX sınama sayfasında doğrulandı | D commit'i |
-| E — iOS Safari (WebKit) | (sürüyor) | |
+| A — lig kapanışı (4 düzeltme) | ✅ canlıda · migration 217 uygulandı | `e864956` |
+| B — kozmetik çizim çağrısı kaldıracı | ✅ canlıda · 167 → 147 çağrı, piksel farkı 0; ms kapısı geçilmedi | `1ad990c` |
+| C — yeni oyuncuya rastgele kozmetik | ✅ canlıda · gerçek oyuncu tohumdan kozmetik almıyor, botlar alıyor | `8efc4d7` |
+| D — atkı + kanat satışta | ✅ canlıda · migration 218 uygulandı; süzülme + VFX sınama sayfasında doğrulandı | `78d7507` |
+| E — iOS Safari (WebKit) | ❌ kurulamadı — Windows Akıllı Uygulama Denetimi imzasız WebKit DLL'lerini engelliyor (kanıtlı); madde kapatıldı, CLAUDE.md'ye yazıldı | E commit'i |
 
 ---
 
@@ -205,3 +205,44 @@ Görseller:
 - `d-2-kanat-pelerin-arkadan.jpg` — sırtta kanat + pelerin birlikte
 - `d-3-suzulme-ayak-hizasi.jpg` — ayak hizası: kanatlı oyuncu zeminden yukarıda, parıltı altında; kanatsız yerde
 - `d-4-vitrin-atki-kanat.jpg` — vitrin: atkı takılı, kanat 2.000 coin, Saç/Elbise/Alt hâlâ Yakında
+
+
+---
+
+## E — iOS Safari (WebKit): kurulamadı, madde kapatıldı
+
+### Ne denendi
+1. `npx playwright-core install webkit` → WebKit 2359 indi (171 MB, 47 DLL). Bu makinede `/opt/pw-browsers` yok; tarayıcılar `%LOCALAPPDATA%\ms-playwright` altında. `PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD` tanımlı değil, indirmeyi engellemedi.
+2. Açılış → "Host system is missing dependencies" (brotlienc, crypto-57, jpeg62, psl-5). DLL'lerin **dördü de klasörde**. Playwright'ın `PrintDeps` aracıyla her DLL'in bağımlılıkları tarandı, klasör dışında eksik yok. Uyarı yanıltıcı.
+3. Doğrulama atlanarak (`PLAYWRIGHT_SKIP_VALIDATE_HOST_REQUIREMENTS=1`) başsız ve görünür modda açıldı → süreç hemen ölüyor, çıkış kodu **`3236495362` = `0xC0E90002`**.
+
+### Kök sebep (kanıtlı)
+- **Windows 11 Akıllı Uygulama Denetimi açık:** `HKLM\SYSTEM\CurrentControlSet\Control\CI\Policy › VerifiedAndReputablePolicyState = 1`.
+- **Kod Bütünlüğü günlüğü** (`Microsoft-Windows-CodeIntegrity/Operational`), açılış anında (15:06:51): olay **3077** ve **3033** — *"Code Integrity determined that a process (…\webkit-2359\Playwright.exe) attempted to load …\webkit-2359\…"*. İmzasız WebKit DLL'leri engelleniyor.
+- Chrome çalışıyor çünkü imzalı.
+- **Çözüm yolları kapalı:**
+  - Denetimi kapatmak bir **güvenlik ayarı değişikliği**; Windows'ta sonradan geri açılamıyor (sıfırlama ister). Yapılmadı, yapılmamalı.
+  - WSL kurulu değil.
+
+### Kapatma
+- `package.json`'a `npm run test:ios:kur` (= `playwright-core install webkit`) eklendi. Başka makinede (macOS, Linux, denetimi kapalı Windows) doğrudan çalışır.
+- **`CLAUDE.md` + `AGENTS.md` › iOS Safari kontrolü:** bu makinede WebKit'in neden çalışmadığı, kanıtı ve yerine ne yapılacağı yazıldı. Raporlarda "WebKit kurulu değil" cümlesi bir daha tekrarlanmayacak.
+- **Yerine yapılan denetim:** kontrol listesi motordan bağımsız CSS kuralları. Chromium'da iPhone görünümünde (390×844, dokunmatik, DPR 3) hesaplanmış stillerle denetlendi. Her ekranda sabit/yapışkan her öğe için:
+  - aynı öğede `transform` var mı;
+  - atalarda `transform`/`filter`/`perspective` var mı;
+  - 900 px kaydırınca yeri değişiyor mu;
+  - sayfada yatay taşma var mı.
+
+| Ekran | Sabit+transform / dönüşümlü ata | Kaydırınca kayan sabit | Yatay taşma |
+|---|---|---|---|
+| Vitrin `/gorunum` | yok | yok | yok |
+| Arkadaşlar (lig çerçeveli) | yok | yok | yok |
+| Meydan Okuma (lig çerçeveli) | yok | yok | yok |
+| Grup Maçı sonucu (lig çerçeveli) | yok | yok | yok |
+| Hızlı Maç sonucu (lig çerçeveli) | yok | yok | yok |
+
+- **Kaynak taraması:** Paket 16–18'de eklenen CSS'te (`vitrin.css`, `tema.css` ekleri, `BildirimIzniSor`, `AvatarCerceve`) `100vh` ve `position: fixed` **yok**.
+- **Sınır:**
+  - Sınama düzeneğinde uygulama kabuğu (üst çubuk, alt menü) yok. Paket 17'de kabukta değişen tek şey tişört kısayolunun `<a>` yerine `<Link>` olması; sınıf ve konum aynı.
+  - `BildirimIzniSor` kartı Paket 17'de bu denetimden geçti (kart sayfa akışında, sabit değil).
+  - **Gerçek iOS Safari kontrolü** yalnız gerçek cihazda yapılabilir.

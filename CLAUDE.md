@@ -42,6 +42,17 @@ Aynı tuzak **atalarda** da geçerlidir: `transform`, `filter`,
 `perspective` ya da transform'lu bir animasyon içeren bir ata, içindeki
 `position: fixed` katmanları kendine göre konumlandırır.
 
+**Bu makinede WebKit ÇALIŞMIYOR (17 Eyl 2026, Paket 18 E):** `npm run test:ios:kur`
+Playwright WebKit'i kurar, ama Windows 11 **Akıllı Uygulama Denetimi** açık
+(`HKLM\SYSTEM\CurrentControlSet\Control\CI\Policy › VerifiedAndReputablePolicyState = 1`)
+ve imzasız WebKit DLL'lerini engelliyor (Kod Bütünlüğü günlüğü olay 3077/3033,
+süreç çıkış kodu `0xC0E90002`). Denetimi kapatmak güvenlik ayarıdır ve geri açılamaz
+— yapılmaz. WSL de yok. Bu yüzden "WebKit kurulu değil" cümlesi raporlara TEKRAR
+yazılmaz. Yerine kontrol listesi Chromium'da iPhone boyutunda hesaplanmış stillerle
+denetlenir (sabit öğede transform, dönüşümlü ata, kaydırınca kayan sabit öğe, yatay
+taşma) ve gerçek iOS kontrolü sahibinin telefonunda yapılır. Başka makinede
+(macOS / Linux / Akıllı Uygulama Denetimi kapalı Windows) `npm run test:ios:kur` yeter.
+
 ### Yayın
 Canlıya çıkış **yalnız GitHub üzerinden** olur (push → Vercel derler).
 **Vercel'e doğrudan kaynak dağıtımı yapılmaz.** Öyle bir dağıtım, bir

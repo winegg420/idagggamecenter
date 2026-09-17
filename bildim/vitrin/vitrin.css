@@ -1,5 +1,5 @@
 /* ---- KARAKTER VİTRİNİ (Paket 17 §D) — Şenlik dili: beyaz kart, alt kalınlık, turuncu vurgu ----
-   iOS: position:fixed + transform yok; yükseklik vh değil, en-boy oranıyla. */
+   iOS: position:fixed + transform yok; önizleme yüksekliği vh değil clamp(px, vw, px). */
 .bd-vitrin { display: flex; flex-direction: column; gap: 12px; }
 .bd-vitrin-sahne {
   position: relative; width: 100%; height: clamp(280px, 100vw, 440px); padding: 0; overflow: hidden;
