@@ -1780,6 +1780,7 @@ const SOZLUK = {
     "Aç|ayar": "Turn on",
     "Spor|ayakkabi": "Trainers",
     // ---- Paket 17 §D — karakter vitrini
+    "Süzülme + parıltı": "Hover + sparkle",
     "Karakterim": "My character",
     "Meydanda seni bu karakter temsil eder.": "This character represents you in the Plaza.",
     "Karakter hazırlanıyor…": "Preparing your character…",

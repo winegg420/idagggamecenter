@@ -5,7 +5,7 @@
 | A — lig kapanışı (4 düzeltme) | ✅ canlıda · migration 217 uygulandı | A commit'i |
 | B — kozmetik çizim çağrısı kaldıracı | ✅ canlıda · 167 → 147 çağrı, piksel farkı 0; ms kapısı geçilmedi | B commit'i |
 | C — yeni oyuncuya rastgele kozmetik | ✅ canlıda · gerçek oyuncu tohumdan kozmetik almıyor, botlar alıyor | C commit'i |
-| D — atkı + kanat satışta | (sürüyor) | |
+| D — atkı + kanat satışta | ✅ canlıda · migration 218 uygulandı; süzülme + VFX sınama sayfasında doğrulandı | D commit'i |
 | E — iOS Safari (WebKit) | (sürüyor) | |
 
 ---
@@ -87,7 +87,7 @@ Test betiği `.tmp/p18/test217.mjs`. Migration kalıcı olarak uygulandı; test 
   - varyantı olmayan tür insanınkini paylaşır (aynı havuz);
   - tür başına ayrı bölmek çağrıyı artırırdı.
   - Olası havuzlar: insan sapka · gözlük · gözlükPremium · atkı · kanat, robot sapka · gözlük, kaplan kuyruk = en fazla 8; sahnede kullanılan kadar açılır.
-- **Kanat bağı kopmadı:** `kok.userData.kanatMesh` hâlâ klonu gösteriyor. `suzulme` bayrağı, `vfxEsle` (RECETE.kanat) ve çırpma animasyonu klon üzerinden çalışır, instanced çizim matrisi oradan okur. (D'de canlı doğrulandı.)
+- **Kanat bağı kopmadı:** `kok.userData.kanatMesh` hâlâ klonu gösteriyor. `suzulme` bayrağı, `vfxEsle` (RECETE.kanat) ve çırpma animasyonu klon üzerinden çalışır, instanced çizim matrisi oradan okur. (D'de meydan sınama sayfasında doğrulandı.)
 - **Gölge:** değişmedi. Klonlar gölge atmıyordu (`castShadow = false`), havuzlar da atmaz, `receiveShadow` klonlardaki gibi kapalı.
 - **Geri dönüş:** `karakterler.kozOrnekleme = false` eski klon yoluna döner (aynı karede karşılaştırma için kullanıldı).
 
@@ -152,3 +152,56 @@ Görseller: `gorsel/paket18/b-1-klon-yolu.jpg` ↔ `b-2-ornek-yolu.jpg`. Betikle
 **Ölçüm düzeneğine etkisi:** `window.oyuncular()`'ın 24 oyuncusu artık kozmetiksiz. B'deki "önce/sonra" kurulumu bu değişiklikten önce ölçüldü. Bundan sonraki ölçümlerde bu sahnenin tabanı **142 + taç/pelerin/kuyruk havuzları** olur, 167/147 ile doğrudan karşılaştırılamaz.
 
 Görseller: `gorsel/paket18/c-0-kapi.jpg` (kaydı yok, kapı) · `c-1-kayitsiz-kozmetiksiz.jpg` · `c-2-vitrinde-kaydetti.jpg`.
+
+
+---
+
+## D — Atkı ve kanat satışta
+
+B'nin ölçümü (147 çağrı, kozmetik türü başına 1 havuz) alındıktan sonra yapıldı. Atkı ve kanat en fazla **+1'er çağrı** getirir, oyuncu sayısından bağımsız: bu sahnede `MeydanKozmetik_atki` ve `MeydanKozmetik_kanat` havuzları.
+
+### Yapılan — migration `20260612000218_atki_kanat_satista.sql` (uygulandı)
+- `avatar3d_parcalar`'a iki parça, fiyatlar katalogda (SQL ile değişir):
+
+| Parça | Yuva | Fiyat | Nadirlik |
+|---|---|---:|---|
+| `boyun_atki` Atkı | atki | **400** | sıradan |
+| `sirt_kanat` Kanat | kanat | **2.000** | özel |
+
+- `avatar3d_parcalar.yuva` kısıtı iki yuvayı tanımıyordu; listeye `atki` ve `kanat` eklendi, mevcut değer silinmedi.
+- `vitrin_kozmetikleri`: atkı ve kanat `yakinda` → `aktif`, sahiplik/satış parçası bağlandı. Kanadın açıklaması "Süzülme + parıltı".
+- **Kanat + pelerin birlikte takılabilir.** Çakışma kuralı eklenmedi: sırtta kanatlar pelerinin iki yanından çıkıyor ve okunuyor (görüntüde kaplan). Birbirini dışlamaları istenirse iki satırın `cakisir`'ına yazılır.
+- Vitrinde fiyat artık binlik ayraçla ("2.000 coin").
+
+### Sunucu doğrulaması (canlı DB, işlem içinde, geri alındı)
+
+| Deneme | Sonuç |
+|---|---|
+| Katalog | atkı `aktif` 400 · kanat `aktif` 2.000 |
+| Sahip olmadan kanat takmak | **RED** "Bu kozmetik sende yok" |
+| Atkı + pelerin kaydet | OK |
+| Kanat + pelerin + atkı kaydet (kaplan) | OK |
+| **Fiyat yolu** (işlem içinde `kozmetik_bedava_test` kapatılarak): atkı satın al | bakiye **644 → 244** |
+| Fiyat yolu: kanat satın al (244 < 2.000) | **RED** "Yetersiz coin" |
+
+> ⚠️ **Canlıda `oyun_ayarlari.kozmetik_bedava_test = true`.** Bu açıkken bütün kozmetik satın almaları (atkı ve kanat dahil) **coin düşmeden** veriliyor; ödül eşyaları hariç. Bu senin ayarın, değiştirmedim. Gerçek ekonomi için `false` yapılmalı.
+
+### Kanat: süzülme + VFX (meydan sınama sayfası, gerçek harita kodu)
+
+| Oyuncu | avatar `y` (oynanış) | çizilen gövde yüksekliği | `suzulme` | `kanatMesh` bağı | VFX reçetesi |
+|---|---:|---:|---|---|---|
+| Kendi oyuncun (kanat + atkı) | **0** | **+0,10 m** | ✓ | ✓ (klon görünmez, çizim havuzda) | `kanat` |
+| Kaplan (kanat + pelerin) | **0** | **+0,14 m** (süzülme dalgası) | ✓ | ✓ | `kanat` |
+| Kanatsız oyuncu | 0 | 0 | — | — | — |
+
+- **Oynanış aynı:** avatarın koordinatı (`av.position.y`) 0 kalıyor, yalnız çizilen gövde ötelenir (`karakter.js › kare`). Çarpışma ve hız avatar koordinatını kullandığı için değişmez. Temas gölgesi avatar konumunda, zeminde.
+- **VFX:** `vfxAdlar = "kanat"`. Sahnedeki VFX yayıcı havuzunda parçacık örnekleri var (`VFX:10`).
+- **B ile bağ:** kanat klonu görünmez ve çizimi `MeydanKozmetik_kanat` havuzu yapıyor. Süzülme, çırpma animasyonu ve parıltı klon üzerinden çalışmaya devam ediyor.
+
+**"Canlıda doğrulama" hakkında dürüst not:** canlı siteye şifreyle giriş yapamadığım için süzülmeyi canlı meydanda gözle görmedim. Doğrulama aynı kodun meydan sınama sayfasında (gerçek `dunya.js` + karakter sistemi, sahte oturum) yapıldı. Fiyat ve sahiplik canlı veritabanında sınandı. Kod `main`'e push edildi.
+
+Görseller:
+- `gorsel/paket18/d-1-kanat-atki-onden.jpg` — kanat + atkı, önden
+- `d-2-kanat-pelerin-arkadan.jpg` — sırtta kanat + pelerin birlikte
+- `d-3-suzulme-ayak-hizasi.jpg` — ayak hizası: kanatlı oyuncu zeminden yukarıda, parıltı altında; kanatsız yerde
+- `d-4-vitrin-atki-kanat.jpg` — vitrin: atkı takılı, kanat 2.000 coin, Saç/Elbise/Alt hâlâ Yakında

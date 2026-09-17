@@ -188,7 +188,7 @@ export default function KarakterVitrini() {
     if (!k.sahip) {
       return (
         <button className="btn kucuk" disabled={calisan === k.kod || k.satis_parca == null} onClick={() => satinAl(k)}>
-          {k.fiyat ? tt("{0} coin", { 0: k.fiyat }) : tt("Ücretsiz al")}
+          {k.fiyat ? tt("{0} coin", { 0: Number(k.fiyat).toLocaleString(document.documentElement.lang || "tr") }) : tt("Ücretsiz al")}
         </button>
       );
     }
