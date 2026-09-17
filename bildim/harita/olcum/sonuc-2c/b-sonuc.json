@@ -1,0 +1,542 @@
+[
+ {
+  "kur": {
+   "kanvas": [
+    1536,
+    791
+   ],
+   "gpu": "ANGLE (AMD, AMD Radeon(TM) Graphics (0x00001681) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+   "timer": true
+  },
+  "s": [
+   {
+    "etiket": "0 · hiçbir şey (gökyüzü + ışık)",
+    "cagri": 0,
+    "ucgen": 0,
+    "cpu": 0.1,
+    "cpuP95": 0.1,
+    "kare": 0.1,
+    "kareP95": 0.2,
+    "gpu": null,
+    "gpuP95": null,
+    "tam": 0
+   },
+   {
+    "etiket": "1 · zemin",
+    "cagri": 1,
+    "ucgen": 5398,
+    "cpu": 0.1,
+    "cpuP95": 0.2,
+    "kare": 0.2,
+    "kareP95": 0.2,
+    "gpu": null,
+    "gpuP95": null,
+    "tam": 0
+   },
+   {
+    "etiket": "1 · zemin, gölge KAPALI",
+    "cagri": 1,
+    "ucgen": 5398,
+    "cpu": 0.1,
+    "cpuP95": 0.1,
+    "kare": 0.1,
+    "kareP95": 0.2,
+    "gpu": null,
+    "gpuP95": null,
+    "tam": 0
+   },
+   {
+    "etiket": "2 · + binalar (boyalı) + arka plan + greybox kalıntısı",
+    "cagri": 22,
+    "ucgen": 8896,
+    "cpu": 0.5,
+    "cpuP95": 1.6,
+    "kare": 0.6,
+    "kareP95": 1.8,
+    "gpu": null,
+    "gpuP95": null,
+    "tam": 0
+   },
+   {
+    "etiket": "3 · + proplar (+ temas gölgeleri)",
+    "cagri": 30,
+    "ucgen": 83820,
+    "cpu": 2.5,
+    "cpuP95": 4.8,
+    "kare": 2.7,
+    "kareP95": 4.9,
+    "gpu": null,
+    "gpuP95": null,
+    "tam": 0
+   },
+   {
+    "etiket": "4 · + kediler",
+    "cagri": 31,
+    "ucgen": 89052,
+    "cpu": 2.4,
+    "cpuP95": 3.2,
+    "kare": 2.6,
+    "kareP95": 3.5,
+    "gpu": null,
+    "gpuP95": null,
+    "tam": 0
+   },
+   {
+    "etiket": "4 · çizim YOK (oyun mantığı + gl.finish)",
+    "cagri": 0,
+    "ucgen": 0,
+    "cpu": null,
+    "cpuP95": null,
+    "kare": 0.1,
+    "kareP95": 0.2,
+    "gpu": null,
+    "gpuP95": null,
+    "tam": 0
+   },
+   {
+    "etiket": "5 · + 25 hafif karakter (sınır 0)",
+    "cagri": 92,
+    "ucgen": 262686,
+    "cpu": 3,
+    "cpuP95": 4.9,
+    "kare": 3.6,
+    "kareP95": 5.5,
+    "gpu": null,
+    "gpuP95": null,
+    "tam": 0
+   },
+   {
+    "etiket": "6 · sınır 8",
+    "cagri": 103,
+    "ucgen": 315396,
+    "cpu": 3.1,
+    "cpuP95": 5,
+    "kare": 3.7,
+    "kareP95": 5.6,
+    "gpu": null,
+    "gpuP95": null,
+    "tam": 8
+   },
+   {
+    "etiket": "6 · çizim YOK (oyun mantığı + gl.finish)",
+    "cagri": 0,
+    "ucgen": 0,
+    "cpu": null,
+    "cpuP95": null,
+    "kare": 0.4,
+    "kareP95": 0.5,
+    "gpu": null,
+    "gpuP95": null,
+    "tam": 8
+   },
+   {
+    "etiket": "6 · gölge KAPALI",
+    "cagri": 92,
+    "ucgen": 253910,
+    "cpu": 2.6,
+    "cpuP95": 4.9,
+    "kare": 3.2,
+    "kareP95": 5.5,
+    "gpu": null,
+    "gpuP95": null,
+    "tam": 8
+   },
+   {
+    "etiket": "6 · çözünürlük %75 (1152×593)",
+    "cagri": 103,
+    "ucgen": 315396,
+    "cpu": 2.3,
+    "cpuP95": 4.3,
+    "kare": 2.7,
+    "kareP95": 4.8,
+    "gpu": null,
+    "gpuP95": null,
+    "tam": 8
+   },
+   {
+    "etiket": "6 · çözünürlük %50 (768×395)",
+    "cagri": 103,
+    "ucgen": 315396,
+    "cpu": 1.5,
+    "cpuP95": 2.8,
+    "kare": 1.9,
+    "kareP95": 3.4,
+    "gpu": null,
+    "gpuP95": null,
+    "tam": 8
+   },
+   {
+    "etiket": "0 · çözünürlük %50 (768×395)",
+    "cagri": 0,
+    "ucgen": 0,
+    "cpu": 0.2,
+    "cpuP95": 0.3,
+    "kare": 0.4,
+    "kareP95": 0.4,
+    "gpu": null,
+    "gpuP95": null,
+    "tam": 8
+   }
+  ]
+ },
+ {
+  "kur": {
+   "kanvas": [
+    1536,
+    791
+   ],
+   "gpu": "ANGLE (AMD, AMD Radeon(TM) Graphics (0x00001681) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+   "timer": true
+  },
+  "s": [
+   {
+    "etiket": "0 · hiçbir şey (gökyüzü + ışık)",
+    "cagri": 0,
+    "ucgen": 0,
+    "cpu": 0.1,
+    "cpuP95": 0.1,
+    "kare": 0.1,
+    "kareP95": 0.2,
+    "gpu": null,
+    "gpuP95": null,
+    "tam": 0
+   },
+   {
+    "etiket": "1 · zemin",
+    "cagri": 1,
+    "ucgen": 5398,
+    "cpu": 0.1,
+    "cpuP95": 0.2,
+    "kare": 0.2,
+    "kareP95": 0.2,
+    "gpu": null,
+    "gpuP95": null,
+    "tam": 0
+   },
+   {
+    "etiket": "1 · zemin, gölge KAPALI",
+    "cagri": 1,
+    "ucgen": 5398,
+    "cpu": 0.2,
+    "cpuP95": 0.3,
+    "kare": 0.3,
+    "kareP95": 0.4,
+    "gpu": null,
+    "gpuP95": null,
+    "tam": 0
+   },
+   {
+    "etiket": "2 · + binalar (boyalı) + arka plan + greybox kalıntısı",
+    "cagri": 22,
+    "ucgen": 8896,
+    "cpu": 0.4,
+    "cpuP95": 0.7,
+    "kare": 0.6,
+    "kareP95": 0.9,
+    "gpu": null,
+    "gpuP95": null,
+    "tam": 0
+   },
+   {
+    "etiket": "3 · + proplar (+ temas gölgeleri)",
+    "cagri": 30,
+    "ucgen": 83820,
+    "cpu": 2.4,
+    "cpuP95": 3.3,
+    "kare": 2.6,
+    "kareP95": 3.4,
+    "gpu": null,
+    "gpuP95": null,
+    "tam": 0
+   },
+   {
+    "etiket": "4 · + kediler",
+    "cagri": 31,
+    "ucgen": 89052,
+    "cpu": 2.4,
+    "cpuP95": 3.2,
+    "kare": 2.6,
+    "kareP95": 4.1,
+    "gpu": null,
+    "gpuP95": null,
+    "tam": 0
+   },
+   {
+    "etiket": "4 · çizim YOK (oyun mantığı + gl.finish)",
+    "cagri": 0,
+    "ucgen": 0,
+    "cpu": null,
+    "cpuP95": null,
+    "kare": 0.1,
+    "kareP95": 0.2,
+    "gpu": null,
+    "gpuP95": null,
+    "tam": 0
+   },
+   {
+    "etiket": "5 · + 25 hafif karakter (sınır 0)",
+    "cagri": 92,
+    "ucgen": 262686,
+    "cpu": 2.8,
+    "cpuP95": 3.6,
+    "kare": 3.3,
+    "kareP95": 4.2,
+    "gpu": null,
+    "gpuP95": null,
+    "tam": 0
+   },
+   {
+    "etiket": "6 · sınır 8",
+    "cagri": 103,
+    "ucgen": 315396,
+    "cpu": 3,
+    "cpuP95": 3.5,
+    "kare": 3.5,
+    "kareP95": 4.1,
+    "gpu": null,
+    "gpuP95": null,
+    "tam": 8
+   },
+   {
+    "etiket": "6 · çizim YOK (oyun mantığı + gl.finish)",
+    "cagri": 0,
+    "ucgen": 0,
+    "cpu": null,
+    "cpuP95": null,
+    "kare": 0.3,
+    "kareP95": 0.4,
+    "gpu": null,
+    "gpuP95": null,
+    "tam": 8
+   },
+   {
+    "etiket": "6 · gölge KAPALI",
+    "cagri": 92,
+    "ucgen": 253910,
+    "cpu": 2.4,
+    "cpuP95": 3.1,
+    "kare": 2.9,
+    "kareP95": 3.7,
+    "gpu": null,
+    "gpuP95": null,
+    "tam": 8
+   },
+   {
+    "etiket": "6 · çözünürlük %75 (1152×593)",
+    "cagri": 103,
+    "ucgen": 315396,
+    "cpu": 1.8,
+    "cpuP95": 3,
+    "kare": 2.2,
+    "kareP95": 3.6,
+    "gpu": null,
+    "gpuP95": null,
+    "tam": 8
+   },
+   {
+    "etiket": "6 · çözünürlük %50 (768×395)",
+    "cagri": 103,
+    "ucgen": 315396,
+    "cpu": 1.4,
+    "cpuP95": 2.9,
+    "kare": 1.7,
+    "kareP95": 3.5,
+    "gpu": null,
+    "gpuP95": null,
+    "tam": 8
+   },
+   {
+    "etiket": "0 · çözünürlük %50 (768×395)",
+    "cagri": 0,
+    "ucgen": 0,
+    "cpu": 0.2,
+    "cpuP95": 0.3,
+    "kare": 0.4,
+    "kareP95": 0.5,
+    "gpu": null,
+    "gpuP95": null,
+    "tam": 8
+   }
+  ]
+ },
+ {
+  "kur": {
+   "kanvas": [
+    1536,
+    791
+   ],
+   "gpu": "ANGLE (AMD, AMD Radeon(TM) Graphics (0x00001681) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+   "timer": true
+  },
+  "s": [
+   {
+    "etiket": "0 · hiçbir şey (gökyüzü + ışık)",
+    "cagri": 0,
+    "ucgen": 0,
+    "cpu": 0.1,
+    "cpuP95": 0.1,
+    "kare": 0.1,
+    "kareP95": 0.2,
+    "gpu": null,
+    "gpuP95": null,
+    "tam": 0
+   },
+   {
+    "etiket": "1 · zemin",
+    "cagri": 1,
+    "ucgen": 5398,
+    "cpu": 0.1,
+    "cpuP95": 0.2,
+    "kare": 0.2,
+    "kareP95": 0.3,
+    "gpu": null,
+    "gpuP95": null,
+    "tam": 0
+   },
+   {
+    "etiket": "1 · zemin, gölge KAPALI",
+    "cagri": 1,
+    "ucgen": 5398,
+    "cpu": 0.2,
+    "cpuP95": 0.2,
+    "kare": 0.3,
+    "kareP95": 0.3,
+    "gpu": null,
+    "gpuP95": null,
+    "tam": 0
+   },
+   {
+    "etiket": "2 · + binalar (boyalı) + arka plan + greybox kalıntısı",
+    "cagri": 22,
+    "ucgen": 8896,
+    "cpu": 0.4,
+    "cpuP95": 0.8,
+    "kare": 0.6,
+    "kareP95": 1.1,
+    "gpu": null,
+    "gpuP95": null,
+    "tam": 0
+   },
+   {
+    "etiket": "3 · + proplar (+ temas gölgeleri)",
+    "cagri": 30,
+    "ucgen": 83820,
+    "cpu": 2.5,
+    "cpuP95": 3.3,
+    "kare": 2.6,
+    "kareP95": 3.4,
+    "gpu": null,
+    "gpuP95": null,
+    "tam": 0
+   },
+   {
+    "etiket": "4 · + kediler",
+    "cagri": 31,
+    "ucgen": 89052,
+    "cpu": 2.4,
+    "cpuP95": 3,
+    "kare": 2.6,
+    "kareP95": 3.2,
+    "gpu": null,
+    "gpuP95": null,
+    "tam": 0
+   },
+   {
+    "etiket": "4 · çizim YOK (oyun mantığı + gl.finish)",
+    "cagri": 0,
+    "ucgen": 0,
+    "cpu": null,
+    "cpuP95": null,
+    "kare": 0.1,
+    "kareP95": 0.2,
+    "gpu": null,
+    "gpuP95": null,
+    "tam": 0
+   },
+   {
+    "etiket": "5 · + 25 hafif karakter (sınır 0)",
+    "cagri": 92,
+    "ucgen": 262686,
+    "cpu": 2.8,
+    "cpuP95": 3.2,
+    "kare": 3.3,
+    "kareP95": 3.9,
+    "gpu": null,
+    "gpuP95": null,
+    "tam": 0
+   },
+   {
+    "etiket": "6 · sınır 8",
+    "cagri": 103,
+    "ucgen": 315396,
+    "cpu": 3,
+    "cpuP95": 3.3,
+    "kare": 3.5,
+    "kareP95": 3.9,
+    "gpu": null,
+    "gpuP95": null,
+    "tam": 8
+   },
+   {
+    "etiket": "6 · çizim YOK (oyun mantığı + gl.finish)",
+    "cagri": 0,
+    "ucgen": 0,
+    "cpu": null,
+    "cpuP95": null,
+    "kare": 0.4,
+    "kareP95": 0.5,
+    "gpu": null,
+    "gpuP95": null,
+    "tam": 8
+   },
+   {
+    "etiket": "6 · gölge KAPALI",
+    "cagri": 92,
+    "ucgen": 253910,
+    "cpu": 2.4,
+    "cpuP95": 3,
+    "kare": 3,
+    "kareP95": 3.7,
+    "gpu": null,
+    "gpuP95": null,
+    "tam": 8
+   },
+   {
+    "etiket": "6 · çözünürlük %75 (1152×593)",
+    "cagri": 103,
+    "ucgen": 315396,
+    "cpu": 2,
+    "cpuP95": 3.1,
+    "kare": 2.4,
+    "kareP95": 3.7,
+    "gpu": null,
+    "gpuP95": null,
+    "tam": 8
+   },
+   {
+    "etiket": "6 · çözünürlük %50 (768×395)",
+    "cagri": 103,
+    "ucgen": 315396,
+    "cpu": 1.4,
+    "cpuP95": 2.9,
+    "kare": 1.7,
+    "kareP95": 3.4,
+    "gpu": null,
+    "gpuP95": null,
+    "tam": 8
+   },
+   {
+    "etiket": "0 · çözünürlük %50 (768×395)",
+    "cagri": 0,
+    "ucgen": 0,
+    "cpu": 0.2,
+    "cpuP95": 0.3,
+    "kare": 0.4,
+    "kareP95": 0.5,
+    "gpu": null,
+    "gpuP95": null,
+    "tam": 8
+   }
+  ]
+ }
+]

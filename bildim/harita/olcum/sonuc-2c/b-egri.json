@@ -1,0 +1,542 @@
+[
+ {
+  "kur": {
+   "kanvas": [
+    1536,
+    791
+   ],
+   "gpu": "ANGLE (AMD, AMD Radeon(TM) Graphics (0x00001681) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+   "timer": true
+  },
+  "s": [
+   {
+    "etiket": "3 · %100 (1536×791, 100% piksel)",
+    "cagri": 30,
+    "ucgen": 83820,
+    "cpu": 1.9,
+    "cpuP95": 2.8,
+    "kare": 2.1,
+    "kareP95": 3,
+    "gpu": null,
+    "gpuP95": null,
+    "tam": 0
+   },
+   {
+    "etiket": "3 · %90 (1382×711, 81% piksel)",
+    "cagri": 30,
+    "ucgen": 83820,
+    "cpu": 1.7,
+    "cpuP95": 2.5,
+    "kare": 1.8,
+    "kareP95": 2.7,
+    "gpu": null,
+    "gpuP95": null,
+    "tam": 0
+   },
+   {
+    "etiket": "3 · %80 (1228×632, 64% piksel)",
+    "cagri": 30,
+    "ucgen": 83820,
+    "cpu": 0.7,
+    "cpuP95": 2.1,
+    "kare": 0.8,
+    "kareP95": 2.3,
+    "gpu": null,
+    "gpuP95": null,
+    "tam": 0
+   },
+   {
+    "etiket": "3 · %70 (1075×553, 49% piksel)",
+    "cagri": 30,
+    "ucgen": 83820,
+    "cpu": 0.6,
+    "cpuP95": 1.7,
+    "kare": 0.7,
+    "kareP95": 1.9,
+    "gpu": null,
+    "gpuP95": null,
+    "tam": 0
+   },
+   {
+    "etiket": "3 · %60 (921×474, 36% piksel)",
+    "cagri": 30,
+    "ucgen": 83820,
+    "cpu": 0.6,
+    "cpuP95": 1.6,
+    "kare": 0.7,
+    "kareP95": 1.7,
+    "gpu": null,
+    "gpuP95": null,
+    "tam": 0
+   },
+   {
+    "etiket": "3 · %50 (768×395, 25% piksel)",
+    "cagri": 30,
+    "ucgen": 83820,
+    "cpu": 0.5,
+    "cpuP95": 0.7,
+    "kare": 0.6,
+    "kareP95": 0.9,
+    "gpu": null,
+    "gpuP95": null,
+    "tam": 0
+   },
+   {
+    "etiket": "3 · %35 (537×276, 12% piksel)",
+    "cagri": 30,
+    "ucgen": 83820,
+    "cpu": 0.5,
+    "cpuP95": 0.7,
+    "kare": 0.5,
+    "kareP95": 0.8,
+    "gpu": null,
+    "gpuP95": null,
+    "tam": 0
+   },
+   {
+    "etiket": "6 · %100 (1536×791, 100% piksel)",
+    "cagri": 103,
+    "ucgen": 315396,
+    "cpu": 3.1,
+    "cpuP95": 5,
+    "kare": 3.7,
+    "kareP95": 5.7,
+    "gpu": null,
+    "gpuP95": null,
+    "tam": 8
+   },
+   {
+    "etiket": "6 · %90 (1382×711, 81% piksel)",
+    "cagri": 103,
+    "ucgen": 315396,
+    "cpu": 3.1,
+    "cpuP95": 4.6,
+    "kare": 3.7,
+    "kareP95": 5.3,
+    "gpu": null,
+    "gpuP95": null,
+    "tam": 8
+   },
+   {
+    "etiket": "6 · %80 (1228×632, 64% piksel)",
+    "cagri": 103,
+    "ucgen": 315396,
+    "cpu": 3.3,
+    "cpuP95": 4.7,
+    "kare": 3.9,
+    "kareP95": 5.3,
+    "gpu": null,
+    "gpuP95": null,
+    "tam": 8
+   },
+   {
+    "etiket": "6 · %70 (1075×553, 49% piksel)",
+    "cagri": 103,
+    "ucgen": 315396,
+    "cpu": 2.2,
+    "cpuP95": 4.2,
+    "kare": 2.6,
+    "kareP95": 4.8,
+    "gpu": null,
+    "gpuP95": null,
+    "tam": 8
+   },
+   {
+    "etiket": "6 · %60 (921×474, 36% piksel)",
+    "cagri": 103,
+    "ucgen": 315396,
+    "cpu": 1.9,
+    "cpuP95": 3,
+    "kare": 2.2,
+    "kareP95": 3.6,
+    "gpu": null,
+    "gpuP95": null,
+    "tam": 8
+   },
+   {
+    "etiket": "6 · %50 (768×395, 25% piksel)",
+    "cagri": 103,
+    "ucgen": 315396,
+    "cpu": 1.5,
+    "cpuP95": 2.9,
+    "kare": 1.7,
+    "kareP95": 3.5,
+    "gpu": null,
+    "gpuP95": null,
+    "tam": 8
+   },
+   {
+    "etiket": "6 · %35 (537×276, 12% piksel)",
+    "cagri": 103,
+    "ucgen": 315396,
+    "cpu": 1.3,
+    "cpuP95": 2.2,
+    "kare": 1.5,
+    "kareP95": 2.6,
+    "gpu": null,
+    "gpuP95": null,
+    "tam": 8
+   }
+  ]
+ },
+ {
+  "kur": {
+   "kanvas": [
+    1536,
+    791
+   ],
+   "gpu": "ANGLE (AMD, AMD Radeon(TM) Graphics (0x00001681) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+   "timer": true
+  },
+  "s": [
+   {
+    "etiket": "3 · %100 (1536×791, 100% piksel)",
+    "cagri": 30,
+    "ucgen": 83820,
+    "cpu": 2.2,
+    "cpuP95": 2.7,
+    "kare": 2.3,
+    "kareP95": 3,
+    "gpu": null,
+    "gpuP95": null,
+    "tam": 0
+   },
+   {
+    "etiket": "3 · %90 (1382×711, 81% piksel)",
+    "cagri": 30,
+    "ucgen": 83820,
+    "cpu": 1.1,
+    "cpuP95": 2.5,
+    "kare": 1.4,
+    "kareP95": 2.7,
+    "gpu": null,
+    "gpuP95": null,
+    "tam": 0
+   },
+   {
+    "etiket": "3 · %80 (1228×632, 64% piksel)",
+    "cagri": 30,
+    "ucgen": 83820,
+    "cpu": 0.7,
+    "cpuP95": 2.2,
+    "kare": 0.8,
+    "kareP95": 2.4,
+    "gpu": null,
+    "gpuP95": null,
+    "tam": 0
+   },
+   {
+    "etiket": "3 · %70 (1075×553, 49% piksel)",
+    "cagri": 30,
+    "ucgen": 83820,
+    "cpu": 0.7,
+    "cpuP95": 1.8,
+    "kare": 0.8,
+    "kareP95": 1.9,
+    "gpu": null,
+    "gpuP95": null,
+    "tam": 0
+   },
+   {
+    "etiket": "3 · %60 (921×474, 36% piksel)",
+    "cagri": 30,
+    "ucgen": 83820,
+    "cpu": 0.4,
+    "cpuP95": 1.5,
+    "kare": 0.5,
+    "kareP95": 1.7,
+    "gpu": null,
+    "gpuP95": null,
+    "tam": 0
+   },
+   {
+    "etiket": "3 · %50 (768×395, 25% piksel)",
+    "cagri": 30,
+    "ucgen": 83820,
+    "cpu": 0.6,
+    "cpuP95": 1.1,
+    "kare": 0.7,
+    "kareP95": 1.3,
+    "gpu": null,
+    "gpuP95": null,
+    "tam": 0
+   },
+   {
+    "etiket": "3 · %35 (537×276, 12% piksel)",
+    "cagri": 30,
+    "ucgen": 83820,
+    "cpu": 0.4,
+    "cpuP95": 0.7,
+    "kare": 0.5,
+    "kareP95": 0.8,
+    "gpu": null,
+    "gpuP95": null,
+    "tam": 0
+   },
+   {
+    "etiket": "6 · %100 (1536×791, 100% piksel)",
+    "cagri": 103,
+    "ucgen": 315396,
+    "cpu": 3.3,
+    "cpuP95": 5.4,
+    "kare": 3.9,
+    "kareP95": 6.2,
+    "gpu": null,
+    "gpuP95": null,
+    "tam": 8
+   },
+   {
+    "etiket": "6 · %90 (1382×711, 81% piksel)",
+    "cagri": 103,
+    "ucgen": 315396,
+    "cpu": 3.1,
+    "cpuP95": 4.6,
+    "kare": 3.7,
+    "kareP95": 5.2,
+    "gpu": null,
+    "gpuP95": null,
+    "tam": 8
+   },
+   {
+    "etiket": "6 · %80 (1228×632, 64% piksel)",
+    "cagri": 103,
+    "ucgen": 315396,
+    "cpu": 3.9,
+    "cpuP95": 4.7,
+    "kare": 4.5,
+    "kareP95": 5.3,
+    "gpu": null,
+    "gpuP95": null,
+    "tam": 8
+   },
+   {
+    "etiket": "6 · %70 (1075×553, 49% piksel)",
+    "cagri": 103,
+    "ucgen": 315396,
+    "cpu": 2.1,
+    "cpuP95": 4.6,
+    "kare": 2.5,
+    "kareP95": 5.1,
+    "gpu": null,
+    "gpuP95": null,
+    "tam": 8
+   },
+   {
+    "etiket": "6 · %60 (921×474, 36% piksel)",
+    "cagri": 103,
+    "ucgen": 315396,
+    "cpu": 2.1,
+    "cpuP95": 4.1,
+    "kare": 2.5,
+    "kareP95": 4.7,
+    "gpu": null,
+    "gpuP95": null,
+    "tam": 8
+   },
+   {
+    "etiket": "6 · %50 (768×395, 25% piksel)",
+    "cagri": 103,
+    "ucgen": 315396,
+    "cpu": 1.6,
+    "cpuP95": 2.9,
+    "kare": 2,
+    "kareP95": 3.5,
+    "gpu": null,
+    "gpuP95": null,
+    "tam": 8
+   },
+   {
+    "etiket": "6 · %35 (537×276, 12% piksel)",
+    "cagri": 103,
+    "ucgen": 315396,
+    "cpu": 1.2,
+    "cpuP95": 2.3,
+    "kare": 1.4,
+    "kareP95": 2.6,
+    "gpu": null,
+    "gpuP95": null,
+    "tam": 8
+   }
+  ]
+ },
+ {
+  "kur": {
+   "kanvas": [
+    1536,
+    791
+   ],
+   "gpu": "ANGLE (AMD, AMD Radeon(TM) Graphics (0x00001681) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+   "timer": true
+  },
+  "s": [
+   {
+    "etiket": "3 · %100 (1536×791, 100% piksel)",
+    "cagri": 30,
+    "ucgen": 83820,
+    "cpu": 2,
+    "cpuP95": 2.8,
+    "kare": 2.2,
+    "kareP95": 3,
+    "gpu": null,
+    "gpuP95": null,
+    "tam": 0
+   },
+   {
+    "etiket": "3 · %90 (1382×711, 81% piksel)",
+    "cagri": 30,
+    "ucgen": 83820,
+    "cpu": 1.8,
+    "cpuP95": 2.6,
+    "kare": 2,
+    "kareP95": 2.7,
+    "gpu": null,
+    "gpuP95": null,
+    "tam": 0
+   },
+   {
+    "etiket": "3 · %80 (1228×632, 64% piksel)",
+    "cagri": 30,
+    "ucgen": 83820,
+    "cpu": 0.7,
+    "cpuP95": 2.1,
+    "kare": 0.8,
+    "kareP95": 2.2,
+    "gpu": null,
+    "gpuP95": null,
+    "tam": 0
+   },
+   {
+    "etiket": "3 · %70 (1075×553, 49% piksel)",
+    "cagri": 30,
+    "ucgen": 83820,
+    "cpu": 0.7,
+    "cpuP95": 1.8,
+    "kare": 0.8,
+    "kareP95": 2,
+    "gpu": null,
+    "gpuP95": null,
+    "tam": 0
+   },
+   {
+    "etiket": "3 · %60 (921×474, 36% piksel)",
+    "cagri": 30,
+    "ucgen": 83820,
+    "cpu": 0.6,
+    "cpuP95": 1.5,
+    "kare": 0.7,
+    "kareP95": 1.7,
+    "gpu": null,
+    "gpuP95": null,
+    "tam": 0
+   },
+   {
+    "etiket": "3 · %50 (768×395, 25% piksel)",
+    "cagri": 30,
+    "ucgen": 83820,
+    "cpu": 0.6,
+    "cpuP95": 1.3,
+    "kare": 0.7,
+    "kareP95": 1.4,
+    "gpu": null,
+    "gpuP95": null,
+    "tam": 0
+   },
+   {
+    "etiket": "3 · %35 (537×276, 12% piksel)",
+    "cagri": 30,
+    "ucgen": 83820,
+    "cpu": 0.4,
+    "cpuP95": 0.7,
+    "kare": 0.5,
+    "kareP95": 0.8,
+    "gpu": null,
+    "gpuP95": null,
+    "tam": 0
+   },
+   {
+    "etiket": "6 · %100 (1536×791, 100% piksel)",
+    "cagri": 103,
+    "ucgen": 315396,
+    "cpu": 3.2,
+    "cpuP95": 5.3,
+    "kare": 3.8,
+    "kareP95": 5.9,
+    "gpu": null,
+    "gpuP95": null,
+    "tam": 8
+   },
+   {
+    "etiket": "6 · %90 (1382×711, 81% piksel)",
+    "cagri": 103,
+    "ucgen": 315396,
+    "cpu": 3,
+    "cpuP95": 4.5,
+    "kare": 3.6,
+    "kareP95": 5.1,
+    "gpu": null,
+    "gpuP95": null,
+    "tam": 8
+   },
+   {
+    "etiket": "6 · %80 (1228×632, 64% piksel)",
+    "cagri": 103,
+    "ucgen": 315396,
+    "cpu": 4.1,
+    "cpuP95": 4.6,
+    "kare": 4.7,
+    "kareP95": 5.1,
+    "gpu": null,
+    "gpuP95": null,
+    "tam": 8
+   },
+   {
+    "etiket": "6 · %70 (1075×553, 49% piksel)",
+    "cagri": 103,
+    "ucgen": 315396,
+    "cpu": 2.4,
+    "cpuP95": 4.4,
+    "kare": 2.7,
+    "kareP95": 5,
+    "gpu": null,
+    "gpuP95": null,
+    "tam": 8
+   },
+   {
+    "etiket": "6 · %60 (921×474, 36% piksel)",
+    "cagri": 103,
+    "ucgen": 315396,
+    "cpu": 2,
+    "cpuP95": 4.2,
+    "kare": 2.4,
+    "kareP95": 4.7,
+    "gpu": null,
+    "gpuP95": null,
+    "tam": 8
+   },
+   {
+    "etiket": "6 · %50 (768×395, 25% piksel)",
+    "cagri": 103,
+    "ucgen": 315396,
+    "cpu": 1.7,
+    "cpuP95": 2.9,
+    "kare": 2,
+    "kareP95": 3.5,
+    "gpu": null,
+    "gpuP95": null,
+    "tam": 8
+   },
+   {
+    "etiket": "6 · %35 (537×276, 12% piksel)",
+    "cagri": 103,
+    "ucgen": 315396,
+    "cpu": 1.3,
+    "cpuP95": 2.3,
+    "kare": 1.6,
+    "kareP95": 2.7,
+    "gpu": null,
+    "gpuP95": null,
+    "tam": 8
+   }
+  ]
+ }
+]

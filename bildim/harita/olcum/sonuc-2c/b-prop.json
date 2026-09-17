@@ -1,0 +1,410 @@
+[
+ {
+  "kur": {
+   "kanvas": [
+    1536,
+    791
+   ],
+   "gpu": "ANGLE (AMD, AMD Radeon(TM) Graphics (0x00001681) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+   "timer": true
+  },
+  "s": [
+   {
+    "etiket": "2 + yalnız agac_govde (örnek 90, gölge atar true)",
+    "cagri": 23,
+    "ucgen": 19696,
+    "cpu": 0.3,
+    "cpuP95": 0.5,
+    "kare": 0.4,
+    "kareP95": 0.6,
+    "gpu": null,
+    "gpuP95": null,
+    "tam": 0
+   },
+   {
+    "etiket": "2 + yalnız agac_tac (örnek 90, gölge atar false)",
+    "cagri": 23,
+    "ucgen": 51196,
+    "cpu": 2.6,
+    "cpuP95": 4.9,
+    "kare": 2.7,
+    "kareP95": 5.1,
+    "gpu": null,
+    "gpuP95": null,
+    "tam": 0
+   },
+   {
+    "etiket": "2 + yalnız lamba (örnek 18, gölge atar true)",
+    "cagri": 24,
+    "ucgen": 16816,
+    "cpu": 2.6,
+    "cpuP95": 5.2,
+    "kare": 2.8,
+    "kareP95": 5.3,
+    "gpu": null,
+    "gpuP95": null,
+    "tam": 0
+   },
+   {
+    "etiket": "2 + yalnız bank (örnek 14, gölge atar true)",
+    "cagri": 23,
+    "ucgen": 13376,
+    "cpu": 2.5,
+    "cpuP95": 5,
+    "kare": 2.7,
+    "kareP95": 5.2,
+    "gpu": null,
+    "gpuP95": null,
+    "tam": 0
+   },
+   {
+    "etiket": "2 + yalnız saksi (örnek 18, gölge atar true)",
+    "cagri": 24,
+    "ucgen": 18112,
+    "cpu": 2.6,
+    "cpuP95": 5.2,
+    "kare": 2.7,
+    "kareP95": 5.3,
+    "gpu": null,
+    "gpuP95": null,
+    "tam": 0
+   },
+   {
+    "etiket": "2 + yalnız TemasGolgeleri (örnek 104, gölge atar false)",
+    "cagri": 23,
+    "ucgen": 9104,
+    "cpu": 2.3,
+    "cpuP95": 3.1,
+    "kare": 2.5,
+    "kareP95": 4.7,
+    "gpu": null,
+    "gpuP95": null,
+    "tam": 0
+   },
+   {
+    "etiket": "2 + birikimli agac_govde",
+    "cagri": 23,
+    "ucgen": 19696,
+    "cpu": 0.6,
+    "cpuP95": 2.4,
+    "kare": 0.7,
+    "kareP95": 2.6,
+    "gpu": null,
+    "gpuP95": null,
+    "tam": 0
+   },
+   {
+    "etiket": "2 + birikimli agac_govde+agac_tac",
+    "cagri": 24,
+    "ucgen": 61996,
+    "cpu": 1.7,
+    "cpuP95": 3.5,
+    "kare": 1.9,
+    "kareP95": 3.7,
+    "gpu": null,
+    "gpuP95": null,
+    "tam": 0
+   },
+   {
+    "etiket": "2 + birikimli agac_govde+agac_tac+lamba",
+    "cagri": 26,
+    "ucgen": 69916,
+    "cpu": 1.8,
+    "cpuP95": 3.6,
+    "kare": 2,
+    "kareP95": 3.7,
+    "gpu": null,
+    "gpuP95": null,
+    "tam": 0
+   },
+   {
+    "etiket": "2 + birikimli agac_govde+agac_tac+lamba+bank",
+    "cagri": 27,
+    "ucgen": 74396,
+    "cpu": 1.9,
+    "cpuP95": 3.7,
+    "kare": 2,
+    "kareP95": 3.8,
+    "gpu": null,
+    "gpuP95": null,
+    "tam": 0
+   },
+   {
+    "etiket": "2 + birikimli agac_govde+agac_tac+lamba+bank+saksi",
+    "cagri": 29,
+    "ucgen": 83612,
+    "cpu": 1.8,
+    "cpuP95": 3.6,
+    "kare": 2,
+    "kareP95": 3.8,
+    "gpu": null,
+    "gpuP95": null,
+    "tam": 0
+   },
+   {
+    "etiket": "2 + birikimli agac_govde+agac_tac+lamba+bank+saksi+TemasGolgeleri",
+    "cagri": 30,
+    "ucgen": 83820,
+    "cpu": 2.5,
+    "cpuP95": 3.1,
+    "kare": 2.6,
+    "kareP95": 3.3,
+    "gpu": null,
+    "gpuP95": null,
+    "tam": 0
+   },
+   {
+    "etiket": "3 · tüm proplar, gölge KAPALI",
+    "cagri": 27,
+    "ucgen": 73630,
+    "cpu": 1.9,
+    "cpuP95": 3,
+    "kare": 2.1,
+    "kareP95": 3.1,
+    "gpu": null,
+    "gpuP95": null,
+    "tam": 0
+   },
+   {
+    "etiket": "3 · tüm proplar, çözünürlük %75 (1152×593)",
+    "cagri": 30,
+    "ucgen": 83820,
+    "cpu": 0.7,
+    "cpuP95": 2.1,
+    "kare": 0.8,
+    "kareP95": 2.3,
+    "gpu": null,
+    "gpuP95": null,
+    "tam": 0
+   },
+   {
+    "etiket": "3 · tüm proplar, çözünürlük %50 (768×395)",
+    "cagri": 30,
+    "ucgen": 83820,
+    "cpu": 0.7,
+    "cpuP95": 0.9,
+    "kare": 0.8,
+    "kareP95": 1,
+    "gpu": null,
+    "gpuP95": null,
+    "tam": 0
+   },
+   {
+    "etiket": "3 · ağaç tacı HARİÇ tüm proplar",
+    "cagri": 29,
+    "ucgen": 41520,
+    "cpu": 1.9,
+    "cpuP95": 2.7,
+    "kare": 2.1,
+    "kareP95": 2.8,
+    "gpu": null,
+    "gpuP95": null,
+    "tam": 0
+   }
+  ]
+ },
+ {
+  "kur": {
+   "kanvas": [
+    1536,
+    791
+   ],
+   "gpu": "ANGLE (AMD, AMD Radeon(TM) Graphics (0x00001681) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+   "timer": true
+  },
+  "s": [
+   {
+    "etiket": "2 + yalnız agac_govde (örnek 90, gölge atar true)",
+    "cagri": 23,
+    "ucgen": 19696,
+    "cpu": 0.3,
+    "cpuP95": 0.5,
+    "kare": 0.4,
+    "kareP95": 0.6,
+    "gpu": null,
+    "gpuP95": null,
+    "tam": 0
+   },
+   {
+    "etiket": "2 + yalnız agac_tac (örnek 90, gölge atar false)",
+    "cagri": 23,
+    "ucgen": 51196,
+    "cpu": 1.8,
+    "cpuP95": 3.4,
+    "kare": 1.9,
+    "kareP95": 3.6,
+    "gpu": null,
+    "gpuP95": null,
+    "tam": 0
+   },
+   {
+    "etiket": "2 + yalnız lamba (örnek 18, gölge atar true)",
+    "cagri": 24,
+    "ucgen": 16816,
+    "cpu": 1.9,
+    "cpuP95": 3.7,
+    "kare": 2.1,
+    "kareP95": 3.9,
+    "gpu": null,
+    "gpuP95": null,
+    "tam": 0
+   },
+   {
+    "etiket": "2 + yalnız bank (örnek 14, gölge atar true)",
+    "cagri": 23,
+    "ucgen": 13376,
+    "cpu": 1.8,
+    "cpuP95": 3.7,
+    "kare": 2,
+    "kareP95": 3.9,
+    "gpu": null,
+    "gpuP95": null,
+    "tam": 0
+   },
+   {
+    "etiket": "2 + yalnız saksi (örnek 18, gölge atar true)",
+    "cagri": 24,
+    "ucgen": 18112,
+    "cpu": 1.7,
+    "cpuP95": 3.5,
+    "kare": 1.9,
+    "kareP95": 3.6,
+    "gpu": null,
+    "gpuP95": null,
+    "tam": 0
+   },
+   {
+    "etiket": "2 + yalnız TemasGolgeleri (örnek 104, gölge atar false)",
+    "cagri": 23,
+    "ucgen": 9104,
+    "cpu": 2.2,
+    "cpuP95": 2.9,
+    "kare": 2.4,
+    "kareP95": 3.2,
+    "gpu": null,
+    "gpuP95": null,
+    "tam": 0
+   },
+   {
+    "etiket": "2 + birikimli agac_govde",
+    "cagri": 23,
+    "ucgen": 19696,
+    "cpu": 0.6,
+    "cpuP95": 2.5,
+    "kare": 0.7,
+    "kareP95": 2.7,
+    "gpu": null,
+    "gpuP95": null,
+    "tam": 0
+   },
+   {
+    "etiket": "2 + birikimli agac_govde+agac_tac",
+    "cagri": 24,
+    "ucgen": 61996,
+    "cpu": 1.8,
+    "cpuP95": 3.6,
+    "kare": 1.9,
+    "kareP95": 3.8,
+    "gpu": null,
+    "gpuP95": null,
+    "tam": 0
+   },
+   {
+    "etiket": "2 + birikimli agac_govde+agac_tac+lamba",
+    "cagri": 26,
+    "ucgen": 69916,
+    "cpu": 1.9,
+    "cpuP95": 3.8,
+    "kare": 2,
+    "kareP95": 3.9,
+    "gpu": null,
+    "gpuP95": null,
+    "tam": 0
+   },
+   {
+    "etiket": "2 + birikimli agac_govde+agac_tac+lamba+bank",
+    "cagri": 27,
+    "ucgen": 74396,
+    "cpu": 1.9,
+    "cpuP95": 3.7,
+    "kare": 2,
+    "kareP95": 3.9,
+    "gpu": null,
+    "gpuP95": null,
+    "tam": 0
+   },
+   {
+    "etiket": "2 + birikimli agac_govde+agac_tac+lamba+bank+saksi",
+    "cagri": 29,
+    "ucgen": 83612,
+    "cpu": 1.9,
+    "cpuP95": 3.7,
+    "kare": 2,
+    "kareP95": 3.9,
+    "gpu": null,
+    "gpuP95": null,
+    "tam": 0
+   },
+   {
+    "etiket": "2 + birikimli agac_govde+agac_tac+lamba+bank+saksi+TemasGolgeleri",
+    "cagri": 30,
+    "ucgen": 83820,
+    "cpu": 2.5,
+    "cpuP95": 3.2,
+    "kare": 2.6,
+    "kareP95": 3.3,
+    "gpu": null,
+    "gpuP95": null,
+    "tam": 0
+   },
+   {
+    "etiket": "3 · tüm proplar, gölge KAPALI",
+    "cagri": 27,
+    "ucgen": 73630,
+    "cpu": 0.6,
+    "cpuP95": 2.3,
+    "kare": 0.7,
+    "kareP95": 2.5,
+    "gpu": null,
+    "gpuP95": null,
+    "tam": 0
+   },
+   {
+    "etiket": "3 · tüm proplar, çözünürlük %75 (1152×593)",
+    "cagri": 30,
+    "ucgen": 83820,
+    "cpu": 0.7,
+    "cpuP95": 2,
+    "kare": 0.8,
+    "kareP95": 2.2,
+    "gpu": null,
+    "gpuP95": null,
+    "tam": 0
+   },
+   {
+    "etiket": "3 · tüm proplar, çözünürlük %50 (768×395)",
+    "cagri": 30,
+    "ucgen": 83820,
+    "cpu": 0.5,
+    "cpuP95": 0.8,
+    "kare": 0.6,
+    "kareP95": 0.9,
+    "gpu": null,
+    "gpuP95": null,
+    "tam": 0
+   },
+   {
+    "etiket": "3 · ağaç tacı HARİÇ tüm proplar",
+    "cagri": 29,
+    "ucgen": 41520,
+    "cpu": 0.7,
+    "cpuP95": 2.6,
+    "kare": 0.9,
+    "kareP95": 2.7,
+    "gpu": null,
+    "gpuP95": null,
+    "tam": 0
+   }
+  ]
+ }
+]
