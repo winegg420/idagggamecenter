@@ -232,14 +232,25 @@ Bunlar onaylanmış kararlardır, aksini yapma:
 
 ### Modlar (Paket 14, 15 Eyl 2026)
 
-- 3 mod: **Normal Maç**, **Hızlı Mod**, **Düello (Taktik Maçı)**. Turnuva mod
-  değil, etkinlik. **Grup Maçı ödülsüz arkadaş modu** (coin/lig/seri yok,
-  rozet var). **"Hızlı Olan Kazanır" donduruldu** (kod ve rota duruyor,
-  arayüzden giriş yok).
+- **2 mod (Paket 24, 18 Eyl 2026): Normal Maç ve Düello (Taktik Maçı).**
+  Turnuva mod değil, etkinlik. **Grup Maçı ödülsüz arkadaş modu**
+  (coin/lig/seri yok, rozet var).
+- **DONDURULMUŞ İKİ MOD** — dosyalar ve veri durur, arayüzden giriş yoktur:
+  **Hızlı Mod** (Paket 24) ve **"Hızlı Olan Kazanır"** (Paket 14).
+  Dondurma yöntemi: ana sayfa düğmesi ve harita binası kaldırıldı, rotalar
+  (`/hizli-mod`, `/hizli-mac/:id`) ana sayfaya yönlendiriyor, sayfa dosyaları
+  (`HizliModPage.jsx`, `HizliMacPage.jsx`) SİLİNMEDİ, tablolar
+  (`hizli_mod_oturumlar`, `hizli_mod_skorlar`, `hizli_maclar`, `hizli_oyuncular`)
+  boşaltılmadı. Sunucu kapısı: `hizli_mod_acik` / `hizli_mac_acik` ayarları false;
+  tablolardaki BEFORE INSERT tetikleyicisi yeni oturumu reddeder, devam eden
+  oturum sorunsuz biter. **Geri açmak:** ayarı `true` yap + ana sayfa düğmesini,
+  harita binasını ve rotayı geri koy (her birinin yanında yorum var).
+  Ölçüldü (18 Eyl 2026): Hızlı Mod son 30 günde 4 oturum / 2 oyuncu,
+  "Hızlı Olan Kazanır" 0 kayıt — kapanışın denge etkisi ölçülebilir değil.
 - Her mod iki girişli: **Dereceli** (lig puanı + tam coin) / **Serbest**
   (puan yok, coin %50). Arayüzde tek "Dereceli" anahtarı, son tercih
   hatırlanır (localStorage + `profiles.dereceli_tercih`).
-- Hızlı Mod: soru 10 sn, oturum 90 sn, okuma tavanı 170 karakter.
+- Hızlı Mod (dondurulmuş): soru 10 sn, oturum 90 sn, okuma tavanı 170 karakter.
 - **Düello:** 3 can, en çok 10 tur (çift hamle — eşit hamle kuralı); 4 sn
   Saldırı Hazırlığı; savunan 15 sn (Zaman Baskısı 10). Saldırı jokerleri:
   Zaman Baskısı, Soru Değiştir (bir kez), Savunma Kilidi. **Saldırı riski:**
@@ -254,7 +265,7 @@ Bunlar onaylanmış kararlardır, aksini yapma:
 - Lig = birikimli emek, **günlük lig tavanı yok**
 - Normal Maç galibiyet 25 · berabere 10 · mağlubiyet 0 (teselli yok) — lig ve coin
 - Düello galibiyet +50 lig / 50 coin (en çok veren mod)
-- Hızlı Mod doğru×3 lig ve coin, tavan 25
+- Hızlı Mod doğru×3 lig ve coin, oturum başına tavan 25 — **mod dondurulduğu için bu kaynak kapalı** (ayarlar duruyor, değiştirilmedi)
 - Turnuva lig: 1. 150 · 2. 80 · 3. 40 · 4-10. 20 · diğer katılan 10
 - Günlük seri bonusu `least(gün×3, 15)`
 - Arkadaş daveti lig puanı VERMEZ — iki tarafa 200 coin

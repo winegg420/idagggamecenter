@@ -23,14 +23,16 @@ import Home from "../bildim/pages/Home.jsx";
 import ChallengesPage from "../bildim/pages/ChallengesPage.jsx";
 import MatchPage from "../bildim/pages/MatchPage.jsx";
 import GroupMatchPage from "../bildim/pages/GroupMatchPage.jsx";
-import HizliMacPage from "../bildim/pages/HizliMacPage.jsx";
+// DONDURULDU (Paket 24 B): HizliMacPage dosyasi duruyor, hicbir rota cagirmiyor.
+// Geri acmak: bu import + asagidaki rotayi geri koy, oyun_ayarlari.hizli_mac_acik = true.
 const TournamentPage = lazy(() => import("../bildim/pages/TournamentPage.jsx"));
 const LeaderboardPage = lazy(() => import("../bildim/pages/LeaderboardPage.jsx"));
 const FriendsPage = lazy(() => import("../bildim/pages/FriendsPage.jsx"));
 const ProfilePage = lazy(() => import("../bildim/pages/ProfilePage.jsx"));
 const DavetPage = lazy(() => import("../bildim/pages/DavetPage.jsx"));
 const JokerDukkani = lazy(() => import("../bildim/pages/JokerDukkani.jsx"));
-const HizliModPage = lazy(() => import("../bildim/pages/HizliModPage.jsx"));
+// DONDURULDU (Paket 24 B): HizliModPage dosyasi duruyor, hicbir rota cagirmiyor.
+// Geri acmak: bu satir + rota geri konur, oyun_ayarlari.hizli_mod_acik = true.
 const DuelloPage = lazy(() => import("../bildim/pages/DuelloPage.jsx"));
 const CalismaPage = lazy(() => import("../bildim/pages/CalismaPage.jsx"));
 // Meydan (3B): three.js yalniz bu rotaya girilince iner (ayri chunk)
@@ -114,12 +116,13 @@ export default function BildimApp() {
           <Route path="meydan" element={<ChallengesPage />} />
           <Route path="mac/:id" element={<MatchPage />} />
           <Route path="grup-mac/:id" element={<GroupMatchPage />} />
-          <Route path="hizli-mac/:id" element={<HizliMacPage />} />
+          {/* DONDURULDU (Paket 24 B): sayfa duruyor, giris yok - ana sayfaya yonlendirir. */}
+          <Route path="hizli-mac/:id" element={<Navigate to="/bildim" replace />} />
           <Route path="siralama" element={<LeaderboardPage />} />
           <Route path="arkadaslar" element={<FriendsPage />} />
           <Route path="davet/:kod" element={<DavetPage />} />
           <Route path="joker" element={<JokerDukkani />} />
-          <Route path="hizli-mod" element={<HizliModPage />} />
+          <Route path="hizli-mod" element={<Navigate to="/bildim" replace />} />
           <Route path="duello" element={<DuelloPage />} />
           <Route path="duello/:id" element={<DuelloPage />} />
           <Route path="calisma" element={<CalismaPage />} />

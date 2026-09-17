@@ -678,10 +678,10 @@ export default function Home() {
                 gidiyordu, grup maçı kurma zaten o sayfanın içinde. */}
             <span className="bd-mod-not">{tt("Arkadaşına davet gönder · tekli ya da grup")}</span>
           </button>
-          <button className="bd-mod tema-hizli" onClick={() => navigate(y("/hizli-mod"))}>
-            <span className="bd-mod-ikon"><Ikon ad="saat" boyut={26} /></span>
-            <span className="bd-mod-ad">{tt("Hızlı Mod")}</span>
-          </button>
+          {/* HIZLI MOD (Paket 24 · B): DONDURULDU — sahibinin kararı. Düğme kaldırıldı,
+              sayfa ve rota duruyor (/hizli-mod → ana sayfaya yönlenir), veri silinmedi.
+              Geri açmak: bu düğmeyi geri koy + oyun_ayarlari.hizli_mod_acik = true.
+              Izgara 5 → 4 düğme; 2×2 düzen zaten buna göre, kartlar gerilmez. */}
 
           <button className="bd-mod tema-turnuva" onClick={() => navigate(y("/turnuva"))}>
             <span className="bd-mod-ikon"><Ikon ad="kupa" boyut={26} /></span>

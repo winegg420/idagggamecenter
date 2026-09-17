@@ -45,7 +45,7 @@ export { nesneyiSerbestBirak };
 /** Bina listesi — renkler mevcut mod renkleriyle aynı, değiştirme. */
 export const BINALAR = [
   { ad: tt("Meydan Oku"), alt: tt("1v1 düello"),        duvar: "#FF5B4A", cati: "#C03225", rota: "/meydan" },
-  { ad: tt("Hızlı Mod"),  alt: tt("90 saniye"),         duvar: "#FFB020", cati: "#C98A22", rota: "/hizli-mod" },
+  // Hızlı Mod binası DONDURULDU (Paket 24 B) — geri açmak için bu satırı geri koy.
   { ad: tt("Grup Maçı"),  alt: tt("3-5 kişi"),          duvar: "#4A9DD9", cati: "#2B6BA3", rota: "/meydan" },
   // Alt yazı sunucudaki turnuva saatlerinden okunur (bkz. lib/zaman.js);
   // saat değişirse levha da değişir.
@@ -59,7 +59,8 @@ export const BINALAR = [
 // (Stüdyo, Ayarlar) için ayrı renk: marka turuncusu ve nötr arduvaz. Normal Maç → eski "Grup Maçı" (maç binası), Düello → "Meydan Oku" (1v1).
 const paletRenk = (ad) => { const b = BINALAR.find((x) => x.duvar && x.ad === tt(ad)); return b ? { duvar: b.duvar, cati: b.cati } : null; };
 const MOD_RENK = {
-  "/": paletRenk("Grup Maçı"), "/hizli-mod": paletRenk("Hızlı Mod"), "/duello": paletRenk("Meydan Oku"), "/turnuva": paletRenk("Turnuva"),
+  // "/hizli-mod" anahtarı kalktı (Paket 24 B): binası yok, paletRenk null döndürüyordu.
+  "/": paletRenk("Grup Maçı"), "/duello": paletRenk("Meydan Oku"), "/turnuva": paletRenk("Turnuva"),
   "/siralama": paletRenk("Lig"), "/calisma": paletRenk("Hatalarım"), "/joker": paletRenk("Dükkân"),
   "/gorunum": { duvar: "#F4701F", cati: "#C4581A" }, "/profil": { duvar: "#8A8C96", cati: "#5E606A" },
 };

@@ -4,7 +4,7 @@ Bu dosya, `bildim/` modülü üzerinde çalışan Claude Code (ve diğer AI ajan
 
 ## Modül Özeti
 
-**Quiz Tactics** — Türkçe bilgi yarışması (klasör adı geriye uyum için `bildim/` kaldı). Gece turnuvası, 1v1 meydan okuma, grup maçı (3-5 kişi), "Hızlı Olan Kazanır" modu, arkadaş sistemi, rütbe/XP, push bildirimi. Hub'ın quiz oyunudur (idaGP, Kafa Topu, Meyve Kes gibi bir oyun kartı).
+**Quiz Tactics** — Türkçe bilgi yarışması (klasör adı geriye uyum için `bildim/` kaldı). Gece turnuvası, 1v1 meydan okuma (Normal Maç), Düello (Taktik Maçı), grup maçı (3-5 kişi), arkadaş sistemi, rütbe/XP, push bildirimi. **Hızlı Mod ve "Hızlı Olan Kazanır" dondurulmuştur** — bkz. kök `CLAUDE.md` › Modlar. Hub'ın quiz oyunudur (idaGP, Kafa Topu, Meyve Kes gibi bir oyun kartı).
 
 ## Teknoloji
 
