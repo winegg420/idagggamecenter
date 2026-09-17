@@ -21,6 +21,8 @@ Onaylanmış görsel referans: repo kökünde `QUIZADOR_MEYDAN_REFERANS.html`
 | `yerlesim.json` | **Aşama 2A:** Taksim haritasının TEK doğruluk kaynağı (bölge, parsel, nokta, alan, tramvay, arka plan). Elle düzenlenir. |
 | `yerlesimDunya.js` | Manifestten greybox dünya kurar; konum HESAPLAMAZ. Yönlü kutu çarpışması + birleşik sınır + kapı önü ipucu. |
 | `olcum/greybox.*` | Greybox ölçüm sayfası (üretim derlemesi, yerel; canlıya çıkmaz). |
+| `olcumSayaci.js` + `OlcumGostergesi.jsx` | **2C-A:** canlı haritada `?olcum=1` göstergesi (cihazda hatırlanır, `?olcum=0` kapatır). `CPU` = yalnız gönderim (sürekli); `CPU+GPU` = kare + `gl.finish` (yalnız düğmeyle). İki sayıyı karıştırma. |
+| `olcum/meydan-test/katman2c.js` | **2C-B:** katman katman ölçüm (`katmanKos`, `propDetay`, `cozunurlukEgrisi`); rapor `ASAMA_2C_RAPOR.md`. |
 
 Bağlantı: `src/App.jsx` (`/bildim/harita`) ve `src/BildimApp.jsx` (`/harita`)
 **lazy** route; `Layout.jsx`'te "Harita" sekmesi. Harita'ya girmeyen oyuncu
