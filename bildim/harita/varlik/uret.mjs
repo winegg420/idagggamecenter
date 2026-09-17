@@ -572,19 +572,28 @@ function karakterKur(tur = "insan") {
     { x: 0, y: -0.035, rx: 0.04, ry: 0.035, d: 0.012 },                          // burun tepesi
     { x: 0, y: -0.15, rx: 0.085, ry: 0.045, d: 0.018 },                          // alt çene
     ...[-1, 1].flatMap((s) => [
-      { x: s * 0.095, y: 0.035, rx: 0.06, ry: 0.045, d: -0.002 },                // göz çukuru (insandan yana + yukarı)
-      { x: s * 0.09, y: 0.085, rx: 0.07, ry: 0.02, d: 0.002 },                   // kaş kemeri
+      { x: s * 0.095, y: 0.035, rx: 0.058, ry: 0.042, d: -0.009 },               // §E: göz çukuru 9 mm (eski 2 mm) — kaplan gözü de çukura otursun
+      { x: s * 0.095, y: 0.062, rx: 0.05, ry: 0.016, d: 0.005 },                 // §E: üst göz kapağı kıvrımı
+      { x: s * 0.09, y: 0.085, rx: 0.07, ry: 0.02, d: 0.007 },                   // kaş kemeri 7 mm (eski 2 mm)
       { x: s * 0.2, y: -0.07, rx: 0.045, ry: 0.06, d: 0.02 },                    // yanak kürk tutamı
       { x: s * 0.215, y: -0.02, rx: 0.03, ry: 0.03, d: 0.012 },                  // tırtık
       { x: s * 0.2, y: -0.115, rx: 0.03, ry: 0.03, d: 0.014 },
     ]),
   ] : [
-    { x: 0, y: -0.041, rx: 0.068, ry: 0.1, ryAlt: 0.056, d: 0.03 },             // burun: ön orta sütun köşeleri dışa (ayrı küre KALKTI); profilden okunur
-    { x: 0, y: -0.175, rx: 0.07, ry: 0.05, d: 0.006 },                          // çene
+    // Paket 23 §E — YÜZ HACMİ. Ölçüldü: 47 cm çapındaki kafada 1,5–3 mm'lik kaydırmalar gölge üretmiyordu,
+    // yüz düz bir top olarak okunuyordu. Derinlikler profilden ve 3/4 açıdan okunacak seviyeye çıkarıldı.
+    { x: 0, y: -0.041, rx: 0.062, ry: 0.1, ryAlt: 0.056, d: 0.042 },            // burun sırtı 4,2 cm (eski 3,0)
+    { x: 0, y: -0.075, rx: 0.028, ry: 0.022, d: 0.012 },                        // burun ucu
+    { x: 0, y: -0.108, rx: 0.032, ry: 0.016, d: 0.006 },                        // filtrum (burun–dudak oluğu)
+    { x: 0, y: -0.132, rx: 0.052, ry: 0.022, d: 0.009 },                        // üst dudak kabartısı
+    { x: 0, y: -0.175, rx: 0.075, ry: 0.05, d: 0.016 },                         // çene ucu 1,6 cm (eski 0,6)
+    { x: 0, y: -0.205, rx: 0.085, ry: 0.03, d: -0.010 },                        // çene altı hattı: çene kütlesini ayırır
     ...[-1, 1].flatMap((s) => [
-      { x: s * 0.082, y: 0.02, rx: 0.062, ry: 0.045, d: -0.002 },               // göz çukuru: 2 mm çanak (yumuşak gölge)
-      { x: s * 0.08, y: 0.075, rx: 0.075, ry: 0.022, d: 0.0015 },               // kaş kemeri 1,5 mm
-      { x: s * 0.125, y: -0.04, rx: 0.06, ry: 0.05, d: 0.003 },                 // elmacık
+      { x: s * 0.082, y: 0.018, rx: 0.058, ry: 0.042, d: -0.009 },              // göz çukuru 9 mm çanak (eski 2 mm)
+      { x: s * 0.082, y: 0.048, rx: 0.052, ry: 0.016, d: 0.005 },               // üst göz kapağı kıvrımı
+      { x: s * 0.08, y: 0.078, rx: 0.072, ry: 0.024, d: 0.008 },                // kaş kemeri 8 mm (eski 1,5 mm)
+      { x: s * 0.125, y: -0.04, rx: 0.058, ry: 0.048, d: 0.008 },               // elmacık 8 mm (eski 3 mm)
+      { x: s * 0.052, y: -0.055, rx: 0.026, ry: 0.03, d: 0.006 },               // burun kanadı
     ]),
   ];
   const basOlcek = robot ? [1, 0.84, 0.92] : kaplan ? [1.06, 1.0, 1.04] : [1, 1.02, 1];   // 1G-A.3: kaplan kafası daha geniş ve basık   // robot 1G: kafa altı 1,36 m → boyun pistonu göğüs üstü (1,29) ile kafa arasında görünür

@@ -1939,7 +1939,7 @@
    ],
    "olcu": {
     "kesisim": "üçgen kesişimi var",
-    "gomulme_m": 0.0327
+    "gomulme_m": 0.0325
    },
    "not": "bağlama pozunda basYuva yuvasına takılı, gövdeye 3,3 cm giriyor",
    "sebep": "sözleşme: kulak → gecir"
@@ -1952,7 +1952,7 @@
    ],
    "olcu": {
     "kesisim": "üçgen kesişimi var",
-    "gomulme_m": 0.0327
+    "gomulme_m": 0.0325
    },
    "not": "bağlama pozunda basYuva yuvasına takılı, gövdeye 3,3 cm giriyor",
    "sebep": "sözleşme: kulak → gecir"
@@ -2319,11 +2319,11 @@
   },
   {
    "ada": "gozL:ifade [x -0.10 · y 1.61 · z 0.18]",
-   "oran": 0.02
+   "oran": 0.07
   },
   {
    "ada": "gozR:ifade [x 0.10 · y 1.61 · z 0.18]",
-   "oran": 0.01
+   "oran": 0.08
   },
   {
    "ada": "kapuson:esofman [x -0.00 · y 1.31 · z -0.11]",

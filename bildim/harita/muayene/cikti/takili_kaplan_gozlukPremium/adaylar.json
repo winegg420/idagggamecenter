@@ -103,7 +103,7 @@
  "oturma": [
   {
    "sac": 1,
-   "kose": 197,
+   "kose": 199,
    "yakin": 67,
    "temas": 21,
    "temas_orani": 0.313,
@@ -112,15 +112,15 @@
    "medyan_bosluk_m": 0.0078,
    "en_buyuk_bosluk_m": 0.0198,
    "en_yakin_m": 0,
-   "disa_bakan": 243,
+   "disa_bakan": 241,
    "gomulu_kose": 8,
    "en_derin_gomulme_m": 0.0719,
-   "yazi": "kaplan gozlukPremium (saç 1): gövdeye bakan 67 köşenin 21'i temas ediyor (%31), medyan boşluk 0,8 cm, en büyük 2,0 cm (toplam 197 köşe)",
+   "yazi": "kaplan gozlukPremium (saç 1): gövdeye bakan 67 köşenin 21'i temas ediyor (%31), medyan boşluk 0,8 cm, en büyük 2,0 cm (toplam 199 köşe)",
    "aday": false
   },
   {
    "sac": 2,
-   "kose": 197,
+   "kose": 199,
    "yakin": 67,
    "temas": 21,
    "temas_orani": 0.313,
@@ -129,15 +129,15 @@
    "medyan_bosluk_m": 0.0078,
    "en_buyuk_bosluk_m": 0.0198,
    "en_yakin_m": 0,
-   "disa_bakan": 243,
+   "disa_bakan": 241,
    "gomulu_kose": 8,
    "en_derin_gomulme_m": 0.0719,
-   "yazi": "kaplan gozlukPremium (saç 2): gövdeye bakan 67 köşenin 21'i temas ediyor (%31), medyan boşluk 0,8 cm, en büyük 2,0 cm (toplam 197 köşe)",
+   "yazi": "kaplan gozlukPremium (saç 2): gövdeye bakan 67 köşenin 21'i temas ediyor (%31), medyan boşluk 0,8 cm, en büyük 2,0 cm (toplam 199 köşe)",
    "aday": false
   },
   {
    "sac": 3,
-   "kose": 197,
+   "kose": 199,
    "yakin": 67,
    "temas": 21,
    "temas_orani": 0.313,
@@ -146,10 +146,10 @@
    "medyan_bosluk_m": 0.0078,
    "en_buyuk_bosluk_m": 0.0198,
    "en_yakin_m": 0,
-   "disa_bakan": 243,
+   "disa_bakan": 241,
    "gomulu_kose": 8,
    "en_derin_gomulme_m": 0.0719,
-   "yazi": "kaplan gozlukPremium (saç 3): gövdeye bakan 67 köşenin 21'i temas ediyor (%31), medyan boşluk 0,8 cm, en büyük 2,0 cm (toplam 197 köşe)",
+   "yazi": "kaplan gozlukPremium (saç 3): gövdeye bakan 67 köşenin 21'i temas ediyor (%31), medyan boşluk 0,8 cm, en büyük 2,0 cm (toplam 199 köşe)",
    "aday": false
   }
  ],

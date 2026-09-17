@@ -1,5 +1,5 @@
 {
- "tarih": "2026-09-17T20:31:03.777Z",
+ "tarih": "2026-09-17T20:37:45.253Z",
  "varliklar": {
   "karakter_insan": {
    "ucgen": 7104,
@@ -40,9 +40,9 @@
    ],
    "aday": {},
    "susturulan": {
-    "icice": 161,
+    "icice": 162,
     "gomulu": 25,
-    "kozmetik": 23
+    "kozmetik": 24
    }
   },
   "karakter_kaplan": {
@@ -451,7 +451,7 @@
    "susturulan": {}
   },
   "kozmetik_pelerin": {
-   "ucgen": 164,
+   "ucgen": 192,
    "malzeme": 1,
    "gorunumler": [
     "ön (+Z)",
@@ -495,9 +495,7 @@
     "06-alt-y.png",
     "07-beauty-perspektif-b-gölgeli.png"
    ],
-   "aday": {
-    "oturma": 1
-   },
+   "aday": {},
    "susturulan": {}
   },
   "takili_insan_gozluk": {
@@ -621,7 +619,7 @@
    "susturulan": {}
   },
   "takili_insan_pelerin": {
-   "ucgen": 5951,
+   "ucgen": 5979,
    "malzeme": 2,
    "gorunumler": [
     "ön (+Z)",
@@ -789,7 +787,7 @@
    "susturulan": {}
   },
   "takili_kaplan_pelerin": {
-   "ucgen": 6267,
+   "ucgen": 6295,
    "malzeme": 2,
    "gorunumler": [
     "ön (+Z)",
@@ -981,7 +979,7 @@
    "susturulan": {}
   },
   "takili_robot_pelerin": {
-   "ucgen": 6268,
+   "ucgen": 6296,
    "malzeme": 2,
    "gorunumler": [
     "ön (+Z)",

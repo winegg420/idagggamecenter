@@ -8,20 +8,20 @@
    "tur": "insan",
    "koz": "sapka",
    "kadraj": "bas",
-   "alan_orani": 0.2287,
+   "alan_orani": 0.2224,
    "tasma_orani": 0,
    "kutu": [
-    -0.74,
-    -0.26,
-    0.76,
-    0.54
+    -0.73,
+    -0.27,
+    0.75,
+    0.53
    ]
   },
   {
    "tur": "insan",
    "koz": "gozluk",
    "kadraj": "bas",
-   "alan_orani": 0.0453,
+   "alan_orani": 0.045,
    "tasma_orani": 0,
    "kutu": [
     -0.46,
@@ -34,7 +34,7 @@
    "tur": "insan",
    "koz": "gozlukPremium",
    "kadraj": "bas",
-   "alan_orani": 0.0696,
+   "alan_orani": 0.0695,
    "tasma_orani": 0,
    "kutu": [
     -0.45,
@@ -47,7 +47,7 @@
    "tur": "insan",
    "koz": "atki",
    "kadraj": "govde",
-   "alan_orani": 0.0696,
+   "alan_orani": 0.0676,
    "tasma_orani": 0,
    "kutu": [
     -0.51,
@@ -60,12 +60,12 @@
    "tur": "insan",
    "koz": "kanat",
    "kadraj": "kanat",
-   "alan_orani": 0.0512,
+   "alan_orani": 0.049,
    "tasma_orani": 0,
    "kutu": [
-    -0.91,
+    -0.9,
     -0.38,
-    0.78,
+    0.7,
     0.58
    ]
   },
@@ -86,33 +86,33 @@
    "tur": "insan",
    "koz": "pelerin",
    "kadraj": "sirt",
-   "alan_orani": 0.0888,
+   "alan_orani": 0.079,
    "tasma_orani": 0,
    "kutu": [
-    -0.67,
-    -0.55,
-    0.13,
-    0.48
+    -0.61,
+    -0.58,
+    0.16,
+    0.55
    ]
   },
   {
    "tur": "kaplan",
    "koz": "sapka",
    "kadraj": "bas",
-   "alan_orani": 0.1817,
+   "alan_orani": 0.1767,
    "tasma_orani": 0,
    "kutu": [
-    -0.72,
-    -0.27,
-    0.75,
-    0.43
+    -0.71,
+    -0.28,
+    0.74,
+    0.42
    ]
   },
   {
    "tur": "kaplan",
    "koz": "gozluk",
    "kadraj": "bas",
-   "alan_orani": 0.0492,
+   "alan_orani": 0.0493,
    "tasma_orani": 0,
    "kutu": [
     -0.45,
@@ -151,20 +151,20 @@
    "tur": "kaplan",
    "koz": "kanat",
    "kadraj": "kanat",
-   "alan_orani": 0.0592,
+   "alan_orani": 0.0657,
    "tasma_orani": 0,
    "kutu": [
-    -0.98,
-    -0.39,
-    0.64,
-    0.59
+    -0.9,
+    -0.38,
+    0.78,
+    0.58
    ]
   },
   {
    "tur": "kaplan",
    "koz": "tac",
    "kadraj": "bas",
-   "alan_orani": 0.1137,
+   "alan_orani": 0.1124,
    "tasma_orani": 0,
    "kutu": [
     -0.75,
@@ -177,13 +177,13 @@
    "tur": "kaplan",
    "koz": "pelerin",
    "kadraj": "sirt",
-   "alan_orani": 0.0777,
+   "alan_orani": 0.0674,
    "tasma_orani": 0,
    "kutu": [
-    -0.67,
-    -0.55,
-    0.13,
-    0.48
+    -0.61,
+    -0.58,
+    0.16,
+    0.55
    ]
   },
   {
@@ -242,13 +242,13 @@
    "tur": "robot",
    "koz": "kanat",
    "kadraj": "kanat",
-   "alan_orani": 0.0571,
+   "alan_orani": 0.0557,
    "tasma_orani": 0,
    "kutu": [
-    -0.91,
-    -0.38,
-    0.78,
-    0.58
+    -0.99,
+    -0.39,
+    0.55,
+    0.59
    ]
   },
   {
@@ -268,13 +268,13 @@
    "tur": "robot",
    "koz": "pelerin",
    "kadraj": "sirt",
-   "alan_orani": 0.0984,
+   "alan_orani": 0.0976,
    "tasma_orani": 0,
    "kutu": [
-    -0.67,
-    -0.55,
-    0.13,
-    0.48
+    -0.61,
+    -0.58,
+    0.16,
+    0.55
    ]
   }
  ],

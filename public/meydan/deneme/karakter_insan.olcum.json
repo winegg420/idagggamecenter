@@ -78,7 +78,7 @@
  ],
  "ao": {
   "govde": {
-   "ort": 0.572,
+   "ort": 0.571,
    "min": 0.15,
    "kose": 4412
   },
@@ -89,16 +89,16 @@
   },
   "kozmetik_atki": {
    "ort": 0.213,
-   "min": 0.152,
+   "min": 0.151,
    "kose": 188
   },
   "kozmetik_gozluk": {
-   "ort": 0.671,
-   "min": 0.157,
+   "ort": 0.67,
+   "min": 0.155,
    "kose": 312
   },
   "kozmetik_gozlukPremium": {
-   "ort": 0.574,
+   "ort": 0.57,
    "min": 0.15,
    "kose": 444
   },

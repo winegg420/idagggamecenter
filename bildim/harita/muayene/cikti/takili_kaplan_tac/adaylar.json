@@ -41,12 +41,12 @@
    "yaslanma_m": 0.0049,
    "yaslanan_kose": 19,
    "medyan_bosluk_m": 0.0147,
-   "en_buyuk_bosluk_m": 0.0188,
+   "en_buyuk_bosluk_m": 0.018,
    "en_yakin_m": 0,
    "disa_bakan": 79,
    "gomulu_kose": 4,
    "en_derin_gomulme_m": 0.0005,
-   "yazi": "kaplan tac (saç 1): gövdeye bakan 75 köşenin 16'i temas ediyor (%21), medyan boşluk 1,5 cm, en büyük 1,9 cm (toplam 88 köşe)",
+   "yazi": "kaplan tac (saç 1): gövdeye bakan 75 köşenin 16'i temas ediyor (%21), medyan boşluk 1,5 cm, en büyük 1,8 cm (toplam 88 köşe)",
    "aday": false
   },
   {
@@ -58,12 +58,12 @@
    "yaslanma_m": 0.0049,
    "yaslanan_kose": 19,
    "medyan_bosluk_m": 0.0147,
-   "en_buyuk_bosluk_m": 0.0188,
+   "en_buyuk_bosluk_m": 0.018,
    "en_yakin_m": 0,
    "disa_bakan": 79,
    "gomulu_kose": 4,
    "en_derin_gomulme_m": 0.0005,
-   "yazi": "kaplan tac (saç 2): gövdeye bakan 75 köşenin 16'i temas ediyor (%21), medyan boşluk 1,5 cm, en büyük 1,9 cm (toplam 88 köşe)",
+   "yazi": "kaplan tac (saç 2): gövdeye bakan 75 köşenin 16'i temas ediyor (%21), medyan boşluk 1,5 cm, en büyük 1,8 cm (toplam 88 köşe)",
    "aday": false
   },
   {
@@ -75,12 +75,12 @@
    "yaslanma_m": 0.0049,
    "yaslanan_kose": 19,
    "medyan_bosluk_m": 0.0147,
-   "en_buyuk_bosluk_m": 0.0188,
+   "en_buyuk_bosluk_m": 0.018,
    "en_yakin_m": 0,
    "disa_bakan": 79,
    "gomulu_kose": 4,
    "en_derin_gomulme_m": 0.0005,
-   "yazi": "kaplan tac (saç 3): gövdeye bakan 75 köşenin 16'i temas ediyor (%21), medyan boşluk 1,5 cm, en büyük 1,9 cm (toplam 88 köşe)",
+   "yazi": "kaplan tac (saç 3): gövdeye bakan 75 köşenin 16'i temas ediyor (%21), medyan boşluk 1,5 cm, en büyük 1,8 cm (toplam 88 köşe)",
    "aday": false
   }
  ],
