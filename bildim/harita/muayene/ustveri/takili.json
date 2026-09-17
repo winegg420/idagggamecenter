@@ -2,10 +2,18 @@
   "_aciklama": "Paket 21 §E.1 — TAKILI POZ ailesi. Her tür × kozmetik için Idle pozunda GLB üretilir (muayene/uretilen/takili_<tür>_<kozmetik>.glb) ve B (oturma) · C (açık kenar) · D (kalınlık) testleri KOZMETİK adaları üzerinde çalışır. Gövde ayrıca karakter_* varlıklarında denetleniyor.",
   "tip": "takili",
   "klasor": "/bildim/harita/muayene/uretilen/",
-  "saclar": [1, 2, 3],
+  "saclar": [
+    1,
+    2,
+    3
+  ],
   "_saclar_not": "Oyunda üç saç varyantı var (kâse · kısa · kuyruk). Başa oturan kozmetik hepsinde oturmalı; en kötü varyant karar verir.",
   "zemin_temasi": false,
   "simetri_zorunlu": [],
   "acik_kenar_izinli": [],
-  "yassi_olabilir": []
+  "yassi_olabilir": [],
+  "siluet_muaf_turler": [
+    "robot"
+  ],
+  "_siluet_muaf_gerekce": "Paket 23 §A: robot gövdesi bilerek AYRIK KÜTLELERDEN kuruludur (kalça bloğu · bel halkası · göğüs bloğu, aralarında 8 cm boşluk — 1G-A.1 kararı) ve sahibinin karın çıkıntısı şikâyeti robotta yok. Merkez eksenden ışınla ölçülen kesit derinliği bu tasarımda anlamlı değil; bu yüzden `siluet_profili` robotta çalıştırılmaz. `durus_ekseni` robotta da çalışır."
 }

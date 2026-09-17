@@ -12,17 +12,42 @@
    "oran_esigi": 0.15,
    "yaslanma_esigi_m": 0.008
   },
-  "ada": 4,
+  "ada": 2,
   "acik_kenar": {
-   "ada": 4,
-   "delik_dongusu": 0,
+   "ada": 2,
+   "delik_dongusu": 2,
    "esik_ustu": 0,
    "esik_m2": 0.0004
   },
   "kalinlik": {
-   "olculen_ada": 4,
+   "olculen_ada": 2,
    "asgari_kalinlik_m": 0.025,
    "alan_esigi_m2": 0.02
+  },
+  "parca_butunlugu": {
+   "ada": 2,
+   "temas_m": 0.006,
+   "bagli_grup": 1,
+   "ada_mesafeleri_cm": [
+    "0-1: 0,2"
+   ]
+  },
+  "siluet_profili": {
+   "karin_derinlik_m": 0.3008,
+   "gogus_derinlik_m": 0.3192,
+   "bel_orani": 0.058,
+   "esik": 0.08,
+   "muaf": "Paket 23 §A: robot gövdesi bilerek AYRIK KÜTLELERDEN kuruludur (kalça bloğu · bel halkası · göğüs bloğu, aralarında 8 cm boşluk — 1G-A.1 kararı) ve sahibinin karın çıkıntısı şikâyeti robotta yok. Merkez eksenden ışınla ölçülen kesit derinliği bu tasarımda anlamlı değil; bu yüzden `siluet_profili` robotta çalıştırılmaz. `durus_ekseni` robotta da çalışır."
+  },
+  "durus_ekseni": {
+   "kemik_dz_m": 0.0143,
+   "govde_yuzeyi_dz_m": 0.0007,
+   "aci_derece": 0.2,
+   "karin_tasma_m": -0.0332,
+   "esikler": {
+    "durus_one_yatik_m": 0.02,
+    "karin_tasma_m": 0
+   }
   }
  },
  "adaylar": [],
@@ -30,77 +55,65 @@
  "oturma": [
   {
    "sac": 1,
-   "kose": 130,
-   "yakin": 92,
+   "kose": 95,
+   "yakin": 88,
    "temas": 80,
-   "temas_orani": 0.87,
+   "temas_orani": 0.909,
    "yaslanma_m": 0.0048,
-   "yaslanan_kose": 23,
+   "yaslanan_kose": 22,
    "medyan_bosluk_m": 0.005,
-   "en_buyuk_bosluk_m": 0.0198,
+   "en_buyuk_bosluk_m": 0.0142,
    "en_yakin_m": 0.0024,
-   "disa_bakan": 166,
+   "disa_bakan": 111,
    "gomulu_kose": 0,
    "en_derin_gomulme_m": 0,
-   "yazi": "robot sapka (saç 1): gövdeye bakan 92 köşenin 80'i temas ediyor (%87), medyan boşluk 0,5 cm, en büyük 2,0 cm (toplam 130 köşe)",
+   "yazi": "robot sapka (saç 1): gövdeye bakan 88 köşenin 80'i temas ediyor (%91), medyan boşluk 0,5 cm, en büyük 1,4 cm (toplam 95 köşe)",
    "aday": false
   },
   {
    "sac": 2,
-   "kose": 130,
-   "yakin": 92,
+   "kose": 95,
+   "yakin": 88,
    "temas": 80,
-   "temas_orani": 0.87,
+   "temas_orani": 0.909,
    "yaslanma_m": 0.0048,
-   "yaslanan_kose": 23,
+   "yaslanan_kose": 22,
    "medyan_bosluk_m": 0.005,
-   "en_buyuk_bosluk_m": 0.0198,
+   "en_buyuk_bosluk_m": 0.0142,
    "en_yakin_m": 0.0024,
-   "disa_bakan": 166,
+   "disa_bakan": 111,
    "gomulu_kose": 0,
    "en_derin_gomulme_m": 0,
-   "yazi": "robot sapka (saç 2): gövdeye bakan 92 köşenin 80'i temas ediyor (%87), medyan boşluk 0,5 cm, en büyük 2,0 cm (toplam 130 köşe)",
+   "yazi": "robot sapka (saç 2): gövdeye bakan 88 köşenin 80'i temas ediyor (%91), medyan boşluk 0,5 cm, en büyük 1,4 cm (toplam 95 köşe)",
    "aday": false
   },
   {
    "sac": 3,
-   "kose": 130,
-   "yakin": 92,
+   "kose": 95,
+   "yakin": 88,
    "temas": 80,
-   "temas_orani": 0.87,
+   "temas_orani": 0.909,
    "yaslanma_m": 0.0048,
-   "yaslanan_kose": 23,
+   "yaslanan_kose": 22,
    "medyan_bosluk_m": 0.005,
-   "en_buyuk_bosluk_m": 0.0198,
+   "en_buyuk_bosluk_m": 0.0142,
    "en_yakin_m": 0.0024,
-   "disa_bakan": 166,
+   "disa_bakan": 111,
    "gomulu_kose": 0,
    "en_derin_gomulme_m": 0,
-   "yazi": "robot sapka (saç 3): gövdeye bakan 92 köşenin 80'i temas ediyor (%87), medyan boşluk 0,5 cm, en büyük 2,0 cm (toplam 130 köşe)",
+   "yazi": "robot sapka (saç 3): gövdeye bakan 88 köşenin 80'i temas ediyor (%91), medyan boşluk 0,5 cm, en büyük 1,4 cm (toplam 95 köşe)",
    "aday": false
   }
  ],
  "adaListesi": [
   {
    "no": 0,
-   "ada": "diger:sapka [x -0.03 · y 1.65 · z 0.15]",
-   "ucgen": 320,
-   "kapali": true
+   "ada": "diger:sapka [x -0.03 · y 1.64 · z 0.17]",
+   "ucgen": 366,
+   "kapali": false
   },
   {
    "no": 1,
-   "ada": "diger:sapkaSiperi [x -0.02 · y 1.52 · z 0.43]",
-   "ucgen": 108,
-   "kapali": true
-  },
-  {
-   "no": 2,
-   "ada": "diger:sapkaSiperi [x -0.02 · y 1.61 · z 0.14]",
-   "ucgen": 96,
-   "kapali": true
-  },
-  {
-   "no": 3,
    "ada": "diger:sapkaSiperi [x -0.03 · y 1.69 · z 0.17]",
    "ucgen": 64,
    "kapali": true

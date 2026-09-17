@@ -23,6 +23,16 @@
    "olculen_ada": 3,
    "asgari_kalinlik_m": 0.025,
    "alan_esigi_m2": 0.02
+  },
+  "parca_butunlugu": {
+   "ada": 3,
+   "temas_m": 0.006,
+   "bagli_grup": 1,
+   "ada_mesafeleri_cm": [
+    "0-1: 0,0",
+    "0-2: 0,1",
+    "1-2: 9,6"
+   ]
   }
  },
  "adaylar": [],

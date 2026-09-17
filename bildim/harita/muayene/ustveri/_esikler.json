@@ -17,7 +17,17 @@
     "portre_asgari_oran": "Paket önerisi %4.",
     "portre_tasma_orani": "Kozmetiğin ekran-uzayı kutusunun %2'sinden fazlası kadraj dışındaysa kesilmiş sayılır.",
     "kalinlik_asgari_m": "Paket önerisi ORAN (0,02) idi; ölçtük: kanat tüyü 1,4 cm kalınlıkta ama 28-46 cm uzun → oran 0,03-0,05, oran kuralı YAKALAMIYOR. Mutlak kalınlığa geçildi: en kısa uzanım < 2,5 cm ve alan > 0,02 m² → kâğıt gibi. Kavisli tek yüzlü kabuklar (pelerin, taç halkası, şapka kubbesi) zaten acik_kenar testine düşüyor (hacimleri hiç yok).",
-    "oturma_yaslanma_m": "Yaslanma = gövdeye en yakın ÇEYREK köşenin medyanı ≤ 8 mm. Temas oranının yanında ikinci ölçüt: kozmetiğin dayanması gereken bölgesi gerçekten dayanıyor mu."
+    "oturma_yaslanma_m": "Yaslanma = gövdeye en yakın ÇEYREK köşenin medyanı ≤ 8 mm. Temas oranının yanında ikinci ölçüt: kozmetiğin dayanması gereken bölgesi gerçekten dayanıyor mu.",
+    "parca_temas_m": "Paket 23 §F.1: bir kozmetigin adalari birbirine bu mesafede degmeli (oturma temas esigiyle ayni olcek, 6 mm). Sebep olculdu: atkinin halkasi boyna, ucu gogse degdigi icin 'havada' testi ikisini de bagli sayiyor, birbirlerine degmedikleri hic sorulmuyordu (takili_insan_atki 2 ada / 0 aday).",
+    "bel_orani_asgari": "Paket 23 §F.2: karin derinligi, gogus derinliginin en az %8 altinda olmali. Sebep olculdu: govde tek kapsuldu, isinla olculen derinlik her yukseklikte 40,0 cm — bel yok, fici govde. Bunu olcen hicbir test yoktu.",
+    "durus_one_yatik_m": "Paket 23 §F.3: Idle t=0,5'te govde YUZEYININ ekseni (ust kesit merkezleri - alt kesit merkezleri) en fazla 2 cm one. Butun diger olcumler baglama pozunda yapiliyordu; durusu olcen test yoktu.",
+    "karin_tasma_m": "Paket 23 §F.3: karin hizasinin en ileri Z'si gogus hizasinin en ileri Z'sini gecmemeli (0 cm).",
+    "kozmetik_gomulme_m": "Paket 23: `kozmetik` testi bagalma pozunda kozmetik ↔ gövde üçgen kesişimi arıyordu; ama `oturma` testi kozmetiğin gövdeye TEMAS etmesini (≤ 6 mm) şart koşuyor ve temas için yüzeye birkaç mm girmek gerekiyor — iki test zıt şart koyuyordu. Artık kesişimin derinliği ölçülüyor: 2 cm'ye kadar yüzeysel temas sayılır (susturulan olarak raporlanır), daha derini saplanmadır ve aday olur."
   },
-  "oturma_yaslanma_m": 0.008
+  "oturma_yaslanma_m": 0.008,
+  "parca_temas_m": 0.006,
+  "bel_orani_asgari": 0.08,
+  "durus_one_yatik_m": 0.02,
+  "karin_tasma_m": 0,
+  "kozmetik_gomulme_m": 0.02
 }

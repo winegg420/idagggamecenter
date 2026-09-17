@@ -205,6 +205,124 @@ export async function kodKozmetikTestEt(dosya, u, E) {
   return sonuc;
 }
 
+// ---------------------------------------------------------------- PAKET 23 §F.1 PARÇA BÜTÜNLÜĞÜ
+/**
+ * Bir kozmetiğin adaları BİRBİRİNE bağlı mı? `havada` testi yalnız gövdeye teması ölçüyor: atkının halkası boyna,
+ * ucu göğse değdiği için ikisi de "bağlı" sayılıyor, birbirlerine değmedikleri hiç sorulmuyordu (ölçüldü:
+ * takili_insan_atki 2 ada / 0 aday, takili_insan_sapka 3 ada / 0 aday — sahibinin gördüğü kopukluk tam buydu).
+ * Kural: birden fazla ada varsa, her ada en az bir başka adaya `parca_temas_m` içinde değmeli.
+ * Kasıtlı ayrık parçalar `ayrik_izinli` ile GEREKÇELİ muaf tutulur (gerekçesiz muafiyet yok).
+ */
+export function testParcaButunlugu(adalar, u, E, sonuc, onek = "") {
+  sonuc.istatistik.parca_butunlugu = { ada: adalar.length, temas_m: E.parca_temas_m };
+  if (adalar.length < 2) return;
+  const bvhler = adalar.map((A) => A.geo.boundsTree ?? (A.geo.boundsTree = new MeshBVH(A.geo)));
+  const enYakin = (i, j) => {
+    const p = adalar[i].geo.attributes.position, h = {}, v = new THREE.Vector3();
+    let en = Infinity;
+    for (let k = 0; k < p.count; k += Math.max(1, Math.floor(p.count / 400))) {
+      v.fromBufferAttribute(p, k);
+      const r = bvhler[j].closestPointToPoint(v, h, 0, en);
+      if (r) en = Math.min(en, r.distance);
+      if (en <= E.parca_temas_m) break;
+    }
+    return en;
+  };
+  // Adaları temas grafiğiyle birleştir (birleşim-bul)
+  const ebeveyn = adalar.map((_, i) => i);
+  const bul = (x) => { while (ebeveyn[x] !== x) { ebeveyn[x] = ebeveyn[ebeveyn[x]]; x = ebeveyn[x]; } return x; };
+  const mesafe = new Map();
+  for (let i = 0; i < adalar.length; i++) {
+    for (let j = i + 1; j < adalar.length; j++) {
+      const d = Math.min(enYakin(i, j), enYakin(j, i));
+      mesafe.set(`${i}-${j}`, d);
+      if (d <= E.parca_temas_m) ebeveyn[bul(i)] = bul(j);
+    }
+  }
+  const gruplar = new Map();
+  adalar.forEach((_, i) => { const r = bul(i); gruplar.set(r, [...(gruplar.get(r) ?? []), i]); });
+  sonuc.istatistik.parca_butunlugu.bagli_grup = gruplar.size;
+  sonuc.istatistik.parca_butunlugu.ada_mesafeleri_cm = [...mesafe].map(([k, d]) => `${k}: ${cm(d)}`);
+  if (gruplar.size < 2) return;
+  // Her kopuk grup için: en büyük gruba olan en kısa mesafe
+  const sirali = [...gruplar.values()].sort((a, b) => b.length - a.length);
+  const ana = sirali[0];
+  for (const grup of sirali.slice(1)) {
+    let en = Infinity;
+    for (const i of grup) for (const j of ana) en = Math.min(en, mesafe.get(`${Math.min(i, j)}-${Math.max(i, j)}`) ?? Infinity);
+    const A = adalar[grup[0]];
+    const izin = (u.ayrik_izinli ?? []).find((x) => eslesir(A, x.desen ?? x));
+    const kayit = {
+      test: "parca_butunlugu",
+      adalar: grup.map((i) => onek + adaYazi(adalar[i])),
+      olcu: { kopuk_ada: grup.length, ana_govdeye_uzaklik_m: +en.toFixed(4), temas_esigi_m: E.parca_temas_m },
+      not: `kozmetiğin ${grup.length} adası diğer parçalara değmiyor — en yakın parça ${cm(en)} cm uzakta (eşik ${cm(E.parca_temas_m)} cm)`,
+    };
+    if (izin) sonuc.susturulan.push({ ...kayit, sebep: izin.sebep ?? "ayrik_izinli" }); else sonuc.adaylar.push(kayit);
+  }
+}
+
+// ---------------------------------------------------------------- PAKET 23 §F.2 / §F.3 GÖVDE
+/** Gövde kesitleri: her yükseklikte merkez eksenden ışınla ön/arka/yan yüzey (düşük çözünürlükte köşe saymak yanıltıyordu). */
+export function govdeKesitleri(geo, y0, y1, N = 11) {
+  const mesh = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({ side: THREE.DoubleSide }));
+  mesh.updateMatrixWorld(true);
+  const rc = new THREE.Raycaster();
+  const at = (y, yon) => {
+    rc.set(new THREE.Vector3(0, y, 0), yon);
+    const k = rc.intersectObject(mesh, false).filter((h) => h.distance <= 0.6);
+    return k.length ? k[k.length - 1].distance : null;
+  };
+  const out = [];
+  for (let i = 0; i < N; i++) {
+    const t = i / (N - 1), y = y0 + (y1 - y0) * t;
+    const on = at(y, new THREE.Vector3(0, 0, 1)), arka = at(y, new THREE.Vector3(0, 0, -1));
+    if (on == null || arka == null) continue;
+    out.push({ t, y, on, arka, derinlik: on + arka, merkez: (on - arka) / 2 });
+  }
+  return out;
+}
+
+/**
+ * §F.2 `siluet_profili` — gövde boyunca yatay kesit yükseklikle değişiyor mu? Sabit yarıçap = fıçı gövde.
+ * §F.3 `durus_ekseni` — Idle pozunda gövdenin öne yatıklığı ve karın taşması (bütün diğer ölçümler bağlama pozunda).
+ */
+export function govdeTestEt(s, u, E, sonuc) {
+  const { Hips: hips, Neck: neck } = s.kemik ?? {};
+  if (!hips || !neck) { sonuc.istatistik.siluet_profili = "kemik konumu yok (atlandı)"; return; }
+  const k = govdeKesitleri(s.govde, hips.y + 0.05, neck.y - 0.04);
+  if (k.length < 4) { sonuc.istatistik.siluet_profili = "kesit alınamadı"; return; }
+  const alt = k.filter((d) => d.t <= 0.3), ust = k.filter((d) => d.t >= 0.7);
+  const ort = (a, f) => a.reduce((x, d) => x + f(d), 0) / Math.max(1, a.length);
+  const karin = k.filter((d) => d.t >= 0.15 && d.t <= 0.45), gogus = k.filter((d) => d.t >= 0.55 && d.t <= 0.85);
+  const dk = Math.max(...karin.map((d) => d.derinlik)), dg = Math.max(...gogus.map((d) => d.derinlik));
+  const belOrani = (dg - dk) / dg;
+  const tasma = Math.max(...karin.map((d) => d.on)) - Math.max(...gogus.map((d) => d.on));
+  const yuzeyDz = ort(ust, (d) => d.merkez) - ort(alt, (d) => d.merkez);
+  const aci = (Math.atan2(yuzeyDz, ort(ust, (d) => d.y) - ort(alt, (d) => d.y)) * 180) / Math.PI;
+
+  sonuc.istatistik.siluet_profili = { karin_derinlik_m: +dk.toFixed(4), gogus_derinlik_m: +dg.toFixed(4), bel_orani: +belOrani.toFixed(3), esik: E.bel_orani_asgari };
+  sonuc.istatistik.durus_ekseni = { kemik_dz_m: +(neck.z - hips.z).toFixed(4), govde_yuzeyi_dz_m: +yuzeyDz.toFixed(4), aci_derece: +aci.toFixed(1), karin_tasma_m: +tasma.toFixed(4), esikler: { durus_one_yatik_m: E.durus_one_yatik_m, karin_tasma_m: E.karin_tasma_m } };
+
+  const siluetMuaf = (u.siluet_muaf_turler ?? []).includes(u.tur);
+  if (siluetMuaf) sonuc.istatistik.siluet_profili.muaf = u._siluet_muaf_gerekce ?? "tür muaf";
+  if (!siluetMuaf && belOrani < E.bel_orani_asgari) sonuc.adaylar.push({
+    test: "siluet_profili", adalar: ["Govde"],
+    olcu: sonuc.istatistik.siluet_profili,
+    not: `bel yok: karın derinliği ${cm(dk)} cm, göğüs ${cm(dg)} cm → fark %${(belOrani * 100).toFixed(1)} < %${E.bel_orani_asgari * 100}`,
+  });
+  if (yuzeyDz > E.durus_one_yatik_m) sonuc.adaylar.push({
+    test: "durus_ekseni", adalar: ["Govde"],
+    olcu: sonuc.istatistik.durus_ekseni,
+    not: `gövde öne yatık: yüzey ekseni ${cm(yuzeyDz)} cm (${aci.toFixed(1)}°) > ${cm(E.durus_one_yatik_m)} cm`,
+  });
+  if (tasma > E.karin_tasma_m) sonuc.adaylar.push({
+    test: "durus_ekseni", adalar: ["Govde"],
+    olcu: sonuc.istatistik.durus_ekseni,
+    not: `karın göğüsten ${cm(tasma)} cm ileride (eşik ${cm(E.karin_tasma_m)} cm)`,
+  });
+}
+
 /** §E.1 takılı poz: oturma (saç varyantlarının hepsinde) + açık kenar + kalınlık, kozmetik adaları üzerinde. */
 export async function takiliTestEt(dosya, u, E) {
   const gltf = await glbOku(dosya);
@@ -225,6 +343,12 @@ export async function takiliTestEt(dosya, u, E) {
   sonuc.istatistik.ada = adalar.length;
   testAcikKenar(adalar, u, E, sonuc, `kozmetik_${koz} · `);
   testKalinlik(adalar, u, E, sonuc, `kozmetik_${koz} · `);
+  testParcaButunlugu(adalar, u, E, sonuc, `kozmetik_${koz} · `);   // §F.1
+  // §F.2/§F.3: gövde siluet + duruş — Idle pozunda, tür başına bir kez (şapka satırında ölçmek yeter)
+  if (koz === "sapka") {
+    const poz = await takiliKur(u.tur, "sapka", { sac: 1, klip: "Idle", zaman: 0.5 });
+    govdeTestEt(poz, u, E, sonuc);
+  }
   sonuc.adaListesi = adalar.map((a) => ({ no: a.no, ada: adaYazi(a), ucgen: a.ucgen, kapali: a.kapali }));
   return sonuc;
 }

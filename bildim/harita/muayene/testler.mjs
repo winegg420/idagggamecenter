@@ -17,6 +17,7 @@ import fs from "fs";
 import path from "path";
 import * as THREE from "three";
 import { MeshBVH } from "three-mesh-bvh";
+import { fileURLToPath } from "url";
 import { hucreTablosu, YUZ, ifadeRect } from "../varlik/atlas.mjs";
 import { glbOku } from "./glbOku.mjs";
 
@@ -130,6 +131,7 @@ function icinde(bvh, kutu, v) {
 const yakinNokta = {};
 function mesafe(bvh, v, max) { const r = bvh.closestPointToPoint(v, yakinNokta, 0, max); return r ? r.distance : Infinity; }
 const kutuYakin = (a, b, e) => a.min.x - e <= b.max.x && a.max.x + e >= b.min.x && a.min.y - e <= b.max.y && a.max.y + e >= b.min.y && a.min.z - e <= b.max.z && a.max.z + e >= b.min.z;
+const ESIKLER = JSON.parse(fs.readFileSync(path.join(path.dirname(fileURLToPath(import.meta.url)), "ustveri/_esikler.json"), "utf8"));
 const BIRIM = new THREE.Matrix4();
 
 function temasEder(A, B, esik) {
@@ -221,6 +223,31 @@ function testIcice(adalar, u, sonuc) {
   sonuc.istatistik.icice = { kapali_ada: kapali.length, acik_ada: adalar.length - kapali.length, pay_m: pay, gomulu_oran_esigi: gomuluEsik };
 }
 
+/**
+ * Paket 23: kozmetiğin gövde adasının İÇİNE ne kadar girdiği (en derin köşe, metre). Yüzeysel temas (oturma testi
+ * bunu ister) ile saplanmayı ayırır.
+ */
+function kesismeDerinligi(kozGeo, adaBvh) {
+  const p = kozGeo.attributes.position, v = new THREE.Vector3(), h = {};
+  let en = 0, bakilan = 0;
+  const adim = Math.max(1, Math.floor(p.count / 600));
+  for (let i = 0; i < p.count; i += adim) {
+    v.fromBufferAttribute(p, i);
+    const r = adaBvh.closestPointToPoint(v, h, 0, 0.12);
+    if (!r) continue;
+    bakilan++;
+    // içeride mi: en yakın üçgenin normaline göre
+    const ti = h.faceIndex;
+    if (ti == null) continue;
+    const gi = adaBvh.geometry.index, gp = adaBvh.geometry.attributes.position;
+    const a = gi ? gi.getX(ti * 3) : ti * 3, b = gi ? gi.getX(ti * 3 + 1) : ti * 3 + 1, c = gi ? gi.getX(ti * 3 + 2) : ti * 3 + 2;
+    const t0 = new THREE.Vector3().fromBufferAttribute(gp, a), t1 = new THREE.Vector3().fromBufferAttribute(gp, b), t2 = new THREE.Vector3().fromBufferAttribute(gp, c);
+    const n = t1.clone().sub(t0).cross(t2.clone().sub(t0)).normalize();
+    if (n.dot(v.clone().sub(t0)) < 0) en = Math.max(en, r.distance);
+  }
+  return bakilan ? en : null;
+}
+
 async function testKozmetik(dosyaYolu, gltf, adalar, u, sonuc) {
   const govdeUD = gltf.scene.getObjectByName("Govde")?.userData;
   const kaynaklar = u.kozmetik ?? {};
@@ -243,8 +270,21 @@ async function testKozmetik(dosyaYolu, gltf, adalar, u, sonuc) {
     for (const A of adalar) {
       if (!kutuYakin(A.kutu, g.boundingBox, 0)) continue;
       if (!bvh.intersectsGeometry(A.geo, BIRIM)) continue;
+      // Paket 23: kesişimin DERİNLİĞİ ölçülür. Kozmetiğin gövdeye oturması için yüzeye birkaç milimetre girmesi
+      // gerekir (`oturma` testi temas şartı koyar) — iki test zıt şart koymasın diye yalnız DERİN saplanma aday.
+      const derinlik = kesismeDerinligi(g, A.geo.boundsTree ?? (A.geo.boundsTree = new MeshBVH(A.geo)));   // KOZMETİĞİN gövde içindeki derinliği
+      const esik = ESIKLER.kozmetik_gomulme_m ?? u.kozmetik_gomulme_m ?? 0.02;
+      if (derinlik != null && derinlik <= esik) {
+        sonuc.susturulan.push({
+          test: "kozmetik", adalar: [`kozmetik_${ad} (${glb})`, adaYazi(A)],
+          olcu: { gomulme_m: +derinlik.toFixed(4), esik_m: esik },
+          not: `yüzeysel temas: kozmetik gövdeye ${(derinlik * 100).toFixed(1).replace(".", ",")} cm giriyor (eşik ${(esik * 100).toFixed(0)} cm)`,
+          sebep: "oturma testi temas ister; bu derinlik eşiğin altında",
+        });
+        continue;
+      }
       const kural = izinliKural(u.kozmetik_izinli, koz, A), soz = kural ? null : sozlesme(A);
-      const kayit = { test: "kozmetik", adalar: [`kozmetik_${ad} (${glb})`, adaYazi(A)], olcu: { kesisim: "üçgen kesişimi var" }, not: `bağlama pozunda ${KOZ_YUVA[ad]} yuvasına takılı` };
+      const kayit = { test: "kozmetik", adalar: [`kozmetik_${ad} (${glb})`, adaYazi(A)], olcu: { kesisim: "üçgen kesişimi var", gomulme_m: derinlik == null ? null : +derinlik.toFixed(4) }, not: `bağlama pozunda ${KOZ_YUVA[ad]} yuvasına takılı, gövdeye ${derinlik == null ? "?" : (derinlik * 100).toFixed(1).replace(".", ",")} cm giriyor` };
       if (kural) sonuc.susturulan.push({ ...kayit, sebep: kural.sebep }); else if (soz) sonuc.susturulan.push({ ...kayit, sebep: soz }); else sonuc.adaylar.push(kayit);
     }
   }

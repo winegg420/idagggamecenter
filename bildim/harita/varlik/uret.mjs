@@ -194,6 +194,45 @@ function kafayaOturanBant(yuzey, merkez, { aci0 = -0.95, aciBoy = 1.9, yukari = 
 }
 
 /**
+ * Paket 23 §C/§D — ŞERİT SÜPÜRME: bir eğri boyunca dikdörtgen kesitli, KAPALI ve TEK PARÇA kumaş şeridi.
+ * Atkının boyun halkası ile sarkan ucu ayrı parçalardı (ölçüldü: 2 ada) — artık tek yol boyunca süpürülüyor.
+ * @param {THREE.Curve} egri  @param {(t:number)=>[number, number]} kesit  t → [genişlik, kalınlık]
+ */
+function seritSupur(egri, kesit, { N = 40, kapak = true } = {}) {
+  const poz = [], uv = [], idx = [], { tangents, normals, binormals } = egri.computeFrenetFrames(N, false);
+  const halkalar = [];
+  for (let i = 0; i <= N; i++) {
+    const t = i / N, p = egri.getPointAt(t), [g, k] = kesit(t);
+    const nb = binormals[Math.min(i, N - 1)], nn = normals[Math.min(i, N - 1)];
+    const bas = poz.length / 3;
+    // dikdörtgen kesit: (±genişlik/2, ±kalınlık/2)
+    for (const [a, b] of [[-0.5, 0.5], [0.5, 0.5], [0.5, -0.5], [-0.5, -0.5]]) {
+      const v = p.clone().addScaledVector(nb, a * g).addScaledVector(nn, b * k);
+      poz.push(v.x, v.y, v.z); uv.push((a + 0.5), t);
+    }
+    halkalar.push(bas);
+  }
+  for (let i = 0; i < N; i++) {
+    const a = halkalar[i], b = halkalar[i + 1];
+    for (let j = 0; j < 4; j++) {
+      const j2 = (j + 1) % 4;
+      idx.push(a + j, b + j, b + j2, a + j, b + j2, a + j2);
+    }
+  }
+  if (kapak) {
+    for (const [h, ters] of [[halkalar[0], true], [halkalar[N], false]]) {
+      if (ters) { idx.push(h, h + 2, h + 1, h, h + 3, h + 2); } else { idx.push(h, h + 1, h + 2, h, h + 2, h + 3); }
+    }
+  }
+  const g = new THREE.BufferGeometry();
+  g.setAttribute("position", new THREE.Float32BufferAttribute(poz, 3));
+  g.setAttribute("uv", new THREE.Float32BufferAttribute(uv, 2));
+  g.setIndex(idx);
+  g.computeVertexNormals();
+  return g;
+}
+
+/**
  * Paket 21 §C/§F — AÇIK KENARLARI KAPAT: 1 üçgene ait kenarlar delik döngülerine bağlanır, her döngü merkezine
  * bir köşe eklenip yelpaze üçgenlerle kapatılır. Tüpün açık ucu (kaplan kuyruğu) gibi kapaksız kalan yerler için.
  * Geometri kaynaştırılmış (mergeVertices) ve indeksli olmalı.
@@ -247,7 +286,7 @@ function delikleriKapat(geo) {
  * @param {(n:THREE.Vector3)=>number} kafaYuzey  basM'den n yönünde kafa yüzeyine uzaklık
  * @param {THREE.Vector3} merkez  kafa merkezi (kozmetiğin yuva uzayında)
  */
-function kafayaOturanKubbe(kafaYuzey, merkez, { segment = 16, N = 4, t0 = 0.10, t1 = 0.32 * Math.PI, pay = -0.004, kalinlik = 0.022 } = {}) {
+function kafayaOturanKubbe(kafaYuzey, merkez, { segment = 16, N = 4, t0 = 0.10, t1 = 0.30 * Math.PI, pay = 0.002, kalinlik = 0.022, siper = null, kenarKalinlik = 0 } = {}) {
   const poz = [], uv = [], idx = [];
   const halka = (t, ek) => {
     const bas = poz.length / 3;
@@ -266,10 +305,55 @@ function kafayaOturanKubbe(kafaYuzey, merkez, { segment = 16, N = 4, t0 = 0.10, 
     }
   };
   const icH = [], disH = [];
-  for (let i = 0; i <= N; i++) { const t = t0 + (i / N) * (t1 - t0); icH.push(halka(t, pay)); disH.push(halka(t, pay + kalinlik)); }
+  for (let i = 0; i <= N; i++) {
+    const t = t0 + (i / N) * (t1 - t0);
+    const kenar = kenarKalinlik * Math.pow(i / N, 2);   // §B: alt kenara doğru kalınlaşan etek — ayrı torus halkası kalktı
+    icH.push(halka(t, pay)); disH.push(halka(t, pay + kalinlik + kenar));
+  }
   for (let i = 0; i < N; i++) { serit(icH[i], icH[i + 1], false); serit(disH[i], disH[i + 1], true); }   // sarım: dış yüzey dışa, iç yüzey içe bakar (işaretli hacim ile doğrulandı)
   serit(icH[N], disH[N], true);   // alt kenar bandı
   serit(disH[0], icH[0], true);   // tepe halkası
+
+  // Paket 23 §B — SİPER, kubbenin ÖN kenarından TÜRETİLİR (ayrı kutu değil): alt kenar köşelerinden öne uzanır,
+  // kubbeyle köşe paylaşır → tek ada. Eski siper ayrı bir RoundedBox'tı, kubbeye değmediği için silüette kopukluk
+  // okunuyordu (ölçüldü: kaplanda kubbe ile siper arası 4,8 cm — `parca_butunlugu` testi bunu yakalıyor).
+  if (siper) {
+    const { boy = 0.13, dusus = 0.012, aciYari = Math.PI / 3, kalinlikUc = 0.012 } = siper;
+    const ustSira = [], altSira = [];   // siperin üst (dış kenardan) ve alt (iç kenardan) uç köşeleri
+    const jler = [];
+    for (let j = 0; j <= segment; j++) {
+      let u = (j / segment) * Math.PI * 2;
+      if (u > Math.PI) u -= Math.PI * 2;
+      if (Math.abs(u) <= aciYari) jler.push({ j, u });
+    }
+    const al = (bas, j) => new THREE.Vector3(poz[(bas + j) * 3], poz[(bas + j) * 3 + 1], poz[(bas + j) * 3 + 2]);
+    for (const { j, u } of jler) {
+      const k = Math.cos((u / aciYari) * (Math.PI / 2));   // ortada en uzun, yanlarda sıfıra iner
+      const dis = al(disH[N], j), ic = al(icH[N], j);
+      const ileri = new THREE.Vector3(Math.sin(u), 0, Math.cos(u)).multiplyScalar(boy * k);
+      // Siper kubbe kenarından ÖNE ve hafif YUKARI çıkar: aşağı eğimli siper yüze/burna değiyordu (ölçüldü: bind
+      // pozunda kozmetik ↔ yüz üçgen kesişimi). Yukarı eğim = güneşlik görünümü, kesişim yok.
+      const ucUst = dis.clone().add(ileri).add(new THREE.Vector3(0, dusus * k, 0));
+      const ucAlt = ucUst.clone().add(new THREE.Vector3(0, -kalinlikUc, 0));
+      ustSira.push(poz.length / 3); poz.push(ucUst.x, ucUst.y, ucUst.z); uv.push(j / segment, 1.05);
+      altSira.push(poz.length / 3); poz.push(ucAlt.x, ucAlt.y, ucAlt.z); uv.push(j / segment, 1.1);
+      void ic;
+    }
+    for (let i = 0; i < jler.length - 1; i++) {
+      const a0 = disH[N] + jler[i].j, a1 = disH[N] + jler[i + 1].j;      // kubbe dış alt kenar
+      const b0 = icH[N] + jler[i].j, b1 = icH[N] + jler[i + 1].j;        // kubbe iç alt kenar
+      const u0 = ustSira[i], u1 = ustSira[i + 1], l0 = altSira[i], l1 = altSira[i + 1];
+      idx.push(a0, u0, u1, a0, u1, a1);        // üst yüzey (kubbeden uca)
+      idx.push(b0, l1, l0, b0, b1, l1);        // alt yüzey (kubbeden uca, ters sarım)
+      idx.push(u0, l0, l1, u0, l1, u1);        // ön kenar bandı
+    }
+    // yan kapaklar: siperin iki ucunda üçgen dikiş
+    if (jler.length > 1) {
+      const s0 = 0, s1 = jler.length - 1;
+      idx.push(disH[N] + jler[s0].j, icH[N] + jler[s0].j, altSira[s0], disH[N] + jler[s0].j, altSira[s0], ustSira[s0]);
+      idx.push(icH[N] + jler[s1].j, disH[N] + jler[s1].j, ustSira[s1], icH[N] + jler[s1].j, ustSira[s1], altSira[s1]);
+    }
+  }
   const g = new THREE.BufferGeometry();
   g.setAttribute("position", new THREE.Float32BufferAttribute(poz, 3));
   g.setAttribute("uv", new THREE.Float32BufferAttribute(uv, 2));
@@ -788,19 +872,54 @@ function karakterKur(tur = "insan") {
     m.userData.politika = POLITIKA[ad.replace("kozmetik_", "")] ?? {};
     kozmetikler.add(m); return m;
   };
+  const SIPER = { boy: 0.115, dusus: 0.026, aciYari: Math.PI / 2.6, kalinlikUc: 0.012 };   // dusus > 0 → uç YUKARI   // §B siper ölçüleri
   // Paket 21 §F: ŞAPKA HER TÜRDE kendi kafa ölçeğiyle üretilir (kozmetik.js tür varyantını yoksa insanınkini alır).
   // Eşya id'si değişmedi (kozmetik_sapka); tek fark kubbenin türün kafasına oturması.
   {
-    const kb = kafayaOturanKubbe((n) => { const a = govdeYuzey(n), b = kafaYuzey(n); if (process.env.KUBBE_LOG) console.log(`  [${tur}] n=${n.toArray().map(x=>x.toFixed(2))} govde=${a==null?"yok":a.toFixed(3)} kafa=${b.toFixed(3)}`); return a ?? b; }, new THREE.Vector3(0, -0.22, 0), robot ? { t1: 0.30 * Math.PI, pay: 0.005, segment: 20, N: 3 } : {});   // robot kafası basık ve ekran yüzü öne çıkık: kubbe daha yukarıda biter (ölçüldü)   // kafa merkezi yuva uzayında (0, −0,22, 0); ölçüler merkez DAHİL döner
+    // Kubbe ölçüleri türe göre: robot kafası basık ve ekran yüzü öne çıkık (ölçüldü) → kubbe daha yukarıda biter,
+    // siperi daha kısa ve daha yukarı. Kafa merkezi yuva uzayında (0, −0,22, 0); dönen ölçüler merkez DAHİL.
+    const kubbeAyar = robot
+      ? { t1: 0.30 * Math.PI, pay: 0.005, segment: 20, N: 3, siper: { ...SIPER, boy: 0.095, dusus: 0.034 }, kenarKalinlik: 0.012 }
+      : { siper: SIPER, kenarKalinlik: 0.012 };
+    const kb = kafayaOturanKubbe((n) => govdeYuzey(n) ?? kafaYuzey(n), new THREE.Vector3(0, -0.22, 0), kubbeAyar);
     const kenarY = kb.kenarY;
-    const sapka = [
-      Y(kb.geo, "sapka", [0, 0, 0]),
-      D(new RoundedBoxGeometry(0.30, 0.03, 0.17, 1, 0.012), "sapkaSiperi", [0, kenarY + 0.005, Math.max(kb.kenarZ, kb.onZ) + 0.075], E(-0.12, 0, 0)),
-      D(new THREE.TorusGeometry(kb.kenarR + 0.034, 0.016, 4, 12), "sapkaSiperi", [0, kenarY + 0.016, 0], E(Math.PI / 2, 0, 0)),
-    ];
+    const sapka = [Y(kb.geo, "sapka", [0, 0, 0])];   // §B: kubbe + siper + kenar eteği TEK parça
     if (robot) sapka.push(D(new THREE.TorusGeometry(0.03, 0.012, 4, 8), "sapkaSiperi", [0, kb.tepeY, 0], E(Math.PI / 2, 0, 0)));   // anten geçiş halkası
     kozmetik("kozmetik_sapka", "basYuva", sapka);
   }
+
+  // §C: ATKI da her türde kendi gövdesine göre üretilir (paylaşımlı atkı robotun boynuna oturmuyordu — ölçüldü)
+    // Paket 23 §C — ATKI TEK SÜREKLİ ŞERİT: boynu saran halka, önde kesintisiz olarak sarkan uca dönüşür.
+    // Eskiden boyun halkası (torus) ile sarkan uç (kutu) AYRI iki parçaydı (ölçüldü: 2 ada); `havada` testi ikisinin de
+    // gövdeye değdiğini görüp geçiyordu, birbirlerine bağlı olmadıklarını sormuyordu — sahibinin gördüğü kopukluk buydu.
+    // Yol: boyun çevresinde ~1,25 tur + göğüs profilini takip ederek aşağı sarkan uç. Yuva uzayı (boyunYuva).
+    {
+      const yuvaD = neck.clone().add(new THREE.Vector3(0, -0.01, 0.02));   // boyunYuva dünya konumu
+      /** Yuva uzayında (yatay yön, y) → gövde yüzeyinin o yöndeki yarıçapı + pay (ışınla ölçülür). */
+      const yuzeyR = (a, y, pay) => {
+        const n = new THREE.Vector3(Math.sin(a), 0, Math.cos(a));
+        const bas = yuvaD.clone().add(new THREE.Vector3(0, y, 0));
+        // Tavan: robotun omuz küreleri (x ±0,38) ışını yakalayıp atkıyı omuza kadar genişletiyordu (ölçüldü)
+        return Math.min(govdeYuzey(n, bas, 0.45) ?? 0.16, robot ? 0.175 : 0.205) + pay;
+      };
+      const noktalar = [], basAci = Math.PI * 0.62, PAY = 0.040;   // yüzeye oturur ama gövdeye batmaz (kozmetik kesişim testi)
+      for (let i = 0; i <= 14; i++) {                       // boyun sarımı — yüzeye oturur
+        const a = basAci - (i / 14) * Math.PI * 2.37;   // bitiş açısı ön-sağ çapraz: uç göğsün ÖNÜNE sarkar
+        const y = (robot ? 0.02 : 0.055) - (i / 14) * 0.055;   // robotun boynu kısa, kafası aşağıda: sarım 3,5 cm aşağıda (kesişim ölçüldü)
+        const r = yuzeyR(a, y, PAY);
+        noktalar.push(new THREE.Vector3(Math.sin(a) * r, y, Math.cos(a) * r));
+      }
+      const uc = noktalar[noktalar.length - 1].clone();
+      for (let i = 1; i <= 8; i++) {                        // sarkan uç: göğüs profilini (§A) takip eder
+        const t = i / 8, y = uc.y - 0.30 * t;
+        const rz = yuzeyR(0, y, PAY + 0.004);
+        noktalar.push(new THREE.Vector3(uc.x + Math.sin(t * 1.1) * 0.03, y, rz));   // gövde genişledikçe uç da dışarı çıkar (gömülmesin)
+      }
+      const egri = new THREE.CatmullRomCurve3(noktalar, false, "catmullrom", 0.35);
+      kozmetik("kozmetik_atki", "boyunYuva", [
+        Y(seritSupur(egri, (t) => [t < 0.6 ? 0.115 : 0.115 - 0.02 * (t - 0.6), 0.032], { N: 46 }), "atki", [0, 0, 0]),
+      ]);
+    }
   if (insan) {
     // 1G-A.2: cam dolgusu KALKTI (opak cam göz bebeğini örtüyordu, "camlar yarım" hissi) — çerçeve halka, göz yamasının 2,5 cm önünde; köprü burun sırtının üstüne
     const gozluk = [];
@@ -810,10 +929,6 @@ function karakterKur(tur = "insan") {
     }
     gozluk.push(D(new THREE.BoxGeometry(0.05, 0.012, 0.012), "gozlukCerceve", [0, 0.03, -0.006]));
     kozmetik("kozmetik_gozluk", "gozlukYuva", gozluk);
-    kozmetik("kozmetik_atki", "boyunYuva", [
-      Y(new THREE.TorusGeometry(0.19, 0.055, 6, 16), "atki", [0, 0.02, 0], E(Math.PI / 2, 0, 0)),
-      Y(new RoundedBoxGeometry(0.1, 0.34, 0.05, 1, 0.02), "atki", [0.06, -0.16, 0.2], E(0.15, 0, -0.15)),
-    ]);
     // 1G-B.3 PREMİUM GÖZLÜK (aviator): altın metal çerçeve (bolge premiumMetal) · koyu plastik saplar (plastik) · aynalı cam (cam, premiumCam hücresi).
     // gozlukYuva'yı temel gözlükle paylaşır → çalışma anında karşılıklı dışlayıcı.
     const premium = [];
@@ -830,19 +945,19 @@ function karakterKur(tur = "insan") {
     // 1G-B.2 KANAT: sirtYuva (kalça hizası, Spine2'ye bağlı; kanat kökü kürek kemiği hizasına +0,36 çıkar). Deri koşum + iki kol + 6'şar tüy levhası
     // (açık/koyu tüy hücresi dönüşümlü → yelpaze okunur). %100 kozmetik: çalışma anında çırpma + süzülme ötelemesi (koordinat değişmez).
     const kanat = [
-      D(new RoundedBoxGeometry(0.18, 0.16, 0.035, 1, 0.012), "deri", [0, 0.27, -0.02]),
+      D(new RoundedBoxGeometry(0.26, 0.20, 0.045, 1, 0.012), "deri", [0, 0.29, -0.02]),   // §F.1: plaka omuz bantlarına DEĞSİN (eskiden 1,7 cm boşluk)
       D(new THREE.BoxGeometry(0.05, 0.02, 0.15), "deri", [0.1, 0.35, 0.04], E(0.55, 0, 0)),
       D(new THREE.BoxGeometry(0.05, 0.02, 0.15), "deri", [-0.1, 0.35, 0.04], E(0.55, 0, 0)),
     ];
     for (const s of [-1, 1]) {
       // kol: kürek kemiğinden yukarı-dışa; tüyler kolun ALTINDAN sarkar — gövdeye yakın olanlar aşağı, uçtakiler dışa (melek kanadı yelpazesi)
-      const P = new THREE.Vector3(s * 0.1, 0.28, -0.05), U = new THREE.Vector3(s * 0.5, 0.62, -0.16);
+      const P = new THREE.Vector3(s * 0.05, 0.29, -0.02), U = new THREE.Vector3(s * 0.5, 0.62, -0.16);   // §F.1: kol kökü sırt plakasının İÇİNDE (2,9 cm boşluk kapandı)   // §F.1: kol kökü koşum plakasının içinde başlar
       const kolV = U.clone().sub(P), kolL = kolV.length();
       kanat.push(D(new THREE.CylinderGeometry(0.02, 0.028, kolL, 8), "deri", P.clone().lerp(U, 0.5).toArray(), new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), kolV.clone().normalize())));
       for (let k = 0; k < 7; k++) {
         const pivot = P.clone().lerp(U, 0.08 + k * 0.15), a = -1.15 + k * 0.16, L = 0.28 + k * 0.03;
         const yon = new THREE.Vector3(s * Math.cos(a), Math.sin(a), -0.12).normalize();
-        const merkez = pivot.clone().addScaledVector(yon, L / 2 - 0.02); merkez.z -= k * 0.01;
+        const merkez = pivot.clone().addScaledVector(yon, L / 2 - 0.055); merkez.z -= k * 0.01;   // §F.1: tüy kökü kolun İÇİNE girsin (eskiden 1,7-3,1 cm boşluk vardı, parçalar kopuktu)
         kanat.push(Y(new THREE.BoxGeometry(L, 0.11, 0.028), k % 2 ? "kanatKoyu" : "kanat", merkez.toArray(), new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(s, 0, 0), yon)));
       }
     }
@@ -861,10 +976,16 @@ function karakterKur(tur = "insan") {
   }
   if (kaplan) {
     // kuyruk: sirtYuva'da, −Z'ye uzanır, ucu siyah; çalışma anında kökten hafif salınır
-    const yol = new THREE.CatmullRomCurve3([new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, -0.12, -0.2), new THREE.Vector3(0.05, -0.1, -0.42), new THREE.Vector3(0.12, 0.08, -0.55)]);
+    // §A sonrası gövde daraldı → kuyruk kökü havada kalıyordu (ölçüldü: gövdeye 2 cm'den yakın yüzey yok).
+    // Kök artık kalça yüzeyine ışınla oturtuluyor.
+    const kokZ = -(govdeYuzey(new THREE.Vector3(0, 0, -1), hips.clone().add(new THREE.Vector3(0, 0.02, 0)), 0.4) ?? 0.18) + 0.02;
+    const kokYerel = kokZ - (hips.z - 0.16) + 0.04;   // kök gövdenin İÇİNDE başlar (temas)   // sirtYuva = hips + (0, 0.02, −0.16)
+    const yol = new THREE.CatmullRomCurve3([
+      new THREE.Vector3(0, 0.01, kokYerel), new THREE.Vector3(0, -0.10, kokYerel - 0.12),
+      new THREE.Vector3(0.05, -0.09, kokYerel - 0.32), new THREE.Vector3(0.12, 0.09, kokYerel - 0.45)]);
     kozmetik("kozmetik_kuyruk", "sirtYuva", [
       Y(delikleriKapat(new THREE.TubeGeometry(yol, 12, 0.04, 8, false)), "kurk", [0, 0, 0], null, null, BOLGE.kurk),   // §F: tup uclari kapatildi (45 cm² × 2 delik)
-      D(new THREE.SphereGeometry(0.05, 8, 6), "gozBebek", [0.12, 0.08, -0.55]),
+      D(new THREE.SphereGeometry(0.05, 8, 6), "gozBebek", [0.12, 0.09, kokYerel - 0.45]),
     ]);
   }
   karakter.add(kozmetikler);

@@ -1,8 +1,8 @@
 {
- "tarih": "2026-09-17T19:00:35.118Z",
+ "tarih": "2026-09-17T20:31:03.777Z",
  "varliklar": {
   "karakter_insan": {
-   "ucgen": 6656,
+   "ucgen": 7104,
    "malzeme": 1,
    "gorunumler": [
     "ön (+Z)",
@@ -40,13 +40,13 @@
    ],
    "aday": {},
    "susturulan": {
-    "icice": 172,
-    "gomulu": 26,
-    "kozmetik": 27
+    "icice": 161,
+    "gomulu": 25,
+    "kozmetik": 23
    }
   },
   "karakter_kaplan": {
-   "ucgen": 6232,
+   "ucgen": 6680,
    "malzeme": 1,
    "gorunumler": [
     "ön (+Z)",
@@ -82,9 +82,9 @@
    ],
    "aday": {},
    "susturulan": {
-    "icice": 137,
-    "gomulu": 21,
-    "kozmetik": 27
+    "icice": 128,
+    "gomulu": 19,
+    "kozmetik": 25
    }
   },
   "karakter_robot": {
@@ -128,7 +128,7 @@
    "susturulan": {
     "icice": 27,
     "gomulu": 2,
-    "kozmetik": 15
+    "kozmetik": 14
    }
   },
   "bina_dukkan": {
@@ -475,7 +475,7 @@
    "susturulan": {}
   },
   "takili_insan_sapka": {
-   "ucgen": 5860,
+   "ucgen": 6153,
    "malzeme": 2,
    "gorunumler": [
     "ön (+Z)",
@@ -495,11 +495,13 @@
     "06-alt-y.png",
     "07-beauty-perspektif-b-gölgeli.png"
    ],
-   "aday": {},
+   "aday": {
+    "oturma": 1
+   },
    "susturulan": {}
   },
   "takili_insan_gozluk": {
-   "ucgen": 5852,
+   "ucgen": 6303,
    "malzeme": 2,
    "gorunumler": [
     "ön (+Z)",
@@ -523,7 +525,7 @@
    "susturulan": {}
   },
   "takili_insan_gozlukPremium": {
-   "ucgen": 5936,
+   "ucgen": 6387,
    "malzeme": 2,
    "gorunumler": [
     "ön (+Z)",
@@ -547,7 +549,7 @@
    "susturulan": {}
   },
   "takili_insan_atki": {
-   "ucgen": 5636,
+   "ucgen": 6159,
    "malzeme": 2,
    "gorunumler": [
     "ön (+Z)",
@@ -571,7 +573,7 @@
    "susturulan": {}
   },
   "takili_insan_kanat": {
-   "ucgen": 5700,
+   "ucgen": 6151,
    "malzeme": 2,
    "gorunumler": [
     "ön (+Z)",
@@ -595,7 +597,7 @@
    "susturulan": {}
   },
   "takili_insan_tac": {
-   "ucgen": 5446,
+   "ucgen": 5897,
    "malzeme": 2,
    "gorunumler": [
     "ön (+Z)",
@@ -619,7 +621,7 @@
    "susturulan": {}
   },
   "takili_insan_pelerin": {
-   "ucgen": 5500,
+   "ucgen": 5951,
    "malzeme": 2,
    "gorunumler": [
     "ön (+Z)",
@@ -643,7 +645,7 @@
    "susturulan": {}
   },
   "takili_kaplan_sapka": {
-   "ucgen": 6176,
+   "ucgen": 6469,
    "malzeme": 2,
    "gorunumler": [
     "ön (+Z)",
@@ -667,7 +669,7 @@
    "susturulan": {}
   },
   "takili_kaplan_gozluk": {
-   "ucgen": 6168,
+   "ucgen": 6619,
    "malzeme": 2,
    "gorunumler": [
     "ön (+Z)",
@@ -691,7 +693,7 @@
    "susturulan": {}
   },
   "takili_kaplan_gozlukPremium": {
-   "ucgen": 6252,
+   "ucgen": 6703,
    "malzeme": 2,
    "gorunumler": [
     "ön (+Z)",
@@ -715,7 +717,7 @@
    "susturulan": {}
   },
   "takili_kaplan_atki": {
-   "ucgen": 5952,
+   "ucgen": 6475,
    "malzeme": 2,
    "gorunumler": [
     "ön (+Z)",
@@ -739,7 +741,7 @@
    "susturulan": {}
   },
   "takili_kaplan_kanat": {
-   "ucgen": 6016,
+   "ucgen": 6467,
    "malzeme": 2,
    "gorunumler": [
     "ön (+Z)",
@@ -763,7 +765,7 @@
    "susturulan": {}
   },
   "takili_kaplan_tac": {
-   "ucgen": 5762,
+   "ucgen": 6213,
    "malzeme": 2,
    "gorunumler": [
     "ön (+Z)",
@@ -787,7 +789,7 @@
    "susturulan": {}
   },
   "takili_kaplan_pelerin": {
-   "ucgen": 5816,
+   "ucgen": 6267,
    "malzeme": 2,
    "gorunumler": [
     "ön (+Z)",
@@ -811,7 +813,7 @@
    "susturulan": {}
   },
   "takili_kaplan_kuyruk": {
-   "ucgen": 5964,
+   "ucgen": 6415,
    "malzeme": 2,
    "gorunumler": [
     "ön (+Z)",
@@ -835,7 +837,7 @@
    "susturulan": {}
   },
   "takili_robot_sapka": {
-   "ucgen": 6692,
+   "ucgen": 6534,
    "malzeme": 2,
    "gorunumler": [
     "ön (+Z)",
@@ -907,7 +909,7 @@
    "susturulan": {}
   },
   "takili_robot_atki": {
-   "ucgen": 6404,
+   "ucgen": 6476,
    "malzeme": 2,
    "gorunumler": [
     "ön (+Z)",

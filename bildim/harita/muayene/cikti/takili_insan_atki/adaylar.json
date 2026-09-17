@@ -12,17 +12,21 @@
    "oran_esigi": 0.15,
    "yaslanma_esigi_m": 0.008
   },
-  "ada": 2,
+  "ada": 1,
   "acik_kenar": {
-   "ada": 2,
+   "ada": 1,
    "delik_dongusu": 0,
    "esik_ustu": 0,
    "esik_m2": 0.0004
   },
   "kalinlik": {
-   "olculen_ada": 2,
+   "olculen_ada": 1,
    "asgari_kalinlik_m": 0.025,
    "alan_esigi_m2": 0.02
+  },
+  "parca_butunlugu": {
+   "ada": 1,
+   "temas_m": 0.006
   }
  },
  "adaylar": [],
@@ -30,67 +34,61 @@
  "oturma": [
   {
    "sac": 1,
-   "kose": 62,
-   "yakin": 29,
-   "temas": 15,
-   "temas_orani": 0.517,
+   "kose": 115,
+   "yakin": 45,
+   "temas": 27,
+   "temas_orani": 0.6,
    "yaslanma_m": 0,
-   "yaslanan_kose": 8,
-   "medyan_bosluk_m": 0.0054,
-   "en_buyuk_bosluk_m": 0.0167,
+   "yaslanan_kose": 12,
+   "medyan_bosluk_m": 0.0013,
+   "en_buyuk_bosluk_m": 0.0187,
    "en_yakin_m": 0,
-   "disa_bakan": 90,
-   "gomulu_kose": 8,
-   "en_derin_gomulme_m": 0.0336,
-   "yazi": "insan atki (saç 1): gövdeye bakan 29 köşenin 15'i temas ediyor (%52), medyan boşluk 0,5 cm, en büyük 1,7 cm (toplam 62 köşe)",
+   "disa_bakan": 73,
+   "gomulu_kose": 22,
+   "en_derin_gomulme_m": 0.0212,
+   "yazi": "insan atki (saç 1): gövdeye bakan 45 köşenin 27'i temas ediyor (%60), medyan boşluk 0,1 cm, en büyük 1,9 cm (toplam 115 köşe)",
    "aday": false
   },
   {
    "sac": 2,
-   "kose": 62,
-   "yakin": 29,
-   "temas": 15,
-   "temas_orani": 0.517,
+   "kose": 115,
+   "yakin": 45,
+   "temas": 27,
+   "temas_orani": 0.6,
    "yaslanma_m": 0,
-   "yaslanan_kose": 8,
-   "medyan_bosluk_m": 0.0054,
-   "en_buyuk_bosluk_m": 0.0167,
+   "yaslanan_kose": 12,
+   "medyan_bosluk_m": 0.0013,
+   "en_buyuk_bosluk_m": 0.0187,
    "en_yakin_m": 0,
-   "disa_bakan": 90,
-   "gomulu_kose": 8,
-   "en_derin_gomulme_m": 0.0336,
-   "yazi": "insan atki (saç 2): gövdeye bakan 29 köşenin 15'i temas ediyor (%52), medyan boşluk 0,5 cm, en büyük 1,7 cm (toplam 62 köşe)",
+   "disa_bakan": 73,
+   "gomulu_kose": 22,
+   "en_derin_gomulme_m": 0.0212,
+   "yazi": "insan atki (saç 2): gövdeye bakan 45 köşenin 27'i temas ediyor (%60), medyan boşluk 0,1 cm, en büyük 1,9 cm (toplam 115 köşe)",
    "aday": false
   },
   {
    "sac": 3,
-   "kose": 63,
-   "yakin": 30,
-   "temas": 15,
-   "temas_orani": 0.5,
+   "kose": 116,
+   "yakin": 47,
+   "temas": 29,
+   "temas_orani": 0.617,
    "yaslanma_m": 0,
-   "yaslanan_kose": 8,
-   "medyan_bosluk_m": 0.0077,
-   "en_buyuk_bosluk_m": 0.0167,
+   "yaslanan_kose": 12,
+   "medyan_bosluk_m": 0,
+   "en_buyuk_bosluk_m": 0.0187,
    "en_yakin_m": 0,
-   "disa_bakan": 89,
-   "gomulu_kose": 8,
-   "en_derin_gomulme_m": 0.0336,
-   "yazi": "insan atki (saç 3): gövdeye bakan 30 köşenin 15'i temas ediyor (%50), medyan boşluk 0,8 cm, en büyük 1,7 cm (toplam 63 köşe)",
+   "disa_bakan": 72,
+   "gomulu_kose": 24,
+   "en_derin_gomulme_m": 0.027,
+   "yazi": "insan atki (saç 3): gövdeye bakan 47 köşenin 29'i temas ediyor (%62), medyan boşluk 0,0 cm, en büyük 1,9 cm (toplam 116 köşe)",
    "aday": false
   }
  ],
  "adaListesi": [
   {
    "no": 0,
-   "ada": "diger:atki [x 0.01 · y 1.02 · z 0.18]",
-   "ucgen": 108,
-   "kapali": true
-  },
-  {
-   "no": 1,
-   "ada": "diger:atki [x -0.00 · y 1.26 · z 0.05]",
-   "ucgen": 192,
+   "ada": "diger:atki [x 0.06 · y 1.23 · z 0.08]",
+   "ucgen": 372,
    "kapali": true
   }
  ]

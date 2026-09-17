@@ -398,32 +398,6 @@
    "sebep": "kalça bloğu ile bacak kapsülleri iç içe"
   },
   {
-   "test": "icice",
-   "adalar": [
-    "alt:kot [x 0.09 · y 0.69 · z 0.01]",
-    "ceket:ceket [x 0.00 · y 1.16 · z -0.02]"
-   ],
-   "olcu": {
-    "derinlik_m": 0.047,
-    "icteki_ornek": "63/308"
-   },
-   "not": "1. ada 2. adanın içine 4.7 cm giriyor",
-   "sebep": "set 2 kabuğu; set 1 ve 3'te çalışma anında çökertilir (tişörtle aynı anda görünmez)"
-  },
-  {
-   "test": "icice",
-   "adalar": [
-    "alt:kot [x 0.09 · y 0.69 · z 0.01]",
-    "ust:tisort [x 0.00 · y 1.16 · z -0.02]"
-   ],
-   "olcu": {
-    "derinlik_m": 0.068,
-    "icteki_ornek": "81/308"
-   },
-   "not": "1. ada 2. adanın içine 6.8 cm giriyor",
-   "sebep": "tişört kalça bloğunun üstüne biner"
-  },
-  {
    "test": "gomulu",
    "adalar": [
     "alt:kot [x 0.09 · y 0.69 · z 0.01]"
@@ -501,32 +475,6 @@
    "sebep": "kalça bloğu ile bacak kapsülleri iç içe"
   },
   {
-   "test": "icice",
-   "adalar": [
-    "alt:kot [x -0.09 · y 0.69 · z 0.01]",
-    "ceket:ceket [x 0.00 · y 1.16 · z -0.02]"
-   ],
-   "olcu": {
-    "derinlik_m": 0.047,
-    "icteki_ornek": "62/308"
-   },
-   "not": "1. ada 2. adanın içine 4.7 cm giriyor",
-   "sebep": "set 2 kabuğu; set 1 ve 3'te çalışma anında çökertilir (tişörtle aynı anda görünmez)"
-  },
-  {
-   "test": "icice",
-   "adalar": [
-    "alt:kot [x -0.09 · y 0.69 · z 0.01]",
-    "ust:tisort [x 0.00 · y 1.16 · z -0.02]"
-   ],
-   "olcu": {
-    "derinlik_m": 0.068,
-    "icteki_ornek": "78/308"
-   },
-   "not": "1. ada 2. adanın içine 6.8 cm giriyor",
-   "sebep": "tişört kalça bloğunun üstüne biner"
-  },
-  {
    "test": "gomulu",
    "adalar": [
     "alt:kot [x -0.09 · y 0.69 · z 0.01]"
@@ -571,10 +519,10 @@
     "ceket:ceket [x 0.00 · y 1.16 · z -0.02]"
    ],
    "olcu": {
-    "derinlik_m": 0.169,
-    "icteki_ornek": "203/902"
+    "derinlik_m": 0.083,
+    "icteki_ornek": "183/902"
    },
-   "not": "1. ada 2. adanın içine 16.9 cm giriyor",
+   "not": "1. ada 2. adanın içine 8.3 cm giriyor",
    "sebep": "set 2 kabuğu; set 1 ve 3'te çalışma anında çökertilir (tişörtle aynı anda görünmez)"
   },
   {
@@ -584,10 +532,10 @@
     "ust:tisort [x 0.00 · y 1.16 · z -0.02]"
    ],
    "olcu": {
-    "derinlik_m": 0.187,
-    "icteki_ornek": "245/902"
+    "derinlik_m": 0.101,
+    "icteki_ornek": "209/902"
    },
-   "not": "1. ada 2. adanın içine 18.7 cm giriyor",
+   "not": "1. ada 2. adanın içine 10.1 cm giriyor",
    "sebep": "tişört kalça bloğunun üstüne biner"
   },
   {
@@ -724,19 +672,6 @@
    "test": "icice",
    "adalar": [
     "ceket:ceket [x -0.09 · y 1.13 · z 0.19]",
-    "ust:tisort [x 0.00 · y 1.16 · z -0.02]"
-   ],
-   "olcu": {
-    "derinlik_m": 0.011,
-    "icteki_ornek": "46/326"
-   },
-   "not": "1. ada 2. adanın içine 1.1 cm giriyor",
-   "sebep": "set 2 kabuğu; set 1 ve 3'te çalışma anında çökertilir (tişörtle aynı anda görünmez)"
-  },
-  {
-   "test": "icice",
-   "adalar": [
-    "ceket:ceket [x -0.09 · y 1.13 · z 0.19]",
     "yaka:gomlek [x -0.00 · y 1.13 · z 0.18]"
    ],
    "olcu": {
@@ -744,19 +679,6 @@
     "icteki_ornek": "64/326"
    },
    "not": "1. ada 2. adanın içine 1.5 cm giriyor",
-   "sebep": "set 2 kabuğu; set 1 ve 3'te çalışma anında çökertilir (tişörtle aynı anda görünmez)"
-  },
-  {
-   "test": "icice",
-   "adalar": [
-    "ceket:ceket [x 0.08 · y 1.13 · z 0.19]",
-    "ust:tisort [x 0.00 · y 1.16 · z -0.02]"
-   ],
-   "olcu": {
-    "derinlik_m": 0.012,
-    "icteki_ornek": "51/326"
-   },
-   "not": "1. ada 2. adanın içine 1.2 cm giriyor",
    "sebep": "set 2 kabuğu; set 1 ve 3'te çalışma anında çökertilir (tişörtle aynı anda görünmez)"
   },
   {
@@ -776,39 +698,13 @@
    "test": "icice",
    "adalar": [
     "ceket:ceket [x 0.00 · y 1.16 · z -0.02]",
-    "alt:kot [x 0.09 · y 0.69 · z 0.01]"
-   ],
-   "olcu": {
-    "derinlik_m": 0.045,
-    "icteki_ornek": "15/308"
-   },
-   "not": "1. ada 2. adanın içine 4.5 cm giriyor",
-   "sebep": "set 2 kabuğu; set 1 ve 3'te çalışma anında çökertilir (tişörtle aynı anda görünmez)"
-  },
-  {
-   "test": "icice",
-   "adalar": [
-    "ceket:ceket [x 0.00 · y 1.16 · z -0.02]",
-    "alt:kot [x -0.09 · y 0.69 · z 0.01]"
-   ],
-   "olcu": {
-    "derinlik_m": 0.044,
-    "icteki_ornek": "14/308"
-   },
-   "not": "1. ada 2. adanın içine 4.4 cm giriyor",
-   "sebep": "set 2 kabuğu; set 1 ve 3'te çalışma anında çökertilir (tişörtle aynı anda görünmez)"
-  },
-  {
-   "test": "icice",
-   "adalar": [
-    "ceket:ceket [x 0.00 · y 1.16 · z -0.02]",
     "alt:kot [x 0.00 · y 0.90 · z 0.01]"
    ],
    "olcu": {
-    "derinlik_m": 0.14,
-    "icteki_ornek": "79/308"
+    "derinlik_m": 0.084,
+    "icteki_ornek": "94/1010"
    },
-   "not": "1. ada 2. adanın içine 14.0 cm giriyor",
+   "not": "1. ada 2. adanın içine 8.4 cm giriyor",
    "sebep": "set 2 kabuğu; set 1 ve 3'te çalışma anında çökertilir (tişörtle aynı anda görünmez)"
   },
   {
@@ -818,10 +714,10 @@
     "kapuson:esofman [x -0.00 · y 1.31 · z -0.11]"
    ],
    "olcu": {
-    "derinlik_m": 0.042,
-    "icteki_ornek": "20/308"
+    "derinlik_m": 0.048,
+    "icteki_ornek": "44/1010"
    },
-   "not": "1. ada 2. adanın içine 4.2 cm giriyor",
+   "not": "1. ada 2. adanın içine 4.8 cm giriyor",
    "sebep": "set 2 kabuğu; set 1 ve 3'te çalışma anında çökertilir (tişörtle aynı anda görünmez)"
   },
   {
@@ -831,10 +727,10 @@
     "kurk:yuz [x -0.00 · y 1.56 · z -0.04]"
    ],
    "olcu": {
-    "derinlik_m": 0.119,
-    "icteki_ornek": "57/308"
+    "derinlik_m": 0.028,
+    "icteki_ornek": "30/1010"
    },
-   "not": "1. ada 2. adanın içine 11.9 cm giriyor",
+   "not": "1. ada 2. adanın içine 2.8 cm giriyor",
    "sebep": "set 2 kabuğu; set 1 ve 3'te çalışma anında çökertilir (tişörtle aynı anda görünmez)"
   },
   {
@@ -844,10 +740,10 @@
     "ust:tisort [x 0.00 · y 1.16 · z -0.02]"
    ],
    "olcu": {
-    "derinlik_m": 0.022,
-    "icteki_ornek": "308/308"
+    "derinlik_m": 0.018,
+    "icteki_ornek": "226/1010"
    },
-   "not": "1. ada 2. adanın içine 2.2 cm giriyor",
+   "not": "1. ada 2. adanın içine 1.8 cm giriyor",
    "sebep": "set 2 kabuğu; set 1 ve 3'te çalışma anında çökertilir (tişörtle aynı anda görünmez)"
   },
   {
@@ -857,10 +753,10 @@
     "ust:tisort [x -0.28 · y 1.28 · z -0.05]"
    ],
    "olcu": {
-    "derinlik_m": 0.068,
-    "icteki_ornek": "6/308"
+    "derinlik_m": 0.07,
+    "icteki_ornek": "30/1010"
    },
-   "not": "1. ada 2. adanın içine 6.8 cm giriyor",
+   "not": "1. ada 2. adanın içine 7.0 cm giriyor",
    "sebep": "set 2 kabuğu; set 1 ve 3'te çalışma anında çökertilir (tişörtle aynı anda görünmez)"
   },
   {
@@ -870,10 +766,10 @@
     "ust:tisort [x -0.18 · y 1.28 · z -0.05]"
    ],
    "olcu": {
-    "derinlik_m": 0.066,
-    "icteki_ornek": "13/308"
+    "derinlik_m": 0.082,
+    "icteki_ornek": "55/1010"
    },
-   "not": "1. ada 2. adanın içine 6.6 cm giriyor",
+   "not": "1. ada 2. adanın içine 8.2 cm giriyor",
    "sebep": "set 2 kabuğu; set 1 ve 3'te çalışma anında çökertilir (tişörtle aynı anda görünmez)"
   },
   {
@@ -883,10 +779,10 @@
     "ust:tisort [x 0.18 · y 1.28 · z -0.05]"
    ],
    "olcu": {
-    "derinlik_m": 0.067,
-    "icteki_ornek": "13/308"
+    "derinlik_m": 0.081,
+    "icteki_ornek": "55/1010"
    },
-   "not": "1. ada 2. adanın içine 6.7 cm giriyor",
+   "not": "1. ada 2. adanın içine 8.1 cm giriyor",
    "sebep": "set 2 kabuğu; set 1 ve 3'te çalışma anında çökertilir (tişörtle aynı anda görünmez)"
   },
   {
@@ -896,10 +792,10 @@
     "ust:tisort [x 0.28 · y 1.28 · z -0.05]"
    ],
    "olcu": {
-    "derinlik_m": 0.07,
-    "icteki_ornek": "5/308"
+    "derinlik_m": 0.065,
+    "icteki_ornek": "32/1010"
    },
-   "not": "1. ada 2. adanın içine 7.0 cm giriyor",
+   "not": "1. ada 2. adanın içine 6.5 cm giriyor",
    "sebep": "set 2 kabuğu; set 1 ve 3'te çalışma anında çökertilir (tişörtle aynı anda görünmez)"
   },
   {
@@ -910,22 +806,10 @@
    ],
    "olcu": {
     "derinlik_m": 0.014,
-    "icteki_ornek": "7/308"
+    "icteki_ornek": "30/1010"
    },
    "not": "1. ada 2. adanın içine 1.4 cm giriyor",
    "sebep": "set 2 kabuğu; set 1 ve 3'te çalışma anında çökertilir (tişörtle aynı anda görünmez)"
-  },
-  {
-   "test": "gomulu",
-   "adalar": [
-    "ceket:ceket [x 0.00 · y 1.16 · z -0.02]"
-   ],
-   "olcu": {
-    "gomulu_yuzey_orani": 1,
-    "izinsiz_kaplayicilarla": 0
-   },
-   "not": "yüzey örneklerinin %100'i başka parçaların içinde — görünmeyebilir",
-   "sebep": "set 2 kabuğu (diğer setlerde çökertilir)"
   },
   {
    "test": "icice",
@@ -934,10 +818,10 @@
     "ceket:ceket [x 0.00 · y 1.16 · z -0.02]"
    ],
    "olcu": {
-    "derinlik_m": 0.186,
-    "icteki_ornek": "209/432"
+    "derinlik_m": 0.165,
+    "icteki_ornek": "180/432"
    },
-   "not": "1. ada 2. adanın içine 18.6 cm giriyor",
+   "not": "1. ada 2. adanın içine 16.5 cm giriyor",
    "sebep": "set 2 kabuğu; set 1 ve 3'te çalışma anında çökertilir (tişörtle aynı anda görünmez)"
   },
   {
@@ -960,10 +844,10 @@
     "ust:tisort [x 0.00 · y 1.16 · z -0.02]"
    ],
    "olcu": {
-    "derinlik_m": 0.19,
-    "icteki_ornek": "215/432"
+    "derinlik_m": 0.161,
+    "icteki_ornek": "180/432"
    },
-   "not": "1. ada 2. adanın içine 19.0 cm giriyor",
+   "not": "1. ada 2. adanın içine 16.1 cm giriyor",
    "sebep": "set 3 kapüşonu; diğer setlerde çökertilir"
   },
   {
@@ -1017,18 +901,6 @@
    },
    "not": "1. ada 2. adanın içine 7.1 cm giriyor",
    "sebep": "set 3 kapüşonu; diğer setlerde çökertilir"
-  },
-  {
-   "test": "gomulu",
-   "adalar": [
-    "kapuson:esofman [x -0.00 · y 1.31 · z -0.11]"
-   ],
-   "olcu": {
-    "gomulu_yuzey_orani": 0.62,
-    "izinsiz_kaplayicilarla": 0
-   },
-   "not": "yüzey örneklerinin %62'i başka parçaların içinde — görünmeyebilir",
-   "sebep": "set 3 kapüşonu (diğer setlerde çökertilir)"
   },
   {
    "test": "icice",
@@ -1395,10 +1267,10 @@
     "ceket:ceket [x 0.00 · y 1.16 · z -0.02]"
    ],
    "olcu": {
-    "derinlik_m": 0.118,
-    "icteki_ornek": "566/2858"
+    "derinlik_m": 0.029,
+    "icteki_ornek": "246/2858"
    },
-   "not": "1. ada 2. adanın içine 11.8 cm giriyor",
+   "not": "1. ada 2. adanın içine 2.9 cm giriyor",
    "sebep": "set 2 kabuğu; set 1 ve 3'te çalışma anında çökertilir (tişörtle aynı anda görünmez)"
   },
   {
@@ -1447,10 +1319,10 @@
     "ust:tisort [x 0.00 · y 1.16 · z -0.02]"
    ],
    "olcu": {
-    "derinlik_m": 0.131,
-    "icteki_ornek": "604/2858"
+    "derinlik_m": 0.038,
+    "icteki_ornek": "285/2858"
    },
-   "not": "1. ada 2. adanın içine 13.1 cm giriyor",
+   "not": "1. ada 2. adanın içine 3.8 cm giriyor",
    "sebep": "ön kol ve boyun kıyafetin içinden çıkar"
   },
   {
@@ -1587,40 +1459,27 @@
    "test": "icice",
    "adalar": [
     "ust:tisort [x 0.00 · y 1.16 · z -0.02]",
-    "alt:kot [x 0.09 · y 0.69 · z 0.01]"
-   ],
-   "olcu": {
-    "derinlik_m": 0.064,
-    "icteki_ornek": "21/308"
-   },
-   "not": "1. ada 2. adanın içine 6.4 cm giriyor",
-   "sebep": "tişört kalça bloğunun üstüne biner"
-  },
-  {
-   "test": "icice",
-   "adalar": [
-    "ust:tisort [x 0.00 · y 1.16 · z -0.02]",
-    "alt:kot [x -0.09 · y 0.69 · z 0.01]"
-   ],
-   "olcu": {
-    "derinlik_m": 0.061,
-    "icteki_ornek": "18/308"
-   },
-   "not": "1. ada 2. adanın içine 6.1 cm giriyor",
-   "sebep": "tişört kalça bloğunun üstüne biner"
-  },
-  {
-   "test": "icice",
-   "adalar": [
-    "ust:tisort [x 0.00 · y 1.16 · z -0.02]",
     "alt:kot [x 0.00 · y 0.90 · z 0.01]"
    ],
    "olcu": {
-    "derinlik_m": 0.118,
-    "icteki_ornek": "81/308"
+    "derinlik_m": 0.104,
+    "icteki_ornek": "119/1010"
    },
-   "not": "1. ada 2. adanın içine 11.8 cm giriyor",
+   "not": "1. ada 2. adanın içine 10.4 cm giriyor",
    "sebep": "tişört kalça bloğunun üstüne biner"
+  },
+  {
+   "test": "icice",
+   "adalar": [
+    "ust:tisort [x 0.00 · y 1.16 · z -0.02]",
+    "ceket:ceket [x 0.00 · y 1.16 · z -0.02]"
+   ],
+   "olcu": {
+    "derinlik_m": 0.018,
+    "icteki_ornek": "714/1010"
+   },
+   "not": "1. ada 2. adanın içine 1.8 cm giriyor",
+   "sebep": "set 2 kabuğu; set 1 ve 3'te çalışma anında çökertilir (tişörtle aynı anda görünmez)"
   },
   {
    "test": "icice",
@@ -1629,10 +1488,10 @@
     "kapuson:esofman [x -0.00 · y 1.31 · z -0.11]"
    ],
    "olcu": {
-    "derinlik_m": 0.047,
-    "icteki_ornek": "17/308"
+    "derinlik_m": 0.046,
+    "icteki_ornek": "57/1010"
    },
-   "not": "1. ada 2. adanın içine 4.7 cm giriyor",
+   "not": "1. ada 2. adanın içine 4.6 cm giriyor",
    "sebep": "set 3 kapüşonu; diğer setlerde çökertilir"
   },
   {
@@ -1642,10 +1501,10 @@
     "kurk:yuz [x -0.00 · y 1.56 · z -0.04]"
    ],
    "olcu": {
-    "derinlik_m": 0.131,
-    "icteki_ornek": "63/308"
+    "derinlik_m": 0.038,
+    "icteki_ornek": "46/1010"
    },
-   "not": "1. ada 2. adanın içine 13.1 cm giriyor",
+   "not": "1. ada 2. adanın içine 3.8 cm giriyor",
    "sebep": "ön kol ve boyun kıyafetin içinden çıkar"
   },
   {
@@ -1655,10 +1514,10 @@
     "ust:tisort [x -0.28 · y 1.28 · z -0.05]"
    ],
    "olcu": {
-    "derinlik_m": 0.069,
-    "icteki_ornek": "6/308"
+    "derinlik_m": 0.064,
+    "icteki_ornek": "30/1010"
    },
-   "not": "1. ada 2. adanın içine 6.9 cm giriyor",
+   "not": "1. ada 2. adanın içine 6.4 cm giriyor",
    "sebep": "gövde kapsülü, omuz küresi ve kol kapsülü tek kumaş kütlesi olarak iç içe kurulur (tıknaz stil)"
   },
   {
@@ -1668,10 +1527,10 @@
     "ust:tisort [x -0.18 · y 1.28 · z -0.05]"
    ],
    "olcu": {
-    "derinlik_m": 0.062,
-    "icteki_ornek": "11/308"
+    "derinlik_m": 0.085,
+    "icteki_ornek": "57/1010"
    },
-   "not": "1. ada 2. adanın içine 6.2 cm giriyor",
+   "not": "1. ada 2. adanın içine 8.5 cm giriyor",
    "sebep": "gövde kapsülü, omuz küresi ve kol kapsülü tek kumaş kütlesi olarak iç içe kurulur (tıknaz stil)"
   },
   {
@@ -1681,10 +1540,10 @@
     "ust:tisort [x 0.18 · y 1.28 · z -0.05]"
    ],
    "olcu": {
-    "derinlik_m": 0.062,
-    "icteki_ornek": "10/308"
+    "derinlik_m": 0.083,
+    "icteki_ornek": "57/1010"
    },
-   "not": "1. ada 2. adanın içine 6.2 cm giriyor",
+   "not": "1. ada 2. adanın içine 8.3 cm giriyor",
    "sebep": "gövde kapsülü, omuz küresi ve kol kapsülü tek kumaş kütlesi olarak iç içe kurulur (tıknaz stil)"
   },
   {
@@ -1694,10 +1553,10 @@
     "ust:tisort [x 0.28 · y 1.28 · z -0.05]"
    ],
    "olcu": {
-    "derinlik_m": 0.067,
-    "icteki_ornek": "5/308"
+    "derinlik_m": 0.066,
+    "icteki_ornek": "30/1010"
    },
-   "not": "1. ada 2. adanın içine 6.7 cm giriyor",
+   "not": "1. ada 2. adanın içine 6.6 cm giriyor",
    "sebep": "gövde kapsülü, omuz küresi ve kol kapsülü tek kumaş kütlesi olarak iç içe kurulur (tıknaz stil)"
   },
   {
@@ -1707,11 +1566,23 @@
     "yaka:gomlek [x -0.00 · y 1.13 · z 0.18]"
    ],
    "olcu": {
-    "derinlik_m": 0.01,
-    "icteki_ornek": "5/308"
+    "derinlik_m": 0.014,
+    "icteki_ornek": "16/1010"
    },
-   "not": "1. ada 2. adanın içine 1.0 cm giriyor",
+   "not": "1. ada 2. adanın içine 1.4 cm giriyor",
    "sebep": "set 2 yakası; diğer setlerde çökertilir"
+  },
+  {
+   "test": "gomulu",
+   "adalar": [
+    "ust:tisort [x 0.00 · y 1.16 · z -0.02]"
+   ],
+   "olcu": {
+    "gomulu_yuzey_orani": 0.9,
+    "izinsiz_kaplayicilarla": 0
+   },
+   "not": "yüzey örneklerinin %90'i başka parçaların içinde — görünmeyebilir",
+   "sebep": "gövde/omuz/kol kumaş kütlesi iç içe; dışarıdan tek kütle okunur"
   },
   {
    "test": "icice",
@@ -1721,7 +1592,7 @@
    ],
    "olcu": {
     "derinlik_m": 0.075,
-    "icteki_ornek": "105/308"
+    "icteki_ornek": "93/308"
    },
    "not": "1. ada 2. adanın içine 7.5 cm giriyor",
    "sebep": "set 2 kabuğu; set 1 ve 3'te çalışma anında çökertilir (tişörtle aynı anda görünmez)"
@@ -1772,10 +1643,10 @@
     "ust:tisort [x 0.00 · y 1.16 · z -0.02]"
    ],
    "olcu": {
-    "derinlik_m": 0.08,
-    "icteki_ornek": "112/308"
+    "derinlik_m": 0.073,
+    "icteki_ornek": "94/308"
    },
-   "not": "1. ada 2. adanın içine 8.0 cm giriyor",
+   "not": "1. ada 2. adanın içine 7.3 cm giriyor",
    "sebep": "gövde kapsülü, omuz küresi ve kol kapsülü tek kumaş kütlesi olarak iç içe kurulur (tıknaz stil)"
   },
   {
@@ -1810,10 +1681,10 @@
     "ceket:ceket [x 0.00 · y 1.16 · z -0.02]"
    ],
    "olcu": {
-    "derinlik_m": 0.119,
-    "icteki_ornek": "205/422"
+    "derinlik_m": 0.114,
+    "icteki_ornek": "185/422"
    },
-   "not": "1. ada 2. adanın içine 11.9 cm giriyor",
+   "not": "1. ada 2. adanın içine 11.4 cm giriyor",
    "sebep": "set 2 kabuğu; set 1 ve 3'te çalışma anında çökertilir (tişörtle aynı anda görünmez)"
   },
   {
@@ -1836,10 +1707,10 @@
     "ust:tisort [x 0.00 · y 1.16 · z -0.02]"
    ],
    "olcu": {
-    "derinlik_m": 0.125,
-    "icteki_ornek": "219/422"
+    "derinlik_m": 0.111,
+    "icteki_ornek": "173/422"
    },
-   "not": "1. ada 2. adanın içine 12.5 cm giriyor",
+   "not": "1. ada 2. adanın içine 11.1 cm giriyor",
    "sebep": "gövde kapsülü, omuz küresi ve kol kapsülü tek kumaş kütlesi olarak iç içe kurulur (tıknaz stil)"
   },
   {
@@ -1861,10 +1732,10 @@
     "ust:tisort [x -0.18 · y 1.28 · z -0.05]"
    ],
    "olcu": {
-    "gomulu_yuzey_orani": 0.73,
+    "gomulu_yuzey_orani": 0.72,
     "izinsiz_kaplayicilarla": 0
    },
-   "not": "yüzey örneklerinin %73'i başka parçaların içinde — görünmeyebilir",
+   "not": "yüzey örneklerinin %72'i başka parçaların içinde — görünmeyebilir",
    "sebep": "gövde/omuz/kol kumaş kütlesi iç içe; dışarıdan tek kütle okunur"
   },
   {
@@ -1874,10 +1745,10 @@
     "ceket:ceket [x 0.00 · y 1.16 · z -0.02]"
    ],
    "olcu": {
-    "derinlik_m": 0.12,
-    "icteki_ornek": "202/422"
+    "derinlik_m": 0.116,
+    "icteki_ornek": "184/422"
    },
-   "not": "1. ada 2. adanın içine 12.0 cm giriyor",
+   "not": "1. ada 2. adanın içine 11.6 cm giriyor",
    "sebep": "set 2 kabuğu; set 1 ve 3'te çalışma anında çökertilir (tişörtle aynı anda görünmez)"
   },
   {
@@ -1900,10 +1771,10 @@
     "ust:tisort [x 0.00 · y 1.16 · z -0.02]"
    ],
    "olcu": {
-    "derinlik_m": 0.126,
-    "icteki_ornek": "222/422"
+    "derinlik_m": 0.113,
+    "icteki_ornek": "177/422"
    },
-   "not": "1. ada 2. adanın içine 12.6 cm giriyor",
+   "not": "1. ada 2. adanın içine 11.3 cm giriyor",
    "sebep": "gövde kapsülü, omuz küresi ve kol kapsülü tek kumaş kütlesi olarak iç içe kurulur (tıknaz stil)"
   },
   {
@@ -1925,10 +1796,10 @@
     "ust:tisort [x 0.18 · y 1.28 · z -0.05]"
    ],
    "olcu": {
-    "gomulu_yuzey_orani": 0.73,
+    "gomulu_yuzey_orani": 0.72,
     "izinsiz_kaplayicilarla": 0
    },
-   "not": "yüzey örneklerinin %73'i başka parçaların içinde — görünmeyebilir",
+   "not": "yüzey örneklerinin %72'i başka parçaların içinde — görünmeyebilir",
    "sebep": "gövde/omuz/kol kumaş kütlesi iç içe; dışarıdan tek kütle okunur"
   },
   {
@@ -1938,10 +1809,10 @@
     "ceket:ceket [x 0.00 · y 1.16 · z -0.02]"
    ],
    "olcu": {
-    "derinlik_m": 0.075,
-    "icteki_ornek": "106/308"
+    "derinlik_m": 0.076,
+    "icteki_ornek": "93/308"
    },
-   "not": "1. ada 2. adanın içine 7.5 cm giriyor",
+   "not": "1. ada 2. adanın içine 7.6 cm giriyor",
    "sebep": "set 2 kabuğu; set 1 ve 3'te çalışma anında çökertilir (tişörtle aynı anda görünmez)"
   },
   {
@@ -1990,10 +1861,10 @@
     "ust:tisort [x 0.00 · y 1.16 · z -0.02]"
    ],
    "olcu": {
-    "derinlik_m": 0.081,
-    "icteki_ornek": "112/308"
+    "derinlik_m": 0.074,
+    "icteki_ornek": "94/308"
    },
-   "not": "1. ada 2. adanın içine 8.1 cm giriyor",
+   "not": "1. ada 2. adanın içine 7.4 cm giriyor",
    "sebep": "gövde kapsülü, omuz küresi ve kol kapsülü tek kumaş kütlesi olarak iç içe kurulur (tıknaz stil)"
   },
   {
@@ -2028,10 +1899,10 @@
     "ceket:ceket [x 0.00 · y 1.16 · z -0.02]"
    ],
    "olcu": {
-    "derinlik_m": 0.042,
-    "icteki_ornek": "110/326"
+    "derinlik_m": 0.014,
+    "icteki_ornek": "13/326"
    },
-   "not": "1. ada 2. adanın içine 4.2 cm giriyor",
+   "not": "1. ada 2. adanın içine 1.4 cm giriyor",
    "sebep": "set 2 kabuğu; set 1 ve 3'te çalışma anında çökertilir (tişörtle aynı anda görünmez)"
   },
   {
@@ -2041,83 +1912,76 @@
     "ust:tisort [x 0.00 · y 1.16 · z -0.02]"
    ],
    "olcu": {
-    "derinlik_m": 0.046,
-    "icteki_ornek": "137/326"
+    "derinlik_m": 0.016,
+    "icteki_ornek": "41/326"
    },
-   "not": "1. ada 2. adanın içine 4.6 cm giriyor",
+   "not": "1. ada 2. adanın içine 1.6 cm giriyor",
    "sebep": "set 2 yakası; diğer setlerde çökertilir"
   },
   {
-   "test": "gomulu",
-   "adalar": [
-    "yaka:gomlek [x -0.00 · y 1.13 · z 0.18]"
-   ],
-   "olcu": {
-    "gomulu_yuzey_orani": 0.65,
-    "izinsiz_kaplayicilarla": 0
-   },
-   "not": "yüzey örneklerinin %65'i başka parçaların içinde — görünmeyebilir",
-   "sebep": "kaplayan parçaların tümü izinli_ortusme kuralında"
-  },
-  {
    "test": "kozmetik",
    "adalar": [
-    "kozmetik_sapka (karakter_insan)",
+    "kozmetik_sapka (karakter_kaplan)",
     "kurk:yuz [x -0.00 · y 1.56 · z -0.04]"
    ],
    "olcu": {
-    "kesisim": "üçgen kesişimi var"
+    "gomulme_m": 0,
+    "esik_m": 0.02
    },
-   "not": "bağlama pozunda basYuva yuvasına takılı",
-   "sebep": "şapka kafaya oturur"
+   "not": "yüzeysel temas: kozmetik gövdeye 0,0 cm giriyor (eşik 2 cm)",
+   "sebep": "oturma testi temas ister; bu derinlik eşiğin altında"
   },
   {
    "test": "kozmetik",
    "adalar": [
-    "kozmetik_sapka (karakter_insan)",
+    "kozmetik_sapka (karakter_kaplan)",
     "turKulak:kurk [x -0.17 · y 1.79 · z -0.05]"
    ],
    "olcu": {
-    "kesisim": "üçgen kesişimi var"
+    "kesisim": "üçgen kesişimi var",
+    "gomulme_m": 0.0327
    },
-   "not": "bağlama pozunda basYuva yuvasına takılı",
+   "not": "bağlama pozunda basYuva yuvasına takılı, gövdeye 3,3 cm giriyor",
    "sebep": "sözleşme: kulak → gecir"
   },
   {
    "test": "kozmetik",
    "adalar": [
-    "kozmetik_sapka (karakter_insan)",
+    "kozmetik_sapka (karakter_kaplan)",
     "turKulak:kurk [x 0.16 · y 1.79 · z -0.05]"
    ],
    "olcu": {
-    "kesisim": "üçgen kesişimi var"
+    "kesisim": "üçgen kesişimi var",
+    "gomulme_m": 0.0327
    },
-   "not": "bağlama pozunda basYuva yuvasına takılı",
+   "not": "bağlama pozunda basYuva yuvasına takılı, gövdeye 3,3 cm giriyor",
    "sebep": "sözleşme: kulak → gecir"
   },
   {
    "test": "kozmetik",
    "adalar": [
-    "kozmetik_sapka (karakter_insan)",
+    "kozmetik_sapka (karakter_kaplan)",
     "turKulak:kurkKarin [x -0.17 · y 1.79 · z -0.01]"
    ],
    "olcu": {
-    "kesisim": "üçgen kesişimi var"
+    "gomulme_m": 0,
+    "esik_m": 0.02
    },
-   "not": "bağlama pozunda basYuva yuvasına takılı",
-   "sebep": "sözleşme: kulak → gecir"
+   "not": "yüzeysel temas: kozmetik gövdeye 0,0 cm giriyor (eşik 2 cm)",
+   "sebep": "oturma testi temas ister; bu derinlik eşiğin altında"
   },
   {
    "test": "kozmetik",
    "adalar": [
-    "kozmetik_sapka (karakter_insan)",
+    "kozmetik_sapka (karakter_kaplan)",
     "turKulak:kurkKarin [x 0.16 · y 1.79 · z -0.01]"
    ],
    "olcu": {
-    "kesisim": "üçgen kesişimi var"
+    "gomulme_m": 0,
+    "esik_m": 0.02
    },
-   "not": "bağlama pozunda basYuva yuvasına takılı",
-   "sebep": "sözleşme: kulak → gecir"
+   "not": "yüzeysel temas: kozmetik gövdeye 0,0 cm giriyor (eşik 2 cm)",
+   "sebep": "oturma testi temas ister; bu derinlik eşiğin altında"
   },
   {
    "test": "kozmetik",
@@ -2126,141 +1990,127 @@
     "kurk:yuz [x -0.00 · y 1.56 · z -0.04]"
    ],
    "olcu": {
-    "kesisim": "üçgen kesişimi var"
+    "kesisim": "üçgen kesişimi var",
+    "gomulme_m": 0.0936
    },
-   "not": "bağlama pozunda gozlukYuva yuvasına takılı",
+   "not": "bağlama pozunda gozlukYuva yuvasına takılı, gövdeye 9,4 cm giriyor",
    "sebep": "gözlük sapları kafaya girer"
   },
   {
    "test": "kozmetik",
    "adalar": [
-    "kozmetik_atki (karakter_insan)",
-    "alt:kot [x 0.00 · y 0.90 · z 0.01]"
-   ],
-   "olcu": {
-    "kesisim": "üçgen kesişimi var"
-   },
-   "not": "bağlama pozunda boyunYuva yuvasına takılı",
-   "sebep": "atkı boyun ve göğse sarılır"
-  },
-  {
-   "test": "kozmetik",
-   "adalar": [
-    "kozmetik_atki (karakter_insan)",
+    "kozmetik_atki (karakter_kaplan)",
     "ceket:ceket [x 0.08 · y 1.13 · z 0.19]"
    ],
    "olcu": {
-    "kesisim": "üçgen kesişimi var"
+    "gomulme_m": 0,
+    "esik_m": 0.02
    },
-   "not": "bağlama pozunda boyunYuva yuvasına takılı",
-   "sebep": "atkı boyun ve göğse sarılır"
+   "not": "yüzeysel temas: kozmetik gövdeye 0,0 cm giriyor (eşik 2 cm)",
+   "sebep": "oturma testi temas ister; bu derinlik eşiğin altında"
   },
   {
    "test": "kozmetik",
    "adalar": [
-    "kozmetik_atki (karakter_insan)",
+    "kozmetik_atki (karakter_kaplan)",
     "ceket:ceket [x 0.00 · y 1.16 · z -0.02]"
    ],
    "olcu": {
-    "kesisim": "üçgen kesişimi var"
+    "kesisim": "üçgen kesişimi var",
+    "gomulme_m": 0.0333
    },
-   "not": "bağlama pozunda boyunYuva yuvasına takılı",
+   "not": "bağlama pozunda boyunYuva yuvasına takılı, gövdeye 3,3 cm giriyor",
    "sebep": "atkı boyun ve göğse sarılır"
   },
   {
    "test": "kozmetik",
    "adalar": [
-    "kozmetik_atki (karakter_insan)",
+    "kozmetik_atki (karakter_kaplan)",
     "kapuson:esofman [x -0.00 · y 1.31 · z -0.11]"
    ],
    "olcu": {
-    "kesisim": "üçgen kesişimi var"
+    "kesisim": "üçgen kesişimi var",
+    "gomulme_m": 0.0536
    },
-   "not": "bağlama pozunda boyunYuva yuvasına takılı",
+   "not": "bağlama pozunda boyunYuva yuvasına takılı, gövdeye 5,4 cm giriyor",
    "sebep": "atkı boyun ve göğse sarılır"
   },
   {
    "test": "kozmetik",
    "adalar": [
-    "kozmetik_atki (karakter_insan)",
+    "kozmetik_atki (karakter_kaplan)",
     "kurk:yuz [x -0.00 · y 1.56 · z -0.04]"
    ],
    "olcu": {
-    "kesisim": "üçgen kesişimi var"
+    "kesisim": "üçgen kesişimi var",
+    "gomulme_m": 0.0411
    },
-   "not": "bağlama pozunda boyunYuva yuvasına takılı",
+   "not": "bağlama pozunda boyunYuva yuvasına takılı, gövdeye 4,1 cm giriyor",
    "sebep": "atkı çeneye dayanır"
   },
   {
    "test": "kozmetik",
    "adalar": [
-    "kozmetik_atki (karakter_insan)",
+    "kozmetik_atki (karakter_kaplan)",
     "ust:tisort [x 0.00 · y 1.16 · z -0.02]"
    ],
    "olcu": {
-    "kesisim": "üçgen kesişimi var"
+    "kesisim": "üçgen kesişimi var",
+    "gomulme_m": 0.0378
    },
-   "not": "bağlama pozunda boyunYuva yuvasına takılı",
+   "not": "bağlama pozunda boyunYuva yuvasına takılı, gövdeye 3,8 cm giriyor",
    "sebep": "atkı boyun ve göğse sarılır"
   },
   {
    "test": "kozmetik",
    "adalar": [
-    "kozmetik_atki (karakter_insan)",
+    "kozmetik_atki (karakter_kaplan)",
     "ust:tisort [x -0.28 · y 1.28 · z -0.05]"
    ],
    "olcu": {
-    "kesisim": "üçgen kesişimi var"
+    "kesisim": "üçgen kesişimi var",
+    "gomulme_m": 0.0651
    },
-   "not": "bağlama pozunda boyunYuva yuvasına takılı",
+   "not": "bağlama pozunda boyunYuva yuvasına takılı, gövdeye 6,5 cm giriyor",
    "sebep": "atkı boyun ve göğse sarılır"
   },
   {
    "test": "kozmetik",
    "adalar": [
-    "kozmetik_atki (karakter_insan)",
+    "kozmetik_atki (karakter_kaplan)",
     "ust:tisort [x -0.18 · y 1.28 · z -0.05]"
    ],
    "olcu": {
-    "kesisim": "üçgen kesişimi var"
+    "kesisim": "üçgen kesişimi var",
+    "gomulme_m": 0.0804
    },
-   "not": "bağlama pozunda boyunYuva yuvasına takılı",
+   "not": "bağlama pozunda boyunYuva yuvasına takılı, gövdeye 8,0 cm giriyor",
    "sebep": "atkı boyun ve göğse sarılır"
   },
   {
    "test": "kozmetik",
    "adalar": [
-    "kozmetik_atki (karakter_insan)",
+    "kozmetik_atki (karakter_kaplan)",
     "ust:tisort [x 0.18 · y 1.28 · z -0.05]"
    ],
    "olcu": {
-    "kesisim": "üçgen kesişimi var"
+    "kesisim": "üçgen kesişimi var",
+    "gomulme_m": 0.063
    },
-   "not": "bağlama pozunda boyunYuva yuvasına takılı",
+   "not": "bağlama pozunda boyunYuva yuvasına takılı, gövdeye 6,3 cm giriyor",
    "sebep": "atkı boyun ve göğse sarılır"
   },
   {
    "test": "kozmetik",
    "adalar": [
-    "kozmetik_atki (karakter_insan)",
+    "kozmetik_atki (karakter_kaplan)",
     "ust:tisort [x 0.28 · y 1.28 · z -0.05]"
    ],
    "olcu": {
-    "kesisim": "üçgen kesişimi var"
+    "kesisim": "üçgen kesişimi var",
+    "gomulme_m": 0.0657
    },
-   "not": "bağlama pozunda boyunYuva yuvasına takılı",
-   "sebep": "atkı boyun ve göğse sarılır"
-  },
-  {
-   "test": "kozmetik",
-   "adalar": [
-    "kozmetik_atki (karakter_insan)",
-    "yaka:gomlek [x -0.00 · y 1.13 · z 0.18]"
-   ],
-   "olcu": {
-    "kesisim": "üçgen kesişimi var"
-   },
-   "not": "bağlama pozunda boyunYuva yuvasına takılı",
+   "not": "bağlama pozunda boyunYuva yuvasına takılı, gövdeye 6,6 cm giriyor",
    "sebep": "atkı boyun ve göğse sarılır"
   },
   {
@@ -2270,9 +2120,10 @@
     "alt:kot [x 0.00 · y 0.90 · z 0.01]"
    ],
    "olcu": {
-    "kesisim": "üçgen kesişimi var"
+    "kesisim": "üçgen kesişimi var",
+    "gomulme_m": 0.0771
    },
-   "not": "bağlama pozunda sirtYuva yuvasına takılı",
+   "not": "bağlama pozunda sirtYuva yuvasına takılı, gövdeye 7,7 cm giriyor",
    "sebep": "kuyruk kökü sırta gömülü (sirtYuva)"
   },
   {
@@ -2282,10 +2133,11 @@
     "ceket:ceket [x 0.00 · y 1.16 · z -0.02]"
    ],
    "olcu": {
-    "kesisim": "üçgen kesişimi var"
+    "gomulme_m": 0.0081,
+    "esik_m": 0.02
    },
-   "not": "bağlama pozunda sirtYuva yuvasına takılı",
-   "sebep": "kuyruk kökü sırta gömülü (sirtYuva)"
+   "not": "yüzeysel temas: kozmetik gövdeye 0,8 cm giriyor (eşik 2 cm)",
+   "sebep": "oturma testi temas ister; bu derinlik eşiğin altında"
   },
   {
    "test": "kozmetik",
@@ -2294,9 +2146,10 @@
     "ust:tisort [x 0.00 · y 1.16 · z -0.02]"
    ],
    "olcu": {
-    "kesisim": "üçgen kesişimi var"
+    "kesisim": "üçgen kesişimi var",
+    "gomulme_m": 0.0228
    },
-   "not": "bağlama pozunda sirtYuva yuvasına takılı",
+   "not": "bağlama pozunda sirtYuva yuvasına takılı, gövdeye 2,3 cm giriyor",
    "sebep": "kuyruk kökü sırta gömülü (sirtYuva)"
   },
   {
@@ -2306,9 +2159,10 @@
     "gozL:ifade [x -0.10 · y 1.61 · z 0.18]"
    ],
    "olcu": {
-    "kesisim": "üçgen kesişimi var"
+    "kesisim": "üçgen kesişimi var",
+    "gomulme_m": 0.1204
    },
-   "not": "bağlama pozunda gozlukYuva yuvasına takılı",
+   "not": "bağlama pozunda gozlukYuva yuvasına takılı, gövdeye 12,0 cm giriyor",
    "sebep": "sözleşme: muzzle → it"
   },
   {
@@ -2318,9 +2172,10 @@
     "kurk:yuz [x -0.00 · y 1.56 · z -0.04]"
    ],
    "olcu": {
-    "kesisim": "üçgen kesişimi var"
+    "kesisim": "üçgen kesişimi var",
+    "gomulme_m": 0.0901
    },
-   "not": "bağlama pozunda gozlukYuva yuvasına takılı",
+   "not": "bağlama pozunda gozlukYuva yuvasına takılı, gövdeye 9,0 cm giriyor",
    "sebep": "kaplan: saplar kürkün içinden geçer"
   },
   {
@@ -2330,9 +2185,10 @@
     "ceket:ceket [x 0.00 · y 1.16 · z -0.02]"
    ],
    "olcu": {
-    "kesisim": "üçgen kesişimi var"
+    "kesisim": "üçgen kesişimi var",
+    "gomulme_m": 0.092
    },
-   "not": "bağlama pozunda sirtYuva yuvasına takılı",
+   "not": "bağlama pozunda sirtYuva yuvasına takılı, gövdeye 9,2 cm giriyor",
    "sebep": "kanat koşumu ve omuz kayışları gövdeye/kıyafete sarılır (sırt bağlantısı)"
   },
   {
@@ -2342,9 +2198,10 @@
     "kapuson:esofman [x -0.00 · y 1.31 · z -0.11]"
    ],
    "olcu": {
-    "kesisim": "üçgen kesişimi var"
+    "kesisim": "üçgen kesişimi var",
+    "gomulme_m": 0.0443
    },
-   "not": "bağlama pozunda sirtYuva yuvasına takılı",
+   "not": "bağlama pozunda sirtYuva yuvasına takılı, gövdeye 4,4 cm giriyor",
    "sebep": "kanat koşumu ve omuz kayışları gövdeye/kıyafete sarılır (sırt bağlantısı)"
   },
   {
@@ -2354,9 +2211,10 @@
     "ust:tisort [x 0.00 · y 1.16 · z -0.02]"
    ],
    "olcu": {
-    "kesisim": "üçgen kesişimi var"
+    "kesisim": "üçgen kesişimi var",
+    "gomulme_m": 0.0988
    },
-   "not": "bağlama pozunda sirtYuva yuvasına takılı",
+   "not": "bağlama pozunda sirtYuva yuvasına takılı, gövdeye 9,9 cm giriyor",
    "sebep": "kanat koşumu ve omuz kayışları gövdeye/kıyafete sarılır (sırt bağlantısı)"
   },
   {
@@ -2366,9 +2224,10 @@
     "ust:tisort [x -0.18 · y 1.28 · z -0.05]"
    ],
    "olcu": {
-    "kesisim": "üçgen kesişimi var"
+    "kesisim": "üçgen kesişimi var",
+    "gomulme_m": 0.0372
    },
-   "not": "bağlama pozunda sirtYuva yuvasına takılı",
+   "not": "bağlama pozunda sirtYuva yuvasına takılı, gövdeye 3,7 cm giriyor",
    "sebep": "kanat koşumu ve omuz kayışları gövdeye/kıyafete sarılır (sırt bağlantısı)"
   },
   {
@@ -2378,9 +2237,10 @@
     "ust:tisort [x 0.18 · y 1.28 · z -0.05]"
    ],
    "olcu": {
-    "kesisim": "üçgen kesişimi var"
+    "kesisim": "üçgen kesişimi var",
+    "gomulme_m": 0.0403
    },
-   "not": "bağlama pozunda sirtYuva yuvasına takılı",
+   "not": "bağlama pozunda sirtYuva yuvasına takılı, gövdeye 4,0 cm giriyor",
    "sebep": "kanat koşumu ve omuz kayışları gövdeye/kıyafete sarılır (sırt bağlantısı)"
   }
  ],
@@ -2419,7 +2279,7 @@
   },
   {
    "ada": "alt:kot [x 0.00 · y 0.90 · z 0.01]",
-   "oran": 0.34
+   "oran": 0.32
   },
   {
    "ada": "ayakkabi:ayakkabi [x -0.10 · y 0.10 · z 0.05]",
@@ -2443,11 +2303,11 @@
   },
   {
    "ada": "ceket:ceket [x 0.08 · y 1.13 · z 0.19]",
-   "oran": 0.2
+   "oran": 0.19
   },
   {
    "ada": "ceket:ceket [x 0.00 · y 1.16 · z -0.02]",
-   "oran": 1
+   "oran": 0.34
   },
   {
    "ada": "diger:gozBebek [x -0.64 · y 1.21 · z -0.05]",
@@ -2467,7 +2327,7 @@
   },
   {
    "ada": "kapuson:esofman [x -0.00 · y 1.31 · z -0.11]",
-   "oran": 0.62
+   "oran": 0.56
   },
   {
    "ada": "kurk:kurk [x -0.64 · y 1.28 · z -0.05]",
@@ -2519,7 +2379,7 @@
   },
   {
    "ada": "kurk:yuz [x -0.00 · y 1.56 · z -0.04]",
-   "oran": 0.26
+   "oran": 0.16
   },
   {
    "ada": "taban:cerceve [x -0.10 · y 0.02 · z 0.05]",
@@ -2547,7 +2407,7 @@
   },
   {
    "ada": "ust:tisort [x 0.00 · y 1.16 · z -0.02]",
-   "oran": 0.58
+   "oran": 0.9
   },
   {
    "ada": "ust:tisort [x -0.28 · y 1.28 · z -0.05]",
@@ -2555,11 +2415,11 @@
   },
   {
    "ada": "ust:tisort [x -0.18 · y 1.28 · z -0.05]",
-   "oran": 0.73
+   "oran": 0.72
   },
   {
    "ada": "ust:tisort [x 0.18 · y 1.28 · z -0.05]",
-   "oran": 0.73
+   "oran": 0.72
   },
   {
    "ada": "ust:tisort [x 0.28 · y 1.28 · z -0.05]",
@@ -2567,7 +2427,7 @@
   },
   {
    "ada": "yaka:gomlek [x -0.00 · y 1.13 · z 0.18]",
-   "oran": 0.65
+   "oran": 0.39
   }
  ],
  "adaListesi": [
@@ -2670,7 +2530,7 @@
   {
    "no": 16,
    "ada": "ceket:ceket [x 0.00 · y 1.16 · z -0.02]",
-   "ucgen": 112,
+   "ucgen": 336,
    "kapali": true
   },
   {
@@ -2820,7 +2680,7 @@
   {
    "no": 41,
    "ada": "ust:tisort [x 0.00 · y 1.16 · z -0.02]",
-   "ucgen": 112,
+   "ucgen": 336,
    "kapali": true
   },
   {

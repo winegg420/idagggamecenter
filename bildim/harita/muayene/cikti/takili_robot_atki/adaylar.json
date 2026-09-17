@@ -12,17 +12,21 @@
    "oran_esigi": 0.15,
    "yaslanma_esigi_m": 0.008
   },
-  "ada": 2,
+  "ada": 1,
   "acik_kenar": {
-   "ada": 2,
+   "ada": 1,
    "delik_dongusu": 0,
    "esik_ustu": 0,
    "esik_m2": 0.0004
   },
   "kalinlik": {
-   "olculen_ada": 2,
+   "olculen_ada": 1,
    "asgari_kalinlik_m": 0.025,
    "alan_esigi_m2": 0.02
+  },
+  "parca_butunlugu": {
+   "ada": 1,
+   "temas_m": 0.006
   }
  },
  "adaylar": [],
@@ -30,67 +34,61 @@
  "oturma": [
   {
    "sac": 1,
-   "kose": 91,
-   "yakin": 30,
-   "temas": 12,
-   "temas_orani": 0.4,
+   "kose": 90,
+   "yakin": 21,
+   "temas": 15,
+   "temas_orani": 0.714,
    "yaslanma_m": 0,
-   "yaslanan_kose": 8,
-   "medyan_bosluk_m": 0.0089,
-   "en_buyuk_bosluk_m": 0.0196,
+   "yaslanan_kose": 6,
+   "medyan_bosluk_m": 0.0013,
+   "en_buyuk_bosluk_m": 0.018,
    "en_yakin_m": 0,
-   "disa_bakan": 61,
-   "gomulu_kose": 6,
-   "en_derin_gomulme_m": 0.0134,
-   "yazi": "robot atki (saç 1): gövdeye bakan 30 köşenin 12'i temas ediyor (%40), medyan boşluk 0,9 cm, en büyük 2,0 cm (toplam 91 köşe)",
+   "disa_bakan": 98,
+   "gomulu_kose": 9,
+   "en_derin_gomulme_m": 0.011,
+   "yazi": "robot atki (saç 1): gövdeye bakan 21 köşenin 15'i temas ediyor (%71), medyan boşluk 0,1 cm, en büyük 1,8 cm (toplam 90 köşe)",
    "aday": false
   },
   {
    "sac": 2,
-   "kose": 91,
-   "yakin": 30,
-   "temas": 12,
-   "temas_orani": 0.4,
+   "kose": 90,
+   "yakin": 21,
+   "temas": 15,
+   "temas_orani": 0.714,
    "yaslanma_m": 0,
-   "yaslanan_kose": 8,
-   "medyan_bosluk_m": 0.0089,
-   "en_buyuk_bosluk_m": 0.0196,
+   "yaslanan_kose": 6,
+   "medyan_bosluk_m": 0.0013,
+   "en_buyuk_bosluk_m": 0.018,
    "en_yakin_m": 0,
-   "disa_bakan": 61,
-   "gomulu_kose": 6,
-   "en_derin_gomulme_m": 0.0134,
-   "yazi": "robot atki (saç 2): gövdeye bakan 30 köşenin 12'i temas ediyor (%40), medyan boşluk 0,9 cm, en büyük 2,0 cm (toplam 91 köşe)",
+   "disa_bakan": 98,
+   "gomulu_kose": 9,
+   "en_derin_gomulme_m": 0.011,
+   "yazi": "robot atki (saç 2): gövdeye bakan 21 köşenin 15'i temas ediyor (%71), medyan boşluk 0,1 cm, en büyük 1,8 cm (toplam 90 köşe)",
    "aday": false
   },
   {
    "sac": 3,
-   "kose": 91,
-   "yakin": 30,
-   "temas": 12,
-   "temas_orani": 0.4,
+   "kose": 90,
+   "yakin": 21,
+   "temas": 15,
+   "temas_orani": 0.714,
    "yaslanma_m": 0,
-   "yaslanan_kose": 8,
-   "medyan_bosluk_m": 0.0089,
-   "en_buyuk_bosluk_m": 0.0196,
+   "yaslanan_kose": 6,
+   "medyan_bosluk_m": 0.0013,
+   "en_buyuk_bosluk_m": 0.018,
    "en_yakin_m": 0,
-   "disa_bakan": 61,
-   "gomulu_kose": 6,
-   "en_derin_gomulme_m": 0.0134,
-   "yazi": "robot atki (saç 3): gövdeye bakan 30 köşenin 12'i temas ediyor (%40), medyan boşluk 0,9 cm, en büyük 2,0 cm (toplam 91 köşe)",
+   "disa_bakan": 98,
+   "gomulu_kose": 9,
+   "en_derin_gomulme_m": 0.011,
+   "yazi": "robot atki (saç 3): gövdeye bakan 21 köşenin 15'i temas ediyor (%71), medyan boşluk 0,1 cm, en büyük 1,8 cm (toplam 90 köşe)",
    "aday": false
   }
  ],
  "adaListesi": [
   {
    "no": 0,
-   "ada": "diger:atki [x 0.01 · y 1.02 · z 0.18]",
-   "ucgen": 108,
-   "kapali": true
-  },
-  {
-   "no": 1,
-   "ada": "diger:atki [x -0.00 · y 1.26 · z 0.05]",
-   "ucgen": 192,
+   "ada": "diger:atki [x 0.06 · y 1.18 · z 0.09]",
+   "ucgen": 372,
    "kapali": true
   }
  ]

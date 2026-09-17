@@ -1,9 +1,9 @@
 {
- "tarih": "2026-09-17T18:58:19.672Z",
+ "tarih": "2026-09-17T20:31:41.854Z",
  "varliklar": {
-  "prop_saksi": {
-   "ucgen": 256,
-   "malzeme": 1,
+  "takili_insan_sapka": {
+   "ucgen": 6153,
+   "malzeme": 2,
    "gorunumler": [
     "ön (+Z)",
     "arka (−Z)",
@@ -11,9 +11,6 @@
     "sağ (+X)",
     "üst (+Y)",
     "alt (−Y)",
-    "çalı + toplar",
-    "bilezik",
-    "taban",
     "beauty (perspektif, B+, gölgeli)"
    ],
    "dosyalar": [
@@ -23,14 +20,53 @@
     "04-sağ-x.png",
     "05-üst-y.png",
     "06-alt-y.png",
-    "07-çalı-toplar.png",
-    "08-bilezik.png",
-    "09-taban.png",
-    "10-beauty-perspektif-b-gölgeli.png"
+    "07-beauty-perspektif-b-gölgeli.png"
+   ],
+   "aday": {},
+   "susturulan": {}
+  },
+  "karakter_insan": {
+   "ucgen": 7104,
+   "malzeme": 1,
+   "gorunumler": [
+    "ön (+Z)",
+    "arka (−Z)",
+    "sol (−X)",
+    "sağ (+X)",
+    "üst (+Y)",
+    "alt (−Y)",
+    "kafa 3/4 (kozmetiksiz)",
+    "sağ el (parmaklar)",
+    "sol ayak",
+    "ifade normal",
+    "ifade gülümseme",
+    "ifade şaşkın",
+    "kanat sırt bağlantısı (kanat kozmetiği)",
+    "premium gözlük (kozmetikli)",
+    "beauty (perspektif, B+, gölgeli, kozmetikli, Idle)"
+   ],
+   "dosyalar": [
+    "01-ön-z.png",
+    "02-arka-z.png",
+    "03-sol-x.png",
+    "04-sağ-x.png",
+    "05-üst-y.png",
+    "06-alt-y.png",
+    "07-kafa-3-4-kozmetiksiz.png",
+    "08-sağ-el-parmaklar.png",
+    "09-sol-ayak.png",
+    "10-ifade-normal.png",
+    "11-ifade-gülümseme.png",
+    "12-ifade-şaşkın.png",
+    "13-kanat-sırt-bağlantısı-kanat-kozmetiği.png",
+    "14-premium-gözlük-kozmetikli.png",
+    "15-beauty-perspektif-b-gölgeli-kozmetikli-idle.png"
    ],
    "aday": {},
    "susturulan": {
-    "icice": 7
+    "icice": 161,
+    "gomulu": 25,
+    "kozmetik": 24
    }
   }
  },
@@ -49,10 +85,10 @@
    "portre_kadraj": "kart portresinde görünen alan ≥ %4 ve taşma ≤ %2"
   },
   "muayene_edilen": [
-   "prop_saksi"
+   "takili_insan_sapka",
+   "karakter_insan"
   ],
   "muayene_edilmeyen": [
-   "karakter_insan",
    "karakter_kaplan",
    "karakter_robot",
    "bina_dukkan",
@@ -62,10 +98,10 @@
    "prop_agac_tac",
    "prop_bank",
    "prop_lamba",
+   "prop_saksi",
    "prop_kedi",
    "kozmetik_tac",
    "kozmetik_pelerin",
-   "takili_insan_sapka",
    "takili_insan_gozluk",
    "takili_insan_gozlukPremium",
    "takili_insan_atki",

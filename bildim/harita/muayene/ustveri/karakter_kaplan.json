@@ -2,9 +2,9 @@
   "glb": "karakter_kaplan",
   "tip": "karakter",
   "kozmetik": {
-    "sapka": "karakter_insan",
+    "sapka": "karakter_kaplan",
     "gozluk": "karakter_insan",
-    "atki": "karakter_insan",
+    "atki": "karakter_kaplan",
     "kuyruk": "karakter_kaplan",
     "gozlukPremium": "karakter_insan",
     "kanat": "karakter_insan"

@@ -4,7 +4,7 @@
   "kozmetik": {
     "sapka": "karakter_robot",
     "gozluk": "karakter_robot",
-    "atki": "karakter_insan",
+    "atki": "karakter_robot",
     "gozlukPremium": "karakter_insan",
     "kanat": "karakter_insan"
   },

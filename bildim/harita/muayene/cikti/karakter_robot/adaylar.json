@@ -404,13 +404,27 @@
   {
    "test": "kozmetik",
    "adalar": [
+    "kozmetik_sapka (karakter_robot)",
+    "metal:metal [x -0.00 · y 1.56 · z -0.04]"
+   ],
+   "olcu": {
+    "gomulme_m": 0,
+    "esik_m": 0.02
+   },
+   "not": "yüzeysel temas: kozmetik gövdeye 0,0 cm giriyor (eşik 2 cm)",
+   "sebep": "oturma testi temas ister; bu derinlik eşiğin altında"
+  },
+  {
+   "test": "kozmetik",
+   "adalar": [
     "kozmetik_gozluk (karakter_robot)",
     "ekran:yuz [x -0.00 · y 1.56 · z 0.15]"
    ],
    "olcu": {
-    "kesisim": "üçgen kesişimi var"
+    "kesisim": "üçgen kesişimi var",
+    "gomulme_m": 0.055
    },
-   "not": "bağlama pozunda gozlukYuva yuvasına takılı",
+   "not": "bağlama pozunda gozlukYuva yuvasına takılı, gövdeye 5,5 cm giriyor",
    "sebep": "vizör kafa ve ekran yüzeyine sarılır"
   },
   {
@@ -420,9 +434,10 @@
     "gozL:ifade [x -0.07 · y 1.59 · z 0.17]"
    ],
    "olcu": {
-    "kesisim": "üçgen kesişimi var"
+    "kesisim": "üçgen kesişimi var",
+    "gomulme_m": 0.1275
    },
-   "not": "bağlama pozunda gozlukYuva yuvasına takılı",
+   "not": "bağlama pozunda gozlukYuva yuvasına takılı, gövdeye 12,7 cm giriyor",
    "sebep": "vizör kafa ve ekran yüzeyine sarılır"
   },
   {
@@ -432,9 +447,10 @@
     "gozR:ifade [x 0.06 · y 1.59 · z 0.17]"
    ],
    "olcu": {
-    "kesisim": "üçgen kesişimi var"
+    "kesisim": "üçgen kesişimi var",
+    "gomulme_m": 0.1275
    },
-   "not": "bağlama pozunda gozlukYuva yuvasına takılı",
+   "not": "bağlama pozunda gozlukYuva yuvasına takılı, gövdeye 12,8 cm giriyor",
    "sebep": "vizör kafa ve ekran yüzeyine sarılır"
   },
   {
@@ -444,117 +460,101 @@
     "metal:metal [x -0.00 · y 1.56 · z -0.04]"
    ],
    "olcu": {
-    "kesisim": "üçgen kesişimi var"
+    "gomulme_m": 0,
+    "esik_m": 0.02
    },
-   "not": "bağlama pozunda gozlukYuva yuvasına takılı",
-   "sebep": "vizör kafa ve ekran yüzeyine sarılır"
+   "not": "yüzeysel temas: kozmetik gövdeye 0,0 cm giriyor (eşik 2 cm)",
+   "sebep": "oturma testi temas ister; bu derinlik eşiğin altında"
   },
   {
    "test": "kozmetik",
    "adalar": [
-    "kozmetik_atki (karakter_insan)",
+    "kozmetik_atki (karakter_robot)",
     "boya:gomlek [x -0.22 · y 1.28 · z -0.05]"
    ],
    "olcu": {
-    "kesisim": "üçgen kesişimi var"
+    "kesisim": "üçgen kesişimi var",
+    "gomulme_m": 0.0353
    },
-   "not": "bağlama pozunda boyunYuva yuvasına takılı",
+   "not": "bağlama pozunda boyunYuva yuvasına takılı, gövdeye 3,5 cm giriyor",
    "sebep": "atkı boyun pistonu, omuz ve göğüs paneli çevresine sarılır"
   },
   {
    "test": "kozmetik",
    "adalar": [
-    "kozmetik_atki (karakter_insan)",
+    "kozmetik_atki (karakter_robot)",
     "boya:gomlek [x 0.22 · y 1.28 · z -0.05]"
    ],
    "olcu": {
-    "kesisim": "üçgen kesişimi var"
+    "kesisim": "üçgen kesişimi var",
+    "gomulme_m": 0.0259
    },
-   "not": "bağlama pozunda boyunYuva yuvasına takılı",
+   "not": "bağlama pozunda boyunYuva yuvasına takılı, gövdeye 2,6 cm giriyor",
    "sebep": "atkı boyun pistonu, omuz ve göğüs paneli çevresine sarılır"
   },
   {
    "test": "kozmetik",
    "adalar": [
-    "kozmetik_atki (karakter_insan)",
-    "ekran:ekran [x 0.00 · y 1.19 · z 0.14]"
+    "kozmetik_atki (karakter_robot)",
+    "boya:gomlek [x -0.00 · y 1.34 · z -0.05]"
    ],
    "olcu": {
-    "kesisim": "üçgen kesişimi var"
+    "gomulme_m": 0,
+    "esik_m": 0.02
    },
-   "not": "bağlama pozunda boyunYuva yuvasına takılı",
-   "sebep": "atkı boyun pistonu, omuz ve göğüs paneli çevresine sarılır"
+   "not": "yüzeysel temas: kozmetik gövdeye 0,0 cm giriyor (eşik 2 cm)",
+   "sebep": "oturma testi temas ister; bu derinlik eşiğin altında"
   },
   {
    "test": "kozmetik",
    "adalar": [
-    "kozmetik_atki (karakter_insan)",
+    "kozmetik_atki (karakter_robot)",
     "metal:metal [x 0.00 · y 1.16 · z 0.01]"
    ],
    "olcu": {
-    "kesisim": "üçgen kesişimi var"
+    "gomulme_m": 0,
+    "esik_m": 0.02
    },
-   "not": "bağlama pozunda boyunYuva yuvasına takılı",
-   "sebep": "atkı boyun pistonu, omuz ve göğüs paneli çevresine sarılır"
+   "not": "yüzeysel temas: kozmetik gövdeye 0,0 cm giriyor (eşik 2 cm)",
+   "sebep": "oturma testi temas ister; bu derinlik eşiğin altında"
   },
   {
    "test": "kozmetik",
    "adalar": [
-    "kozmetik_atki (karakter_insan)",
-    "plastik:demir [x 0.00 · y 1.07 · z 0.14]"
+    "kozmetik_atki (karakter_robot)",
+    "metal:metal [x -0.00 · y 1.35 · z -0.05]"
    ],
    "olcu": {
-    "kesisim": "üçgen kesişimi var"
+    "gomulme_m": 0.0064,
+    "esik_m": 0.02
    },
-   "not": "bağlama pozunda boyunYuva yuvasına takılı",
-   "sebep": "atkı boyun pistonu, omuz ve göğüs paneli çevresine sarılır"
+   "not": "yüzeysel temas: kozmetik gövdeye 0,6 cm giriyor (eşik 2 cm)",
+   "sebep": "oturma testi temas ister; bu derinlik eşiğin altında"
   },
   {
    "test": "kozmetik",
    "adalar": [
-    "kozmetik_atki (karakter_insan)",
-    "plastik:demir [x 0.00 · y 1.09 · z 0.14]"
-   ],
-   "olcu": {
-    "kesisim": "üçgen kesişimi var"
-   },
-   "not": "bağlama pozunda boyunYuva yuvasına takılı",
-   "sebep": "atkı boyun pistonu, omuz ve göğüs paneli çevresine sarılır"
-  },
-  {
-   "test": "kozmetik",
-   "adalar": [
-    "kozmetik_atki (karakter_insan)",
-    "plastik:demir [x 0.00 · y 1.11 · z 0.14]"
-   ],
-   "olcu": {
-    "kesisim": "üçgen kesişimi var"
-   },
-   "not": "bağlama pozunda boyunYuva yuvasına takılı",
-   "sebep": "atkı boyun pistonu, omuz ve göğüs paneli çevresine sarılır"
-  },
-  {
-   "test": "kozmetik",
-   "adalar": [
-    "kozmetik_atki (karakter_insan)",
-    "plastik:demir [x -0.22 · y 1.28 · z -0.05]"
-   ],
-   "olcu": {
-    "kesisim": "üçgen kesişimi var"
-   },
-   "not": "bağlama pozunda boyunYuva yuvasına takılı",
-   "sebep": "atkı boyun pistonu, omuz ve göğüs paneli çevresine sarılır"
-  },
-  {
-   "test": "kozmetik",
-   "adalar": [
-    "kozmetik_atki (karakter_insan)",
+    "kozmetik_atki (karakter_robot)",
     "plastik:demir [x 0.22 · y 1.28 · z -0.05]"
    ],
    "olcu": {
-    "kesisim": "üçgen kesişimi var"
+    "gomulme_m": 0.0003,
+    "esik_m": 0.02
    },
-   "not": "bağlama pozunda boyunYuva yuvasına takılı",
+   "not": "yüzeysel temas: kozmetik gövdeye 0,0 cm giriyor (eşik 2 cm)",
+   "sebep": "oturma testi temas ister; bu derinlik eşiğin altında"
+  },
+  {
+   "test": "kozmetik",
+   "adalar": [
+    "kozmetik_atki (karakter_robot)",
+    "plastik:demir [x -0.00 · y 1.34 · z -0.05]"
+   ],
+   "olcu": {
+    "kesisim": "üçgen kesişimi var",
+    "gomulme_m": 0.027
+   },
+   "not": "bağlama pozunda boyunYuva yuvasına takılı, gövdeye 2,7 cm giriyor",
    "sebep": "atkı boyun pistonu, omuz ve göğüs paneli çevresine sarılır"
   },
   {
@@ -564,9 +564,10 @@
     "metal:metal [x -0.00 · y 1.56 · z -0.04]"
    ],
    "olcu": {
-    "kesisim": "üçgen kesişimi var"
+    "kesisim": "üçgen kesişimi var",
+    "gomulme_m": 0.0731
    },
-   "not": "bağlama pozunda gozlukYuva yuvasına takılı",
+   "not": "bağlama pozunda gozlukYuva yuvasına takılı, gövdeye 7,3 cm giriyor",
    "sebep": "robot: saplar kafa kasasının içinden geçer"
   },
   {
@@ -576,9 +577,10 @@
     "metal:metal [x 0.00 · y 1.16 · z 0.01]"
    ],
    "olcu": {
-    "kesisim": "üçgen kesişimi var"
+    "kesisim": "üçgen kesişimi var",
+    "gomulme_m": 0.0475
    },
-   "not": "bağlama pozunda sirtYuva yuvasına takılı",
+   "not": "bağlama pozunda sirtYuva yuvasına takılı, gövdeye 4,7 cm giriyor",
    "sebep": "kanat koşumu ve omuz kayışları gövdeye/kıyafete sarılır (sırt bağlantısı)"
   }
  ],
