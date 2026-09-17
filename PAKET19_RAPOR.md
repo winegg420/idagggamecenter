@@ -7,7 +7,7 @@
 | C — vitrinde T-pozu | ✅ canlıda · Idle her kuruluşta anında uygulanıyor + Selam; kalıcı T düzenekte yeniden üretilemedi (ölçüm raporda) | `3c8b4d8` |
 | D — Dükkân › Görünüm vitrini | ✅ canlıda · kozmetik kartları (portre + ad + durum), tek WebGL bağlamı, satın alma vitrinde | `ab7b81b` |
 | E — geniş ekranda boş alan | ✅ canlıda · kısa sayfa masaüstünde ortada, zemin tüm sayfayı kaplıyor, iOS denetimi temiz | `4784f7e` |
-| F — push abonesi sıfır | ✅ canlıda · işaret `_v2`, Profil sebep söylüyor, uçtan uca bildirim geldi | F |
+| F — push abonesi sıfır | ✅ canlıda · işaret `_v2`, Profil sebep söylüyor, uçtan uca bildirim geldi | `934d889` |
 
 ---
 

@@ -5426,5 +5426,5 @@ en küçük TR 761 (spor), EN 476 (tarih) — hiçbiri 300 altı değil. Sayfa s
 - **C (`3c8b4d8`):** vitrinde yeni karakter ilk karede bağlanma (T) pozundaydı; Idle zamanla bağlanıyor + Selam. Kalıcı T-pozu düzenekte yeniden üretilemedi.
 - **D (`ab7b81b`):** Dükkân › Görünüm = kozmetik vitrini kartları (tek WebGL bağlamı, satın alma vitrinde).
 - **E (`4784f7e`):** masaüstünde kısa sayfa dikeyde ortalı (`safe center`), zemin krem + degrade no-repeat (iOS'ta fixed yok sayılınca tekrar ediyordu). iOS denetimi temiz; `.bd-ust-blok` sticky (fixed değil) + translateZ — kural ihlali değil.
-- **F:** push abonesi 0'ın ölçülen sebebi: Paket 17 B yayınından beri **hiç maç bitmedi** (kartın tek tetikleyicisi sonuç ekranı). Eski "bir daha sorma" işareti `_v2` ile sıfırlandı; Profil › Bildirimler her tarayıcıda görünür ve neden kapalı olduğunu söyler. Uçtan uca gerçek FCM bildirimi geldi, test aboneliği silindi.
+- **F (`934d889`):** push abonesi 0'ın ölçülen sebebi: Paket 17 B yayınından beri **hiç maç bitmedi** (kartın tek tetikleyicisi sonuç ekranı). Eski "bir daha sorma" işareti `_v2` ile sıfırlandı; Profil › Bildirimler her tarayıcıda görünür ve neden kapalı olduğunu söyler. Uçtan uca gerçek FCM bildirimi geldi, test aboneliği silindi.
 - Rapor `PAKET19_RAPOR.md`, görseller `gorsel/paket19/`.
