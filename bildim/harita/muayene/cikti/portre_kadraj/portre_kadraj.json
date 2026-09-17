@@ -60,13 +60,13 @@
    "tur": "insan",
    "koz": "kanat",
    "kadraj": "sirt",
-   "alan_orani": 0.0427,
+   "alan_orani": 0.0391,
    "tasma_orani": 0,
    "kutu": [
-    -0.85,
-    -0.01,
-    0.45,
-    0.82
+    -0.78,
+    0,
+    0.64,
+    0.83
    ]
   },
   {
@@ -86,7 +86,7 @@
    "tur": "insan",
    "koz": "pelerin",
    "kadraj": "sirt",
-   "alan_orani": 0.1008,
+   "alan_orani": 0.1007,
    "tasma_orani": 0,
    "kutu": [
     -0.7,
@@ -151,12 +151,12 @@
    "tur": "kaplan",
    "koz": "kanat",
    "kadraj": "sirt",
-   "alan_orani": 0.0412,
+   "alan_orani": 0.0359,
    "tasma_orani": 0,
    "kutu": [
-    -0.85,
-    -0.01,
-    0.47,
+    -0.79,
+    0,
+    0.54,
     0.82
    ]
   },
@@ -177,10 +177,10 @@
    "tur": "kaplan",
    "koz": "pelerin",
    "kadraj": "sirt",
-   "alan_orani": 0.0971,
+   "alan_orani": 0.095,
    "tasma_orani": 0,
    "kutu": [
-    -0.69,
+    -0.7,
     -0.6,
     0.07,
     0.54
@@ -203,13 +203,13 @@
    "tur": "robot",
    "koz": "gozluk",
    "kadraj": "bas",
-   "alan_orani": 0.121,
+   "alan_orani": 0.0669,
    "tasma_orani": 0,
    "kutu": [
-    -0.64,
-    -0.89,
-    0.74,
-    -0.27
+    -0.61,
+    -0.87,
+    0.69,
+    -0.28
    ]
   },
   {
@@ -242,13 +242,13 @@
    "tur": "robot",
    "koz": "kanat",
    "kadraj": "sirt",
-   "alan_orani": 0.0312,
+   "alan_orani": 0.0423,
    "tasma_orani": 0,
    "kutu": [
-    -0.77,
-    0.01,
-    0.6,
-    0.82
+    -0.81,
+    0,
+    0.62,
+    0.83
    ]
   },
   {
@@ -268,10 +268,10 @@
    "tur": "robot",
    "koz": "pelerin",
    "kadraj": "sirt",
-   "alan_orani": 0.101,
+   "alan_orani": 0.1008,
    "tasma_orani": 0,
    "kutu": [
-    -0.69,
+    -0.7,
     -0.6,
     0.07,
     0.54
@@ -279,6 +279,21 @@
   }
  ],
  "adaylar": [
+  {
+   "tur": "insan",
+   "koz": "kanat",
+   "kadraj": "sirt",
+   "alan_orani": 0.0391,
+   "tasma_orani": 0,
+   "kutu": [
+    -0.78,
+    0,
+    0.64,
+    0.83
+   ],
+   "test": "portre_kadraj",
+   "sebep": "kartta seçilemiyor: görünen alan %3.9 < %4"
+  },
   {
    "tur": "insan",
    "koz": "tac",
@@ -296,6 +311,21 @@
   },
   {
    "tur": "kaplan",
+   "koz": "kanat",
+   "kadraj": "sirt",
+   "alan_orani": 0.0359,
+   "tasma_orani": 0,
+   "kutu": [
+    -0.79,
+    0,
+    0.54,
+    0.82
+   ],
+   "test": "portre_kadraj",
+   "sebep": "kartta seçilemiyor: görünen alan %3.6 < %4"
+  },
+  {
+   "tur": "kaplan",
    "koz": "tac",
    "kadraj": "bas",
    "alan_orani": 0.1336,
@@ -308,21 +338,6 @@
    ],
    "test": "portre_kadraj",
    "sebep": "kadraj dışına taşıyor (%3)"
-  },
-  {
-   "tur": "robot",
-   "koz": "kanat",
-   "kadraj": "sirt",
-   "alan_orani": 0.0312,
-   "tasma_orani": 0,
-   "kutu": [
-    -0.77,
-    0.01,
-    0.6,
-    0.82
-   ],
-   "test": "portre_kadraj",
-   "sebep": "kartta seçilemiyor: görünen alan %3.1 < %4"
   },
   {
    "tur": "robot",

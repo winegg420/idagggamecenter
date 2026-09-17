@@ -17,13 +17,13 @@
   },
   {
    "ad": "kozmetik_gozluk",
-   "ucgen": 84,
-   "kose": 90,
+   "ucgen": 300,
+   "kose": 156,
    "skinned": false,
    "ao": true
   }
  ],
- "toplamUcgen": 6712,
+ "toplamUcgen": 6928,
  "malzeme": 1,
  "roughness": 0.82,
  "boyut": [
@@ -67,9 +67,9 @@
    "kose": 274
   },
   "kozmetik_gozluk": {
-   "ort": 1,
-   "min": 1,
-   "kose": 90
+   "ort": 0.233,
+   "min": 0.155,
+   "kose": 156
   }
  }
 }

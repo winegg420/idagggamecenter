@@ -31,8 +31,8 @@
   },
   {
    "ad": "kozmetik_gozlukPremium",
-   "ucgen": 516,
-   "kose": 354,
+   "ucgen": 600,
+   "kose": 444,
    "skinned": false,
    "ao": true
   },
@@ -44,11 +44,11 @@
    "ao": true
   }
  ],
- "toplamUcgen": 8812,
+ "toplamUcgen": 8896,
  "malzeme": 1,
  "roughness": 0.82,
  "boyut": [
-  1.864,
+  1.866,
   2.161,
   0.732
  ],
@@ -98,12 +98,12 @@
    "kose": 211
   },
   "kozmetik_gozlukPremium": {
-   "ort": 0.572,
-   "min": 0.152,
-   "kose": 354
+   "ort": 0.568,
+   "min": 0.15,
+   "kose": 444
   },
   "kozmetik_kanat": {
-   "ort": 0.64,
+   "ort": 0.613,
    "min": 0.151,
    "kose": 508
   }

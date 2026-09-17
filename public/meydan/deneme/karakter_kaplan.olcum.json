@@ -17,13 +17,13 @@
   },
   {
    "ad": "kozmetik_kuyruk",
-   "ucgen": 272,
-   "kose": 159,
+   "ucgen": 312,
+   "kose": 160,
    "skinned": false,
    "ao": true
   }
  ],
- "toplamUcgen": 6964,
+ "toplamUcgen": 7004,
  "malzeme": 1,
  "roughness": 0.82,
  "boyut": [
@@ -67,9 +67,9 @@
    "kose": 242
   },
   "kozmetik_kuyruk": {
-   "ort": 0.877,
-   "min": 0.151,
-   "kose": 159
+   "ort": 0.734,
+   "min": 0.15,
+   "kose": 160
   }
  }
 }
