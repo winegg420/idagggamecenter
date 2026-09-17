@@ -141,10 +141,13 @@ function zeminKur(M, H, malzeme) {
   if (M.dis_zemin && H[M.dis_zemin.hucre]) {
     // 3A-1 §B: Boğaz vadisi varsa dış zemin orada AÇILIR (delikli şekil); yoksa eski tek düzlem
     const delik = vadiDeligi(M), tumDelikler = [...(delik ? [delik] : []), ...delikler.map((d) => d.koseler())];   // 3A-2: metro açıklığı da
-    let dis;
-    if (tumDelikler.length) { const sekil = new THREE.Shape([[-700, -700], [700, -700], [700, 700], [-700, 700]].map(([x, z]) => new THREE.Vector2(x, -z))); for (const d of tumDelikler) sekil.holes.push(new THREE.Path(d.map(([x, z]) => new THREE.Vector2(x, -z)))); dis = new THREE.ShapeGeometry(sekil).rotateX(-Math.PI / 2).translate(0, -0.03, 0); }
-    else dis = new THREE.PlaneGeometry(1400, 1400).rotateX(-Math.PI / 2).translate(0, -0.03, 0);
-    parca.push(hucreli(dis, H[M.dis_zemin.hucre], { dolu: false }));
+    if (tumDelikler.length) {
+      // Dış kare vadi deliğinin uzak köşelerini (x ≈ 720) içine almalı: delik kareyi keserse üçgenleme deliği kaybeder ve vadi zeminle örtülür.
+      const R = Math.max(900, ...tumDelikler.flat().map(([x, z]) => Math.max(Math.abs(x), Math.abs(z)) + 50));
+      const sekil = new THREE.Shape([[-R, -R], [R, -R], [R, R], [-R, R]].map(([x, z]) => new THREE.Vector2(x, -z)));
+      for (const d of tumDelikler) sekil.holes.push(new THREE.Path(d.map(([x, z]) => new THREE.Vector2(x, -z))));
+      parca.push(hucreli(new THREE.ShapeGeometry(sekil).rotateX(-Math.PI / 2).translate(0, -0.03, 0), H[M.dis_zemin.hucre], { dolu: false }));
+    } else parca.push(hucreli(new THREE.PlaneGeometry(1400, 1400).rotateX(-Math.PI / 2).translate(0, -0.03, 0), H[M.dis_zemin.hucre], { dolu: false }));
   }
   const m = birlesikMesh(parca, malzeme, "CevreZemin");
   m.receiveShadow = true; m.castShadow = false;
