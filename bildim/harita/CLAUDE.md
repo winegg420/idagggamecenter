@@ -21,6 +21,8 @@ Onaylanmış görsel referans: repo kökünde `QUIZADOR_MEYDAN_REFERANS.html`
 | `yerlesim.json` | **Aşama 2A:** Taksim haritasının TEK doğruluk kaynağı (bölge, parsel, nokta, alan, tramvay, arka plan). Elle düzenlenir. |
 | `yerlesimDunya.js` | Manifestten greybox dünya kurar; konum HESAPLAMAZ. Yönlü kutu çarpışması + birleşik sınır + kapı önü ipucu. |
 | `olcum/greybox.*` | Greybox ölçüm sayfası (üretim derlemesi, yerel; canlıya çıkmaz). |
+| `bogaz.js` | **3A-1:** Boğaz vadisi (teraslar, deniz, karşı kıyı, stilize köprü) — manifest `arkaplan`'dan; CevreArkaplan mesh'ine girer (ek çağrı yok). Kamera ufku görmediği için deniz PLATONUN ALTINDA; dış zemin vadide delinir. |
+| `cephe.js` | **3A-1:** modüler cephe sistemi — parça havuzu (`VARYANT`), `binaGeometrisi(parsel, H, lod)`, `CepheSistemi` (3 LOD, bina başına 1 çağrı, gölgeyi kütle vekili atar). Reçete `parsel.cephe`, LOD eşikleri `kurallar.cephe_lod`. Node'da da çalışır. **Reçete/ayak izi değişince `npm run cephe-ao`** (gömülü AO: `public/meydan/deneme/cephe_ao.bin`). Kapı/tabela/tente/aplik YALNIZ girilebilirde. |
 | `olcumSayaci.js` + `OlcumGostergesi.jsx` | **2C-A:** canlı haritada `?olcum=1` göstergesi (cihazda hatırlanır, `?olcum=0` kapatır). `CPU` = yalnız gönderim (sürekli); `CPU+GPU` = kare + `gl.finish` (yalnız düğmeyle). İki sayıyı karıştırma. |
 | `olcum/meydan-test/katman2c.js` | **2C-B:** katman katman ölçüm (`katmanKos`, `propDetay`, `cozunurlukEgrisi`); rapor `ASAMA_2C_RAPOR.md`. |
 
