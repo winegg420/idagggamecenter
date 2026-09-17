@@ -3,7 +3,7 @@
 | Bölüm | Durum | Commit |
 |---|---|---|
 | A — muayene kapsamı: kodla çizilen parçalar | ✅ taç + pelerin muayenede | `6dc600b` |
-| B — yeni test: yuva oturması | ✅ şapka · taç · pelerin üç türde de yakalanıyor | B |
+| B — yeni test: yuva oturması | ✅ şapka · taç · pelerin üç türde de yakalanıyor | `4aceff3` |
 | C — yeni test: açık kenar / delik | (sürüyor) | |
 | D — yeni test: kalınlık | (sürüyor) | |
 | E — takılı poz + portre kadrajı | (sürüyor) | |
