@@ -5,7 +5,7 @@
 | A — muayene kapsamı: kodla çizilen parçalar | ✅ taç + pelerin muayenede | `6dc600b` |
 | B — yeni test: yuva oturması | ✅ şapka · taç · pelerin üç türde de yakalanıyor | `4aceff3` |
 | C — yeni test: açık kenar / delik | ✅ şapkanın altı, taç, pelerin, vizör, kuyruk ucu | `fb0ca18` |
-| D — yeni test: kalınlık | ✅ 14 kanat tüyü (1,4 cm) yakalandı; eşik iki kez ölçülerek düzeltildi | D |
+| D — yeni test: kalınlık | ✅ 14 kanat tüyü (1,4 cm) yakalandı; eşik iki kez ölçülerek düzeltildi | `a869f3a` |
 | E — takılı poz + portre kadrajı | (sürüyor) | |
 | F — çıkan adayları düzelt | (sürüyor) | |
 | G — raporlama kuralı | (sürüyor) | |
