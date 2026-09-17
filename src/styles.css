@@ -2518,9 +2518,13 @@ h1.baslik, h2.baslik { font-size: 18px; font-weight: 800; margin: 0 0 10px; }
    "başka bir sayfa" gibi dağılıyordu. İki kırılma noktası da 620 px. */
 @media (min-width: 1024px) {
   .app { max-width: 620px; }
+  /* Paket 19 §B: sabit alt menü içerikle AYNI genişlikte olmalı. 540'ta kalınca içerik iki yanda 40 px taşıyordu;
+     menünün arkasına düşen turuncu buton ("Davet linkini paylaş") iki yanda blok olarak görünüyordu. */
+  .tabbar { max-width: 620px; }
 }
 @media (min-width: 1400px) {
   .app { max-width: 620px; }
+  .tabbar { max-width: 620px; }
 }
 
 /* ---- Profil sekmeleri ---- */
