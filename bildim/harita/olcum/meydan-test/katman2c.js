@@ -152,3 +152,13 @@ window.kameraYakin = () => {   // plaza: bank + ağaç + karakterler yakından
   d.kameraSabitle({ konum: [x + 7, 6, z + 7], hedef: [x, 0, z] });
   return [x, z];
 };
+
+// AŞAMA 3A-1 §D — cephe LOD'ları: varsayılan (mesafeye göre) + bütün binalar tek LOD'a zorlanmış
+window.cepheOlc = async () => {
+  const { d } = window.__katman, sonuc = [], c = d.cepheler?.();
+  await window.oyuncular(); window.katmanAyarla(5); d.kalabalikSiniri(20);
+  const bir = async (etiket) => { const r = await window.olcSatir(etiket); sonuc.push({ ...r, lod: c ? c.istatistik() : null }); };
+  await bir("varsayılan LOD (mesafeye göre)");
+  if (c) { for (const l of [0, 1, 2]) { c.zorla = l; await bir(`bütün binalar LOD ${l}`); } c.zorla = null; c.grup.visible = false; await bir("cepheler GİZLİ"); c.grup.visible = true; }
+  return sonuc;
+};

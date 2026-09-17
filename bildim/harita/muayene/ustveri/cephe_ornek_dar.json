@@ -1,0 +1,134 @@
+{
+  "glb": "cephe_ornek_dar",
+  "tip": "bina",
+  "yakin": [
+    {
+      "ad": "zemin kat 3/4 yandan",
+      "hedef": [
+        0.5,
+        1.8,
+        5.5
+      ],
+      "yon": [
+        1,
+        0.15,
+        0.9
+      ],
+      "mesafe": 6
+    },
+    {
+      "ad": "üst kat pencere/balkon",
+      "hedef": [
+        0,
+        9.839999999999998,
+        5.5
+      ],
+      "yon": [
+        -0.5,
+        0.1,
+        1
+      ],
+      "mesafe": 7
+    },
+    {
+      "ad": "saçak + çatı",
+      "hedef": [
+        1.5,
+        16.4,
+        4.5
+      ],
+      "yon": [
+        1,
+        -0.5,
+        1
+      ],
+      "mesafe": 8
+    }
+  ],
+  "guzel": {
+    "az": 28,
+    "el": 14
+  },
+  "simetri_zorunlu": [],
+  "simetri_tolerans_m": 0.02,
+  "simetri_istisna": [],
+  "temas_esigi_m": 0.01,
+  "zemin_temasi": true,
+  "ortusme_payi_m": 0.05,
+  "izinli_ortusme": [
+    {
+      "a": "cam",
+      "b": "*",
+      "derinlik_max_m": 0.08,
+      "sebep": "cam çerçeve/duvar yuvasına oturur"
+    },
+    {
+      "a": "cerceve",
+      "b": "*",
+      "derinlik_max_m": 0.1,
+      "sebep": "pencere/vitrin çerçeveleri duvara gömülü montaj"
+    },
+    {
+      "a": "demir",
+      "b": "*",
+      "derinlik_max_m": 0.1,
+      "sebep": "korkuluk ve tente demiri balkon/duvara ankrajlı"
+    },
+    {
+      "a": "tasAcik",
+      "b": "*",
+      "derinlik_max_m": 0.15,
+      "sebep": "kat silmesi, korniş, balkon plakası duvara gömülü"
+    },
+    {
+      "a": "tabela",
+      "b": "*",
+      "derinlik_max_m": 0.1,
+      "sebep": "tabela cepheye monte"
+    },
+    {
+      "a": "tente",
+      "b": "*",
+      "derinlik_max_m": 0.1,
+      "sebep": "tente cepheye monte"
+    },
+    {
+      "a": "baca",
+      "b": "kiremit",
+      "sebep": "baca çatıdan çıkar"
+    },
+    {
+      "a": "baca",
+      "b": "cim",
+      "sebep": "cephe saksısı: çalı saksıya oturur"
+    },
+    {
+      "a": "altin",
+      "b": "ahsap*",
+      "derinlik_max_m": 0.05,
+      "sebep": "kapı kolu ve orta şerit kapıya gömülü"
+    },
+    {
+      "a": "ahsap*",
+      "b": "*",
+      "derinlik_max_m": 0.13,
+      "sebep": "kapı ve kapı kasası duvar girintisine oturur"
+    }
+  ],
+  "gomulu_izinli": [
+    {
+      "desen": "cam",
+      "sebep": "cam çerçeve yuvasının içinde; ön yüzü görünür"
+    },
+    {
+      "desen": "cerceve",
+      "sebep": "iç çerçeve dış çerçeveye gömülü"
+    },
+    {
+      "desen": "demir",
+      "sebep": "korkuluk çubukları küpeşte ve plakaya gömülü"
+    }
+  ],
+  "havada_durabilir": [],
+  "not": "3A-1 §C modüler cephe örneği (cephe_ao.mjs üretir). Simetri zorunlu değil: baca, asma tabela, su deposu, kapı kolu tek yanda (tasarım)."
+}

@@ -34,6 +34,7 @@
       "girilebilir": false,
       "capa": {"konum": [-37.47, 0, 29.25], "donus_y": 0.92},
       "ayakizi": {"en": 12, "derinlik": 12, "yukseklik": 10},
+      "cephe": {"renk": "#F1D9C9", "pencere": "kemerli", "balkon": "yok", "silme": "disli", "cati": "cikmali"},
       "yuva": "bina_kose_binasi",
       "yertutucu": "kutu"
     },
@@ -44,6 +45,7 @@
       "girilebilir": true,
       "capa": {"konum": [-42.97, 0, 38.9], "donus_y": 0.92},
       "ayakizi": {"en": 8, "derinlik": 9, "yukseklik": 7},
+      "cephe": {"vitrin": "dukkan", "kapi": "cift", "tabela": "bant", "tente": "duz", "pencere": "cift", "balkon": "yok", "cati": "kiremit"},
       "yuva": "bina_kucuk_dukkan",
       "yertutucu": "kutu",
       "mod": "/",
@@ -57,6 +59,7 @@
       "girilebilir": false,
       "capa": {"konum": [-47.92, 0, 44.55], "donus_y": 0.92},
       "ayakizi": {"en": 5, "derinlik": 10, "yukseklik": 13.2},
+      "cephe": {"renk": "#DCEFF7", "pencere": "tek", "balkon": "cikma", "silme": "disli", "cati": "cikmali"},
       "yuva": "bina_dar_uzun",
       "yertutucu": "kutu"
     },
@@ -67,6 +70,7 @@
       "girilebilir": true,
       "capa": {"konum": [-52.08, 0, 50.82], "donus_y": 0.92},
       "ayakizi": {"en": 8, "derinlik": 9, "yukseklik": 3.8},
+      "cephe": {"vitrin": "kafe", "kapi": "camli", "tabela": "bant", "tente": "kavisli", "cati": "duz"},
       "yuva": "bina_kucuk_dukkan",
       "yertutucu": "kutu",
       "mod": "/hizli-mod",
@@ -80,6 +84,7 @@
       "girilebilir": false,
       "capa": {"konum": [-59.95, 0, 58.64], "donus_y": 0.92},
       "ayakizi": {"en": 12, "derinlik": 12, "yukseklik": 16.4},
+      "cephe": {"malzeme": "tugla", "pencere": "kepenkli", "kepenk": "#5E8C6A", "balkon": "korkuluk", "silme": "disli", "cati": "kiremit", "vitrin": "kapali"},
       "yuva": "bina_apartman",
       "yertutucu": "kutu"
     },
@@ -90,6 +95,7 @@
       "girilebilir": true,
       "capa": {"konum": [-65.44, 0, 68.29], "donus_y": 0.92},
       "ayakizi": {"en": 8, "derinlik": 9, "yukseklik": 7},
+      "cephe": {"vitrin": "dukkan", "kapi": "kemerli", "tabela": "asma", "tente": "duz", "pencere": "kemerli", "balkon": "yok", "cati": "cikmali"},
       "yuva": "bina_kucuk_dukkan",
       "yertutucu": "kutu",
       "mod": "/duello",
@@ -103,6 +109,7 @@
       "girilebilir": false,
       "capa": {"konum": [-71.1, 0, 74.04], "donus_y": 0.92},
       "ayakizi": {"en": 6, "derinlik": 11, "yukseklik": 16.4},
+      "cephe": {"renk": "#FFE9B8", "pencere": "kemerli", "balkon": "cikma", "silme": "duz", "cati": "cikmali"},
       "yuva": "bina_dar_uzun",
       "yertutucu": "kutu"
     },
@@ -113,6 +120,7 @@
       "girilebilir": true,
       "capa": {"konum": [-75.86, 0, 81.09], "donus_y": 0.92},
       "ayakizi": {"en": 9, "derinlik": 10, "yukseklik": 7},
+      "cephe": {"vitrin": "kafe", "kapi": "cift", "tabela": "bant", "tente": "kavisli", "pencere": "tek", "balkon": "korkuluk", "cati": "kiremit"},
       "yuva": "bina_kucuk_dukkan",
       "yertutucu": "kutu",
       "mod": "/turnuva",
@@ -126,6 +134,7 @@
       "girilebilir": false,
       "capa": {"konum": [-83.34, 0, 89.23], "donus_y": 0.92},
       "ayakizi": {"en": 11, "derinlik": 12, "yukseklik": 13.2},
+      "cephe": {"renk": "#E6EBD8", "pencere": "cift", "balkon": "korkuluk", "silme": "duz", "cati": "duz", "vitrin": "kapali"},
       "yuva": "bina_apartman",
       "yertutucu": "kutu"
     },
@@ -136,6 +145,7 @@
       "girilebilir": false,
       "capa": {"konum": [-18.41, 0, 43.83], "donus_y": -2.22},
       "ayakizi": {"en": 12, "derinlik": 12, "yukseklik": 13.2},
+      "cephe": {"malzeme": "tugla", "pencere": "tek", "balkon": "yok", "silme": "disli", "cati": "cikmali"},
       "yuva": "bina_kose_binasi",
       "yertutucu": "kutu"
     },
@@ -146,6 +156,7 @@
       "girilebilir": true,
       "capa": {"konum": [-26.28, 0, 51.66], "donus_y": -2.22},
       "ayakizi": {"en": 8, "derinlik": 9, "yukseklik": 7},
+      "cephe": {"vitrin": "dukkan", "kapi": "camli", "tabela": "asma", "tente": "duz", "pencere": "kepenkli", "kepenk": "#137A45", "balkon": "yok", "cati": "kiremit"},
       "yuva": "bina_kucuk_dukkan",
       "yertutucu": "kutu",
       "mod": "/siralama",
@@ -159,6 +170,7 @@
       "girilebilir": false,
       "capa": {"konum": [-31.17, 0, 60.51], "donus_y": -2.22},
       "ayakizi": {"en": 10, "derinlik": 12, "yukseklik": 13.2},
+      "cephe": {"renk": "#F3E6D2", "pencere": "kemerli", "balkon": "korkuluk", "silme": "disli", "cati": "kiremit", "vitrin": "dar"},
       "yuva": "bina_apartman",
       "yertutucu": "kutu"
     },
@@ -169,6 +181,7 @@
       "girilebilir": true,
       "capa": {"konum": [-38.43, 0, 67.54], "donus_y": -2.22},
       "ayakizi": {"en": 8, "derinlik": 9, "yukseklik": 3.8},
+      "cephe": {"vitrin": "dukkan", "kapi": "cift", "tabela": "bant", "tente": "duz", "cati": "kiremit"},
       "yuva": "bina_kucuk_dukkan",
       "yertutucu": "kutu",
       "mod": "/calisma",
@@ -182,6 +195,7 @@
       "girilebilir": false,
       "capa": {"konum": [-43.55, 0, 80], "donus_y": -2.22},
       "ayakizi": {"en": 16, "derinlik": 16, "yukseklik": 14},
+      "cephe": {"malzeme": "tas", "pencere": "kemerli", "balkon": "yok", "silme": "disli", "cati": "duz", "vitrin": "dar"},
       "yuva": "bina_kamusal_yapi",
       "yertutucu": "kutu"
     },
@@ -192,6 +206,7 @@
       "girilebilir": true,
       "capa": {"konum": [-54.23, 0, 88.2], "donus_y": -2.22},
       "ayakizi": {"en": 8, "derinlik": 9, "yukseklik": 7},
+      "cephe": {"vitrin": "kafe", "kapi": "kemerli", "tabela": "bant", "tente": "kavisli", "pencere": "cift", "balkon": "yok", "cati": "cikmali"},
       "yuva": "bina_kucuk_dukkan",
       "yertutucu": "kutu",
       "mod": "/joker",
@@ -205,6 +220,7 @@
       "girilebilir": false,
       "capa": {"konum": [-58.39, 0, 94.46], "donus_y": -2.22},
       "ayakizi": {"en": 5, "derinlik": 10, "yukseklik": 16.4},
+      "cephe": {"renk": "#F1D9C9", "pencere": "kepenkli", "kepenk": "#4F7CA8", "balkon": "cikma", "silme": "disli", "cati": "cikmali"},
       "yuva": "bina_dar_uzun",
       "yertutucu": "kutu"
     },
@@ -215,6 +231,7 @@
       "girilebilir": true,
       "capa": {"konum": [-63.34, 0, 100.11], "donus_y": -2.22},
       "ayakizi": {"en": 8, "derinlik": 9, "yukseklik": 7},
+      "cephe": {"vitrin": "dukkan", "kapi": "camli", "tabela": "asma", "tente": "kavisli", "pencere": "kemerli", "balkon": "yok", "cati": "kiremit"},
       "yuva": "bina_kucuk_dukkan",
       "yertutucu": "kutu",
       "mod": "/gorunum",
@@ -228,6 +245,7 @@
       "girilebilir": true,
       "capa": {"konum": [-68.81, 0, 107.26], "donus_y": -2.22},
       "ayakizi": {"en": 8, "derinlik": 9, "yukseklik": 3.8},
+      "cephe": {"vitrin": "kafe", "kapi": "cift", "tabela": "asma", "tente": "duz", "cati": "duz"},
       "yuva": "bina_kucuk_dukkan",
       "yertutucu": "kutu",
       "mod": "/profil",
@@ -241,6 +259,7 @@
       "girilebilir": false,
       "capa": {"konum": [-84.44, 0, 110.42], "donus_y": 2.49},
       "ayakizi": {"en": 20, "derinlik": 12, "yukseklik": 16.4},
+      "cephe": {"renk": "#EAD9B8", "pencere": "tek", "balkon": "korkuluk", "silme": "disli", "cati": "cikmali", "vitrin": "kapali"},
       "yuva": "bina_apartman",
       "yertutucu": "kutu"
     },
@@ -251,6 +270,7 @@
       "girilebilir": false,
       "capa": {"konum": [52, 0, 0], "donus_y": -1.57},
       "ayakizi": {"en": 52, "derinlik": 20, "yukseklik": 20},
+      "cephe": {"malzeme": "tas", "pencere": "giydirme", "balkon": "yok", "silme": "duz", "cati": "duz", "vitrin": "dar"},
       "yuva": "bina_kamusal_yapi",
       "yertutucu": "kutu"
     },
@@ -261,6 +281,7 @@
       "girilebilir": false,
       "capa": {"konum": [33.34, 0, 34.53], "donus_y": -2.37},
       "ayakizi": {"en": 18, "derinlik": 12, "yukseklik": 16.4},
+      "cephe": {"renk": "#DCEFF7", "pencere": "cift", "balkon": "korkuluk", "silme": "duz", "cati": "kiremit", "vitrin": "kapali"},
       "yuva": "bina_apartman",
       "yertutucu": "kutu"
     },
@@ -271,6 +292,7 @@
       "girilebilir": false,
       "capa": {"konum": [14.83, 0, 45.65], "donus_y": -2.83},
       "ayakizi": {"en": 14, "derinlik": 12, "yukseklik": 10},
+      "cephe": {"renk": "#FFE9B8", "pencere": "kemerli", "balkon": "yok", "silme": "disli", "cati": "kiremit"},
       "yuva": "bina_kose_binasi",
       "yertutucu": "kutu"
     },
@@ -281,6 +303,7 @@
       "girilebilir": false,
       "capa": {"konum": [-1.66, 0, 47.47], "donus_y": 3.11},
       "ayakizi": {"en": 6, "derinlik": 11, "yukseklik": 16.4},
+      "cephe": {"malzeme": "tugla", "pencere": "tek", "balkon": "cikma", "silme": "disli", "cati": "cikmali"},
       "yuva": "bina_dar_uzun",
       "yertutucu": "kutu"
     },
@@ -291,6 +314,7 @@
       "girilebilir": false,
       "capa": {"konum": [-48, 0, 0], "donus_y": 1.57},
       "ayakizi": {"en": 20, "derinlik": 12, "yukseklik": 13.2},
+      "cephe": {"renk": "#F1D9C9", "pencere": "kepenkli", "kepenk": "#8A5A36", "balkon": "korkuluk", "silme": "disli", "cati": "kiremit", "vitrin": "dar"},
       "yuva": "bina_apartman",
       "yertutucu": "kutu"
     },
@@ -301,6 +325,7 @@
       "girilebilir": false,
       "capa": {"konum": [-44.64, 0, 16.25], "donus_y": 1.92},
       "ayakizi": {"en": 6, "derinlik": 11, "yukseklik": 13.2},
+      "cephe": {"renk": "#E6EBD8", "pencere": "cift", "balkon": "cikma", "silme": "duz", "cati": "cikmali"},
       "yuva": "bina_dar_uzun",
       "yertutucu": "kutu"
     },
@@ -622,6 +647,7 @@
   ],
   "dis_zemin": {"hucre": "asfalt", "not": "yürünebilir sınırın dışı: tek düz yüzey (hücre rengi)"},
   "kurallar": {
+    "cephe_lod": {"yakin": 38, "orta": 85, "tampon": 3, "golge": 60, "not": "3A-1 §C.4 — oyuncuya uzaklık (m, ayak izi kenarından): ≤ yakin tam parçalar · ≤ orta sade · ötesi yalın kütle. golge: bu mesafeden yakın binalar (kütle vekiliyle) gölge atar. Parça reçeteleri parsel.cephe alanında; varyant adları cephe.js › VARYANT."},
     "girilebilir_cephe": {"saksi": {"yan": 2.3, "on": 0.8, "not": "her girilebilir parselin kapısının iki yanında (ayak izi önünde)"}},
     "kediler": {"varsayilan_sayi": 8, "ayar": "oyun_ayarlari.meydan_kedi_sayisi", "dagitim": "alanlara sırayla (round-robin)"}
   }

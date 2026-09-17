@@ -32,6 +32,7 @@ import { TemasGolgeleri } from "./karakter/temas.js";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { cevreKur, PROPLAR, KediSurusu, binalariBoya } from "./cevre.js";
 import { olcumSayaciKur } from "./olcumSayaci.js";
+import { CepheSistemi, cepheParselleri, aoCoz } from "./cephe.js";
 export { esyaBilgisi };
 
 // roundRect / canvasDoku / isimEtiketi / nesneyiSerbestBirak ORTAK.JS'e taşındı:
@@ -145,7 +146,7 @@ export function dunyaKur(kapsayici, s = {}) {
     .then(() => { avatarlar.hazirOlunca(); return true; })
     .catch((e) => { console.error("[Meydan] karakterler yuklenemedi:", e); return false; });
   // 2B §3: çevre sanat katmanı (GLB proplar + atlaslı zemin) — karakter atlası/malzemesiyle aynı; konumlar manifestten
-  let cevre = null, kediler = null, kediSayisi = 8;
+  let cevre = null, kediler = null, kediSayisi = 8, cepheler = null;
   const cevreHazir = karakterHazir.then(async (tamam) => {
     if (!tamam) return null;
     const yukleyici = new GLTFLoader(), proplar = {};
@@ -158,7 +159,13 @@ export function dunyaKur(kapsayici, s = {}) {
     temas.statikPisir(cevre.grup.children.find((c) => c.name === "CevreZemin")).catch((e) => console.error("[Meydan] temas gölgesi pişirilemedi (dinamik kalır):", e));
     // 2B §4D: binaları boya (geçici renkli kütle; ayak izleri aynı) + mod renkli levhalar çatının üstünde
     try {
-      const boya = binalariBoya({ M: yerlesim, gb, hucreler: ks.hucreler, malzeme: proplar.prop_bank?.material ?? ks.malzeme, modRenk: (rota) => MOD_RENK[rota] ?? null });
+      // 3A-1 §C: parsel binaları modüler cephe sistemiyle (LOD + gömülü AO); cami/minare/anıt boyalı kütle olarak kalır
+      const cepheIdleri = new Set(cepheParselleri(yerlesim).map((p) => p.id));
+      const boya = binalariBoya({ M: yerlesim, gb, hucreler: ks.hucreler, malzeme: proplar.prop_bank?.material ?? ks.malzeme, modRenk: (rota) => MOD_RENK[rota] ?? null, atla: (p) => cepheIdleri.has(p.id) });
+      let ao = null;
+      try { const y = await fetch(VARLIK_KOK + "cephe_ao.bin"); if (y.ok) ao = aoCoz(await y.arrayBuffer()); } catch (e) { console.error("[Meydan] cephe AO yuklenemedi (AO'suz devam):", e); }
+      cepheler = new CepheSistemi({ M: yerlesim, hucreler: ks.hucreler, malzeme: proplar.prop_bank?.material ?? ks.malzeme, modRenk: (rota) => MOD_RENK[rota] ?? null, render, ao });
+      cevre.grup.add(cepheler.grup);
       cevre.grup.add(boya.bina); if (boya.arkaplan) cevre.grup.add(boya.arkaplan);
       cevre.binaRenkleri = boya.renkler;
       for (const b of binalar) {
@@ -400,6 +407,7 @@ export function dunyaKur(kapsayici, s = {}) {
     // 2B: karakter karesi (animasyon, göz kırpma, süzülme, VFX) → dans/ikram vekilleri kemiklere → temas gölgeleri
     try { ks.kare(dt, zaman, kamera); avatarlar.vekilleriUygula(); } catch (e) { console.error("[Meydan] karakter karesi:", e); }
     kediler?.guncelle(dt, zaman);
+    cepheler?.guncelle(ben.position.x, ben.position.z);   // 3A-1 §C.4: bina LOD'u oyuncuya uzaklıkla
     temas.guncelle();
     gunes.target.position.set(ben.position.x, 0, ben.position.z);
     gunes.position.copy(gunes.target.position).add(GUNES_YON);
@@ -475,6 +483,7 @@ export function dunyaKur(kapsayici, s = {}) {
     zumla, zumAyarla, zumOku,
     // 2C-A: ölçüm göstergesi — CPU gönderim sürekli, CPU+GPU yalnız istenince (olcum.olc)
     olcum,
+    cepheler: () => cepheler,   // 3A-1: LOD istatistiği + ölçüm (zorla)
     temasPisirilen: () => temas.pisirilen ?? null,   // 2D-B ölçüm: pişirilen statik gölge sayısı + maske boyutu
     guncelle, boyutlandir, yokEt,
   };

@@ -281,11 +281,12 @@ const karmaId = (s) => { let h = 2166136261; for (const c of String(s)) { h ^= c
  * @param {{ M, gb, hucreler, malzeme, modRenk: (rota:string)=>({duvar:string, cati:string}|null) }} o
  * @returns {{ bina: THREE.Mesh, arkaplan: THREE.Mesh|null, renkler: object }}
  */
-export function binalariBoya({ M, gb, hucreler: H, malzeme, modRenk }) {
+export function binalariBoya({ M, gb, hucreler: H, malzeme, modRenk, atla = null }) {
   const parca = [], arka = [], renkler = {};
   const kutu = (en, h, d, y, x, z, aci, hucre, tint) => parca.push(hucreli(new THREE.BoxGeometry(en, h, d).translate(0, y + h / 2, 0).rotateY(aci).translate(x, 0, z), H[hucre] ?? H.siva, { tint }));
   const onde = (x, z, aci, lx, lz) => [x + lx * Math.cos(aci) + lz * Math.sin(aci), z - lx * Math.sin(aci) + lz * Math.cos(aci)];
   for (const p of M.parseller) {
+    if (atla?.(p)) continue;   // 3A-1 §C: cephe sistemi (cephe.js) kuruyor; burada yalnız landmark kütleleri kalır
     const { en, derinlik: d, yukseklik: h } = p.ayakizi, [x, , z] = p.capa.konum, aci = p.capa.donus_y ?? 0, k = karmaId(p.id);
     const mr = p.girilebilir ? modRenk(p.mod) : null;
     const duvar = mr ? new THREE.Color(mr.duvar) : p.tur === "kamusal_yapi" ? new THREE.Color("#E3DCCF") : /^landmark/.test(p.tur) ? new THREE.Color("#EDE6D8") : SEHIR_TONLARI[k % SEHIR_TONLARI.length];

@@ -12,7 +12,8 @@
     "uyumluluk": "node araclar/tarayici-uyumluluk.mjs",
     "postbuild": "node araclar/tarayici-uyumluluk.mjs",
     "test:dans": "node bildim/_test/dans-testi.mjs",
-    "muayene": "node bildim/harita/muayene/calistir.mjs"
+    "muayene": "node bildim/harita/muayene/calistir.mjs",
+    "cephe-ao": "node bildim/harita/varlik/cephe_ao.mjs"
   },
   "dependencies": {
     "@react-three/drei": "^10.7.7",
