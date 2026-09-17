@@ -9,6 +9,8 @@
 import { useEffect, useMemo, useState } from "react";
 import Avatar from "../../src/components/Avatar.jsx";
 import { nadirlikAl, nadirlikGorunumden } from "../lib/nadirlik.js";
+import { ligCerceveAl, ligCerceveDinle, LIG_CERCEVELERI, LIG_CERCEVE_ADI } from "../lib/ligCerceve.js";
+import { tt } from "../lib/dil.js";
 
 /**
  * @param {object} o
@@ -40,8 +42,23 @@ export default function AvatarCerceve({ profile, boyut = 42, userId, nadirlik })
     return () => { aktif = false; };
   }, [nadirlik, kimlik, gorunumAnahtar]);
 
+  // 2D-E: lig çerçevesi (lig atlayınca kazanılır, kalıcı). Seçiliyse nadirlik halkasının yerine geçer.
+  const [lig, setLig] = useState(null);
+  const [tazele, setTazele] = useState(0);
+  useEffect(() => ligCerceveDinle((id) => { if (!id || id === kimlik) setTazele((x) => x + 1); }), [kimlik]);
+  useEffect(() => {
+    let aktif = true;
+    const g = gorunumAnahtar ? JSON.parse(gorunumAnahtar) : null;
+    const soz = g && "lig_cerceve" in g ? Promise.resolve(g.lig_cerceve ?? null) : ligCerceveAl(kimlik);
+    soz.then((c) => { if (aktif) setLig(LIG_CERCEVELERI.includes(c) ? c : null); })
+      .catch(() => { if (aktif) setLig(null); });
+    return () => { aktif = false; };
+  }, [kimlik, gorunumAnahtar, tazele]);
+
   return (
-    <span className={`bd-cerceve bd-cerceve-${n}`} style={{ width: boyut, height: boyut }}>
+    <span className={`bd-cerceve bd-cerceve-${n}${lig ? ` bd-lig-cerceve bd-lig-cerceve-${lig}` : ""}`}
+          style={{ width: boyut, height: boyut }}
+          title={lig ? tt("{lig} lig çerçevesi", { lig: LIG_CERCEVE_ADI[lig] }) : undefined}>
       <Avatar profile={profile} boyut={boyut} />
     </span>
   );

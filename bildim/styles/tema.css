@@ -5364,6 +5364,45 @@ body.bd-ekle-acik .app { padding-bottom: calc(300px + env(safe-area-inset-bottom
   .bd-cerceve-etkinlik::after { animation: none; }
 }
 
+
+/* ---- LİG ÇERÇEVESİ (Aşama 2D-E) — lig atlayınca kazanılır, kalıcı ----
+   Seçiliyse nadirlik halkasının YERİNE geçer. İç renk halkası + beyaz ara +
+   dış ton: küçük boyutta (32 px) da lig okunur. Hareket yok (yalnız Efsane'de
+   yavaş parıltı; reduced-motion'da kapalı). */
+.bd-lig-cerceve .avatar { box-shadow: 0 0 0 3px var(--lc-ic), 0 0 0 5px #fff, 0 0 0 7px var(--lc-dis); }
+.bd-lig-cerceve::after { display: none; }
+.bd-lig-cerceve-gumus  { --lc-ic: #A9B8C6; --lc-dis: #6F8296; }
+.bd-lig-cerceve-altin  { --lc-ic: #FFC53D; --lc-dis: #C98A22; }
+.bd-lig-cerceve-elmas  { --lc-ic: #5BD1F5; --lc-dis: #2A8CC4; }
+.bd-lig-cerceve-efsane { --lc-ic: #B86BFF; --lc-dis: #F4701F; }
+.bd-lig-cerceve-efsane .avatar {
+  box-shadow: 0 0 0 3px var(--lc-ic), 0 0 0 5px #fff, 0 0 0 7px var(--lc-dis), 0 0 14px rgba(184, 107, 255, 0.5);
+}
+.bd-lig-cerceve-efsane::before {
+  content: ""; position: absolute; inset: -9px; border-radius: 50%; pointer-events: none;
+  background: conic-gradient(from 0deg, transparent 0 80%, rgba(255, 255, 255, 0.85) 88%, transparent 96%);
+  mask: radial-gradient(circle, transparent 64%, #000 66%);
+  -webkit-mask: radial-gradient(circle, transparent 64%, #000 66%);
+  animation: bd-cerceve-don 6s linear infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .bd-lig-cerceve-efsane::before { animation: none; display: none; }
+}
+
+/* Profil: lig çerçevesi seçici */
+.bd-lig-cerceve-secici { margin: 14px 0; }
+.bd-lig-cerceve-secici h2 { font-size: 17px; margin: 0 0 4px; }
+.bd-lig-cerceve-liste { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 10px; }
+.bd-lig-cerceve-sec {
+  display: flex; flex-direction: column; align-items: center; gap: 8px; min-width: 76px;
+  padding: 12px 8px 8px; border-radius: 14px; cursor: pointer;
+  background: var(--bd-yuzey, #fff); border: 2px solid var(--bd-kenar, #D6E6F2);
+  box-shadow: 0 3px 0 var(--bd-kart-alt); color: var(--bd-metin);
+  font-weight: 800; font-size: 13px;
+}
+.bd-lig-cerceve-sec[aria-pressed="true"] { border-color: var(--bd-vurgu); }
+.bd-lig-cerceve-sec:disabled { opacity: 0.55; cursor: default; }
+.bd-lig-cerceve-sec .kilit { font-size: 11px; color: var(--bd-metin-2); font-weight: 800; }
 /* ============================================================
    BASILABİLİR HER ŞEY — kabartma + çok hafif küçülme
 

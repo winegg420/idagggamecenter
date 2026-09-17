@@ -104,9 +104,10 @@ export class MeydanAvatarlari {
     kafa.position.y = 3.05;   // danslar.js taban yüksekliği (gercek3d + kafaY = 3,05 → kafa konumu kullanılmaz)
     kok.add(bacaklar, kollar, govde, kafa);
     let etiket = null;
-    if (ad != null) { etiket = isimEtiketi(ad, etiketRenk); etiket.scale.multiplyScalar(ETIKET_OLCEK); etiket.position.y = ETIKET_Y; av.add(etiket); }
+    const cerceve = gorunum?.lig_cerceve ?? null;   // 2D-E: lig çerçevesi etiketin kenarında
+    if (ad != null) { etiket = isimEtiketi(ad, etiketRenk, cerceve); etiket.scale.multiplyScalar(ETIKET_OLCEK); etiket.position.y = ETIKET_Y; av.add(etiket); }
     av.userData = {
-      kok, bacaklar, kollar, govde, kafa, etiket, ad, yurumeFaz: Math.random() * 6, gorunum: gorunum ?? {}, dans: null,
+      kok, bacaklar, kollar, govde, kafa, etiket, ad, etiketRenk, cerceve, yurumeFaz: Math.random() * 6, gorunum: gorunum ?? {}, dans: null,
       gercek3d: true, kafaY: 3.05, balonY: BALON_Y, yeniKarakter: true, bot, katman, tohum: tohum ?? ad ?? "", karakter: null, tam: false,
     };
     this.hepsi.add(av);
@@ -167,6 +168,15 @@ export class MeydanAvatarlari {
   gorunumDegistir(av, gorunum) {
     const u = av?.userData; if (!u?.yeniKarakter) return;
     u.gorunum = gorunum ?? {};
+    // 2D-E: lig çerçevesi değiştiyse yalnız etiket yenilenir
+    const cerceve = u.gorunum.lig_cerceve ?? null;
+    if (cerceve !== u.cerceve && u.etiket && u.ad != null) {
+      const eski = u.etiket, yeni = isimEtiketi(u.ad, u.etiketRenk ?? "#20324A", cerceve);
+      yeni.position.copy(eski.position); yeni.scale.copy(eski.scale);
+      av.remove(eski); eski.material.map?.dispose(); eski.material.dispose();
+      av.add(yeni); u.etiket = yeni;
+    }
+    u.cerceve = cerceve;
     if (!u.karakter) return;
     const tamdi = u.tam;
     this.ks.sil(u.karakter); u.karakter = null;

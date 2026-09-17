@@ -214,7 +214,7 @@ export function dunyaKur(kapsayici, s = {}) {
     const u = g?.userData;
     if (!u || !u.etiket || u.ad === ad) return;
     const eski = u.etiket;
-    const yeni = isimEtiketi(ad, etiketRenk);
+    const yeni = isimEtiketi(ad, etiketRenk, u.cerceve ?? null);   // 2D-E: lig çerçevesi korunur
     yeni.position.copy(eski.position);
     yeni.scale.copy(eski.scale);   // 2B: yeni karakterin küçültülmüş etiketi
     g.remove(eski);

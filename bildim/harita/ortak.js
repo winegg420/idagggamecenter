@@ -21,11 +21,16 @@ export function canvasDoku(c) {
   return t;
 }
 
-/** Avatar üstü isim etiketi (canvas sprite). */
-export function isimEtiketi(ad, renk) {
+/** 2D-E: lig çerçevesi renkleri (iç halka · dış ton) — AvatarCerceve CSS'iyle aynı. */
+export const LIG_CERCEVE_RENK = { gumus: ["#A9B8C6", "#6F8296"], altin: ["#FFC53D", "#C98A22"], elmas: ["#5BD1F5", "#2A8CC4"], efsane: ["#B86BFF", "#F4701F"] };
+
+/** Avatar üstü isim etiketi (canvas sprite). cerceve: lig çerçevesi (gumus…efsane) varsa etiketin kenarı o ligin renkleriyle çizilir. */
+export function isimEtiketi(ad, renk, cerceve = null) {
   const c = document.createElement("canvas");
   c.width = 320; c.height = 80;
   const x = c.getContext("2d");
+  const lc = LIG_CERCEVE_RENK[cerceve];
+  if (lc) { x.fillStyle = lc[1]; roundRect(x, 1, 1, 318, 72, 30); x.fill(); x.fillStyle = lc[0]; roundRect(x, 4, 4, 312, 66, 27); x.fill(); }
   x.fillStyle = "#ffffff"; roundRect(x, 8, 8, 304, 58, 24); x.fill();
   x.fillStyle = "rgba(32,50,74,.16)"; roundRect(x, 8, 62, 304, 8, 4); x.fill();
   x.font = "900 30px Nunito, sans-serif"; x.fillStyle = renk;

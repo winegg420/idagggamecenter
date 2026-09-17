@@ -290,7 +290,7 @@ function Gardrop(){
  // takılı kalıyor, oyuncu başka yuvada değişiklik yapsa da Kaydet açılmıyordu;
  // sebebi yazan mesaj da kaydırınca ekran dışında kalan panelde duruyordu.
  // Artık kayıt çubuğu yapışık alanda ve durumu kendisi yazıyor.
- const alinabilir=kilitli.filter(p=>bedavaMi||!p.odul);
+ const alinabilir=kilitli.filter(p=>!p.odul); // 2D-E: ödül eşyası bedava test döneminde de satılmaz (sunucu da reddeder)
  const toplamFiyat=alinabilir.reduce((t,p)=>t+(Number(p.fiyat)||0),0);
  const bakiyeYetmez=!bedavaMi&&(durum?.bakiye??0)<toplamFiyat;
  /** Parçaları sırayla alır; biri patlarsa envanter tazelenip hata gösterilir. */

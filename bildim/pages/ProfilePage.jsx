@@ -8,6 +8,7 @@ import { supabase } from "../../src/lib/supabase.js";
 import { useAuth } from "../../src/context/AuthContext.jsx";
 import Avatar from "../../src/components/Avatar.jsx";
 import AvatarCerceve from "../components/AvatarCerceve.jsx";
+import LigCerceveSecici from "../components/LigCerceveSecici.jsx";
 import RankBadge from "../components/RankBadge.jsx";
 import SayanSayi from "../components/SayanSayi.jsx";
 import KonumSecici from "../components/KonumSecici.jsx";
@@ -104,6 +105,9 @@ export default function ProfilePage() {
           <RankBadge puan={profile.puan} />
         </div>
       </div>
+
+      {/* 2D-E: lig çerçeveleri (lig atlayınca kazanılır, kalıcı) */}
+      {user?.id && <LigCerceveSecici profile={profile} userId={user.id} />}
 
       {/* İstatistikler: 3'lü plaka */}
       <div className="bd-istatistik-3">
