@@ -24,6 +24,132 @@ import Anthropic from "npm:@anthropic-ai/sdk";
 import { createClient } from "npm:@supabase/supabase-js@2";
 
 import { KATEGORILER, normalize, nedenGecersiz, type Soru } from "./kalite.ts";
+import {
+  ceviriIstemi, ceviriSemasi, geriKontrolIstemi, geriKontrolSemasi, karar,
+  type CeviriCiktisi, type DilKurali, type GeriKontrolCiktisi, type KaynakSoru,
+} from "./ceviri.ts";
+
+// ============================================================================
+// ÇEVİRİ HATTI (Aşama 2C, Bölüm D) — ayrıntı ve kurallar ceviri.ts başında.
+// Yeni üretilen her soru hedef dillere (oyun_ayarlari.ceviri_hedef_diller)
+// bağlamla çevrilir, makine kontrollerinden ve GERİ KONTROLDEN geçer; geçemeyen
+// ceviri_atlanan'a sebebiyle yazılır. Süre yetmezse soru çevirisiz kalır ve
+// ceviri_uyari_raporu()'nda görünür; geriye dönük çalıştırma onu işler:
+//   POST {"mod":"ceviri","dil":"en","adet":20}              → bekleyenleri çevirir ve yazar
+//   POST {"mod":"ceviri","dil":"en","adet":10,"kuru":true}  → çevirisi OLAN rastgele sorularda
+//        hattı çalıştırır, HİÇBİR ŞEY YAZMAZ (kalite ölçümü)
+// ============================================================================
+
+type Istemci = ReturnType<typeof createClient>;
+
+async function ayarOku<T>(supabase: Istemci, anahtar: string, varsayilan: T): Promise<T> {
+  try {
+    const { data, error } = await supabase.from("oyun_ayarlari").select("deger").eq("anahtar", anahtar).maybeSingle();
+    if (error || !data) return varsayilan;
+    return (data.deger as T) ?? varsayilan;
+  } catch {
+    return varsayilan;
+  }
+}
+
+async function dilKurallari(supabase: Istemci, diller: string[]): Promise<DilKurali[]> {
+  if (!diller.length) return [];
+  const { data, error } = await supabase
+    .from("ceviri_dil_kurallari")
+    .select("dil, ad, kurallar, ondalik, binlik, sozluk, atilacak")
+    .eq("aktif", true)
+    .in("dil", diller);
+  if (error) throw new Error("ceviri_dil_kurallari okunamadı: " + error.message);
+  return (data ?? []) as DilKurali[];
+}
+
+/** Yapılandırılmış çıktılı tek çağrı; hata/ret/kesilme → throw (çağıran yakalar). */
+async function jsonCagri<T>(anthropic: Anthropic, istem: { system: string; user: string }, sema: object): Promise<T> {
+  const yanit = await anthropic.messages.create({
+    model: "claude-opus-5",
+    max_tokens: 16000,
+    system: istem.system,
+    messages: [{ role: "user", content: istem.user }],
+    output_config: { format: { type: "json_schema", schema: sema } },
+  });
+  if (yanit.stop_reason === "refusal") throw new Error("model reddetti");
+  if (yanit.stop_reason === "max_tokens") throw new Error("yanıt kesildi (max_tokens)");
+  const metin = yanit.content.find((b) => b.type === "text");
+  if (!metin || metin.type !== "text") throw new Error("modelden metin gelmedi");
+  return JSON.parse(metin.text) as T;
+}
+
+type HatOzeti = {
+  dil: string; toplam: number; yazilan: number; atlanan: Record<string, number>;
+  geri_kontrol_yakaladi: number; makine_yakaladi: number; cevrilemez: number;
+  hata: string[]; ornekler: unknown[];
+};
+
+/**
+ * Bir dil için hat: parti parti ÇEVİR → makine kontrolü → GERİ KONTROL → yaz / atla.
+ * kuru=true: hiçbir şey yazılmaz; `mevcut` alanı varsa örneklere eklenir (karşılaştırma).
+ */
+async function cevirHatti(o: {
+  supabase: Istemci; anthropic: Anthropic; kural: DilKurali; sorular: (KaynakSoru & { mevcut_soru?: string })[];
+  parti: number; esik: number; kuru: boolean; bitisMs: number;
+}): Promise<HatOzeti> {
+  const oz: HatOzeti = { dil: o.kural.dil, toplam: o.sorular.length, yazilan: 0, atlanan: {}, geri_kontrol_yakaladi: 0, makine_yakaladi: 0, cevrilemez: 0, hata: [], ornekler: [] };
+  for (let bas = 0; bas < o.sorular.length; bas += o.parti) {
+    if (Date.now() > o.bitisMs) { oz.hata.push(`süre sınırı: ${o.sorular.length - bas} soru sonraya kaldı`); break; }
+    const grup = o.sorular.slice(bas, bas + o.parti);
+    let ceviriler: CeviriCiktisi[] = [];
+    let cevaplar: GeriKontrolCiktisi[] = [];
+    try {
+      ceviriler = (await jsonCagri<{ ceviriler: CeviriCiktisi[] }>(o.anthropic, ceviriIstemi(o.kural, grup), ceviriSemasi)).ceviriler ?? [];
+      // Geri kontrole yalnız çevrilebilir olanlar gider; Türkçe ve doğru indeks GÖNDERİLMEZ.
+      const aday = ceviriler
+        .filter((c) => c.cevrilebilir && Array.isArray(c.secenekler) && c.secenekler.length)
+        .map((c) => ({ no: c.no, soru: c.soru, secenekler: c.secenekler.map((s) => s.metin) }));
+      if (aday.length) {
+        cevaplar = (await jsonCagri<{ cevaplar: GeriKontrolCiktisi[] }>(o.anthropic, geriKontrolIstemi(o.kural, aday), geriKontrolSemasi)).cevaplar ?? [];
+      }
+    } catch (e) {
+      // Geçici API hatası: soru atlanmış SAYILMAZ, sonraki çalıştırmada yeniden denenir.
+      oz.hata.push(`parti ${bas / o.parti + 1}: ${e instanceof Error ? e.message : String(e)}`);
+      continue;
+    }
+
+    for (let no = 0; no < grup.length; no++) {
+      const q = grup[no];
+      const c = ceviriler.find((x) => x.no === no);
+      const gk = cevaplar.find((x) => x.no === no);
+      const k = karar(q, c, gk, o.kural, o.esik);
+      if (!k.tamam) {
+        oz.atlanan[k.kod] = (oz.atlanan[k.kod] ?? 0) + 1;
+        if (k.kod.startsWith("geri_kontrol")) oz.geri_kontrol_yakaladi++;
+        else if (k.kod === "cevrilemez") oz.cevrilemez++;
+        else oz.makine_yakaladi++;
+      }
+      if (o.kuru) {
+        oz.ornekler.push({ id: q.id, kaynak: q.soru, dogru: q.dogru_cevap, mevcut: q.mevcut_soru, sonuc: k.tamam ? { soru: k.soru, secenekler: k.secenekler } : { kod: k.kod, neden: k.neden, ayrinti: k.ayrinti }, geri_kontrol: gk ?? null });
+        continue;
+      }
+      try {
+        if (k.tamam) {
+          const { error } = await o.supabase.from("question_translations")
+            .upsert({ question_id: q.id, dil: o.kural.dil, soru: k.soru, secenekler: k.secenekler }, { onConflict: "question_id,dil" });
+          if (error) {
+            // qt_dogrula tetikleyicisi reddetti → kalıcı sorun, atlanır
+            oz.atlanan["db_dogrulama"] = (oz.atlanan["db_dogrulama"] ?? 0) + 1; oz.makine_yakaladi++;
+            await o.supabase.from("ceviri_atlanan").upsert({ question_id: q.id, dil: o.kural.dil, kod: "db_dogrulama", neden: error.message.slice(0, 300) }, { onConflict: "question_id,dil" });
+          } else oz.yazilan++;
+        } else {
+          const { error } = await o.supabase.from("ceviri_atlanan")
+            .upsert({ question_id: q.id, dil: o.kural.dil, kod: k.kod, neden: k.neden, ayrinti: k.ayrinti ?? null }, { onConflict: "question_id,dil" });
+          if (error) oz.hata.push(`atlanan yazılamadı (${q.id}): ${error.message}`);
+        }
+      } catch (e) {
+        oz.hata.push(`yazma (${q.id}): ${e instanceof Error ? e.message : String(e)}`);
+      }
+    }
+  }
+  return oz;
+}
 
 /** Kategori başına hedef aktif soru sayısı. Altındaki kategoriye üretilir. */
 const KATEGORI_HEDEFI = 1000;
@@ -61,10 +187,43 @@ Deno.serve(async (req) => {
     return new Response("Unauthorized", { status: 401 });
   }
 
+  const baslangic = Date.now();
   const supabase = createClient(
     Deno.env.get("SUPABASE_URL")!,
     Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
   );
+
+  // Gövde isteğe bağlı: cron boş gönderir (üretim), elle tetikleme {"mod":"ceviri",…}
+  let govde: { mod?: string; dil?: string; adet?: number; kuru?: boolean } = {};
+  try { govde = await req.json(); } catch { govde = {}; }
+
+  const ceviriAyarlari = async () => ({
+    parti: Math.max(1, Number(await ayarOku(supabase, "ceviri_parti_boyu", 10))),
+    esik: Number(await ayarOku(supabase, "ceviri_benzerlik_esigi", 0.9)),
+    sureSn: Number(await ayarOku(supabase, "ceviri_sure_siniri_sn", 100)),
+    diller: (await ayarOku<string[]>(supabase, "ceviri_hedef_diller", ["en"])) ?? [],
+  });
+
+  // --- GERİYE DÖNÜK / KURU ÇEVİRİ (elle tetiklenir) --------------------------
+  if (govde?.mod === "ceviri") {
+    try {
+      const anahtarC = Deno.env.get("ANTHROPIC_API_KEY");
+      if (!anahtarC) return Response.json({ hata: "ANTHROPIC_API_KEY tanımlı değil" }, { status: 500 });
+      const ay = await ceviriAyarlari();
+      const [kural] = await dilKurallari(supabase, [String(govde.dil ?? "en")]);
+      if (!kural) return Response.json({ hata: `aktif dil kuralı yok: ${govde.dil}` }, { status: 400 });
+      const adet = Math.max(1, Math.min(Number(govde.adet ?? ay.parti), 50));
+      const { data, error } = await supabase.rpc(govde.kuru ? "ceviri_ornek_sorular" : "ceviri_bekleyen_sorular", { p_dil: kural.dil, p_adet: adet });
+      if (error) return Response.json({ hata: error.message }, { status: 500 });
+      const ozet = await cevirHatti({
+        supabase, anthropic: new Anthropic({ apiKey: anahtarC }), kural, sorular: data ?? [],
+        parti: ay.parti, esik: ay.esik, kuru: !!govde.kuru, bitisMs: baslangic + ay.sureSn * 1000,
+      });
+      return Response.json({ mod: "ceviri", kuru: !!govde.kuru, ...ozet });
+    } catch (e) {
+      return Response.json({ hata: e instanceof Error ? e.message : String(e) }, { status: 500 });
+    }
+  }
 
   // --- Hangi kategori en aç? -----------------------------------------------
   const sayimlar: Record<string, number> = {};
@@ -214,10 +373,25 @@ Deno.serve(async (req) => {
       })),
       { onConflict: "soru", ignoreDuplicates: true },
     )
-    .select("id");
+    .select("id, soru, secenekler, dogru_cevap, kategori");
 
   if (error) {
     return Response.json({ hata: error.message }, { status: 500 });
+  }
+
+  // --- Yeni sorular hedef dillere (hata soruyu kaybettirmez; çevirisiz kalır, raporda görünür)
+  const ceviri: unknown[] = [];
+  try {
+    const ay = await ceviriAyarlari();
+    for (const kural of await dilKurallari(supabase, ay.diller)) {
+      if (Date.now() > baslangic + ay.sureSn * 1000) { ceviri.push({ dil: kural.dil, ertelendi: "süre sınırı" }); continue; }
+      ceviri.push(await cevirHatti({
+        supabase, anthropic, kural, sorular: (eklenen ?? []) as KaynakSoru[],
+        parti: ay.parti, esik: ay.esik, kuru: false, bitisMs: baslangic + ay.sureSn * 1000,
+      }));
+    }
+  } catch (e) {
+    ceviri.push({ hata: e instanceof Error ? e.message : String(e) });
   }
 
   return Response.json({
@@ -226,5 +400,6 @@ Deno.serve(async (req) => {
     kategoriYeniToplam: sayimlar[hedefKategori] + (eklenen?.length ?? 0),
     hedef: KATEGORI_HEDEFI,
     elenen,
+    ceviri,
   });
 });
