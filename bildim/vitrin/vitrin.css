@@ -28,7 +28,7 @@
 .bd-vitrin-kart .alt-yazi { font-size: 12px; }
 .bd-vitrin-kart.takili { border-color: var(--bd-vurgu, #F4701F); box-shadow: 0 4px 0 #c4581a; }
 .bd-vitrin-kart.yakinda { background: #f4f7fa; }
-.bd-vitrin-kart.yakinda .ad { color: #6b7d8f; }
+.bd-vitrin-kart.yakinda .ad { color: #4F6680; }   /* Paket 20 VII: #6b7d8f beyazda 3.94 idi */
 
 .bd-vitrin-portre {
   display: grid; place-items: center; width: 100%; aspect-ratio: 1; border-radius: 12px; overflow: hidden;

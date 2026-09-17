@@ -6474,3 +6474,93 @@ body.bd-ekle-acik .app { padding-bottom: calc(300px + env(safe-area-inset-bottom
   background: #FFF6E5; color: var(--bd-metin); text-align: center;
 }
 .app .bd-calisma-rozet.yeni { background: #E3EEFB; color: #173A66; }
+
+/* ============================================================
+   Paket 20 VII — KONTRAST (ölç → yalnız ihlal edenleri düzelt)
+   Ölçüm: her ekranda her metin, etkin zemine göre (degradede EN KÖTÜ durak, üst opaklıklar dahil).
+   Eşik: küçük metin ≥ 4.5 · 24px+ ya da 19px+ kalın ≥ 3.0. Şenlik dili aynen: gök zemin, beyaz kart + 0 4px 0,
+   kabartmalı buton, Baloo 2 / Nunito, turuncu vurgu #F4701F.
+   Emsaller (bu dosyada zaten var): altın dolgu parlak kalır, YAZI koyu altın; kırmızı düğme dolgusu bir ton koyu.
+   ============================================================ */
+:root {
+  /* Turuncu (#FF9A4D→#F4701F) üstünde beyaz 2.10–2.92 idi. Dolgu AYNEN kalır, yazı koyu sıcak ton:
+     #FF9A4D üstünde 7.5, #F4701F üstünde 5.4. */
+  --bd-vurgu-ustu: #3A1A04;
+  /* Yeşil (#57D795→#2FBF71) üstünde beyaz ≈2.0–2.4. Dolgu kalır, yazı koyu yeşil: 7.0 / 5.4. */
+  --bd-basari-ustu: #0B3A22;
+  /* Gök zeminin üst tonunda (#CDEEFF) #5A7089 → 4.20. #4F6680 → 4.94 (beyazda 5.9). */
+  --bd-metin-2: #4F6680;
+  /* #6E86A0 beyazda 3.77 idi → #5B7088 beyazda 4.97 */
+  --bd-metin-3: #5B7088;
+}
+
+/* A. Turuncu dolgu üstündeki yazı */
+.app .btn, .app .bd-ana-eylem, .giris .btn,
+.app .anasayfa .btn:not(.tehlike):not(.basari), .bd-modal-katman .btn:not(.tehlike):not(.basari),
+.app .bd-secenek.secili, .app .bd-sekme.aktif, .app .bd-alt-sekme.aktif,
+.app .bd-sekme-ust > .aktif, .app .bd-sekme-alt > .aktif,
+.app .bd-calisma-adet-btn.aktif, .bd-calisma-adet-btn.aktif,
+.app .bd-dukkan-sekme.aktif, .app .bd-profil-sekme.aktif, .bd-profil-sekme.aktif,
+.app .bd-rakip-bekliyor, .bd-tepki-panel button.acik, .giris .sosyal-btn:first-of-type, .app .bd-izin-butonlar .btn.ikincil,
+.app .bd-joker.ucretsiz:not(:disabled) .bd-joker-adet, .app .bd-joker-adet.bedava,
+.bd-nasil-no, .app .bd-sen, .bd-vitrin-fiyat, .app a.bd-vitrin-kart-link .bd-vitrin-fiyat {
+  color: var(--bd-vurgu-ustu);
+  text-shadow: none;
+}
+.app .bd-secenek.secili .bd-harf { color: var(--bd-vurgu-ustu); background: rgba(255, 255, 255, 0.45); }
+/* ikincil / başarı / tehlike düğmeleri kendi yazı renklerini korur (yukarıdaki .app .btn'den sonra geri verilir) */
+.app .btn.ikincil { color: var(--bd-metin); }
+.app .btn.basari { color: var(--bd-basari-ustu); }
+
+/* B. Yeşil dolgu üstündeki yazı (doğru cevap şıkkı) */
+.app .bd-secenek.dogru { color: var(--bd-basari-ustu); }
+.app .bd-secenek.dogru .bd-harf { color: var(--bd-basari-ustu); background: rgba(255, 255, 255, 0.45); }
+
+/* C. Kırmızı: emsaldeki gibi dolgu bir ton koyu, yazı beyaz (#D0452F→#C43A26 üstünde beyaz ≥ 4.6) */
+.app .btn.tehlike,
+.app .bd-secenek.yanlis,
+.app .bd-sure-doldu-bant { background: linear-gradient(180deg, #D0452F, #C43A26); color: #fff; }
+.bd-davet-rozet, .app .bd-zil-rozet { background: var(--bd-hata-2); }   /* #EF4B4B üstünde beyaz 3.63 → #B62F2F 6.2 */
+
+/* D. Altın yazı → koyu altın (dolgu/ışıma altın kalır) */
+.bd-hizli-buyuk { color: var(--bd-odul-metin); text-shadow: 0 4px 26px rgba(251, 191, 36, 0.35); }
+.bd-calisma-ozet-ust b { color: var(--bd-odul-metin); }
+
+/* E. Kilitli vitrin kartı adı (#6B7D8F 3.94) */
+.bd-vitrin-kart.yakinda .ad { color: var(--bd-metin-2); }
+
+/* F. Devre dışı düğme belirgin: turuncu soluk hâli "basılabilir" sanılıyordu. Şekil (kabartma) kalır,
+   renk nötr yüzeye geçer, basınca inmez. (WCAG devre dışı öğeyi muaf tutar; yine de yazı okunur.) */
+.app .btn:disabled:not(.ikincil), .app .bd-ana-eylem:disabled,
+.app .anasayfa .btn:disabled:not(.tehlike):not(.basari) {
+  filter: none;
+  background: var(--bd-yuzey-3);
+  color: var(--bd-metin-3);
+  box-shadow: 0 4px 0 var(--bd-kart-alt);
+  cursor: not-allowed;
+}
+.app .btn.ikincil:disabled { filter: none; opacity: 0.6; cursor: not-allowed; }
+.app .btn:disabled:active, .app .bd-ana-eylem:disabled:active { transform: none; }
+
+/* G. Kategori renkleri her ekranda aynı: soru kartı çipi mor pastelde sabitti → kategori rengi
+   (KategoriIkon / --kat-* ile aynı). Yazı koyu, renk kenarda ve zeminde. */
+.app .bd-soru-kategori[data-kat] {
+  background: color-mix(in srgb, var(--kat, #7C93B5) 18%, #FFFFFF);
+  color: var(--bd-metin);
+  box-shadow: inset 0 0 0 2px var(--kat, #7C93B5);
+}
+
+/* H. Durum renkleri: bilgi bandı savunma mavisiyle karışmasın (mavi = savunma) */
+.bd-duello-bant.kural { background: var(--bd-yuzey-3); color: var(--bd-metin); }
+
+.bd-ustalik-ad { display: inline-flex; align-items: center; gap: 6px; }
+/* Yanlış şık harf rozeti: kırmızı üstünde yarı saydam BEYAZ rozet beyaz harfi 3.14'e düşürüyordu → koyu rozet */
+.app .bd-secenek.yanlis .bd-harf { background: rgba(0, 0, 0, 0.2); color: #fff; }
+/* Durum renkleri sabit: saldırı turuncu · savunma mavi · başarı yeşil · tehlike kırmızı (Paket 20 VII tarama)
+   - "Savunma Kilidi" bandı kırmızıydı; Zaman Baskısı gibi rakibin SALDIRI etkisi → turuncu
+   - savunma joker kutusu nötr griydi; saldırı kutusu turuncu → savunma mavi (#2A6CB0 beyazda 5.4)
+   - Hatalarım "yeni soru" rozeti mavi → nötr (mavi savunmaya ayrılmış) */
+.bd-duello-bant.kilit { background: #FFE3CC; color: #7A3300; }
+.bd-duello-jokerler.savunma .bd-duello-joker-baslik { color: #2A6CB0; }
+.bd-duello-jokerler.savunma .bd-duello-joker:not(:disabled) { border-color: var(--bd-bilgi); box-shadow: 0 4px 0 #2A6CB0; }
+.app .bd-calisma-rozet.yeni { background: var(--bd-yuzey-3); color: var(--bd-metin); }

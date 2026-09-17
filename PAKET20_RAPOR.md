@@ -9,7 +9,7 @@
 | IV — Düello deneyimi | ✅ canlıda · tanıtım, doğru cevap metinle, ilk maç +5 sn (migration 225), joker ipuçları, maç özeti | `15498ce` |
 | V — Hatalarım dürüstlüğü | ✅ canlıda · banka/yeni dağılımı açıkça yazılıyor, bankan kadar tur, pratik turu adı | `86a7d68` |
 | VI — konsol uyarıları | ✅ canlıda · X4122 (three.js PMREM, D3D) süzüldü, CLOSED kök sebebi düzeltildi (5 yer), ses/titreşim uyarısı giderildi; tarama 0 | `64dfea9` |
-| VII — renk ve kontrast | (sürüyor) | |
+| VII — renk ve kontrast | ✅ canlıda · 49 ihlal → 0 (14 ekran, ölçüldü); turuncu dolgu aynı, yazı koyu; durum/kategori renk sapmaları giderildi | VII |
 
 ---
 
@@ -342,3 +342,84 @@ Kabuk düzeneğinin **üretim derlemesi**, iPhone görünümü. Toplanan: `warni
 **Bulunan 3. uyarı:** bitmiş bir maç linkle (dokunmadan) açılınca sonuç sesi ve titreşim deneniyordu. `ses.js › ton()` ve `geriBildirim.js › titret()` artık `navigator.userActivation.hasBeenActive` yoksa denemiyor; eski tarayıcıda (`userActivation` yok) davranış aynı. Titreşim çağrısı tek yerden geçiyordu, başka yer yok.
 
 **Sınır:** oturum gerektiren gerçek akışlar (canlı maç, gerçek Realtime) şifre girilemediği için düzenekte, sahte veriyle tarandı. Realtime davranışı gerçek istemciyle ayrıca ölçüldü (VI.2).
+
+---
+
+## VII — Renk ve kontrast (önce ölçüldü, yalnız ihlaller düzeltildi)
+
+**Yöntem** (`.tmp/p20/vii_kontrast.mjs`):
+- Kabuk düzeneğinin üretim derlemesi, iPhone 390×844, 14 ekran/durum. Kapalı `<details>` açılarak içleri de ölçüldü.
+- Her görünür metnin rengi (üst öğelerin opaklığı dahil), etkin zeminine göre hesaplandı: katmanlar köke kadar bileştirildi, **degradede en kötü durak** alındı.
+- Eşik (`CLAUDE.md`): küçük metin ≥ 4.5, 24px+ ya da 19px+ kalın ≥ 3.0.
+- Devre dışı öğeler (WCAG muaf) ayrı sayıldı. Ancak **cevap sonucu gösteren şıklar** bilgi taşıdığı için ayrıca incelendi.
+
+### İhlal tablosu (önce) — 49 metin, 27 kalıp
+| Öğe | Örnek | Renk | Oran | Eşik | Ekran |
+|---|---|---|---|---|---|
+| `.bd-ana-eylem` | "Rakip ara" / "Başla" / "Çalışmaya başla" | beyaz / turuncu degrade | 2.10 | 4.5 | Düello lobisi, Hızlı Mod, Hatalarım |
+| `.btn` (birincil) | "Rövanş", "Lobiye katıl", "Kaydet", "Karakterime git", "Davet linkini paylaş" | beyaz / turuncu degrade | 2.10 | 4.5 | Düello sonu, Turnuva, Vitrin, Dükkân, Arkadaşlar |
+| `.btn.kucuk` | "Tak", "350 coin", "Kabul", "Lobiye katıl" | beyaz / turuncu | 2.10 | 4.5 | Ana sayfa, Vitrin, Arkadaşlar |
+| `.btn.kucuk.tehlike` | "Sil" | beyaz / kırmızı degrade | 2.77 | 4.5 | Arkadaşlar |
+| etkin sekmeler (`.bd-profil-sekme.aktif`, `.bd-dukkan-sekme.aktif`, `.bd-calisma-adet-btn.aktif`) | "İstatistiklerim", "Görünüm", "10" | beyaz / #F4701F | 2.10–2.92 | 4.5 | Profil, Dükkân, Hatalarım |
+| `.bd-vitrin-fiyat`, `.bd-nasil-no` | "350 coin", "1" | beyaz / #F4701F | 2.92 | 4.5 | Dükkân, Turnuva |
+| `--bd-metin-2` (#5A7089), gök zeminin açık üst tonunda | alt yazılar, "Tur", "VS", "Düellodan çık", "Kurallar nasıl işliyor?" | #5A7089 / #CDEEFF | 3.93–4.20 | 4.5 | Düello ekranları, Vitrin |
+| altın yazı (#FFC53D) | Hızlı Mod "90", "SIRADAKİ TURNUVA", Hatalarım sayıları | #FFC53D / beyaz | 1.43–1.58 | 3.0 / 4.5 | Hızlı Mod, Turnuva, Hatalarım |
+| kilitli vitrin kartı adı | "Saç", "Elbise", "Alt" | #6B7D8F / beyaz | 3.94 | 4.5 | Dükkân, Vitrin |
+| **cevap şıkları** (devre dışı sayılıyordu ama bilgi taşıyor) | doğru "İkinci" · yanlış "Dördüncü" | beyaz / yeşil · beyaz / kırmızı | **1.20 · 1.24** | 4.5 | Düello sonuç fazı (aynı sınıflar Normal Maç'ta) |
+
+### Düzeltme ilkesi — Şenlik değişmedi
+Emsaller zaten `tema.css`'te vardı. Altın için "dolgu parlak kalır, **yazı** koyu altın"; kırmızı düğme için "dolgu bir ton koyu, kırmızı kimliği korunur". Aynı ikisi uygulandı:
+- **Turuncu:** dolgu **aynen #FF9A4D→#F4701F**. Üstündeki yazı yeni `--bd-vurgu-ustu` **#3A1A04** (7.5 / 5.4).
+- **Yeşil (doğru şık):** dolgu aynı, yazı `--bd-basari-ustu` **#0B3A22** (7.0 / 5.4).
+- **Kırmızı (tehlike, yanlış şık, süre doldu bandı):** emsaldeki gibi degrade **#D0452F→#C43A26**, yazı beyaz (≥ 4.6).
+  - Rozetler #EF4B4B → `--bd-hata-2`.
+  - Yanlış şıkkın harf rozeti yarı saydam beyaz yerine koyu (3.14 → geçer).
+- **`--bd-metin-2`** #5A7089 → **#4F6680** (gök zeminde 4.94, beyazda 5.9).
+- **`--bd-metin-3`** #6E86A0 (beyazda 3.77) → **#5B7088** (4.97).
+- **Altın yazı** → mevcut `--bd-odul-metin` #8A6A00:
+  - Hızlı Mod skoru, Hatalarım özeti
+  - Turnuva kartındaki satır içi `var(--accent)` (2 yer)
+- **Kilitli vitrin adı** → #4F6680. Kural `vitrin.css`'te; o dosya tembel yüklenip üste yazdığı için orada düzeltildi.
+- Kabartma, `0 4px 0`, `translateY`, fontlar, zemin: **dokunulmadı**.
+
+### Sonra — 14 ekran / durum, ihlal **0**
+Tekrarlanan ölçüm, üretim derlemesi:
+
+| Ekran | Önce | Sonra |
+|---|---|---|
+| Ana sayfa | 1 | 0 |
+| Düello lobisi | 3 | 0 |
+| Düello · kategori | 4 | 0 |
+| Düello · savunma | 2 | 0 |
+| Düello · sonuç fazı | 2 (+ şıklar 1.2) | 0 (doğru/yanlış şık geçer) |
+| Düello · maç sonu | 3 | 0 |
+| Maç sonu dökümü | 0 | 0 |
+| Hızlı Mod | 2 | 0 |
+| Turnuva | 5 | 0 |
+| Hatalarım | 4 | 0 |
+| Profil | 1 | 0 |
+| Dükkân | 8 | 0 |
+| Görünüm vitrini | 11 | 0 |
+| Arkadaşlar | 3 | 0 |
+
+Kalan "devre dışı" kayıtlar bilerek soluklaştırılmış, kullanılamaz öğeler (WCAG muaf): kapalı jokerler (yanlarında artık "neden kapalı" yazısı var), seçilmeyen şıklar (`.solgun`), kilitli lig çerçeveleri.
+
+### Durum renkleri — tarama ve sapmalar
+| Durum | Kullanım | Durum |
+|---|---|---|
+| Saldırı / ana eylem **turuncu** | hale, "SALDIRIYORSUN" bandı, saldırı jokerleri, birincil düğmeler | ✅ |
+| Savunma **mavi** | hale, "SAVUNUYORSUN" bandı | ✅ · **sapma:** savunma joker kutusu nötr griydi → mavi başlık + açıkken mavi kenar |
+| Başarı **yeşil** | doğru şık, "Savuşturdun", fırsat bandı, döküm | ✅ |
+| Tehlike **kırmızı** | yanlış şık, riskli kategori, son saniye, kritik hale | ✅ |
+| **Sapma:** "Savunma Kilidi" bandı kırmızıydı | Zaman Baskısı gibi rakibin saldırı etkisi | → turuncu |
+| **Sapma (bu pakette eklenenler):** eşit hamle bilgi bandı ve Hatalarım "yeni soru" rozeti mavi | mavi savunmaya ayrılmış | → nötr |
+
+### Devre dışı düğme
+Eskiden `grayscale(.5) opacity(.65)` → soluk turuncu; "basılabilir" sanılıyordu (III'teki boş e-posta formunda görüldü). Şimdi kabartma şekli kalıyor ama yüzey nötr (`--bd-yuzey-3`), yazı `--bd-metin-3`, `cursor: not-allowed`, basınca inmiyor.
+
+### Kategori renkleri
+- `KategoriIkon` (Düello, Profil › KategoriProfili, Hızlı Mod, Hatalarım, Ana sayfa) ve CSS `--kat-*` aynı 10 rengi kullanıyordu.
+- **Sapma 1:** soru kartı kategori çipi her kategoride **mor pastel** (#F0E3FF / #5A2FD6) → kategori renginin tonu + kategori renkli kenar, yazı koyu.
+- **Sapma 2:** ustalık listesinde kategori rengi **hiç yoktu** (çubuk seviyeye göre renkli) → satıra kategori ikonu (plaka, aynı renk). Seviye rengi çubukta kaldı.
+
+iOS denetimi (5 sayfa × 2 ekran) temiz. Görseller: `gorsel/paket20/vii-*` (önce | sonra yan yana).

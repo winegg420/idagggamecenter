@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import Ikon from "./Ikon.jsx";
 import { supabase } from "../../src/lib/supabase.js";
 import { kategoriEtiket } from "../lib/kategoriler.js";
+import KategoriIkon from "./KategoriIkon.jsx";
 import { JOKER_BILGI } from "../lib/jokerler.js";
 import { tt, ttSunucu } from "../lib/dil.js";
 
@@ -111,7 +112,8 @@ export default function UstalikIzgarasi() {
               return (
                 <div key={s.kategori} className="bd-ustalik-satir">
                   <div className="bd-ustalik-ust">
-                    <span className="bd-ustalik-ad">{kategoriEtiket(s.kategori)}</span>
+                    {/* Paket 20 VII: kategori rengi Düello / profil / soru kartıyla aynı (KategoriIkon) */}
+                    <span className="bd-ustalik-ad"><KategoriIkon anahtar={s.kategori} boyut={18} plaka /> {kategoriEtiket(s.kategori)}</span>
                     <span className="bd-ustalik-seviye" style={{ color: renk }}>
                       {s.seviye ? ttSunucu(s.seviye) : "—"}
                     </span>

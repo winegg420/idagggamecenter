@@ -291,7 +291,7 @@ export default function TournamentPage() {
             <div className="baslik" style={{ marginBottom: 4 }}>
               {tt("Son turnuvanın şampiyonu")}
             </div>
-            <div style={{ fontSize: 20, fontWeight: 900, color: "var(--accent)" }}>
+            <div style={{ fontSize: 20, fontWeight: 900, color: "var(--bd-odul-metin)" }}>
               {kazanan.profil?.gorunen_ad}
             </div>
           </div>
@@ -306,7 +306,7 @@ export default function TournamentPage() {
           </>
         )}
         <div className="geri-sayim-kart">
-          <div style={{ fontSize: 14, fontWeight: 700, color: "var(--accent)" }}>
+          <div style={{ fontSize: 14, fontWeight: 700, color: "var(--bd-odul-metin)" }}>
             {tt("SIRADAKİ TURNUVA")}
           </div>
           <Countdown />
