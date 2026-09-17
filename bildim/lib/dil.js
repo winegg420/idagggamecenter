@@ -605,6 +605,10 @@ const SOZLUK = {
     "Başa baş.": "Neck and neck.",
     "Geridesin, hesap sor.": "You're behind — get even.",
     "Meydan oku": "Challenge",
+    // ---- Paket 24 · D: turnuva haftalık giysi ödülü ----
+    "Bu haftanın ilk 3 ödülü:": "This week's top-3 reward:",
+    "Taç": "Crown",
+    "Pelerin": "Cape",
     // ---- Paket 24 · C: grup maçı eşleştirme kuyruğu ----
     "Rastgele oyuncularla oyna": "Play with random players",
     "Aramayı durdur": "Stop searching",

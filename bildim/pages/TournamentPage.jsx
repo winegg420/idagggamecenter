@@ -34,6 +34,8 @@ export default function TournamentPage() {
   const [hata, setHata] = useState(null);
   // Lobide bir oyuncuya dokununca açılan kart
   const [kartOyuncu, setKartOyuncu] = useState(null);
+  // Paket 24 · D: bu haftanın ilk-3 giysi ödülü (haftalık rotasyonla değişir)
+  const [haftalikGiysi, setHaftalikGiysi] = useState(null);
   const navigate = useNavigate();
   const advanceKilidi = useRef(false);
 
@@ -158,6 +160,21 @@ export default function TournamentPage() {
   // Kanal izleyicisi kanalKur'u çağırabilsin (kanalKur kendi tanımına
   // referans veremediği için güncel hâli her render'da ref'e yazılır).
   kanalKurRef.current = kanalKur;
+
+  // Haftalık giysi ödülü — turnuva ekranı açılınca bir kez
+  useEffect(() => {
+    let iptal = false;
+    (async () => {
+      try {
+        const { data, error } = await supabase.rpc("turnuva_haftalik_giysi_bilgi");
+        if (error) throw error;
+        if (!iptal) setHaftalikGiysi(data ?? null);
+      } catch (e) {
+        console.warn("[Bildim] turnuva_haftalik_giysi_bilgi başarısız:", e?.message ?? e);
+      }
+    })();
+    return () => { iptal = true; };
+  }, []);
 
   useEffect(() => {
     turnuvaYukle();
@@ -311,6 +328,11 @@ export default function TournamentPage() {
           </div>
           <Countdown />
           <BugunKalanTurnuvalar />
+          {haftalikGiysi?.ad && (
+            <div className="bd-haftalik-giysi">
+              {tt("Bu haftanın ilk 3 ödülü:")} <b>{haftalikGiysi.ad}</b>
+            </div>
+          )}
           {hata && <div className="hata-kutu">{hata}</div>}
           <button className="btn" onClick={lobiyeKatil}>
             {tt("Lobiye katıl")}

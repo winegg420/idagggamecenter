@@ -6599,3 +6599,10 @@ body.bd-ekle-acik .app { padding-bottom: calc(300px + env(safe-area-inset-bottom
   margin: 10px 0 4px;
 }
 .bd-grup-kuyruk .alt-yazi { opacity: 0.85; }
+
+/* Paket 24 · D: turnuva ekranında bu haftanın giysi ödülü */
+.bd-haftalik-giysi {
+  margin-top: 8px; padding: 6px 12px; border-radius: var(--bd-r-s);
+  background: rgba(255, 255, 255, 0.14);
+  font-size: 13.5px; font-weight: 700;
+}
