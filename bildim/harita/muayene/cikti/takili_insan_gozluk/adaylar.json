@@ -8,9 +8,9 @@
     3
    ],
    "temas_m": 0.006,
-   "arama_m": 0.08,
+   "arama_m": 0.02,
    "oran_esigi": 0.15,
-   "bosluk_esigi_m": 0.02
+   "yaslanma_esigi_m": 0.008
   },
   "ada": 5,
   "acik_kenar": {
@@ -25,111 +25,59 @@
    "alan_esigi_m2": 0.02
   }
  },
- "adaylar": [
-  {
-   "test": "oturma",
-   "adalar": [
-    "kozmetik_gozluk (insan, saç 1, Idle)"
-   ],
-   "olcu": {
-    "kose": 141,
-    "yakin": 141,
-    "temas": 22,
-    "temas_orani": 0.156,
-    "medyan_bosluk_m": 0.0328,
-    "en_buyuk_bosluk_m": 0.0744,
-    "en_yakin_m": 0,
-    "disa_bakan": 171,
-    "gomulu_kose": 6,
-    "en_derin_gomulme_m": 0.078
-   },
-   "not": "gozluk: gövdeye bakan 141 köşenin 22'i temas ediyor (%16), medyan boşluk 3,3 cm, en büyük 7,4 cm (toplam 141 köşe) → medyan boşluk 3,3 cm > 2,0 cm"
-  },
-  {
-   "test": "oturma",
-   "adalar": [
-    "kozmetik_gozluk (insan, saç 2, Idle)"
-   ],
-   "olcu": {
-    "kose": 133,
-    "yakin": 133,
-    "temas": 16,
-    "temas_orani": 0.12,
-    "medyan_bosluk_m": 0.0344,
-    "en_buyuk_bosluk_m": 0.0663,
-    "en_yakin_m": 0.0004,
-    "disa_bakan": 179,
-    "gomulu_kose": 0,
-    "en_derin_gomulme_m": 0
-   },
-   "not": "gozluk: gövdeye bakan 133 köşenin 16'i temas ediyor (%12), medyan boşluk 3,4 cm, en büyük 6,6 cm (toplam 133 köşe) → temas oranı %12 < %15 · medyan boşluk 3,4 cm > 2,0 cm"
-  },
-  {
-   "test": "oturma",
-   "adalar": [
-    "kozmetik_gozluk (insan, saç 3, Idle)"
-   ],
-   "olcu": {
-    "kose": 133,
-    "yakin": 133,
-    "temas": 22,
-    "temas_orani": 0.165,
-    "medyan_bosluk_m": 0.0311,
-    "en_buyuk_bosluk_m": 0.0744,
-    "en_yakin_m": 0,
-    "disa_bakan": 179,
-    "gomulu_kose": 6,
-    "en_derin_gomulme_m": 0.078
-   },
-   "not": "gozluk: gövdeye bakan 133 köşenin 22'i temas ediyor (%17), medyan boşluk 3,1 cm, en büyük 7,4 cm (toplam 133 köşe) → medyan boşluk 3,1 cm > 2,0 cm"
-  }
- ],
+ "adaylar": [],
  "susturulan": [],
  "oturma": [
   {
    "sac": 1,
    "kose": 141,
-   "yakin": 141,
+   "yakin": 46,
    "temas": 22,
-   "temas_orani": 0.156,
-   "medyan_bosluk_m": 0.0328,
-   "en_buyuk_bosluk_m": 0.0744,
+   "temas_orani": 0.478,
+   "yaslanma_m": 0.0004,
+   "yaslanan_kose": 12,
+   "medyan_bosluk_m": 0.0066,
+   "en_buyuk_bosluk_m": 0.0191,
    "en_yakin_m": 0,
    "disa_bakan": 171,
    "gomulu_kose": 6,
    "en_derin_gomulme_m": 0.078,
-   "yazi": "insan gozluk (saç 1): gövdeye bakan 141 köşenin 22'i temas ediyor (%16), medyan boşluk 3,3 cm, en büyük 7,4 cm (toplam 141 köşe)",
-   "aday": true
+   "yazi": "insan gozluk (saç 1): gövdeye bakan 46 köşenin 22'i temas ediyor (%48), medyan boşluk 0,7 cm, en büyük 1,9 cm (toplam 141 köşe)",
+   "aday": false
   },
   {
    "sac": 2,
    "kose": 133,
-   "yakin": 133,
+   "yakin": 40,
    "temas": 16,
-   "temas_orani": 0.12,
-   "medyan_bosluk_m": 0.0344,
-   "en_buyuk_bosluk_m": 0.0663,
+   "temas_orani": 0.4,
+   "yaslanma_m": 0.0024,
+   "yaslanan_kose": 10,
+   "medyan_bosluk_m": 0.0086,
+   "en_buyuk_bosluk_m": 0.0191,
    "en_yakin_m": 0.0004,
    "disa_bakan": 179,
    "gomulu_kose": 0,
    "en_derin_gomulme_m": 0,
-   "yazi": "insan gozluk (saç 2): gövdeye bakan 133 köşenin 16'i temas ediyor (%12), medyan boşluk 3,4 cm, en büyük 6,6 cm (toplam 133 köşe)",
-   "aday": true
+   "yazi": "insan gozluk (saç 2): gövdeye bakan 40 köşenin 16'i temas ediyor (%40), medyan boşluk 0,9 cm, en büyük 1,9 cm (toplam 133 köşe)",
+   "aday": false
   },
   {
    "sac": 3,
    "kose": 133,
-   "yakin": 133,
+   "yakin": 46,
    "temas": 22,
-   "temas_orani": 0.165,
-   "medyan_bosluk_m": 0.0311,
-   "en_buyuk_bosluk_m": 0.0744,
+   "temas_orani": 0.478,
+   "yaslanma_m": 0.0004,
+   "yaslanan_kose": 12,
+   "medyan_bosluk_m": 0.0066,
+   "en_buyuk_bosluk_m": 0.0191,
    "en_yakin_m": 0,
    "disa_bakan": 179,
    "gomulu_kose": 6,
    "en_derin_gomulme_m": 0.078,
-   "yazi": "insan gozluk (saç 3): gövdeye bakan 133 köşenin 22'i temas ediyor (%17), medyan boşluk 3,1 cm, en büyük 7,4 cm (toplam 133 köşe)",
-   "aday": true
+   "yazi": "insan gozluk (saç 3): gövdeye bakan 46 köşenin 22'i temas ediyor (%48), medyan boşluk 0,7 cm, en büyük 1,9 cm (toplam 133 köşe)",
+   "aday": false
   }
  ],
  "adaListesi": [

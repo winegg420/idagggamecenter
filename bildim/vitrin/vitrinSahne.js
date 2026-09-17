@@ -21,6 +21,8 @@ export const KADRAJ = {
   sirt: { fov: 28, konum: [0, 1.2, 3.6], bak: [0, 1.0, 0], don: Math.PI - 0.55 },
   // Paket 21 §E.2: boyun–omuz hizası. Atkı "bas" kadrajında kadrajın alt kenarında kalıyordu (ölçüldü).
   govde: { fov: 26, konum: [0.3, 1.35, 2.0], bak: [0, 1.13, 0], don: 0.35 },
+  // Paket 21 §E.2/§F: kanat "sirt" kadrajında kartın %3,5-4,0'ını kaplıyordu (eşik %4) — daha yakın kadraj.
+  kanat: { fov: 28, konum: [0, 1.32, 2.95], bak: [0, 1.30, 0], don: Math.PI - 0.55 },
 };
 
 /**

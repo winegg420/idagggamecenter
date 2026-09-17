@@ -247,7 +247,7 @@ function delikleriKapat(geo) {
  * @param {(n:THREE.Vector3)=>number} kafaYuzey  basM'den n yönünde kafa yüzeyine uzaklık
  * @param {THREE.Vector3} merkez  kafa merkezi (kozmetiğin yuva uzayında)
  */
-function kafayaOturanKubbe(kafaYuzey, merkez, { segment = 12, N = 4, t0 = 0.10, t1 = 0.36 * Math.PI, pay = -0.010, kalinlik = 0.022 } = {}) {
+function kafayaOturanKubbe(kafaYuzey, merkez, { segment = 16, N = 4, t0 = 0.10, t1 = 0.32 * Math.PI, pay = -0.004, kalinlik = 0.022 } = {}) {
   const poz = [], uv = [], idx = [];
   const halka = (t, ek) => {
     const bas = poz.length / 3;
@@ -277,7 +277,8 @@ function kafayaOturanKubbe(kafaYuzey, merkez, { segment = 12, N = 4, t0 = 0.10, 
   g.computeVertexNormals();
   // kenar ölçüleri: siper ve halka buraya yaslanır
   const kn = new THREE.Vector3(0, Math.cos(t1), Math.sin(t1)), kr = kafaYuzey(kn) + pay;
-  return { geo: g, kenarY: merkez.y + Math.cos(t1) * kr, kenarZ: Math.sin(t1) * kr, kenarR: Math.sin(t1) * kr, tepeY: merkez.y + kafaYuzey(new THREE.Vector3(0, 1, 0)) + pay + kalinlik };
+  const onZ = kafaYuzey(new THREE.Vector3(0, 0, 1)) + pay;   // kafanın ÖN yüzeyi: siper buradan ileride başlar (robot kafası basık, kubbe kenarı içeride kalıyordu)
+  return { geo: g, kenarY: merkez.y + Math.cos(t1) * kr, kenarZ: Math.sin(t1) * kr, kenarR: Math.sin(t1) * kr, onZ, tepeY: merkez.y + kafaYuzey(new THREE.Vector3(0, 1, 0)) + pay + kalinlik };
 }
 
 // ------------------------------------------------------------ İSKELET
@@ -694,12 +695,12 @@ function karakterKur(tur = "insan") {
   // Paket 21 §F: ŞAPKA HER TÜRDE kendi kafa ölçeğiyle üretilir (kozmetik.js tür varyantını yoksa insanınkini alır).
   // Eşya id'si değişmedi (kozmetik_sapka); tek fark kubbenin türün kafasına oturması.
   {
-    const kb = kafayaOturanKubbe((n) => { const a = govdeYuzey(n), b = kafaYuzey(n); if (process.env.KUBBE_LOG) console.log(`  [${tur}] n=${n.toArray().map(x=>x.toFixed(2))} govde=${a==null?"yok":a.toFixed(3)} kafa=${b.toFixed(3)}`); return a ?? b; }, new THREE.Vector3(0, -0.22, 0));   // kafa merkezi yuva uzayında (0, −0,22, 0); ölçüler merkez DAHİL döner
+    const kb = kafayaOturanKubbe((n) => { const a = govdeYuzey(n), b = kafaYuzey(n); if (process.env.KUBBE_LOG) console.log(`  [${tur}] n=${n.toArray().map(x=>x.toFixed(2))} govde=${a==null?"yok":a.toFixed(3)} kafa=${b.toFixed(3)}`); return a ?? b; }, new THREE.Vector3(0, -0.22, 0), robot ? { t1: 0.30 * Math.PI, pay: 0.005, segment: 20, N: 3 } : {});   // robot kafası basık ve ekran yüzü öne çıkık: kubbe daha yukarıda biter (ölçüldü)   // kafa merkezi yuva uzayında (0, −0,22, 0); ölçüler merkez DAHİL döner
     const kenarY = kb.kenarY;
     const sapka = [
       Y(kb.geo, "sapka", [0, 0, 0]),
-      D(new RoundedBoxGeometry(0.30, 0.03, 0.17, 1, 0.012), "sapkaSiperi", [0, kenarY + 0.005, kb.kenarZ + 0.075], E(-0.12, 0, 0)),
-      D(new THREE.TorusGeometry(kb.kenarR + 0.012, 0.018, 4, 14), "sapkaSiperi", [0, kenarY, 0], E(Math.PI / 2, 0, 0)),
+      D(new RoundedBoxGeometry(0.30, 0.03, 0.17, 1, 0.012), "sapkaSiperi", [0, kenarY + 0.005, Math.max(kb.kenarZ, kb.onZ) + 0.075], E(-0.12, 0, 0)),
+      D(new THREE.TorusGeometry(kb.kenarR + 0.034, 0.016, 4, 12), "sapkaSiperi", [0, kenarY + 0.016, 0], E(Math.PI / 2, 0, 0)),
     ];
     if (robot) sapka.push(D(new THREE.TorusGeometry(0.03, 0.012, 4, 8), "sapkaSiperi", [0, kb.tepeY, 0], E(Math.PI / 2, 0, 0)));   // anten geçiş halkası
     kozmetik("kozmetik_sapka", "basYuva", sapka);

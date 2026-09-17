@@ -8,9 +8,9 @@
     3
    ],
    "temas_m": 0.006,
-   "arama_m": 0.08,
+   "arama_m": 0.02,
    "oran_esigi": 0.15,
-   "bosluk_esigi_m": 0.02
+   "yaslanma_esigi_m": 0.008
   },
   "ada": 2,
   "acik_kenar": {
@@ -25,111 +25,59 @@
    "alan_esigi_m2": 0.02
   }
  },
- "adaylar": [
-  {
-   "test": "oturma",
-   "adalar": [
-    "kozmetik_atki (insan, saç 1, Idle)"
-   ],
-   "olcu": {
-    "kose": 62,
-    "yakin": 62,
-    "temas": 15,
-    "temas_orani": 0.242,
-    "medyan_bosluk_m": 0.0232,
-    "en_buyuk_bosluk_m": 0.0617,
-    "en_yakin_m": 0,
-    "disa_bakan": 90,
-    "gomulu_kose": 8,
-    "en_derin_gomulme_m": 0.0336
-   },
-   "not": "atki: gövdeye bakan 62 köşenin 15'i temas ediyor (%24), medyan boşluk 2,3 cm, en büyük 6,2 cm (toplam 62 köşe) → medyan boşluk 2,3 cm > 2,0 cm"
-  },
-  {
-   "test": "oturma",
-   "adalar": [
-    "kozmetik_atki (insan, saç 2, Idle)"
-   ],
-   "olcu": {
-    "kose": 62,
-    "yakin": 62,
-    "temas": 15,
-    "temas_orani": 0.242,
-    "medyan_bosluk_m": 0.0232,
-    "en_buyuk_bosluk_m": 0.0617,
-    "en_yakin_m": 0,
-    "disa_bakan": 90,
-    "gomulu_kose": 8,
-    "en_derin_gomulme_m": 0.0336
-   },
-   "not": "atki: gövdeye bakan 62 köşenin 15'i temas ediyor (%24), medyan boşluk 2,3 cm, en büyük 6,2 cm (toplam 62 köşe) → medyan boşluk 2,3 cm > 2,0 cm"
-  },
-  {
-   "test": "oturma",
-   "adalar": [
-    "kozmetik_atki (insan, saç 3, Idle)"
-   ],
-   "olcu": {
-    "kose": 63,
-    "yakin": 63,
-    "temas": 15,
-    "temas_orani": 0.238,
-    "medyan_bosluk_m": 0.0202,
-    "en_buyuk_bosluk_m": 0.0617,
-    "en_yakin_m": 0,
-    "disa_bakan": 89,
-    "gomulu_kose": 8,
-    "en_derin_gomulme_m": 0.0336
-   },
-   "not": "atki: gövdeye bakan 63 köşenin 15'i temas ediyor (%24), medyan boşluk 2,0 cm, en büyük 6,2 cm (toplam 63 köşe) → medyan boşluk 2,0 cm > 2,0 cm"
-  }
- ],
+ "adaylar": [],
  "susturulan": [],
  "oturma": [
   {
    "sac": 1,
    "kose": 62,
-   "yakin": 62,
+   "yakin": 29,
    "temas": 15,
-   "temas_orani": 0.242,
-   "medyan_bosluk_m": 0.0232,
-   "en_buyuk_bosluk_m": 0.0617,
+   "temas_orani": 0.517,
+   "yaslanma_m": 0,
+   "yaslanan_kose": 8,
+   "medyan_bosluk_m": 0.0054,
+   "en_buyuk_bosluk_m": 0.0167,
    "en_yakin_m": 0,
    "disa_bakan": 90,
    "gomulu_kose": 8,
    "en_derin_gomulme_m": 0.0336,
-   "yazi": "insan atki (saç 1): gövdeye bakan 62 köşenin 15'i temas ediyor (%24), medyan boşluk 2,3 cm, en büyük 6,2 cm (toplam 62 köşe)",
-   "aday": true
+   "yazi": "insan atki (saç 1): gövdeye bakan 29 köşenin 15'i temas ediyor (%52), medyan boşluk 0,5 cm, en büyük 1,7 cm (toplam 62 köşe)",
+   "aday": false
   },
   {
    "sac": 2,
    "kose": 62,
-   "yakin": 62,
+   "yakin": 29,
    "temas": 15,
-   "temas_orani": 0.242,
-   "medyan_bosluk_m": 0.0232,
-   "en_buyuk_bosluk_m": 0.0617,
+   "temas_orani": 0.517,
+   "yaslanma_m": 0,
+   "yaslanan_kose": 8,
+   "medyan_bosluk_m": 0.0054,
+   "en_buyuk_bosluk_m": 0.0167,
    "en_yakin_m": 0,
    "disa_bakan": 90,
    "gomulu_kose": 8,
    "en_derin_gomulme_m": 0.0336,
-   "yazi": "insan atki (saç 2): gövdeye bakan 62 köşenin 15'i temas ediyor (%24), medyan boşluk 2,3 cm, en büyük 6,2 cm (toplam 62 köşe)",
-   "aday": true
+   "yazi": "insan atki (saç 2): gövdeye bakan 29 köşenin 15'i temas ediyor (%52), medyan boşluk 0,5 cm, en büyük 1,7 cm (toplam 62 köşe)",
+   "aday": false
   },
   {
    "sac": 3,
    "kose": 63,
-   "yakin": 63,
+   "yakin": 30,
    "temas": 15,
-   "temas_orani": 0.238,
-   "medyan_bosluk_m": 0.0202,
-   "en_buyuk_bosluk_m": 0.0617,
+   "temas_orani": 0.5,
+   "yaslanma_m": 0,
+   "yaslanan_kose": 8,
+   "medyan_bosluk_m": 0.0077,
+   "en_buyuk_bosluk_m": 0.0167,
    "en_yakin_m": 0,
    "disa_bakan": 89,
    "gomulu_kose": 8,
    "en_derin_gomulme_m": 0.0336,
-   "yazi": "insan atki (saç 3): gövdeye bakan 63 köşenin 15'i temas ediyor (%24), medyan boşluk 2,0 cm, en büyük 6,2 cm (toplam 63 köşe)",
-   "aday": true
+   "yazi": "insan atki (saç 3): gövdeye bakan 30 köşenin 15'i temas ediyor (%50), medyan boşluk 0,8 cm, en büyük 1,7 cm (toplam 63 köşe)",
+   "aday": false
   }
  ],
  "adaListesi": [

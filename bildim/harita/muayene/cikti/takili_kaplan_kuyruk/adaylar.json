@@ -8,15 +8,15 @@
     3
    ],
    "temas_m": 0.006,
-   "arama_m": 0.08,
+   "arama_m": 0.02,
    "oran_esigi": 0.15,
-   "bosluk_esigi_m": 0.02
+   "yaslanma_esigi_m": 0.008
   },
   "ada": 2,
   "acik_kenar": {
    "ada": 2,
-   "delik_dongusu": 2,
-   "esik_ustu": 2,
+   "delik_dongusu": 0,
+   "esik_ustu": 0,
    "esik_m2": 0.0004
   },
   "kalinlik": {
@@ -25,143 +25,59 @@
    "alan_esigi_m2": 0.02
   }
  },
- "adaylar": [
-  {
-   "test": "oturma",
-   "adalar": [
-    "kozmetik_kuyruk (kaplan, saç 1, Idle)"
-   ],
-   "olcu": {
-    "kose": 65,
-    "yakin": 6,
-    "temas": 3,
-    "temas_orani": 0.5,
-    "medyan_bosluk_m": 0.0615,
-    "en_buyuk_bosluk_m": 0.0663,
-    "en_yakin_m": 0.0007,
-    "disa_bakan": 81,
-    "gomulu_kose": 0,
-    "en_derin_gomulme_m": 0
-   },
-   "not": "kuyruk: gövdeye bakan 6 köşenin 3'i temas ediyor (%50), medyan boşluk 6,2 cm, en büyük 6,6 cm (toplam 65 köşe) → medyan boşluk 6,2 cm > 2,0 cm"
-  },
-  {
-   "test": "oturma",
-   "adalar": [
-    "kozmetik_kuyruk (kaplan, saç 2, Idle)"
-   ],
-   "olcu": {
-    "kose": 65,
-    "yakin": 6,
-    "temas": 3,
-    "temas_orani": 0.5,
-    "medyan_bosluk_m": 0.0615,
-    "en_buyuk_bosluk_m": 0.0663,
-    "en_yakin_m": 0.0007,
-    "disa_bakan": 81,
-    "gomulu_kose": 0,
-    "en_derin_gomulme_m": 0
-   },
-   "not": "kuyruk: gövdeye bakan 6 köşenin 3'i temas ediyor (%50), medyan boşluk 6,2 cm, en büyük 6,6 cm (toplam 65 köşe) → medyan boşluk 6,2 cm > 2,0 cm"
-  },
-  {
-   "test": "oturma",
-   "adalar": [
-    "kozmetik_kuyruk (kaplan, saç 3, Idle)"
-   ],
-   "olcu": {
-    "kose": 65,
-    "yakin": 6,
-    "temas": 3,
-    "temas_orani": 0.5,
-    "medyan_bosluk_m": 0.0615,
-    "en_buyuk_bosluk_m": 0.0663,
-    "en_yakin_m": 0.0007,
-    "disa_bakan": 81,
-    "gomulu_kose": 0,
-    "en_derin_gomulme_m": 0
-   },
-   "not": "kuyruk: gövdeye bakan 6 köşenin 3'i temas ediyor (%50), medyan boşluk 6,2 cm, en büyük 6,6 cm (toplam 65 köşe) → medyan boşluk 6,2 cm > 2,0 cm"
-  },
-  {
-   "test": "acik_kenar",
-   "adalar": [
-    "kozmetik_kuyruk · diger:kurk [x 0.22 · y 1.01 · z -0.47]"
-   ],
-   "olcu": {
-    "delik_alani_m2": 0.00453,
-    "acik_kenar": 8,
-    "delik_merkezi": [
-     0.089,
-     0.942,
-     -0.209
-    ]
-   },
-   "not": "8 açık kenarlı delik, 45,3 cm² (eşik 4 cm²)"
-  },
-  {
-   "test": "acik_kenar",
-   "adalar": [
-    "kozmetik_kuyruk · diger:kurk [x 0.22 · y 1.01 · z -0.47]"
-   ],
-   "olcu": {
-    "delik_alani_m2": 0.00453,
-    "acik_kenar": 8,
-    "delik_merkezi": [
-     0.364,
-     1.238,
-     -0.609
-    ]
-   },
-   "not": "8 açık kenarlı delik, 45,3 cm² (eşik 4 cm²)"
-  }
- ],
+ "adaylar": [],
  "susturulan": [],
  "oturma": [
   {
    "sac": 1,
-   "kose": 65,
+   "kose": 72,
    "yakin": 6,
-   "temas": 3,
-   "temas_orani": 0.5,
-   "medyan_bosluk_m": 0.0615,
-   "en_buyuk_bosluk_m": 0.0663,
-   "en_yakin_m": 0.0007,
-   "disa_bakan": 81,
+   "temas": 1,
+   "temas_orani": 0.167,
+   "yaslanma_m": 0.0062,
+   "yaslanan_kose": 2,
+   "medyan_bosluk_m": 0.0133,
+   "en_buyuk_bosluk_m": 0.0185,
+   "en_yakin_m": 0.006,
+   "disa_bakan": 88,
    "gomulu_kose": 0,
    "en_derin_gomulme_m": 0,
-   "yazi": "kaplan kuyruk (saç 1): gövdeye bakan 6 köşenin 3'i temas ediyor (%50), medyan boşluk 6,2 cm, en büyük 6,6 cm (toplam 65 köşe)",
-   "aday": true
+   "yazi": "kaplan kuyruk (saç 1): gövdeye bakan 6 köşenin 1'i temas ediyor (%17), medyan boşluk 1,3 cm, en büyük 1,8 cm (toplam 72 köşe)",
+   "aday": false
   },
   {
    "sac": 2,
-   "kose": 65,
+   "kose": 72,
    "yakin": 6,
-   "temas": 3,
-   "temas_orani": 0.5,
-   "medyan_bosluk_m": 0.0615,
-   "en_buyuk_bosluk_m": 0.0663,
-   "en_yakin_m": 0.0007,
-   "disa_bakan": 81,
+   "temas": 1,
+   "temas_orani": 0.167,
+   "yaslanma_m": 0.0062,
+   "yaslanan_kose": 2,
+   "medyan_bosluk_m": 0.0133,
+   "en_buyuk_bosluk_m": 0.0185,
+   "en_yakin_m": 0.006,
+   "disa_bakan": 88,
    "gomulu_kose": 0,
    "en_derin_gomulme_m": 0,
-   "yazi": "kaplan kuyruk (saç 2): gövdeye bakan 6 köşenin 3'i temas ediyor (%50), medyan boşluk 6,2 cm, en büyük 6,6 cm (toplam 65 köşe)",
-   "aday": true
+   "yazi": "kaplan kuyruk (saç 2): gövdeye bakan 6 köşenin 1'i temas ediyor (%17), medyan boşluk 1,3 cm, en büyük 1,8 cm (toplam 72 köşe)",
+   "aday": false
   },
   {
    "sac": 3,
-   "kose": 65,
+   "kose": 72,
    "yakin": 6,
-   "temas": 3,
-   "temas_orani": 0.5,
-   "medyan_bosluk_m": 0.0615,
-   "en_buyuk_bosluk_m": 0.0663,
-   "en_yakin_m": 0.0007,
-   "disa_bakan": 81,
+   "temas": 1,
+   "temas_orani": 0.167,
+   "yaslanma_m": 0.0062,
+   "yaslanan_kose": 2,
+   "medyan_bosluk_m": 0.0133,
+   "en_buyuk_bosluk_m": 0.0185,
+   "en_yakin_m": 0.006,
+   "disa_bakan": 88,
    "gomulu_kose": 0,
    "en_derin_gomulme_m": 0,
-   "yazi": "kaplan kuyruk (saç 3): gövdeye bakan 6 köşenin 3'i temas ediyor (%50), medyan boşluk 6,2 cm, en büyük 6,6 cm (toplam 65 köşe)",
-   "aday": true
+   "yazi": "kaplan kuyruk (saç 3): gövdeye bakan 6 köşenin 1'i temas ediyor (%17), medyan boşluk 1,3 cm, en büyük 1,8 cm (toplam 72 köşe)",
+   "aday": false
   }
  ],
  "adaListesi": [
@@ -174,8 +90,8 @@
   {
    "no": 1,
    "ada": "diger:kurk [x 0.22 · y 1.01 · z -0.47]",
-   "ucgen": 192,
-   "kapali": false
+   "ucgen": 232,
+   "kapali": true
   }
  ]
 }

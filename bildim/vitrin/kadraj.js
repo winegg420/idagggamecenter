@@ -9,7 +9,7 @@
 /** Kozmetik kodu → kart kadrajı. Bilinmeyen kozmetik "bas" kadrajıyla çekilir. */
 export const KOZMETIK_KADRAJ = {
   pelerin: "sirt",
-  kanat: "sirt",
+  kanat: "kanat",
   // Paket 21 §E.2: atkı "bas" kadrajında kadrajın alt kenarında kalıyor, kart satılan şeyi göstermiyordu (ölçüldü).
   atki: "govde",
 };

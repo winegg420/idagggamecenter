@@ -366,13 +366,13 @@ export class MeydanAvatarlari {
       if (!k || !av.parent || !av.visible) continue;
       if (u.tac && u.yuvaBas) {
         u.yuvaBas.updateWorldMatrix(true, false);
-        ek.tac.setMatrixAt(it++, ekMatris("tac", u.yuvaBas.matrixWorld, {}, _m));
+        ek.tac.setMatrixAt(it++, ekMatris("tac", u.yuvaBas.matrixWorld, { tur: u.tur }, _m));
       }
       if (u.pelerin && u.yuvaSirt) {
         u.yuvaSirt.updateWorldMatrix(true, false);
         const hiz = k.userData.vfxHiz ?? 0;
         const aci = Math.min(0.55, 0.06 + hiz * 0.05) + Math.sin(zaman * (1.6 + hiz * 0.35) + u.pelerinFaz) * (0.035 + Math.min(hiz, 9) * 0.006);
-        ek.pelerin.setMatrixAt(ip++, ekMatris("pelerin", u.yuvaSirt.matrixWorld, { aci, kisa: u.pelerin === "kisa" }, _m));
+        ek.pelerin.setMatrixAt(ip++, ekMatris("pelerin", u.yuvaSirt.matrixWorld, { aci, kisa: u.pelerin === "kisa", tur: u.tur }, _m));
       }
     }
     ek.tac.count = it; ek.pelerin.count = ip;

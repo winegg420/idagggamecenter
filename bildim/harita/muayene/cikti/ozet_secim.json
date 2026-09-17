@@ -1,9 +1,9 @@
 {
- "tarih": "2026-09-17T17:56:13.413Z",
+ "tarih": "2026-09-17T18:51:20.074Z",
  "varliklar": {
-  "takili_robot_tac": {
-   "ucgen": 6154,
-   "malzeme": 2,
+  "karakter_insan": {
+   "ucgen": 6656,
+   "malzeme": 1,
    "gorunumler": [
     "ön (+Z)",
     "arka (−Z)",
@@ -11,7 +11,15 @@
     "sağ (+X)",
     "üst (+Y)",
     "alt (−Y)",
-    "beauty (perspektif, B+, gölgeli)"
+    "kafa 3/4 (kozmetiksiz)",
+    "sağ el (parmaklar)",
+    "sol ayak",
+    "ifade normal",
+    "ifade gülümseme",
+    "ifade şaşkın",
+    "kanat sırt bağlantısı (kanat kozmetiği)",
+    "premium gözlük (kozmetikli)",
+    "beauty (perspektif, B+, gölgeli, kozmetikli, Idle)"
    ],
    "dosyalar": [
     "01-ön-z.png",
@@ -20,13 +28,110 @@
     "04-sağ-x.png",
     "05-üst-y.png",
     "06-alt-y.png",
-    "07-beauty-perspektif-b-gölgeli.png"
+    "07-kafa-3-4-kozmetiksiz.png",
+    "08-sağ-el-parmaklar.png",
+    "09-sol-ayak.png",
+    "10-ifade-normal.png",
+    "11-ifade-gülümseme.png",
+    "12-ifade-şaşkın.png",
+    "13-kanat-sırt-bağlantısı-kanat-kozmetiği.png",
+    "14-premium-gözlük-kozmetikli.png",
+    "15-beauty-perspektif-b-gölgeli-kozmetikli-idle.png"
+   ],
+   "aday": {},
+   "susturulan": {
+    "icice": 172,
+    "gomulu": 26,
+    "kozmetik": 28
+   }
+  },
+  "karakter_kaplan": {
+   "ucgen": 6232,
+   "malzeme": 1,
+   "gorunumler": [
+    "ön (+Z)",
+    "arka (−Z)",
+    "sol (−X)",
+    "sağ (+X)",
+    "üst (+Y)",
+    "alt (−Y)",
+    "kafa 3/4 (kozmetiksiz)",
+    "sağ el (parmaklar)",
+    "sol ayak",
+    "ifade normal",
+    "ifade gülümseme",
+    "ifade şaşkın",
+    "kanat sırt bağlantısı (kanat kozmetiği)",
+    "beauty (perspektif, B+, gölgeli, kozmetikli, Idle)"
+   ],
+   "dosyalar": [
+    "01-ön-z.png",
+    "02-arka-z.png",
+    "03-sol-x.png",
+    "04-sağ-x.png",
+    "05-üst-y.png",
+    "06-alt-y.png",
+    "07-kafa-3-4-kozmetiksiz.png",
+    "08-sağ-el-parmaklar.png",
+    "09-sol-ayak.png",
+    "10-ifade-normal.png",
+    "11-ifade-gülümseme.png",
+    "12-ifade-şaşkın.png",
+    "13-kanat-sırt-bağlantısı-kanat-kozmetiği.png",
+    "14-beauty-perspektif-b-gölgeli-kozmetikli-idle.png"
+   ],
+   "aday": {},
+   "susturulan": {
+    "icice": 137,
+    "gomulu": 21,
+    "kozmetik": 27
+   }
+  },
+  "karakter_robot": {
+   "ucgen": 6104,
+   "malzeme": 1,
+   "gorunumler": [
+    "ön (+Z)",
+    "arka (−Z)",
+    "sol (−X)",
+    "sağ (+X)",
+    "üst (+Y)",
+    "alt (−Y)",
+    "kafa 3/4 (kozmetiksiz)",
+    "sağ el (parmaklar)",
+    "sol ayak",
+    "omuz eklemi (ayrılık)",
+    "ifade normal",
+    "ifade gülümseme",
+    "ifade şaşkın",
+    "kanat sırt bağlantısı (kanat kozmetiği)",
+    "beauty (perspektif, B+, gölgeli, kozmetikli, Idle)"
+   ],
+   "dosyalar": [
+    "01-ön-z.png",
+    "02-arka-z.png",
+    "03-sol-x.png",
+    "04-sağ-x.png",
+    "05-üst-y.png",
+    "06-alt-y.png",
+    "07-kafa-3-4-kozmetiksiz.png",
+    "08-sağ-el-parmaklar.png",
+    "09-sol-ayak.png",
+    "10-omuz-eklemi-ayrılık.png",
+    "11-ifade-normal.png",
+    "12-ifade-gülümseme.png",
+    "13-ifade-şaşkın.png",
+    "14-kanat-sırt-bağlantısı-kanat-kozmetiği.png",
+    "15-beauty-perspektif-b-gölgeli-kozmetikli-idle.png"
    ],
    "aday": {
-    "oturma": 3,
-    "acik_kenar": 4
+    "kozmetik": 1
    },
-   "susturulan": {}
+   "susturulan": {
+    "icice": 27,
+    "gomulu": 2,
+    "kozmetik": 15
+   }
   }
  },
  "konsolHatalari": [],

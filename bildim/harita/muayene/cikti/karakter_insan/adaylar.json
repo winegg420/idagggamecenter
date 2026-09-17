@@ -22,7 +22,7 @@
   "kozmetik": {
    "denenen_kozmetik": 5
   },
-  "sure_s": 0.9
+  "sure_s": 0.5
  },
  "adaylar": [],
  "susturulan": [
@@ -2578,18 +2578,6 @@
    "test": "kozmetik",
    "adalar": [
     "kozmetik_sapka (karakter_insan)",
-    "sacKase:sac [x -0.00 · y 1.58 · z -0.23]"
-   ],
-   "olcu": {
-    "kesisim": "üçgen kesişimi var"
-   },
-   "not": "bağlama pozunda basYuva yuvasına takılı",
-   "sebep": "şapka saçın üstüne oturur"
-  },
-  {
-   "test": "kozmetik",
-   "adalar": [
-    "kozmetik_sapka (karakter_insan)",
     "sacKase:sac [x -0.00 · y 1.67 · z 0.12]"
    ],
    "olcu": {
@@ -2627,18 +2615,6 @@
    "adalar": [
     "kozmetik_sapka (karakter_insan)",
     "sacKuyruk:bayrak [x -0.00 · y 1.66 · z -0.28]"
-   ],
-   "olcu": {
-    "kesisim": "üçgen kesişimi var"
-   },
-   "not": "bağlama pozunda basYuva yuvasına takılı",
-   "sebep": "şapka saçın üstüne oturur"
-  },
-  {
-   "test": "kozmetik",
-   "adalar": [
-    "kozmetik_sapka (karakter_insan)",
-    "sacKuyruk:sac [x -0.00 · y 1.50 · z -0.30]"
    ],
    "olcu": {
     "kesisim": "üçgen kesişimi var"

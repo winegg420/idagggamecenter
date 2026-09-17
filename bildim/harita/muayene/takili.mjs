@@ -74,7 +74,7 @@ export async function takiliKur(tur, koz, { sac = 1, set = 1, klip = "Idle", zam
   if (KOD_KOZMETIKLERI[koz]) {
     yuvaAd = EK_YUVA[koz];
     const yuva = kok.getObjectByName(yuvaAd);
-    geo = KOD_KOZMETIKLERI[koz](govdeMesh.userData.hucreler ?? {}).applyMatrix4(ekMatris(koz, yuva.matrixWorld, {}));
+    geo = KOD_KOZMETIKLERI[koz](govdeMesh.userData.hucreler ?? {}).applyMatrix4(ekMatris(koz, yuva.matrixWorld, { tur }));
   } else {
     const m = kok.getObjectByName("kozmetik_" + koz);
     if (!m) throw new Error(`${tur}: kozmetik_${koz} takılamadı`);

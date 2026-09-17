@@ -1,5 +1,5 @@
 {
- "tarih": "2026-09-17T17:57:35.885Z",
+ "tarih": "2026-09-17T18:54:19.247Z",
  "varliklar": {
   "karakter_insan": {
    "ucgen": 6656,
@@ -42,7 +42,7 @@
    "susturulan": {
     "icice": 172,
     "gomulu": 26,
-    "kozmetik": 29
+    "kozmetik": 27
    }
   },
   "karakter_kaplan": {
@@ -128,7 +128,7 @@
    "susturulan": {
     "icice": 27,
     "gomulu": 2,
-    "kozmetik": 12
+    "kozmetik": 15
    }
   },
   "bina_dukkan": {
@@ -427,7 +427,7 @@
    }
   },
   "kozmetik_tac": {
-   "ucgen": 50,
+   "ucgen": 110,
    "malzeme": 1,
    "gorunumler": [
     "ön (+Z)",
@@ -447,13 +447,11 @@
     "06-alt-y.png",
     "07-beauty-perspektif-b-gölgeli.png"
    ],
-   "aday": {
-    "acik_kenar": 4
-   },
+   "aday": {},
    "susturulan": {}
   },
   "kozmetik_pelerin": {
-   "ucgen": 48,
+   "ucgen": 164,
    "malzeme": 1,
    "gorunumler": [
     "ön (+Z)",
@@ -473,13 +471,11 @@
     "06-alt-y.png",
     "07-beauty-perspektif-b-gölgeli.png"
    ],
-   "aday": {
-    "acik_kenar": 2
-   },
+   "aday": {},
    "susturulan": {}
   },
   "takili_insan_sapka": {
-   "ucgen": 5934,
+   "ucgen": 5860,
    "malzeme": 2,
    "gorunumler": [
     "ön (+Z)",
@@ -499,10 +495,7 @@
     "06-alt-y.png",
     "07-beauty-perspektif-b-gölgeli.png"
    ],
-   "aday": {
-    "oturma": 3,
-    "acik_kenar": 1
-   },
+   "aday": {},
    "susturulan": {}
   },
   "takili_insan_gozluk": {
@@ -526,13 +519,11 @@
     "06-alt-y.png",
     "07-beauty-perspektif-b-gölgeli.png"
    ],
-   "aday": {
-    "oturma": 3
-   },
+   "aday": {},
    "susturulan": {}
   },
   "takili_insan_gozlukPremium": {
-   "ucgen": 5852,
+   "ucgen": 5936,
    "malzeme": 2,
    "gorunumler": [
     "ön (+Z)",
@@ -552,10 +543,7 @@
     "06-alt-y.png",
     "07-beauty-perspektif-b-gölgeli.png"
    ],
-   "aday": {
-    "oturma": 3,
-    "acik_kenar": 2
-   },
+   "aday": {},
    "susturulan": {}
   },
   "takili_insan_atki": {
@@ -579,9 +567,7 @@
     "06-alt-y.png",
     "07-beauty-perspektif-b-gölgeli.png"
    ],
-   "aday": {
-    "oturma": 3
-   },
+   "aday": {},
    "susturulan": {}
   },
   "takili_insan_kanat": {
@@ -605,13 +591,11 @@
     "06-alt-y.png",
     "07-beauty-perspektif-b-gölgeli.png"
    ],
-   "aday": {
-    "kalinlik": 14
-   },
+   "aday": {},
    "susturulan": {}
   },
   "takili_insan_tac": {
-   "ucgen": 5386,
+   "ucgen": 5446,
    "malzeme": 2,
    "gorunumler": [
     "ön (+Z)",
@@ -631,14 +615,11 @@
     "06-alt-y.png",
     "07-beauty-perspektif-b-gölgeli.png"
    ],
-   "aday": {
-    "oturma": 3,
-    "acik_kenar": 4
-   },
+   "aday": {},
    "susturulan": {}
   },
   "takili_insan_pelerin": {
-   "ucgen": 5384,
+   "ucgen": 5500,
    "malzeme": 2,
    "gorunumler": [
     "ön (+Z)",
@@ -658,14 +639,11 @@
     "06-alt-y.png",
     "07-beauty-perspektif-b-gölgeli.png"
    ],
-   "aday": {
-    "oturma": 3,
-    "acik_kenar": 2
-   },
+   "aday": {},
    "susturulan": {}
   },
   "takili_kaplan_sapka": {
-   "ucgen": 6250,
+   "ucgen": 6176,
    "malzeme": 2,
    "gorunumler": [
     "ön (+Z)",
@@ -685,10 +663,7 @@
     "06-alt-y.png",
     "07-beauty-perspektif-b-gölgeli.png"
    ],
-   "aday": {
-    "oturma": 3,
-    "acik_kenar": 1
-   },
+   "aday": {},
    "susturulan": {}
   },
   "takili_kaplan_gozluk": {
@@ -712,13 +687,11 @@
     "06-alt-y.png",
     "07-beauty-perspektif-b-gölgeli.png"
    ],
-   "aday": {
-    "oturma": 3
-   },
+   "aday": {},
    "susturulan": {}
   },
   "takili_kaplan_gozlukPremium": {
-   "ucgen": 6168,
+   "ucgen": 6252,
    "malzeme": 2,
    "gorunumler": [
     "ön (+Z)",
@@ -738,10 +711,7 @@
     "06-alt-y.png",
     "07-beauty-perspektif-b-gölgeli.png"
    ],
-   "aday": {
-    "oturma": 3,
-    "acik_kenar": 2
-   },
+   "aday": {},
    "susturulan": {}
   },
   "takili_kaplan_atki": {
@@ -789,13 +759,11 @@
     "06-alt-y.png",
     "07-beauty-perspektif-b-gölgeli.png"
    ],
-   "aday": {
-    "kalinlik": 14
-   },
+   "aday": {},
    "susturulan": {}
   },
   "takili_kaplan_tac": {
-   "ucgen": 5702,
+   "ucgen": 5762,
    "malzeme": 2,
    "gorunumler": [
     "ön (+Z)",
@@ -815,14 +783,11 @@
     "06-alt-y.png",
     "07-beauty-perspektif-b-gölgeli.png"
    ],
-   "aday": {
-    "oturma": 3,
-    "acik_kenar": 4
-   },
+   "aday": {},
    "susturulan": {}
   },
   "takili_kaplan_pelerin": {
-   "ucgen": 5700,
+   "ucgen": 5816,
    "malzeme": 2,
    "gorunumler": [
     "ön (+Z)",
@@ -842,14 +807,11 @@
     "06-alt-y.png",
     "07-beauty-perspektif-b-gölgeli.png"
    ],
-   "aday": {
-    "oturma": 3,
-    "acik_kenar": 2
-   },
+   "aday": {},
    "susturulan": {}
   },
   "takili_kaplan_kuyruk": {
-   "ucgen": 5924,
+   "ucgen": 5964,
    "malzeme": 2,
    "gorunumler": [
     "ön (+Z)",
@@ -869,14 +831,11 @@
     "06-alt-y.png",
     "07-beauty-perspektif-b-gölgeli.png"
    ],
-   "aday": {
-    "oturma": 3,
-    "acik_kenar": 2
-   },
+   "aday": {},
    "susturulan": {}
   },
   "takili_robot_sapka": {
-   "ucgen": 6528,
+   "ucgen": 6692,
    "malzeme": 2,
    "gorunumler": [
     "ön (+Z)",
@@ -896,14 +855,11 @@
     "06-alt-y.png",
     "07-beauty-perspektif-b-gölgeli.png"
    ],
-   "aday": {
-    "oturma": 3,
-    "acik_kenar": 1
-   },
+   "aday": {},
    "susturulan": {}
   },
   "takili_robot_gozluk": {
-   "ucgen": 6188,
+   "ucgen": 6404,
    "malzeme": 2,
    "gorunumler": [
     "ön (+Z)",
@@ -923,14 +879,11 @@
     "06-alt-y.png",
     "07-beauty-perspektif-b-gölgeli.png"
    ],
-   "aday": {
-    "oturma": 3,
-    "acik_kenar": 3
-   },
+   "aday": {},
    "susturulan": {}
   },
   "takili_robot_gozlukPremium": {
-   "ucgen": 6620,
+   "ucgen": 6704,
    "malzeme": 2,
    "gorunumler": [
     "ön (+Z)",
@@ -950,10 +903,7 @@
     "06-alt-y.png",
     "07-beauty-perspektif-b-gölgeli.png"
    ],
-   "aday": {
-    "oturma": 3,
-    "acik_kenar": 2
-   },
+   "aday": {},
    "susturulan": {}
   },
   "takili_robot_atki": {
@@ -977,9 +927,7 @@
     "06-alt-y.png",
     "07-beauty-perspektif-b-gölgeli.png"
    ],
-   "aday": {
-    "oturma": 3
-   },
+   "aday": {},
    "susturulan": {}
   },
   "takili_robot_kanat": {
@@ -1003,14 +951,11 @@
     "06-alt-y.png",
     "07-beauty-perspektif-b-gölgeli.png"
    ],
-   "aday": {
-    "oturma": 3,
-    "kalinlik": 14
-   },
+   "aday": {},
    "susturulan": {}
   },
   "takili_robot_tac": {
-   "ucgen": 6154,
+   "ucgen": 6214,
    "malzeme": 2,
    "gorunumler": [
     "ön (+Z)",
@@ -1030,14 +975,11 @@
     "06-alt-y.png",
     "07-beauty-perspektif-b-gölgeli.png"
    ],
-   "aday": {
-    "oturma": 3,
-    "acik_kenar": 4
-   },
+   "aday": {},
    "susturulan": {}
   },
   "takili_robot_pelerin": {
-   "ucgen": 6152,
+   "ucgen": 6268,
    "malzeme": 2,
    "gorunumler": [
     "ön (+Z)",
@@ -1057,13 +999,15 @@
     "06-alt-y.png",
     "07-beauty-perspektif-b-gölgeli.png"
    ],
-   "aday": {
-    "oturma": 3,
-    "acik_kenar": 2
-   },
+   "aday": {},
    "susturulan": {}
   }
  },
  "konsolHatalari": [],
- "gpu": "ANGLE (AMD, AMD Radeon(TM) Graphics (0x00001681) Direct3D11 vs_5_0 ps_5_0, D3D11)"
+ "gpu": "ANGLE (AMD, AMD Radeon(TM) Graphics (0x00001681) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+ "portre_kadraj": {
+  "olculen": 21,
+  "aday": 0,
+  "adaylar": []
+ }
 }
