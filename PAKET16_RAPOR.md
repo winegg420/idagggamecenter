@@ -109,7 +109,7 @@ Canlıda abone olmadığı için gönderilen gövde `net._http_response`'tan oku
 
 - İlk sırada "sonra" hep yüksek çıktı (+0,1…+0,5), sıra ters çevrilince fark −0,2…+0,1'e indi → farkı ölçüm sırası üretiyor; **süre maliyeti ölçülemiyor**.
 - **Çağrı maliyeti var: +2 (sabit).** Paket "yeni çizim çağrısı açmamalı; maliyet çıkarsa ekleme, önce söyle" dediği için `main`'e alınmadı. Onay gelirse dal tek komutla birleşir. Alternatif (oyuncu başına klon, mevcut kozmetik deseni) tam karakter başına +1–2 çağrı olurdu, daha pahalı.
-- (Bu sahnede toplam çağrı 152; 3A-2 raporundaki 167'den farkının sebebi incelenmedi — iki sürüm burada aynı sahnede, aynı düzenekle karşılaştırıldı.)
+- (Kapandı, Paket 17 A: 152 ↔ 167 farkı sahnenin kozmetik içeriğinden. İki kurulumun kozmetiksiz tabanı aynı, 142 çağrı. 3A-2 kurulumunda oyuncular tohumdan rastgele şapka/atkı/gözlük alıyor → 25 görünür kozmetik klonu, her biri 1 çağrı → 167. Bu ölçümde herkese taç+pelerin görünümü verildi, rastgele kozmetikler düştü → 10 klon → 152, taç/pelerinle 154. Ayrıntı: PAKET17_RAPOR.md.)
 
 ---
 
