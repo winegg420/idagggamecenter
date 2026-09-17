@@ -9,7 +9,7 @@
 | IV — Düello deneyimi | ✅ canlıda · tanıtım, doğru cevap metinle, ilk maç +5 sn (migration 225), joker ipuçları, maç özeti | `15498ce` |
 | V — Hatalarım dürüstlüğü | ✅ canlıda · banka/yeni dağılımı açıkça yazılıyor, bankan kadar tur, pratik turu adı | `86a7d68` |
 | VI — konsol uyarıları | ✅ canlıda · X4122 (three.js PMREM, D3D) süzüldü, CLOSED kök sebebi düzeltildi (5 yer), ses/titreşim uyarısı giderildi; tarama 0 | `64dfea9` |
-| VII — renk ve kontrast | ✅ canlıda · 49 ihlal → 0 (14 ekran, ölçüldü); turuncu dolgu aynı, yazı koyu; durum/kategori renk sapmaları giderildi | VII |
+| VII — renk ve kontrast | ✅ canlıda · 49 ihlal → 0 (14 ekran, ölçüldü); turuncu dolgu aynı, yazı koyu; durum/kategori renk sapmaları giderildi | `5c65d13` |
 
 ---
 
