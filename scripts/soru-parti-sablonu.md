@@ -44,8 +44,15 @@ Bildim! bilgi yarışması için {KATEGORI} kategorisinde 500 Türkçe çoktan s
 
 KURALLAR
 - Dil: Türkçe. Sorular kısa, tek cümle, net; belirsiz/tartışmalı ifade yok.
-- Her soruda tam 4 şık. Şıklar birbirine yakın uzunlukta, hepsi makul görünsün
-  (bariz saçma çeldirici yok).
+- Her soruda tam 4 şık, hepsi makul görünsün (bariz saçma çeldirici yok).
+- ŞIK DENGESİ — ÖLÇÜLÜR, GÖZ KARARI DEĞİL (Paket 25). Bir soru şu iki kapıdan
+  birine takılırsa rekabetçi havuza (Dereceli/Düello/Turnuva) hiç girmez:
+    · doğru şık, yanlışların ORTALAMASININ 1,4 katından uzun VE aradaki fark
+      3 karakterden çok  → işaret `dogru_en_uzun`
+    · doğru şıkkın kelime sayısı HER çeldiriciden fazla → işaret `dogru_coklu_kelime`
+  Yani "başkent | İstanbul" gibi tek kelimelik çeldiricilerin yanına iki kelimelik
+  doğru cevap yazma; ya çeldiricileri aynı biçime getir ya doğru şıkkı kısalt.
+  Neden: oyuncular soruyu okumadan en uzun şıkkı seçerek %63 doğru yapıyordu.
 - Zorluk dağılımı: %40 kolay (200), %40 orta (200), %20 zor (100).
   Kolay = ortaokul düzeyi genel kültür. Zor = konuya ilgi duyan birinin bileceği ayrıntı.
 - Doğru şık dengesi: doğru cevap indeksleri 0/1/2/3 arasında yaklaşık eşit dağılsın

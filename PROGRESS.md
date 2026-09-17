@@ -5513,3 +5513,51 @@ pelerin üst kenarı 3,0 cm → 1,8 cm. Tam tarama 0 aday (kozmetik dışı 8 bi
 
 Rapor: `PAKET23_RAPOR.md`. Görseller: `gorsel/paket23/{once,sonra,varyant_A2_ince_bel,varyant_E2_guclu_yuz}/`
 (her biri 18 görsel: 3 tür × {bind, Idle t=0,5} × {ön, yan, yüz 3/4}).
+
+---
+
+## Paket 25 — "Doğru şık kendini ele veriyor" (18 Eyl 2026)
+
+**Sorun (bir oyuncu fark etti, sahibi doğruladı):** bazı sorularda bütün çeldiriciler tek kelime,
+doğru cevap 2-3 kelime; soru okunmadan kazanılıyor.
+
+**Ölçüm (bugünkü havuz, 9.290 aktif soru):** doğru şık ortalama **17,15** karakter, yanlış şıklar
+**10,41**. "Soruyu hiç okumadan en uzun şıkkı seç" stratejisi **%63,1** başarıyla oynuyordu
+(4 şıkta rastlantı %25). Rekabetçi havuzda da %63,2 — yani mevcut kapı fiilen kapalıydı.
+
+**Kök sebep — doğrulanmış eşikler yanlış yerde duruyordu:**
+- `kalite.ts`'teki 1,4 / 3 eşiği yalnız `generate-questions` Edge Function'ında çalışıyor; soru üretimi
+  elle yapıldığı için üretim yolunda hiç uygulanmıyordu.
+- SQL kuralı üç yönden gevşekti: oran 1,6 · karşılaştırma **en uzun** diğer şıkla (ortalama yerine) ·
+  mutlak fark 8 karakter. 8 karakterlik taban tam da şikâyet edilen durumu kaçırıyordu.
+- `dogru_en_uzun` ağırlığı 1'di, havuzdan çıkarma eşiği 2. 2.548 soru işaretliydi ama **hiçbiri**
+  rekabetçi havuzdan düşmüyordu.
+- Kelime sayısı kuralı ne SQL'de ne `kalite.ts`'te vardı.
+
+**Yapılanlar** (`supabase/migrations/20260612000227_soru_sik_denge_kurali.sql`):
+- `soru_uzun_sik_oran` 1,6 → **1,4**; yeni ayar `soru_uzun_sik_fark` = **3**; karşılaştırma
+  yanlış şıkların **ortalamasına** geçti. Formül artık `kalite.ts` ile birebir aynı.
+- Yeni kural **`dogru_coklu_kelime`**: doğru şıkkın kelime sayısı her çeldiriciden fazlaysa işaret.
+  Yeni yardımcı `soru_kelime_sayisi()` (mevcut `soru_kelimeler()` üzerine).
+- Ağırlıklar: `dogru_en_uzun` 1 → **2**, `dogru_coklu_kelime` **2** — artık gerçekten havuzdan düşüyorlar.
+- `kalite.ts`'e aynı kelime kuralı (`kelimeEleVeriyorMu`) eklendi.
+- `npm run soru:iceri` düzeltmeleri içe aktarmadan önce kuralı **veritabanındaki tek tanımdan** sorup
+  takılanları uyarı olarak yazıyor (engellemiyor).
+- `scripts/soru-parti-sablonu.md`: "yakın uzunlukta" cümlesi ölçülebilir iki kapıyla değiştirildi.
+
+**Sonuç — sağlama ölçütü:** "en uzun şıkkı seç" rekabetçi havuzda **%63,3 → %27,5** (rastlantı %25).
+Rekabetçi havuzda doğru şık 10,07 / yanlış 9,74 karakter — denge kuruldu.
+
+**Karar (sahibi onayladı):** eşikler sıkılaşınca rekabetçi havuz 9.237 → 4.392 soruya iniyor (−%52,2),
+talimattaki %15 sınırının çok üstünde. Simülasyon sahibine sunuldu, **tam uygulama** seçildi. Gerekçe:
+kusur canlıda yaşamaya devam etmesin; her kategoride en az 227 soru kalıyor (teknoloji 227, sinema 255,
+genel kültür 540) ve denetimden geçen soru havuza geri dönüyor.
+
+**Çıkarımlar:**
+- **Kural yazmak yetmez, ağırlığı da doğru olmalı.** `dogru_en_uzun` bir yıldır 2.548 soruyu
+  işaretliyordu ve tek bir soruyu bile havuzdan çıkarmıyordu — işaret ile yaptırım ayrı iki şey.
+- **Aynı kuralın iki tanımı varsa gevşek olan geçerlidir.** Doğrulanmış eşik Edge Function'daydı,
+  gerçek trafiği SQL belirliyordu. Ölçüm yapılan yer ile kuralın uygulandığı yer aynı olmalı.
+- **Doğru hamle soruyu atmak değil, çeldiricileri düzeltmek.** Denetimde `duzelt` kullanılır;
+  `kaldir` yalnız kurtarılamaz sorular için (kaldırma = `aktif = false`, satır silinmez).
+- `npm run soru:disari` partisi hazır: `.tmp/soru_denetim/parti_01.json` (100 soru, 98'i kural şüphelisi).

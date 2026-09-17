@@ -33,6 +33,40 @@ const ALAN = ["id", "karar", "soru", "secenekler", "dogru_cevap", "kaynak", "not
 const temiz = kayitlar.map((k) => Object.fromEntries(Object.entries(k ?? {}).filter(([a]) => ALAN.includes(a))));
 const parti = path.basename(dosya).replace(/_sonuc\.json$|\.json$/, "");
 
+// Paket 25 — kalite kapısı: düzeltilmiş şıklar "doğru şık kendini ele veriyor" kuralına
+// takılıyorsa sessizce alınmasın. Kural veritabanında tek yerde tanımlı
+// (soru_kural_isaretleri); burada yalnız çağrılır, eşik kopyalanmaz.
+// Engellemez — düzeltme yine işlenir; ama denetleyen uyarıyı görür ve çeldiricileri
+// doğru şıkla aynı biçime getirebilir.
+const duzeltmeler = temiz.filter((k) => k.karar === "duzelt" && k.id);
+if (duzeltmeler.length) {
+  try {
+    const takilan = sorgu(`
+      with g as (
+        select * from jsonb_to_recordset(${jsonSabit(duzeltmeler)})
+                 as x(id uuid, soru text, secenekler jsonb, dogru_cevap smallint)
+      ), b as (
+        select g.id, public.soru_kural_isaretleri(
+                 coalesce(g.soru, q.soru),
+                 coalesce(g.secenekler, q.secenekler),
+                 coalesce(g.dogru_cevap, q.dogru_cevap)) isaret
+          from g join public.questions q on q.id = g.id
+      )
+      select b.id::text id, string_agg(i, ', ') isaretler
+        from b, unnest(b.isaret) i
+       where public.soru_isaret_agirligi(i) >= 2
+       group by b.id;
+    `);
+    if (takilan.length) {
+      console.warn(`UYARI — ${takilan.length} düzeltme kalite kapısına takılıyor (rekabetçi havuza girmez):`);
+      for (const t of takilan) console.warn(`  ${t.id}: ${t.isaretler}`);
+      console.warn("  Doğru hamle: çeldiricileri doğru şıkla aynı uzunluk/kelime biçimine getir.");
+    }
+  } catch (e) {
+    console.warn("[soru:iceri] kalite kapısı kontrol edilemedi:", e.message.slice(0, 200));
+  }
+}
+
 try {
   const [satir] = sorgu(`select public.soru_denetim_ice_aktar(${jsonSabit(temiz)}, 'sahip', '${parti.replace(/[^a-zA-Z0-9_-]/g, "")}', ${kuru}) as rapor;`);
   const rapor = satir?.rapor;

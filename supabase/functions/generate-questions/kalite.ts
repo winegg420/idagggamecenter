@@ -99,6 +99,15 @@ export type Soru = {
  * geçen havuzda strateji %27,5 (hedef %30'un altında), 5'te %32,4'e çıkıyor.
  * Bu yüzden 3.
  */
+/*
+ * PAKET 25 (18 Eyl 2026) — eşikler bugünkü havuzda yeniden doğrulandı ve artık
+ * VERİTABANINDA DA aynısı geçerli. Ölçüm: 9.290 aktif soru, doğru şık 17,15
+ * karakter / yanlış şıklar 10,41; "en uzun şıkkı seç" %63,1. SQL kuralı o güne
+ * kadar daha gevşek bir tanım kullanıyordu (oran 1,6 · en uzun diğer şıkla
+ * karşılaştırma · 8 karakter taban), bu yüzden kapı fiilen kapalıydı.
+ * 1,4 / 3 + kelime kuralıyla rekabetçi havuzda strateji %27,5'e indi.
+ * SQL karşılığı: supabase/migrations/20260612000227_soru_sik_denge_kurali.sql
+ */
 export const DENGE_ORANI = 1.4;
 export const DENGE_MUAF_FARK = 3;
 
@@ -127,6 +136,32 @@ export function dengeFarki(q: Soru): number {
  */
 export function uzunlukEleVeriyorMu(q: Soru): boolean {
   return dengeOrani(q) > DENGE_ORANI && dengeFarki(q) > DENGE_MUAF_FARK;
+}
+
+/** Bir metnin kelime sayısı (noktalama ayırıcı sayılır). */
+function kelimeSayisi(s: string): number {
+  return String(s ?? "")
+    .trim()
+    .split(/[^0-9A-Za-zÇĞİIÖŞÜçğıöşü]+/)
+    .filter(Boolean).length;
+}
+
+/**
+ * KELİME SAYISI — doğru şık, HER çeldiriciden daha çok kelimeliyse kendini ele verir.
+ *
+ * NEDEN: bir oyuncu fark etti, canlı havuzda ölçüldü (Paket 25). Bütün çeldiriciler
+ * tek kelime, doğru cevap iki-üç kelime; soruyu okumadan seçilebiliyor. Uzunluk
+ * kuralı bunu her zaman yakalamıyor — tek kelimelik çeldiricilerden yalnız birkaç
+ * karakter uzun, iki kelimelik bir doğru cevap oran kapısını geçiyordu.
+ *
+ * Eşiği yok: kelime sayısı tam sayıdır, karşılaştırma mutlaktır.
+ * SQL karşılığı: soru_kural_isaretleri() › 'dogru_coklu_kelime'.
+ */
+export function kelimeEleVeriyorMu(q: Soru): boolean {
+  const kel = q.secenekler.map((s) => kelimeSayisi(String(s ?? "")));
+  const digerleri = kel.filter((_, i) => i !== q.dogru_cevap);
+  if (digerleri.length === 0) return false;
+  return kel[q.dogru_cevap] > Math.max(...digerleri);
 }
 
 /**
@@ -158,6 +193,8 @@ export function nedenGecersiz(q: Soru): string | null {
 
   // Doğru şık uzunluğuyla kendini ele vermesin (bkz. DENGE_ORANI notu).
   if (uzunlukEleVeriyorMu(q)) return "doğru şık diğerlerinden belirgin uzun";
+  // Doğru şık kelime sayısıyla da kendini ele vermesin (bkz. kelimeEleVeriyorMu notu).
+  if (kelimeEleVeriyorMu(q)) return "doğru şık diğerlerinden çok kelimeli";
   return null;
 }
 
