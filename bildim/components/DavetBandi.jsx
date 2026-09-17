@@ -14,6 +14,7 @@ const TUR_BILGI = {
   rovans: { etiket: tt("rövanş istiyor"), ikon: "kilic", sinif: "tur-rovans", yol: "mac" },
   grup: { etiket: tt("grup maçına çağırdı"), ikon: "kisiler", sinif: "tur-grup", yol: "grup-mac" },
   hizli: { etiket: tt("hızlı maça çağırdı"), ikon: "hizli", sinif: "tur-hizli", yol: "hizli-mac" },
+  duello: { etiket: tt("seni düelloya çağırdı"), ikon: "kilic", sinif: "tur-duello", yol: "duello" },
 };
 
 const CEVAP_RPC = {
@@ -21,7 +22,12 @@ const CEVAP_RPC = {
   rovans: ["respond_challenge", "p_match_id"],
   grup: ["respond_group_challenge", "p_group_match_id"],
   hizli: ["respond_hizli_davet", "p_hizli_mac_id"],
+  duello: ["duello_davet_cevap", "p_id"],
 };
+
+// Düelloda kabul RPC'si DAVET id'sini alır ama DÜELLO id'sini döndürür; yönlendirme
+// dönen değerle yapılır (kayit_id ile gidilirse var olmayan düelloya gidilir).
+const DONEN_ID_ILE_GIT = new Set(["duello"]);
 
 /**
  * Üst davet bandı — üst çubuğun hemen altında, sayfa kaydırılsa da görünür.
@@ -53,6 +59,7 @@ export default function DavetBandi() {
       .on("postgres_changes", { event: "*", schema: "public", table: "matches", filter: `oyuncu2=eq.${user.id}` }, yukle)
       .on("postgres_changes", { event: "*", schema: "public", table: "group_match_players", filter: `user_id=eq.${user.id}` }, yukle)
       .on("postgres_changes", { event: "*", schema: "public", table: "hizli_oyuncular", filter: `user_id=eq.${user.id}` }, yukle)
+      .on("postgres_changes", { event: "*", schema: "public", table: "duello_davetleri", filter: `rakip=eq.${user.id}` }, yukle)
       .subscribe();
     return () => supabase.removeChannel(kanal);
   }, [user, yukle]);
@@ -67,10 +74,13 @@ export default function DavetBandi() {
     setIslemde(true);
     setHata(null);
     try {
-      const { error } = await supabase.rpc(rpc, { [param]: d.kayit_id, p_kabul: kabul });
+      const { data, error } = await supabase.rpc(rpc, { [param]: d.kayit_id, p_kabul: kabul });
       if (error) throw error;
       setDavetler((l) => l.filter((x) => x.kayit_id !== d.kayit_id));
-      if (kabul) navigate(y(`/${bilgi.yol}/${d.kayit_id}`));
+      if (kabul) {
+        const hedef = DONEN_ID_ILE_GIT.has(d.tur) ? data : d.kayit_id;
+        navigate(y(hedef ? `/${bilgi.yol}/${hedef}` : `/${bilgi.yol}`));
+      }
     } catch (e) {
       setHata(hataMesaji(e, tt("İşlem başarısız")));
     } finally {

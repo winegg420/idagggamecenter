@@ -605,6 +605,16 @@ const SOZLUK = {
     "Başa baş.": "Neck and neck.",
     "Geridesin, hesap sor.": "You're behind — get even.",
     "Meydan oku": "Challenge",
+    // ---- Paket 24 · A: düello ortak davet/bildirim yoluna bağlandı ----
+    "Düelloya çağır": "Challenge to a duel",
+    " düelloya çağır": " to a duel",
+    "Arkadaşını": "your friend",
+    "Oyuna git": "Go to game",
+    "Meydan okuman kabul edildi": "Your challenge was accepted",
+    "Düello kabul edildi": "Duel accepted",
+    "Grup maçın başlıyor": "Your group match is starting",
+    "Rakibin bağlantısı koptu — düello durduruldu.": "Your opponent disconnected — the duel is paused.",
+    "Bağlantın koptu — düello bekliyor.": "You're disconnected — the duel is waiting.",
     // ---- Düello daveti (arkadaşa düello modunda meydan okuma) ----
     "Meydan okuma modu": "Challenge mode",
     "bota ve arkadaşına": "for bots and friends",

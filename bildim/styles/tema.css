@@ -590,6 +590,10 @@ body::before {
   --dv-1: #F2B23C; --dv-2: #b45309; --dv-golge: rgba(180, 83, 9, 0.5);
   color: #241606;
 }
+/* Düello: marka turuncusunun koyu kanadı — meydan okumadan ayrışsın (Paket 24) */
+.bd-davet-bandi.tur-duello {
+  --dv-1: #F4701F; --dv-2: #9A2D0B; --dv-golge: rgba(154, 45, 11, 0.55);
+}
 
 @keyframes bd-davet-gir {
   from { opacity: 0; transform: translateY(-14px) scale(0.97); }
@@ -750,6 +754,19 @@ body.bd-oyun-modu .bd-davet-bandi { display: none; }
   border: none; cursor: pointer; color: inherit;
 }
 .bd-toast-kapat:active { transform: scale(0.92); }
+
+/* Kabul bildirimi (Paket 24 · A.3): giden davetin kabulü — marka turuncusu, "Oyuna git" */
+.bd-ust-toast.kabul { --ts-1: #F4701F; --ts-2: #9A2D0B; }
+.bd-ust-toast.kabul .bd-toast-ikon { animation: bd-toast-ikon-sallan 1.4s ease-in-out infinite; }
+.bd-toast-git {
+  flex: 0 0 auto;
+  padding: var(--bd-b-2) var(--bd-b-3); min-height: 34px;
+  border: none; border-radius: var(--bd-r-s); cursor: pointer;
+  background: var(--bd-odul); color: #0B1220;
+  font-family: inherit; font-size: 13px; font-weight: 800; white-space: nowrap;
+  box-shadow: 0 4px 0 rgba(0, 0, 0, 0.26);
+}
+.bd-toast-git:active { transform: translateY(3px); box-shadow: 0 1px 0 rgba(0, 0, 0, 0.26); }
 
 /* Kalan süre çubuğu */
 .bd-toast-sure {
@@ -6441,6 +6458,11 @@ body.bd-ekle-acik .app { padding-bottom: calc(300px + env(safe-area-inset-bottom
 
 /* Paket 20 IV — Düello deneyimi */
 .bd-duello-bant.kural { background: #E3EEFB; color: #173A66; }
+/* Paket 24 · A.4: bağlantı koptu — kontrast AA (#7A1717 üzerine #FFE9D6) */
+.bd-duello-bant.kopuk {
+  background: #FFE9D6; color: #7A3300;
+  display: flex; align-items: center; gap: 8px;
+}
 .bd-duello-kural-not { font-size: 12.5px; margin-top: -4px; }
 .bd-duello-dogru-cevap {
   margin: 6px auto; padding: 8px 12px; border-radius: 12px; max-width: 420px; text-align: center;
@@ -6564,3 +6586,9 @@ body.bd-ekle-acik .app { padding-bottom: calc(300px + env(safe-area-inset-bottom
 .bd-duello-jokerler.savunma .bd-duello-joker-baslik { color: #2A6CB0; }
 .bd-duello-jokerler.savunma .bd-duello-joker:not(:disabled) { border-color: var(--bd-bilgi); box-shadow: 0 4px 0 #2A6CB0; }
 .app .bd-calisma-rozet.yeni { background: var(--bd-yuzey-3); color: var(--bd-metin); }
+
+/* Paket 24 · A.1.5: arkadaş listesinden düelloya çağır — meydan okuma düğmesinden ayrışsın */
+.liste-satir .btn.kucuk.bd-duello-cagir {
+  background: var(--bd-vurgu);
+  color: #fff;
+}

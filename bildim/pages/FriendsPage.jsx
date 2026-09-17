@@ -175,6 +175,24 @@ export default function FriendsPage() {
     }
   };
 
+  // Paket 24 · A.1.5: düello daveti bugüne kadar yalnız Meydan Okuma sayfasındaydı.
+  // Açık bot anında kabul eder ve doğrudan düelloya girilir; gerçek oyuncuda davet bekler.
+  const duelloyaCagir = async (hedefId) => {
+    setHata(null);
+    setBilgi(null);
+    try {
+      const { data, error } = await supabase.rpc("duello_davet_et", { p_rakip: hedefId });
+      if (error) throw error;
+      if (data?.duello_id) {
+        navigate(y(`/duello/${data.duello_id}`));
+        return;
+      }
+      setBilgi(tt("Düello daveti gönderildi — rakip kabul edince düello başlayacak."));
+    } catch (e) {
+      setHata(hataMesaji(e, tt("Düello daveti gönderilemedi.")));
+    }
+  };
+
   const digerProfil = (f) => (f.requester === user.id ? f.add : f.req);
   const gelenIstekler = dostluklar.filter(
     (f) => f.durum === "bekliyor" && f.addressee === user.id
@@ -240,6 +258,14 @@ export default function FriendsPage() {
               title={tt("Meydan oku")}
             >
               <Ikon ad="kilic" boyut={17} />
+            </button>
+            <button
+              className="btn kucuk bd-duello-cagir"
+              onClick={() => duelloyaCagir(p.id)}
+              aria-label={(p?.gorunen_ad ?? tt("Arkadaşını")) + tt(" düelloya çağır")}
+              title={tt("Düelloya çağır")}
+            >
+              <Ikon ad="kalkan" boyut={17} />
             </button>
             {silOnay === f.id ? (
               <>

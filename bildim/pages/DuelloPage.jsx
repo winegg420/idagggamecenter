@@ -163,6 +163,7 @@ function DuelloMac({ id }) {
   const [d, setD] = useState(null);
   const [hata, setHata] = useState(null);
   const [yuklemeHatasi, setYuklemeHatasi] = useState(null);
+  const [baglanti, setBaglanti] = useState(null);   // Paket 24 · A.4: rakip kopuk mu
   const [simdi, setSimdi] = useState(Date.now());
   const [secim, setSecim] = useState(null);
   const [calisan, setCalisan] = useState(null);
@@ -179,12 +180,23 @@ function DuelloMac({ id }) {
     if (yukleniyorRef.current) return;
     yukleniyorRef.current = true;
     try {
-      const { data, error } = await supabase.rpc("duello_durum", { p_id: id });
+      // Paket 24 · A.4: bağlantı durumu AYNI ANDA sorulur — ek gecikme olmaz.
+      // duello_durum 150 satırlık bir fonksiyon; onu genişletmek yerine ayrı, ucuz çağrı.
+      const [durumCevap, baglantiCevap] = await Promise.all([
+        supabase.rpc("duello_durum", { p_id: id }),
+        supabase.rpc("duello_baglanti", { p_id: id }),
+      ]);
+      const { data, error } = durumCevap;
       if (error) throw error;
       if (data) {
         farkRef.current = new Date(data.sunucu_zamani).getTime() - Date.now();
         setD(data);
         setYuklemeHatasi(null);
+      }
+      if (baglantiCevap?.error) {
+        console.warn("[Bildim] duello_baglanti başarısız:", baglantiCevap.error.message);
+      } else {
+        setBaglanti(baglantiCevap?.data ?? null);
       }
     } catch (e) {
       setYuklemeHatasi(ceviri(hataMesaji(e, "Düello yüklenemedi.")));
@@ -573,6 +585,21 @@ function DuelloMac({ id }) {
         <div className={`bd-duello-rol ${benSaldiran ? "saldiri" : "savunma"} ${kirmizilik >= 1 ? "kritik" : ""}`}>
           <Ikon ad={benSaldiran ? "kilic" : "kalkan"} boyut={20} />
           <span>{benSaldiran ? ceviri("SALDIRIYORSUN") : ceviri("SAVUNUYORSUN")}</span>
+        </div>
+      )}
+      {/* Paket 24 · A.4: bağlantı kopması. Kopukken sunucu fazları İLERLETMEZ —
+          geri dönen oyuncu canlarını kaybetmiş olmaz. Süre dolarsa bekleyen kazanır. */}
+      {d.durum === "aktif" && baglanti?.kopuk && (
+        <div className="bd-duello-bant kopuk" role="status">
+          <Ikon ad="uyari" boyut={18} />
+          <span>
+            {baglanti.ben_mi
+              ? ceviri("Bağlantın koptu — düello bekliyor.")
+              : ceviri("Rakibin bağlantısı koptu — düello durduruldu.")}
+            {baglanti.kalan_sn === null || baglanti.kalan_sn === undefined
+              ? ""
+              : ` ${baglanti.kalan_sn} ${ceviri("sn")}`}
+          </span>
         </div>
       )}
       {ezeliMetin && <div className="bd-duello-ezeli">{ezeliMetin}</div>}
