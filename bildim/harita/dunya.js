@@ -31,6 +31,7 @@ import { MeydanAvatarlari } from "./karakter/meydanAvatar.js";
 import { TemasGolgeleri } from "./karakter/temas.js";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { cevreKur, PROPLAR, KediSurusu, binalariBoya } from "./cevre.js";
+import { olcumSayaciKur } from "./olcumSayaci.js";
 export { esyaBilgisi };
 
 // roundRect / canvasDoku / isimEtiketi / nesneyiSerbestBirak ORTAK.JS'e taşındı:
@@ -118,6 +119,7 @@ export function dunyaKur(kapsayici, s = {}) {
   render.toneMapping = THREE.ACESFilmicToneMapping;
   render.toneMappingExposure = 1.08;
   kapsayici.appendChild(render.domElement);
+  const olcum = olcumSayaciKur(render);   // 2C-A: ?olcum=1 göstergesinin verisi
   try { const pmrem = new THREE.PMREMGenerator(render); sahne.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture; sahne.environmentIntensity = 0.25; pmrem.dispose(); } catch (e) { console.error("[Meydan] ortam haritasi:", e); }
 
   // ---------- ışık (B+) ----------
@@ -400,7 +402,9 @@ export function dunyaKur(kapsayici, s = {}) {
     gunes.target.position.set(ben.position.x, 0, ben.position.z);
     gunes.position.copy(gunes.target.position).add(GUNES_YON);
 
+    const tGonderim = performance.now();
     render.render(sahne, kamera);
+    olcum.gonderim(performance.now() - tGonderim);   // 2C-A: CPU = yalnız gönderim (sürekli, ucuz)
   }
 
   function boyutlandir() {
@@ -466,6 +470,8 @@ export function dunyaKur(kapsayici, s = {}) {
     kediSayisi: (n) => { if (Number.isFinite(n)) { kediSayisi = n; kediler?.sayiAyarla(n); } return kediler?.kediler.length ?? kediSayisi; },
     kediler: () => kediler,
     zumla, zumAyarla, zumOku,
+    // 2C-A: ölçüm göstergesi — CPU gönderim sürekli, CPU+GPU yalnız istenince (olcum.olc)
+    olcum,
     guncelle, boyutlandir, yokEt,
   };
 }

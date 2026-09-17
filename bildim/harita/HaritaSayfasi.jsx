@@ -40,6 +40,7 @@ import {
 import { GARDROP_YOLU } from "../pages/GardropaGit.jsx";
 import "./harita.css";
 import { tt } from "../lib/dil.js";
+import OlcumGostergesi, { olcumAcikMi } from "./OlcumGostergesi.jsx";
 
 const EMOJILER = ["👋", "😂", "🔥", "🤔", "🎉", "⚔️"];
 const MAKS_CIZILEN = 40;   // aynı anda çizilen uzak oyuncu sayısı
@@ -178,6 +179,8 @@ export default function HaritaSayfasi() {
   const [bilgiAcik, setBilgiAcik] = useState(() => {
     try { return localStorage.getItem(BILGI_ANAHTARI) !== "1"; } catch { return true; }
   });
+  // 2C-A: ölçüm göstergesi (?olcum=1 açar, cihazda hatırlanır, ?olcum=0 kapatır)
+  const [olcumAcik] = useState(olcumAcikMi);
 
   // Bot kuralı sunucudan (oyun_ayarlari): rakamlar koda gömülmez.
   useEffect(() => {
@@ -782,6 +785,7 @@ export default function HaritaSayfasi() {
       // Şimdi bir kare çizilip perde kalkıyor; sonrası yine duraklıyor.
       if (document.hidden && !ilkKare) { sonT = t; return; }
       try {
+      dunya.olcum.kareBasla();   // 2C-A: CPU+GPU ölçümü istenmişse kare süresi buradan başlar
       const dt = Math.min((t - sonT) / 1000, 0.05);
       sonT = t; zaman += dt;
 
@@ -1047,6 +1051,7 @@ export default function HaritaSayfasi() {
       // İkram gösterileri (kahve jesti / uçan balonlar) — yalnız görsel
       try { ikramKaresi(dt); } catch (e) { console.error("[Meydan] ikram karesi:", e); }
       dunya.guncelle(dt, zaman, ben);
+      dunya.olcum.kareBitti();   // 2C-A: yalnız ölçüm sürerken gl.finish
       if (ilkKare) {
         ilkKare = false;
         clearTimeout(perdeSaat);
@@ -1565,6 +1570,8 @@ export default function HaritaSayfasi() {
           {bagli ? tt("{0} kişi burada", { 0: kisi + botSayisi }) : tt("bağlantı yok")}
         </span>
       </div>
+
+      {olcumAcik && <OlcumGostergesi canliRef={canliRef} />}
 
       {/* ---- zum: iki parmakla da olur, düğmeyle de ---- */}
       <div className="bd-harita-hud bd-harita-zum">

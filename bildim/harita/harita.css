@@ -491,3 +491,41 @@ body.bd-harita-acik { overflow: hidden; }
 @media (prefers-reduced-motion: reduce) { .bd-harita-alt.kilitli { transition: none; } }
 
 /* ---- Balıkçı kutusu (Paket 13, Aşama 2) ---- */
+
+/* ---- 2C-A: ölçüm göstergesi (?olcum=1) — üst sağ, üst çubuğun altında.
+   Dokunmayı engellemez: yalnız "ölç" düğmesi tıklanır. Telefonda satırlara
+   bölünür, taşmaz. Geliştirici aracı; oyuncu görmez. ---- */
+.bd-harita-olcum {
+  position: absolute; z-index: 6; pointer-events: none;
+  top: calc(max(12px, env(safe-area-inset-top)) + 54px);
+  right: max(10px, env(safe-area-inset-right));
+  max-width: min(300px, calc(100vw - 20px));
+  background: var(--bd-yuzey-1, #fff);
+  border: 2px solid var(--bd-kenar, #d6e4f0);
+  border-radius: 12px;
+  box-shadow: 0 3px 0 #cfe0ee;
+  padding: 6px 9px;
+  font-family: var(--bd-f-govde);
+  font-size: 12.5px; line-height: 1.4; font-weight: 700;
+  color: var(--bd-metin, #1b2a3a);
+  font-variant-numeric: tabular-nums;
+}
+.bd-harita-olcum b { font-weight: 900; }
+.bd-harita-olcum-alt {
+  display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  margin-top: 3px; font-size: 11px; color: var(--bd-metin-2, var(--bd-metin));
+}
+.bd-harita-olcum-alt button {
+  pointer-events: auto; cursor: pointer;
+  border: 0; border-radius: 9px;
+  padding: 5px 9px; min-height: 30px;
+  font-family: var(--bd-f-baslik); font-weight: 800; font-size: 12px;
+  color: #fff; background: var(--bd-vurgu-2, #C4530F);
+  box-shadow: 0 3px 0 #9a3d0a;
+}
+.bd-harita-olcum-alt button:active { transform: translateY(3px); box-shadow: none; }
+.bd-harita-olcum-alt button:disabled { opacity: 0.75; cursor: default; }
+.bd-harita-olcum-hata { color: var(--bd-hata); font-size: 11px; }
+@media (orientation: landscape) and (max-height: 520px) {
+  .bd-harita-olcum { top: calc(max(8px, env(safe-area-inset-top)) + 48px); font-size: 11.5px; padding: 4px 8px; }
+}
