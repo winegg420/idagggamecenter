@@ -24,6 +24,7 @@ import Maskot from "../components/Maskot.jsx";
 import BildirimIzniSor from "../components/BildirimIzniSor.jsx";
 import OdulDokumu from "../components/OdulDokumu.jsx";
 import MacSorulari from "../components/MacSorulari.jsx";
+import HesapGuvenceOnerisi from "../components/HesapGuvence.jsx";
 import DereceliAnahtari from "../components/DereceliAnahtari.jsx";
 import { useDereceliTercih } from "../lib/dereceli.js";
 import { useDil } from "../lib/dilKanca.js";
@@ -352,6 +353,7 @@ function DuelloMac({ id }) {
           </div>
           {hata && <div className="hata-kutu">{hata}</div>}
           <BildirimIzniSor />
+          <HesapGuvenceOnerisi kazandim={d.durum === "bitti" && kazandim} />
           <div className="bd-konum-butonlar" style={{ marginTop: 12 }}>
             <button className="btn ikincil" onClick={() => navigate(y("/duello"))}>{ceviri("Yeni düello")}</button>
             <button className="btn ikincil" onClick={() => navigate(y())}>{ceviri("Ana sayfa")}</button>

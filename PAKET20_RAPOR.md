@@ -5,7 +5,7 @@
 | I.1–I.2 — görevler + Düello ustalığı | ✅ canlıda · migration 220 uygulandı | `2e3773d` |
 | I.3 — maç sonu ödül dökümü | ✅ canlıda · migration 221 uygulandı, 5 sonuç ekranında satır satır döküm | `17dfe91` |
 | II — soru kalite mekanizması | ✅ canlıda · migration 222–224 uygulandı; 2.976 şüpheli (30 rekabetçi havuz dışı), akış uçtan uca doğrulandı; sol anahtarı sorusunun anahtarı **doğru** çıktı | `38998d3` |
-| III — misafir hesabı koruma | (sürüyor) | |
+| III — misafir hesabı koruma | ✅ canlıda · Misafir etiketi + Ayarlar kartı + ilk galibiyet önerisi; bağlama aynı user_id, veri kaybı 0 (ölçüldü) | III |
 | IV — Düello deneyimi | (sürüyor) | |
 | V — Hatalarım dürüstlüğü | (sürüyor) | |
 | VI — konsol uyarıları | (sürüyor) | |
@@ -156,3 +156,44 @@ Canlıdaki soru: **`a11854c0` "Sol anahtarı hangi çizgiye yerleşir?"**, şık
 **Rekabetçi havuz** (işlem içinde): `soru_sec` 200×50 çekilişte işaretli soru **0**; Hatalarım havuzunda **200** (serbest); `calisma_baslat` sonrası bağlam temiz; `turnuva_soru_sec` 15/15, işaretli 0.
 
 **Arayüz** (kabuk düzeneği): liste — C "İkinci" yeşil "doğru cevap", D kırmızı "senin cevabın"; bildir → 5 sebep → `vote_question(q1, false, 'cevap_yanlis')` → "Bildirildi — teşekkürler". Yatay taşma 0 (iPhone + masaüstü). Görseller `gorsel/paket20/ii1-*`.
+
+---
+
+## III — Misafir hesabı koruma
+
+**Ölçüm:** canlıda 205 hesabın **21'i misafir** (`auth.users.is_anonymous`). Açık yöntemler (Auth `settings`): Google, e-posta, misafir; Facebook/X kapalı. Tek `auth.users` tetikleyicisi `on_auth_user_created` (yalnız INSERT). Kayıt: en çok verisi olan ikinci misafir hesap **555 coin / 53 lig** — sahibinin Düello'sundan sonraki değerlerle aynı; sahibi büyük olasılıkla misafir hesapla oynuyor.
+
+**Yapılanlar:**
+- **Profil:** adın altında küçük **"Misafir"** etiketi; **Ayarlar'ın en üstünde "Hesabımı güvenceye al"** kartı (yalnız misafire). Açık yöntemler Auth `settings` ucundan okunur; bilgi gelmezse `VITE_SOSYAL`. Kapalı sağlayıcının düğmesi çizilmez (Login.jsx'teki "doğrulamadan yönlendirme" tuzağının çözümü korundu; kod `src/lib/saglayicilar.js`'e taşındı, iki yer aynı kapıyı kullanıyor).
+- **İlk galibiyetten sonra, bir kez:** Normal Maç ve Düello sonuç ekranında, misafir **kazandıysa**, bildirim kartının altında "İlerlemeni kaybetme — hesabını güvenceye al". **"Sonra"** → `bildim_hesap_guvence_sorma_v1` saklanır, bir daha çıkmaz (Paket 19 F deseni). Oyunu bölmez.
+- **Bağlama aynı kullanıcıya yapılır, yeni hesap açılmaz:**
+  - E-posta: `supabase.auth.updateUser({ email })` → doğrulama bağlantısı → aynı `user_id` kalıcı olur.
+  - Google: `supabase.auth.linkIdentity({ provider: 'google' })` → aynı `user_id`'ye kimlik eklenir.
+  - Hatalar Türkçe: bağlama kapalı / hesap başka oyuncuya bağlı / çok deneme / geçersiz e-posta / bağlantı yok.
+  - Dil: TR + EN (15 yeni anahtar).
+
+**Veri kaybı ölçümü** (canlı DB, işlem içinde, **geri alındı**). En çok verisi olan iki misafir hesapta GoTrue'nun doğrulama anında yaptığı değişiklik uygulandı: `auth.users` güncellendi (e-posta, `is_anonymous=false`), `auth.identities`'e e-posta ya da Google kimliği eklendi.
+
+| Kalem | E-posta (75efb021…) önce → sonra | Google (69bb6f93…) önce → sonra |
+|---|---|---|
+| `user_id` | aynı | aynı |
+| `profiles` satırının tamamı (md5) | `5b62…cb8d` → **aynı** | `7017…1d8a` → **aynı** |
+| coin / lig / hafta | 483 / 262 / 262 → **aynı** | 555 / 53 / 53 → **aynı** |
+| avatar3d_sahip · oyuncu_esyalari · oyuncu_karakterleri | 20 · 16 · 5 → **aynı** | 5 · 16 · 5 → **aynı** |
+| user_badges · kategori_dogru · yanlis_sorular | 4 · 10 · 123 → **aynı** | 1 · 2 · 1 → **aynı** |
+| coin_hareketleri · lig_uyelik · match_answers · gorulen_sorular | 18 · 2 · 320 · 325 → **aynı** | 3 · 1 · 0 · 6 → **aynı** |
+| auth | misafir → e-posta kimliği, kalıcı | misafir → google kimliği, kalıcı |
+
+**Sınırlar (dürüst):**
+- GoTrue'nun kendi uç noktaları gerçek e-posta kutusu ya da Google hesabı gerektirdiği için canlıda çalıştırılmadı (şifre girmem). Ölçülen, onların veritabanında yaptığı değişikliğin **bizim tablolarımıza etkisi**: yok (profiles yalnız INSERT'e bağlı).
+- **Google bağlama** Supabase panelinde **"Allow manual linking"** açık olmalı. Bu ayar veritabanından okunamıyor ve güvenlik ayarı olduğu için ben değiştirmedim. Kapalıysa oyuncu "Google ile bağlama şu an kapalı. E-posta ile güvenceye alabilirsin." görür; e-posta yolu bundan bağımsız çalışır.
+- Misafir giriş ekranından (bağlamadan) "Google ile giriş" yaparsa bu **yeni hesap** açar — bağlama yalnız Profil kartı / öneri kartından yapılmalı. Kart metni bunu yönlendiriyor.
+
+**Arayüz testi** (kabuk düzeneği, misafir + kalıcı × iPhone + masaüstü):
+
+| Durum | Etiket | Ayarlar kartı | Öneri | "Sonra" basınca | Yenileyince | Yatay taşma |
+|---|---|---|---|---|---|---|
+| Misafir | "Misafir" | Google ile bağla · E-posta ile bağla | görünür | kalktı | yok | 0 |
+| Kalıcı hesap | yok | yok | yok | — | — | 0 |
+
+Görseller: `gorsel/paket20/iii-*`.

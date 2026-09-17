@@ -14,6 +14,7 @@ import MacSonuEklentisi from "../components/MacSonuEklentisi.jsx";
 import MacSonuDokum from "../components/MacSonuDokum.jsx";
 import OdulDokumu from "../components/OdulDokumu.jsx";
 import MacSorulari from "../components/MacSorulari.jsx";
+import HesapGuvenceOnerisi from "../components/HesapGuvence.jsx";
 import MeydanaDonus from "../components/MeydanaDonus.jsx";
 import Maskot from "../components/Maskot.jsx";
 import Ikon from "../components/Ikon.jsx";
@@ -814,6 +815,7 @@ export default function MatchPage() {
             })()}
             {/* Bildirim izni ilk açılışta değil, maç sonucunda sorulur (Düello ve Hızlı Mod sonucunda da). */}
             <BildirimIzniSor />
+            <HesapGuvenceOnerisi kazandim={kazandim} />
             <button className="btn ikincil" onClick={() => navigate(y("/meydan"))}>
               {tt("Meydan okumalara dön")}
             </button>

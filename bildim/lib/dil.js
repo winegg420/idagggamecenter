@@ -1861,6 +1861,22 @@ const SOZLUK = {
     "senin cevabın": "your answer",
     "Bu soruyu görmedin": "You haven't seen this question",
     "Geçersiz sebep": "Invalid reason",
+    // ---- Paket 20 III — misafir hesabı
+    "Google ile bağlama şu an kapalı. E-posta ile güvenceye alabilirsin.": "Linking with Google is off right now. You can secure your account with email.",
+    "Bu hesap başka bir oyuncuya bağlı. Başka bir e-posta ya da Google hesabı dene.": "That account belongs to another player. Try a different email or Google account.",
+    "E-posta adresi geçersiz görünüyor.": "That email address looks invalid.",
+    "Hesap bağlanamadı. Tekrar dene.": "Couldn't link the account. Try again.",
+    "E-postana bir doğrulama bağlantısı gönderdik. Bağlantıya dokununca hesabın kalıcı olur — ilerlemen aynen kalır.": "We sent a confirmation link to your email. Tap it and your account becomes permanent — your progress stays exactly as it is.",
+    "Google ile bağla": "Link with Google",
+    "E-posta ile bağla": "Link with email",
+    "Şu an açık bir bağlama yöntemi yok.": "No linking method is available right now.",
+    "Hesabımı güvenceye al": "Secure my account",
+    "Misafir hesabındasın. Uygulamayı silersen ya da başka cihaza geçersen coin, lig puanı ve eşyaların kaybolur. Bağlayınca hepsi aynen kalır.": "You're on a guest account. If you delete the app or switch devices, your coins, league points and items are lost. Link an account and they all stay.",
+    "Hesabını güvenceye al": "Secure your account",
+    "İlerlemeni kaybetme — hesabını güvenceye al": "Don't lose your progress — secure your account",
+    "Misafir olarak oynuyorsun. Bir e-posta ya da Google hesabı bağla, kazandıkların hiç kaybolmasın.": "You're playing as a guest. Link an email or Google account so your winnings are never lost.",
+    "Sonra": "Later",
+    "Misafir": "Guest",
   },
 };
 

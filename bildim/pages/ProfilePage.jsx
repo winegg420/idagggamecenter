@@ -29,6 +29,7 @@ import {
 } from "../lib/push.js";
 import { DILLER, tt, ttSunucu } from "../lib/dil.js";
 import { useDil } from "../lib/dilKanca.js";
+import { HesapGuvenceKarti, misafirMi } from "../components/HesapGuvence.jsx";
 
 export default function ProfilePage() {
   const { user, profile, refreshProfile, signOut } = useAuth();
@@ -101,6 +102,8 @@ export default function ProfilePage() {
         {/* Görünen ad artık takma addır; gerçek kullanıcı adı gösterilmez.
             Takma ad düzenlemesi aşağıdaki ProfilAyarlari kartındadır. */}
         <div className="bd-profil-ad">{profile.gorunen_ad}</div>
+        {/* Paket 20 III: misafir hesabı her yerde belli olsun */}
+        {misafirMi(user) && <span className="bd-misafir-etiket">{tt("Misafir")}</span>}
 
         <div style={{ marginTop: 12 }}>
           <RankBadge puan={profile.puan} />
@@ -210,6 +213,8 @@ export default function ProfilePage() {
       </>)}
 
       {sekme === "ayarlar" && (<>
+      {/* Paket 20 III: misafir hesabı güvenceye alma — ayarların en üstünde */}
+      <HesapGuvenceKarti />
       {/* ---------- Görünüm (3B karakter) — EN ÜSTTE (Paket 8) ----------
           Eskiden ProfilAyarlari'nın beş kartının ALTINDAYDI; önemli bir
           özellik 6 kaydırma arkasında kalıyordu. */}

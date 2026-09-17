@@ -6423,3 +6423,18 @@ body.bd-ekle-acik .app { padding-bottom: calc(300px + env(safe-area-inset-bottom
 .app .bd-bildir-sebep:active { transform: translateY(2px); box-shadow: none; }
 .app .bd-bildir-sebep:disabled { opacity: .55; }
 .app .bd-bildir-tamam { margin-top: 8px; font-size: 12px; font-weight: 800; color: var(--bd-basari-metin); }
+
+/* Paket 20 III — misafir hesabı koruma */
+.app .bd-misafir-etiket {
+  display: inline-block; margin-top: 4px; padding: 2px 10px; border-radius: 999px;
+  font-size: 12px; font-weight: 800; color: var(--bd-metin); background: #FFF1D6; box-shadow: 0 2px 0 #F2D9A6;
+}
+.app .bd-guvence { text-align: left; }
+.app .bd-guvence-oneri { max-width: 340px; margin: 14px auto 0; }
+.app .bd-guvence-ust { display: flex; gap: 12px; align-items: flex-start; }
+.app .bd-guvence-baslik { font-weight: 800; font-size: 15px; color: var(--bd-metin); }
+.app .bd-guvence-yontemler { display: grid; gap: 8px; margin-top: 10px; }
+.app .bd-guvence-eposta { display: flex; gap: 8px; flex-wrap: wrap; }
+.app .bd-guvence-eposta input { flex: 1 1 160px; min-width: 0; min-height: 44px; }
+.app .bd-guvence-eposta .btn { flex: 0 0 auto; }
+.app .bd-guvence-tamam { margin-top: 10px; font-size: 13px; font-weight: 800; color: var(--bd-basari-metin); }
