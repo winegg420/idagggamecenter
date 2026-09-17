@@ -5561,3 +5561,102 @@ genel kültür 540) ve denetimden geçen soru havuza geri dönüyor.
 - **Doğru hamle soruyu atmak değil, çeldiricileri düzeltmek.** Denetimde `duzelt` kullanılır;
   `kaldir` yalnız kurtarılamaz sorular için (kaldırma = `aktif = false`, satır silinmez).
 - `npm run soru:disari` partisi hazır: `.tmp/soru_denetim/parti_01.json` (100 soru, 98'i kural şüphelisi).
+
+---
+
+## Paket 24 (geniş) — Düello bağlantıları · Hızlı Mod dondurma · Grup eşleştirme · Giysi rotasyonu (18 Eyl 2026)
+
+### A — Düello ortak davet/bildirim altyapısına bağlandı
+
+**Ölçülen durum:** Düello kendi içinde kapalı yazılmıştı. Davet tablosu (migration 226) vardı ama
+`bekleyen_davetlerim` / `gonderdigim_davetler` / `davet_geri_cek` düello türünü bilmiyordu,
+`bildirim_yaz` başlık tablosunda `duello_daveti` / `duello_kabul` yoktu ve **`duello_davet_et` hiç
+bildirim yazmıyordu** — davet edilen kişi haberdar bile olmuyordu.
+
+**Yapılan:** üç ortak RPC'ye `duello` dalı (`kayit_id` = `duello_davetleri.id`), `DavetBandi`'ye
+`TUR_BILGI.duello` + `CEVAP_RPC.duello` + `duello_davetleri` realtime aboneliği, `bildirim_yaz`
+başlıkları, davet ve kabul bildirimleri, `BildirimToast`'ta kabul bildirimleri için öne çıkan biçim +
+**"Oyuna git"** düğmesi + 9 sn, Arkadaşlar sayfasından düelloya çağırma.
+
+**Bir tuzak:** düello kabul RPC'si DAVET id'sini alır ama DÜELLO id'si döndürür. Bant eskisi gibi
+`kayit_id` ile yönlendirseydi var olmayan bir düelloya giderdi — `DONEN_ID_ILE_GIT` kümesi bunun için.
+
+**A.2 çifte davet kuralı:** `davet_cakismasi()` dört kaynağı birden sayar (matches · grup · hızlı ·
+düello). Davet atarken en fazla 2 bekleyen (`davet_siniri_kontrol`), kabul ederken aktif oyun engeli
+(`davet_kabul_kontrol`). **Grup maçında kural 4 uygulanmadı** — grup 3-5 kişiliktir, "bu oyuncuyla
+devam eden oyun" çok taraflı bir lobide karşılığı olmayan bir engel üretir ve Grup Maçı ödülsüz
+arkadaş modudur (CLAUDE.md: arkadaşlarıyla oynayanı hiçbir limit cezalandırmaz).
+
+**A.4 bağlantı kopması — en ciddi bulgu:** düelloda varlık denetimi **hiç yoktu**. 2 saniyelik cron
+rakip bağlı olmasa da fazları ilerletiyor, cevap süresi dolunca `duello_cozumle(id, null)` çağırıp
+**can götürüyordu**. Sekmesi kapanan oyuncu döndüğünde üç canını birden kaybetmiş oluyordu.
+Artık: 25 sn'de kopuk sayılır, **kopukken faz ilerlemez** (kalan süre dondurulur), 45 sn'de bekleyen
+kazanır (terk ile aynı yol), zaman aşımı `created_at` yerine `son_hareket`'ten sayılır.
+
+**A.4.7 — diğer modlarda aynı körlük var mı? ÖLÇÜLDÜ, YOK.** 1v1 `matches`'te denetim zaten vardı ve
+tam olarak düelloya eklediğim kalıpta: `mac_nabiz` rakip bağlı değilse `duraklatildi_at` yazar (maç
+durur), dönünce `soru_baslangic` ötelenerek devam eder, **45 saniye** dönmezse `terk_eden` yazılıp
+`mac_sonuclandir` çağrılır. Grup ve hızlı maçta `terk_at` sütunu aynı işi görür.
+**Düello tek istisnaydı.** Önerilen 45 sn'nin 1v1'in mevcut kuralıyla birebir tutması rastlantı değil —
+tutarlılık korunmuş oldu.
+
+**Test sonrası çıkan kusur:** cevap fazının son saniyesinde kopan oyuncunun `kopuk_kalan`'ı 0
+hesaplanıyordu; dönünce 1 saniyede cevaplaması gerekiyordu. 3 saniyelik taban kondu (migration 233).
+
+### B — Hızlı Mod donduruldu
+
+**Ölçüldü:** Hızlı Mod son 30 günde **4 oturum / 2 oyuncu**, aktif oturum yok. "Hızlı Olan Kazanır"
+**0 kayıt**. Hızlı Mod'a ait cron zaten yoktu. Yani mod fiilen zaten ölüydü.
+
+**Yöntem kararı — neden trigger, neden RPC gövdesi değil:** `hizli_mod_baslat` / `create_hizli_mac`
+gövdelerini kopyalayıp başlarına kapı koymak, 100+ satırlık ödül ve soru seçme mantığını yeniden
+yazmak demekti. Bunun yerine tabloya **BEFORE INSERT** kapısı kondu: yeni oturum açılmaz, devam eden
+oturum sorunsuz biter, hangi yoldan gelinirse gelinsin aynı kapı çalışır, geri açmak tek satır.
+
+**Görev/ustalık açığı yok (ölçüldü):** `gorev_sayaci` moda özel değil — `mac_oyna_3` / `mac_kazan_5` /
+`dogru_25` tüm modları toplar. Hızlı Mod yalnız bir kaynaktı; oyuncu aynı görevi diğer modlarla
+tamamlar. Değişiklik gerekmedi.
+
+**B.3 denge:** `hizli_mod_lig_tavan` / `coin_tavan` **oturum başına** (günlük değil). Oturum 90 sn
+olduğu için teorik olarak saatte ~750 lig puanı yapılabiliyordu ve **lig puanında günlük tavan yok**.
+Yani kapanış bir kayıp değil, bir açığın kapanması. Gerçek kullanımda kayıp ölçülebilir değil
+(30 günde 4 oturum, `coin_hareketleri`'nde `hizli%` referanslı 0 kayıt). Normal Maç / Düello oranı
+(25 / 50) korunuyor. **Ayar değerlerine dokunulmadı.**
+
+### C — Grup maçı eşleştirme kuyruğu
+
+**Ölçülen durum:** grup maçı yalnız davetle oynanıyordu; kuyruk kodu **hiç yoktu**. Arkadaşı
+çevrimiçi olmayan oyuncu grup maçı oynayamıyordu.
+
+`duello_kuyrugu` kalıbı birebir izlendi. `grup_kur_kuyruktan`, `respond_group_challenge`'ın "son kabul
+geldi" dalıyla **aynı sonucu** üretir (durum=aktif, soru_ids seçili, basladi=false) — mevcut lobi akışı
+devralır, ikinci bir başlatma yolu açılmadı. Yeterli gerçek oyuncu yoksa 12 sn sonunda gizli botlarla
+tamamlanır (aynı bot iki kez seçilmez). Kuyruktan çıkış, 90 sn ömür ve sayfa kapanınca otomatik çıkış
+yazıldı — oyuncu sonsuza kadar beklemez. **Ödül kuralı değişmedi** (`trg_grup_bitti`'ye dokunulmadı).
+
+**C.2 ölçüldü, açık yok:** `gunluk_seri_bonusu` canlı veritabanında **yalnız** `duello_bitir` ve
+`mac_sonuclandir` içinde çağrılıyor. `trg_grup_bitti` yalnız `mac_sayaci_arttir(false)` çağırıyor —
+grup maçı bedava seri koruma kapısı değil. Hızlı Mod için de aynı (`hizli_mod_bitir`'de yok).
+
+### D — Turnuva haftalık giysisi artık dönüyor
+
+Sistem zaten vardı (migration 213), yeniden yazılmadı. Eksik olan tek şey tabloda **tek satır**
+olmasıydı; `turnuva_haftalik_giysi()` "en son satır"ı döndürdüğü için ödül hiç değişmiyordu.
+`turnuva_giysi_rotasyon()` aday havuzu (`aktif` + `nadirlik='etkinlik'`, bugün Taç + Pelerin) sıra ile
+döndürür, bitince başa sarar, aynı giysiyi üst üste vermez, havuz boşsa sessizce geçmeyip mevcut
+giysiyi korur ve uyarı yazar. Idempotent. Yeni etkinlik parçası eklendiğinde rotasyona kendiliğinden
+katılır — bu dosyaya dokunmak gerekmez.
+
+**Çıkarımlar:**
+- **"Sistem var" ile "sistem çalışıyor" ayrı şeyler.** Haftalık giysi sisteminin her parçası
+  yazılmıştı; eksik olan tek satırlık veriydi ve ödül aylardır sabitti. Aynı desen `dogru_en_uzun`
+  işaretinde de vardı (Paket 25): kural yazılı, ağırlığı yanlış, yaptırım sıfır.
+- **Bir modun "kapalı" olması sunucuda da kapalı olmalı.** Arayüzden düğme kaldırmak yetmez; eski
+  bağlantıyı bilen ya da doğrudan RPC çağıran biri modu açabilirdi. Tablo kapısı bunu tek noktada
+  çözdü ve geri açma yolunu tek satıra indirdi.
+- **Test kurgusu yanlışsa test yalan söyler.** Giysi rotasyonunun ilk testinde bu haftanın satırını
+  silince "son verilen giysi" de silindi; fonksiyon doğru çalıştığı hâlde yanlış sonuç veriyor gibi
+  göründü. Önceki hafta satırı kurulunca zincir doğru çıktı.
+- **Geri alınan işlemde test etmek canlı veritabanında güvenli bir yöntem.** DO bloğunun sonunda
+  `raise exception` her şeyi geri alır; rotasyon, davet kuralları ve kopukluk senaryolarının hepsi
+  canlı veriyle, hiçbir satır değiştirilmeden doğrulandı.
