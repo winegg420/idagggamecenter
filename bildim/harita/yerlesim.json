@@ -410,8 +410,8 @@
     {
       "id": "agac_kusagi_gezi",
       "tip": "bitki",
-      "cokgen": [[-30, -48], [40, -48], [46, -95], [-34, -95]],
-      "not": "Gezi Parkı — yürünebilir sınırın dışında",
+      "cokgen": [[-30, -48], [2, -48], [-20, -95], [-34, -95]],
+      "not": "Gezi Parkı — yürünebilir sınırın dışında. 3A-1: doğu yarısı Boğaz vadisine açıldı (x ≤ 3)",
       "yerlestir": {"prop": "agac", "doldur": true, "aralik": 7, "olcek": 0.8}
     },
     {
@@ -610,10 +610,14 @@
     "not": "Nostaljik tramvay (Taksim–Tünel). Ray + durak noktası; araç bu pakette yok."
   },
   "arkaplan": [
-    {"id": "bogaz", "tip": "su", "cokgen": [[150, -420], [420, -420], [420, 300], [150, 300]], "not": "Boğaz — yürünebilir sınırın ötesinde, doğu"},
-    {"id": "karsi_yaka", "tip": "tepe", "cokgen": [[330, -420], [520, -420], [520, 300], [330, 300]], "yukseklik": 30},
-    {"id": "kopru_15_temmuz", "tip": "kopru", "baslangic": [180, -330], "bitis": [360, -180], "kule_yukseklik": 70, "guverte_yukseklik": 32},
-    {"id": "sehir_kusagi_kuzey", "tip": "siluet", "cokgen": [[-140, -130], [120, -130], [120, -170], [-140, -170]], "yukseklik": 24},
+    {"id": "bogaz_vadisi", "tip": "vadi", "merkez": [0, 0], "r": 42.5, "bati_hat": [[8, -41], [-38, -140]], "guney_hat": [[30, -30.5], [130, -27]], "ic_nokta": [90, -90],
+     "teras": {"adet": 6, "seyir": 4, "genislik": 10, "dusus": 10}, "deniz_y": -60, "deniz_renk": ["#4FC3E8", "#9ED9F0"], "deniz_gecis": 320,
+     "ev": {"aralik": 12, "uzanim": 80},
+     "not": "3A-1 §B. Taksim tepedir: plato kenarından (plaza yayı r + dışa açılan bati_hat / guney_hat yarı-doğruları; ic_nokta vadinin içini gösterir) itibaren zemin teras teras alçalır, deniz aşağıdadır. Kamera ufku görmediği için Boğaz ancak böyle kadraja girer. Dış zemin bu alanda açılır. Yürünemez."},
+    {"id": "karsi_kiyi", "tip": "karsi_kiyi", "hat": [[72, -430], [135, -265], [200, -200], [330, -135], [690, -70]], "yukseklik": 22, "derinlik": 120, "ev_aralik": 16, "ev_uzanim": 150, "renk": "#8DB07A"},
+    {"id": "kopru_15_temmuz", "tip": "kopru", "baslangic": [62, -150], "bitis": [205, -196], "kule_konum": [0.2, 0.8], "kule_yukseklik": 24, "guverte_yukseklik": 9, "genislik": 5,
+     "not": "Stilize asma köprü silueti, zorlanmış perspektif (gerçek ölçek değil). Yükseklikler deniz kotundan."},
+    {"id": "sehir_kusagi_kuzey", "tip": "siluet", "cokgen": [[-140, -130], [0, -130], [0, -170], [-140, -170]], "yukseklik": 24},
     {"id": "sehir_kusagi_bati", "tip": "siluet", "cokgen": [[-190, -120], [-150, -120], [-150, 200], [-190, 200]], "yukseklik": 20}
   ],
   "dis_zemin": {"hucre": "asfalt", "not": "yürünebilir sınırın dışı: tek düz yüzey (hücre rengi)"},

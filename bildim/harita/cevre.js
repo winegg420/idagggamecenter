@@ -8,6 +8,7 @@
 // ============================================================
 import * as THREE from "three";
 import { mergeGeometries } from "three/addons/utils/BufferGeometryUtils.js";
+import { vadiDeligi, bogazParcalari } from "./bogaz.js";
 
 export const PROPLAR = ["prop_agac_govde", "prop_agac_tac", "prop_lamba", "prop_bank", "prop_saksi", "prop_kedi"];
 const BOLGE_DIGER = 17;
@@ -35,7 +36,7 @@ function hatBoyunca(hat, aralik) {
 }
 
 /** Atlas hücresine UV'si eşlenmiş, bölge + beyaz renk öznitelikli geometri (birleştirme için ortak biçim). */
-function hucreli(geo, rect, { tint = null, bolge = BOLGE_DIGER, dolu = true } = {}) {
+export function hucreli(geo, rect, { tint = null, bolge = BOLGE_DIGER, dolu = true } = {}) {
   const g = geo.index ? geo.toNonIndexed() : geo;
   const n = g.attributes.position.count, uv = g.attributes.uv;
   for (let i = 0; i < n; i++) {
@@ -117,7 +118,14 @@ function zeminKur(M, H, malzeme) {
       }
     }
   }
-  if (M.dis_zemin && H[M.dis_zemin.hucre]) parca.push(hucreli(new THREE.PlaneGeometry(1400, 1400).rotateX(-Math.PI / 2).translate(0, -0.03, 0), H[M.dis_zemin.hucre], { dolu: false }));
+  if (M.dis_zemin && H[M.dis_zemin.hucre]) {
+    // 3A-1 §B: Boğaz vadisi varsa dış zemin orada AÇILIR (delikli şekil); yoksa eski tek düzlem
+    const delik = vadiDeligi(M);
+    let dis;
+    if (delik) { const sekil = new THREE.Shape([[-700, -700], [700, -700], [700, 700], [-700, 700]].map(([x, z]) => new THREE.Vector2(x, -z))); sekil.holes.push(new THREE.Path(delik.map(([x, z]) => new THREE.Vector2(x, -z)))); dis = new THREE.ShapeGeometry(sekil).rotateX(-Math.PI / 2).translate(0, -0.03, 0); }
+    else dis = new THREE.PlaneGeometry(1400, 1400).rotateX(-Math.PI / 2).translate(0, -0.03, 0);
+    parca.push(hucreli(dis, H[M.dis_zemin.hucre], { dolu: false }));
+  }
   const m = birlesikMesh(parca, malzeme, "CevreZemin");
   m.receiveShadow = true; m.castShadow = false;
   return m;
@@ -313,6 +321,8 @@ export function binalariBoya({ M, gb, hucreler: H, malzeme, modRenk }) {
   gb.gri.parsel.traverse((o) => { if (o.isMesh) o.visible = false; });   // gri kütleler gizli; tabela yazıları (sprite) ve bina grupları durur
 
   // arka plan kuşağı: tonlu, gölgesiz, tek mesh
+  const vadiVar = (M.arkaplan ?? []).some((b) => b.tip === "vadi");
+  if (vadiVar) arka.push(...bogazParcalari({ M, hucreler: H }));   // 3A-1 §B: teraslar · deniz · karşı kıyı · köprü (aynı birleşik mesh)
   for (const b of M.arkaplan ?? []) {
     if (b.cokgen) {
       const sekil = new THREE.Shape(b.cokgen.map(([px, pz]) => new THREE.Vector2(px, -pz)));
@@ -320,7 +330,7 @@ export function binalariBoya({ M, gb, hucreler: H, malzeme, modRenk }) {
       const geo = (yuk > 0 ? new THREE.ExtrudeGeometry(sekil, { depth: yuk, bevelEnabled: false }) : new THREE.ShapeGeometry(sekil)).rotateX(-Math.PI / 2).translate(0, b.tip === "su" ? -0.02 : 0, 0);
       const ton = { su: "#5FA8CF", tepe: "#7FA36E", siluet: "#C9C2B6" }[b.tip] ?? "#C9C2B6";
       arka.push(hucreli(geo, { su: H.cam, tepe: H.cim, siluet: H.siva }[b.tip] ?? H.siva, { tint: new THREE.Color(ton), dolu: false }));
-    } else if (b.tip === "kopru") {
+    } else if (b.tip === "kopru" && !vadiVar) {
       const [x0, z0] = b.baslangic, [x1, z1] = b.bitis, boy = Math.hypot(x1 - x0, z1 - z0), aci = Math.atan2(x1 - x0, z1 - z0);
       arka.push(hucreli(new THREE.BoxGeometry(6, 2, boy).rotateY(aci).translate((x0 + x1) / 2, b.guverte_yukseklik, (z0 + z1) / 2), H.demir, { tint: new THREE.Color("#B8C2CC"), dolu: false }));
       for (const t of [0.22, 0.78]) arka.push(hucreli(new THREE.BoxGeometry(5, b.kule_yukseklik, 5).translate(x0 + (x1 - x0) * t, b.kule_yukseklik / 2, z0 + (z1 - z0) * t), H.demir, { tint: new THREE.Color("#C9D1D8"), dolu: false }));
