@@ -10,8 +10,8 @@
   },
   {
    "ad": "kozmetik_sapka",
-   "ucgen": 598,
-   "kose": 328,
+   "ucgen": 460,
+   "kose": 242,
    "skinned": false,
    "ao": true
   },
@@ -44,13 +44,13 @@
    "ao": true
   }
  ],
- "toplamUcgen": 8950,
+ "toplamUcgen": 8812,
  "malzeme": 1,
  "roughness": 0.82,
  "boyut": [
   1.864,
   2.161,
-  0.742
+  0.732
  ],
  "kemik": 22,
  "klipler": [
@@ -83,9 +83,9 @@
    "kose": 4192
   },
   "kozmetik_sapka": {
-   "ort": 0.796,
-   "min": 0.15,
-   "kose": 328
+   "ort": 0.641,
+   "min": 0.152,
+   "kose": 242
   },
   "kozmetik_gozluk": {
    "ort": 0.666,

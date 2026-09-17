@@ -87,9 +87,15 @@ export function oturmaOlc(govde, koz, E) {
   const yakin = mesafeler.filter((d) => d <= E.oturma_arama_m).sort((a, b) => a - b);
   const temas = yakin.filter((d) => d <= E.oturma_temas_m).length;
   const medyan = yakin.length ? yakin[Math.floor(yakin.length / 2)] : null;
+  // YASLANMA: kozmetiğin gövdeye DAYANMASI BEKLENEN bölgesi — gövdeye en yakın çeyrek — gerçekten yaslanıyor mu.
+  // Ölçüldü (Paket 21 §F): şapka siperi, gözlük camı gibi bilinçli çıkıntılar gövdeye değmez; onları da sayan
+  // medyan/oran ölçütü kaplan şapkasını "havada" sanıyordu (kubbe %46 temas · 1,2 cm, siper %0 · 2,3 cm → toplam aday).
+  const ceyrek = yakin.slice(0, Math.max(1, Math.ceil(yakin.length / 4)));
+  const ceyrekMedyan = ceyrek.length ? ceyrek[Math.floor(ceyrek.length / 2)] : null;
   return {
     kose: mesafeler.length, yakin: yakin.length, temas,
     temas_orani: yakin.length ? +(temas / yakin.length).toFixed(3) : 0,
+    yaslanma_m: ceyrekMedyan == null ? null : +ceyrekMedyan.toFixed(4), yaslanan_kose: ceyrek.length,
     medyan_bosluk_m: medyan == null ? null : +medyan.toFixed(4),
     en_buyuk_bosluk_m: yakin.length ? +yakin[yakin.length - 1].toFixed(4) : null,
     en_yakin_m: +Math.min(...mesafeler).toFixed(4),
@@ -97,10 +103,10 @@ export function oturmaOlc(govde, koz, E) {
   };
 }
 export function oturmaKarari(o, E) {
-  if (!o.yakin) return `gövdeye ${cm(E.oturma_arama_m)} cm'den yakın köşe YOK — en yakın köşe ${cm(o.en_yakin_m)} cm uzakta`;
+  if (!o.yakin) return `gövdeye ${cm(E.oturma_arama_m)} cm'den yakın YÜZEY YOK — en yakın köşe ${cm(o.en_yakin_m)} cm uzakta`;
   const sebep = [];
+  if (o.yaslanma_m > E.oturma_yaslanma_m) sebep.push(`yaslanma ${cm(o.yaslanma_m)} cm > ${cm(E.oturma_yaslanma_m)} cm (gövdeye en yakın ${o.yaslanan_kose} köşenin medyanı)`);
   if (o.temas_orani < E.oturma_temas_orani) sebep.push(`temas oranı ${yuzde(o.temas_orani)} < ${yuzde(E.oturma_temas_orani)}`);
-  if (o.medyan_bosluk_m > E.oturma_bosluk_m) sebep.push(`medyan boşluk ${cm(o.medyan_bosluk_m)} cm > ${cm(E.oturma_bosluk_m)} cm`);
   return sebep.length ? sebep.join(" · ") : null;
 }
 export const oturmaYazi = (ad, o) => `${ad}: gövdeye bakan ${o.yakin} köşenin ${o.temas}'i temas ediyor (${yuzde(o.temas_orani)}), medyan boşluk ${o.medyan_bosluk_m == null ? "—" : cm(o.medyan_bosluk_m) + " cm"}, en büyük ${o.en_buyuk_bosluk_m == null ? "—" : cm(o.en_buyuk_bosluk_m) + " cm"} (toplam ${o.kose} köşe)`;
@@ -214,7 +220,7 @@ export async function takiliTestEt(dosya, u, E) {
     sonuc.oturma.push({ sac, ...o, yazi: oturmaYazi(`${u.tur} ${koz} (saç ${sac})`, o), aday: !!karar });
     if (karar) sonuc.adaylar.push({ test: "oturma", adalar: [`kozmetik_${koz} (${u.tur}, saç ${sac}, Idle)`], olcu: o, not: `${oturmaYazi(koz, o)} → ${karar}` });
   }
-  sonuc.istatistik.oturma = { saclar: u.saclar ?? [1], temas_m: E.oturma_temas_m, arama_m: E.oturma_arama_m, oran_esigi: E.oturma_temas_orani, bosluk_esigi_m: E.oturma_bosluk_m };
+  sonuc.istatistik.oturma = { saclar: u.saclar ?? [1], temas_m: E.oturma_temas_m, arama_m: E.oturma_arama_m, oran_esigi: E.oturma_temas_orani, yaslanma_esigi_m: E.oturma_yaslanma_m };
   const adalar = adalaraAyir(dunyaGeo(kozM), BOLGE_ADLARI);
   sonuc.istatistik.ada = adalar.length;
   testAcikKenar(adalar, u, E, sonuc, `kozmetik_${koz} · `);

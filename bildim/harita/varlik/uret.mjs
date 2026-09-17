@@ -58,7 +58,7 @@ const AO_KAPALI = process.argv.includes("--ao-kapali");
  * Yeni kozmetikte tek satır politika yazılır; tür başına varyant modeli yazılmaz. Muayene `kozmetik` testi bunu okur ve susturur.
  */
 const POLITIKA = {
-  sapka: { kulak: "gecir", anten: { tip: "bicimlendir", kaydir: [0, 0.03, 0] } },
+  sapka: { kulak: "gecir", anten: "gecir" },   // Paket 21 §F: kubbe artık kafaya oturuyor ve tepesi antene açık — 3 cm yukarı kaydırma kalktı (şapkayı havada bırakıyordu, ölçüldü)
   gozluk: { muzzle: { tip: "it", mesafe: 0.04 } },
   gozlukPremium: { muzzle: { tip: "it", mesafe: 0.04 } },   // 1G-B.3: kaplan muzzle → 4 cm öne
   kanat: {},                                                // 1G-B.2: tür hacimleriyle kesişmez
@@ -135,6 +135,65 @@ const birlestir = (geos) => mergeVertices(mergeGeometries(geos.map(temizle), fal
 const malzemeYap = () => new THREE.MeshStandardMaterial({ name: "Atlas", roughness: PURUZ, metalness: 0 });
 const D = (geo, hucre, poz, don = null, olcek = null, b = BOLGE.diger) => bolgeYaz(duz(yerlestir(geo, poz, don, olcek), hucre), b);
 const Y = (geo, hucre, poz, don = null, olcek = null, b = BOLGE.diger) => bolgeYaz(yay(yerlestir(geo, poz, don, olcek), hucre), b);
+
+/**
+ * Paket 21 §F — KAFAYA OTURAN KAPALI KUBBE (şapka). Eski kubbe tek yüzeyli yarım küreydi: yarıçapı kafadan
+ * 2,7 cm büyük, merkezi 9 cm yukarıdaydı (ölçüldü: temas %5-13, medyan boşluk 2,5-5,8 cm, altı 0,10 m² açık).
+ * Artık profil KAPALI bir konturdur (iç yüzey → alt kenar → dış yüzey → tepe halkası → iç yüzey): kabuk kapalı
+ * (delik yok) ve İÇ yüzeyi gövdeye bakar → `oturma` testi gerçekten ölçebilir. Kafa elipsoidi türe göre ölçekli
+ * olduğundan profil türün kafa yarı eksenlerinden türetilir; yuva uzayında kafa merkezi (0, −0,22, 0).
+ * @param {[number,number,number]} basOlcek türün kafa ölçeği  @param {number} R kafa yarıçapı
+ */
+function kubbeProfili(basOlcek, R, { pay = 0.004, kalinlik = 0.018, t1 = 0.42 * Math.PI, tepeR = 0.012, N = 4 } = {}) {
+  const [sx, sy] = basOlcek, ic = [], dis = [];
+  const ri = R * sx + pay, yi = R * sy + pay, rd = ri + kalinlik, yd = yi + kalinlik;
+  // t: tepeden alt kenara. Tepede r = tepeR (kapalı kontur için düz halka; tekil eksen köşesi üretilmez).
+  const t0 = Math.asin(Math.min(1, tepeR / ri));
+  for (let i = 0; i <= N; i++) { const t = t0 + (i / N) * (t1 - t0); ic.push(new THREE.Vector2(ri * Math.sin(t), yi * Math.cos(t))); dis.push(new THREE.Vector2(rd * Math.sin(t), yd * Math.cos(t))); }
+  const kontur = [...ic, ...dis.reverse()];
+  kontur.push(kontur[0].clone());   // KAPALI kontur → kapalı yüzey
+  return { kontur, kenarR: ri * Math.sin(t1), kenarY: yi * Math.cos(t1) };
+}
+/**
+ * KAFAYA OTURAN KAPALI KUBBE — türün GERÇEK (çokgen) kafa yüzeyi örneklenir (`kafaYuzey(n)`), lathe/küre değil:
+ * robot kafası basık ve ekran yüzlü, kaplanınki geniş; tek bir dönel profil hiçbirine oturmuyordu (ölçüldü).
+ * İç yüzey kafadan `pay` kadar açıkta (temas eşiği içinde), dış yüzey `kalinlik` kadar dışarıda; alt kenar ve
+ * tepe halkası bantla kapatılır → kabuk kapalı (delik yok) ve gövdeye bakan iç yüzeyi var (oturma ölçülebilir).
+ * @param {(n:THREE.Vector3)=>number} kafaYuzey  basM'den n yönünde kafa yüzeyine uzaklık
+ * @param {THREE.Vector3} merkez  kafa merkezi (kozmetiğin yuva uzayında)
+ */
+function kafayaOturanKubbe(kafaYuzey, merkez, { segment = 12, N = 4, t0 = 0.10, t1 = 0.36 * Math.PI, pay = -0.010, kalinlik = 0.022 } = {}) {
+  const poz = [], uv = [], idx = [];
+  const halka = (t, ek) => {
+    const bas = poz.length / 3;
+    for (let j = 0; j <= segment; j++) {
+      const u = (j / segment) * Math.PI * 2;
+      const n = new THREE.Vector3(Math.sin(t) * Math.sin(u), Math.cos(t), Math.sin(t) * Math.cos(u));
+      const p = n.clone().multiplyScalar(kafaYuzey(n) + ek).add(merkez);
+      poz.push(p.x, p.y, p.z); uv.push(j / segment, t / t1);
+    }
+    return bas;
+  };
+  const serit = (a, b, ters) => {   // iki halkayı birleştir (a → b)
+    for (let j = 0; j < segment; j++) {
+      const q = [a + j, a + j + 1, b + j + 1, b + j];
+      if (ters) idx.push(q[0], q[2], q[1], q[0], q[3], q[2]); else idx.push(q[0], q[1], q[2], q[0], q[2], q[3]);
+    }
+  };
+  const icH = [], disH = [];
+  for (let i = 0; i <= N; i++) { const t = t0 + (i / N) * (t1 - t0); icH.push(halka(t, pay)); disH.push(halka(t, pay + kalinlik)); }
+  for (let i = 0; i < N; i++) { serit(icH[i], icH[i + 1], false); serit(disH[i], disH[i + 1], true); }   // sarım: dış yüzey dışa, iç yüzey içe bakar (işaretli hacim ile doğrulandı)
+  serit(icH[N], disH[N], true);   // alt kenar bandı
+  serit(disH[0], icH[0], true);   // tepe halkası
+  const g = new THREE.BufferGeometry();
+  g.setAttribute("position", new THREE.Float32BufferAttribute(poz, 3));
+  g.setAttribute("uv", new THREE.Float32BufferAttribute(uv, 2));
+  g.setIndex(idx);
+  g.computeVertexNormals();
+  // kenar ölçüleri: siper ve halka buraya yaslanır
+  const kn = new THREE.Vector3(0, Math.cos(t1), Math.sin(t1)), kr = kafaYuzey(kn) + pay;
+  return { geo: g, kenarY: merkez.y + Math.cos(t1) * kr, kenarZ: Math.sin(t1) * kr, kenarR: Math.sin(t1) * kr, tepeY: merkez.y + kafaYuzey(new THREE.Vector3(0, 1, 0)) + pay + kalinlik };
+}
 
 // ------------------------------------------------------------ İSKELET
 const MIXAMO = JSON.parse(fs.readFileSync(path.join(BURASI, "mixamo.json"), "utf8"));
@@ -457,6 +516,23 @@ function karakterKur(tur = "insan") {
   }
 
   const govde = birlestir(parcalar);
+  /**
+   * Paket 21 §F: basM'den n yönünde GÖVDENİN EN DIŞ yüzeyine uzaklık (saç/kürk/ekran yüz dahil).
+   * Analitik `kafaYuzey` yalnız kafa küresini tarif ediyor; kaplan ve robotta gerçek gövde ondan 1,3-4,4 cm
+   * içeride/dışarıda kalıyordu (ölçüldü) → şapka havada duruyordu. Kozmetikler bu yüzeye oturtulur.
+   */
+  const govdeIsinMesh = new THREE.Mesh(govde, new THREE.MeshBasicMaterial({ side: THREE.DoubleSide }));
+  const govdeIsin = new THREE.Raycaster();
+  // Kulak/anten sayılmaz (sözleşme onları geçirir ya da gizler); SAÇ SAYILIR — saç kafadan 2,5 cm kabarık,
+  // dışlanınca şapka saçın altında kalıyordu (ölçüldü). Üç saç varyantının tepesi 0,7 cm içinde, tek zarf yeter.
+  const ISIN_DISI = new Set([BOLGE.turKulak, BOLGE.turAnten]);
+  const govdeBolge = govde.attributes.bolge;
+  const govdeYuzey = (n, baslangic = basM, tavan = 0.45) => {
+    govdeIsin.set(baslangic, n.clone().normalize());
+    const kes = govdeIsin.intersectObject(govdeIsinMesh, false)
+      .filter((h) => h.distance <= tavan && h.face && !ISIN_DISI.has(govdeBolge.getX(h.face.a)));
+    return kes.length ? kes[kes.length - 1].distance : null;
+  };
   const aoGovde = AO_KAPALI ? null : aoHesapla(govde, { R: 0.25 });
   // Göz/ağız dörtgenleri kafa yüzeyinden 4 mm dışarıda → AO'ları kafadan açık kalıyordu (ekranda
   // açık kare gibi görünüyordu). Her dörtgen köşesine en yakın kafa köşesinin AO'su kopyalanır.
@@ -530,12 +606,20 @@ function karakterKur(tur = "insan") {
     m.userData.politika = POLITIKA[ad.replace("kozmetik_", "")] ?? {};
     kozmetikler.add(m); return m;
   };
+  // Paket 21 §F: ŞAPKA HER TÜRDE kendi kafa ölçeğiyle üretilir (kozmetik.js tür varyantını yoksa insanınkini alır).
+  // Eşya id'si değişmedi (kozmetik_sapka); tek fark kubbenin türün kafasına oturması.
+  {
+    const kb = kafayaOturanKubbe((n) => { const a = govdeYuzey(n), b = kafaYuzey(n); if (process.env.KUBBE_LOG) console.log(`  [${tur}] n=${n.toArray().map(x=>x.toFixed(2))} govde=${a==null?"yok":a.toFixed(3)} kafa=${b.toFixed(3)}`); return a ?? b; }, new THREE.Vector3(0, -0.22, 0));   // kafa merkezi yuva uzayında (0, −0,22, 0); ölçüler merkez DAHİL döner
+    const kenarY = kb.kenarY;
+    const sapka = [
+      Y(kb.geo, "sapka", [0, 0, 0]),
+      D(new RoundedBoxGeometry(0.30, 0.03, 0.17, 1, 0.012), "sapkaSiperi", [0, kenarY + 0.005, kb.kenarZ + 0.075], E(-0.12, 0, 0)),
+      D(new THREE.TorusGeometry(kb.kenarR + 0.012, 0.018, 4, 14), "sapkaSiperi", [0, kenarY, 0], E(Math.PI / 2, 0, 0)),
+    ];
+    if (robot) sapka.push(D(new THREE.TorusGeometry(0.03, 0.012, 4, 8), "sapkaSiperi", [0, kb.tepeY, 0], E(Math.PI / 2, 0, 0)));   // anten geçiş halkası
+    kozmetik("kozmetik_sapka", "basYuva", sapka);
+  }
   if (insan) {
-    kozmetik("kozmetik_sapka", "basYuva", [
-      Y(new THREE.SphereGeometry(0.262, 14, 6, 0, Math.PI * 2, 0, Math.PI * 0.42), "sapka", [0, -0.13, 0]),
-      D(new RoundedBoxGeometry(0.30, 0.03, 0.17, 2, 0.012), "sapkaSiperi", [0, -0.11, 0.3], E(-0.12, 0, 0)),
-      D(new THREE.TorusGeometry(0.258, 0.018, 4, 18), "sapkaSiperi", [0, -0.12, 0], E(Math.PI / 2, 0, 0)),
-    ]);
     // 1G-A.2: cam dolgusu KALKTI (opak cam göz bebeğini örtüyordu, "camlar yarım" hissi) — çerçeve halka, göz yamasının 2,5 cm önünde; köprü burun sırtının üstüne
     const gozluk = [];
     for (const s of [-1, 1]) {
@@ -583,13 +667,7 @@ function karakterKur(tur = "insan") {
     kozmetik("kozmetik_kanat", "sirtYuva", kanat);
   }
   if (robot) {
-    // ROBOT KOZMETİK VARYANTLARI (1D §4.4): şapka kubbesi anten geçiş halkalı; gözlük → vizör (ekran yüzün üstüne kayar). Atkı insanınki.
-    kozmetik("kozmetik_sapka", "basYuva", [   // 424 üçgen: kubbe 12×5, siper 1 bölüm (halka için pay)
-      Y(new THREE.SphereGeometry(0.262, 12, 5, 0, Math.PI * 2, 0, Math.PI * 0.42), "sapka", [0, -0.13, 0]),
-      D(new RoundedBoxGeometry(0.30, 0.03, 0.17, 1, 0.012), "sapkaSiperi", [0, -0.11, 0.3], E(-0.12, 0, 0)),
-      D(new THREE.TorusGeometry(0.258, 0.018, 4, 18), "sapkaSiperi", [0, -0.12, 0], E(Math.PI / 2, 0, 0)),
-      D(new THREE.TorusGeometry(0.03, 0.012, 4, 8), "sapkaSiperi", [0, 0.132, 0], E(Math.PI / 2, 0, 0)),   // anten geçiş halkası (kubbe tepesi)
-    ]);
+    // ROBOT KOZMETİK VARYANTLARI (1D §4.4): şapka yukarıdaki ortak blokta (anten halkası dahil); gözlük → vizör. Atkı insanınki.
     kozmetik("kozmetik_gozluk", "gozlukYuva", [
       Y(new THREE.CylinderGeometry(0.255, 0.255, 0.1, 14, 1, true, -0.95, 1.9), "gozlukCam", [0, 0, -0.22], null, null, BOLGE.cam),   // vizör bandı (±54°)
       D(new THREE.CylinderGeometry(0.259, 0.259, 0.012, 14, 1, true, -0.95, 1.9), "gozlukCerceve", [0, 0.055, -0.22]),
