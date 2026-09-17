@@ -5441,3 +5441,43 @@ en küçük TR 761 (spor), EN 476 (tarih) — hiçbiri 300 altı değil. Sayfa s
 - **Karar/gözlem:** `soru_sec` dereceli/serbest bilmediği için serbest maçlar da rekabetçi havuzu kullanıyor (sıkı taraf seçildi). Turuncu düğme yazısı beyazdan koyuya döndü — marka turuncusu korunarak AA; istenirse tek token (`--bd-vurgu-ustu`).
 - Rapor `PAKET20_RAPOR.md`, görseller `gorsel/paket20/`, denetim kullanımı `araclar/soru_denetim/OKU.md`.
 - **Yayın:** quiztactics Vercel projesi günlük dağıtım sınırına takıldı ("Deployment rate limited — retry in 24 hours"); o adres Bölüm II'de kaldı. Hub adresinde 7 bölüm canlı. Sınır açılınca bir push / panelden Redeploy gerekir. Ders: bir paketteki bölüm başına ayrı push + rapor-kimliği push'ları günlük sınırı dolduruyor — rapor kimliği düzeltmelerini bölüm commit'iyle birlikte push et.
+
+## 17 Eyl 2026 — PAKET 21: Muayene gerçek kalite kapısına dönüştü (Opus 5)
+
+**Çıkış noktası (sahibinin gözlemi):** canlı vitrinde pelerin boyna bağlı ve havada, taç havada, şapka havada ve
+altı delik, kanatlar kâğıt şeritleri gibi, atkı kartında hiç görünmüyor — buna rağmen `npm run muayene`
+"0 aday · 0 susturulan" diyordu. Sebep: muayenede yalnız 3 test vardı (havada / simetri / içiçe), temas için
+5 mm'lik **tek köşe** yetiyordu, taç ile pelerin (kodla çizildikleri için) **hiç denetlenmiyordu** ve kozmetikler
+takılı hâlde ölçülmüyordu.
+
+**Yapılanlar (A–G, her biri ayrı commit):**
+- **A** Kodla çizilen kozmetikler (taç, pelerin) `bildim/harita/karakter/ekKozmetik.js`'e tek kaynak olarak ayrıldı;
+  oyun, dışa aktarım ve muayene aynı geometriyi ve aynı yerleşim matrisini (`ekMatris`) kullanıyor. Kural: oyunda
+  görünen hiçbir geometri muayene dışında kalamaz.
+- **B** Yeni test `oturma` — kozmetiğin gövdeye bakan yüzeyi gerçekten yaslanıyor mu.
+- **C** Yeni test `acik_kenar` — manifold denetimi; delik döngüsünün çevrelediği alan (PCA düzleminde shoelace).
+- **D** Yeni test `kalinlik` — ada başına PCA; "kâğıt gibi" parçalar. Ölçüt iki kez ölçülerek düzeltildi.
+- **E** Takılı poz muayenesi (tür × kozmetik, Idle, 3 saç varyantı) + yeni test `portre_kadraj` (kart portresinde
+  görünen alan ve taşma; oyunun kendi çizim yoluyla).
+- **F** Bütün adaylar **geometride** düzeltildi: şapka/taç/pelerin/vizör kapalı kabuklara dönüştü ve gövdeye oturdu,
+  kanat tüyü kalınlaştı, kuyruk ucu ve cam diski kapandı. Eşya id'leri ve yuva adları değişmedi, yeni doku yok.
+- **G** Raporlama kuralı: muayene artık KAPSAM bloğu basıyor; "0 aday" tek başına yazılamaz.
+
+**Sonuç (ölçüm):** 3 karakter + 2 kod kozmetiği + 22 takılı poz + 21 kart portresi = **0 aday**. Kozmetik dışı
+8 aday (bina/prop havada + simetri) Paket 21 kapsamı dışında ve raporda listeli. Çizim çağrısı 153 → 153,
+üçgen +414 (%0,09), CPU 5,2 → 5,1 ms (3A-2 rig, 25 karakter, 1536×791). Gövde köşe hash'i, kemik sayısı ve atlas
+üç türde de bit bit aynı.
+
+**Kararlar / çıkarımlar:**
+- **Test tanımı da ölçülerek düzeltilir.** `oturma` ölçütü üç kez değişti: dışa bakan yüzey sayılmaz → gövdeye
+  gömülü köşe temas sayılır → arama yarıçapı 8 cm yerine 2 cm ("yaslanması beklenen bölge") + yaslanma ölçütü.
+  Sebep her seferinde ölçümdü: şapka siperi, gözlük camı, kanat tüyü tasarımı gereği havadadır.
+- **İki test birbirine zıt şart koyabilir:** `oturma` temas (≤ 6 mm) ister, `kozmetik` testi bağlama pozunda üçgen
+  kesişimi istemez. Aradaki pencere, çokgen kubbenin kiriş sapması kadar dardır; çözüm çözünürlüğü artırmak ve payı
+  türe göre ölçmektir (robot kafası basık, ekran yüzü öne çıkık).
+- **Kozmetik tür varyantı ücretsiz değildir ama şart olabilir:** şapka artık her türde kendi kafa ölçeğiyle üretiliyor
+  (aynı eşya id'si). Taç tek InstancedMesh olduğu için tür farkı `ekMatris` içindeki ölçekle kapandı.
+- **Muayene "güzel mi" sorusunu yanıtlamaz.** Estetik, oran, stil ve renk ölçülmez; ayakkabı/saç/yüz tasarımı bu
+  pakette yapılmadı ve raporda açıkça yazıldı.
+
+Rapor: `PAKET21_RAPOR.md`. Görseller: `gorsel/paket21/once_*.png` · `sonra_*.png` (21 kart × önce/sonra).

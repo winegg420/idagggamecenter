@@ -1,5 +1,5 @@
 {
- "tarih": "2026-09-17T18:54:19.247Z",
+ "tarih": "2026-09-17T19:00:35.118Z",
  "varliklar": {
   "karakter_insan": {
    "ucgen": 6656,
@@ -1009,5 +1009,59 @@
   "olculen": 21,
   "aday": 0,
   "adaylar": []
+ },
+ "kapsam": {
+  "testler": {
+   "havada": "bağsız ada (gövdeye/zemine değmeyen parça)",
+   "simetri": "x → −x aynası yüzeyde var mı",
+   "icice": "kapalı ada başka adanın içinde mi",
+   "kozmetik": "bağlama pozunda kozmetik ↔ gövde üçgen kesişimi",
+   "zemin": "zemin teması",
+   "oturma": "yaslanma ≤ 0.8 cm ve temas oranı ≥ %15 (arama 2 cm, temas 6 mm) — yalnız takılı poz varlıklarında, üç saç varyantında",
+   "acik_kenar": "delik döngüsünün çevrelediği alan > 4 cm² — yalnız kozmetiklerde",
+   "kalinlik": "en kısa uzanım < 2.5 cm VE izdüşüm alanı > 0.02 m² — yalnız kozmetiklerde",
+   "portre_kadraj": "kart portresinde görünen alan ≥ %4 ve taşma ≤ %2"
+  },
+  "muayene_edilen": [
+   "karakter_insan",
+   "karakter_kaplan",
+   "karakter_robot",
+   "bina_dukkan",
+   "zemin_deneme",
+   "bordur",
+   "prop_agac_govde",
+   "prop_agac_tac",
+   "prop_bank",
+   "prop_lamba",
+   "prop_saksi",
+   "prop_kedi",
+   "kozmetik_tac",
+   "kozmetik_pelerin",
+   "takili_insan_sapka",
+   "takili_insan_gozluk",
+   "takili_insan_gozlukPremium",
+   "takili_insan_atki",
+   "takili_insan_kanat",
+   "takili_insan_tac",
+   "takili_insan_pelerin",
+   "takili_kaplan_sapka",
+   "takili_kaplan_gozluk",
+   "takili_kaplan_gozlukPremium",
+   "takili_kaplan_atki",
+   "takili_kaplan_kanat",
+   "takili_kaplan_tac",
+   "takili_kaplan_pelerin",
+   "takili_kaplan_kuyruk",
+   "takili_robot_sapka",
+   "takili_robot_gozluk",
+   "takili_robot_gozlukPremium",
+   "takili_robot_atki",
+   "takili_robot_kanat",
+   "takili_robot_tac",
+   "takili_robot_pelerin"
+  ],
+  "muayene_edilmeyen": "yok (tam koşu)",
+  "hic_kapsanmayan": "harita yerleşimi (Boğaz, cepheler, yapılar: metro/AKM/cami/anıt/lise) ayrı komutla denetlenir; oyun içi ışık, gölge ve animasyon hiç ölçülmez",
+  "olculemeyen": "ESTETİK, ORAN, STİL ve RENK uyumu ölçülmez. Muayene 'çirkin mi' sorusunu yanıtlamaz; yalnız geometrinin ölçülebilir kusurlarını (boşluk, delik, kâğıt incelik, kadraj, kesişim, simetri) bulur. 0 aday = 'bu testlerden geçti', 'güzel' demek değildir."
  }
 }
