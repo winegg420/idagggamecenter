@@ -1,8 +1,8 @@
 {
- "tarih": "2026-09-17T20:31:41.854Z",
+ "tarih": "2026-09-17T20:35:23.711Z",
  "varliklar": {
-  "takili_insan_sapka": {
-   "ucgen": 6153,
+  "takili_insan_pelerin": {
+   "ucgen": 5979,
    "malzeme": 2,
    "gorunumler": [
     "ön (+Z)",
@@ -24,50 +24,6 @@
    ],
    "aday": {},
    "susturulan": {}
-  },
-  "karakter_insan": {
-   "ucgen": 7104,
-   "malzeme": 1,
-   "gorunumler": [
-    "ön (+Z)",
-    "arka (−Z)",
-    "sol (−X)",
-    "sağ (+X)",
-    "üst (+Y)",
-    "alt (−Y)",
-    "kafa 3/4 (kozmetiksiz)",
-    "sağ el (parmaklar)",
-    "sol ayak",
-    "ifade normal",
-    "ifade gülümseme",
-    "ifade şaşkın",
-    "kanat sırt bağlantısı (kanat kozmetiği)",
-    "premium gözlük (kozmetikli)",
-    "beauty (perspektif, B+, gölgeli, kozmetikli, Idle)"
-   ],
-   "dosyalar": [
-    "01-ön-z.png",
-    "02-arka-z.png",
-    "03-sol-x.png",
-    "04-sağ-x.png",
-    "05-üst-y.png",
-    "06-alt-y.png",
-    "07-kafa-3-4-kozmetiksiz.png",
-    "08-sağ-el-parmaklar.png",
-    "09-sol-ayak.png",
-    "10-ifade-normal.png",
-    "11-ifade-gülümseme.png",
-    "12-ifade-şaşkın.png",
-    "13-kanat-sırt-bağlantısı-kanat-kozmetiği.png",
-    "14-premium-gözlük-kozmetikli.png",
-    "15-beauty-perspektif-b-gölgeli-kozmetikli-idle.png"
-   ],
-   "aday": {},
-   "susturulan": {
-    "icice": 161,
-    "gomulu": 25,
-    "kozmetik": 24
-   }
   }
  },
  "konsolHatalari": [],
@@ -85,10 +41,10 @@
    "portre_kadraj": "kart portresinde görünen alan ≥ %4 ve taşma ≤ %2"
   },
   "muayene_edilen": [
-   "takili_insan_sapka",
-   "karakter_insan"
+   "takili_insan_pelerin"
   ],
   "muayene_edilmeyen": [
+   "karakter_insan",
    "karakter_kaplan",
    "karakter_robot",
    "bina_dukkan",
@@ -102,12 +58,12 @@
    "prop_kedi",
    "kozmetik_tac",
    "kozmetik_pelerin",
+   "takili_insan_sapka",
    "takili_insan_gozluk",
    "takili_insan_gozlukPremium",
    "takili_insan_atki",
    "takili_insan_kanat",
    "takili_insan_tac",
-   "takili_insan_pelerin",
    "takili_kaplan_sapka",
    "takili_kaplan_gozluk",
    "takili_kaplan_gozlukPremium",

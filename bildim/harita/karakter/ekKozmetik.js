@@ -68,6 +68,10 @@ export function tacGeometrisi(H) {
 export function pelerinGeometrisi(H) {
   const U = [], sat = 5, sut = 6, boy = 0.92, KAL = 0.014;
   const dort = (a, b, c, d) => { U.push(a, c, b, a, d, c); };
+  // Paket 23 §D: gövdenin ARKA yüzeyi (yerel uzayda). Gövde kesiti elips: omuz hizasında derinlik ~18 cm,
+  // yarı genişlik ~24 cm; sirtYuva gövde merkezinin 16 cm arkasında. Ölçüldü: eski pelerinin üst kenarı düz bir
+  // çizgiydi ve sırttan medyan 3,0–4,4 cm uzaktaydı — kumaş hiçbir yere tutunmuyor gibi duruyordu.
+  const SIRT_Z = (x, t) => 0.155 - (0.18 - 0.02 * t) * Math.sqrt(Math.max(0, 1 - (x / 0.245) ** 2));
   /** @param {number} i sütun 0..sut  @param {number} j satır 0..sat  @param {boolean} ic gövdeye bakan yüzey mi */
   const P = (i, j, ic) => {
     const t = j / sat, u = i / sut - 0.5;
@@ -75,17 +79,30 @@ export function pelerinGeometrisi(H) {
     const x = u * gen;
     const omuz = 1 - (2 * u) ** 2;                                // ortada 1, uçlarda 0
     const y = -boy * t - (1 - omuz) * 0.05 * (1 - t);             // omuz uçları hafif aşağı
-    const z = 0.02 - 0.11 * t * t - omuz * 0.035 * (1 - t) + (ic ? 0 : -KAL);   // gövdeyi takip eder, sonra açılır
+    // Üstte gövdeyi SARAR (omuz eğrisi), aşağı indikçe etek açılır ve gövdeden uzaklaşır.
+    const sarma = Math.max(0, 1 - t * 2.2);
+    const z = SIRT_Z(x, t) * sarma + (0.02 - 0.045 * t * t) * (1 - sarma) + (ic ? 0 : -KAL);
     return [x, y, z];
+  };
+  /** §D: YAKA BANDI — pelerinin üst kenarından çıkan, boynun altından geçen ince bant. Pelerinle AYNI ada
+   *  (B ve C'deki "ayrı parça" hatası tekrarlanmasın diye üst satır köşeleri paylaşılır). */
+  const Y0 = (i, ic) => {
+    const u = i / sut - 0.5, x = u * 0.30, omuz = 1 - (2 * u) ** 2;
+    return [x, 0.055 + omuz * 0.012, SIRT_Z(x, 0) * 0.92 + 0.012 + (ic ? 0 : -KAL)];
   };
   for (let j = 0; j < sat; j++) for (let i = 0; i < sut; i++) {
     dort(P(i, j, true), P(i + 1, j, true), P(i + 1, j + 1, true), P(i, j + 1, true));      // iç yüzey (gövdeye bakar)
     dort(P(i, j + 1, false), P(i + 1, j + 1, false), P(i + 1, j, false), P(i, j, false));  // dış yüzey
   }
-  for (let i = 0; i < sut; i++) {   // üst ve alt kenar bantları
-    dort(P(i, 0, false), P(i + 1, 0, false), P(i + 1, 0, true), P(i, 0, true));
+  for (let i = 0; i < sut; i++) {   // yaka bandı (üst kenardan boynun altına) + alt kenar bandı
+    dort(P(i, 0, true), P(i + 1, 0, true), Y0(i + 1, true), Y0(i, true));          // yakanın gövdeye bakan yüzü
+    dort(Y0(i, false), Y0(i + 1, false), P(i + 1, 0, false), P(i, 0, false));      // yakanın dış yüzü
+    dort(Y0(i, true), Y0(i + 1, true), Y0(i + 1, false), Y0(i, false));            // yakanın üst kenarı
     dort(P(i, sat, true), P(i + 1, sat, true), P(i + 1, sat, false), P(i, sat, false));
   }
+  // yakanın yan uçları (açık kenar bırakmamak için)
+  dort(P(0, 0, true), Y0(0, true), Y0(0, false), P(0, 0, false));
+  dort(P(sut, 0, false), Y0(sut, false), Y0(sut, true), P(sut, 0, true));
   for (let j = 0; j < sat; j++) {   // iki yan kenar bandı
     dort(P(0, j, true), P(0, j + 1, true), P(0, j + 1, false), P(0, j, false));
     dort(P(sut, j, false), P(sut, j + 1, false), P(sut, j + 1, true), P(sut, j, true));
@@ -98,6 +115,10 @@ export const EK_YUVA = { tac: "basYuva", pelerin: "sirtYuva" };
 export const PELERIN_KAYDIR = new THREE.Vector3(0, 0.52, 0);   // sirtYuva (0,94 m) → omuz hattı (~1,44 m); §F: z ötelemesi kalktı, sırt eğrisi geometride
 /** Taç tür ölçeği [yatay, dikey] — kafa yarı eksen oranları (insan 0,235 / 0,2397 taban). */
 export const TAC_TUR_OLCEK = { insan: [1, 1], kaplan: [0.99, 0.96], robot: [0.915, 0.80] };
+/** Pelerin tür ölçeği [yatay, derinlik] — kaplan gövdesi geniş, robotunki dar (ölçüldü: §D). */
+export const PELERIN_TUR_OLCEK = { insan: [1, 1], kaplan: [1.08, 1.0], robot: [0.98, 0.94] };
+/** Pelerinin tür başına z ötelemesi (m): kaplan gövdesi daha derin, pelerin geride kalıyordu (ölçüldü: 9,3 cm). */
+export const PELERIN_TUR_Z = { insan: 0, kaplan: -0.045, robot: -0.01 };
 
 /** Pelerinin durağan açısı (hız 0, salınım ortası) — muayene bu pozu ölçer. */
 export const PELERIN_DURGUN_ACI = 0.06;
@@ -119,7 +140,7 @@ export function ekMatris(ad, yuvaDunya, { aci = PELERIN_DURGUN_ACI, kisa = false
     hedef.multiply(_m2.makeTranslation(0, 0.22, 0));
   }
   if (ad === "pelerin") {
-    hedef.multiply(_m2.makeTranslation(PELERIN_KAYDIR.x, PELERIN_KAYDIR.y, PELERIN_KAYDIR.z));
+    hedef.multiply(_m2.makeTranslation(PELERIN_KAYDIR.x, PELERIN_KAYDIR.y, PELERIN_KAYDIR.z + (PELERIN_TUR_Z[tur] ?? 0)));
     hedef.multiply(_m2.makeRotationX(-aci)).multiply(_m2.makeScale(1, kisa ? 0.58 : 1, 1));
   }
   return hedef;
