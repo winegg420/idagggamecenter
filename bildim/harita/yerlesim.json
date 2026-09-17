@@ -679,12 +679,12 @@
   },
   "arkaplan": [
     {"id": "bogaz_vadisi", "tip": "vadi", "merkez": [0, 0], "r": 42.5, "bati_hat": [[8, -41], [-38, -140]], "guney_hat": [[30, -30.5], [130, -27]], "ic_nokta": [90, -90],
-     "teras": {"adet": 6, "seyir": 4, "genislik": 10, "dusus": 10}, "deniz_y": -60, "deniz_renk": ["#4FC3E8", "#9ED9F0"], "deniz_gecis": 320,
-     "ev": {"aralik": 12, "uzanim": 80},
-     "not": "3A-1 §B. Taksim tepedir: plato kenarından (plaza yayı r + dışa açılan bati_hat / guney_hat yarı-doğruları; ic_nokta vadinin içini gösterir) itibaren zemin teras teras alçalır, deniz aşağıdadır. Kamera ufku görmediği için Boğaz ancak böyle kadraja girer. Dış zemin bu alanda açılır. Yürünemez."},
-    {"id": "karsi_kiyi", "tip": "karsi_kiyi", "hat": [[72, -430], [135, -265], [200, -200], [330, -135], [690, -70]], "yukseklik": 22, "derinlik": 120, "ev_aralik": 16, "ev_uzanim": 150, "renk": "#8DB07A"},
-    {"id": "kopru_15_temmuz", "tip": "kopru", "baslangic": [62, -150], "bitis": [205, -196], "kule_konum": [0.2, 0.8], "kule_yukseklik": 24, "guverte_yukseklik": 9, "genislik": 5,
-     "not": "Stilize asma köprü silueti, zorlanmış perspektif (gerçek ölçek değil). Yükseklikler deniz kotundan."},
+     "tohum": 7, "teras": {"adet": 5, "seyir": 4, "genislik": 10, "kirik": 5}, "deniz_y": -35, "deniz_renk": ["#4FC3E8", "#9ED9F0"], "deniz_gecis": 320,
+     "ev": {"uzanim": 80, "en_az": 2, "en_fazla": 4, "bosluk": 22, "teras_basina": 5, "agac_olcek": 0.9},
+     "not": "3A-1 §B. Taksim tepedir: plato kenarından (plaza yayı r + dışa açılan bati_hat / guney_hat yarı-doğruları; ic_nokta vadinin içini gösterir) itibaren zemin teras teras alçalır, deniz aşağıdadır. Kamera ufku görmediği için Boğaz ancak böyle kadraja girer. Dış zemin bu alanda açılır. Yürünemez. 3A-2: teras düşüşü YAZILMAZ — |deniz_y| / adet olarak türetilir (boşluk/bindirme olmasın); kirik: teras kenarı tohumlu kırık (m); tohum: dizilim tohumu (ev/ağaç öbekleri her açılışta aynı)."},
+    {"id": "karsi_kiyi", "tip": "karsi_kiyi", "hat": [[55, -205], [120, -188], [210, -178], [330, -160], [690, -130]], "yukseklik": 22, "derinlik": 120, "ev_baslangic": 0, "ev_uzanim": 330, "ev_derinlik": [6, 42], "obek": {"en_az": 3, "en_fazla": 5, "bosluk": 13, "en_cok": 40, "agac_olcek": 1.25}, "minare_konum": [0.22, 0.5, 0.78], "minare_derinlik": 14, "minare_yukseklik": 26, "renk": "#8DB07A", "not": "3A-2: evler öbek öbek (3–5), öbek arası ağaç kümesi, en çok 40 ev; minareler kıyı hattı boyunca oransal konumda"},
+    {"id": "kopru_15_temmuz", "tip": "kopru", "baslangic": [30, -135], "bitis": [200, -150], "kule_konum": [0.2, 0.8], "kule_yukseklik": 50, "guverte_yukseklik": 20, "genislik": 5,
+     "not": "Stilize asma köprü silueti, zorlanmış perspektif (gerçek ölçek değil). Yükseklikler deniz kotundan. 3A-2: deniz −35 ile köprü ve karşı kıyı plazaya YAKLAŞTIRILDI — kamera ufka bakmadığı için yükselen siluet uzakta kadrajın üstünden taşıyordu."},
     {"id": "sehir_kusagi_kuzey", "tip": "siluet", "cokgen": [[-140, -130], [0, -130], [0, -170], [-140, -170]], "yukseklik": 24},
     {"id": "sehir_kusagi_bati", "tip": "siluet", "cokgen": [[-190, -120], [-150, -120], [-150, 200], [-190, 200]], "yukseklik": 20}
   ],

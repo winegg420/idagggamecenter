@@ -8,7 +8,7 @@
 // ============================================================
 import * as THREE from "three";
 import { mergeGeometries } from "three/addons/utils/BufferGeometryUtils.js";
-import { vadiDeligi, bogazParcalari } from "./bogaz.js";
+import { vadiDeligi, bogazParcalari, bogazYerlesimi } from "./bogaz.js";
 
 export const PROPLAR = ["prop_agac_govde", "prop_agac_tac", "prop_lamba", "prop_bank", "prop_saksi", "prop_kedi"];
 const BOLGE_DIGER = 17;
@@ -157,7 +157,7 @@ function propKonumlari(M) {
 function orneklendir(kaynak, konumlar, ad, { golge = true } = {}) {
   const im = new THREE.InstancedMesh(kaynak.geometry, kaynak.material, Math.max(1, konumlar.length));
   const M4 = new THREE.Matrix4(), q = new THREE.Quaternion(), s = new THREE.Vector3(), p = new THREE.Vector3(), Y = new THREE.Vector3(0, 1, 0);
-  konumlar.forEach((k, i) => { M4.compose(p.set(k.x, 0, k.z), q.setFromAxisAngle(Y, k.don ?? 0), s.setScalar(k.olcek ?? 1)); im.setMatrixAt(i, M4); });
+  konumlar.forEach((k, i) => { M4.compose(p.set(k.x, k.y ?? 0, k.z), q.setFromAxisAngle(Y, k.don ?? 0), s.setScalar(k.olcek ?? 1)); im.setMatrixAt(i, M4); });
   im.count = konumlar.length; im.name = ad; im.castShadow = golge; im.receiveShadow = true;
   im.computeBoundingSphere();
   return im;
@@ -173,9 +173,11 @@ export function cevreKur({ M, gb, sahne, render, proplar, hucreler, malzeme, tem
   // zemin: gri bölge tonları + alan işaretleri yerine atlaslı karo
   grup.add(zeminKur(M, hucreler, malzeme)); gb.gri.zemin.visible = false; gb.gri.alan.visible = false;
   const L = propKonumlari(M);
-  if (proplar.prop_agac_govde && proplar.prop_agac_tac && L.agac.length) {
-    grup.add(orneklendir(proplar.prop_agac_govde, L.agac, "agac_govde"));
-    const tac = orneklendir(proplar.prop_agac_tac, L.agac, "agac_tac", { golge: false });
+  // 3A-2 §B: Boğaz vadisi / karşı kıyı ağaç kümeleri AYNI örnek mesh'e eklenir (ek çağrı yok); çarpışma ve temas gölgesi almazlar (yürünemez alan)
+  const bogazAgac = bogazYerlesimi(M)?.agaclar ?? [], tumAgac = [...L.agac, ...bogazAgac];
+  if (proplar.prop_agac_govde && proplar.prop_agac_tac && tumAgac.length) {
+    grup.add(orneklendir(proplar.prop_agac_govde, tumAgac, "agac_govde"));
+    const tac = orneklendir(proplar.prop_agac_tac, tumAgac, "agac_tac", { golge: false });
     grup.add(tac);
     // 1D Bölüm D: taç gölgesini küre vekili atar; vekil ana geçişte görünmez (getRenderTarget() null) → ek çağrı yok
     const vekilGeo = new THREE.SphereGeometry(1.55, 7, 5).scale(1.1, 1, 1.1).translate(0, 5.0, 0);
@@ -185,7 +187,7 @@ export function cevreKur({ M, gb, sahne, render, proplar, hucreler, malzeme, tem
     Object.defineProperty(vekil, "visible", { get: () => render.getRenderTarget() !== null, set() {}, configurable: true });
     grup.add(vekil);
     for (const k of L.agac) { gb.kutuEkle({ x: k.x, z: k.z, yx: 0.3 * k.olcek / 0.7, yz: 0.3 * k.olcek / 0.7, id: "agac" }); temas?.ekle({ visible: true, parent: grup, getWorldPosition: (v) => v.set(k.x, 0, k.z) }, 1.5 * k.olcek, { cevre: true }); }
-    sayilar.agac = L.agac.length;
+    sayilar.agac = L.agac.length; sayilar.agacBogaz = bogazAgac.length;
   }
   if (proplar.prop_lamba && L.lamba.length) { grup.add(orneklendir(proplar.prop_lamba, L.lamba, "lamba")); gb.gri.lamba.visible = false; sayilar.lamba = L.lamba.length; }
   if (proplar.prop_bank && L.bank.length) {
