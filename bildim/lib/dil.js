@@ -776,6 +776,7 @@ const SOZLUK = {
     "kaydedilmez": "isn't recorded",
     ". Bağlantı kurulurken cihazlarınızın IP adresleri karşı tarafa görünebilir — bu yüzden yalnız arkadaşlarınla açılır. İstediğin an kapatabilirsin.": ". While connecting, your devices' IP addresses may be visible to the other side — that's why it only works with friends. You can turn it off at any time.",
     "Süre doldu!": "Time's up!",
+    "Sorular tamamlandı!": "All questions done!",
     "Nasıl oynanır?": "How to play?",
     "20 soruluk kapışmalarda rakibinle yarışırsın. Her doğru cevap 10 puan — ": "You face your opponent in 20-question showdowns. Each correct answer is worth 10 points — ",
     "hızlı basmak fark etmez, bilmek yeter. Sıra beklemek yok: sen istediğin ": "speed doesn't matter, knowing does. No waiting for turns: you play whenever ",

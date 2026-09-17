@@ -63,6 +63,8 @@ export default function HizliModPage() {
   // Sayaç tiki: sekmeden dönüşte dışarıdan elle tetiklenebilsin.
   const tikRef = useRef(null);
   const bittiRef = useRef(false);
+  // 2D-D.1: oturum soru tavanıyla (hizli_mod_soru_tavani) bittiyse perde "Süre doldu!" demesin
+  const tavanlaBittiRef = useRef(false);
   const sonTikRef = useRef(null);
 
   useEffect(() => { sesKilidiAc(); }, []);
@@ -122,6 +124,7 @@ export default function HizliModPage() {
   const basla = async () => {
     setHata(null);
     bittiRef.current = false;
+    tavanlaBittiRef.current = false;
     try {
       const { data, error } = await supabase.rpc("hizli_mod_baslat", {
         p_kategori: kategori,
@@ -195,6 +198,8 @@ export default function HizliModPage() {
       });
       if (error) throw error;
       const s = Array.isArray(data) ? data[0] : data;
+      // Sunucu bitince kalan süreyi 0 döndürür; istemci saatinde süre hâlâ varsa bitiş soru tavanındandır
+      if (s?.bitti) tavanlaBittiRef.current = toplamRef.current.kalan - (Date.now() - toplamRef.current.an) / 1000 > 1.5;
       setSonucSoru(s);
       setSkor(s?.skor ?? skor);
       toplamAyarla(s?.kalan_toplam_sn ?? 0);
@@ -320,7 +325,7 @@ export default function HizliModPage() {
 
   // Süre doldu perdesi (0.8 sn) — sonuç ekranından önce
   if (asama === "gecis") {
-    return <SureDolduGecis baslik={tt("Süre doldu!")} skor={sonuc?.skor ?? skor} skorEtiket="doğru" />;
+    return <SureDolduGecis baslik={tavanlaBittiRef.current ? tt("Sorular tamamlandı!") : tt("Süre doldu!")} skor={sonuc?.skor ?? skor} skorEtiket="doğru" />;
   }
 
   if (asama === "oyun") {
