@@ -264,7 +264,25 @@ export function testParcaButunlugu(adalar, u, E, sonuc, onek = "") {
 
 // ---------------------------------------------------------------- PAKET 23 §F.2 / §F.3 GÖVDE
 /** Gövde kesitleri: her yükseklikte merkez eksenden ışınla ön/arka/yan yüzey (düşük çözünürlükte köşe saymak yanıltıyordu). */
-export function govdeKesitleri(geo, y0, y1, N = 11) {
+/** Yalnız GÖVDE KABUĞU bölgeleri: ceket/kapüşon/yaka set 1'de görünmez ama geometri durur; ışın onları
+ *  yakalayıp kesit derinliğini 2,6 cm şişiriyordu (ölçüldü). Süzgeç: ust · metal · boya · ekran. */
+export function govdeKabugunuSuz(geo) {
+  const b = geo.attributes._bolge;
+  if (!b || !geo.index) return geo;
+  const izin = new Set([4, 10, 11, 12]);
+  const idx = Array.from(geo.index.array), kalan = [];
+  for (let t = 0; t < idx.length; t += 3) {
+    const [a, c, d] = [idx[t], idx[t + 1], idx[t + 2]];
+    if (izin.has(Math.round(b.getX(a))) || izin.has(Math.round(b.getX(c))) || izin.has(Math.round(b.getX(d)))) kalan.push(a, c, d);
+  }
+  if (!kalan.length) return geo;
+  const g = geo.clone();
+  g.setIndex(kalan);
+  return g;
+}
+
+export function govdeKesitleri(geo0, y0, y1, N = 11) {
+  const geo = govdeKabugunuSuz(geo0);
   const mesh = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({ side: THREE.DoubleSide }));
   mesh.updateMatrixWorld(true);
   const rc = new THREE.Raycaster();
@@ -294,8 +312,8 @@ export function govdeTestEt(s, u, E, sonuc) {
   if (k.length < 4) { sonuc.istatistik.siluet_profili = "kesit alınamadı"; return; }
   const alt = k.filter((d) => d.t <= 0.3), ust = k.filter((d) => d.t >= 0.7);
   const ort = (a, f) => a.reduce((x, d) => x + f(d), 0) / Math.max(1, a.length);
-  const karin = k.filter((d) => d.t >= 0.15 && d.t <= 0.45), gogus = k.filter((d) => d.t >= 0.55 && d.t <= 0.85);
-  const dk = Math.max(...karin.map((d) => d.derinlik)), dg = Math.max(...gogus.map((d) => d.derinlik));
+  const karin = k.filter((d) => d.t >= 0.25 && d.t <= 0.55), gogus = k.filter((d) => d.t >= 0.62 && d.t <= 0.88);
+  const dk = Math.min(...karin.map((d) => d.derinlik)), dg = Math.max(...gogus.map((d) => d.derinlik));   // BEL = en dar nokta
   const belOrani = (dg - dk) / dg;
   const tasma = Math.max(...karin.map((d) => d.on)) - Math.max(...gogus.map((d) => d.on));
   const yuzeyDz = ort(ust, (d) => d.merkez) - ort(alt, (d) => d.merkez);

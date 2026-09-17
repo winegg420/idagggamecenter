@@ -56,6 +56,10 @@ Bir muayene sonucu **hiçbir yerde tek başına "0 aday" diye yazılamaz.** Her 
    delik, kâğıt incelik, kadraj, kesişim, simetri) bulur. **0 aday = "bu testlerden geçti",
    "güzel oldu" DEĞİL.** Görsel yargı sahibinindir; muayene onun yerine geçmez.
 
+**Paket 23 §F.4 eki:** "0 aday" bir **kalite kapısı değildir, geometrik tutarlılık kapısıdır.** Estetik, oran,
+stil uyumu ve "inandırıcı mı" sorusu göz kararıdır; muayene bunu hiçbir zaman ölçmeyecek. Rapor "düzeldi" demekle
+bitmez, görselle biter.
+
 `npm run muayene` bu bloğu koşunun sonunda kendisi basar ve `cikti/ozet.json › kapsam`
 alanına yazar — rapora oradan aynen geçirilir. Kural neden var: Paket 21'de sahibi vitrinde
 boynuna bağlı pelerin, havada taç, altı delik şapka görürken muayene "0 aday · 0 susturulan"

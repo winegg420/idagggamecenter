@@ -5481,3 +5481,35 @@ takılı hâlde ölçülmüyordu.
   pakette yapılmadı ve raporda açıkça yazıldı.
 
 Rapor: `PAKET21_RAPOR.md`. Görseller: `gorsel/paket21/once_*.png` · `sonra_*.png` (21 kart × önce/sonra).
+
+## 17 Eyl 2026 — PAKET 23: Karakter görsel revizyonu (Opus 5)
+
+**Sahibinin şikâyetleri:** karakterler kambur duruyor, karınlarında çıkıntı var; şapka inandırıcı değil ve altında
+boşluk görünüyor; atkının bağlantısı kopuk; pelerin enseye bağlı, havada; yüz detayları yetersiz.
+
+**Ölçülen kök sebepler (hepsi rapora yazıldı):** gövde kalçadan boyna tek kapsüldü ve yarıçapı sabitti (ışınla
+ölçülen derinlik her yükseklikte 40,0 cm → bel farkı %0, düz fıçı); gövdenin tamamı tek kemiğe %100 bağlıydı
+(4 ağırlık yuvasından 1'i) → bükülmek yerine Spine1 etrafında deviriliyordu; bind pozu ile Idle arasında ~7,4 cm
+(10°) fark var. Şapka 3 ayrı parça, atkı 2 ayrı parça, pelerinin üst kenarı düz çizgi ve hiçbir bağlantı elemanı yok;
+yüz anatomisi 47 cm çapındaki kafada 1,5–3 mm'lik kaydırmalardan ibaretti.
+
+**Yapılanlar:** profilli gövde kabuğu (kalça–bel–göğüs–omuz) + omurga ağırlıkları; şapkanın siperi kubbenin ön
+kenarından türetildi (tek ada); atkı tek sürekli şerit (yeni `seritSupur`); pelerin gövdenin arka yüzeyini izliyor
+ve yaka bandı kazandı; yüz derinlikleri 5–16 mm'ye çıkarıldı. Üç yeni muayene testi: `parca_butunlugu`,
+`siluet_profili`, `durus_ekseni`; ayrıca `kozmetik` testi artık kesişimin derinliğini ölçüyor.
+
+**Sonuç:** bel farkı %0 → %15,0 · gövde ekseni +3,4 cm öne → −1,2 cm · şapka 3 ada → 1 · atkı 2 ada → 1 ·
+pelerin üst kenarı 3,0 cm → 1,8 cm. Tam tarama 0 aday (kozmetik dışı 8 bina/prop adayı hariç). Çizim çağrısı
+153 → 153, üçgen +%3,3, CPU 5,2 ms (değişmedi).
+
+**Çıkarımlar:**
+- **Testler birbirine zıt şart koyabilir.** `oturma` temas ister, `kozmetik` kesişim yasaklar; çözüm ölçüyü
+  derinleştirmek oldu (2 cm'ye kadar yüzeysel temas normal). Aynı şey `havada` ile `parca_butunlugu` arasında da var:
+  gövdeye değmek, parçaların birbirine bağlı olduğu anlamına gelmiyor.
+- **Ölçüm penceresi yanlışsa test yanlış "geçer".** Bel ölçümü önce kalça bloğunu, sonra ceket kabuğunu yakaladı;
+  düzeltilene kadar bel farkı sabit %8 görünüyordu. Bel = gövdenin EN DAR yeri (minimum), karın taşması = maksimum.
+- **Düşük çözünürlüklü mesh'te köşe saymak yanıltır** — kesit ölçümleri ışınla yapılmalı.
+- Varyant üretimi için `P23_BEL` / `P23_YUZ` çevre değişkenleri bırakıldı (varsayılan 1 = uygulanan sürüm).
+
+Rapor: `PAKET23_RAPOR.md`. Görseller: `gorsel/paket23/{once,sonra,varyant_A2_ince_bel,varyant_E2_guclu_yuz}/`
+(her biri 18 görsel: 3 tür × {bind, Idle t=0,5} × {ön, yan, yüz 3/4}).
