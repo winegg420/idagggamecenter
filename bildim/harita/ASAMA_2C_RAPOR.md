@@ -13,9 +13,9 @@
 
 **Kullanım (telefonda):**
 
-- Aç: `https://quizsquare.vercel.app/harita?olcum=1`
+- Aç: `https://quiztactics.vercel.app/harita?olcum=1`
 - Bir kez açınca bu cihazda hatırlanır; sonra `/harita` yeterli.
-- Kapat: `https://quizsquare.vercel.app/harita?olcum=0`
+- Kapat: `https://quiztactics.vercel.app/harita?olcum=0`
 - Hub'da aynı parametre `/bildim/harita?olcum=1` ile çalışır.
 - Normal oyuncu görmez: varsayılan kapalı.
 

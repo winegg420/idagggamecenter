@@ -21,7 +21,7 @@ AO ya da süs ışığı yok, her şeyin üstünde bir kimlik etiketi var.
 
 | Nerede | Adres |
 |---|---|
-| Quiz Tactics | `https://quizsquare.vercel.app/harita?harita=taksim` |
+| Quiz Tactics | `https://quiztactics.vercel.app/harita?harita=taksim` |
 | Hub | `https://idagg-game-center.vercel.app/bildim/harita?harita=taksim` |
 | Eski meydana dönüş | aynı adres, sonunda `?harita=eski` |
 

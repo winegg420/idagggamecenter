@@ -123,9 +123,14 @@ export default defineConfig(({ mode }) => {
   // DİKKAT — burada ÇALIŞAN bir adres olmalı. Bir süre `quizsquare.app`
   // yazıyordu ama o alan adı HENÜZ SATIN ALINMADI (nslookup: NXDOMAIN);
   // ortam değişkeni silinseydi sitemap ve paylaşım kartları var olmayan bir
-  // adresi duyuracaktı. Gerçek alan adı alınınca hem burası hem Vercel'deki
-  // VITE_SITE_URL güncellenmeli.
-  const VARSAYILAN_SITE = "https://quizsquare.vercel.app";
+  // adresi duyuracaktı. Gerçek alan adı (quiztactics.com) alınınca hem burası
+  // hem Vercel'deki VITE_SITE_URL güncellenmeli.
+  //
+  // 17 Eyl 2026: Vercel projesi quizsquare → quiztactics oldu; yeni yayın
+  // adresi quiztactics.vercel.app. Eski quizsquare.vercel.app alan adı
+  // projede DURUYOR (eski paylaşılmış linkler kırılmasın diye), ama
+  // duyurulan adres artık yeni olan.
+  const VARSAYILAN_SITE = "https://quiztactics.vercel.app";
   const siteUrl = (env.VITE_SITE_URL || (uygulamaModu === "bildim" ? VARSAYILAN_SITE : ""))
     .replace(/\/+$/, "");
   return {

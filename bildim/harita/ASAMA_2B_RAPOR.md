@@ -1,7 +1,7 @@
 # Aşama 2B — Yeni karakter ve proplar gerçek haritada, eski harita kaldırıldı
 
 **Tarih:** 17 Eylül 2026
-**Canlı:** https://quizsquare.vercel.app/harita (artık parametre yok; tek harita Taksim)
+**Canlı:** https://quiztactics.vercel.app/harita (artık parametre yok; tek harita Taksim)
 **Durum:** entegrasyon tamam. **§6 performans kapısı 25 tam karakterde GEÇMEDİ (PASS değil).** Kural gereği `UC_BOYUTLU_SINIR` 8'e indirildi. Sonuç aşağıda raporlandı. **DUR.**
 
 ## Özet

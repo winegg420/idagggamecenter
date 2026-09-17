@@ -79,7 +79,7 @@ function onizlemeyeCevir(gorunum,bolum){
 // (`/bildim/avatar3d/gardrop.html`); React Router'ın geri yığınına ait
 // değil. Oyuncu Quiz Tactics'in hangi ekranından geldiyse oraya döner.
 // Güvenli varsayılan `/bildim`:
-//   • quizsquare (VITE_MOD=bildim): BildimApp `/bildim`i köke (`/`) indirir
+//   • quiztactics (VITE_MOD=bildim): BildimApp `/bildim`i köke (`/`) indirir
 //     → Quiz Tactics ana sayfası.
 //   • hub (VITE_MOD yok): `/bildim` Quiz Tactics'in ana sayfasıdır.
 // Geliş adresi yalnız AYNI KÖKENDEYSE kullanılır. `/gorunum` hariç tutulur:

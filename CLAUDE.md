@@ -52,8 +52,8 @@ Aynı anda **tek araç** çalışır. Codex çalışırken Claude Code'a görev
 verilmez, tersi de geçerli. Biri işini bitirip push etmeden diğeri başlamaz.
 
 ### İki Vercel projesi
-Bu depo iki projeyi besler: `idagg-game-center` (hub) ve `quizsquare`.
-Ayrımı **`VITE_MOD`** env değişkeni yapar (quizsquare'de `bildim`, hub'da
+Bu depo iki projeyi besler: `idagg-game-center` (hub) ve `quiztactics`.
+Ayrımı **`VITE_MOD`** env değişkeni yapar (quiztactics'te `bildim`, hub'da
 tanımsız). `vercel.json`'daki `buildCommand` **moda özel olmamalıdır**.
 Ayrıntı: aşağıdaki "İKİ VERCEL PROJESİ" bölümü.
 
@@ -93,10 +93,15 @@ Bu depo **iki Vercel projesini** besler:
 | Proje | Adres | Ne derlenir |
 |---|---|---|
 | `idagg-game-center` | idagg-game-center.vercel.app | **Hub** — tüm oyunlar |
-| `quizsquare` | quizsquare.vercel.app | **Yalnız Quiz Tactics** |
+| `quiztactics` | quiztactics.vercel.app | **Yalnız Quiz Tactics** |
 
-Ayrımı **tek şey** yapar: `VITE_MOD` ortam değişkeni. quizsquare
+Ayrımı **tek şey** yapar: `VITE_MOD` ortam değişkeni. quiztactics
 projesinde `bildim` olarak tanımlıdır; hub projesinde **tanımsızdır**.
+
+> 17 Eyl 2026: Vercel projesi `quizsquare` → **`quiztactics`** olarak
+> yeniden adlandırıldı; yayın adresi **quiztactics.vercel.app**. Eski
+> `quizsquare.vercel.app` alan adı projede duruyor (eski linkler çalışsın
+> diye), ama duyurulan/varsayılan adres yenisidir.
 
 `vercel.json`'daki `buildCommand` **moda özel olmamalıdır.** İki proje de
 aynı `vercel.json`'u okur ve oradaki komut panel ayarını **ezer**; oraya
