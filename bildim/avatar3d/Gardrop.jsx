@@ -1,3 +1,25 @@
+// ┌───────────────────────────────────────────────────────────────────────────
+// │ DONDURULDU — Eski 3B gardırop / atölye / yerel meydan denemesi
+// │ Tarih: 17 Eylül 2026   ·   Paket: 17 §D
+// │
+// │ Neden: meydanda yeni GLB karakterler (insan · kaplan · robot) yürürken
+// │ dükkân ve gardırop eski kutu karakterleri gösteriyordu. Yerine
+// │ bildim/vitrin/KarakterVitrini.jsx kondu (rota /bildim/gorunum).
+// │
+// │ Dosyalar: bildim/avatar3d/ altındaki her şey · üç HTML girişi
+// │ (gardrop.html, index.html, meydan.html) açılınca /bildim/gorunum'a yönlenir.
+// │ vite.config.js › rollupOptions.input'a DOKUNULMADI (giriş listesi orada durur).
+// │
+// │ Geri açmak:
+// │   1. Üç HTML'in <head>'indeki location.replace satırını kaldır
+// │   2. src/App.jsx + src/BildimApp.jsx'te /gorunum → GardropaGit, /gorunum-3b → GorunumPage
+// │   3. Layout üst çubuk kısayolunu ve Dükkân › Görünüm sekmesini geri koy
+// │   4. Dikkat: vitrin kaydı (gorunum.harita.koz) meydanda eski kaydın önüne geçer
+// │
+// │ Veri durur: avatar3d_parcalar, avatar3d_sahip, profiles.gorunum.avatar3d.
+// │ Bu dosya SİLİNMEZ ve düzenlenmez. Tam liste: kök CLAUDE.md › Dondurulmuşlar.
+// └───────────────────────────────────────────────────────────────────────────
+
 import React,{useEffect,useRef,useState} from 'react';
 import {createRoot} from 'react-dom/client';
 import {sahneKur} from './sahne.js';

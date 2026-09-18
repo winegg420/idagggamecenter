@@ -1,3 +1,19 @@
+// ┌───────────────────────────────────────────────────────────────────────────
+// │ DONDURULDU — "Hızlı Olan Kazanır"
+// │ Tarih: 15 Eylül 2026   ·   Paket: 14
+// │
+// │ Neden: Hiç kullanılmadı: tabloda 0 kayıt. Ayrıca "herkese aynı anda aynı soru" fikri reddedilmiş fikirler arasında.
+// │
+// │ Dosyalar: bildim/pages/HizliMacPage.jsx · tablolar hizli_maclar, hizli_oyuncular, hizli_cevaplar
+// │
+// │ Geri açmak:
+// │   1. oyun_ayarlari › hizli_mac_acik = true
+// │   2. src/App.jsx ve src/BildimApp.jsx'te /hizli-mac/:id rotasını bu sayfaya geri bağla
+// │   3. Davet akışındaki 'hizli' türünü arayüze geri aç
+// │
+// │ Bu dosya SİLİNMEZ ve düzenlenmez. Tam liste: kök CLAUDE.md › Dondurulmuşlar.
+// └───────────────────────────────────────────────────────────────────────────
+
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Ikon from "../components/Ikon.jsx";
 import SenRozeti from "../components/SenRozeti.jsx";

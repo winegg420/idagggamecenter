@@ -350,6 +350,36 @@ Bunlar onaylanmış kararlardır, aksini yapma:
 - Loot box / şans kutusu
 - Nötr gri/mavi palet, düzleşmiş butonlar
 
+## DONDURULMUŞLAR — tek liste (Paket 26 D, 18 Eyl 2026)
+
+**Hiçbiri silinmez.** Dosyalar ve veri yerinde durur; yalnız arayüzden girişi yoktur.
+Her dosyanın başında aynı biçimde bir dondurma bloğu vardır (neden · tarih · paket ·
+dosyalar · geri açma adımları). Dağınık not bırakma, buraya ekle.
+
+| Modül | Tarih | Paket | Dosyalar | Sunucu kapısı | Geri açma |
+|---|---|---|---|---|---|
+| **Hızlı Mod** | 18 Eyl 2026 | 24 B | `bildim/pages/HizliModPage.jsx` | `oyun_ayarlari.hizli_mod_acik = false` + tabloda BEFORE INSERT kapısı | Ayarı `true` yap · rotayı, ana sayfa düğmesini ve harita binasını geri koy · joker testindeki TEST 9 yorumunu aç |
+| **"Hızlı Olan Kazanır"** | 15 Eyl 2026 | 14 | `bildim/pages/HizliMacPage.jsx` | `oyun_ayarlari.hizli_mac_acik = false` + BEFORE INSERT kapısı | Ayarı `true` yap · `/hizli-mac/:id` rotasını geri bağla · davet akışındaki `hizli` türünü aç |
+| **Eski 3B gardırop / atölye / yerel meydan** | 17 Eyl 2026 | 17 §D | `bildim/avatar3d/**` | yok (HTML girişleri yönlendiriyor) | Üç HTML'deki `location.replace` satırını kaldır · `/gorunum` ve `/gorunum-3b` rotalarını geri bağla · Dükkân › Görünüm sekmesini geri koy |
+
+**Donmuş rotaların davranışı tutarlıdır (ölçüldü):** donmuş oyun modları `/bildim`'e,
+donmuş gardırop sayfaları `/bildim/gorunum`'a gider — her biri kendi modülünün
+yerine geçen sayfaya. Dört giriş de (iki React rotası + üç HTML) aynı biçimde
+`replace` ile yönlendirir, geri tuşuna basınca döngü olmaz.
+
+### Asenkron 1v1 maç dalı — DONDURULMUŞ DEĞİL, KULLANILMIYOR
+
+Paket 26'da canlıdan ölçüldü, önceki varsayım doğru çıkmadı:
+
+- `matches` tablosunda **48 satırın tamamı `senkron = true`**; `senkron = false` olan
+  **hiç maç yok** (son 30 günde de 0).
+- Ama dal **ölü değil, erişilebilir**: `mac_asenkrona_gec()` `senkron = false` yazan tek
+  canlı yoldur ve `bildim/pages/MatchPage.jsx:428` üzerinden, rakip maça gelmediğinde
+  (rakip bot değilse) oyuncuya düğme olarak sunulur.
+
+Yani "kimse kullanmamış" ile "çağrılamaz" ayrı şeylerdir. Dalı kaldırmadan önce o
+düğmenin ne olacağına karar verilmelidir; bu pakette **dokunulmadı**.
+
 ## Proje Hafızası
 
 - **PROGRESS.md** — Yapılan işler, kararlar ve nedenleri burada tutulur. Oturuma başlarken **önce oku**, oturum sonunda **ekleme yaparak güncelle** (üzerine yazma).

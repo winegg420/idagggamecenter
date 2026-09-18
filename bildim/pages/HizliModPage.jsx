@@ -1,3 +1,20 @@
+// ┌───────────────────────────────────────────────────────────────────────────
+// │ DONDURULDU — Hızlı Mod
+// │ Tarih: 18 Eylül 2026   ·   Paket: 24 B
+// │
+// │ Neden: Son 30 günde 4 oturum / 2 oyuncu — mod fiilen ölüydü. Oturum başına lig tavanı vardı ama lig puanında GÜNLÜK tavan olmadığı için saatte ~750 puan üretilebiliyordu.
+// │
+// │ Dosyalar: bildim/pages/HizliModPage.jsx · tablolar hizli_mod_oturumlar, hizli_mod_skorlar
+// │
+// │ Geri açmak:
+// │   1. oyun_ayarlari › hizli_mod_acik = true (tablodaki BEFORE INSERT kapısı buna bakar)
+// │   2. src/App.jsx ve src/BildimApp.jsx'te /hizli-mod rotasını bu sayfaya geri bağla
+// │   3. Ana sayfadaki mod düğmesini ve harita binasını geri koy (yanlarında yorum var)
+// │   4. bildim/_test/joker-kurallari-test.sql › TEST 9 blokunun yorumunu kaldır
+// │
+// │ Bu dosya SİLİNMEZ ve düzenlenmez. Tam liste: kök CLAUDE.md › Dondurulmuşlar.
+// └───────────────────────────────────────────────────────────────────────────
+
 import { useCallback, useEffect, useRef, useState } from "react";
 import KategoriIkon from "../components/KategoriIkon.jsx";
 import BildirimIzniSor from "../components/BildirimIzniSor.jsx";

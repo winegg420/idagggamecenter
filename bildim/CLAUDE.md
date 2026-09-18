@@ -45,6 +45,21 @@ Bildim, hub'ın **çekirdek** oyunu olduğundan tabloları **öneksizdir** (`pro
 
 Bildim kabuğun kendisiyle iç içedir (tabbar/Layout, GameCenter portalı). Bağımsızlaştırmak istenirse: `bildim/` + paylaşılan `src/` (AuthContext, supabase, Avatar, styles) + `supabase/` birlikte taşınır; `src/App.jsx` sadeleştirilip yalnız Bildim rotaları bırakılır.
 
+## DONDURULMUŞLAR — tek liste (Paket 26 D, 18 Eyl 2026)
+
+Kök `CLAUDE.md` › Dondurulmuşlar ile **aynı listedir**; biri değişirse ikisi birden
+güncellenir. Her dondurulmuş dosyanın başında aynı biçimde bir blok vardır.
+
+| Modül | Tarih | Paket | Dosyalar | Sunucu kapısı | Geri açma |
+|---|---|---|---|---|---|
+| Hızlı Mod | 18 Eyl 2026 | 24 B | `pages/HizliModPage.jsx` | `hizli_mod_acik = false` + BEFORE INSERT | ayarı `true` · rota + ana sayfa düğmesi + harita binası · joker testi TEST 9 |
+| "Hızlı Olan Kazanır" | 15 Eyl 2026 | 14 | `pages/HizliMacPage.jsx` | `hizli_mac_acik = false` + BEFORE INSERT | ayarı `true` · `/hizli-mac/:id` rotası · davet türü |
+| Eski 3B gardırop / atölye / yerel meydan | 17 Eyl 2026 | 17 §D | `avatar3d/**` | yok | aşağıdaki bölüm |
+
+**Asenkron 1v1 dalı dondurulmuş DEĞİL:** hiç kullanılmamış (48 maçın hepsi
+`senkron = true`) ama `MatchPage.jsx:428` › `mac_asenkrona_gec()` ile hâlâ
+erişilebilir. Ayrıntı: kök `CLAUDE.md`.
+
 ## Eski gardırop dondurma (17 Eyl 2026, Paket 17 §D)
 
 **Neden:** meydanda yeni GLB karakterler (insan · kaplan · robot) yürürken dükkân/gardırop eski kutu karakterleri gösteriyordu. Sahibi kararı: eski görünüm sistemi oyunun hiçbir yerinde görünmesin, yeni karakter sistemiyle küçük bir vitrin kurulsun. Kozmetik ekonomisi kapanmadı.
