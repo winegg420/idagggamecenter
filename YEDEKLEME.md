@@ -51,11 +51,12 @@ geri yüklemeye dahil; hesap sayısı kaynakla birebir tutmazsa iş **kırılır
 
 Boş bir Postgres kabı Supabase değildir; dökümdeki bazı nesnelerin karşılığı orada
 yoktur. İlk koşuda **112 hata** atlanmıştı (RLS politikaları `authenticated` rolü
-olmadan kurulamıyordu). Hedefe `anon`/`authenticated`/`service_role` rolleri,
-`extensions` şeması ve `pg_trgm` kurulunca bu sayı **41 satıra** indi ve geriye
-yalnız kendi kurduğumuz `auth.uid/role/jwt` iskeletlerinin dökümdekiyle çakışması
-kaldı — **hiçbiri veri değil**. Asıl kapı satır sayısı karşılaştırmasıdır ve o
-birebir tutuyor.
+olmadan kurulamıyordu). Hedefe `anon`/`authenticated`/`service_role` rolleri ve
+`extensions` şeması kurulunca günlük **480 → 41 satıra**, `pg_trgm` de eklenince
+**37 satıra** indi (son koşu `35328927572`). Geriye yalnız kendi kurduğumuz
+`auth.uid/role/jwt` iskeletlerinin dökümdekiyle çakışması kaldı — **hiçbiri veri
+değil**. Asıl kapı satır sayısı karşılaştırmasıdır ve o birebir tutuyor:
+son koşuda 43.786 → 43.786, hesaplar 205 → 205.
 
 ---
 
