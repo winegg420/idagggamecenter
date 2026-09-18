@@ -53,7 +53,7 @@ begin
   -- Bol joker ver
   perform public.joker_hareket(v_u1, 'elli', 50, 'hediye', 'test');
   perform public.joker_hareket(v_u1, 'sure', 50, 'hediye', 'test');
-  perform public.joker_hareket(v_u1, 'pas', 50, 'hediye', 'test');
+  perform public.joker_hareket(v_u1, 'soru_degistir', 50, 'hediye', 'test');
 
   -- ---------- Aktif bir lig maçı (bota karşı) ----------
   insert into public.matches (oyuncu1, oyuncu2, durum, kategori, soru_ids, aktif_soru, soru_baslangic)
@@ -64,7 +64,7 @@ begin
   perform public.joker_kullan('1v1', v_mac, 0, 'elli');   -- 1. (ücretsiz)
   perform public.joker_kullan('1v1', v_mac, 0, 'sure');   -- 2.
   begin
-    perform public.joker_kullan('1v1', v_mac, 0, 'pas');  -- 3. → reddedilmeli
+    perform public.joker_kullan('1v1', v_mac, 0, 'soru_degistir');  -- 3. → reddedilmeli
     perform pg_temp.kontrol('Lig maçında 3. joker reddedilir', 'HATA', 'kabul edildi');
   exception when others then
     v_hata := sqlerrm;
@@ -177,13 +177,13 @@ begin
     '2',
     public.joker_mac_siniri('turnuva', v_turnuva)::text);
 
-  -- === TEST 7: turnuvada pas jokeri yasak ===
+  -- === TEST 7: turnuvada soru degistir jokeri yasak ===
   begin
-    perform public.joker_kullan('turnuva', v_turnuva, 0, 'pas');
-    perform pg_temp.kontrol('Turnuvada pas jokeri yasak', 'HATA', 'kabul edildi');
+    perform public.joker_kullan('turnuva', v_turnuva, 0, 'soru_degistir');
+    perform pg_temp.kontrol('Turnuvada Soru Değiştir jokeri yasak', 'HATA', 'kabul edildi');
   exception when others then
     v_hata := sqlerrm;
-    perform pg_temp.kontrol('Turnuvada pas jokeri yasak', 'pas jokeri', v_hata);
+    perform pg_temp.kontrol('Turnuvada Soru Değiştir jokeri yasak', 'soru değiştirilemez', v_hata);
   end;
 
   -- === TEST 8: kullanım envanterden düşüyor ve denetim izine yazılıyor mu? ===
@@ -198,17 +198,24 @@ begin
     (v_sayi >= 1)::text);
 
   -- === TEST 9: hızlı mod lig puanına dokunmuyor ===
+  -- DONDURULDU — Paket 24 B (18 Eyl 2026). Hızlı Mod kapatıldı; tablodaki
+  -- BEFORE INSERT kapısı yeni oturumu "Bu mod şu an kapalı" diye reddediyor,
+  -- bu yüzden test artık oturum açamıyor. SİLİNMEDİ: mod geri açılırsa
+  -- (oyun_ayarlari.hizli_mod_acik = true) aşağıdaki blok olduğu gibi geri konur.
+  -- Kapanın kendisi `hizli-mod-donduruldu` testiyle ayrıca doğrulanıyor.
   declare
     v_puan_once int;
     v_oturum uuid;
   begin
-    select puan into v_puan_once from public.profiles where id = v_u1;
-    select oturum_id into v_oturum from public.hizli_mod_baslat(null);
-    perform public.hizli_mod_bitir(v_oturum);
-    perform pg_temp.kontrol(
-      'Hızlı mod lig puanını değiştirmez',
-      'true',
-      (v_puan_once = (select puan from public.profiles where id = v_u1))::text);
+    v_puan_once := null;
+    v_oturum := null;
+    -- select puan into v_puan_once from public.profiles where id = v_u1;
+    -- select oturum_id into v_oturum from public.hizli_mod_baslat(null);
+    -- perform public.hizli_mod_bitir(v_oturum);
+    -- perform pg_temp.kontrol(
+    --   'Hızlı mod lig puanını değiştirmez',
+    --   'true',
+    --   (v_puan_once = (select puan from public.profiles where id = v_u1))::text);
   end;
 end $$;
 

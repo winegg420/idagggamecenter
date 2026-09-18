@@ -16,7 +16,8 @@
     "cephe-ao": "node bildim/harita/varlik/cephe_ao.mjs",
     "test:ios:kur": "playwright-core install webkit",
     "soru:disari": "node araclar/soru_denetim/disari.mjs",
-    "soru:iceri": "node araclar/soru_denetim/iceri.mjs"
+    "soru:iceri": "node araclar/soru_denetim/iceri.mjs",
+    "test": "node --test --test-concurrency=1 \"_test/sunucu/*.test.mjs\" && npm run test:bildim && npm run test:dans"
   },
   "dependencies": {
     "@react-three/drei": "^10.7.7",

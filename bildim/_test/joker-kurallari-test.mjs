@@ -7,7 +7,6 @@
 // 052/053/054 migration'larını (henüz uygulanmadıysa) ve testi TEK bir
 // transaction içinde çalıştırır, sonunda ROLLBACK yapar — canlı veri değişmez.
 //
-// `pg` paketi kurulu değilse: npm i --no-save pg
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -43,13 +42,9 @@ const BAGLANTI =
   `postgresql://postgres.${PROJE}:${encodeURIComponent(sifre)}` +
   `@aws-1-eu-central-1.pooler.supabase.com:5432/postgres`;
 
-let pg;
-try {
-  pg = (await import("pg")).default;
-} catch {
-  console.error("`pg` paketi yok. Kur: npm i --no-save pg");
-  process.exit(1);
-}
+// Paket 26: `pg` paketi bu depoya kurulmaz (yeni npm paketi yasak). Protokolün
+// gereken kadarı araclar/pg-mini.mjs içinde; test artık onunla bağlanıyor.
+const { PgIstemci } = await import("../../araclar/pg-mini.mjs");
 
 // Migration'lar zaten uygulanmışsa tekrar çalıştırmak zararsız
 // (hepsi create-or-replace / if not exists).
@@ -63,22 +58,21 @@ const MIGRATIONLAR = [
   "supabase/migrations/20260612000055_seri_hatirlatma.sql",
 ];
 
+// Paket 26: yukarıdaki migration'lar canlıya Haziran'da uygulandı ve o gün bugün
+// fonksiyonların dönüş tipleri değişti; eskisini yeniden çalıştırmak
+// "cannot change return type of existing function" ile patlıyordu — yani bu test
+// bir süredir hiç koşmuyordu (`pg` paketi eksik olduğu için de fark edilmemişti).
+// Artık canlı şema ne ise onun üzerinde koşuyor; migration tekrarı kaldırıldı.
 const parcalar = ["begin;"];
-for (const m of MIGRATIONLAR) parcalar.push(fs.readFileSync(path.join(kok, m), "utf8"));
 parcalar.push(fs.readFileSync(path.join(kok, "bildim/_test/joker-kurallari-test.sql"), "utf8"));
 parcalar.push("rollback;");
 
-const istemci = new pg.Client({
-  connectionString: BAGLANTI,
-  ssl: { rejectUnauthorized: false },
-  statement_timeout: 300000,
-});
+const istemci = new PgIstemci(BAGLANTI);
 
 let cikisKodu = 0;
 try {
-  await istemci.connect();
-  const sonuclar = await istemci.query(parcalar.join("\n"));
-  const diziler = Array.isArray(sonuclar) ? sonuclar : [sonuclar];
+  await istemci.baglan();
+  const diziler = (await istemci.sorguCoklu(parcalar.join("\n"))).map((rows) => ({ rows }));
 
   // Son iki SELECT: ayrıntı tablosu ve özet
   const tablolar = diziler.filter((s) => s.rows && s.rows.length);
@@ -104,6 +98,6 @@ try {
   if (e.hint) console.error("ipucu:", e.hint);
   cikisKodu = 1;
 } finally {
-  await istemci.end().catch(() => {});
+  await istemci.kapat();
 }
 process.exitCode = cikisKodu;

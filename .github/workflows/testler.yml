@@ -1,0 +1,37 @@
+name: Testler
+
+# Paket 26 C — kritik sunucu mantığının otomatik testleri.
+# Node'un kendi test koşucusu (node:test) kullanılır; yeni npm paketi kurulmaz.
+# `workflow_call` ile gece yedek akışı da bu işi çağırır.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+  workflow_call:
+
+jobs:
+  test:
+    name: npm test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Bağımlılıklar
+        run: npm ci
+
+      # Sunucu testleri veritabanına bağlanır ve her şeyi ROLLBACK eder.
+      # Sır tanımlı değilse o testler ATLANIR, iş kırılmaz.
+      - name: Testler
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+        run: npm test
+
+      - name: Derleme (hub modu)
+        run: npm run build

@@ -4,11 +4,49 @@
 > doğrulandığı**, hangisinin **doğrulanamadığı** açıkça ayrılmıştır. Doğrulanmamış
 > bir adımı "çalışıyor" diye kabul etme.
 
-Son güncelleme: 10 Eylül 2026
+Son güncelleme: 18 Eylül 2026 (Paket 26 B)
 
 ---
 
-## 🔴 EN ÖNEMLİ GERÇEK: şu an hiç yedek YOK
+## 18 Eylül 2026 — gece yedeği kuruldu (bir adım sahipte)
+
+`.github/workflows/veritabani-yedek.yml` her gece **00:00 UTC (03:00 TSİ)** çalışır:
+
+1. PostgreSQL 17 istemcisini kurar.
+2. Dökümden hemen önce kaynaktaki **tablo başına satır sayısını** yazar.
+3. `pg_dump -Fc` ile `public` + `auth` + `cron` şemalarını alır.
+4. Dökümü **boş bir Postgres 17 kabına GERÇEKTEN geri yükler** ve satır sayılarını
+   kaynakla karşılaştırır. Üç kapı: tablo kümesi birebir aynı olmalı · kaynakta
+   dolu hiçbir tablo boş geri yüklenmemeli · toplam satır farkı %1'i aşmamalı.
+   (%1 payı, döküm ile sayım arasında botların yazdığı satırlar içindir.)
+5. Ancak bu doğrulama geçerse dökümü **artifact** olarak 14 gün saklar.
+   **Döküm depoya commit edilmez** — depo şişmez, oyuncu verisi git geçmişine düşmez.
+6. Kırılırsa sessiz kalmaz: depoda "Gece yedeği başarısız" konusu açılır/güncellenir.
+
+Yani "denenmemiş yedek" sorunu yapısal olarak çözüldü: geri yükleme bir kez değil,
+**her gece** deneniyor.
+
+### 🔴 SAHİBİNİN YAPMASI GEREKEN TEK ADIM
+
+GitHub deposunda **Settings → Secrets and variables → Actions → New repository secret**:
+
+- Ad: `SUPABASE_DB_URL`
+- Değer: `postgresql://postgres.zfpnxzybcpkxsotwdsey:<SIFRE>@aws-1-eu-central-1.pooler.supabase.com:5432/postgres`
+  (`<SIFRE>` = `.env.local` içindeki `SUPABASE_DB_PASSWORD`)
+
+Bu sır konmadan iş ilk adımda **bilerek** durur ve "sır tanımlı değil" der.
+Sır depoya, workflow dosyasına ya da migration'a **yazılmaz**.
+
+Sır konduktan sonra Actions sekmesinden **Run workflow** ile bir kez elle çalıştırıp
+"Geri yükleme doğrulandı." satırının çıktığı görülmeli; sonucu bu belgeye yaz.
+
+**Bu makinede çalıştırılamadı, sebebi ölçüldü (18 Eyl 2026):** Docker yok, `pg_dump`
+yok, `psql` yok, `gh` (GitHub CLI) yok — yani ne döküm alınabiliyor ne de depo sırrı
+kurulup iş tetiklenebiliyor. İş GitHub'ın kendi makinesinde çalışacak; orada üçü de var.
+
+---
+
+## 🔴 EN ÖNEMLİ GERÇEK: elle yedek alınmadı
 
 Supabase panelinde **Database → Backups** ekranında yazan (10 Eylül 2026'da
 ekrandan doğrulandı):
