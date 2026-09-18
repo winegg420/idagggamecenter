@@ -5835,3 +5835,120 @@ lig süzgeci bot/insan ayrımı yapmıyor.
   Ölçmeden "temizlik" yapılsaydı çalışan bir özellik kaldırılmış olacaktı.
 - **Koşmayan test, olmayan testten kötüdür.** `test:bildim` aylardır ilk satırda
   çıkıyordu ve kimse fark etmemişti; içindeki kurallar da eskimişti.
+
+---
+
+## Paket 27 — Joker ekonomisi (18 Eylül 2026)
+
+Gerekçe (sahibinin kurgusu): joker, oyunun kalan tek coin harcama yeri. Ücretsiz
+joker bu tek sink'i sulandırıyordu. Yeni kural: joker kazanılan coin'le alınır —
+ama öğrenmek için başlangıç stoğu verilir ve maçın ortasında dükkâna gitmek gerekmez.
+
+### A0 — "Normal Maç" → "Klasik Mod"
+
+Yalnız kullanıcıya görünen ad. DB değerleri, `mac_tur = '1v1'`, ayar anahtarları ve
+rotalar (`/mac/:id`) **aynen** kaldı — link kırılmadı.
+
+**Ölçüm paketin verdiğinden bir fazla çıktı.** Pakette altı yer sayılıyordu; kaynakta
+altısı da bulundu ama derlenmiş pakette ad **hâlâ görünüyordu**: harita binasının
+etiketi `bildim/harita/dunya.js`'in YORUMUNDA değil, `bildim/harita/yerlesim.json`
+içinde **veri** olarak duruyordu (`"ad": "Normal Maç"`). Yalnız kaynağa bakıp
+"bitti" denseydi meydandaki tabela eski adı göstermeye devam edecekti. Derlenmiş
+`dist/` taranarak yakalandı; şimdi orada yalnız `dil.js`'in geriye uyum eşlemesi
+(`"Normal Maç" → "Classic Mode"`) kalıyor, o da bilerek.
+
+`push_metinleri`'nde mod adı **hiç geçmiyor** (0 satır, ölçüldü). Çeviri sözlüğüne
+`'Klasik Mod' → 'Classic Mode'` eklendi; eski `'Normal Maç'` girdisi **silinmedi**
+(eski üretilmiş içerikte geçebilir, geçerse yine doğru çevrilsin).
+
+### A — Başlangıç jokeri
+
+Ölçülen durum: yeni oyuncuya 500 coin veriliyordu ama **hiç joker verilmiyordu**
+(`joker_envanter` canlıda tamamen boştu — 0 satır).
+
+Artık kullanımda olan her türden `baslangic_joker_adet` (2) veriliyor:
+`elli · sure · soru_degistir · zaman_baskisi · saldiri_degistir · savunma_kilidi · seri_koruma`.
+
+**`pas` verilmiyor.** Tür kısıtı onu hâlâ tanıyor ama ölçüldü: `joker_kullan`
+yalnız üç türü kabul ediyor, düello fonksiyonları da reddediyor — yani `pas`
+envantere girebilir ama **hiçbir yerde harcanamaz**. Ölü türe stok vermek
+oyuncuya "elimde bir şey var" yalanı söylerdi. (Paket 14'te "Pas" → "Soru Değiştir"
+oldu; tür adı geriye uyum için duruyor.)
+
+Bota verilmiyor, eski hesaplara dokunulmuyor, ikinci kez verilmiyor (idempotent).
+
+### B — Ücretsiz joker kalktı, tek toplam hak geldi
+
+- `duello_ucretsiz_saldiri_joker` **0**'a çekildi (ayar silinmedi).
+- Yeni `duello_joker_hak` = **4**: saldırı + savunma birlikte, **tüm modlar**.
+  `duello_saldiri_joker_siniri` / `duello_savunma_joker_siniri` değerleri duruyor
+  ama artık okunmuyor; açıklamaları bunu söylüyor.
+- **Aynı joker maç başına bir kez.** Eski "soru_degistir tek hak" istisnası
+  genelleştirildi; artık ayrı istisnaya gerek yok. Klasik Mod'un seti üç tür
+  olduğu için oradaki fiilî tavan 3 — ayrı bir kural değil, aynı kuralın sonucu.
+- Ücretsiz 50:50 **yalnız SERBEST Klasik Mod'da**. Dereceli Klasik Mod'da ve
+  düelloda hiçbir joker ücretsiz değil.
+- Turnuva finali (0) ve arkadaş maçı (sınırsız) kararlarına **dokunulmadı**.
+
+Kural tek yerde: `joker_hak_kontrol()`. Hem `joker_kullan` hem iki düello
+fonksiyonu oradan geçiyor ki aynı kural üç yerde üç türlü yazılmasın.
+
+### C — Maç içinde joker satın alma
+
+Tek RPC: `joker_al_ve_kullan` — satın alma ve kullanım **aynı işlemde**,
+`FOR UPDATE` kilidiyle. Kullanım herhangi bir sebeple reddedilirse (maç bitti,
+faz uygun değil, hak doldu, aynı joker) işlemin tamamı geri alınır ve **coin
+düşmez**. Fiyat sunucudan (`coin_joker_*`); istemciden gelen fiyata bakılmıyor.
+`hiz_siniri` var. Satın alma `coin_hareketleri`'ne `joker_mac_ici:<mac_id>`
+kaynağıyla yazılıyor, `joker_islemleri`'ne de ayrı `mac_ici` kaynağıyla — "maç içi
+satış ne kadar tuttu" iki taraftan da ölçülebilir.
+
+Arayüz: envanterde 0 varsa düğmenin üstünde altın simgesi; dokununca **alttan
+açılan** onay sayfası (tek elle erişilebilir yükseklik). Coin yetmiyorsa onay
+pasif ve "Yetersiz coin" yazıyor — dükkâna ya da coin ekranına **yönlendirme yok**.
+Onaya basınca düğme kilitleniyor. Süre **durmuyor**; maç senkron, rakip bekliyor.
+Hem Klasik Mod (`JokerCubugu`) hem Düello (`JokerAlani`) ekranında.
+
+**Ölçülen süre:** satın al + kullan gidiş-dönüş **89–115 ms** (bu makineden
+Frankfurt havuzuna, SQL yürütme dahil). Hedef 1-2 saniyeydi.
+
+### D — Bot simetrisi
+
+Bot artık insanla **aynı** kısıta tabi: maç başına en çok `duello_joker_hak` ve
+aynı jokeri iki kez kullanamaz (aday havuzundan kullanılmış türler çıkarılıyor).
+Sıklık ayarı (`duello_bot_joker_yuzde`) korundu.
+
+**Ölçüm paketin varsayımını kısmen düzeltti:** geçmiş veride bot düello başına
+**en çok 2** joker kullanmış ve **türü hiç tekrarlamamış** (3 düello). Yani
+"bot 4'ü geçiyor" diye bir durum zaten yoktu; gerçek adaletsizlik jokerin
+**bedava** olmasıydı ve asıl düzelen o. Botun aday havuzu bilerek iki tür:
+`saldiri_degistir` için botun soru değiştirme yolu yok, eklenseydi etkisiz bir
+joker harcamış olurdu.
+
+### Test sırasında yakalanan iki kusur
+
+**1. Yeni hesap coin'ini kaybediyordu.** `joker_islemleri.kaynak` kısıtı yalnız
+altı değer tanıyordu; 238'in `'baslangic'` kaynağı kısıtı ihlal etti. Tek başına
+önemsiz görünürdü ama `handle_new_user` içindeki **tek** `exception when others`
+bloğu coin, eşya, karakter ve joker ödüllerinin hepsini kapsıyordu — plpgsql'de
+bu blok örtük bir alt-işlemdir, içindeki bir hata **bloğun başına kadar her şeyi
+geri alır**. Yani joker verme patlayınca yeni oyuncunun **coin'i de** geri
+alınıyordu. Canlıda o aralıkta hesap açılmadı (ölçüldü: 0 yeni profil), kimse
+etkilenmedi. Kısıt genişletildi ve her ödül **kendi bloğuna** alındı (migration 240).
+
+**2. Dereceli maçta arayüz "ÜCRETSİZ" yalanı söyleyecekti.** `joker_mac_durumu`
+hâlâ eski ücretsiz tanımını kullanıyordu; dereceli maçta rozet "ÜCRETSİZ" diyor,
+basınca envanterden joker düşüyordu. Tek kaynağa bağlandı (migration 242).
+
+### Çıkarımlar
+
+- **Bir adı değiştirirken kaynağa bakmak yetmiyor.** Mod adı bir JSON veri
+  dosyasında duruyordu; yalnız `.js`/`.jsx` taranarak "bitti" denseydi meydandaki
+  tabela eski adı göstermeye devam edecekti. Doğru kapı: **derlenmiş çıktıyı** tara.
+- **Tek `exception` bloğu, bağımsız işleri birbirine bağlar.** Dört ödül tek blokta
+  olduğu için jokerin hatası coin'i de götürüyordu. Ayrı bloklar, ayrı sorumluluk.
+- **Kuralı tek yere koy.** "Aynı joker bir kez" üç fonksiyonda üç kez yazılsaydı,
+  biri güncellenmeden kalırdı; `joker_hak_kontrol` ile tek kapı oldu. Aynı hata
+  `joker_mac_durumu`'nda zaten yaşanmıştı: kural iki yerde iki türlüydü.
+- **Paketin verdiği sayıyı da ölç.** Botun "4'ü geçip geçmediği" sorusunun cevabı
+  ölçümde "zaten en çok 2" çıktı; asıl sorun sayı değil bedavalıktı.
