@@ -130,6 +130,8 @@ jobs:
           create schema if not exists cron;
           create schema if not exists net;
           create schema if not exists extensions;
+          -- questions üzerindeki trigram indeksi extensions.gin_trgm_ops istiyor.
+          create extension if not exists pg_trgm schema extensions;
           do $$
           begin
             -- RLS politikalarının "to authenticated" kısmı bu roller olmadan kurulamaz.

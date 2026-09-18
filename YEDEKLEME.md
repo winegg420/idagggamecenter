@@ -4,11 +4,62 @@
 > doğrulandığı**, hangisinin **doğrulanamadığı** açıkça ayrılmıştır. Doğrulanmamış
 > bir adımı "çalışıyor" diye kabul etme.
 
-Son güncelleme: 18 Eylül 2026 (Paket 26 B)
+Son güncelleme: 18 Eylül 2026 — gece yedeği kuruldu, çalıştırıldı ve geri yükleme doğrulandı.
 
 ---
 
-## 18 Eylül 2026 — gece yedeği kuruldu (bir adım sahipte)
+## ✅ 18 Eylül 2026 — gece yedeği KURULDU ve GERÇEKTEN DOĞRULANDI
+
+Sır eklendi, iş elle çalıştırıldı, döküm alındı ve **boş bir Postgres 17 kabına
+geri yüklendi**. Ölçülen sonuç (çalıştırma `35328481162`, 18 Eyl 2026 09:16 UTC):
+
+```
+auth.users — kaynak 205, geri yüklenen 205
+Hesaplar doğrulandı.
+toplam satır — kaynak 43783, geri yüklenen 43783, fark 0 (%0.000)
+Geri yükleme doğrulandı.
+```
+
+| Ölçüm | Değer |
+|---|---|
+| Döküm dosyası | **3,0 MB** (`-Fc`, sıkıştırılmış) |
+| Artifact boyutu | 2.192.322 bayt · 14 gün saklanıyor |
+| Döküm + geri yükleme süresi | ~2 dk |
+| `pg_dump` / `psql` sürümü | 17.11 (sunucu 17.6) |
+| public tablo satırı | 43.783 → 43.783 (fark 0) |
+| Hesap (`auth.users`) | 205 → 205 |
+| `npm test` (aynı işte) | 43 node testi + 13 joker kuralı, hepsi geçti |
+
+**Yedek artık hesapları da kapsıyor ve doğruluyor.** `auth` şeması hem döküme hem
+geri yüklemeye dahil; hesap sayısı kaynakla birebir tutmazsa iş **kırılır**.
+
+### İlk gerçek koşuda çıkan üç kusur (düzeltildi)
+
+1. **`pg_dump` sürüm uyuşmazlığı.** `postgresql-client-17` kuruluyordu ama
+   runner'ın kendi 16.15 istemcisi PATH'te öndeydi; sunucu 17.6 olunca
+   `aborting because of server version mismatch` ile düşüyordu.
+   `/usr/lib/postgresql/17/bin` PATH'in başına alındı + sürüm kontrolü adımı eklendi.
+2. **Testler sessizce atlanıyordu.** `uses:` ile çağrılan workflow, çağıranın
+   sırlarını kendiliğinden almaz; `SUPABASE_DB_URL` boş geldiği için 43 sunucu
+   testi "skipped" olup iş yeşil görünüyordu — yani hiçbir şey denenmemişti.
+   `secrets: inherit` eklendi.
+3. **`test:bildim` CI'da kırıyordu**: yalnız `.env.local` arıyor, bulamayınca
+   `exit 1` veriyordu. Artık ortak `baglantiDizgisi()` kullanıyor ve bağlantı
+   yoksa **atlıyor**.
+
+### Geri yükleme günlüğündeki uyarılar hakkında
+
+Boş bir Postgres kabı Supabase değildir; dökümdeki bazı nesnelerin karşılığı orada
+yoktur. İlk koşuda **112 hata** atlanmıştı (RLS politikaları `authenticated` rolü
+olmadan kurulamıyordu). Hedefe `anon`/`authenticated`/`service_role` rolleri,
+`extensions` şeması ve `pg_trgm` kurulunca bu sayı **41 satıra** indi ve geriye
+yalnız kendi kurduğumuz `auth.uid/role/jwt` iskeletlerinin dökümdekiyle çakışması
+kaldı — **hiçbiri veri değil**. Asıl kapı satır sayısı karşılaştırmasıdır ve o
+birebir tutuyor.
+
+---
+
+## 18 Eylül 2026 — kurulum notları
 
 `.github/workflows/veritabani-yedek.yml` her gece **00:00 UTC (03:00 TSİ)** çalışır:
 
@@ -26,27 +77,36 @@ Son güncelleme: 18 Eylül 2026 (Paket 26 B)
 Yani "denenmemiş yedek" sorunu yapısal olarak çözüldü: geri yükleme bir kez değil,
 **her gece** deneniyor.
 
-### 🔴 SAHİBİNİN YAPMASI GEREKEN TEK ADIM
+### ✅ Sır kuruldu (18 Eyl 2026)
 
-GitHub deposunda **Settings → Secrets and variables → Actions → New repository secret**:
+`SUPABASE_DB_URL` deposunun Actions sırlarında tanımlı:
 
-- Ad: `SUPABASE_DB_URL`
-- Değer: `postgresql://postgres.zfpnxzybcpkxsotwdsey:<SIFRE>@aws-1-eu-central-1.pooler.supabase.com:5432/postgres`
-  (`<SIFRE>` = `.env.local` içindeki `SUPABASE_DB_PASSWORD`)
+```
+postgresql://postgres.zfpnxzybcpkxsotwdsey:<SIFRE>@aws-1-eu-central-1.pooler.supabase.com:5432/postgres
+```
 
-Bu sır konmadan iş ilk adımda **bilerek** durur ve "sır tanımlı değil" der.
-Sır depoya, workflow dosyasına ya da migration'a **yazılmaz**.
+`<SIFRE>` = `.env.local` içindeki `SUPABASE_DB_PASSWORD`. **Değer hiçbir yere
+yazılmadı**: `.env.local`'den okunup doğrudan `gh secret set`'in girdisine
+borulandı, ekrana ve günlüğe düşmedi. Sır depoya, workflow dosyasına ya da
+migration'a **yazılmaz**.
 
-Sır konduktan sonra Actions sekmesinden **Run workflow** ile bir kez elle çalıştırıp
-"Geri yükleme doğrulandı." satırının çıktığı görülmeli; sonucu bu belgeye yaz.
+Değiştirmek gerekirse (şifre döndürülürse) aynı yolla:
 
-**Bu makinede çalıştırılamadı, sebebi ölçüldü (18 Eyl 2026):** Docker yok, `pg_dump`
-yok, `psql` yok, `gh` (GitHub CLI) yok — yani ne döküm alınabiliyor ne de depo sırrı
-kurulup iş tetiklenebiliyor. İş GitHub'ın kendi makinesinde çalışacak; orada üçü de var.
+```bash
+node -e "const fs=require('fs');const p=fs.readFileSync('.env.local','utf8').match(/SUPABASE_DB_PASSWORD=(.*)/)[1].trim();process.stdout.write('postgresql://postgres.zfpnxzybcpkxsotwdsey:'+encodeURIComponent(p)+'@aws-1-eu-central-1.pooler.supabase.com:5432/postgres')" \
+  | gh secret set SUPABASE_DB_URL --repo winegg420/idagggamecenter
+```
+
+Sır tanımlı değilse iş ilk adımda **bilerek** durur ve "sır tanımlı değil" der.
+
+**Bu makinede döküm hâlâ alınamıyor** (Docker yok, `pg_dump` yok, `psql` yok —
+18 Eyl 2026'da ölçüldü); `gh` ise **kuruldu** (winget, 2.101.0) ve tarayıcı
+akışıyla giriş yapıldı; token keyring'de, dosyada değil. Döküm GitHub'ın kendi
+makinesinde alınıyor — orada üçü de var.
 
 ---
 
-## 🔴 EN ÖNEMLİ GERÇEK: elle yedek alınmadı
+## Supabase planı — sağlayıcı tarafında hâlâ yedek yok
 
 Supabase panelinde **Database → Backups** ekranında yazan (10 Eylül 2026'da
 ekrandan doğrulandı):
@@ -58,10 +118,13 @@ Proje **Free** planda. Yani:
 
 - **Otomatik günlük yedek yok.**
 - **Point-in-time recovery yok.**
-- Veritabanı silinir/bozulursa **geri dönüş yolu yok** — 3 aylık soru havuzu,
-  oyuncu hesapları, maç geçmişi, rozetler kalıcı olarak kaybolur.
+- Sağlayıcı tarafında geri dönüş yolu yok.
 
-Bu, yayına çıkmadan kapatılması gereken bir açıktır. İki seçenek var:
+**ARTIK AÇIK DEĞİL:** 18 Eyl 2026'dan beri gece yedeği çalışıyor ve her gece
+geri yüklenebilirliği deneniyor (yukarıdaki bölüm). Aşağıdaki iki seçenek hâlâ
+geçerli ama artık "hiç yedek yok" durumu yok.
+
+Sağlayıcıdan bağımsız bir kopya için iki seçenek var:
 
 1. **Pro plana geç** (aylık ücretli) → 7 günlük otomatik yedek + PITR.
 2. **Kendi düzenli dökümünü al** (aşağıdaki prosedür) ve dosyayı Supabase
@@ -72,7 +135,10 @@ sağlayıcıdan bağımsız bir kopya bırakır.
 
 ---
 
-## Yedeğin kapsaması gereken şey (10 Eylül 2026 ölçümü)
+## Yedeğin kapsaması gereken şey (10 Eylül 2026 ölçümü — ESKİ)
+
+> Güncel sayılar yukarıdaki doğrulama bölümünde: 43.783 public satırı, 205 hesap.
+> Aşağıdaki tablo tarihsel kayıttır, referans için dokunulmadı.
 
 | Ne | Miktar |
 |---|---|
