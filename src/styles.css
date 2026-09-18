@@ -2592,3 +2592,9 @@ p.bd-gizlilik-not {
 @media (prefers-reduced-motion: reduce) {
   .bd-mod-sec { transition: none; }
 }
+
+/* Lobi süzgeci (Paket 26 F) — mevcut .bd-sekme-ust/.bd-sekme dilini kullanır,
+   yeni renk ya da yeni bileşen getirmez. Arama kutusu global input stilinde. */
+.bd-lobi-suzgec { margin-bottom: var(--bd-bosluk-2); }
+.bd-lobi-suzgec .bd-sekme-ust { margin-bottom: var(--bd-bosluk-1); }
+.bd-lobi-suzgec input[type="text"] { width: 100%; }

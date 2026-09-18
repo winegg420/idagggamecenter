@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Ikon from "../components/Ikon.jsx";
 import Maskot from "../components/Maskot.jsx";
 import { hataMesaji } from "../lib/hata.js";
@@ -34,6 +34,18 @@ export default function TournamentPage() {
   const [hata, setHata] = useState(null);
   // Lobide bir oyuncuya dokununca açılan kart
   const [kartOyuncu, setKartOyuncu] = useState(null);
+  // Paket 26 · F — lobi filtreleri. Hepsi MEVCUT listenin üstünde çalışır;
+  // her tuşa basışta sunucuya gitmez. "Arkadaşlarım" için arkadaş kimlikleri
+  // yalnız o filtre İLK KEZ seçildiğinde bir kez okunur ve oturum boyunca durur.
+  const [suzgec, setSuzgec] = useState("hepsi");   // hepsi | arkadas | lig
+  const [arama, setArama] = useState("");
+  const [arkadasIdler, setArkadasIdler] = useState(null);   // null = henüz okunmadı
+  const arkadasOkunuyor = useRef(false);
+  // Lig bilgisi `profiles.lig` üzerinden okunamaz (o kolon istemciye kapalı, ölçüldü);
+  // giriş yapmış oyuncuya zaten açık olan `lig_uyelik` kullanılır. Bu da tembel:
+  // "Kendi Ligim" ilk kez seçilene kadar sorgu yapılmaz.
+  const [ligler, setLigler] = useState(null);   // Map(user_id → lig)
+  const ligOkunuyor = useRef(false);
   // Paket 24 · D: bu haftanın ilk-3 giysi ödülü (haftalık rotasyonla değişir)
   const [haftalikGiysi, setHaftalikGiysi] = useState(null);
   const navigate = useNavigate();
@@ -232,6 +244,69 @@ export default function TournamentPage() {
     if (turnuva?.durum === "bitti") refreshProfile(user.id);
   }, [turnuva?.durum, refreshProfile, user.id]);
 
+  // --- Paket 26 F: lobi süzgeçleri -------------------------------------------
+  // Arkadaş kimlikleri tembel okunur: süzgeç seçilmeden sorgu yapılmaz.
+  useEffect(() => {
+    if (suzgec !== "arkadas" || arkadasIdler !== null || arkadasOkunuyor.current || !user) return;
+    arkadasOkunuyor.current = true;
+    (async () => {
+      try {
+        const { data, error } = await supabase
+          .from("friendships")
+          .select("requester, addressee")
+          .eq("durum", "arkadas");
+        if (error) throw error;
+        setArkadasIdler(
+          new Set((data ?? []).map((f) => (f.requester === user.id ? f.addressee : f.requester)))
+        );
+      } catch (e) {
+        console.error("[Bildim] arkadaş listesi alınamadı:", e);
+        setArkadasIdler(new Set());   // boş küme: süzgeç çalışır, sayfa kırılmaz
+      } finally {
+        arkadasOkunuyor.current = false;
+      }
+    })();
+  }, [suzgec, arkadasIdler, user]);
+
+  // Lig eşlemesi de tembel: yalnız "Kendi Ligim" seçilince, tek sorguda.
+  useEffect(() => {
+    if (suzgec !== "lig" || ligler !== null || ligOkunuyor.current || oyuncular.length === 0) return;
+    ligOkunuyor.current = true;
+    (async () => {
+      try {
+        const { data, error } = await supabase
+          .from("lig_uyelik")
+          .select("user_id, lig, hafta")
+          .in("user_id", oyuncular.map((o) => o.user_id))
+          .order("hafta", { ascending: false });
+        if (error) throw error;
+        const harita = new Map();
+        for (const r of data ?? []) if (!harita.has(r.user_id)) harita.set(r.user_id, r.lig);
+        setLigler(harita);
+      } catch (e) {
+        console.error("[Bildim] lig bilgisi alınamadı:", e);
+        setLigler(new Map());
+      } finally {
+        ligOkunuyor.current = false;
+      }
+    })();
+  }, [suzgec, ligler, oyuncular]);
+
+  const benimLig = ligler?.get(user?.id) ?? null;
+
+  const suzulmusOyuncular = useMemo(() => {
+    const ara = arama.trim().toLocaleLowerCase("tr");
+    return oyuncular.filter((o) => {
+      if (suzgec === "arkadas" && !(arkadasIdler?.has(o.user_id) || o.user_id === user?.id)) return false;
+      // Lig eşlemesi henüz gelmediyse listeyi boşaltma: olduğu gibi göster.
+      if (suzgec === "lig" && ligler && (!benimLig || ligler.get(o.user_id) !== benimLig)) return false;
+      if (ara && !(o.profil?.gorunen_ad ?? "").toLocaleLowerCase("tr").includes(ara)) return false;
+      return true;
+    });
+  }, [oyuncular, suzgec, arama, arkadasIdler, ligler, benimLig, user?.id]);
+
+  const suzuluyor = suzgec !== "hepsi" || arama.trim() !== "";
+
   const benimKayit = oyuncular.find((o) => o.user_id === user.id);
   const hayatta = oyuncular.filter((o) => !o.elendi);
 
@@ -374,7 +449,56 @@ export default function TournamentPage() {
               onMeydanOku={kartOyuncu.id === user.id ? undefined : meydanOku}
             />
           )}
-          <div className="baslik">{tt("Lobideki Oyuncular (")}{oyuncular.length})</div>
+          <div className="baslik">
+            {tt("Lobideki Oyuncular (")}
+            {suzuluyor ? `${suzulmusOyuncular.length}/${oyuncular.length}` : oyuncular.length})
+          </div>
+
+          {/* Paket 26 F — süzgeçler. Sunucuya gitmez: yukarıda çekilmiş listeyi süzer. */}
+          {oyuncular.length > 0 && (
+            <div className="bd-lobi-suzgec">
+              <div className="bd-sekme-ust" role="tablist" aria-label={tt("Lobi süzgeci")}>
+                {[
+                  ["hepsi", tt("Tümü")],
+                  ["arkadas", tt("Arkadaşlarım")],
+                  ["lig", tt("Kendi Ligim")],
+                ].map(([deger, etiket]) => (
+                  <button
+                    key={deger}
+                    type="button"
+                    role="tab"
+                    aria-selected={suzgec === deger}
+                    className={`bd-sekme${suzgec === deger ? " aktif" : ""}`}
+                    onClick={() => setSuzgec(deger)}
+                  >
+                    {etiket}
+                  </button>
+                ))}
+              </div>
+              <input
+                type="text"
+                inputMode="search"
+                value={arama}
+                onChange={(e) => setArama(e.target.value)}
+                placeholder={tt("Ada göre ara")}
+                aria-label={tt("Lobideki oyuncular arasında ada göre ara")}
+              />
+            </div>
+          )}
+
+          {oyuncular.length > 0 && suzulmusOyuncular.length === 0 && (
+            <div className="bd-bos-durum">
+              <Maskot poz="dusunuyor" boyut={78} />
+              <p>
+                {suzgec === "arkadas"
+                  ? tt("Lobide arkadaşın yok. Turnuva herkese açık — yine de katılabilirsin.")
+                  : suzgec === "lig"
+                    ? tt("Lobide kendi liginden kimse yok.")
+                    : tt("Bu isimde bir oyuncu yok.")}
+              </p>
+            </div>
+          )}
+
           {oyuncular.length === 0 && (
             <div className="bd-bos-durum">
               <Maskot poz="dusunuyor" boyut={78} />
@@ -383,7 +507,7 @@ export default function TournamentPage() {
           )}
           {/* Satıra dokunmak oyuncu kartını açar: avatar, rütbe, puan ve
               (kendisi değilse) meydan okuma düğmesi. */}
-          {oyuncular.map((o) => (
+          {suzulmusOyuncular.map((o) => (
             <button
               key={o.user_id}
               type="button"

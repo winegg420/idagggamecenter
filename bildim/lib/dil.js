@@ -1539,6 +1539,16 @@ const SOZLUK = {
     "TURNUVA LOBİSİ": "TOURNAMENT LOBBY",
     "Lobiden Ayrıl": "Leave Lobby",
     "Lobideki Oyuncular (": "Players in the Lobby (",
+    // Lobi süzgeçleri (Paket 26 F)
+    "Lobi süzgeci": "Lobby filter",
+    "Arkadaşlarım": "My friends",
+    "Kendi Ligim": "My league",
+    "Ada göre ara": "Search by name",
+    "Lobideki oyuncular arasında ada göre ara": "Search players in the lobby by name",
+    "Lobide arkadaşın yok. Turnuva herkese açık — yine de katılabilirsin.":
+      "None of your friends are in the lobby. The tournament is open to everyone — you can still join.",
+    "Lobide kendi liginden kimse yok.": "No one from your league is in the lobby.",
+    "Bu isimde bir oyuncu yok.": "No player by that name.",
     "Lobi henüz boş — ilk katılan sen ol, turnuva başlayınca haber veririz.": "The lobby is empty — be the first to join; we'll let you know when the tournament starts.",
     "ALTIN SORU ·": "GOLDEN QUESTION ·",
     "oyuncu başa baş — biri bilene kadar sürer": "players neck and neck — it goes on until someone gets it right",
