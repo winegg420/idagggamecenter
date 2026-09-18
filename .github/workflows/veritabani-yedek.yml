@@ -28,6 +28,10 @@ permissions:
 jobs:
   testler:
     uses: ./.github/workflows/testler.yml
+    # Yeniden kullanılan iş, çağıranın sırlarını KENDİLİĞİNDEN ALMAZ.
+    # Bu satır olmadan sunucu testleri sessizce atlanıyordu (18 Eyl 2026'da ölçüldü:
+    # "43 skipped" — yani iş yeşil görünürken hiçbir şey denenmemişti).
+    secrets: inherit
 
   yedek:
     name: Döküm + geri yükleme doğrulaması
@@ -60,7 +64,16 @@ jobs:
             | sudo tee /etc/apt/sources.list.d/pgdg.list
           sudo apt-get update -qq
           sudo apt-get install -y -qq postgresql-client-17
+          # Runner'da Ubuntu'nun kendi PostgreSQL 16 istemcisi ÖNCE geliyor ve
+          # pg_dump 17.6 sunucuya "server version mismatch" diyerek düşüyordu
+          # (18 Eyl 2026'da ölçüldü). Sürüme özel dizin PATH'in başına alınıyor.
+          echo "/usr/lib/postgresql/17/bin" >> "$GITHUB_PATH"
+
+      - name: Sürüm kontrolü
+        run: |
           pg_dump --version
+          psql --version
+          case "$(pg_dump --version)" in *" 17."*) ;; *) echo "pg_dump 17 bekleniyordu"; exit 1;; esac
 
       - name: Bağlantı sırrı tanımlı mı
         run: |
