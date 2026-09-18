@@ -5660,3 +5660,178 @@ katılır — bu dosyaya dokunmak gerekmez.
 - **Geri alınan işlemde test etmek canlı veritabanında güvenli bir yöntem.** DO bloğunun sonunda
   `raise exception` her şeyi geri alır; rotasyon, davet kuralları ve kopukluk senaryolarının hepsi
   canlı veriyle, hiçbir satır değiştirilmeden doğrulandı.
+
+---
+
+## Paket 26 — Yayın öncesi sağlamlık (18 Eylül 2026)
+
+Altı bölüm: güvenlik denetimi · otomatik yedekleme · otomatik test · ölü kod düzeni ·
+yük/kilit denetimi · turnuva lobisi filtreleri. Görsel iş yapılmadı (F'deki süzgeç
+arayüzü hariç, o da mevcut `.bd-sekme` bileşenini kullanıyor).
+
+### A — Güvenlik ve RLS yeniden denetimi
+
+9 Eylül'den bu yana eklenen 153 migration hiç denetlenmemişti. Ölçüm: 117 public
+tablo, 394 fonksiyon; bulgular **anon anahtarıyla canlıda gerçekten denendi**.
+
+**🔴 En ağır bulgu — soru cevabı herkese açıktı.** `soru_dilinde(question_id, dil)`
+RPC'si `dogru_cevap` döndürüyor ve `PUBLIC` rolüne açıktı. Giriş yapmadan
+
+    GET /rest/v1/rpc/soru_dilinde?p_question_id=<id>&select=dogru_cevap
+
+her sorunun doğru şıkkını veriyordu. Oyuncu kendi maçının `soru_ids` dizisini
+(20 soru) okuyabildiği için Normal Maç · Grup · Turnuva · Düello'nun hepsinde
+**tam hile** mümkündü. `tournaments.soru_ids` de anon'a açıktı, yani turnuva
+soruları önceden çözülebiliyordu.
+
+**🔴 `is_bot` sızıntısı.** `turnuva_bot_havuzu(tid)` o turnuvanın gizli bot
+listesini, `avatar3d_portresiz_botlar()` bütün bot kimliklerini anon'a veriyordu.
+İkisi de canlıda 200 döndü ve bot kimlikleri geldi.
+
+**🔴 Lig haftası dışarıdan kapatılabiliyordu.** `haftayi_kapat` / `lig_haftayi_kapat`
+anon tarafından çağrılabiliyordu; yükselme/düşme ve ödüller erken tetiklenebilirdi.
+
+**🟡** TRUNCATE yetkisi 117 tablonun hepsinde anon+authenticated'daydı ve
+**TRUNCATE RLS'e tabi değildir**. `tournaments` / `tournament_players` /
+`user_badges` / `dg_*` giriş yapmadan okunuyordu. `pr_apply_race_result`
+istemcinin verdiği puanı sınırsız ekliyordu. `ayni_cihaz_mi(a,b)` herkese açıktı:
+iki hesabın aynı cihazdan olup olmadığı dışarıdan sorulabiliyordu.
+
+**Kök sebep tek:** Supabase'in varsayılan "şemadaki her şeyi ver" yetkisi sonradan
+eklenen fonksiyonları da kendiliğinden kapsıyor. Üstelik yetki `anon`/`authenticated`
+rollerinde değil **`PUBLIC` sözde rolünde** duruyor — ilk denemede yalnız iki rolden
+revoke edildi ve HİÇBİR ŞEY DEĞİŞMEDİ; geri alınan işlemdeki test bunu yakaladı.
+Doğrusu: `revoke ... from public` + sunucu rollerine (`postgres`, `service_role`)
+geri verme.
+
+**Yapılan (migration 234-235):** istemcinin gerçekten çağırdığı RPC listesi kaynak
+taranarak çıkarıldı (170 çağrı; çok satırlı `.rpc(` kalıbı ilk taramada kaçmıştı,
+düzeltildi). Sunucuya ait 30 fonksiyon + 30 tetikleyici fonksiyonu kapatıldı.
+`grup_mac_uyesi_mi` / `hizli_mac_uyesi_mi` **bilerek dışarıda bırakıldı**: onlar RLS
+politikası değerlendirilirken ÇAĞIRAN rolle çalışır, yetkileri alınsa grup ve hızlı
+maç tabloları okunamaz hâle gelirdi. TRUNCATE/TRIGGER/REFERENCES alındı (gelecekteki
+tablolar için `alter default privileges` ile birlikte), kişisel veri taşıyan altı
+politika `authenticated`'a çekildi, PatiRun puanına tavan kondu. 19 tekrarlanabilir
+uca `hiz_siniri` eklendi (nabız ve `advance_*` BİLEREK hariç — saniyede bir
+çağrılırlar, sınır konsa maç kırılır).
+
+**Doğrulandı:** 170 istemci RPC'sinin hiçbiri yetkisini kaybetmedi, iç zincir
+(`calisma_soru` → `soru_dilinde`) çalışıyor, RLS politikaları sağlam, anon'a kapalı
+uçların hepsi canlı REST'te 401 dönüyor. Son durum: RLS kapalı tablo 0, anon/auth'ta
+kalan TRUNCATE 0, `search_path`'siz definer fonksiyon 0.
+
+**🔴 SAHİBİNE KALAN — sır döndürme.** 9 Eylül'de "git geçmişindeki sır döndürülmeli"
+denmişti; **döndürülmemiş**. Canlı `sunucu_gizli.cron_secret` değeri, herkese açık
+depo geçmişindeki değerle **birebir aynı** (karşılaştırıldı, uç nokta tetiklenmedi).
+Yani depo geçmişini okuyan biri hâlâ `send-push`'u çağırıp tüm kullanıcılara bildirim
+gönderebilir. Döndürme iki adımdır ve biri panelden yapılır (bu yüzden ajan yapamaz):
+
+1. Supabase → Edge Functions → Secrets → `CRON_SECRET` yeni değere çekilir.
+2. Hemen ardından `update sunucu_gizli set deger='<yeni>' where anahtar='cron_secret';`
+
+Arada kalan kısa pencerede push bildirimleri 401 döner; veri kaybı olmaz.
+Depoda başka düz metin sır yok (tarandı; `bildim/lib/push.js`'teki VAPID anahtarı
+zaten **açık** anahtardır).
+
+### B — Gece yedeği
+
+`.github/workflows` klasörü hiç yoktu: ne CI ne zamanlanmış iş. Artık her gece
+03:00 TSİ'de döküm alınıyor, **boş bir Postgres 17 kabına gerçekten geri yükleniyor**
+ve tablo başına satır sayıları kaynakla karşılaştırılıyor. Üç kapı: tablo kümesi
+birebir · kaynakta dolu tablo boş geri yüklenmeyecek · toplam fark %1'i aşmayacak.
+(%1 payı bilerek: canlıda botlar saniyede yazıyor, döküm ile sayım arasında kayma
+olur; payı koymayan bir eşitlik kontrolü her gece yalandan kırılırdı.) Doğrulama
+geçmezse artifact yazılmaz ve depoda konu açılır.
+
+Yedek **bu makinede alınamadı**, sebebi ölçüldü: Docker yok, `pg_dump` yok, `psql`
+yok, `gh` yok. Bu yüzden geri yükleme testi tek seferlik bir ölçüm olarak değil,
+**işin kendi içine** kondu — her gece tekrar ediyor. Sahibinin tek adımı
+`SUPABASE_DB_URL` sırrını eklemek (YEDEKLEME.md'de yazılı).
+
+### C — Otomatik testler
+
+`npm test` yoktu; iki elle yazılmış betik vardı ve biri (`test:bildim`) **hiç
+çalışmıyordu** — `pg` paketi kurulu olmadığı için ilk satırda çıkıyordu.
+
+Yeni paket kurulmadı. Node'un kendi `node:test` koşucusu + depoya yazılan küçük
+Postgres istemcisi (`araclar/pg-mini.mjs`, yalnız `net`/`tls`/`crypto`,
+SCRAM-SHA-256). 27 test yazıldı, hepsi işlem içinde çalışıp ROLLBACK ediyor:
+ödül dağıtımı (galibiyet/beraberlik/serbest/bot indirimi/çift koruması), günlük
+seri bonusu, davet çakışması, düello faz makinesi ve kopukluk (25/45 sn, donan
+süre, bot kopuk sayılmaz), grup kuyruğu, soru şık denge kuralı. Her dosyanın
+başında "bu test kırılırsa ne anlama gelir" yazıyor.
+
+**Test bir kusur buldu:** `joker_ekle` hâlâ `'pas'` türünü tanıyordu ama üç joker
+paketinin içeriği Paket 14'te `'soru_degistir'`e çevrilmişti — mağaza yolundan
+alınan her paket "Geçersiz joker türü" ile düşerdi (migration 236). Coin yolu
+`joker_hareket`'i doğrudan çağırdığı için etkilenmiyordu; kusur bu yüzden
+görünmemişti (canlıda denendi, coin yolu çalışıyor).
+
+**Çıkarım:** "test var" ile "test koşuyor" ayrı şeyler. Koşmayan bir test, olmayan
+testten daha kötüdür — güvence hissi verir. `npm test` artık üçünü de tek komutta
+koşar ve CI'da da koşar.
+
+### D — Dondurulmuş kod düzeni
+
+Beş dosyanın başına aynı biçimde blok kondu (neden · tarih · paket · dosyalar ·
+geri açma adımları); kök `CLAUDE.md`, `AGENTS.md` ve `bildim/CLAUDE.md`'ye tek
+"Dondurulmuşlar" tablosu yazıldı. Hiçbir dosya silinmedi.
+
+**Asenkron 1v1 dalı için önceki varsayım ölçüldü ve DOĞRU ÇIKMADI.** `matches`
+tablosundaki 48 satırın hepsi `senkron = true`; `senkron = false` olan hiç maç
+olmamış. Ama dal **ölü değil**: `mac_asenkrona_gec()` `senkron = false` yazan tek
+canlı yoldur ve `MatchPage.jsx:428`'den, rakip maça gelmediğinde oyuncuya düğme
+olarak sunulur. "Kimse kullanmamış" ile "çağrılamaz" ayrı şeylerdir; dala
+dokunulmadı, durum yazıldı.
+
+### E — Cron, yük ve kilit
+
+**Paketteki sayılar canlıyla uyuşmadı.** 38 iş değil **24 iş** var; `bildim-bot-oyna`
+tek kayıt (2 sn), `duello_tik` tek kayıt, `bildim-turnuva-baslat` diye bir iş yok.
+Aynı komutu paylaşan iki çift var ama ikisi de **bilerek** kurulmuş yedeklemeler
+(`hafta-kapat` + `hafta-kapat-pzt`, `giysi-rotasyon` + `giysi-yedek`) ve iki fonksiyon
+da idempotent. Bu yüzden **silinen kayıt yok** — silinecek bir şey bulunmadı.
+
+**Turnuva anı yük sorunu değil (ölçüldü).** Son 14 günde turnuva dakikalarında
+(TSİ 13:00 / 21:50 ± birkaç dk) 3.211 koşu, **hata 0**, süreler normal dilimden
+daha kısa: `bot-oyna` 0,019 sn (normalde 0,021), en uzun 0,137 sn (normalde 120 sn).
+
+**Gerçek olay başka yerdeydi.** Son 48 saatteki 9 başarısız koşunun hepsi tek bir
+saatte: 17 Eyl 15:00–16:00 UTC. `bot_oyna`'nın hatası *"compilation of PL/pgSQL
+function near line 4"* — fonksiyon **derlenirken** kilitte bekliyor. Yani o sırada
+uygulanan migration'ların `CREATE OR REPLACE`'i ile 2 saniyelik cron çakışmış, işler
+birikmiş ve 120 sn'lik ifade zaman aşımına düşmüş.
+
+**Deadlock durumu:** `gizli_bot_nabiz` ↔ `bot_puan_tik` deadlock'ları 30 günde 9
+kayıt, **sonuncusu 16 Eyl 11:50**. Hata metnindeki SQL, migration 207 öncesinin
+gövdesi. 207'den bu yana ~43 saat ve gizli bot nabzının ~2.600 koşusunda **sıfır**
+deadlock — düzeltme tutuyor.
+
+**Yapılan (migration 237):** dört sık işe advisory kilit kondu; aynı işin ikinci
+kopyası sessizce atlar, arkasına kuyruk birikmez. İş silinmedi, sıklık ve mantık
+değişmedi. Uygulamadan sonraki saatte 0 hata.
+
+### F — Turnuva lobisi süzgeçleri
+
+Tümü / Arkadaşlarım / Kendi Ligim + ada göre arama. Süzme mevcut listenin üstünde,
+bellekte. İki yardımcı veri **tembel** çekiliyor: ilgili süzgeç ilk kez seçilene
+kadar hiçbir sorgu gitmiyor.
+
+`profiles.lig` kullanılamadı — **o kolon istemciye kapalı** (kolon bazlı yetki
+listesinde yok, ölçüldü); eklenseydi lobinin tamamı 403 dönerdi. Yerine giriş
+yapmış oyuncuya zaten açık olan `lig_uyelik` kullanıldı. `is_bot` sızmıyor: botlar
+beş ligin hepsine dağılmış (bronz 41, gümüş 36, altın 34, elmas 30, efsane 19),
+lig süzgeci bot/insan ayrımı yapmıyor.
+
+### Çıkarımlar
+
+- **Yetki kimde duruyor, ona bak.** İki rolden revoke etmek hiçbir şey değiştirmedi;
+  yetki `PUBLIC`'teydi. Geri alınan işlemde test edilmeseydi "düzelttim" diye
+  raporlanacaktı ve hile açığı açık kalacaktı.
+- **Bir sırrın açığa çıkması, sır değiştirilene kadar sürer.** Dokuz gün önce
+  "döndürülmeli" yazılmış; yazmak döndürmek değil.
+- **Paketin verdiği sayıları da ölç.** Bu pakette üç varsayım yanlıştı: 38 cron işi
+  (24), yinelenen cron kayıtları (yok), ölü asenkron dal (kullanılmamış ama canlı).
+  Ölçmeden "temizlik" yapılsaydı çalışan bir özellik kaldırılmış olacaktı.
+- **Koşmayan test, olmayan testten kötüdür.** `test:bildim` aylardır ilk satırda
+  çıkıyordu ve kimse fark etmemişti; içindeki kurallar da eskimişti.
