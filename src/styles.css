@@ -2649,3 +2649,15 @@ p.bd-gizlilik-not {
 .bd-joker-sat-not.hata { background: #FDE9E9; color: var(--danger-2); }
 .bd-joker-sat-dugmeler { display: flex; gap: 10px; margin-top: 14px; }
 .bd-joker-sat-dugmeler .btn { flex: 1; min-height: 50px; }
+
+/* Joker kuralları listesi (Paket 28 B) — Dükkân › Joker */
+.bd-joker-kurallar {
+  margin: 10px 0 0; padding: 0; list-style: none;
+  display: grid; gap: 6px;
+  font-size: 12.5px; line-height: 1.45; color: var(--text-dim);
+}
+.bd-joker-kurallar li { position: relative; padding-left: 16px; }
+.bd-joker-kurallar li::before {
+  content: ""; position: absolute; left: 4px; top: 8px;
+  width: 5px; height: 5px; border-radius: 999px; background: var(--primary);
+}

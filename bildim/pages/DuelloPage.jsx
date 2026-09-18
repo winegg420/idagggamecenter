@@ -170,6 +170,8 @@ function DuelloMac({ id }) {
   const [calisan, setCalisan] = useState(null);
   const [terkOnay, setTerkOnay] = useState(false);
   // Paket 27 C: maç içinde satın alınacak joker türü (null = pencere kapalı)
+  // Paket 28 D: { tur, yalnizAl }. `yalnizAl` kategori ekranında true —
+  // joker envantere girer, kullanımı Saldırı Hazırlığı'nda yapılır.
   const [satinAlinacak, setSatinAlinacak] = useState(null);
   const [dokumToplam, setDokumToplam] = useState(null);   // Paket 20 I.3: sunucu dökümünün toplamı
   const farkRef = useRef(0); // sunucu saati - istemci saati (ms)
@@ -228,6 +230,42 @@ function DuelloMac({ id }) {
       supabase.removeChannel(kanal);
     };
   }, [id, yukle]);
+
+  // ---------------- Paket 28 A: düellonun kendi nabzı ----------------
+  //
+  // KUSUR: paylaşılan kabuk (AuthContext) `kalp_at()`i 60 SANİYEDE BİR atıyor,
+  // düellonun kopukluk eşiği ise 25 saniye. 60 > 25 olduğu için iki nabız
+  // arasında 35 saniyelik bir pencere vardı ve o pencerede TAMAMEN BAĞLI bir
+  // oyuncu "kopuk" sayılıyordu — düello açılır açılmaz turuncu "Bağlantın
+  // koptu" bandı çıkıyordu. Üstelik 45 sn'lik bekleme dolarsa bağlı oyuncu
+  // maçı HAKSIZ YERE kaybedebilirdi.
+  //
+  // KURAL: nabız aralığı kopukluk eşiğinin yarısından küçük olmalı. Bu ilişkiyi
+  // istemci değil SUNUCU garantiliyor: `duello_durum().sureler.nabiz` değeri
+  // `duello_nabiz_sn()` ile her zaman eşiğin yarısına kırpılıyor. Buradaki 10
+  // yalnız sunucu henüz cevap vermemişken kullanılan ilk değer.
+  const nabizSn = Number(d?.sureler?.nabiz) > 0 ? Number(d.sureler.nabiz) : 10;
+  useEffect(() => {
+    if (!id) return undefined;
+    let durdu = false;
+    const at = async () => {
+      if (durdu || document.visibilityState !== "visible") return;
+      try {
+        await supabase.rpc("kalp_at");
+      } catch (e) {
+        // Ağ dalgalanması: bir sonraki nabız zaten deneyecek.
+        console.warn("[Bildim] düello nabzı atılamadı:", e?.message ?? e);
+      }
+    };
+    at();                                   // ekran açılır açılmaz bir kez
+    const zaman = setInterval(at, nabizSn * 1000);
+    document.addEventListener("visibilitychange", at);
+    return () => {
+      durdu = true;
+      clearInterval(zaman);
+      document.removeEventListener("visibilitychange", at);
+    };
+  }, [id, nabizSn]);
 
   // Faz değişince yerel seçim sıfırlanır
   const fazAnahtari = d ? `${d.tur}-${d.saldiri_sirasi}-${d.faz}-${d.soru?.soru ?? ""}` : "";
@@ -628,29 +666,38 @@ function DuelloMac({ id }) {
             if (ok) { sesJoker(); titret(10); }
           }}
           // Paket 27 C: envanterde 0 varsa maç içinde satın alma penceresi açılır.
-          onSatinAl={(tur) => setSatinAlinacak(tur)}
+          onSatinAl={(tur, yalnizAl) => setSatinAlinacak({ tur, yalnizAl: Boolean(yalnizAl) })}
           ceviri={ceviri}
         />
       )}
 
       {satinAlinacak && (
         <JokerSatinAlModal
-          tur={satinAlinacak}
-          fiyat={Number(d.jokerler?.fiyatlar?.[satinAlinacak] ?? 0)}
+          tur={satinAlinacak.tur}
+          yalnizAl={satinAlinacak.yalnizAl}
+          fiyat={Number(d.jokerler?.fiyatlar?.[satinAlinacak.tur] ?? 0)}
           coin={Number(d.jokerler?.coin ?? 0)}
           onKapat={() => setSatinAlinacak(null)}
           onOnay={async () => {
-            // Satın alma + kullanım TEK RPC: araya girip coin düşüp jokerin
-            // kullanılmaması diye bir durum oluşmaz.
-            const { error } = await supabase.rpc("joker_al_ve_kullan", {
-              p_mac_tur: "duello",
-              p_mac_id: id,
-              p_soru_index: null,
-              p_tur: satinAlinacak,
-            });
-            if (error) throw error;
+            if (satinAlinacak.yalnizAl) {
+              // Kategori ekranı: joker envantere girer, KULLANILMAZ.
+              // Kullanım Saldırı Hazırlığı'nda normal yoldan yapılır.
+              const { error } = await supabase.rpc("joker_tek_al", { p_tur: satinAlinacak.tur });
+              if (error) throw error;
+            } else {
+              // Satın alma + kullanım TEK RPC: araya girip coin düşüp jokerin
+              // kullanılmaması diye bir durum oluşmaz.
+              const { error } = await supabase.rpc("joker_al_ve_kullan", {
+                p_mac_tur: "duello",
+                p_mac_id: id,
+                p_soru_index: null,
+                p_tur: satinAlinacak.tur,
+              });
+              if (error) throw error;
+            }
             sesJoker();
             titret(10);
+            coinTazele();
             await yukle();
           }}
         />
@@ -728,6 +775,11 @@ function JokerAlani({ set, d, calisan, onKullan, onSatinAl, ceviri }) {
   const liste = set === "saldiri" ? SALDIRI_JOKERLERI : MAC_ICI_JOKERLER;
 
   const saldiriAcik = benSaldiran && d.faz === "hazirlik";
+  // Paket 28 D: saldırı jokerleri KATEGORİ ekranında da SATIN ALINABİLİR.
+  // Hazırlık yalnız 4 saniye; jokeri olmayan oyuncunun o sürede altın rozeti
+  // fark edip onayı okuyup onaylaması çok dardı. Satın alma kategori seçerken
+  // (20 sn) yapılır, KULLANIM yine Hazırlık'ta kalır — maç ritmi uzamaz.
+  const saldiriAlinabilir = benSaldiran && (d.faz === "hazirlik" || d.faz === "kategori");
   const savunmaAcik = !benSaldiran && d.faz === "cevap" && !d.savunma_kilidi;
   // Paket 27 B: saldırı ve savunma ayrı ayrı değil, TEK toplam hak sayılır.
   const hakKaldi = Number(j.kullanilan ?? 0) < Number(j.hak ?? 0);
@@ -743,13 +795,18 @@ function JokerAlani({ set, d, calisan, onKullan, onSatinAl, ceviri }) {
   const ipucu = !hakKaldi
     ? ceviri("Bu maçtaki joker hakkın doldu.")
     : set === "saldiri"
-      ? (setAcik ? ceviri("Şimdi kullanabilirsin — soru rakibe gitmeden.") : ceviri("Saldırı sırasında, soruyu gördüğün Saldırı Hazırlığı'nda açılır."))
+      ? (setAcik
+          ? ceviri("Şimdi kullanabilirsin — soru rakibe gitmeden.")
+          : saldiriAlinabilir
+            // Paket 28 D: kategori seçerken kullanılamaz ama SATIN ALINABİLİR.
+            ? ceviri("Jokerin yoksa şimdi alabilirsin; kullanımı Saldırı Hazırlığı'nda açılır.")
+            : ceviri("Saldırı sırasında, soruyu gördüğün Saldırı Hazırlığı'nda açılır."))
       : d.faz === "cevap" && d.savunma_kilidi
         ? ceviri("Rakip Savunma Kilidi kullandı: bu soruda savunma jokeri yok.")
         : (setAcik ? ceviri("Şimdi kullanabilirsin.") : ceviri("Soru sana gelince açılır."));
 
   return (
-    <div className={`bd-duello-jokerler ${set} ${setAcik && hakKaldi ? "acik" : "kapali"}`} key={`${set}-${setAcik && hakKaldi}`} aria-label={set === "saldiri" ? ceviri("Saldırı jokerleri") : ceviri("Savunma jokerleri")}>
+    <div className={`bd-duello-jokerler ${set} ${(setAcik || (set === "saldiri" && saldiriAlinabilir)) && hakKaldi ? "acik" : "kapali"}`} key={`${set}-${setAcik && hakKaldi}`} aria-label={set === "saldiri" ? ceviri("Saldırı jokerleri") : ceviri("Savunma jokerleri")}>
       <div className="bd-duello-joker-baslik">
         {set === "saldiri" ? ceviri("Saldırı jokerleri") : ceviri("Savunma jokerleri")}
         {set === "savunma" && d.savunma_kilidi && d.faz === "cevap" && <span className="kilitli"><Ikon ad="kilit" boyut={13} /></span>}
@@ -772,10 +829,12 @@ function JokerAlani({ set, d, calisan, onKullan, onSatinAl, ceviri }) {
               || kullanilanTurler.includes(tur);
           }
           // Paket 27 C: envanterde yoksa düğme KAPANMAZ — satın alma açılır.
-          const satilik = !kullanildi && adet <= 0 && fiyat > 0 && hakKaldi
-            && (set === "saldiri" ? saldiriAcik : savunmaAcik);
-          acik = (set === "saldiri" ? saldiriAcik : savunmaAcik) && hakKaldi && !kullanildi
-            && (ucretsiz || adet > 0 || satilik);
+          // Paket 28 D: satın alma penceresi KULLANIM penceresinden geniş.
+          // Saldırıda kategori ekranı da dahil (20 sn); kullanım yine Hazırlık'ta.
+          const alimFazi = set === "saldiri" ? saldiriAlinabilir : savunmaAcik;
+          const kullanimFazi = set === "saldiri" ? saldiriAcik : savunmaAcik;
+          const satilik = !kullanildi && adet <= 0 && fiyat > 0 && hakKaldi && alimFazi;
+          acik = (kullanimFazi && hakKaldi && !kullanildi && (ucretsiz || adet > 0)) || satilik;
           const ad = set === "saldiri" ? SALDIRI_AD[tur] : SAVUNMA_AD[tur];
           const aciklama = set === "saldiri" ? JOKER_BILGI[tur]?.aciklama : SAVUNMA_ACIKLAMA[tur];
           return (
@@ -783,7 +842,7 @@ function JokerAlani({ set, d, calisan, onKullan, onSatinAl, ceviri }) {
                     className={`bd-duello-joker ${kullanildi ? "kullanildi" : ""} ${satilik ? "satilik" : ""}`}
                     disabled={!acik || !!calisan}
                     title={satilik ? ceviri("{0} coin — dokun, al ve kullan").replace("{0}", fiyat) : ceviri(aciklama)}
-                    onClick={() => (satilik ? onSatinAl?.(tur) : onKullan(tur))}>
+                    onClick={() => (satilik ? onSatinAl?.(tur, !kullanimFazi) : onKullan(tur))}>
               {satilik && (
                 <span className="bd-joker-satilik" aria-hidden="true"><Ikon ad="coin" boyut={12} /></span>
               )}

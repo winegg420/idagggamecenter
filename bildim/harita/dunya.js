@@ -145,17 +145,36 @@ export function dunyaKur(kapsayici, s = {}) {
   const ks = new KarakterSistemi({ sahne, vfxAyar: { kapasite: 1500, tamSayi: 6, ortaMesafe: 14, uzakMesafe: 28 } });
   const temas = new TemasGolgeleri(sahne, new THREE.TextureLoader().load(VARLIK_KOK + "temas.png"));
   const avatarlar = new MeydanAvatarlari({ ks, temas });
+  // Paket 28 E: yükleme aşamalarını dışarı bildir (bekleme ekranı "donmuş"
+  // görünmesin). Çağıran vermezse hiçbir şey olmaz.
+  const asama = typeof s.onAsama === "function" ? s.onAsama : () => {};
+  asama("karakterler", 10);
   const karakterHazir = ks.yukle()
-    .then(() => { avatarlar.hazirOlunca(); return true; })
+    .then(() => { avatarlar.hazirOlunca(); asama("cevre", 45); return true; })
     .catch((e) => { console.error("[Meydan] karakterler yuklenemedi:", e); return false; });
-  // 2B §3: çevre sanat katmanı (GLB proplar + atlaslı zemin) — karakter atlası/malzemesiyle aynı; konumlar manifestten
-  let cevre = null, kediler = null, kediSayisi = 8, cepheler = null;
-  const cevreHazir = karakterHazir.then(async (tamam) => {
-    if (!tamam) return null;
+
+  // Paket 28 E — ÖLÇÜLDÜ (canlı, 18 Eyl 2026): karakterler (3 GLB, 1,6 MB)
+  // paralel 1154 ms, proplar (16 GLB, 1,8 MB) paralel 737 ms; ama ikisi ART
+  // ARDA çalıştığı için indirme 1891 ms sürüyordu. Prop indirmeleri hiçbir
+  // şeye bağlı değil — İNDİRME hemen başlasın, KURULUM yine karakterler
+  // hazır olunca yapılsın (cevreKur karakter atlasını/malzemesini kullanır).
+  const proplarIndi = (async () => {
     const yukleyici = new GLTFLoader(), proplar = {};
     await Promise.all(PROPLAR.map((ad) => yukleyici.loadAsync(VARLIK_KOK + ad + ".glb")
       .then((g) => g.scene.traverse((o) => { if (o.isMesh) proplar[ad] = o; }))
       .catch((e) => console.error("[Meydan] prop yuklenemedi:", ad, e))));
+    return proplar;
+  })();
+  // AO dosyası da bağımsız; o da beklemeden insin.
+  const aoIndi = fetch(VARLIK_KOK + "cephe_ao.bin")
+    .then((y) => (y.ok ? y.arrayBuffer() : null))
+    .catch((e) => { console.error("[Meydan] cephe AO yuklenemedi (AO'suz devam):", e); return null; });
+  // 2B §3: çevre sanat katmanı (GLB proplar + atlaslı zemin) — karakter atlası/malzemesiyle aynı; konumlar manifestten
+  let cevre = null, kediler = null, kediSayisi = 8, cepheler = null;
+  const cevreHazir = karakterHazir.then(async (tamam) => {
+    if (!tamam) return null;
+    const proplar = await proplarIndi;   // Paket 28 E: indirme zaten başlamıştı
+    asama("sahne", 65);
     for (const m of Object.values(proplar)) ks.cilala(m);
     cevre = cevreKur({ M: yerlesim, gb, sahne, render, proplar, hucreler: ks.hucreler, malzeme: proplar.prop_bank?.material ?? ks.malzeme, temas });
     // 2D-B: ağaç/bank temas gölgeleri statik → zemin shader'ına bir kez pişirilir; dinamik temas yalnız hareket edenlere kalır
@@ -166,7 +185,7 @@ export function dunyaKur(kapsayici, s = {}) {
       const cepheIdleri = new Set(cepheParselleri(yerlesim).map((p) => p.id));
       const boya = binalariBoya({ M: yerlesim, gb, hucreler: ks.hucreler, malzeme: proplar.prop_bank?.material ?? ks.malzeme, modRenk: (rota) => MOD_RENK[rota] ?? null, atla: (p) => cepheIdleri.has(p.id) });
       let ao = null;
-      try { const y = await fetch(VARLIK_KOK + "cephe_ao.bin"); if (y.ok) ao = aoCoz(await y.arrayBuffer()); } catch (e) { console.error("[Meydan] cephe AO yuklenemedi (AO'suz devam):", e); }
+      try { const tampon = await aoIndi; if (tampon) ao = aoCoz(tampon); } catch (e) { console.error("[Meydan] cephe AO cozulemedi (AO'suz devam):", e); }
       cepheler = new CepheSistemi({ M: yerlesim, hucreler: ks.hucreler, malzeme: proplar.prop_bank?.material ?? ks.malzeme, modRenk: (rota) => MOD_RENK[rota] ?? null, render, ao });
       cevre.grup.add(cepheler.grup);
       if (boya.bina) cevre.grup.add(boya.bina); if (boya.arkaplan) cevre.grup.add(boya.arkaplan);
@@ -179,6 +198,7 @@ export function dunyaKur(kapsayici, s = {}) {
     } catch (e) { console.error("[Meydan] binalar boyanamadi:", e); }
     // 2B §4: sokak kedileri her yerde (manifest kedi alanları), tek InstancedMesh, yerel; sayı oyun_ayarlari.meydan_kedi_sayisi
     if (proplar.prop_kedi) kediler = new KediSurusu({ M: yerlesim, gb, kaynak: proplar.prop_kedi, sahne, temas, sayi: kediSayisi });
+    asama("ilk_kare", 90);
     return cevre;
   }).catch((e) => { console.error("[Meydan] cevre kurulamadi:", e); return null; });
 

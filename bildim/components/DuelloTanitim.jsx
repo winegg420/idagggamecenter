@@ -22,7 +22,9 @@ const ADIMLAR = [
   { ikon: "uyari", baslik: "3 can", metin: "Savunmada yanlış bilirsen ya da süren dolarsa can kaybedersin. Canı biten kaybeder; en çok 10 tur." },
   { ikon: "kilic", baslik: "Sırayla saldır, savun", metin: "Her turda önce biri, sonra öbürü saldırır. Tur her zaman iki tarafça tamamlanır: canı biten rakip de o turdaki saldırısını yapar (eşit hamle kuralı)." },
   { ikon: "kalkan", baslik: "Saldırı riski", metin: "Rakibin EN ZAYIF kategorisi maç başında sabitlenir (yüzdeler eşitse biri seçilip kilitlenir) ve kırmızı çerçeveyle görünür. Oradan saldırırsan ve rakip bilirse canı SEN kaybedersin." },
-  { ikon: "yildiz", baslik: "Jokerler", metin: "Saldırı jokerleri soruyu gördüğün Saldırı Hazırlığı'nda, savunma jokerleri soru sana gelince açılır. Maç eşit biterse Altın Soru sorulur: bilen kazanır, joker yok." },
+  // Joker sayıları burada TEKRARLANMAZ; kural metni lib/jokerKurallari.js'te
+  // tek yerde duruyor (Paket 28 B). Burada yalnız düelloya özel olan anlatılır.
+  { ikon: "yildiz", baslik: "Jokerler", metin: "Saldırı jokerleri soruyu gördüğün Saldırı Hazırlığı'nda, savunma jokerleri soru sana gelince açılır. Düelloda hiçbir joker ücretsiz değil; jokerin yoksa maçın içinden satın alabilirsin. Maç eşit biterse Altın Soru sorulur: bilen kazanır, joker yok." },
 ];
 
 export default function DuelloTanitim({ onKapat }) {

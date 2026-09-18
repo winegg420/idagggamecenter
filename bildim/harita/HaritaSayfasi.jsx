@@ -115,6 +115,14 @@ function webglVarMi() {
   }
 }
 
+// Paket 28 E: yükleme adımlarının okunur adları (dunya.js aşama anahtarları).
+const ASAMA_METNI = {
+  karakterler: "karakterler yükleniyor…",
+  cevre: "çevre yükleniyor…",
+  sahne: "sahne kuruluyor…",
+  ilk_kare: "son dokunuşlar…",
+};
+
 export default function HaritaSayfasi() {
   const navigate = useNavigate();
   const { user, profile } = useAuth();
@@ -124,6 +132,10 @@ export default function HaritaSayfasi() {
   const canliRef = useRef(null); // { dunya, ben, coklu }
 
   const [yukleniyor, setYukleniyor] = useState(true);
+  // Paket 28 E: bekleme ekranı hangi adımda olduğunu söylesin. Canlıda
+  // 15-20 saniye yalnız "sahne hazırlanıyor…" yazıyordu ve sayfa donmuş
+  // görünüyordu. { ad, yuzde } — ad çeviri anahtarı.
+  const [asama, setAsama] = useState({ ad: "karakterler", yuzde: 5 });
   const [kisi, setKisi] = useState(1);
   // Meydandaki (gizli) botlar da "kişi burada" sayısına girer: gerçek oyuncu
   // gibi görünmeleri gerekiyor. `kisi` yalnız gerçek oyuncu sayısı olarak
@@ -379,7 +391,12 @@ export default function HaritaSayfasi() {
     try {
       const dusukDonanim = (navigator.hardwareConcurrency || 8) <= 4;
       const hareketAzalt = window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches ?? false;
-      dunya = dunyaKur(kapsayici, { dusukDonanim, hareketAzalt });   // 2B: tek harita Taksim (yerlesim.json)
+      dunya = dunyaKur(kapsayici, {
+        dusukDonanim,
+        hareketAzalt,
+        // Paket 28 E: aşama bildirimi — bekleme ekranındaki ilerleme çubuğu.
+        onAsama: (ad, yuzde) => { if (aktif) setAsama({ ad, yuzde }); },
+      });   // 2B: tek harita Taksim (yerlesim.json)
       try { localStorage.removeItem("bildim_harita_yerlesim"); } catch { /* özel mod */ }   // 2A harita seçimi kalktı
       // 2B §2.3: tam (kozmetik + gölge + kırpma) karakter sayısı oyun_ayarlari'ndan — koda gömülmez
       const kurulanDunya = dunya;
@@ -1531,7 +1548,19 @@ export default function HaritaSayfasi() {
         <div className="bd-harita-yukleniyor">
           <div>
             <b>{tt("Meydan")}</b>
-            <span>{tt("sahne hazırlanıyor…")}</span>
+            {/* Paket 28 E: adım adı + ilerleme. Yüzde kabaca doğrudur;
+                amaç "donmuş mu" sorusunu ortadan kaldırmak. */}
+            <span>{tt(ASAMA_METNI[asama.ad] ?? "sahne hazırlanıyor…")}</span>
+            <div
+              className="bd-harita-ilerleme"
+              role="progressbar"
+              aria-valuemin={0}
+              aria-valuemax={100}
+              aria-valuenow={asama.yuzde}
+              aria-label={tt("Meydan yükleniyor")}
+            >
+              <i style={{ width: `${asama.yuzde}%` }} />
+            </div>
           </div>
         </div>
       )}

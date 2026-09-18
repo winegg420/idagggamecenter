@@ -172,6 +172,31 @@ const SOZLUK = {
     "Dereceli": "Ranked",
     "Lig puanı + tam coin": "League points + full coins",
     "Serbest — puan yok, coin yarı": "Casual — no points, half coins",
+    // Paket 28 E: meydan yükleme adımları
+    "karakterler yükleniyor…": "loading characters…",
+    "çevre yükleniyor…": "loading the surroundings…",
+    "sahne kuruluyor…": "building the scene…",
+    "son dokunuşlar…": "final touches…",
+    "Meydan yükleniyor": "Loading the Plaza",
+    // Paket 28 D: düelloda kategori ekranından joker alma
+    "Al": "Buy",
+    "Joker envanterine girer; saldırı hazırlığında kullanırsın.":
+      "The joker goes to your inventory; you'll use it during Attack Prep.",
+    "Jokerin yoksa şimdi alabilirsin; kullanımı Saldırı Hazırlığı'nda açılır.":
+      "Out of jokers? Buy one now — you'll be able to use it during Attack Prep.",
+    // Paket 28 B: joker kuralları (tek kaynak — lib/jokerKurallari.js)
+    "Bir maçta en çok {0} joker kullanabilirsin.": "You can use up to {0} jokers in a match.",
+    "Aynı jokeri bir maçta yalnız bir kez kullanabilirsin — hakkını farklı jokerlere dağıt.":
+      "You can use each joker only once per match — spread your uses across different jokers.",
+    "Ücretsiz 50:50 yalnız Serbest Klasik Mod'da; Dereceli maçta ve Düello'da hiçbir joker ücretsiz değil.":
+      "The free 50:50 exists only in Casual Classic Mode; nothing is free in Ranked matches or in Duels.",
+    "Turnuva finalinde ve altın soruda joker kullanılamaz.":
+      "Jokers can't be used in the tournament final or on the golden question.",
+    "Jokerin bittiyse maçın içinden alabilirsin — dükkâna gitmene gerek yok.":
+      "If you run out, you can buy one inside the match — no need to visit the shop.",
+    "Maç başına en çok {0} joker · aynı joker bir kez": "Up to {0} jokers per match · each joker once",
+    "Saldırı jokerleri soruyu gördüğün Saldırı Hazırlığı'nda, savunma jokerleri soru sana gelince açılır. Düelloda hiçbir joker ücretsiz değil; jokerin yoksa maçın içinden satın alabilirsin. Maç eşit biterse Altın Soru sorulur: bilen kazanır, joker yok.":
+      "Attack jokers open during Attack Prep, when you see the question; defense jokers open when the question reaches you. Nothing is free in a Duel — if you have no jokers, you can buy one inside the match. If the duel is tied, a Golden Question decides it: no jokers there.",
     // Paket 27 C: maç içi joker satın alma
     "Joker satın al": "Buy joker",
     "Fiyat": "Price",

@@ -224,7 +224,7 @@ export default function KarakterVitrini() {
             const kod = k.kod.replace("tur_", "");
             return (
               <button key={k.kod} className={`bd-vitrin-tur ${tur === kod ? "secili" : ""}`} aria-pressed={tur === kod} onClick={() => { setBilgi(null); setTur(kod); }}>
-                <span className="bd-vitrin-portre">{portreler[k.kod] ? <img src={portreler[k.kod]} alt="" /> : null}</span>
+                <span className={"bd-vitrin-portre" + (portreler[k.kod] ? "" : " yukleniyor")}>{portreler[k.kod] ? <img src={portreler[k.kod]} alt="" /> : null}</span>
                 <span className="ad">{tt(k.ad)}</span>
               </button>
             );
@@ -239,7 +239,11 @@ export default function KarakterVitrini() {
             const portre = portreler[k.kod + "@" + tur];
             return (
               <div key={k.kod} className={`bd-vitrin-kart ${k.durum === "yakinda" ? "yakinda" : ""} ${koz.has(k.kod) ? "takili" : ""}`}>
-                <span className="bd-vitrin-portre">
+                {/* Paket 28 C: portre hazır değilken BOŞ KUTU değil, iskelet görünür.
+                    Canlıda dokuz kart bomboş açılıp ~5 saniyede tek tek doluyordu;
+                    oyuncu "çizilmiyor" sanıyordu. "Yakında" kartlarına portre
+                    üretilmediği için onlarda iskelet yok, kilit ikonu var. */}
+                <span className={"bd-vitrin-portre" + (k.durum !== "yakinda" && !portre ? " yukleniyor" : "")}>
                   {k.durum === "yakinda" ? <Ikon ad="kilit" boyut={28} /> : portre ? <img src={portre} alt="" /> : null}
                 </span>
                 <span className="ad">{tt(k.ad)}</span>

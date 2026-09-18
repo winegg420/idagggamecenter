@@ -529,3 +529,23 @@ body.bd-harita-acik { overflow: hidden; }
 @media (orientation: landscape) and (max-height: 520px) {
   .bd-harita-olcum { top: calc(max(8px, env(safe-area-inset-top)) + 48px); font-size: 11.5px; padding: 4px 8px; }
 }
+
+/* ---- Yükleme ilerlemesi (Paket 28 E) ----
+   Canlıda meydan 15-20 saniye "sahne hazırlanıyor…" yazıp duruyordu ve sayfa
+   donmuş görünüyordu. Ölçüldü: indirme bu sürenin yalnız ~2 saniyesi; gerisi
+   cihazda sahne kurulumu. Süreyi kısaltmak ayrı iş — burada en azından
+   nerede olduğumuz görünüyor. */
+.bd-harita-ilerleme {
+  width: 180px; height: 6px; margin: 10px auto 0;
+  border-radius: 999px; overflow: hidden;
+  background: rgba(32, 50, 74, 0.16);   /* zemin açık gökyüzü: beyaz yol görünmezdi */
+}
+.bd-harita-ilerleme i {
+  display: block; height: 100%;
+  background: var(--bd-vurgu, #F4701F);
+  border-radius: 999px;
+  transition: width 0.35s ease-out;
+}
+@media (prefers-reduced-motion: reduce) {
+  .bd-harita-ilerleme i { transition: none; }
+}

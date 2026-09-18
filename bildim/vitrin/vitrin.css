@@ -44,3 +44,22 @@
 .bd-vitrin-kart-link:active { translate: 0 4px; box-shadow: 0 0 0 #e4edf5; }
 .bd-vitrin-rozet { display: inline-flex; align-items: center; padding: 3px 10px; border-radius: 999px; font-size: 12px; font-weight: 800; color: #1c7a47; background: #dff5e8; }
 .bd-vitrin-fiyat { display: inline-flex; align-items: center; padding: 3px 10px; border-radius: 999px; font-size: 13px; font-weight: 800; color: #fff; background: var(--bd-vurgu, #F4701F); box-shadow: 0 3px 0 #c4581a; }
+
+/* ---- Yükleniyor iskeleti (Paket 28 C) ----
+   Portreler tek WebGL bağlamında, her biri ayrı karede sırayla üretiliyor
+   (sayfa donmasın diye doğru bir karar) ama toplamda ~5 saniye sürüyor.
+   Canlıda dokuz kart bomboş beyaz kutu olarak açıldı; oyuncu "çizilmiyor"
+   sandı. Hafif ışık geçişi "geliyor" der. Aynı desen eski gardıropta da vardı.
+   Hareket azaltılmışsa geçiş yok, yalnız soluk dolgu. */
+.bd-vitrin-portre.yukleniyor {
+  background: linear-gradient(100deg, #DDE7F0 30%, rgba(255, 255, 255, 0.55) 50%, #DDE7F0 70%);
+  background-size: 250% 100%;
+  animation: bd-vitrin-iskelet 1.2s ease-in-out infinite;
+}
+@keyframes bd-vitrin-iskelet {
+  from { background-position: 100% 0; }
+  to   { background-position: -150% 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .bd-vitrin-portre.yukleniyor { animation: none; background: #DDE7F0; }
+}

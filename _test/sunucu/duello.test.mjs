@@ -177,3 +177,31 @@ test('süre dolmuşken kopan oyuncuya dönünce taban süre kadar hak kalır', s
     );
   });
 });
+
+test('nabız aralığı kopukluk eşiğinin yarısından küçük kalır', sec, async () => {
+  await islem(async (c) => {
+    // Paket 28 A'da yaşanan kusur: paylaşılan kabuk 60 sn'de bir nabız atıyordu,
+    // düellonun kopukluk eşiği 25 sn'ydi. 60 > 25 olduğu için BAĞLI bir oyuncu
+    // iki nabız arasında "kopuk" sayılıyor, hatta 45 sn'lik bekleme dolarsa
+    // maçı haksız yere kaybedebiliyordu.
+    //
+    // Bu test o ilişkiyi kilitliyor: eşik ya da nabız ayarı ileride değişse bile
+    // nabız her zaman eşiğin yarısından küçük kalmalı.
+    const nabiz = Number(await c.tek('select public.duello_nabiz_sn()'));
+    const kopuk = Number(await c.tek(`select public.ayar_sayi('duello_kopuk_sn', 25)`));
+    assert.ok(nabiz >= 3, `nabız en az 3 sn olmalı, gelen: ${nabiz}`);
+    assert.ok(
+      nabiz <= kopuk / 2,
+      `nabız (${nabiz} sn) kopukluk eşiğinin (${kopuk} sn) yarısından küçük olmalı`
+    );
+
+    // Eşik değişirse nabız da kendiliğinden kırpılmalı: ayarı geçici olarak
+    // düşürüp fonksiyonun uyum sağladığını görüyoruz (işlem geri alınıyor).
+    await c.sorgu(
+      `insert into public.oyun_ayarlari (anahtar, deger) values ('duello_kopuk_sn', '8'::jsonb)
+       on conflict (anahtar) do update set deger = excluded.deger`
+    );
+    const yeni = Number(await c.tek('select public.duello_nabiz_sn()'));
+    assert.ok(yeni <= 4, `eşik 8 sn olunca nabız en çok 4 sn olmalı, gelen: ${yeni}`);
+  });
+});

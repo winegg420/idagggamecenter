@@ -5,6 +5,7 @@ import { Link, useSearchParams } from "react-router-dom";
 import GorunumVitrini from "../vitrin/GorunumVitrini.jsx";
 import { supabase } from "../../src/lib/supabase.js";
 import { JOKER_BILGI, envanterNesne } from "../lib/jokerler.js";
+import { jokerKurallari } from "../lib/jokerKurallari.js";
 import { h5AdsYapilandirildi, odulluVideoGoster } from "../lib/h5ads.js";
 import { desteklenirMi, fiyatlariAl, satinAl, tuket } from "../lib/playFatura.js";
 import { useCoin, coinTazele, coinHatasi } from "../lib/coin.js";
@@ -34,6 +35,8 @@ export default function JokerDukkani() {
   const { profile } = useAuth();
   const [envanter, setEnvanter] = useState({ elli: 0, sure: 0, soru_degistir: 0, seri_koruma: 0 });
   const [reklam, setReklam] = useState({ bugun: 0, tavan: 5 });
+  // Maç başına joker hakkı ayardan okunur; koda gömülmez (Paket 28 B).
+  const [jokerHak, setJokerHak] = useState(4);
   const [paketler, setPaketler] = useState([]);
   const [fiyatlar, setFiyatlar] = useState({});
   const [hata, setHata] = useState(null);
@@ -50,6 +53,8 @@ export default function JokerDukkani() {
     ayarlar().then((o) => {
       if (!aktif || !o) return;
       if (Number.isFinite(Number(o.coin_reklam))) setOdulCoin(Number(o.coin_reklam));
+      // Maç başına joker hakkı: kural metni bunu kullanır (Paket 28 B).
+      if (Number(o.duello_joker_hak) > 0) setJokerHak(Number(o.duello_joker_hak));
       setTekFiyat({
         elli: Number(o.coin_joker_elli ?? TEK_JOKER_VARSAYILAN.elli),
         sure: Number(o.coin_joker_sure ?? TEK_JOKER_VARSAYILAN.sure),
@@ -256,10 +261,14 @@ export default function JokerDukkani() {
             </div>
           ))}
         </div>
-        <div className="alt-yazi" style={{ marginTop: 10 }}>
-          {tt("Her maçta")} <b>{tt("1 adet 50:50 ücretsizdir")}</b> {tt("(kullanılmazsa birikmez). Lig maçlarında maç başına en fazla 2 joker, arkadaş maçlarında sınırsız. Turnuva finalinde ve altın soruda joker kullanılamaz.")}
-          <b> {tt("Soru Değiştir")}</b> {tt("maç başına bir kez kullanılır.")}
-        </div>
+        {/* Kural metni TEK KAYNAKTAN: bildim/lib/jokerKurallari.js.
+            Paket 27'de kurallar değişmiş ama burası eski metinle kalmıştı
+            (canlıda görüldü); bir daha iki yerde iki kural olmasın. */}
+        <ul className="bd-joker-kurallar">
+          {jokerKurallari(jokerHak).map((k) => (
+            <li key={k}>{k}</li>
+          ))}
+        </ul>
 
         {/* Tek tek alım: paket almak istemeyene birim fiyat. */}
         <div className="bd-kat-baslik" style={{ marginTop: 14 }}>

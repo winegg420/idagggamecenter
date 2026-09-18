@@ -18,9 +18,12 @@ import { tt } from "../lib/dil.js";
  *    oyuncuyu maçtan koparır.
  *  · Onaya basınca düğme kilitlenir: çift tıklama çift satın alma yapmasın.
  *
- * onOnay: async () => void — satın al+kullan RPC'sini çağıran fonksiyon.
+ * onOnay: async () => void — satın al(+kullan) RPC'sini çağıran fonksiyon.
+ * yalnizAl: true ise joker YALNIZ envantere girer, hemen kullanılmaz
+ *   (Paket 28 D — düelloda kategori seçme ekranı: orada 20 saniye var,
+ *   Saldırı Hazırlığı'nın 4 saniyesi okuyup onaylamaya yetmiyordu).
  */
-export default function JokerSatinAlModal({ tur, fiyat, coin, onOnay, onKapat }) {
+export default function JokerSatinAlModal({ tur, fiyat, coin, yalnizAl = false, onOnay, onKapat }) {
   const [calisiyor, setCalisiyor] = useState(false);
   const [hata, setHata] = useState(null);
   const bilgi = JOKER_BILGI[tur] ?? {};
@@ -71,6 +74,11 @@ export default function JokerSatinAlModal({ tur, fiyat, coin, onOnay, onKapat })
           </b>
         </div>
 
+        {yalnizAl && yeterli && (
+          <div className="bd-joker-sat-not">
+            {tt("Joker envanterine girer; saldırı hazırlığında kullanırsın.")}
+          </div>
+        )}
         {!yeterli && (
           <div className="bd-joker-sat-not" role="alert">
             {tt("Yetersiz coin — oynayarak kazanabilirsin.")}
@@ -97,7 +105,7 @@ export default function JokerSatinAlModal({ tur, fiyat, coin, onOnay, onKapat })
             onClick={onayla}
             disabled={!yeterli || calisiyor}
           >
-            {calisiyor ? tt("Alınıyor…") : tt("Al ve kullan")}
+            {calisiyor ? tt("Alınıyor…") : yalnizAl ? tt("Al") : tt("Al ve kullan")}
           </button>
         </div>
       </div>
