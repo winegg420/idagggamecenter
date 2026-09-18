@@ -232,7 +232,7 @@ Bunlar onaylanmış kararlardır, aksini yapma:
 
 ### Modlar (Paket 14, 15 Eyl 2026)
 
-- **2 mod (Paket 24, 18 Eyl 2026): Normal Maç ve Düello (Taktik Maçı).**
+- **2 mod (Paket 24, 18 Eyl 2026): Klasik Mod ve Düello (Taktik Maçı).**
   Turnuva mod değil, etkinlik. **Grup Maçı ödülsüz arkadaş modu**
   (coin/lig/seri yok, rozet var).
 - **DONDURULMUŞ İKİ MOD** — dosyalar ve veri durur, arayüzden giriş yoktur:
@@ -263,7 +263,7 @@ Bunlar onaylanmış kararlardır, aksini yapma:
 ### Ekonomi (hepsi `oyun_ayarlari`'nda)
 
 - Lig = birikimli emek, **günlük lig tavanı yok**
-- Normal Maç galibiyet 25 · berabere 10 · mağlubiyet 0 (teselli yok) — lig ve coin
+- Klasik Mod galibiyet 25 · berabere 10 · mağlubiyet 0 (teselli yok) — lig ve coin
 - Düello galibiyet +50 lig / 50 coin (en çok veren mod)
 - Hızlı Mod doğru×3 lig ve coin, oturum başına tavan 25 — **mod dondurulduğu için bu kaynak kapalı** (ayarlar duruyor, değiştirilmedi)
 - Turnuva lig: 1. 150 · 2. 80 · 3. 40 · 4-10. 20 · diğer katılan 10

@@ -27,6 +27,7 @@ import DuelloOzet from "../components/DuelloOzet.jsx";
 import DuelloTanitim, { duelloTanitimGoruldu } from "../components/DuelloTanitim.jsx";
 import HesapGuvenceOnerisi from "../components/HesapGuvence.jsx";
 import DereceliAnahtari from "../components/DereceliAnahtari.jsx";
+import JokerSatinAlModal from "../components/JokerSatinAlModal.jsx";
 import { useDereceliTercih } from "../lib/dereceli.js";
 import { useDil } from "../lib/dilKanca.js";
 import { hataMesaji } from "../lib/hata.js";
@@ -168,6 +169,8 @@ function DuelloMac({ id }) {
   const [secim, setSecim] = useState(null);
   const [calisan, setCalisan] = useState(null);
   const [terkOnay, setTerkOnay] = useState(false);
+  // Paket 27 C: maç içinde satın alınacak joker türü (null = pencere kapalı)
+  const [satinAlinacak, setSatinAlinacak] = useState(null);
   const [dokumToplam, setDokumToplam] = useState(null);   // Paket 20 I.3: sunucu dökümünün toplamı
   const farkRef = useRef(0); // sunucu saati - istemci saati (ms)
   const yukleniyorRef = useRef(false);
@@ -624,7 +627,32 @@ function DuelloMac({ id }) {
               { p_tur: tur });
             if (ok) { sesJoker(); titret(10); }
           }}
+          // Paket 27 C: envanterde 0 varsa maç içinde satın alma penceresi açılır.
+          onSatinAl={(tur) => setSatinAlinacak(tur)}
           ceviri={ceviri}
+        />
+      )}
+
+      {satinAlinacak && (
+        <JokerSatinAlModal
+          tur={satinAlinacak}
+          fiyat={Number(d.jokerler?.fiyatlar?.[satinAlinacak] ?? 0)}
+          coin={Number(d.jokerler?.coin ?? 0)}
+          onKapat={() => setSatinAlinacak(null)}
+          onOnay={async () => {
+            // Satın alma + kullanım TEK RPC: araya girip coin düşüp jokerin
+            // kullanılmaması diye bir durum oluşmaz.
+            const { error } = await supabase.rpc("joker_al_ve_kullan", {
+              p_mac_tur: "duello",
+              p_mac_id: id,
+              p_soru_index: null,
+              p_tur: satinAlinacak,
+            });
+            if (error) throw error;
+            sesJoker();
+            titret(10);
+            await yukle();
+          }}
         />
       )}
 
@@ -692,7 +720,7 @@ function AltinSonucu({ h, ben, soru, secenekler, ceviri }) {
   );
 }
 
-function JokerAlani({ set, d, calisan, onKullan, ceviri }) {
+function JokerAlani({ set, d, calisan, onKullan, onSatinAl, ceviri }) {
   const j = d.jokerler ?? {};
   const env = j.envanter ?? {};
   const k = j.kullanim ?? {};
@@ -701,11 +729,16 @@ function JokerAlani({ set, d, calisan, onKullan, ceviri }) {
 
   const saldiriAcik = benSaldiran && d.faz === "hazirlik";
   const savunmaAcik = !benSaldiran && d.faz === "cevap" && !d.savunma_kilidi;
-  const saldiriHakKaldi = Number(k.saldiri ?? 0) < Number(j.saldiri_siniri ?? 0);
-  const savunmaHakKaldi = Number(k.savunma ?? 0) < Number(j.savunma_siniri ?? 0);
-  const ucretsizSaldiri = Number(k.saldiri_ucretsiz ?? 0) < Number(j.ucretsiz_saldiri ?? 0);
+  // Paket 27 B: saldırı ve savunma ayrı ayrı değil, TEK toplam hak sayılır.
+  const hakKaldi = Number(j.kullanilan ?? 0) < Number(j.hak ?? 0);
+  const saldiriHakKaldi = hakKaldi;
+  const savunmaHakKaldi = hakKaldi;
+  // Düelloda hiçbir joker artık ücretsiz değil (Paket 27 B.1.1 / B.1.4).
+  const ucretsizSaldiri = false;
+  // Maçta zaten kullanılmış türler — aynı joker maç başına bir kez.
+  const kullanilanTurler = Array.isArray(k.turler) ? k.turler : [];
+  const fiyatlar = j.fiyatlar ?? {};
   const setAcik = set === "saldiri" ? saldiriAcik : savunmaAcik;
-  const hakKaldi = set === "saldiri" ? saldiriHakKaldi : savunmaHakKaldi;
   // Paket 20 IV.4: jokerler "yok" sanılıyordu — kapalıyken NEDEN kapalı olduğu yazılır
   const ipucu = !hakKaldi
     ? ceviri("Bu maçtaki joker hakkın doldu.")
@@ -725,29 +758,40 @@ function JokerAlani({ set, d, calisan, onKullan, ceviri }) {
       <div className="bd-duello-joker-sira">
         {liste.map((tur) => {
           const adet = Number(env[tur] ?? 0);
+          const fiyat = Number(fiyatlar[tur] ?? 0);
           let ucretsiz = false;
           let kullanildi = false;
           let acik;
           if (set === "saldiri") {
             ucretsiz = ucretsizSaldiri;
             kullanildi = (tur === "zaman_baskisi" && d.zaman_baskisi) || (tur === "savunma_kilidi" && d.savunma_kilidi)
-              || (tur === "saldiri_degistir" && d.soru_degisti_saldiri);
-            acik = saldiriAcik && saldiriHakKaldi && !kullanildi && (ucretsiz || adet > 0);
+              || (tur === "saldiri_degistir" && d.soru_degisti_saldiri)
+              || kullanilanTurler.includes(tur);
           } else {
-            ucretsiz = tur === "elli" && !k.elli_ucretsiz;
             kullanildi = (tur === "elli" && (d.elli_kapali ?? []).length > 0) || (tur === "sure" && d.ek_sure)
-              || (tur === "soru_degistir" && k.soru_degistir);
-            acik = savunmaAcik && savunmaHakKaldi && !kullanildi && (ucretsiz || adet > 0);
+              || kullanilanTurler.includes(tur);
           }
+          // Paket 27 C: envanterde yoksa düğme KAPANMAZ — satın alma açılır.
+          const satilik = !kullanildi && adet <= 0 && fiyat > 0 && hakKaldi
+            && (set === "saldiri" ? saldiriAcik : savunmaAcik);
+          acik = (set === "saldiri" ? saldiriAcik : savunmaAcik) && hakKaldi && !kullanildi
+            && (ucretsiz || adet > 0 || satilik);
           const ad = set === "saldiri" ? SALDIRI_AD[tur] : SAVUNMA_AD[tur];
           const aciklama = set === "saldiri" ? JOKER_BILGI[tur]?.aciklama : SAVUNMA_ACIKLAMA[tur];
           return (
-            <button key={tur} type="button" className={`bd-duello-joker ${kullanildi ? "kullanildi" : ""}`}
-                    disabled={!acik || !!calisan} title={ceviri(aciklama)}
-                    onClick={() => onKullan(tur)}>
+            <button key={tur} type="button"
+                    className={`bd-duello-joker ${kullanildi ? "kullanildi" : ""} ${satilik ? "satilik" : ""}`}
+                    disabled={!acik || !!calisan}
+                    title={satilik ? ceviri("{0} coin — dokun, al ve kullan").replace("{0}", fiyat) : ceviri(aciklama)}
+                    onClick={() => (satilik ? onSatinAl?.(tur) : onKullan(tur))}>
+              {satilik && (
+                <span className="bd-joker-satilik" aria-hidden="true"><Ikon ad="coin" boyut={12} /></span>
+              )}
               <Ikon ad={JOKER_BILGI[tur]?.ikon ?? "soru"} boyut={20} />
               <span className="bd-duello-joker-ad">{ceviri(ad)}</span>
-              <span className="bd-duello-joker-adet">{ucretsiz ? ceviri("ücretsiz") : `×${adet}`}</span>
+              <span className={`bd-duello-joker-adet ${satilik ? "fiyat" : ""}`}>
+                {satilik ? `${fiyat}` : `×${adet}`}
+              </span>
             </button>
           );
         })}

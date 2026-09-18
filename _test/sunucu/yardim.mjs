@@ -63,13 +63,22 @@ export async function sunucuOlarak(c) {
   await c.sorgu(`select set_config('request.jwt.claims', '', true)`);
 }
 
-/** Bir çağrının hata verdiğini doğrula; hata metnini döndürür. */
+/**
+ * Bir çağrının hata verdiğini doğrula; hata metnini döndürür.
+ *
+ * SAVEPOINT şart: PostgreSQL'de bir hata işlemin tamamını "aborted" yapar ve
+ * sonraki her ifade reddedilir. Hatadan SONRA bir şeyi ölçmek isteyen test
+ * (ör. "coin düşmedi mi") savepoint olmadan kendi ölçümünü yapamaz.
+ */
 export async function hataVerir(c, sql) {
+  await c.sorgu('savepoint bekleniyor');
   try {
     await c.sorgu(sql);
   } catch (e) {
+    await c.sorgu('rollback to savepoint bekleniyor');
     return e.message;
   }
+  await c.sorgu('release savepoint bekleniyor');
   throw new Error(`Hata bekleniyordu ama çağrı başarılı oldu: ${sql}`);
 }
 

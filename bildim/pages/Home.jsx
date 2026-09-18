@@ -487,7 +487,7 @@ export default function Home() {
         </button>
         <div className="bd-ana-eylem-not">
           {dereceliTercih
-            ? ceviri("Normal Maç — kazanırsan lig puanı ve coin")
+            ? ceviri("Klasik Mod — kazanırsan lig puanı ve coin")
             : ceviri("Serbest maç — keyfine bak, hiçbir şey kaybetmezsin")}
         </div>
         {mesaj && <div className="hata-kutu" style={{ marginTop: 10 }}>{mesaj}</div>}

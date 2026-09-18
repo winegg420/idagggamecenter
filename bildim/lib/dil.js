@@ -172,7 +172,21 @@ const SOZLUK = {
     "Dereceli": "Ranked",
     "Lig puanı + tam coin": "League points + full coins",
     "Serbest — puan yok, coin yarı": "Casual — no points, half coins",
-    "Normal Maç — kazanırsan lig puanı ve coin": "Normal Match — win for league points and coins",
+    // Paket 27 C: maç içi joker satın alma
+    "Joker satın al": "Buy joker",
+    "Fiyat": "Price",
+    "Coin'in": "Your coins",
+    "Al ve kullan": "Buy and use",
+    "Joker alınamadı.": "Could not buy the joker.",
+    "Yetersiz coin — oynayarak kazanabilirsin.": "Not enough coins — play to earn more.",
+    "{0} coin — dokun, al ve kullan": "{0} coins — tap to buy and use",
+    "Bu jokeri bu maçta zaten kullandın": "You already used this joker in this match",
+    // Paket 27 A0: mod adı "Normal Maç" → "Klasik Mod" (EN: "Classic Mode").
+    // Eski anahtarlar SİLİNMEZ (bir yerde kalmış olabilir), karşılıkları güncellendi.
+    "Klasik Mod": "Classic Mode",
+    "Klasik Mod — kazanırsan lig puanı ve coin": "Classic Mode — win for league points and coins",
+    "Normal Maç": "Classic Mode",
+    "Normal Maç — kazanırsan lig puanı ve coin": "Classic Mode — win for league points and coins",
     "Serbest maç — keyfine bak, hiçbir şey kaybetmezsin": "Casual match — just have fun, you lose nothing",
     "Dereceli: doğru başına +{dogru} lig puanı ve coin (en çok {tavan}).":
       "Ranked: +{dogru} league points and coins per correct answer (up to {tavan}).",

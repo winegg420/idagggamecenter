@@ -2598,3 +2598,54 @@ p.bd-gizlilik-not {
 .bd-lobi-suzgec { margin-bottom: var(--bd-bosluk-2); }
 .bd-lobi-suzgec .bd-sekme-ust { margin-bottom: var(--bd-bosluk-1); }
 .bd-lobi-suzgec input[type="text"] { width: 100%; }
+
+/* ---------- Maç içi joker satın alma (Paket 27 C) ---------- */
+/* Envanterde 0 olan jokerin üstündeki altın simgesi: "satın alınabilir" işareti. */
+.bd-joker.satilik,
+.bd-duello-joker.satilik { position: relative; }
+.bd-joker-satilik {
+  position: absolute; top: -6px; right: -4px;
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 18px; height: 18px; border-radius: 999px;
+  background: var(--accent); color: #3A2A05;
+  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.18);
+}
+.bd-joker-adet.fiyat, .bd-duello-joker-adet.fiyat { color: var(--primary-2); font-weight: 900; }
+
+/* Alttan açılan onay sayfası — tek elle erişilebilir yükseklikte. */
+.bd-joker-sat {
+  width: 100%; max-width: 520px;
+  background: var(--card); color: var(--text);
+  border-radius: 22px 22px 0 0;
+  padding: 10px 16px calc(16px + env(safe-area-inset-bottom, 0px));
+  box-shadow: 0 -6px 24px rgba(32, 50, 74, 0.22);
+  animation: bd-sheet-gel 0.18s ease-out;
+}
+@media (prefers-reduced-motion: reduce) { .bd-joker-sat { animation: none; } }
+.bd-joker-sat-tutamac {
+  width: 44px; height: 5px; border-radius: 99px;
+  background: var(--border); margin: 0 auto 12px;
+}
+.bd-joker-sat-ust { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
+.bd-joker-sat-ikon {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 44px; height: 44px; border-radius: 14px; flex: none;
+  background: var(--bg-3); color: var(--primary);
+}
+.bd-joker-sat-ad { font-size: 17px; font-weight: 900; }
+.bd-joker-sat-aciklama { font-size: 13px; color: var(--text-dim); line-height: 1.4; }
+.bd-joker-sat-satir {
+  display: flex; align-items: center; justify-content: space-between;
+  min-height: 34px; font-size: 14px;
+}
+.bd-joker-sat-satir b { display: inline-flex; align-items: center; gap: 5px; }
+.bd-joker-sat-fiyat { color: var(--primary-2); }
+.bd-joker-sat-satir b.eksik { color: var(--danger-2); }
+.bd-joker-sat-not {
+  margin-top: 8px; padding: 9px 11px; border-radius: 12px;
+  background: var(--bg-3); color: var(--text-dim);
+  font-size: 13px; line-height: 1.4;
+}
+.bd-joker-sat-not.hata { background: #FDE9E9; color: var(--danger-2); }
+.bd-joker-sat-dugmeler { display: flex; gap: 10px; margin-top: 14px; }
+.bd-joker-sat-dugmeler .btn { flex: 1; min-height: 50px; }

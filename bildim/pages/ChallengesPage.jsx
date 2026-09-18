@@ -800,7 +800,7 @@ export default function ChallengesPage() {
       </div>
 
 
-      {/* Meydan okuma modu: Normal Maç ya da Düello. Seçim hem botlara hem arkadaşlara geçerli. */}
+      {/* Meydan okuma modu: Klasik Mod ya da Düello. Seçim hem botlara hem arkadaşlara geçerli. */}
       <div className="bd-kat-baslik">
         <span>{tt("Meydan okuma modu")}</span>
         <span className="alt-yazi">{tt("bota ve arkadaşına")}</span>
@@ -812,7 +812,7 @@ export default function ChallengesPage() {
           aria-checked={meydanModu === "normal"}
           onClick={() => setMeydanModu("normal")}
         >
-          <b>{tt("Normal Maç")}</b>
+          <b>{tt("Klasik Mod")}</b>
           <span className="alt-yazi">{tt("5 soru · seçtiğin kategori")}</span>
         </button>
         <button

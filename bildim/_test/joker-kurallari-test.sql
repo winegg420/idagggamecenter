@@ -60,15 +60,19 @@ begin
   values (v_u1, v_bot, 'aktif', null, public.soru_sec(null, 20, array[v_u1]), 0, now())
   returning id into v_mac;
 
-  -- === TEST 1: lig maçında 3. joker reddedilir (1 ücretsiz elli + 1 sure = 2 sınır) ===
-  perform public.joker_kullan('1v1', v_mac, 0, 'elli');   -- 1. (ücretsiz)
+  -- === TEST 1: aynı joker maçta iki kez kullanılamaz ===
+  -- PAKET 27 B: maç başına toplam hak 2 değil, duello_joker_hak (4) oldu ve
+  -- "aynı tür bir kez" kuralı BÜTÜN türlere yayıldı. Klasik Mod'un seti üç tür
+  -- olduğu için oradaki fiilî tavan zaten 3'tür — eski "3. joker reddedilir"
+  -- beklentisi artık yanlış. Asıl korunacak kural aynı türün tekrarı.
+  perform public.joker_kullan('1v1', v_mac, 0, 'elli');   -- 1.
   perform public.joker_kullan('1v1', v_mac, 0, 'sure');   -- 2.
   begin
-    perform public.joker_kullan('1v1', v_mac, 0, 'soru_degistir');  -- 3. → reddedilmeli
-    perform pg_temp.kontrol('Lig maçında 3. joker reddedilir', 'HATA', 'kabul edildi');
+    perform public.joker_kullan('1v1', v_mac, 0, 'elli');  -- aynı tür → reddedilmeli
+    perform pg_temp.kontrol('Aynı joker maçta iki kez kullanılamaz', 'HATA', 'kabul edildi');
   exception when others then
     v_hata := sqlerrm;
-    perform pg_temp.kontrol('Lig maçında 3. joker reddedilir', 'en fazla', v_hata);
+    perform pg_temp.kontrol('Aynı joker maçta iki kez kullanılamaz', 'zaten kullandın', v_hata);
   end;
 
   -- === TEST 1b: arkadaş maçında sınır yok ===
@@ -84,9 +88,11 @@ begin
   delete from public.friendships
    where (requester = v_u1 and addressee = v_bot) or (requester = v_bot and addressee = v_u1);
 
-  -- === TEST 2: ücretsiz elli maç başına 1 kez ===
+  -- === TEST 2: DERECELİ maçta ücretsiz 50:50 YOK ===
+  -- Paket 27 B.1.2: ücretsiz 50:50 yalnız SERBEST Klasik Mod'da. Yukarıdaki maç
+  -- dereceli (varsayılan), yani ücretsiz hak hiç açılmamalı.
   perform pg_temp.kontrol(
-    'Ücretsiz elli tükendi',
+    'Dereceli maçta ücretsiz 50:50 yok',
     'false',
     (select ucretsiz_elli_kaldi::text from public.joker_mac_durumu('1v1', v_mac)));
 
@@ -172,9 +178,11 @@ begin
   where p.id not in (v_u1, v_bot)
   limit 2;
 
+  -- Paket 27 B: her modda tek toplam hak (duello_joker_hak). Sayı koda gömülmez,
+  -- ayardan okunur — ayar değişirse test de onunla değişsin.
   perform pg_temp.kontrol(
-    'Final dışında turnuva sınırı 2',
-    '2',
+    'Final dışında turnuva sınırı = duello_joker_hak',
+    public.ayar_sayi('duello_joker_hak', 4)::text,
     public.joker_mac_siniri('turnuva', v_turnuva)::text);
 
   -- === TEST 7: turnuvada soru degistir jokeri yasak ===

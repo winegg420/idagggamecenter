@@ -56,7 +56,7 @@ export const BINALAR = [
 ];
 
 // 2B §4D: girilebilir dükkân renkleri — BINALAR paleti AYNEN (CLAUDE.md: değiştirme). Paletinde karşılığı olmayan iki mod
-// (Stüdyo, Ayarlar) için ayrı renk: marka turuncusu ve nötr arduvaz. Normal Maç → eski "Grup Maçı" (maç binası), Düello → "Meydan Oku" (1v1).
+// (Stüdyo, Ayarlar) için ayrı renk: marka turuncusu ve nötr arduvaz. Klasik Mod → eski "Grup Maçı" (maç binası), Düello → "Meydan Oku" (1v1).
 const paletRenk = (ad) => { const b = BINALAR.find((x) => x.duvar && x.ad === tt(ad)); return b ? { duvar: b.duvar, cati: b.cati } : null; };
 const MOD_RENK = {
   // "/hizli-mod" anahtarı kalktı (Paket 24 B): binası yok, paletRenk null döndürüyordu.
