@@ -1393,6 +1393,9 @@ const SOZLUK = {
     "Envanterin": "Your inventory",
     "Her maçta": "In every match,",
     "1 adet 50:50 ücretsizdir": "one 50:50 is free",
+    // ESKİMİŞ (Paket 28 B) — bu cümle ARTIK YANLIŞ kuralı anlatıyor ve hiçbir
+    // yerde kullanılmıyor. Silinmedi (ev kuralı) ama YENİDEN KULLANMA:
+    // doğru metinler lib/jokerKurallari.js içinde, tek kaynakta.
     "(kullanılmazsa birikmez). Lig maçlarında maç başına en fazla 2 joker, arkadaş maçlarında sınırsız. Turnuva finalinde ve altın soruda joker kullanılamaz.": "(it doesn't carry over if unused). Up to 2 jokers per match in league matches, unlimited in friend matches. Jokers can't be used in the tournament final or on the golden question.",
     "maç başına bir kez kullanılır.": "can be used once per match.",
     "Tek tek al": "Buy individually",

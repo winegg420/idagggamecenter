@@ -5952,3 +5952,148 @@ basınca envanterden joker düşüyordu. Tek kaynağa bağlandı (migration 242)
   `joker_mac_durumu`'nda zaten yaşanmıştı: kural iki yerde iki türlüydü.
 - **Paketin verdiği sayıyı da ölç.** Botun "4'ü geçip geçmediği" sorusunun cevabı
   ölçümde "zaten en çok 2" çıktı; asıl sorun sayı değil bedavalıktı.
+
+---
+
+## Paket 28 — Canlı testte çıkan hatalar (18 Eylül 2026)
+
+Canlı sitede bir düello oynanarak ve sayfalar gezilerek bulunan iki hata ve dört
+kullanım sorunu. Her madde ölçülerek düzeltildi, sonra **canlıda doğrulandı**.
+
+### 🔴 A — Düello açılır açılmaz yanlış "Bağlantın koptu"
+
+**Kök sebep ölçüldü, tahmin edilmedi.** Paylaşılan kabuk (`AuthContext`)
+`kalp_at()`i **60 saniyede bir** atıyor; düellonun kopukluk eşiği
+(`duello_kopuk_sn`) **25 saniye**. 60 > 25 olduğu için iki nabız arasında
+**35 saniyelik bir pencere** var ve o pencerede tamamen bağlı bir oyuncu "kopuk"
+sayılıyor. Uyarının ilk tıklamada kaybolmasının sebebi de bu: `duello_kilitle`
+çağrıldığında `last_seen` tazeleniyor.
+
+Ağırlığı şurada: uyarı yalnız korkutmuyor, `duello_kopuk_bekleme_sn` (45 sn)
+dolarsa **bağlı bir oyuncu maçı haksız yere kaybedebilir**.
+
+**Düzeltme:** düello ekranı kendi nabzını atıyor. Aralık ayardan okunuyor
+(`duello_nabiz_sn` = 10) **ama sunucu her zaman eşiğin yarısına kırpıyor**
+(`duello_nabiz_sn()` fonksiyonu). Yani iki ayardan biri ileride değişse bile
+ilişki bozulamaz — kural istemcide değil sunucuda duruyor. Teste bağlandı:
+eşik geçici olarak 8 sn'ye çekildiğinde nabzın 4 sn'ye indiği doğrulanıyor.
+
+**Aynı hata başka yerlerde arandı:** `last_seen`'e bakan diğer iki yer
+(`oyuncu_ara` ve `OyuncuKarti`'nın çevrimiçi rozeti) **2 dakika** eşiği
+kullanıyor — 60 sn'lik nabızla uyumlu, sorunsuz.
+
+Canlı doğrulama: `duello_durum().sureler` → `{nabiz: 10, kopuk: 25}`, 10 < 12,5. ✅
+**Sahibinin ekranında bakması gereken:** düelloyu açıp 60 saniye hiçbir şeye
+dokunmadan beklemek. Otomasyon sekmesinde bu sınama geçersiz: sekme `hidden`
+sayılıyor ve nabız orada **bilerek** durur (oyuncu bakmıyorsa nabız atılmaz).
+
+### 🔴 B — Dükkân'daki joker kural metni eski ve yanlıştı
+
+Paket 27'de kurallar değişti, metin değişmedi. Canlıda hâlâ "maç başına en fazla
+2 joker, arkadaş maçlarında sınırsız" yazıyordu; ikisi de artık yanlıştı.
+
+Kural artık **tek kaynakta**: `bildim/lib/jokerKurallari.js`. Dükkân oradan
+okuyor, sayıyı `oyun_ayarlari.duello_joker_hak`'tan alıyor — koda gömülü değil.
+Düello tanıtımı da güncellendi ama **sayıları tekrarlamıyor**; yalnız düelloya
+özel olanı anlatıyor (hiçbir joker ücretsiz değil, maç içinden alınabilir).
+
+Oyunun tamamı tarandı: `QuestionCard`'daki eski joker çubuğu **ölü kod** —
+dört çağıranın dördü de `macTur` veriyor, o dal hiç çizilmiyor. `push_metinleri`
+ve yardım sayfalarında joker kuralı geçmiyor. Eskimiş çeviri anahtarı silinmedi
+(ev kuralı) ama "YENİDEN KULLANMA" diye işaretlendi.
+
+Canlı doğrulama: beş kuralın beşi de doğru metinle görünüyor, eski cümle yok;
+İngilizce karşılıkların beşi de yayınlanmış pakette. ✅
+
+### 🟡 C — Dükkân kartları boş kutu olarak açılıyordu
+
+Portre hazır değilken hiçbir şey çizilmiyordu; dokuz kart bomboş beyaz kutu
+olarak açılıp ~5 saniyede tek tek doluyordu. Artık iskelet (ışık geçişi)
+görünüyor; `prefers-reduced-motion` açıksa geçiş yok, düz soluk dolgu.
+
+Canlı doğrulama: sayfa açılır açılmaz **10 kart iskelet**, 3 kart "Yakında"
+(kilit ikonu — onlara portre üretilmediği doğrulandı), portreler gelince
+**0 iskelet / 10 dolu**. ✅
+
+### 🟡 D — Saldırı Hazırlığı 4 saniye, satın almaya dardı
+
+**Önce ölçüldü:** satın alma RPC'si gidiş-dönüş ~100 ms (Paket 27'de 89-115 ms).
+Yani darboğaz sunucu değil, **insanın rozeti fark edip onayı okuma süresi** —
+o da 4 saniyeye kırpılamaz.
+
+Bu yüzden **(b)** seçildi: saldırı jokerleri **kategori seçme ekranında da satın
+alınabiliyor** (orada 20 saniye var), kullanım yine Hazırlık'ta. Maç ritmi
+uzamıyor — (a) seçilseydi 10 turda +20 saniye eklenecekti.
+
+Yeni sunucu fonksiyonu gerekmedi: mevcut `joker_tek_al` kullanıldı. Onun kendi
+fiyat listesi vardı, `joker_fiyati()`ye bağlandı — aynı joker iki farklı fiyata
+satılabilecek bir açık kapandı.
+
+### 🟡 E — Meydan 15-20 saniye "sahne hazırlanıyor" diyordu
+
+**Ölçüldü (canlı, bu makineden):**
+
+| Ne | Süre | Boyut |
+|---|---|---|
+| Karakterler (3 GLB, paralel) | 1.154 ms | 1,6 MB |
+| Proplar (16 GLB, paralel) | 737 ms | 1,8 MB |
+| **Bugünkü akış (art arda)** | **1.891 ms** | 3,4 MB |
+| Hepsi birden (paralel) | 353 ms | — |
+| `cephe_ao.bin` | 286 ms | 116 KB |
+
+**Çıkarım:** indirme toplam sürenin yalnızca ~2 saniyesi. 15-20 saniyenin
+gerisi cihazda sahne kurulumu (GLB ayrıştırma, cephe sistemi, AO pişirme,
+shader derleme, ilk kare). Bu paket bir hata düzeltme paketi olduğu için büyük
+optimizasyona girilmedi; iki ucuz kazanç alındı:
+
+1. Prop ve AO indirmeleri karakterlerle **örtüştürüldü** (kurulum yine
+   karakterler hazır olunca — `cevreKur` karakter atlasını kullanıyor).
+2. Bekleme ekranına **adım adı + ilerleme çubuğu** kondu: "karakterler
+   yükleniyor… / çevre yükleniyor… / sahne kuruluyor… / son dokunuşlar…".
+   Donmuş hissi kalktı.
+
+Canlı doğrulama: ilerleme çubuğu çalışıyor, "son dokunuşlar… %90" görüldü ve
+sahne yüklendi. **Toplam süre otomasyon sekmesinde ölçülemez** — o sekme
+arka planda sayıldığı için `requestAnimationFrame` duruyor (bu depoda bilinen
+kısıt). Gerçek süre sahibinin cihazında ölçülmeli.
+
+### 🟡 F — Ligde test hesapları ve 0 puanlı hesaplar
+
+**Ölçüldü, hiçbir hesap silinmedi.**
+
+- **Gruplar 22 / 22 / 19 (bronz) + 8 (gümüş).** Yani "12 kişilik grup" diye bir
+  sorun **yok**; 25'lik grup kuralı çalışıyor, o ligde 63 kişi olduğu için üçe
+  bölünmüş.
+- Tabloda 12 kişi görünmesinin sebebi **ayrı bir kural**: `lig_gorunur_mu`
+  yalnız takma adını seçmiş ve avatarı onaylanmış oyuncuyu gösteriyor.
+  Bronz 1'de 22 üyenin 1'i açık bot, 12'si bu süzgeci geçiyordu.
+- Bu 12'nin **3'ü hiç maç yapmamıştı**. Lig genelinde 0 maçlı üye: **35**.
+- Test görünümlü hesaplar (ad kalıbıyla, sahibinin kararı için liste):
+  `DenekKartal` (0 maç), `QuizTestIda` (1 maç), `SquareTest12` (1 maç),
+  `TestOyuncu917` (1 maç, 53 puan). **Hiçbiri silinmedi.**
+
+**Uygulanan tek şey görünürlük ölçütü:** `lig_grubum`'a `lig_gorunur_min_mac`
+(varsayılan 1) eklendi. `lig_siralama`'da bu kural **zaten vardı** — tutarsızlık
+giderildi. Oyuncu **kendi satırını her durumda** görmeye devam ediyor, yani
+yeni oyuncu kendini kaybetmiyor.
+
+Canlı doğrulama: lig tablosu **12 → 9 satır**; `İGG`, `Şev`, `silaapp` kalktı,
+gerçek oyuncular yerinde. `TestOyuncu917` duruyor — 1 maçı ve 53 puanı var,
+yani kurala göre gerçek katılımcı; onu ayıklamak sahibinin kararı. ✅
+
+### Çıkarımlar
+
+- **İki sayı arasındaki ilişkiyi yoruma bırakma.** Nabız 60, eşik 25 idi ve
+  ikisi ayrı dosyalarda ayrı kararlar olarak duruyordu. Artık ilişkiyi sunucu
+  kırpıyor ve test kilitliyor; birini değiştiren öbürünü bozamaz.
+- **"Kural değişti" ile "kural metni değişti" ayrı şeyler.** Paket 27 kuralları
+  değiştirdi, Dükkân eski metni anlatmaya devam etti. Metin tek kaynağa taşındı.
+- **Boş kutu, yavaşlıktan daha kötü görünür.** Portre üretimi zaten sırayla ve
+  doğru yapılıyordu; eksik olan tek şey "geliyor" demekti.
+- **Süreyi ölçmeden hangi ucu iyileştireceğini bilemezsin.** Meydanın 15-20
+  saniyesinin yalnız 2 saniyesi indirmeymiş; "GLB'leri küçült" diye başlansaydı
+  yanlış yer optimize edilecekti.
+- **Paketin verdiği gözlemi de ölç.** "Grupta 12 kişi var, 25 olmalıydı" doğru
+  görünen ama yanlış bir teşhisti: grup 22 kişilik, görünürlük süzgeci 12
+  gösteriyordu. Ölçmeden "grup kuralı bozuk" diye düzeltmeye kalkılsaydı
+  çalışan bir mekanizma bozulacaktı.
