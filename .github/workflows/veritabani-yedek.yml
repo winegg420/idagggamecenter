@@ -118,29 +118,58 @@ jobs:
       - name: Hedefi hazırla
         run: |
           set -euo pipefail
-          # Döküm auth.uid() gibi Supabase'e özel nesnelere dayanıyor; boş kapta
-          # yoklar. Varsayılan değerler çözülebilsin diye iskeletleri kuruyoruz.
+          # Döküm auth.uid(), `authenticated` rolü, `extensions` şeması gibi
+          # Supabase'e özel nesnelere dayanıyor; boş kapta hiçbiri yok. İlk koşuda
+          # ölçüldü: bunlar kurulmayınca pg_restore 112 hatayı atlıyordu (veri değil,
+          # RLS politikaları ve yabancı anahtarlar). İskeletler kurulunca döküm
+          # POLİTİKALARIYLA BİRLİKTE geri yükleniyor, yani doğrulama daha sıkı.
           psql "$HEDEF_URL" -v ON_ERROR_STOP=1 <<'SQL'
           create extension if not exists pgcrypto;
           create extension if not exists "uuid-ossp";
           create schema if not exists auth;
           create schema if not exists cron;
           create schema if not exists net;
+          create schema if not exists extensions;
+          do $$
+          begin
+            -- RLS politikalarının "to authenticated" kısmı bu roller olmadan kurulamaz.
+            create role anon nologin;            exception when duplicate_object then null;
+          end $$;
+          do $$ begin create role authenticated nologin; exception when duplicate_object then null; end $$;
+          do $$ begin create role service_role nologin; exception when duplicate_object then null; end $$;
           create or replace function auth.uid() returns uuid language sql stable as $$ select null::uuid $$;
           create or replace function auth.role() returns text language sql stable as $$ select null::text $$;
           create or replace function auth.jwt() returns jsonb language sql stable as $$ select '{}'::jsonb $$;
           SQL
 
-      - name: Geri yükle (public şeması)
+      - name: Geri yükle (public + auth)
         run: |
           set -uo pipefail
+          # `auth` da geri yükleniyor: oyuncu HESAPLARI orada ve yedeğin asıl
+          # doldurulamaz kısmı o. Ayrıca profiles.id -> auth.users(id) yabancı
+          # anahtarı ancak hesaplar varken kurulabiliyor.
           # Hatalar burada durdurmuyor: boş kapta pg_cron / pg_net gibi eklentilere
-          # bağlı nesneler zaten kurulamaz. Asıl kapı bir sonraki adımdaki
-          # satır sayısı karşılaştırmasıdır — veri eksikse iş orada kırılır.
-          pg_restore --no-owner --no-privileges --schema=public \
+          # bağlı nesneler kurulamaz. Asıl kapı bir sonraki adımdaki satır sayısı
+          # karşılaştırmasıdır — veri eksikse iş orada kırılır.
+          pg_restore --no-owner --no-privileges --schema=public --schema=auth \
             -d "$HEDEF_URL" yedek.dump 2> geri-yukleme-hatalari.log || true
           echo "geri yükleme uyarı/hata satırı: $(wc -l < geri-yukleme-hatalari.log)"
-          tail -40 geri-yukleme-hatalari.log || true
+          echo "--- hata türleri ---"
+          grep -oE 'ERROR:  [^"]*("[^"]*")?' geri-yukleme-hatalari.log | sort | uniq -c | sort -rn | head -10 || true
+
+      - name: Hesaplar geri geldi mi
+        env:
+          KAYNAK_URL: ${{ secrets.SUPABASE_DB_URL }}
+        run: |
+          set -euo pipefail
+          K=$(psql "$KAYNAK_URL" -At -c 'select count(*) from auth.users')
+          H=$(psql "$HEDEF_URL" -At -c 'select count(*) from auth.users')
+          echo "auth.users — kaynak $K, geri yüklenen $H"
+          if [ "$K" != "$H" ]; then
+            echo "HESAPLAR EKSİK GERİ YÜKLENDİ — yedek kullanılamaz"
+            exit 1
+          fi
+          echo "Hesaplar doğrulandı."
 
       - name: Satır sayılarını karşılaştır
         run: |
